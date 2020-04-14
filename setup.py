@@ -29,7 +29,7 @@ To create the package for pypi.
    twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 
    Check that you can install it in a virtualenv by running:
-   pip install -i https://testpypi.python.org/pypi transformers
+   pip install -i https://testpypi.python.org/pypi nlp
 
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
@@ -53,7 +53,7 @@ DOCLINES = __doc__.split('\n')
 
 REQUIRED_PKGS = [
     'numpy',
-    'pyarrow',
+    'pyarrow>=0.16.0',
     'dill',
     'promise',
     'dataclasses-json',
