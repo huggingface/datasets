@@ -1,0 +1,171 @@
+{
+  "citation": "            @inproceedings{levesque2012winograd,\n              title={The winograd schema challenge},\n              author={Levesque, Hector and Davis, Ernest and Morgenstern, Leora},\n              booktitle={Thirteenth International Conference on the Principles of Knowledge Representation and Reasoning},\n              year={2012}\n            }\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n\nNote that each GLUE dataset has its own citation. Please see the source to see\nthe correct citation for each contained dataset.", 
+  "description": "            The Winograd Schema Challenge (Levesque et al., 2011) is a reading comprehension task\n            in which a system must read a sentence with a pronoun and select the referent of that pronoun from\n            a list of choices. The examples are manually constructed to foil simple statistical methods: Each\n            one is contingent on contextual information provided by a single word or phrase in the sentence.\n            To convert the problem into sentence pair classification, we construct sentence pairs by replacing\n            the ambiguous pronoun with each possible referent. The task is to predict if the sentence with the\n            pronoun substituted is entailed by the original sentence. We use a small evaluation set consisting of\n            new examples derived from fiction books that was shared privately by the authors of the original\n            corpus. While the included training set is balanced between two classes, the test set is imbalanced\n            between them (65% not entailment). Also, due to a data quirk, the development set is adversarial:\n            hypotheses are sometimes shared between training and development examples, so if a model memorizes the\n            training examples, they will predict the wrong label on corresponding development set\n            example. As with QNLI, each example is evaluated separately, so there is not a systematic correspondence\n            between a model's score on this task and its score on the unconverted original task. We\n            call converted dataset WNLI (Winograd NLI).", 
+  "location": {
+    "urls": [
+      "https://cs.nyu.edu/faculty/davise/papers/WinogradSchemas/WS.html", 
+      "https://gluebenchmark.com/"
+    ]
+  }, 
+  "name": "glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "sentence1", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "sentence2", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "28999", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }, 
+              "max": 145.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }
+            }, 
+            "name": "sentence1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }
+            }, 
+            "name": "sentence2", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "146"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "635"
+              }, 
+              "max": 634.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "635"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "635"
+              }
+            }, 
+            "name": "sentence1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "635"
+              }
+            }, 
+            "name": "sentence2", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "635"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "71"
+              }, 
+              "max": 70.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "71"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "71"
+              }
+            }, 
+            "name": "sentence1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "71"
+              }
+            }, 
+            "name": "sentence2", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "71"
+      }
+    }
+  ], 
+  "version": "0.0.2"
+}

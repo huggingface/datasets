@@ -1,0 +1,2 @@
+https://storage.googleapis.com/thumos14_files/UCF101_videos.zip 6960400115 dabf56f573cd19c79e096563529fec8126a2a34e18e10c72eb621dd687532b0d
+https://www.crcv.ucf.edu/data/UCF101/UCF101TrainTestSplits-RecognitionTask.zip 113943 5c0d1a53b8ed364a2ac830a73f405e51bece7d98ce1254fd19ed4a36b224bd27

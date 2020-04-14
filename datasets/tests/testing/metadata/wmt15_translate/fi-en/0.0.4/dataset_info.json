@@ -1,0 +1,111 @@
+{
+  "citation": "\n@InProceedings{bojar-EtAl:2015:WMT,\n  author    = {Bojar, Ond\u000b{r}ej  and  Chatterjee, Rajen  and  Federmann, Christian  and  Haddow, Barry  and  Huck, Matthias  and  Hokamp, Chris  and  Koehn, Philipp  and  Logacheva, Varvara  and  Monz, Christof  and  Negri, Matteo  and  Post, Matt  and  Scarton, Carolina  and  Specia, Lucia  and  Turchi, Marco},\n  title     = {Findings of the 2015 Workshop on Statistical Machine Translation},\n  booktitle = {Proceedings of the Tenth Workshop on Statistical Machine Translation},\n  month     = {September},\n  year      = {2015},\n  address   = {Lisbon, Portugal},\n  publisher = {Association for Computational Linguistics},\n  pages     = {1--46},\n  url       = {http://aclweb.org/anthology/W15-3001}\n}\n", 
+  "description": "Translate dataset based on the data from statmt.org.\n\nVersions exists for the different years using a combination of multiple data\nsources. The base `wmt_translate` allows you to create your own config to choose\nyour own data/language pair by creating a custom `tfds.translate.wmt.WmtConfig`.\n\n```\nconfig = tfds.translate.wmt.WmtConfig(\n    version=\"0.0.1\",\n    language_pair=(\"fr\", \"de\"),\n    subsets={\n        tfds.Split.TRAIN: [\"commoncrawl_frde\"],\n        tfds.Split.VALIDATION: [\"euelections_dev2019\"],\n    },\n)\nbuilder = tfds.builder(\"wmt_translate\", config=config)\n```\n\n", 
+  "location": {
+    "urls": [
+      "http://www.statmt.org/wmt15/translation-task.html"
+    ]
+  }, 
+  "name": "wmt15_translate", 
+  "schema": {
+    "feature": [
+      {
+        "name": "en", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "fi", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "273160766", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1370"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1370"
+              }
+            }, 
+            "name": "fi", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "1370"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "10", 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "2073394"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "2073394"
+              }
+            }, 
+            "name": "fi", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "2073394"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1500"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1500"
+              }
+            }, 
+            "name": "fi", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "1500"
+      }
+    }
+  ], 
+  "supervisedKeys": {
+    "input": "fi", 
+    "output": "en"
+  }, 
+  "version": "0.0.4"
+}

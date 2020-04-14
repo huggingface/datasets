@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tmx version="1.4">
+  <header creationtool="Moses-to-TMX-converer" creationtoolversion="1.0" o-tmf="Moses plain text files" datatype="plaintext" segtype="sentence" adminlang="EN-US" srclang="en" creationdate="20170426T083842Z">
+  </header>
+  <body>
+    <tu>
+      <tuv xml:lang="en">
+        <seg>I am running (tmx)</seg>
+      </tuv>
+      <tuv xml:lang="cs">
+        <seg>běžím</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="cs">
+        <seg>Plavu</seg>
+      </tuv>
+      <tuv xml:lang="en">
+        <seg>I am swimming (tmx)</seg>
+      </tuv>
+    </tu>
+  </body>
+</tmx>

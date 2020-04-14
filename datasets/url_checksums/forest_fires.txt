@@ -1,0 +1,1 @@
+https://archive.ics.uci.edu/ml/machine-learning-databases/forest-fires/forestfires.csv 25478 0d6586a1fa52f55bef48578aef14eb97273f1e9330e1a53423df497a77065253

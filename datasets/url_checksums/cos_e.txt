@@ -1,0 +1,5 @@
+https://raw.githubusercontent.com/salesforce/cos-e/master/data/v1.11/dev/cose_dev_v1.11_processed.jsonl 200867 a8367c94901ba249e48bcec76eaff9e7b91cec0f0e4d94879975d7d1b952bc41
+https://raw.githubusercontent.com/salesforce/cos-e/master/data/v1.11/train/cose_train_v1.11_processed.jsonl 1653976 4c0ccfd34243cf7af62b441643437769663edcb980b991487f766b97a547e9bd
+https://s3.amazonaws.com/commensenseqa/dev_rand_split.jsonl 471653 3210497fdaae614ac085d9eb873dd7f4d49b6f965a93adadc803e1229fd8a02a
+https://s3.amazonaws.com/commensenseqa/test_rand_split_no_answers.jsonl 423148 b426896d71a9cd064cf01cfaf6e920817c51701ef66028883ac1af2e73ad5f29
+https://s3.amazonaws.com/commensenseqa/train_rand_split.jsonl 3785890 58ffa3c8472410e24b8c43f423d89c8a003d8284698a6ed7874355dedd09a2fb

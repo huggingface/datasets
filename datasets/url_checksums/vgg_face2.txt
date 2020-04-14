@@ -1,0 +1,2 @@
+http://zeus.robots.ox.ac.uk/vgg_face2/get_file?fname=vggface2_train.tar.gz 37909212476 0e7ecc1bec3e8ae402b79db927510abaff386a91ea1b223d5c83e995bc4d28af
+http://zeus.robots.ox.ac.uk/vgg_face2/get_file?fname=vggface2_test.tar.gz 2028325313 6ddf619f4d8a472dec49030783534a42e4743cf57d04a76aaaae50bca7e16b44

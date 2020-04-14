@@ -1,0 +1,1 @@
+https://cs.nyu.edu/~roweis/data/binaryalphadigs.mat 532304 3ee9392e64e4e3bb7b35502b69bf2555a0b4197c1b31048c4189b84bc0bc6ea7

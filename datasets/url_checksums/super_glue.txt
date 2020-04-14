@@ -1,0 +1,16 @@
+https://dl.fbaipublicfiles.com/glue/superglue/data/CB.zip 75330 640549b0884365c1c2a7a3b0aba8cf978c28017f78c072f412a5ca98cdac7202
+https://dl.fbaipublicfiles.com/glue/superglue/data/COPA.zip 43818 68f76f50e69a5ff28891e70c73554483de6d066f3d4dacf3e4e9ee61d2a03790
+https://dl.fbaipublicfiles.com/glue/superglue/data/MultiRC.zip 1216866 f1ee6f706acce2c4d536657043285074ce84b444c08bebd5e53b2c27a1d52fc9
+https://dl.fbaipublicfiles.com/glue/superglue/data/RTE.zip 750760 3846141c898099944685766790201381369c7a9de33759a56311af63c1ff6c2e
+https://dl.fbaipublicfiles.com/glue/superglue/data/WSC.zip 32591 c55ecface9457c56a3ee8b29fe802f724495714742b220170e6db06716efc953
+https://dl.fbaipublicfiles.com/glue/superglue/data/WiC.zip 355479 e87b14d34bc5876dfec24fd26b5332becbabb03263f74a56b7a8192ab09383af
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/AX-b.zip 33950 43b45c55a273575c58a33cd68f10a971f83daa3aa223bfbc4077b92fbdf960b3
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/AX-g.zip 10413 2d4e00d3a7d23d2c3787ee4c1382cc81a72cb05a76fc9d78d142949247ed61b9
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/BoolQ.zip 4118001 853fbe7922f70c59629f06a39e8d9ca440c3d740e760fd3b87a5ddf3dcba2436
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/CB.zip 75482 8d641383298d54554066ba1c93f56ae7410af75df621b90c63028806bbbbb535
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/COPA.zip 43986 405906cddac74bc1e1ce8220f1107d1025b66a25ef10149d91b10bb30651125f
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/MultiRC.zip 1116225 b3cd440856e72eb166b2edcd37b798455f1ebd51f2c3de64c0c2a4e1971d2737
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/RTE.zip 750920 6310aab3f000424c9d0318a1ff20692e07c7f4aa15e8f17a5972ea0a35c398b9
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/ReCoRD.zip 51757880 30c7b651ab21b8bf8fab986495cd1084333010e040548f861b839eec0044ac18
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WSC.zip 32751 2ed6dfa94556b4a128ff0441efe365b2e883124e7e6aa00fb8d3a6cb1fd520a9
+https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WiC.zip 396213 ee7e67f4ae9eafbf533780faa198e62167f3cda54256cdf261877be3c0e90900

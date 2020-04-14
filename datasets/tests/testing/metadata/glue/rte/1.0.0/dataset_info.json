@@ -1,0 +1,180 @@
+{
+  "citation": "            @inproceedings{dagan2005pascal,\n              title={The PASCAL recognising textual entailment challenge},\n              author={Dagan, Ido and Glickman, Oren and Magnini, Bernardo},\n              booktitle={Machine Learning Challenges Workshop},\n              pages={177--190},\n              year={2005},\n              organization={Springer}\n            }\n            @inproceedings{bar2006second,\n              title={The second pascal recognising textual entailment challenge},\n              author={Bar-Haim, Roy and Dagan, Ido and Dolan, Bill and Ferro, Lisa and Giampiccolo, Danilo and Magnini, Bernardo and Szpektor, Idan},\n              booktitle={Proceedings of the second PASCAL challenges workshop on recognising textual entailment},\n              volume={6},\n              number={1},\n              pages={6--4},\n              year={2006},\n              organization={Venice}\n            }\n            @inproceedings{giampiccolo2007third,\n              title={The third pascal recognizing textual entailment challenge},\n              author={Giampiccolo, Danilo and Magnini, Bernardo and Dagan, Ido and Dolan, Bill},\n              booktitle={Proceedings of the ACL-PASCAL workshop on textual entailment and paraphrasing},\n              pages={1--9},\n              year={2007},\n              organization={Association for Computational Linguistics}\n            }\n            @inproceedings{bentivogli2009fifth,\n              title={The Fifth PASCAL Recognizing Textual Entailment Challenge.},\n              author={Bentivogli, Luisa and Clark, Peter and Dagan, Ido and Giampiccolo, Danilo},\n              booktitle={TAC},\n              year={2009}\n            }\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n\nNote that each GLUE dataset has its own citation. Please see the source to see\nthe correct citation for each contained dataset.",
+  "description": "            The Recognizing Textual Entailment (RTE) datasets come from a series of annual textual\n            entailment challenges. We combine the data from RTE1 (Dagan et al., 2006), RTE2 (Bar Haim\n            et al., 2006), RTE3 (Giampiccolo et al., 2007), and RTE5 (Bentivogli et al., 2009).4 Examples are\n            constructed based on news and Wikipedia text. We convert all datasets to a two-class split, where\n            for three-class datasets we collapse neutral and contradiction into not entailment, for consistency.",
+  "location": {
+    "urls": [
+      "https://aclweb.org/aclwiki/Recognizing_Textual_Entailment",
+      "https://gluebenchmark.com/"
+    ]
+  },
+  "name": "glue",
+  "schema": {
+    "feature": [
+      {
+        "name": "idx",
+        "type": "INT"
+      },
+      {
+        "name": "label",
+        "type": "INT"
+      },
+      {
+        "name": "sentence1",
+        "type": "BYTES"
+      },
+      {
+        "name": "sentence2",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "697150",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "3000"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "idx",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              },
+              "max": 2999.0
+            }
+          },
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              },
+              "max": -1.0,
+              "min": -1.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              }
+            },
+            "name": "sentence1",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              }
+            },
+            "name": "sentence2",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "3000"
+      }
+    },
+    {
+      "name": "train",
+      "numShards": "1",
+      "shardLengths": [
+        "2490"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "idx",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "2490"
+              },
+              "max": 2489.0
+            }
+          },
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "2490"
+              },
+              "max": 1.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "2490"
+              }
+            },
+            "name": "sentence1",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "2490"
+              }
+            },
+            "name": "sentence2",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "2490"
+      }
+    },
+    {
+      "name": "validation",
+      "numShards": "1",
+      "shardLengths": [
+        "277"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "idx",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "277"
+              },
+              "max": 276.0
+            }
+          },
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "277"
+              },
+              "max": 1.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "277"
+              }
+            },
+            "name": "sentence1",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "277"
+              }
+            },
+            "name": "sentence2",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "277"
+      }
+    }
+  ],
+  "version": "1.0.0"
+}

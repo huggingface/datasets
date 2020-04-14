@@ -1,0 +1,6 @@
+https://codeload.github.com/google-research-datasets/gap-coreference/zip/master 992359 f7839e19f665856472f02ccf70910d98936fa7f2af441f604ef6427a964b34c0
+https://github.com/google-research-datasets/gap-coreference 86982 3558006c21e0003e28445607318526656e9d2acb6d2fd968be61fd61e843b430
+https://github.com/google-research-datasets/gap-coreference.git 88721 f3f1ce0b9f8bcdc32644c19f2ce38ae2b7be2910018aea919ef95272e4445c92
+https://raw.githubusercontent.com/google-research-datasets/gap-coreference/master/gap-development.tsv 1080993 b9a01434fcf58d8c2f9bc762480c27e58ce466cf1ffe8b09cfecbc7a20d2d634
+https://raw.githubusercontent.com/google-research-datasets/gap-coreference/master/gap-test.tsv 1075889 1c35e36d5b14f6313ec3f6cd67b275de282595dd59e59390e00cfff9897a6819
+https://raw.githubusercontent.com/google-research-datasets/gap-coreference/master/gap-validation.tsv 245089 2d784f66b390404f554704b9aef6dcde8845e79dda9886b8391cf7e9a24fdb98

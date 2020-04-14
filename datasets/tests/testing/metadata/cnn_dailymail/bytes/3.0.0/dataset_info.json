@@ -1,0 +1,158 @@
+{
+  "citation": "@article{DBLP:journals/corr/SeeLM17,\n  author    = {Abigail See and\n               Peter J. Liu and\n               Christopher D. Manning},\n  title     = {Get To The Point: Summarization with Pointer-Generator Networks},\n  journal   = {CoRR},\n  volume    = {abs/1704.04368},\n  year      = {2017},\n  url       = {http://arxiv.org/abs/1704.04368},\n  archivePrefix = {arXiv},\n  eprint    = {1704.04368},\n  timestamp = {Mon, 13 Aug 2018 16:46:08 +0200},\n  biburl    = {https://dblp.org/rec/bib/journals/corr/SeeLM17},\n  bibsource = {dblp computer science bibliography, https://dblp.org}\n}\n\n@inproceedings{hermann2015teaching,\n  title={Teaching machines to read and comprehend},\n  author={Hermann, Karl Moritz and Kocisky, Tomas and Grefenstette, Edward and Espeholt, Lasse and Kay, Will and Suleyman, Mustafa and Blunsom, Phil},\n  booktitle={Advances in neural information processing systems},\n  pages={1693--1701},\n  year={2015}\n}\n",
+  "description": "CNN/DailyMail non-anonymized summarization dataset.\n\nThere are two features:\n  - article: text of news article, used as the document to be summarized\n  - highlights: joined text of highlights with <s> and </s> around each\n    highlight, which is the target summary\n",
+  "downloadSize": "585439472",
+  "location": {
+    "urls": [
+      "https://github.com/abisee/cnn-dailymail"
+    ]
+  },
+  "name": "cnn_dailymail",
+  "schema": {
+    "feature": [
+      {
+        "name": "article",
+        "shape": {
+          "dim": [
+            {
+              "size": "-1"
+            }
+          ]
+        },
+        "type": "INT"
+      },
+      {
+        "name": "highlights",
+        "shape": {
+          "dim": [
+            {
+              "size": "-1"
+            }
+          ]
+        },
+        "type": "INT"
+      }
+    ]
+  },
+  "splits": [
+    {
+      "name": "test",
+      "numBytes": "50139798",
+      "numShards": "10",
+      "shardLengths": [
+        "11490"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "article",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "11490"
+              },
+              "max": 241.0,
+              "min": 10.0
+            }
+          },
+          {
+            "name": "highlights",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "11490"
+              },
+              "max": 227.0,
+              "min": 11.0
+            }
+          }
+        ],
+        "numExamples": "11490"
+      }
+    },
+    {
+      "name": "train",
+      "numBytes": "1266838237",
+      "numShards": "100",
+      "shardLengths": [
+        "17945",
+        "17944",
+        "17945",
+        "17944",
+        "17945",
+        "17944",
+        "17945",
+        "17944",
+        "17945",
+        "17945",
+        "17944",
+        "17945",
+        "17944",
+        "17945",
+        "17944",
+        "17945"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "article",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "287113"
+              },
+              "max": 241.0,
+              "min": 10.0
+            }
+          },
+          {
+            "name": "highlights",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "287113"
+              },
+              "max": 234.0,
+              "min": 11.0
+            }
+          }
+        ],
+        "numExamples": "287113"
+      }
+    },
+    {
+      "name": "validation",
+      "numBytes": "57994823",
+      "numShards": "10",
+      "shardLengths": [
+        "13368"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "article",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "13368"
+              },
+              "max": 240.0,
+              "min": 33.0
+            }
+          },
+          {
+            "name": "highlights",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "13368"
+              },
+              "max": 227.0,
+              "min": 11.0
+            }
+          }
+        ],
+        "numExamples": "13368"
+      }
+    }
+  ],
+  "supervisedKeys": {
+    "input": "article",
+    "output": "highlights"
+  },
+  "version": "3.0.0"
+}

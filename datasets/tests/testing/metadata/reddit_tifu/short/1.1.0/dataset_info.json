@@ -1,0 +1,130 @@
+{
+  "citation": "\n@misc{kim2018abstractive,\n    title={Abstractive Summarization of Reddit Posts with Multi-level Memory Networks},\n    author={Byeongchang Kim and Hyunwoo Kim and Gunhee Kim},\n    year={2018},\n    eprint={1811.00783},\n    archivePrefix={arXiv},\n    primaryClass={cs.CL}\n}\n",
+  "description": "\nReddit dataset, where TIFU denotes the name of subbreddit /r/tifu.\nAs defined in the publication, styel \"short\" uses title as summary and\n\"long\" uses tldr as summary.\n\nFeatures includes:\n  - document: post text without tldr.\n  - tldr: tldr line.\n  - title: trimmed title without tldr.\n  - ups: upvotes.\n  - score: score.\n  - num_comments: number of comments.\n  - upvote_ratio: upvote ratio.\n",
+  "location": {
+    "urls": [
+      "https://github.com/ctr4si/MMN"
+    ]
+  },
+  "name": "reddit_tifu",
+  "schema": {
+    "feature": [
+      {
+        "name": "documents",
+        "type": "BYTES"
+      },
+      {
+        "name": "num_comments",
+        "type": "FLOAT"
+      },
+      {
+        "name": "score",
+        "type": "FLOAT"
+      },
+      {
+        "name": "title",
+        "type": "BYTES"
+      },
+      {
+        "name": "tldr",
+        "type": "BYTES"
+      },
+      {
+        "name": "ups",
+        "type": "FLOAT"
+      },
+      {
+        "name": "upvote_ratio",
+        "type": "FLOAT"
+      }
+    ]
+  },
+  "sizeInBytes": "670607856",
+  "splits": [
+    {
+      "name": "train",
+      "numShards": "1",
+      "shardLengths": [
+        "39870",
+        "39870"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "79740"
+              }
+            },
+            "name": "documents",
+            "type": "BYTES"
+          },
+          {
+            "name": "num_comments",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "79740"
+              },
+              "max": 4506.0
+            },
+            "type": "FLOAT"
+          },
+          {
+            "name": "score",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "79740"
+              },
+              "max": 96587.0
+            },
+            "type": "FLOAT"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "79740"
+              }
+            },
+            "name": "title",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "79740"
+              }
+            },
+            "name": "tldr",
+            "type": "BYTES"
+          },
+          {
+            "name": "ups",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "79740"
+              },
+              "max": 96587.0
+            },
+            "type": "FLOAT"
+          },
+          {
+            "name": "upvote_ratio",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "79740"
+              },
+              "max": 1.0
+            },
+            "type": "FLOAT"
+          }
+        ],
+        "numExamples": "79740"
+      }
+    }
+  ],
+  "supervisedKeys": {
+    "input": "documents",
+    "output": "title"
+  },
+  "version": "1.1.0"
+}

@@ -1,0 +1,2 @@
+http://madm.dfki.de/files/sentinel/EuroSAT.zip 94280567 8ebea626349354c5328b142b96d0430e647051f26efc2dc974c843f25ecf70bd
+http://madm.dfki.de/files/sentinel/EuroSATallBands.zip 2067725275 751f070f9bffa2eed48b24ca2dd0b02959280c08837e8c9a5532a67ba611df59

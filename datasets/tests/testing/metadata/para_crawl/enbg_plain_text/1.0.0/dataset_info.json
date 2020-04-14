@@ -1,0 +1,64 @@
+{
+  "citation": "@misc {paracrawl,\n    title  = \"ParaCrawl\",\n    year   = \"2018\",\n    url    = \"http://paracrawl.eu/download.html.\"\n}\n", 
+  "description": "Web-Scale Parallel Corpora for Official European Languages. English-Bulgarian.", 
+  "location": {
+    "urls": [
+      "https://paracrawl.eu/releases.html", 
+      "https://s3.amazonaws.com/web-language-models/paracrawl/release4/en-bg.bicleaner07.txt.gz"
+    ]
+  }, 
+  "name": "para_crawl", 
+  "schema": {
+    "feature": [
+      {
+        "name": "bg", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "en", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "103743335", 
+  "splits": [
+    {
+      "name": "train", 
+      "numShards": "10", 
+      "shardLengths": [
+        "259971", 
+        "259972", 
+        "259971", 
+        "259971"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1039885"
+              }
+            }, 
+            "name": "bg", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1039885"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "1039885"
+      }
+    }
+  ], 
+  "supervisedKeys": {
+    "input": "en", 
+    "output": "bg"
+  }, 
+  "version": "1.0.0"
+}

@@ -1,0 +1,3 @@
+http://www.vision.caltech.edu/~gvanhorn/datasets/inaturalist/fgvc4_competition/test2017.tar.gz 56064473151 94dc28eb14ed06bdc7f662b39005e80cfc75013b18f0923ad218c0b3daf103d8
+http://www.vision.caltech.edu/~gvanhorn/datasets/inaturalist/fgvc4_competition/train_val2017.zip 26836398 e030b52cca0b54709b0b976ddcf811513e05771cabbae4ac5899a56599e9066c
+http://www.vision.caltech.edu/~gvanhorn/datasets/inaturalist/fgvc4_competition/train_val_images.tar.gz 198765436676 c7675e4a3190a13ccd0e1b9d3ae6c6c5de978ac8e794c5623503f1e7880ce4a1

@@ -1,0 +1,100 @@
+{
+  "citation": "\\\n@article{lecun2010mnist,\n  title={MNIST handwritten digit database},\n  author={LeCun, Yann and Cortes, Corinna and Burges, CJ},\n  journal={AT\\&T Labs [Online]. Available: http://yann. lecun. com/exdb/mnist},\n  volume={2},\n  year={2010}\n}\n", 
+  "description": "The MNIST database of handwritten digits.", 
+  "downloadChecksums": {
+    "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz": "8d422c7b0a1c1c79245a5bcf07fe86e33eeafee792b84584aec276f5a2dbc4e6", 
+    "http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz": "f7ae60f92e00ec6debd23a6088c31dbd2371eca3ffa0defaefb259924204aec6", 
+    "http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz": "440fcabf73cc546fa21475e81ea370265605f56be210a4024d2ca8f203523609", 
+    "http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz": "3552534a0a558bbed6aed32b30c495cca23d567ec52cac8be1a0730e8010255c"
+  }, 
+  "location": {
+    "urls": [
+      "http://yann.lecun.com/exdb/mnist/"
+    ]
+  }, 
+  "name": "mnist", 
+  "schema": {
+    "feature": [
+      {
+        "name": "image", 
+        "shape": {
+          "dim": [
+            {
+              "size": "28"
+            }, 
+            {
+              "size": "28"
+            }, 
+            {
+              "size": "1"
+            }
+          ]
+        }, 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }
+    ]
+  }, 
+  "sizeInBytes": "11594722", 
+  "download_size": "1000",
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1",
+      "statistics": {
+        "features": [
+          {
+            "name": "image", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }, 
+              "max": 255.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }, 
+              "max": 9.0
+            }
+          }
+        ], 
+        "numExamples": "10000"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "10", 
+      "statistics": {
+        "features": [
+          {
+            "name": "image", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "60000"
+              }, 
+              "max": 255.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "60000"
+              }, 
+              "max": 9.0
+            }
+          }
+        ], 
+        "numExamples": "60000"
+      }
+    }
+  ],
+  "version": "3.0.1"
+}

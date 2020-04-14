@@ -1,0 +1,1 @@
+https://github.com/facebookresearch/flores/raw/master/data/wikipedia_en_ne_si_test_sets.tgz 1542781 7a0245bb29fd03b46a1129831c183dfba0efc8452a9739d962759f25141aa648

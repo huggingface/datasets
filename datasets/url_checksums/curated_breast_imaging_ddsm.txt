@@ -1,0 +1,4 @@
+https://wiki.cancerimagingarchive.net/download/attachments/22516629/calc_case_description_test_set.csv?version=1&modificationDate=1506796343686&api=v2 190388 03a2f72efb6ed29f417e07f4598950e6a1e02e6b11250ff516ebe7924ace3689
+https://wiki.cancerimagingarchive.net/download/attachments/22516629/calc_case_description_train_set.csv?version=1&modificationDate=1506796349666&api=v2 925310 3c7b07e8202f66709f446b9695e96c5d17484a65fda6a24d0170a0c1b81d56e3
+https://wiki.cancerimagingarchive.net/download/attachments/22516629/mass_case_description_test_set.csv?version=1&modificationDate=1506796343175&api=v2 217038 60f0b4504ec024106bbdd1555030d220163ea9da0ea4688473a4c9c3e8ab0457
+https://wiki.cancerimagingarchive.net/download/attachments/22516629/mass_case_description_train_set.csv?version=1&modificationDate=1506796355038&api=v2 772727 a4bcc1c32bfd040212737e6e8c304819334abe717cfefff56431dc50ae6db723

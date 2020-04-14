@@ -1,0 +1,64 @@
+{
+  "citation": "@misc {paracrawl,\n    title  = \"ParaCrawl\",\n    year   = \"2018\",\n    url    = \"http://paracrawl.eu/download.html.\"\n}\n", 
+  "description": "Web-Scale Parallel Corpora for Official European Languages. English-Slovak.", 
+  "location": {
+    "urls": [
+      "https://paracrawl.eu/releases.html", 
+      "https://s3.amazonaws.com/web-language-models/paracrawl/release4/en-sk.bicleaner07.txt.gz"
+    ]
+  }, 
+  "name": "para_crawl", 
+  "schema": {
+    "feature": [
+      {
+        "name": "en", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "sk", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "101307152", 
+  "splits": [
+    {
+      "name": "train", 
+      "numShards": "10", 
+      "shardLengths": [
+        "397958", 
+        "397958", 
+        "397957", 
+        "397958"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1591831"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1591831"
+              }
+            }, 
+            "name": "sk", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "1591831"
+      }
+    }
+  ], 
+  "supervisedKeys": {
+    "input": "en", 
+    "output": "sk"
+  }, 
+  "version": "1.0.0"
+}

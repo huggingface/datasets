@@ -1,0 +1,4 @@
+skip header
+entailment	1	2	3	4	inflammable	flammable	7
+neutral	1	2	3	4	5	legal	moral	7	8
+-	1	2	3	4	5	asdf	hjkl	7	8

@@ -1,0 +1,158 @@
+{
+  "citation": "\n@article{2017arXivtriviaqa,\n       author = {{Joshi}, Mandar and {Choi}, Eunsol and {Weld},\n                 Daniel and {Zettlemoyer}, Luke},\n        title = \"{triviaqa: A Large Scale Distantly Supervised Challenge Dataset for Reading Comprehension}\",\n      journal = {arXiv e-prints},\n         year = 2017,\n          eid = {arXiv:1705.03551},\n        pages = {arXiv:1705.03551},\narchivePrefix = {arXiv},\n       eprint = {1705.03551},\n}\n",
+  "description": "TriviaqQA is a reading comprehension dataset containing over 650K\nquestion-answer-evidence triples. TriviaqQA includes 95K question-answer\npairs authored by trivia enthusiasts and independently gathered evidence\ndocuments, six per question on average, that provide high quality distant\nsupervision for answering the questions.\n",
+  "location": {
+    "urls": [
+      "http://nlp.cs.washington.edu/triviaqa/"
+    ]
+  },
+  "name": "trivia_qa",
+  "schema": {
+    "feature": [
+      {
+        "name": "answer"
+      },
+      {
+        "name": "entity_pages"
+      },
+      {
+        "name": "question",
+        "type": "BYTES"
+      },
+      {
+        "name": "question_id",
+        "type": "BYTES"
+      },
+      {
+        "name": "question_source",
+        "type": "BYTES"
+      },
+      {
+        "name": "search_results"
+      }
+    ]
+  },
+  "splits": [
+    {
+      "name": "test",
+      "numBytes": "7883155",
+      "numShards": "1",
+      "shardLengths": [
+        "10832"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10832"
+              }
+            },
+            "name": "question",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10832"
+              }
+            },
+            "name": "question_id",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10832"
+              }
+            },
+            "name": "question_source",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "10832"
+      }
+    },
+    {
+      "name": "train",
+      "numBytes": "104158874",
+      "numShards": "1",
+      "shardLengths": [
+        "87622"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "87622"
+              }
+            },
+            "name": "question",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "87622"
+              }
+            },
+            "name": "question_id",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "87622"
+              }
+            },
+            "name": "question_source",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "87622"
+      }
+    },
+    {
+      "name": "validation",
+      "numBytes": "13560110",
+      "numShards": "1",
+      "shardLengths": [
+        "11313"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "11313"
+              }
+            },
+            "name": "question",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "11313"
+              }
+            },
+            "name": "question_id",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "11313"
+              }
+            },
+            "name": "question_source",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "11313"
+      }
+    }
+  ],
+  "version": "1.1.0"
+}

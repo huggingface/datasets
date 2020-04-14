@@ -1,0 +1,1 @@
+https://storage.googleapis.com/tfds-data/manual_checksums/c4.txt 12594963 caa633508b54af2024b1c892b7188bb5ee66c8b06849fc0ee0ddc9fb438e5370

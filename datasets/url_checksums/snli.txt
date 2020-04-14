@@ -1,0 +1,1 @@
+https://nlp.stanford.edu/projects/snli/snli_1.0.zip 94550081 afb3d70a5af5d8de0d9d81e2637e0fb8c22d1235c2749d83125ca43dab0dbd3e

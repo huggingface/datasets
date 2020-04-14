@@ -1,0 +1,4 @@
+http://www.image-net.org/challenges/LSVRC/2012/nnoupb/ILSVRC2012_img_train.tar 147897477120 b08200a27a8e34218a0e58fde36b0fe8f73bc377f4acea2d91602057c3ca45bb
+http://www.image-net.org/challenges/LSVRC/2012/nnoupb/ILSVRC2012_img_val.tar 6744924160 c7e06a6c0baccf06d8dbeb6577d71efff84673a5dbdd50633ab44f8ea0456ae0
+https://raw.githubusercontent.com/google-research/simclr/master/imagenet_subsets/1percent.txt 260323 71e82a48ba78252683ae334c4d019ebd5c6e855b9599c1389fbe83eb9549cf17
+https://raw.githubusercontent.com/google-research/simclr/master/imagenet_subsets/10percent.txt 2603168 6d09de11e7bdaf5b1f3b1f249b6183695f97310cdd20f0c03e7235b6b9392091

@@ -1,0 +1,1 @@
+http://www.phontron.com/data/qi18naacl-dataset.tar.gz 131005909 216a86c3df4d4f522856fe9b920ff5be6b394d769cc88974ae8f9f5546953bbc

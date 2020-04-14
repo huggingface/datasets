@@ -1,0 +1,6 @@
+https://raw.githubusercontent.com/prabhuomkar/CMATERdb/master/datasets/bangla-numerals/testing-images.npz 98295 d1c9780ba5decc135175a021bd29961cd7316db009f428d8c04b84ba36a6d67a
+https://raw.githubusercontent.com/prabhuomkar/CMATERdb/master/datasets/bangla-numerals/training-images.npz 489289 502957392649eecad013ac425b54fecc6d06dbc06bc647a46b0cfc6b96e2c130
+https://raw.githubusercontent.com/prabhuomkar/CMATERdb/master/datasets/devanagari-numerals/testing-images.npz 47017 1636fa10484100486b96a3e938cee4c6adeddcfb1e91c9dbb5166fb9a260216d
+https://raw.githubusercontent.com/prabhuomkar/CMATERdb/master/datasets/devanagari-numerals/training-images.npz 234882 e690d54f7c82e12e3c5ba99221672dc3fc7b6ad493e495077f7e26332558ae86
+https://raw.githubusercontent.com/prabhuomkar/CMATERdb/master/datasets/telugu-numerals/testing-images.npz 48946 182806a45091da53b4ad98d4425130c0ebbf9bc1bf50fb58b3e5ea65ee33c7c6
+https://raw.githubusercontent.com/prabhuomkar/CMATERdb/master/datasets/telugu-numerals/training-images.npz 241764 32f9b5b135c8084f0cf646bc6a70358767653b1f8c6d19bd64ad5d5cbf1d9467

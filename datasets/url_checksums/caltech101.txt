@@ -1,0 +1,1 @@
+http://www.vision.caltech.edu/Image_Datasets/Caltech101/101_ObjectCategories.tar.gz 131740031 af6ece2f339791ca20f855943d8b55dd60892c0a25105fcd631ee3d6430f9926

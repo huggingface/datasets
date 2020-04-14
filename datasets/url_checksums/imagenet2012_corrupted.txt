@@ -1,0 +1,8 @@
+http://www.image-net.org/challenges/LSVRC/2012/nnoupb/ILSVRC2012_img_train.tar 147897477120 b08200a27a8e34218a0e58fde36b0fe8f73bc377f4acea2d91602057c3ca45bb
+http://www.image-net.org/challenges/LSVRC/2012/nnoupb/ILSVRC2012_img_val.tar 6744924160 c7e06a6c0baccf06d8dbeb6577d71efff84673a5dbdd50633ab44f8ea0456ae0
+https://raw.githubusercontent.com/hendrycks/robustness/master/ImageNet-C/imagenet_c/imagenet_c/frost/frost1.png 1199930 ff9f907860bd7a835d459e32f9d588062b7f61ee267343cc7222b56753a14755
+https://raw.githubusercontent.com/hendrycks/robustness/master/ImageNet-C/imagenet_c/imagenet_c/frost/frost2.png 299002 fe211a89b336999c207a852ce05818d4545d0b57c5beadd824b4cc9d9a9b6137
+https://raw.githubusercontent.com/hendrycks/robustness/master/ImageNet-C/imagenet_c/imagenet_c/frost/frost3.png 299002 2d0d50b4a9bb213f38b024ef7768731bb83cc08d2f26b5766bbc167cdfa0e504
+https://raw.githubusercontent.com/hendrycks/robustness/master/ImageNet-C/imagenet_c/imagenet_c/frost/frost4.jpg 36734 3f8b91ca1a9fa7167b09e773da53f5ae60d0a1fd88f02a783f6e328a72887f6e
+https://raw.githubusercontent.com/hendrycks/robustness/master/ImageNet-C/imagenet_c/imagenet_c/frost/frost5.jpg 155150 5fc6a19df4a429ba68abdcc8f8a4278d4c9f81c9ccafd2c92ab0c8cf8992ebd2
+https://raw.githubusercontent.com/hendrycks/robustness/master/ImageNet-C/imagenet_c/imagenet_c/frost/frost6.jpg 90185 1f92b2f48408748085b68dd81d816ef239f42cef3029c25d041fcb6760fb4f25

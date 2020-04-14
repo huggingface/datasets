@@ -1,0 +1,62 @@
+{
+  "citation": "@misc {paracrawl,\n    title  = \"ParaCrawl\",\n    year   = \"2018\",\n    url    = \"http://paracrawl.eu/download.html.\"\n}\n", 
+  "description": "Web-Scale Parallel Corpora for Official European Languages. English-Lithuanian.", 
+  "location": {
+    "urls": [
+      "https://paracrawl.eu/releases.html", 
+      "https://s3.amazonaws.com/web-language-models/paracrawl/release4/en-lt.bicleaner07.txt.gz"
+    ]
+  }, 
+  "name": "para_crawl", 
+  "schema": {
+    "feature": [
+      {
+        "name": "en", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "lt", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "66358392", 
+  "splits": [
+    {
+      "name": "train", 
+      "numShards": "10", 
+      "shardLengths": [
+        "422322", 
+        "422321"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "844643"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "844643"
+              }
+            }, 
+            "name": "lt", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "844643"
+      }
+    }
+  ], 
+  "supervisedKeys": {
+    "input": "en", 
+    "output": "lt"
+  }, 
+  "version": "1.0.0"
+}

@@ -1,0 +1,341 @@
+{
+  "citation": "@article{DBLP:journals/corr/abs-1808-09121,\n  author={Mohammad Taher Pilehvar and os{'{e}} Camacho{-}Collados},\n  title={WiC: 10, 000 Example Pairs for Evaluating Context-Sensitive Representations},\n  journal={CoRR},\n  volume={abs/1808.09121},\n  year={2018},\n  url={http://arxiv.org/abs/1808.09121},\n  archivePrefix={arXiv},\n  eprint={1808.09121},\n  timestamp={Mon, 03 Sep 2018 13:36:40 +0200},\n  biburl={https://dblp.org/rec/bib/journals/corr/abs-1808-09121},\n  bibsource={dblp computer science bibliography, https://dblp.org}\n}\n@article{wang2019superglue,\n  title={SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},\n  author={Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R},\n  journal={arXiv preprint arXiv:1905.00537},\n  year={2019}\n}\n\nNote that each SuperGLUE dataset has its own citation. Please see the source to\nget the correct citation for each contained dataset.\n", 
+  "description": "The Word-in-Context (WiC, Pilehvar and Camacho-Collados, 2019) dataset supports a word\nsense disambiguation task cast as binary classification over sentence pairs. Given two sentences and a\npolysemous (sense-ambiguous) word that appears in both sentences, the task is to determine whether\nthe word is used with the same sense in both sentences. Sentences are drawn from WordNet (Miller,\n1995), VerbNet (Schuler, 2005), and Wiktionary. We follow the original work and evaluate using\naccuracy.", 
+  "location": {
+    "urls": [
+      "https://pilehvar.github.io/wic/", 
+      "https://super.gluebenchmark.com/"
+    ]
+  }, 
+  "name": "super_glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "end1", 
+        "type": "INT"
+      }, 
+      {
+        "name": "end2", 
+        "type": "INT"
+      }, 
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "sentence1", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "sentence2", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "start1", 
+        "type": "INT"
+      }, 
+      {
+        "name": "start2", 
+        "type": "INT"
+      }, 
+      {
+        "name": "word", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "396213", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "1400"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "end1", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1400"
+              }, 
+              "max": 112.0, 
+              "min": 2.0
+            }
+          }, 
+          {
+            "name": "end2", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1400"
+              }, 
+              "max": 128.0, 
+              "min": 2.0
+            }
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1400"
+              }, 
+              "max": 1399.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1400"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1400"
+              }
+            }, 
+            "name": "sentence1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1400"
+              }
+            }, 
+            "name": "sentence2", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "start1", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1400"
+              }, 
+              "max": 106.0
+            }
+          }, 
+          {
+            "name": "start2", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1400"
+              }, 
+              "max": 122.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1400"
+              }
+            }, 
+            "name": "word", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "1400"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "5428"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "end1", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5428"
+              }, 
+              "max": 137.0, 
+              "min": 2.0
+            }
+          }, 
+          {
+            "name": "end2", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5428"
+              }, 
+              "max": 99.0, 
+              "min": 2.0
+            }
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5428"
+              }, 
+              "max": 5427.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5428"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5428"
+              }
+            }, 
+            "name": "sentence1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5428"
+              }
+            }, 
+            "name": "sentence2", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "start1", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5428"
+              }, 
+              "max": 133.0
+            }
+          }, 
+          {
+            "name": "start2", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5428"
+              }, 
+              "max": 93.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5428"
+              }
+            }, 
+            "name": "word", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "5428"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "638"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "end1", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "638"
+              }, 
+              "max": 87.0, 
+              "min": 3.0
+            }
+          }, 
+          {
+            "name": "end2", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "638"
+              }, 
+              "max": 116.0, 
+              "min": 3.0
+            }
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "638"
+              }, 
+              "max": 637.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "638"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "638"
+              }
+            }, 
+            "name": "sentence1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "638"
+              }
+            }, 
+            "name": "sentence2", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "start1", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "638"
+              }, 
+              "max": 77.0
+            }
+          }, 
+          {
+            "name": "start2", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "638"
+              }, 
+              "max": 109.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "638"
+              }
+            }, 
+            "name": "word", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "638"
+      }
+    }
+  ], 
+  "version": "1.0.2"
+}

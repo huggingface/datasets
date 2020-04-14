@@ -1,0 +1,1 @@
+https://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data-numeric 102000 2752b044394958ab6dd193a0b56ca0f0b3a2d8bc7cb8c008e35a5e84bbec02f8

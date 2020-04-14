@@ -1,0 +1,2 @@
+http://www.vision.caltech.edu/visipedia-data/CUB-200-2011/CUB_200_2011.tgz 1150585339 0c685df5597a8b24909f6a7c9db6d11e008733779a671760afef78feb49bf081
+http://www.vision.caltech.edu/visipedia-data/CUB-200-2011/segmentations.tgz 39272883 dc77f6cffea0cbe2e41d4201115c8f29a6320ecb04fffd2444f51b8066e4b84f

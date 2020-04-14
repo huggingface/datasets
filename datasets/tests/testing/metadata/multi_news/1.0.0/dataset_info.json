@@ -1,0 +1,127 @@
+{
+  "citation": "\n@misc{alex2019multinews,\n    title={Multi-News: a Large-Scale Multi-Document Summarization Dataset and Abstractive Hierarchical Model},\n    author={Alexander R. Fabbri and Irene Li and Tianwei She and Suyi Li and Dragomir R. Radev},\n    year={2019},\n    eprint={1906.01749},\n    archivePrefix={arXiv},\n    primaryClass={cs.CL}\n}\n", 
+  "description": "\nMulti-News, consists of news articles and human-written summaries\nof these articles from the site newser.com.\nEach summary is professionally written by editors and\nincludes links to the original articles cited.\n\nThere are two features:\n  - document: text of news articles seperated by special token \"|||||\".\n  - summary: news summary.\n", 
+  "location": {
+    "urls": [
+      "https://github.com/Alex-Fabbri/Multi-News"
+    ]
+  }, 
+  "name": "multi_news", 
+  "schema": {
+    "feature": [
+      {
+        "name": "document", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "summary", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "256966232", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "5622"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5622"
+              }
+            }, 
+            "name": "document", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5622"
+              }
+            }, 
+            "name": "summary", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "5622"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "5622", 
+        "5621", 
+        "5622", 
+        "5621", 
+        "5622", 
+        "5621", 
+        "5622", 
+        "5621"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "44972"
+              }
+            }, 
+            "name": "document", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "44972"
+              }
+            }, 
+            "name": "summary", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "44972"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "5622"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5622"
+              }
+            }, 
+            "name": "document", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5622"
+              }
+            }, 
+            "name": "summary", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "5622"
+      }
+    }
+  ], 
+  "supervisedKeys": {
+    "input": "document", 
+    "output": "summary"
+  }, 
+  "version": "1.0.0"
+}

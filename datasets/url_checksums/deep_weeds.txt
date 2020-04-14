@@ -1,0 +1,2 @@
+https://nextcloud.qriscloud.org.au/index.php/s/a3KxPawpqkiorST/download 935276050 d616b33efe097909bdac9623abc5705b59ad11f6796a26a956c1aa5de652f1ba
+https://raw.githubusercontent.com/AlexOlsen/DeepWeeds/master/labels/labels.csv 598898 6fb95b89fd9d384f94e185a5cab6c5da7c987649399c90618ecc60acfb0112eb

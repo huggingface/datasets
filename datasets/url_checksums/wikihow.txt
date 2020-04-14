@@ -1,0 +1,3 @@
+https://raw.githubusercontent.com/mahnazkoupaee/WikiHow-Dataset/master/all_test.txt 182146 c7b3037410bdfbed258cf96dcd5e7d04bc7432b9c20c6e6cd8063b6db84f8f94
+https://raw.githubusercontent.com/mahnazkoupaee/WikiHow-Dataset/master/all_train.txt 5096074 149bdd47ca9607bc5c730805d01c8fd879ffd7f328fd6869e6109288e8cfe733
+https://raw.githubusercontent.com/mahnazkoupaee/WikiHow-Dataset/master/all_val.txt 182165 759789579a0a96783f054387d5c2d7b537db75f462629116743f0ac3e7450be4

@@ -1,0 +1,3 @@
+http://www.cs.toronto.edu/~larocheh/public/datasets/binarized_mnist/binarized_mnist_test.amat 15680000 e6687bfea3f820c174f33b7865140b2a2dd2930ef786f35d45795fc193b5ab2c
+http://www.cs.toronto.edu/~larocheh/public/datasets/binarized_mnist/binarized_mnist_train.amat 78400000 ad693b29f94c14277b095f5238ddefbbdaaae0939789dd2f4f0205278cee3e4d
+http://www.cs.toronto.edu/~larocheh/public/datasets/binarized_mnist/binarized_mnist_valid.amat 15680000 1de3d397c40fe8eeb33dafd4099a1f665ec01e96d9be234aaeeac8a34930e2e2

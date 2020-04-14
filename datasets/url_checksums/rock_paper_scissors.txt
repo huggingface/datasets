@@ -1,0 +1,2 @@
+https://storage.googleapis.com/laurencemoroney-blog.appspot.com/rps-test-set.zip 29516758 c27ab9fa43ce40b2e453de711365b477f4424586edf0388116674fd320f07503
+https://storage.googleapis.com/laurencemoroney-blog.appspot.com/rps.zip 200682221 c2403444395842ad04c53612bad54b574443eae17a0723117a2ff87b9d72194f

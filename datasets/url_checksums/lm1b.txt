@@ -1,0 +1,1 @@
+http://www.statmt.org/lm-benchmark/1-billion-word-language-modeling-benchmark-r13output.tar.gz 1792209805 01ba60381110baf7f189dfd2b8374de371e8c9a340835793f190bdae9e90a34e

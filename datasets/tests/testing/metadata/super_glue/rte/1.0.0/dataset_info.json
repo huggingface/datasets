@@ -1,0 +1,180 @@
+{
+  "citation": "@inproceedings{dagan2005pascal,\n  title={The PASCAL recognising textual entailment challenge},\n  author={Dagan, Ido and Glickman, Oren and Magnini, Bernardo},\n  booktitle={Machine Learning Challenges Workshop},\n  pages={177--190},\n  year={2005},\n  organization={Springer}\n}\n@inproceedings{bar2006second,\n  title={The second pascal recognising textual entailment challenge},\n  author={Bar-Haim, Roy and Dagan, Ido and Dolan, Bill and Ferro, Lisa and Giampiccolo, Danilo and Magnini, Bernardo and Szpektor, Idan},\n  booktitle={Proceedings of the second PASCAL challenges workshop on recognising textual entailment},\n  volume={6},\n  number={1},\n  pages={6--4},\n  year={2006},\n  organization={Venice}\n}\n@inproceedings{giampiccolo2007third,\n  title={The third pascal recognizing textual entailment challenge},\n  author={Giampiccolo, Danilo and Magnini, Bernardo and Dagan, Ido and Dolan, Bill},\n  booktitle={Proceedings of the ACL-PASCAL workshop on textual entailment and paraphrasing},\n  pages={1--9},\n  year={2007},\n  organization={Association for Computational Linguistics}\n}\n@inproceedings{bentivogli2009fifth,\n  title={The Fifth PASCAL Recognizing Textual Entailment Challenge.},\n  author={Bentivogli, Luisa and Clark, Peter and Dagan, Ido and Giampiccolo, Danilo},\n  booktitle={TAC},\n  year={2009}\n}\n@article{wang2019superglue,\n  title={SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},\n  author={Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R},\n  journal={arXiv preprint arXiv:1905.00537},\n  year={2019}\n}\n\nNote that each SuperGLUE dataset has its own citation. Please see the source to\nget the correct citation for each contained dataset.\n", 
+  "description": "The Recognizing Textual Entailment (RTE) datasets come from a series of annual competitions\non textual entailment, the problem of predicting whether a given premise sentence entails a given\nhypothesis sentence (also known as natural language inference, NLI). RTE was previously included\nin GLUE, and we use the same data and format as before: We merge data from RTE1 (Dagan\net al., 2006), RTE2 (Bar Haim et al., 2006), RTE3 (Giampiccolo et al., 2007), and RTE5 (Bentivogli\net al., 2009). All datasets are combined and converted to two-class classification: entailment and\nnot_entailment. Of all the GLUE tasks, RTE was among those that benefited from transfer learning\nthe most, jumping from near random-chance performance (~56%) at the time of GLUE's launch to\n85% accuracy (Liu et al., 2019c) at the time of writing. Given the eight point gap with respect to\nhuman performance, however, the task is not yet solved by machines, and we expect the remaining\ngap to be difficult to close.", 
+  "location": {
+    "urls": [
+      "https://aclweb.org/aclwiki/Recognizing_Textual_Entailment", 
+      "https://super.gluebenchmark.com/"
+    ]
+  }, 
+  "name": "super_glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "hypothesis", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "premise", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "750760", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "3000"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              }, 
+              "max": 2999.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "3000"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "2490"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "2490"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "2490"
+              }, 
+              "max": 2489.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "2490"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "2490"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "2490"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "277"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "277"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "277"
+              }, 
+              "max": 276.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "277"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "277"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "277"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

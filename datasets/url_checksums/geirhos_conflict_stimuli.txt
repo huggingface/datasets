@@ -1,0 +1,2 @@
+https://github.com/rgeirhos/texture-vs-shape/archive/1b69c6a445c3348927139edb30a5134521fd4b03.zip 161433700 378f255b2089c3d6f1df53a9a3b29fa74a91d58e60d983f55b91d76eadaaffe3
+https://raw.githubusercontent.com/rgeirhos/generalisation-humans-DNNs/5bbe08f6821e1eb2bdbe98acebf3586d36be00ab/16-class-ImageNet/MSCOCO_to_ImageNet_category_mapping.txt 4159 3a60fb4cbe4f1a45ffaf5637dc473bcb8fb29d7b14d7ee89a4bbc24aec3f9fdb

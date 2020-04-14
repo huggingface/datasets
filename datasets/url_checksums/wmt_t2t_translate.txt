@@ -1,0 +1,4 @@
+http://data.statmt.org/wmt18/translation-task/training-parallel-nc-v13.tgz 113157482 17992b7e919cfb754c60f4e754148bc23b80706ad0ed7b34150831a554b40c91
+http://data.statmt.org/wmt19/translation-task/dev.tgz 38654961 7a7deccf82ebb05ba508dba5eb21356492224e8f630ec4f992132b029b4b25e7
+http://www.statmt.org/wmt13/training-parallel-commoncrawl.tgz 918311367 c7a74e2ea01ac6c920123108627e35278d4ccb5701e15428ffa34de86fa3a9e5
+http://www.statmt.org/wmt13/training-parallel-europarl-v7.tgz 657632379 0224c7c710c8a063dfd893b0cc0830202d61f4c75c17eb8e31836103d27d96e7

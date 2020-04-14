@@ -1,0 +1,4 @@
+http://image-net.org/small/train_32x32.tar 4113018880 244a323d48f8d72f65ad8b54658c01fed68d2d7bdc77ccb43da58c11e94224e5
+http://image-net.org/small/train_64x64.tar 12112588800 e2a2c1947a748d0d256e98e6d82800d855441dc9e4de2e71a773f1324c4524d7
+http://image-net.org/small/valid_32x32.tar 161474560 862e559462b24cf736212a19f6b0d47b55c2dc8ebdaa95ccecfe71260124c8f7
+http://image-net.org/small/valid_64x64.tar 477255680 eeac03ec4f585baf871d2b4cb9c974bfe345e74878a74e5820fe6eb1041629cd

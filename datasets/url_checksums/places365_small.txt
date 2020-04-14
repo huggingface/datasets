@@ -1,0 +1,4 @@
+http://data.csail.mit.edu/places/places365/filelist_places365-standard.tar 67498496 520699e00d69b63ddc29fac54645aa00ce1c10ca42e288960aa1cf791d6e9aa9
+http://data.csail.mit.edu/places/places365/test_256.tar 4736829440 037ee8180369bdde46636341b92900d4bcb8ea000c026a1fd3e0e9827a8702a1
+http://data.csail.mit.edu/places/places365/train_256_places365standard.tar 26103685120 0ade5d7d38c682aa0203014a2b99ad3bf608bf1de0f151dc0d80efba54660a0a
+http://data.csail.mit.edu/places/places365/val_256.tar 525158400 24b4e639ef12a0012af525bc4cb443e4ab4aaea8369a1fb009b70e4a4aad5d48

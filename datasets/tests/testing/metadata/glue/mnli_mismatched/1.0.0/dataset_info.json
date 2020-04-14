@@ -1,0 +1,132 @@
+{
+  "citation": "      @InProceedings{N18-1101,\n        author = \"Williams, Adina\n                  and Nangia, Nikita\n                  and Bowman, Samuel\",\n        title = \"A Broad-Coverage Challenge Corpus for\n                 Sentence Understanding through Inference\",\n        booktitle = \"Proceedings of the 2018 Conference of\n                     the North American Chapter of the\n                     Association for Computational Linguistics:\n                     Human Language Technologies, Volume 1 (Long\n                     Papers)\",\n        year = \"2018\",\n        publisher = \"Association for Computational Linguistics\",\n        pages = \"1112--1122\",\n        location = \"New Orleans, Louisiana\",\n        url = \"http://aclweb.org/anthology/N18-1101\"\n      }\n      @article{bowman2015large,\n        title={A large annotated corpus for learning natural language inference},\n        author={Bowman, Samuel R and Angeli, Gabor and Potts, Christopher and Manning, Christopher D},\n        journal={arXiv preprint arXiv:1508.05326},\n        year={2015}\n      }\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n\nNote that each GLUE dataset has its own citation. Please see the source to see\nthe correct citation for each contained dataset.", 
+  "description": "          The mismatched validation and test splits from MNLI.\n          See the \"mnli\" BuilderConfig for additional information.", 
+  "location": {
+    "urls": [
+      "http://www.nyu.edu/projects/bowman/multinli/", 
+      "https://gluebenchmark.com/"
+    ]
+  }, 
+  "name": "glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "hypothesis", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "premise", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "312783507", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "9847"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9847"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "9847"
+              }, 
+              "max": 9846.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "9847"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9847"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "9847"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "9832"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9832"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "9832"
+              }, 
+              "max": 9831.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "9832"
+              }, 
+              "max": 2.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9832"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "9832"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

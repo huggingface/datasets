@@ -1,0 +1,147 @@
+{
+  "citation": "@InProceedings{N18-1101,\n  author = \"Williams, Adina\n            and Nangia, Nikita\n            and Bowman, Samuel\",\n  title = \"A Broad-Coverage Challenge Corpus for\n           Sentence Understanding through Inference\",\n  booktitle = \"Proceedings of the 2018 Conference of\n               the North American Chapter of the\n               Association for Computational Linguistics:\n               Human Language Technologies, Volume 1 (Long\n               Papers)\",\n  year = \"2018\",\n  publisher = \"Association for Computational Linguistics\",\n  pages = \"1112--1122\",\n  location = \"New Orleans, Louisiana\",\n  url = \"http://aclweb.org/anthology/N18-1101\"\n}\n", 
+  "description": "The Multi-Genre Natural Language Inference (MultiNLI) corpus is a\ncrowd-sourced collection of 433k sentence pairs annotated with textual\nentailment information. The corpus is modeled on the SNLI corpus, but differs in\nthat covers a range of genres of spoken and written text, and supports a\ndistinctive cross-genre generalization evaluation. The corpus served as the\nbasis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.\n", 
+  "location": {
+    "urls": [
+      "https://www.nyu.edu/projects/bowman/multinli/"
+    ]
+  }, 
+  "name": "multi_nli", 
+  "schema": {
+    "feature": [
+      {
+        "name": "hypothesis", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "premise", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "226850426", 
+  "splits": [
+    {
+      "name": "train", 
+      "numShards": "10", 
+      "shardLengths": [
+        "392702"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "392702"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "392702"
+              }, 
+              "max": 2.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "392702"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "392702"
+      }
+    }, 
+    {
+      "name": "validation_matched", 
+      "numShards": "1", 
+      "shardLengths": [
+        "9815"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9815"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "9815"
+              }, 
+              "max": 2.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9815"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "9815"
+      }
+    }, 
+    {
+      "name": "validation_mismatched", 
+      "numShards": "1", 
+      "shardLengths": [
+        "9832"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9832"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "9832"
+              }, 
+              "max": 2.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9832"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "9832"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

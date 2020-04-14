@@ -1,0 +1,586 @@
+{
+  "citation": "@article{DBLP:journals/corr/LinMBHPRDZ14,\n  author    = {Tsung{-}Yi Lin and\n               Michael Maire and\n               Serge J. Belongie and\n               Lubomir D. Bourdev and\n               Ross B. Girshick and\n               James Hays and\n               Pietro Perona and\n               Deva Ramanan and\n               Piotr Doll{'{a}}r and\n               C. Lawrence Zitnick},\n  title     = {Microsoft {COCO:} Common Objects in Context},\n  journal   = {CoRR},\n  volume    = {abs/1405.0312},\n  year      = {2014},\n  url       = {http://arxiv.org/abs/1405.0312},\n  archivePrefix = {arXiv},\n  eprint    = {1405.0312},\n  timestamp = {Mon, 13 Aug 2018 16:48:13 +0200},\n  biburl    = {https://dblp.org/rec/bib/journals/corr/LinMBHPRDZ14},\n  bibsource = {dblp computer science bibliography, https://dblp.org}\n}\n", 
+  "description": "COCO is a large-scale object detection, segmentation, and\ncaptioning dataset. This version contains images, bounding boxes \"\nand labels for the 2014 version.\nNote:\n * Some images from the train and validation sets don't have annotations.\n * Coco 2014 and 2017 uses the same images, but different train/val/test splits\n * The test split don't have any annotations (only images).\n * Coco defines 91 classes but the data only uses 80 classes.\n * Panotptic annotations defines defines 200 classes but only uses 133.\n", 
+  "location": {
+    "urls": [
+      "http://cocodataset.org/#home"
+    ]
+  }, 
+  "name": "coco", 
+  "schema": {
+    "feature": [
+      {
+        "name": "image", 
+        "shape": {
+          "dim": [
+            {
+              "size": "-1"
+            }, 
+            {
+              "size": "-1"
+            }, 
+            {
+              "size": "3"
+            }
+          ]
+        }, 
+        "type": "INT"
+      }, 
+      {
+        "name": "image/filename", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "image/id", 
+        "type": "INT"
+      }, 
+      {
+        "name": "objects"
+      }
+    ]
+  }, 
+  "sizeInBytes": "40342135426", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "638", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "638", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "638", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "638", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "638", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "638", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "637", 
+        "638", 
+        "637", 
+        "637", 
+        "637", 
+        "637"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "image", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "40775"
+              }, 
+              "max": 255.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "40775"
+              }
+            }, 
+            "name": "image/filename", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "image/id", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "40775"
+              }, 
+              "max": 581923.0, 
+              "min": 1.0
+            }
+          }
+        ], 
+        "numExamples": "40775"
+      }
+    }, 
+    {
+      "name": "test2015", 
+      "numShards": "1", 
+      "shardLengths": [
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636", 
+        "636", 
+        "636", 
+        "637", 
+        "636", 
+        "636"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "image", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "81434"
+              }, 
+              "max": 255.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "81434"
+              }
+            }, 
+            "name": "image/filename", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "image/id", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "81434"
+              }, 
+              "max": 581923.0, 
+              "min": 1.0
+            }
+          }
+        ], 
+        "numExamples": "81434"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647", 
+        "647", 
+        "647", 
+        "646", 
+        "647"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "image", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "82783"
+              }, 
+              "max": 255.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "82783"
+              }
+            }, 
+            "name": "image/filename", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "image/id", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "82783"
+              }, 
+              "max": 581921.0, 
+              "min": 9.0
+            }
+          }
+        ], 
+        "numExamples": "82783"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "632", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "632", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "632", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "632", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "632", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "632", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "632", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "633", 
+        "632", 
+        "633", 
+        "633", 
+        "633"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "image", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "40504"
+              }, 
+              "max": 255.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "40504"
+              }
+            }, 
+            "name": "image/filename", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "image/id", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "40504"
+              }, 
+              "max": 581929.0, 
+              "min": 42.0
+            }
+          }
+        ], 
+        "numExamples": "40504"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

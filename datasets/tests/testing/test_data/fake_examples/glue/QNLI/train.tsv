@@ -1,0 +1,4 @@
+index	question	sentence	label
+0	When did the third Digimon series begin?	Unlike the two seasons before it and most of the seasons that followed, Digimon Tamers takes a darker and more realistic approach to its story featuring Digimon who do not reincarnate after their deaths and more complex character development in the original Japanese.	not_entailment
+1	Which missile batteries often have individual launchers several kilometres from one another?	When MANPADS is operated by specialists, batteries may have several dozen teams deploying separately in small sections; self-propelled air defence guns may deploy in pairs.	not_entailment
+2	What two things does Popper argue Tarski's theory involves in an evaluation of truth?	He bases this interpretation on the fact that examples such as the one described above refer to two things: assertions and the facts to which they refer.	entailment

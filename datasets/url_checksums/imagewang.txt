@@ -1,0 +1,3 @@
+https://s3.amazonaws.com/fast-ai-imageclas/imagewang-160.tgz 191498213 a0d360f9d8159055b3bf2b8926a51d19b2f1ff98a1eef6034e4b891c59ca3f1a
+https://s3.amazonaws.com/fast-ai-imageclas/imagewang-320.tgz 669826647 fd53301c335aa46f0f4add68dd471cd0b8b66412382cc36f5f510d0a03fb4d9d
+https://s3.amazonaws.com/fast-ai-imageclas/imagewang.tgz 2900347689 7a5ee5a0e8bd91f26d6a22cad2e2e0fa8af0b299e0130aadf6bf8f772371ecfb

@@ -1,0 +1,3 @@
+běžím
+zmizel
+Plav

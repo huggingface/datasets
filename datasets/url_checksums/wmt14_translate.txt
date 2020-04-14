@@ -1,0 +1,5 @@
+http://data.statmt.org/wmt19/translation-task/dev.tgz 38654961 7a7deccf82ebb05ba508dba5eb21356492224e8f630ec4f992132b029b4b25e7
+http://www.statmt.org/wmt13/training-parallel-commoncrawl.tgz 918311367 c7a74e2ea01ac6c920123108627e35278d4ccb5701e15428ffa34de86fa3a9e5
+http://www.statmt.org/wmt13/training-parallel-europarl-v7.tgz 657632379 0224c7c710c8a063dfd893b0cc0830202d61f4c75c17eb8e31836103d27d96e7
+http://www.statmt.org/wmt14/training-parallel-nc-v9.tgz 80418416 cb8953f292298e6877ae433c98912b927cb0766b303f4540512ddd286c748485
+http://www.statmt.org/wmt14/wiki-titles.tgz 8168057 3a0bbb5d05cb9c3daccfab2078b0044f34f3b8b8bdd54b185b84ade36eadb9b6

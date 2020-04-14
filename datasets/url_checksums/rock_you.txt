@@ -1,0 +1,1 @@
+https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt 139921497 6dfa76aa0e02303994fd1062d0ac983f0b69ece5474d85a5bba36362e19c1076

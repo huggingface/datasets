@@ -1,0 +1,6 @@
+http://www.dhbw-stuttgart.de/~sgehrig/lostAndFoundDataset/disparity.zip 1461824611 1e06350d082f3bd686ff889940ad60ed85bfb1e8aa691a547a259c52fa3b60b1
+http://www.dhbw-stuttgart.de/~sgehrig/lostAndFoundDataset/gtCoarse.zip 37756896 53b6d3ab000f08b1fb59d70c1398eecc4d82a7baf4e9cf74fbf60d1858abe9ac
+http://www.dhbw-stuttgart.de/~sgehrig/lostAndFoundDataset/leftImg16bit.zip 18039875634 f3530514163f30ccafc05210b643ea690c4ba17cdb4497d8a7d4f9c324c71da8
+http://www.dhbw-stuttgart.de/~sgehrig/lostAndFoundDataset/leftImg8bit.zip 5802953400 307f66002023ab597d309963b94990f5b9a8e5735ee729c3292647a66e9f2b18
+http://www.dhbw-stuttgart.de/~sgehrig/lostAndFoundDataset/rightImg16bit.zip 17938768019 db492fc9b9e0adf7a662cd589a6c8ea5cd8cf68d08600b2099d0cd7e0c58f6dd
+http://www.dhbw-stuttgart.de/~sgehrig/lostAndFoundDataset/rightImg8bit.zip 5787134165 d5219f49e730a1ce064a9d118227e71cd39681bcc7f8a87ab4061c86cd7dc6fb

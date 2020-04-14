@@ -1,0 +1,84 @@
+{
+  "citation": "\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n\nNote that each GLUE dataset has its own citation. Please see the source to see\nthe correct citation for each contained dataset.",
+  "description": "            A manually-curated evaluation dataset for fine-grained analysis of\n            system performance on a broad range of linguistic phenomena. This\n            dataset evaluates sentence understanding through Natural Language\n            Inference (NLI) problems. Use a model trained on MulitNLI to produce\n            predictions for this dataset.",
+  "location": {
+    "urls": [
+      "https://gluebenchmark.com/diagnostics",
+      "https://gluebenchmark.com/"
+    ]
+  },
+  "name": "glue",
+  "schema": {
+    "feature": [
+      {
+        "name": "hypothesis",
+        "type": "BYTES"
+      },
+      {
+        "name": "idx",
+        "type": "INT"
+      },
+      {
+        "name": "label",
+        "type": "INT"
+      },
+      {
+        "name": "premise",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "222257",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "1104"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1104"
+              }
+            },
+            "name": "hypothesis",
+            "type": "BYTES"
+          },
+          {
+            "name": "idx",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1104"
+              },
+              "max": 1103.0
+            }
+          },
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1104"
+              },
+              "max": -1.0,
+              "min": -1.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1104"
+              }
+            },
+            "name": "premise",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "1104"
+      }
+    }
+  ],
+  "version": "1.0.0"
+}

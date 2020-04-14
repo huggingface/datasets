@@ -1,0 +1,92 @@
+{
+  "citation": "@misc {paracrawl,\n    title  = \"ParaCrawl\",\n    year   = \"2018\",\n    url    = \"http://paracrawl.eu/download.html.\"\n}\n", 
+  "description": "Web-Scale Parallel Corpora for Official European Languages. English-Italian.", 
+  "location": {
+    "urls": [
+      "https://paracrawl.eu/releases.html", 
+      "https://s3.amazonaws.com/web-language-models/paracrawl/release4/en-it.bicleaner07.txt.gz"
+    ]
+  }, 
+  "name": "para_crawl", 
+  "schema": {
+    "feature": [
+      {
+        "name": "en", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "it", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "1066720197", 
+  "splits": [
+    {
+      "name": "train", 
+      "numShards": "10", 
+      "shardLengths": [
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380069", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070", 
+        "380070"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "12162239"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "12162239"
+              }
+            }, 
+            "name": "it", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "12162239"
+      }
+    }
+  ], 
+  "supervisedKeys": {
+    "input": "en", 
+    "output": "it"
+  }, 
+  "version": "1.0.0"
+}

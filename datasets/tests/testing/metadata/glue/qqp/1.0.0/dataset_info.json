@@ -1,0 +1,180 @@
+{
+  "citation": "          @online{WinNT,\n            author = {Iyer, Shankar and Dandekar, Nikhil and Csernai, Kornel},\n            title = {First Quora Dataset Release: Question Pairs},\n            year = 2017,\n            url = {https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs},\n            urldate = {2019-04-03}\n          }\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n\nNote that each GLUE dataset has its own citation. Please see the source to see\nthe correct citation for each contained dataset.", 
+  "description": "            The Quora Question Pairs2 dataset is a collection of question pairs from the\n            community question-answering website Quora. The task is to determine whether a\n            pair of questions are semantically equivalent.", 
+  "location": {
+    "urls": [
+      "https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs", 
+      "https://gluebenchmark.com/"
+    ]
+  }, 
+  "name": "glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "question1", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "question2", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "60534884", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "390965"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "390965"
+              }, 
+              "max": 390964.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "390965"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "390965"
+              }
+            }, 
+            "name": "question1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "390965"
+              }
+            }, 
+            "name": "question2", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "390965"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "363849"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "363849"
+              }, 
+              "max": 363869.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "363849"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "363849"
+              }
+            }, 
+            "name": "question1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "363849"
+              }
+            }, 
+            "name": "question2", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "363849"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "40430"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "40430"
+              }, 
+              "max": 40430.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "40430"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "40430"
+              }
+            }, 
+            "name": "question1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "40430"
+              }
+            }, 
+            "name": "question2", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "40430"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

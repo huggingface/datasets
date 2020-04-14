@@ -1,0 +1,11 @@
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/apple2orange.zip 78456409 845a191e9af8926408ea597001cd03a452e3300a1f44a79fe329b3d59f6e3eb8
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/cezanne2photo.zip 279885071 3a6c10ca21f9485862f1cbd707744b9dc258954a04631271d23a3605eeb63cff
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/cityscapes.zip 279601602 d2f6910fd056c1ee9873777ae838e7ac4a2c833598ae62a04188e5ab2f4ea036
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/facades.zip 35135868 9a31ebf3a31b9b5cd195dd5bf62e9308e00cb94604d1019e3889ac84248695c0
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/horse2zebra.zip 116867962 a74d9d392eecca9966b51287a76ca126af473d9de4f3e8fc0e9cda08fa1730a1
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/iphone2dslr_flower.zip 339964458 8fcb5e374d631b107e1d961b8c4cd0a186aa2a4ff3e279923f4c426128de7113
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/maps.zip 1476754427 639534f69dbf9f36bef8d6292a7698006361221f83f0285d7c9ca78afe6e8a9e
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/monet2photo.zip 305231073 88f91b00fc228f97c9411fbf1880ec1d119c98f1722e4cfcfaa2fb35fac05b04
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/summer2winter_yosemite.zip 132640856 167fe1726807a9d22bd106b4a6c0bd7953b688af924ac1bf967439c4961e49f9
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/ukiyoe2photo.zip 292946532 02a2a2fb5ecf425ca1bf86aca7304377da64a2a1d3b86df54eb65e4068bf3b08
+https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/vangogh2photo.zip 306590349 362c3473e70be0944bda08d49d660eafdc2854df55d697835b8186d1d79caaff

@@ -1,0 +1,4 @@
+index	genre	filename	year	old_index	source1	source2	sentence1	sentence2	score
+0	main-captions	MSRvid	2012test	1	none	none	A plane is taking off.	An air plane is taking off.	5
+1	main-captions	MSRvid	2012test	4	none	none	A man is playing a large flute.	A man is playing a flute.	3.8
+2	main-captions	MSRvid	2012test	5	none	none	A man is spreading shreded cheese on a pizza.	A man is spreading shredded cheese on an uncooked pizza.	3.8

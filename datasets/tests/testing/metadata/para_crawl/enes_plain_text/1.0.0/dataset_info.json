@@ -1,0 +1,124 @@
+{
+  "citation": "@misc {paracrawl,\n    title  = \"ParaCrawl\",\n    year   = \"2018\",\n    url    = \"http://paracrawl.eu/download.html.\"\n}\n", 
+  "description": "Web-Scale Parallel Corpora for Official European Languages. English-Spanish.", 
+  "location": {
+    "urls": [
+      "https://paracrawl.eu/releases.html", 
+      "https://s3.amazonaws.com/web-language-models/paracrawl/release4/en-es.bicleaner07.txt.gz"
+    ]
+  }, 
+  "name": "para_crawl", 
+  "schema": {
+    "feature": [
+      {
+        "name": "en", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "es", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "1953839527", 
+  "splits": [
+    {
+      "name": "train", 
+      "numShards": "10", 
+      "shardLengths": [
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343552", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343552", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343552", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551", 
+        "343551"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "21987267"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "21987267"
+              }
+            }, 
+            "name": "es", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "21987267"
+      }
+    }
+  ], 
+  "supervisedKeys": {
+    "input": "en", 
+    "output": "es"
+  }, 
+  "version": "1.0.0"
+}

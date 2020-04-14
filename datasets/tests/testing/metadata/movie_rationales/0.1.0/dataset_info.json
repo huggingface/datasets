@@ -1,0 +1,154 @@
+{
+  "citation": "\n@unpublished{eraser2019,\n    title = {ERASER: A Benchmark to Evaluate Rationalized NLP Models},\n    author = {Jay DeYoung and Sarthak Jain and Nazneen Fatema Rajani and Eric Lehman and Caiming Xiong and Richard Socher and Byron C. Wallace}\n}\n@InProceedings{zaidan-eisner-piatko-2008:nips,\n  author    =  {Omar F. Zaidan  and  Jason Eisner  and  Christine Piatko},\n  title     =  {Machine Learning with Annotator Rationales to Reduce Annotation Cost},\n  booktitle =  {Proceedings of the NIPS*2008 Workshop on Cost Sensitive Learning},\n  month     =  {December},\n  year      =  {2008}\n}\n",
+  "description": "\nThe movie rationale dataset contains human annotated rationales for movie\nreviews.\n",
+  "location": {
+    "urls": [
+      "http://www.cs.jhu.edu/~ozaidan/rationales/"
+    ]
+  },
+  "name": "movie_rationales",
+  "schema": {
+    "feature": [
+      {
+        "name": "evidences",
+        "shape": {
+          "dim": [
+            {
+              "size": "-1"
+            }
+          ]
+        },
+        "type": "BYTES"
+      },
+      {
+        "name": "label",
+        "type": "INT"
+      },
+      {
+        "name": "review",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "3899487",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "199"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "199"
+              }
+            },
+            "name": "evidences",
+            "type": "BYTES"
+          },
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "199"
+              },
+              "max": 1.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "199"
+              }
+            },
+            "name": "review",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "199"
+      }
+    },
+    {
+      "name": "train",
+      "numShards": "1",
+      "shardLengths": [
+        "1600"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1600"
+              }
+            },
+            "name": "evidences",
+            "type": "BYTES"
+          },
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1600"
+              },
+              "max": 1.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1600"
+              }
+            },
+            "name": "review",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "1600"
+      }
+    },
+    {
+      "name": "validation",
+      "numShards": "1",
+      "shardLengths": [
+        "200"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "200"
+              }
+            },
+            "name": "evidences",
+            "type": "BYTES"
+          },
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "200"
+              },
+              "max": 1.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "200"
+              }
+            },
+            "name": "review",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "200"
+      }
+    }
+  ],
+  "version": "0.1.0"
+}

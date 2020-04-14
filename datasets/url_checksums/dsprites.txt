@@ -1,0 +1,1 @@
+https://github.com/deepmind/dsprites-dataset/blob/master/dsprites_ndarray_co1sh3sc6or40x32y32_64x64.hdf5?raw=true 28024106 729fa22e884c9c500e1f17415d580746b4c5894fbbb780a1319bbcfa39a745bb

@@ -1,0 +1,111 @@
+{
+  "citation": "\n@article{2017arXivtriviaqa,\n       author = {{Joshi}, Mandar and {Choi}, Eunsol and {Weld},\n                 Daniel and {Zettlemoyer}, Luke},\n        title = \"{triviaqa: A Large Scale Distantly Supervised Challenge Dataset for Reading Comprehension}\",\n      journal = {arXiv e-prints},\n         year = 2017,\n          eid = {arXiv:1705.03551},\n        pages = {arXiv:1705.03551},\narchivePrefix = {arXiv},\n       eprint = {1705.03551},\n}\n", 
+  "description": "TriviaqQA is a reading comprehension dataset containing over 650K\nquestion-answer-evidence triples. TriviaqQA includes 95K question-answer\npairs authored by trivia enthusiasts and independently gathered evidence\ndocuments, six per question on average, that provide high quality distant\nsupervision for answering the questions.\n", 
+  "location": {
+    "urls": [
+      "http://nlp.cs.washington.edu/triviaqa/"
+    ]
+  }, 
+  "name": "trivia_qa", 
+  "schema": {
+    "feature": [
+      {
+        "name": "answer"
+      }, 
+      {
+        "name": "entity_pages"
+      }, 
+      {
+        "name": "question", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "question_id", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "question_source", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "search_results"
+      }
+    ]
+  }, 
+  "sizeInBytes": "2665779500", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "10", 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "17210"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "17210"
+              }
+            }, 
+            "name": "question_id", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "17210"
+              }
+            }, 
+            "name": "question_source", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "17210"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "100", 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "138384"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "138384"
+              }
+            }, 
+            "name": "question_id", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "138384"
+              }
+            }, 
+            "name": "question_source", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "138384"
+      }
+    }
+  ], 
+  "version": "0.1.0"
+}

@@ -1,0 +1,2 @@
+http://www.image-net.org/challenges/LSVRC/2012/nnoupb/ILSVRC2012_img_train.tar 147897477120 b08200a27a8e34218a0e58fde36b0fe8f73bc377f4acea2d91602057c3ca45bb
+http://www.image-net.org/challenges/LSVRC/2012/nnoupb/ILSVRC2012_img_val.tar 6744924160 c7e06a6c0baccf06d8dbeb6577d71efff84673a5dbdd50633ab44f8ea0456ae0

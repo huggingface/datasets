@@ -1,0 +1,95 @@
+{
+  "citation": "@InProceedings{qi-EtAl:2018:N18-2,\n  author    = {Qi, Ye  and  Sachan, Devendra  and  Felix, Matthieu  and  Padmanabhan, Sarguna  and  Neubig, Graham},\n  title     = {When and Why Are Pre-Trained Word Embeddings Useful for Neural Machine Translation?},\n  booktitle = {Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 2 (Short Papers)},\n  month     = {June},\n  year      = {2018},\n  address   = {New Orleans, Louisiana},\n  publisher = {Association for Computational Linguistics},\n  pages     = {529--535},\n  abstract  = {The performance of Neural Machine Translation (NMT) systems often suffers in low-resource scenarios where sufficiently large-scale parallel corpora cannot be obtained. Pre-trained word embeddings have proven to be invaluable for improving performance in natural language analysis tasks, which often suffer from paucity of data. However, their utility for NMT has not been extensively explored. In this work, we perform five sets of experiments that analyze when we can expect pre-trained word embeddings to help in NMT tasks. We show that such embeddings can be surprisingly effective in some cases -- providing gains of up to 20 BLEU points in the most favorable setting.},\n  url       = {http://www.aclweb.org/anthology/N18-2084}\n}\n", 
+  "description": "Massively multilingual (60 language) data set derived from TED Talk transcripts.\nEach record consists of parallel arrays of language and text. Missing and\nincomplete translations will be filtered out.\n", 
+  "location": {
+    "urls": [
+      "https://github.com/neulab/word-embeddings-for-nmt"
+    ]
+  }, 
+  "name": "ted_multi_translate", 
+  "schema": {
+    "feature": [
+      {
+        "name": "talk_name", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "translations"
+      }
+    ]
+  }, 
+  "sizeInBytes": "352222045", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "7213"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "7213"
+              }
+            }, 
+            "name": "talk_name", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "7213"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "32262", 
+        "32263", 
+        "32262", 
+        "32262", 
+        "32262", 
+        "32263", 
+        "32262", 
+        "32262"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "258098"
+              }
+            }, 
+            "name": "talk_name", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "258098"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "6049"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "6049"
+              }
+            }, 
+            "name": "talk_name", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "6049"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

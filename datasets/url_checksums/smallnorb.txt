@@ -1,0 +1,6 @@
+https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x01235x9x18x6x2x96x96-testing-cat.mat.gz 347 ecaf6d5bb8c3bc5eab9cf0258f6d2198dd474e016e374836fc097f2e5ff509ff
+https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x01235x9x18x6x2x96x96-testing-dat.mat.gz 130799817 cf7104eed3e51174d2f65b66d1e5878b9da233b886f161b0d88f4510ba2c7474
+https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x01235x9x18x6x2x96x96-testing-info.mat.gz 10428 16adf314226327ee006d1a44db8cfef52773c06c829951d5653a9f6f310248a2
+https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x46789x9x18x6x2x96x96-training-cat.mat.gz 348 2784e542c1922060691090952b6cd6278879a216c90f81476f0f00256d42cdaa
+https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x46789x9x18x6x2x96x96-training-dat.mat.gz 131896188 5ffd6272a07d32695ee1082a26a41a93a37aab8c28da047f8c34ed348d214873
+https://cs.nyu.edu/~ylclab/data/norb-v1.0-small/smallnorb-5x46789x9x18x6x2x96x96-training-info.mat.gz 71052 de7eb932ebe7a4ee16217fead60660d0eb3d23632c2f4d1c51f88c501c17bf32

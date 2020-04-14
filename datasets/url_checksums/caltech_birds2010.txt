@@ -1,0 +1,3 @@
+http://www.vision.caltech.edu/visipedia-data/CUB-200/annotations.tgz 11531634 c17b7841c21a66aa44ba8fe92369cc95dfc998946081828b1d7b8a4b716805c1
+http://www.vision.caltech.edu/visipedia-data/CUB-200/images.tgz 679421896 2a6d2246bbb9778ca03aa94e2e683ccb4f8821a36b7f235c0822e659d60a803e
+http://www.vision.caltech.edu/visipedia-data/CUB-200/lists.tgz 201844 aeacbd5e3539ae84ea726e8a266a9a119c18f055cd80f3836d5eb4500b005428

@@ -1,0 +1,153 @@
+{
+  "citation": "\n@ONLINE {wmt19translate,\n    author = \"Wikimedia Foundation\",\n    title  = \"ACL 2019 Fourth Conference on Machine Translation (WMT19), Shared Task: Machine Translation of News\",\n    url    = \"http://www.statmt.org/wmt19/translation-task.html\"\n}\n",
+  "description": "Translate dataset based on the data from statmt.org.\n\nVersions exists for the different years using a combination of multiple data\nsources. The base `wmt_translate` allows you to create your own config to choose\nyour own data/language pair by creating a custom `tfds.translate.wmt.WmtConfig`.\n\n```\nconfig = tfds.translate.wmt.WmtConfig(\n    version=\"0.0.1\",\n    language_pair=(\"fr\", \"de\"),\n    subsets={\n        tfds.Split.TRAIN: [\"commoncrawl_frde\"],\n        tfds.Split.VALIDATION: [\"euelections_dev2019\"],\n    },\n)\nbuilder = tfds.builder(\"wmt_translate\", config=config)\n```\n\n",
+  "location": {
+    "urls": [
+      "http://www.statmt.org/wmt19/translation-task.html"
+    ]
+  },
+  "name": "wmt19_translate",
+  "schema": {
+    "feature": [
+      {
+        "name": "en",
+        "type": "BYTES"
+      },
+      {
+        "name": "zh",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "2195042850",
+  "splits": [
+    {
+      "name": "train",
+      "numShards": "10",
+      "shardLengths": [
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406039",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406039",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406039",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406039",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038",
+        "406038"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "25986436"
+              }
+            },
+            "name": "en",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "25986436"
+              }
+            },
+            "name": "zh",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "25986436"
+      }
+    },
+    {
+      "name": "validation",
+      "numShards": "1",
+      "shardLengths": [
+        "3981"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3981"
+              }
+            },
+            "name": "en",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3981"
+              }
+            },
+            "name": "zh",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "3981"
+      }
+    }
+  ],
+  "supervisedKeys": {
+    "input": "zh",
+    "output": "en"
+  },
+  "version": "1.0.0"
+}

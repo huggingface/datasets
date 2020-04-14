@@ -1,0 +1,83 @@
+{
+  "citation": "@inproceedings{rudinger-EtAl:2018:N18,\n  author    = {Rudinger, Rachel  and  Naradowsky, Jason  and  Leonard, Brian  and  {Van Durme}, Benjamin},\n  title     = {Gender Bias in Coreference Resolution},\n  booktitle = {Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies},\n  month     = {June},\n  year      = {2018},\n  address   = {New Orleans, Louisiana},\n  publisher = {Association for Computational Linguistics}\n}\n\n@article{wang2019superglue,\n  title={SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},\n  author={Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R},\n  journal={arXiv preprint arXiv:1905.00537},\n  year={2019}\n}\n\nNote that each SuperGLUE dataset has its own citation. Please see the source to\nget the correct citation for each contained dataset.\n",
+  "description": "Winogender is designed to measure gender\nbias in coreference resolution systems. We use the Diverse Natural Language Inference Collection\n(DNC; Poliak et al., 2018) version that casts Winogender as a textual entailment task. Each example\nconsists of a premise sentence with a male or female pronoun and a hypothesis giving a possible\nantecedent of the pronoun. Examples occur in minimal pairs, where the only difference between\nan example and its pair is the gender of the pronoun in the premise. Performance on Winogender\nis measured with both accuracy and the gender parity score: the percentage of minimal pairs for\nwhich the predictions are the same. We note that a system can trivially obtain a perfect gender parity\nscore by guessing the same class for all examples, so a high gender parity score is meaningless unless\naccompanied by high accuracy. As a diagnostic test of gender bias, we view the schemas as having high\npositive predictive value and low negative predictive value; that is, they may demonstrate the presence\nof gender bias in a system, but not prove its absence.\n",
+  "location": {
+    "urls": [
+      "https://github.com/rudinger/winogender-schemas",
+      "https://super.gluebenchmark.com/"
+    ]
+  },
+  "name": "super_glue",
+  "schema": {
+    "feature": [
+      {
+        "name": "hypothesis",
+        "type": "BYTES"
+      },
+      {
+        "name": "idx",
+        "type": "INT"
+      },
+      {
+        "name": "label",
+        "type": "INT"
+      },
+      {
+        "name": "premise",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "10413",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "356"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "356"
+              }
+            },
+            "name": "hypothesis",
+            "type": "BYTES"
+          },
+          {
+            "name": "idx",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "356"
+              },
+              "max": 355.0
+            }
+          },
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "356"
+              },
+              "max": 1.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "356"
+              }
+            },
+            "name": "premise",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "356"
+      }
+    }
+  ],
+  "version": "1.0.2"
+}

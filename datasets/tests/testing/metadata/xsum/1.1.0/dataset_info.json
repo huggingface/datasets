@@ -1,0 +1,123 @@
+{
+  "citation": "\n@article{Narayan2018DontGM,\n  title={Don't Give Me the Details, Just the Summary! Topic-Aware Convolutional Neural Networks for Extreme Summarization},\n  author={Shashi Narayan and Shay B. Cohen and Mirella Lapata},\n  journal={ArXiv},\n  year={2018},\n  volume={abs/1808.08745}\n}\n",
+  "description": "\nExtreme Summarization (XSum) Dataset.\n\nThere are two features:\n  - document: Input news article.\n  - summary: One sentence summary of the article.\n\nThis data need to manaully downloaded and extracted as described in\nhttps://github.com/EdinburghNLP/XSum/blob/master/XSum-Dataset/README.md.\nThe folder 'xsum-extracts-from-downloads' need to be compressed as\n'xsum-extracts-from-downloads.tar.gz' and put in manually downloaded folder.\n",
+  "location": {
+    "urls": [
+      "https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset"
+    ]
+  },
+  "name": "xsum",
+  "schema": {
+    "feature": [
+      {
+        "name": "document",
+        "type": "BYTES"
+      },
+      {
+        "name": "summary",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "2720574",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "11301"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "11301"
+              }
+            },
+            "name": "document",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "11301"
+              }
+            },
+            "name": "summary",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "11301"
+      }
+    },
+    {
+      "name": "train",
+      "numShards": "1",
+      "shardLengths": [
+        "50894",
+        "50894",
+        "50895",
+        "50894"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "203577"
+              }
+            },
+            "name": "document",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "203577"
+              }
+            },
+            "name": "summary",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "203577"
+      }
+    },
+    {
+      "name": "validation",
+      "numShards": "1",
+      "shardLengths": [
+        "11305"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "11305"
+              }
+            },
+            "name": "document",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "11305"
+              }
+            },
+            "name": "summary",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "11305"
+      }
+    }
+  ],
+  "supervisedKeys": {
+    "input": "document",
+    "output": "summary"
+  },
+  "version": "1.1.0"
+}

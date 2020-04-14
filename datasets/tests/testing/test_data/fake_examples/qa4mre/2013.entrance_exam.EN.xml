@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<test-set>
+  <topic t_id="1" t_name="Entrance Exam">
+    <reading-test r_id="1">
+      <doc d_id="1">When I was a child, our dining room had two kinds of chairs - two large ones with arm rests and four small ones without. The larger ones stood at the ends of the table, the small ones on the sides. Mom and Dad sat in the big chairs, except when one of us was away; then Mom would sit in one of the smaller chairs. I always remained in the same place, at my father's right. He always sat at the end, at the &quot;head&quot; of the table. I couldn't imagine either of us sitting in any other position. In the years when I went away to school and came home only during the holidays, the arrangement at the table remained the same. Sitting where he did, Dad was framed by the window through which the yard could be seen with its carefully cultivated trees and grass. His chair was not just a place for him at the table; it was a place in which he was situated against the yard and trees, the fences and barbecue, the bikes, and cars. It was the holy and protected place that was his, and ours through him. Years later, in my mid-20s and uncertain about my future, I returned home. I remember my feeling at the moment I sat down: &quot;There is still a place for me at this table; things seem understandable here even if I can't yet make sense of my failed attempts in work and love. I'm glad I can come home to this table.&quot; After Dad retired, he and Mom moved out into a small apartment. When they came to visit me at their old house, Dad still sat at the head of the table though the table was no longer his but mine. Only with my marriage to Barbara, did I hear a voice question the arrangement. She requested, gently but firmly, that I sit at the head of the table in our home. I realized then that I was head of the family, but I also felt unwilling to introduce such a change. How would I feel sitting in that &quot;head&quot; place in my Dad's presence? And how would he handle it? I was to find out on the occasion of our youngest child's first birthday. Mom and Dad arrived for lunch, and went into the dining room. Dad moved toward his usual seat in front of the window that opened to the backyard. Before he could get around the side of the table, I took a deep breath and said, &quot;Dad, this is going to be your place, next to Mom, on the side.&quot; He stopped and looked at me. Then he sat where I had indicated. I felt awkward, sad, and angry at Barbara for pushing me to do this. It would have been easy to say, &quot;My mistake, Dad. Sit where you always sit.&quot; But I didn't. When he and Mom were seated, Barbara and I took our places. I don't know how Dad felt. I do know that, though removed from his usual place, he continued to share his best self with us, telling stories of his childhood and youth to the delight of his grandchildren. As I served the food with my window and yard as background, our lives experienced a change, which we continue to live with. It wasn't easy, but I sense that there is also something good in the change which has occurred. I am beginning to learn that &quot;honoring one's father&quot; is more than the question of which place to occupy at the dining table. It also means listening, wherever we sit and whatever our own positions, to the stories Dad longs to tell. We may then, during these magical moments, even be able to forget about whose chair is whose.</doc>
+      <q q_id="1">
+        <q_str>Where did the author's mother sit when one of her children was away?</q_str>
+        <answer a_id='1'>She didn't change her chair.</answer>
+        <answer a_id='2'>She moved her own chair next to Dad's.</answer>
+        <answer a_id='3' correct="Yes">She moved to an empty chair on the side.</answer>
+        <answer a_id='4'>She sat opposite to Dad.</answer>
+      </q>
+      <q q_id="2">
+        <q_str>What did the father's chair represent to the author in his school days?</q_str>
+        <answer a_id='1' correct="Yes">It represented a secure family life he could rely on.</answer>
+        <answer a_id='2'>It represented his father's changing position within the family.</answer>
+        <answer a_id='3'>It represented the religious beliefs which his father shared with the family.</answer>
+        <answer a_id='4'>It represented the world which could be seen outside the window.</answer>
+      </q>
+      <q q_id="3">
+        <q_str>How did the author respond to his wife's request when he heard it for the first time?</q_str>
+        <answer a_id='1' correct="Yes">He agreed, but was worried about the consequences.</answer>
+        <answer a_id='2'>He decided that his father would have to live apart.</answer>
+        <answer a_id='3'>He disagreed because he knew exactly how his father would react.</answer>
+        <answer a_id='4'>He refused, gently but firmly, to follow it.</answer>
+      </q>
+    </reading-test>
+  </topic>
+</test-set>

@@ -1,0 +1,276 @@
+{
+  "citation": "@inproceedings{levesque2012winograd,\n  title={The winograd schema challenge},\n  author={Levesque, Hector and Davis, Ernest and Morgenstern, Leora},\n  booktitle={Thirteenth International Conference on the Principles of Knowledge Representation and Reasoning},\n  year={2012}\n}\n@article{wang2019superglue,\n  title={SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},\n  author={Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R},\n  journal={arXiv preprint arXiv:1905.00537},\n  year={2019}\n}\n\nNote that each SuperGLUE dataset has its own citation. Please see the source to\nget the correct citation for each contained dataset.\n", 
+  "description": "The Winograd Schema Challenge (WSC, Levesque et al., 2012) is a reading comprehension\ntask in which a system must read a sentence with a pronoun and select the referent of that pronoun\nfrom a list of choices. Given the difficulty of this task and the headroom still left, we have included\nWSC in SuperGLUE and recast the dataset into its coreference form. The task is cast as a binary\nclassification problem, as opposed to N-multiple choice, in order to isolate the model's ability to\nunderstand the coreference links within a sentence as opposed to various other strategies that may\ncome into play in multiple choice conditions. With that in mind, we create a split with 65% negative\nmajority class in the validation set, reflecting the distribution of the hidden test set, and 52% negative\nclass in the training set. The training and validation examples are drawn from the original Winograd\nSchema dataset (Levesque et al., 2012), as well as those distributed by the affiliated organization\nCommonsense Reasoning. The test examples are derived from fiction books and have been shared\nwith us by the authors of the original dataset. Previously, a version of WSC recast as NLI as included\nin GLUE, known as WNLI. No substantial progress was made on WNLI, with many submissions\nopting to submit only majority class predictions. WNLI was made especially difficult due to an\nadversarial train/dev split: Premise sentences that appeared in the training set sometimes appeared\nin the development set with a different hypothesis and a flipped label. If a system memorized the\ntraining set without meaningfully generalizing, which was easy due to the small size of the training\nset, it could perform far below chance on the development set. We remove this adversarial design\nin the SuperGLUE version of WSC by ensuring that no sentences are shared between the training,\nvalidation, and test sets.\n\nHowever, the validation and test sets come from different domains, with the validation set consisting\nof ambiguous examples such that changing one non-noun phrase word will change the coreference\ndependencies in the sentence. The test set consists only of more straightforward examples, with a\nhigh number of noun phrases (and thus more choices for the model), but low to no ambiguity.\n\nThis version fixes issues where the spans are not actually substrings of the text.", 
+  "location": {
+    "urls": [
+      "https://cs.nyu.edu/faculty/davise/papers/WinogradSchemas/WS.html", 
+      "https://super.gluebenchmark.com/"
+    ]
+  }, 
+  "name": "super_glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "span1_index", 
+        "type": "INT"
+      }, 
+      {
+        "name": "span1_text", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "span2_index", 
+        "type": "INT"
+      }, 
+      {
+        "name": "span2_text", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "text", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "32751", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "146"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }, 
+              "max": 145.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "name": "span1_index", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }, 
+              "max": 36.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }
+            }, 
+            "name": "span1_text", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "span2_index", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }, 
+              "max": 42.0, 
+              "min": 9.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }
+            }, 
+            "name": "span2_text", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "146"
+              }
+            }, 
+            "name": "text", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "146"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "554"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "554"
+              }, 
+              "max": 553.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "554"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "name": "span1_index", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "554"
+              }, 
+              "max": 36.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "554"
+              }
+            }, 
+            "name": "span1_text", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "span2_index", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "554"
+              }, 
+              "max": 72.0, 
+              "min": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "554"
+              }
+            }, 
+            "name": "span2_text", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "554"
+              }
+            }, 
+            "name": "text", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "554"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "104"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "104"
+              }, 
+              "max": 103.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "104"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "name": "span1_index", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "104"
+              }, 
+              "max": 46.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "104"
+              }
+            }, 
+            "name": "span1_text", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "span2_index", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "104"
+              }, 
+              "max": 50.0, 
+              "min": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "104"
+              }
+            }, 
+            "name": "span2_text", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "104"
+              }
+            }, 
+            "name": "text", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "104"
+      }
+    }
+  ], 
+  "version": "1.0.2"
+}

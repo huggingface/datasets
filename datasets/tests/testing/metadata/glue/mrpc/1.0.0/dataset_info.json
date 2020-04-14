@@ -1,0 +1,181 @@
+{
+  "citation": "            @inproceedings{dolan2005automatically,\n              title={Automatically constructing a corpus of sentential paraphrases},\n              author={Dolan, William B and Brockett, Chris},\n              booktitle={Proceedings of the Third International Workshop on Paraphrasing (IWP2005)},\n              year={2005}\n            }\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n\nNote that each GLUE dataset has its own citation. Please see the source to see\nthe correct citation for each contained dataset.", 
+  "description": "            The Microsoft Research Paraphrase Corpus (Dolan & Brockett, 2005) is a corpus of\n            sentence pairs automatically extracted from online news sources, with human annotations\n            for whether the sentences in the pair are semantically equivalent.", 
+  "location": {
+    "urls": [
+      "https://www.microsoft.com/en-us/download/details.aspx?id=52398", 
+      "https://gluebenchmark.com/"
+    ]
+  }, 
+  "name": "glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "sentence1", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "sentence2", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "1494541", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "1725"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1725"
+              }, 
+              "max": 1724.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1725"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1725"
+              }
+            }, 
+            "name": "sentence1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1725"
+              }
+            }, 
+            "name": "sentence2", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "1725"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "3668"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "3668"
+              }, 
+              "max": 4075.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "3668"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3668"
+              }
+            }, 
+            "name": "sentence1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3668"
+              }
+            }, 
+            "name": "sentence2", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "3668"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "408"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "408"
+              }, 
+              "max": 4053.0, 
+              "min": 9.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "408"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "408"
+              }
+            }, 
+            "name": "sentence1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "408"
+              }
+            }, 
+            "name": "sentence2", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "408"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

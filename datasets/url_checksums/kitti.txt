@@ -1,0 +1,3 @@
+https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_image_2.zip 12569945557 351c5a2aa0cd9238b50174a3a62b846bc5855da256b82a196431d60ff8d43617
+https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_label_2.zip 5601213 4efc76220d867e1c31bb980bbf8cbc02599f02a9cb4350effa98dbb04aaed880
+https://s3.eu-central-1.amazonaws.com/avg-kitti/devkit_object.zip 63794 ce0b76b69c0c5f89690a0d65b7302bbbdb962a0c7e8aba6efc7050d1b04b4cf1

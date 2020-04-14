@@ -1,0 +1,749 @@
+{
+  "citation": "\n@inproceedings{pinggera2016lost,\n  title={Lost and found: detecting small road hazards for self-driving vehicles},\n  author={Pinggera, Peter and Ramos, Sebastian and Gehrig, Stefan and Franke, Uwe and Rother, Carsten and Mester, Rudolf},\n  booktitle={2016 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},\n  year={2016}\n}\n",
+  "description": "\nThe LostAndFound Dataset addresses the problem of detecting unexpected small obstacles on\nthe road often caused by lost cargo. The dataset comprises 112 stereo video sequences\nwith 2104 annotated frames (picking roughly every tenth frame from the recorded data).\n\nThe dataset is designed analogous to the 'Cityscapes' dataset. The datset provides:\n- stereo image pairs in either 8 or 16 bit color resolution\n- precomputed disparity maps\n- coarse semantic labels for objects and street\n\nDescriptions of the labels are given here: http://www.6d-vision.com/laf_table.pdf\n",
+  "location": {
+    "urls": [
+      "http://www.6d-vision.com/lostandfounddataset"
+    ]
+  },
+  "name": "lost_and_found",
+  "schema": {
+    "feature": [
+      {
+        "name": "disparity_map",
+        "shape": {
+          "dim": [
+            {
+              "size": "1024"
+            },
+            {
+              "size": "2048"
+            },
+            {
+              "size": "1"
+            }
+          ]
+        },
+        "type": "INT"
+      },
+      {
+        "name": "image_id",
+        "type": "BYTES"
+      },
+      {
+        "name": "image_left",
+        "shape": {
+          "dim": [
+            {
+              "size": "1024"
+            },
+            {
+              "size": "2048"
+            },
+            {
+              "size": "3"
+            }
+          ]
+        },
+        "type": "INT"
+      },
+      {
+        "name": "image_right",
+        "shape": {
+          "dim": [
+            {
+              "size": "1024"
+            },
+            {
+              "size": "2048"
+            },
+            {
+              "size": "3"
+            }
+          ]
+        },
+        "type": "INT"
+      },
+      {
+        "name": "instance_id",
+        "shape": {
+          "dim": [
+            {
+              "size": "1024"
+            },
+            {
+              "size": "2048"
+            },
+            {
+              "size": "1"
+            }
+          ]
+        },
+        "type": "INT"
+      },
+      {
+        "name": "segmentation_label",
+        "shape": {
+          "dim": [
+            {
+              "size": "1024"
+            },
+            {
+              "size": "2048"
+            },
+            {
+              "size": "1"
+            }
+          ]
+        },
+        "type": "INT"
+      }
+    ]
+  },
+  "sizeInBytes": "37478225160",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "5",
+        "4",
+        "5",
+        "5",
+        "4",
+        "5"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "disparity_map",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1203"
+              },
+              "max": 126.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1203"
+              }
+            },
+            "name": "image_id",
+            "type": "BYTES"
+          },
+          {
+            "name": "image_left",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1203"
+              },
+              "max": 255.0
+            }
+          },
+          {
+            "name": "image_right",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1203"
+              },
+              "max": 255.0
+            }
+          },
+          {
+            "name": "instance_id",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1203"
+              },
+              "max": 167.0
+            }
+          },
+          {
+            "name": "segmentation_label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1203"
+              },
+              "max": 43.0
+            }
+          }
+        ],
+        "numExamples": "1203"
+      }
+    },
+    {
+      "name": "train",
+      "numShards": "1",
+      "shardLengths": [
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "5",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "disparity_map",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1036"
+              },
+              "max": 126.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1036"
+              }
+            },
+            "name": "image_id",
+            "type": "BYTES"
+          },
+          {
+            "name": "image_left",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1036"
+              },
+              "max": 255.0
+            }
+          },
+          {
+            "name": "image_right",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1036"
+              },
+              "max": 255.0
+            }
+          },
+          {
+            "name": "instance_id",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1036"
+              },
+              "max": 148.0
+            }
+          },
+          {
+            "name": "segmentation_label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1036"
+              },
+              "max": 38.0
+            }
+          }
+        ],
+        "numExamples": "1036"
+      }
+    }
+  ],
+  "version": "1.0.0"
+}

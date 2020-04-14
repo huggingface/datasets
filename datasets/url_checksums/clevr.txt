@@ -1,0 +1,1 @@
+https://dl.fbaipublicfiles.com/clevr/CLEVR_v1.0.zip 19021600724 5cd61cf1096ed20944df93c9adb31e74d189b8459a94f54ba00090e5c59936d1

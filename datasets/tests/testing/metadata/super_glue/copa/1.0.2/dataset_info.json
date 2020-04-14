@@ -1,0 +1,242 @@
+{
+  "citation": "@inproceedings{roemmele2011choice,\n  title={Choice of plausible alternatives: An evaluation of commonsense causal reasoning},\n  author={Roemmele, Melissa and Bejan, Cosmin Adrian and Gordon, Andrew S},\n  booktitle={2011 AAAI Spring Symposium Series},\n  year={2011}\n}\n@article{wang2019superglue,\n  title={SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},\n  author={Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R},\n  journal={arXiv preprint arXiv:1905.00537},\n  year={2019}\n}\n\nNote that each SuperGLUE dataset has its own citation. Please see the source to\nget the correct citation for each contained dataset.\n", 
+  "description": "The Choice Of Plausible Alternatives (COPA, Roemmele et al., 2011) dataset is a causal\nreasoning task in which a system is given a premise sentence and two possible alternatives. The\nsystem must choose the alternative which has the more plausible causal relationship with the premise.\nThe method used for the construction of the alternatives ensures that the task requires causal reasoning\nto solve. Examples either deal with alternative possible causes or alternative possible effects of the\npremise sentence, accompanied by a simple question disambiguating between the two instance\ntypes for the model. All examples are handcrafted and focus on topics from online blogs and a\nphotography-related encyclopedia. Following the recommendation of the authors, we evaluate using\naccuracy.", 
+  "location": {
+    "urls": [
+      "http://people.ict.usc.edu/~gordon/copa.html", 
+      "https://super.gluebenchmark.com/"
+    ]
+  }, 
+  "name": "super_glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "choice1", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "choice2", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "premise", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "question", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "43986", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "500"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "500"
+              }
+            }, 
+            "name": "choice1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "500"
+              }
+            }, 
+            "name": "choice2", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "500"
+              }, 
+              "max": 499.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "500"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "500"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "500"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "500"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "400"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "400"
+              }
+            }, 
+            "name": "choice1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "400"
+              }
+            }, 
+            "name": "choice2", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "400"
+              }, 
+              "max": 399.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "400"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "400"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "400"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "400"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "100"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "100"
+              }
+            }, 
+            "name": "choice1", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "100"
+              }
+            }, 
+            "name": "choice2", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "100"
+              }, 
+              "max": 99.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "100"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "100"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "100"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "100"
+      }
+    }
+  ], 
+  "version": "1.0.2"
+}

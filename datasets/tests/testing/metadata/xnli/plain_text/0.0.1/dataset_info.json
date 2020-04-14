@@ -1,0 +1,64 @@
+{
+  "citation": "@InProceedings{conneau2018xnli,\n  author = \"Conneau, Alexis\n                 and Rinott, Ruty\n                 and Lample, Guillaume\n                 and Williams, Adina\n                 and Bowman, Samuel R.\n                 and Schwenk, Holger\n                 and Stoyanov, Veselin\",\n  title = \"XNLI: Evaluating Cross-lingual Sentence Representations\",\n  booktitle = \"Proceedings of the 2018 Conference on Empirical Methods\n               in Natural Language Processing\",\n  year = \"2018\",\n  publisher = \"Association for Computational Linguistics\",\n  location = \"Brussels, Belgium\",\n}", 
+  "description": "XNLI is a subset of a few thousand examples from MNLI which has been translated\ninto a 14 different languages (some low-ish resource). As with MNLI, the goal is\nto predict textual entailment (does sentence A imply/contradict/neither sentence\nB) and is a classification task (given two sentences, predict one of three\nlabels).\n", 
+  "location": {
+    "urls": [
+      "https://www.nyu.edu/projects/bowman/xnli/"
+    ]
+  }, 
+  "name": "xnli", 
+  "schema": {
+    "feature": [
+      {
+        "name": "hypothesis"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "premise"
+      }
+    ]
+  }, 
+  "sizeInBytes": "17865352", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5010"
+              }, 
+              "max": 2.0
+            }
+          }
+        ], 
+        "numExamples": "5010"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "2490"
+              }, 
+              "max": 2.0
+            }
+          }
+        ], 
+        "numExamples": "2490"
+      }
+    }
+  ], 
+  "version": "0.0.1"
+}

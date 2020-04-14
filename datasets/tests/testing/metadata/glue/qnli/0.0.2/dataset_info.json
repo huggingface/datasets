@@ -1,0 +1,171 @@
+{
+  "citation": "            @article{rajpurkar2016squad,\n              title={Squad: 100,000+ questions for machine comprehension of text},\n              author={Rajpurkar, Pranav and Zhang, Jian and Lopyrev, Konstantin and Liang, Percy},\n              journal={arXiv preprint arXiv:1606.05250},\n              year={2016}\n            }\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n\nNote that each GLUE dataset has its own citation. Please see the source to see\nthe correct citation for each contained dataset.", 
+  "description": "            The Stanford Question Answering Dataset is a question-answering\n            dataset consisting of question-paragraph pairs, where one of the sentences in the paragraph (drawn\n            from Wikipedia) contains the answer to the corresponding question (written by an annotator). We\n            convert the task into sentence pair classification by forming a pair between each question and each\n            sentence in the corresponding context, and filtering out pairs with low lexical overlap between the\n            question and the context sentence. The task is to determine whether the context sentence contains\n            the answer to the question. This modified version of the original task removes the requirement that\n            the model select the exact answer, but also removes the simplifying assumptions that the answer\n            is always present in the input and that lexical overlap is a reliable cue.", 
+  "location": {
+    "urls": [
+      "https://rajpurkar.github.io/SQuAD-explorer/", 
+      "https://gluebenchmark.com/"
+    ]
+  }, 
+  "name": "glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "question", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "sentence", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "10627589", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5463"
+              }, 
+              "max": 5462.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5463"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5463"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5463"
+              }
+            }, 
+            "name": "sentence", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "5463"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "104743"
+              }, 
+              "max": 104742.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "104743"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "104743"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "104743"
+              }
+            }, 
+            "name": "sentence", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "104743"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5463"
+              }, 
+              "max": 5462.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "5463"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5463"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "5463"
+              }
+            }, 
+            "name": "sentence", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "5463"
+      }
+    }
+  ], 
+  "version": "0.0.2"
+}

@@ -1,0 +1,3 @@
+http://vision.stanford.edu/aditya86/ImageNetDogs/annotation.tar 21852160 662ed36f707be6b195c2fda392d8e153e83af28cedc8e2134a649f198def30fd
+http://vision.stanford.edu/aditya86/ImageNetDogs/images.tar 793579520 a443fc2f9a851aa1a7b8e4fa4af94b8459fce2c9f5a2f4dd4669cf9673a4ec58
+http://vision.stanford.edu/aditya86/ImageNetDogs/lists.tar 481280 34b47cacd9a98b5d150e084f24d29391c084c55272295ec65c85651bc35f4d6c

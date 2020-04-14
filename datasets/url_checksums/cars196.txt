@@ -1,0 +1,4 @@
+http://imagenet.stanford.edu/internal/car196/cars_test.tgz 977350468 bffea656d6f425cba3c91c6d83336e4c5f86c6cffd8975b0f375d3a10da8e243
+http://imagenet.stanford.edu/internal/car196/cars_test_annos_withlabels.mat 185758 790f75be8ea34eeded134cc559332baf23e30e91367e9ddca97d26ed9b895f05
+http://imagenet.stanford.edu/internal/car196/cars_train.tgz 979269282 512b227b30e2f0a8aab9e09485786ab4479582073a144998da74d64b801fd288
+https://ai.stanford.edu/~jkrause/cars/car_devkit.tgz 330960 b97deb463af7d58b6bfaa18b2a4de9829f0f79e8ce663dfa9261bf7810e9accd

@@ -1,0 +1,8 @@
+https://drive.google.com/uc?export=download&id=0BwmD_VLjROrfM1BxdkxVaTY2bWs 375893739 ad69010002210b7c406718248ee66e65868b9f6820f163aa966369878d14147e
+https://drive.google.com/uc?export=download&id=0BwmD_VLjROrfTHk4NFg2SndKcjQ 158577824 e8fbc0027e54e0a916abd9c969eb35f708ed1467d7ef4e3b17a56739d65cb200
+https://github.com/abisee/cnn-dailymail/blob/master/url_lists/all_test.txt 56986 0a0cdc0b63960054b5bd22d289e6985bc827bd56301e7ce3b49c537461b73c3c
+https://github.com/abisee/cnn-dailymail/blob/master/url_lists/all_train.txt 57002 c3275baf37e938a8c639fd815aecf61c3fe4bd1d1ecb8a15e971b0f40d184a6f
+https://github.com/abisee/cnn-dailymail/blob/master/url_lists/all_val.txt 54664 253009f7e140566d5a52e499e48ae3d9cc4cc426e70b3d8c7c71f48d8b25b539
+https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_test.txt 2109547 c4f5efb5ec2126430a5c156efbd13d0e9c4cb490169e552c38b4a51981a009bd
+https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_train.txt 46424688 a5cee49f3a6c862c26ce29308236d2a99625ab6c86a43be22d5206b2790d8029
+https://raw.githubusercontent.com/abisee/cnn-dailymail/master/url_lists/all_val.txt 2433674 81887e982b045083409c6ee838aede8ff4b97291605bcfb21bffc456a16991db

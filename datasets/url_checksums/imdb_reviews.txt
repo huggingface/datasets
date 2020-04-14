@@ -1,0 +1,1 @@
+http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz 84125825 c40f74a18d3b61f90feba1e17730e0d38e8b97c05fde7008942e91923d1658fe

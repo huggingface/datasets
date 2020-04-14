@@ -1,0 +1,140 @@
+{
+  "citation": "            @inproceedings{socher2013recursive,\n              title={Recursive deep models for semantic compositionality over a sentiment treebank},\n              author={Socher, Richard and Perelygin, Alex and Wu, Jean and Chuang, Jason and Manning, Christopher D and Ng, Andrew and Potts, Christopher},\n              booktitle={Proceedings of the 2013 conference on empirical methods in natural language processing},\n              pages={1631--1642},\n              year={2013}\n            }\n@inproceedings{wang2019glue,\n  title={{GLUE}: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding},\n  author={Wang, Alex and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R.},\n  note={In the Proceedings of ICLR.},\n  year={2019}\n}\n\nNote that each GLUE dataset has its own citation. Please see the source to see\nthe correct citation for each contained dataset.", 
+  "description": "            The Stanford Sentiment Treebank consists of sentences from movie reviews and\n            human annotations of their sentiment. The task is to predict the sentiment of a\n            given sentence. We use the two-way (positive/negative) class split, and use only\n            sentence-level labels.", 
+  "location": {
+    "urls": [
+      "https://nlp.stanford.edu/sentiment/index.html", 
+      "https://gluebenchmark.com/"
+    ]
+  }, 
+  "name": "glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "sentence", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "7439277", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1821"
+              }, 
+              "max": 1820.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1821"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1821"
+              }
+            }, 
+            "name": "sentence", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "1821"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "67349"
+              }, 
+              "max": 67348.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "67349"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "67349"
+              }
+            }, 
+            "name": "sentence", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "67349"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "872"
+              }, 
+              "max": 871.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "872"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "872"
+              }
+            }, 
+            "name": "sentence", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "872"
+      }
+    }
+  ], 
+  "version": "0.0.2"
+}

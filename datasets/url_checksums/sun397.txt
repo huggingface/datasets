@@ -1,0 +1,2 @@
+https://vision.princeton.edu/projects/2010/SUN/SUN397.tar.gz 39077296924 f404130965a7ad77bed5ececc71e720ab50f3cc1e1bb257257610d38f3b928ec
+https://vision.princeton.edu/projects/2010/SUN/download/Partitions.zip 18293705 e3311ea5f812d4cc6faef194688343d1111f6cd6f70f2c62f393c2b8d6ba1ec9

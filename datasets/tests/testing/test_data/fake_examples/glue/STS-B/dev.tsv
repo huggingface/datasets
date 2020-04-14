@@ -1,0 +1,3 @@
+index	genre	filename	year	old_index	source1	source2	sentence1	sentence2	score
+0	main-captions	MSRvid	2012test	0	none	none	A man with a hard hat is dancing.	A man wearing a hard hat is dancing.	5
+1	main-captions	MSRvid	2012test	2	none	none	A young child is riding a horse.	A child is riding a horse.	4.75

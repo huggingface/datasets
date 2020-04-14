@@ -1,0 +1,21 @@
+{
+  "citation": "@ONLINE {wikidump,\n    author = \"Wikimedia Foundation\",\n    title  = \"Wikimedia Downloads\",\n    url    = \"https://dumps.wikimedia.org\"\n}\n",
+  "description": "Wikipedia dataset containing cleaned articles of all languages.\nThe datasets are built from the Wikipedia dump\n(https://dumps.wikimedia.org/) with one split per language. Each example\ncontains the content of one full Wikipedia article with cleaning to strip\nmarkdown and unwanted sections (references, etc.).\n",
+  "location": {
+    "urls": [
+      "https://dumps.wikimedia.org"
+    ]
+  },
+  "name": "wikipedia",
+  "redistributionInfo": {
+    "license": "This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA."
+  },
+  "sizeInBytes": "1615705",
+  "splits": [
+    {
+      "name": "train",
+      "numShards": "1"
+    }
+  ],
+  "version": "0.0.4"
+}

@@ -1,0 +1,150 @@
+{
+  "citation": "\n@InProceedings{10.1007/978-3-642-40802-1_29,\nauthor=\"Pe{\\~{n}}as, Anselmo\nand Hovy, Eduard\nand Forner, Pamela\nand Rodrigo, {'A}lvaro\nand Sutcliffe, Richard\nand Morante, Roser\",\neditor=\"Forner, Pamela\nand M{\"u}ller, Henning\nand Paredes, Roberto\nand Rosso, Paolo\nand Stein, Benno\",\ntitle=\"QA4MRE 2011-2013: Overview of Question Answering for Machine Reading Evaluation\",\nbooktitle=\"Information Access Evaluation. Multilinguality, Multimodality, and Visualization\",\nyear=\"2013\",\npublisher=\"Springer Berlin Heidelberg\",\naddress=\"Berlin, Heidelberg\",\npages=\"303--320\",\nabstract=\"This paper describes the methodology for testing the performance of Machine Reading systems through Question Answering and Reading Comprehension Tests. This was the attempt of the QA4MRE challenge which was run as a Lab at CLEF 2011--2013. The traditional QA task was replaced by a new Machine Reading task, whose intention was to ask questions that required a deep knowledge of individual short texts and in which systems were required to choose one answer, by analysing the corresponding test document in conjunction with background text collections provided by the organization. Four different tasks have been organized during these years: Main Task, Processing Modality and Negation for Machine Reading, Machine Reading of Biomedical Texts about Alzheimer's disease, and Entrance Exams. This paper describes their motivation, their goals, their methodology for preparing the data sets, their background collections, their metrics used for the evaluation, and the lessons learned along these three years.\",\nisbn=\"978-3-642-40802-1\"\n}\n",
+  "description": "\nQA4MRE dataset was created for the CLEF 2011/2012/2013 shared tasks to promote research in \nquestion answering and reading comprehension. The dataset contains a supporting \npassage and a set of questions corresponding to the passage. Multiple options \nfor answers are provided for each question, of which only one is correct. The \ntraining and test datasets are available for the main track.\nAdditional gold standard documents are available for two pilot studies: one on \nalzheimers data, and the other on entrance exams data.\n",
+  "location": {
+    "urls": [
+      "http://nlp.uned.es/clef-qa/repository/pastCampaigns.php"
+    ]
+  },
+  "name": "qa4mre",
+  "schema": {
+    "feature": [
+      {
+        "name": "answer_options"
+      },
+      {
+        "name": "correct_answer_id",
+        "type": "BYTES"
+      },
+      {
+        "name": "correct_answer_str",
+        "type": "BYTES"
+      },
+      {
+        "name": "document_id",
+        "type": "BYTES"
+      },
+      {
+        "name": "document_str",
+        "type": "BYTES"
+      },
+      {
+        "name": "question_id",
+        "type": "BYTES"
+      },
+      {
+        "name": "question_str",
+        "type": "BYTES"
+      },
+      {
+        "name": "test_id",
+        "type": "BYTES"
+      },
+      {
+        "name": "topic_id",
+        "type": "BYTES"
+      },
+      {
+        "name": "topic_name",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "splits": [
+    {
+      "name": "train",
+      "numBytes": "4240294",
+      "numShards": "1",
+      "shardLengths": [
+        "284"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "284"
+              }
+            },
+            "name": "correct_answer_id",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "284"
+              }
+            },
+            "name": "correct_answer_str",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "284"
+              }
+            },
+            "name": "document_id",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "284"
+              }
+            },
+            "name": "document_str",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "284"
+              }
+            },
+            "name": "question_id",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "284"
+              }
+            },
+            "name": "question_str",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "284"
+              }
+            },
+            "name": "test_id",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "284"
+              }
+            },
+            "name": "topic_id",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "284"
+              }
+            },
+            "name": "topic_name",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "284"
+      }
+    }
+  ],
+  "version": "0.1.0"
+}

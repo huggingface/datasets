@@ -1,0 +1,4 @@
+https://github.com/brendenlake/omniglot/raw/master/python/images_background.zip 9464212 ad41ab679c8b5d90b271ef46be6987cc81211774a695c29dcc5367b2b26ee640
+https://github.com/brendenlake/omniglot/raw/master/python/images_background_small1.zip 1319022 f38eb80f801274ac2b4dff5b24289016bfaba4a7d5bb50deebf27104ad6cb8a4
+https://github.com/brendenlake/omniglot/raw/master/python/images_background_small2.zip 1580917 3ccaa407515a8778e5d0861875af38b17e418f301ad5bb3b5a6b65d901a41c7f
+https://github.com/brendenlake/omniglot/raw/master/python/images_evaluation.zip 6462886 1f61a8f3366785b057fc117d9228e78a16e3d976c8953b2a10fcc74cf0609cee

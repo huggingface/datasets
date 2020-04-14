@@ -1,0 +1,4 @@
+https://raw.githubusercontent.com/OanaMariaCamburu/e-SNLI/master/dataset/esnli_dev.csv 7501310 d7a656d196eea18fd827d6f5486b00f5d4cf469dbf13a252cc211495a186bcb4
+https://raw.githubusercontent.com/OanaMariaCamburu/e-SNLI/master/dataset/esnli_test.csv 7438107 9269aa8075dbfed0fa8a5012eb2ac9c18a92be139671f05df897f69092592927
+https://raw.githubusercontent.com/OanaMariaCamburu/e-SNLI/master/dataset/esnli_train_1.csv 90169741 7311c7bc16ad9f6a9adcd116a62ef991e1803dc0d71e253ce66b975c2aba8ee5
+https://raw.githubusercontent.com/OanaMariaCamburu/e-SNLI/master/dataset/esnli_train_2.csv 99406852 c8827fa2ba1ef5891f077d6fafbfc2fdb6cab1271968b74257e08d3b2b3cbacc

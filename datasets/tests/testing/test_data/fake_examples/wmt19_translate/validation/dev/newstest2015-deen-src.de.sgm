@@ -1,0 +1,12 @@
+<refset setid="newstest2015" srclang="any">
+<doc sysid="ref" docid="1" genre="news" origlang="en">
+<p>
+<seg id="1">ich renne</seg>
+<seg id="2">es verschwand</seg>
+</p>
+</doc>
+<doc sysid="ref" docid="2" genre="news" origlang="de">
+<p>
+<seg id="1">ich schwimme</seg>
+</p>
+</doc>

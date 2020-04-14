@@ -1,0 +1,6 @@
+http://data.statmt.org/wmt19/translation-task/dev.tgz 38654961 7a7deccf82ebb05ba508dba5eb21356492224e8f630ec4f992132b029b4b25e7
+http://www.statmt.org/wmt10/training-giga-fren.tar 2595102720 3ff8319f6919393520559bfbc7ad6a747ec81b3abc7be9993b338d4b017b4d9a
+http://www.statmt.org/wmt13/training-parallel-commoncrawl.tgz 918311367 c7a74e2ea01ac6c920123108627e35278d4ccb5701e15428ffa34de86fa3a9e5
+http://www.statmt.org/wmt13/training-parallel-europarl-v7.tgz 657632379 0224c7c710c8a063dfd893b0cc0830202d61f4c75c17eb8e31836103d27d96e7
+http://www.statmt.org/wmt13/training-parallel-un.tgz 2365634246 29141b5c1eba149a94f7a59d3b1a834b2e47fe0f8758d68dcd77a3d3f497ee47
+http://www.statmt.org/wmt15/training-parallel-nc-v10.tgz 125136590 11e053e7ea29e87e69a1ad05e61cb559820947ecec144ea8c1d6cf05017c9602

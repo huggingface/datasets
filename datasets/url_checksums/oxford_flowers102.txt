@@ -1,0 +1,3 @@
+https://www.robots.ox.ac.uk/~vgg/data/flowers/102/102flowers.tgz 353105920 ab4f0aa80bcf087a6841e317568ad8858fe121e7f60c4354d20c6be0869d03cc
+https://www.robots.ox.ac.uk/~vgg/data/flowers/102/imagelabels.mat 502 4903e94206bac23bf772aadf06451916df56b58fc483a62db32a97b82656651d
+https://www.robots.ox.ac.uk/~vgg/data/flowers/102/setid.mat 14989 46b8678f91fd95d3c8f4feab80d271a6c834a1dd896fe29fd3e6ad9ce5c8dccd

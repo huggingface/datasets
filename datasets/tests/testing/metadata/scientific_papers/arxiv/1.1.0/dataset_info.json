@@ -1,0 +1,216 @@
+{
+  "citation": "\n@article{Cohan_2018,\n   title={A Discourse-Aware Attention Model for Abstractive Summarization of\n            Long Documents},\n   url={http://dx.doi.org/10.18653/v1/n18-2097},\n   DOI={10.18653/v1/n18-2097},\n   journal={Proceedings of the 2018 Conference of the North American Chapter of\n          the Association for Computational Linguistics: Human Language\n          Technologies, Volume 2 (Short Papers)},\n   publisher={Association for Computational Linguistics},\n   author={Cohan, Arman and Dernoncourt, Franck and Kim, Doo Soon and Bui, Trung and Kim, Seokhwan and Chang, Walter and Goharian, Nazli},\n   year={2018}\n}\n",
+  "description": "\nScientific papers datasets contains two sets of long and structured documents.\nThe datasets are obtained from ArXiv and PubMed OpenAccess repositories.\n\nBoth \"arxiv\" and \"pubmed\" have two features:\n  - article: the body of the document, pagragraphs seperated by \"/n\".\n  - abstract: the abstract of the document, pagragraphs seperated by \"/n\".\n  - section_names: titles of sections, seperated by \"/n\".\n\n",
+  "location": {
+    "urls": [
+      "https://github.com/armancohan/long-summarization"
+    ]
+  },
+  "name": "scientific_papers",
+  "schema": {
+    "feature": [
+      {
+        "name": "abstract",
+        "type": "BYTES"
+      },
+      {
+        "name": "article",
+        "type": "BYTES"
+      },
+      {
+        "name": "section_names",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "4504646189",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "3220",
+        "3220"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "6440"
+              }
+            },
+            "name": "abstract",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "6440"
+              }
+            },
+            "name": "article",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "6440"
+              }
+            },
+            "name": "section_names",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "6440"
+      }
+    },
+    {
+      "name": "train",
+      "numShards": "1",
+      "shardLengths": [
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172",
+        "3173",
+        "3172"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "203037"
+              }
+            },
+            "name": "abstract",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "203037"
+              }
+            },
+            "name": "article",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "203037"
+              }
+            },
+            "name": "section_names",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "203037"
+      }
+    },
+    {
+      "name": "validation",
+      "numShards": "1",
+      "shardLengths": [
+        "3218",
+        "3218"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "6436"
+              }
+            },
+            "name": "abstract",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "6436"
+              }
+            },
+            "name": "article",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "6436"
+              }
+            },
+            "name": "section_names",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "6436"
+      }
+    }
+  ],
+  "supervisedKeys": {
+    "input": "article",
+    "output": "abstract"
+  },
+  "version": "1.1.0"
+}

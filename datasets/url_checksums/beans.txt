@@ -1,0 +1,3 @@
+https://storage.googleapis.com/ibeans/test.zip 17708541 ca67b15d960d1e2fd9d23fd8498ce86818ead90755c630a43baf19ec4af09312
+https://storage.googleapis.com/ibeans/train.zip 143812152 284fe8456ce20687f4367ae7ad94a64577e7f9fde2c2c6b1c74340ab5dc82715
+https://storage.googleapis.com/ibeans/validation.zip 18504213 90b7aa1c26d91d9afff07a30bbc67a5ea34f1f1397f068d8675be09d7d0c602d

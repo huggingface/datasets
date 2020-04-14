@@ -1,0 +1,6 @@
+https://zenodo.org/record/2546921/files/camelyonpatch_level_2_split_test_x.h5.gz 800875929 79174c2201ad521602a5888be8f36ee10875f37403dd3f2086caf2182ef87245
+https://zenodo.org/record/2546921/files/camelyonpatch_level_2_split_test_y.h5.gz 3040 0a522005fccc8bbd04c5a117bfaf81d8da2676f03a29d7499f71d0a0bd6068ef
+https://zenodo.org/record/2546921/files/camelyonpatch_level_2_split_train_x.h5.gz 6421353462 d619e741468a7ab35c7e4a75e6821b7e7e6c9411705d45708f2a0efc8960656c
+https://zenodo.org/record/2546921/files/camelyonpatch_level_2_split_train_y.h5.gz 21378 b74126d2c01b20d3661f9b46765d29cf4e4fba6faba29c8e0d09d406331ab75a
+https://zenodo.org/record/2546921/files/camelyonpatch_level_2_split_valid_x.h5.gz 805965320 f82ee1670d027b4ec388048d9eabc2186b77c009655dae76d624c0ecb053ccb2
+https://zenodo.org/record/2546921/files/camelyonpatch_level_2_split_valid_y.h5.gz 3038 ce1ae30f08feb468447971cfd0472e7becd0ad96d877c64120c72571439ae48c

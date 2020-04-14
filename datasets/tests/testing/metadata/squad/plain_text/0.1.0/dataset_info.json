@@ -1,0 +1,127 @@
+{
+  "citation": "@article{2016arXiv160605250R,\n       author = {{Rajpurkar}, Pranav and {Zhang}, Jian and {Lopyrev},\n                 Konstantin and {Liang}, Percy},\n        title = \"{SQuAD: 100,000+ Questions for Machine Comprehension of Text}\",\n      journal = {arXiv e-prints},\n         year = 2016,\n          eid = {arXiv:1606.05250},\n        pages = {arXiv:1606.05250},\narchivePrefix = {arXiv},\n       eprint = {1606.05250},\n}\n", 
+  "description": "Stanford Question Answering Dataset (SQuAD) is a reading comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span, from the corresponding reading passage, or the question might be unanswerable.\n", 
+  "location": {
+    "urls": [
+      "https://rajpurkar.github.io/SQuAD-explorer/"
+    ]
+  }, 
+  "name": "squad", 
+  "schema": {
+    "feature": [
+      {
+        "name": "answers"
+      }, 
+      {
+        "name": "context", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "id", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "question", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "title", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "35142551", 
+  "splits": [
+    {
+      "name": "train", 
+      "numShards": "10", 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "87599"
+              }
+            }, 
+            "name": "context", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "87599"
+              }
+            }, 
+            "name": "id", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "87599"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "87599"
+              }
+            }, 
+            "name": "title", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "87599"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10570"
+              }
+            }, 
+            "name": "context", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10570"
+              }
+            }, 
+            "name": "id", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10570"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10570"
+              }
+            }, 
+            "name": "title", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "10570"
+      }
+    }
+  ], 
+  "version": "0.1.0"
+}

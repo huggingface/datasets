@@ -1,0 +1,478 @@
+{
+  "citation": "\n@article{Grusky_2018,\n   title={Newsroom: A Dataset of 1.3 Million Summaries with Diverse Extractive Strategies},\n   url={http://dx.doi.org/10.18653/v1/n18-1065},\n   DOI={10.18653/v1/n18-1065},\n   journal={Proceedings of the 2018 Conference of the North American Chapter of\n          the Association for Computational Linguistics: Human Language\n          Technologies, Volume 1 (Long Papers)},\n   publisher={Association for Computational Linguistics},\n   author={Grusky, Max and Naaman, Mor and Artzi, Yoav},\n   year={2018}\n}\n\n", 
+  "description": "\nNEWSROOM is a large dataset for training and evaluating summarization systems.\nIt contains 1.3 million articles and summaries written by authors and\neditors in the newsrooms of 38 major publications.\n\nDataset features includes:\n  - text: Input news text.\n  - summary: Summary for the news.\nAnd additional features:\n  - title: news title.\n  - url: url of the news.\n  - date: date of the article.\n  - density: extractive density.\n  - coverage: extractive coverage.\n  - compression: compression ratio.\n  - density_bin: low, medium, high.\n  - coverage_bin: extractive, abstractive.\n  - compression_bin: low, medium, high.\n\nThis dataset can be downloaded upon requests. Unzip all the contents\n\"train.jsonl, dev.josnl, test.jsonl\" to the tfds folder.\n\n", 
+  "location": {
+    "urls": [
+      "https://summari.es"
+    ]
+  }, 
+  "name": "newsroom", 
+  "schema": {
+    "feature": [
+      {
+        "name": "compression", 
+        "type": "FLOAT"
+      }, 
+      {
+        "name": "compression_bin", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "coverage", 
+        "type": "FLOAT"
+      }, 
+      {
+        "name": "coverage_bin", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "date", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "density", 
+        "type": "FLOAT"
+      }, 
+      {
+        "name": "density_bin", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "summary", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "text", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "title", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "url", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "27216", 
+        "27215", 
+        "27216", 
+        "27215"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "compression", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }, 
+              "max": 61669.0, 
+              "min": 0.4000000059604645
+            }, 
+            "type": "FLOAT"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }
+            }, 
+            "name": "compression_bin", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "coverage", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }, 
+              "max": 1.0
+            }, 
+            "type": "FLOAT"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }
+            }, 
+            "name": "coverage_bin", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }
+            }, 
+            "name": "date", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "density", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }, 
+              "max": 280.80035400390625
+            }, 
+            "type": "FLOAT"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }
+            }, 
+            "name": "density_bin", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }
+            }, 
+            "name": "summary", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }
+            }, 
+            "name": "text", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }
+            }, 
+            "name": "title", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108862"
+              }
+            }, 
+            "name": "url", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "108862"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548", 
+        "15547", 
+        "15548"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "compression", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }, 
+              "max": 105559.0
+            }, 
+            "type": "FLOAT"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }
+            }, 
+            "name": "compression_bin", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "coverage", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }, 
+              "max": 1.0
+            }, 
+            "type": "FLOAT"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }
+            }, 
+            "name": "coverage_bin", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }
+            }, 
+            "name": "date", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "density", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }, 
+              "max": 1135.0
+            }, 
+            "type": "FLOAT"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }
+            }, 
+            "name": "density_bin", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }
+            }, 
+            "name": "summary", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }
+            }, 
+            "name": "text", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }
+            }, 
+            "name": "title", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "995041"
+              }
+            }, 
+            "name": "url", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "995041"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "27209", 
+        "27210", 
+        "27209", 
+        "27209"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "name": "compression", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }, 
+              "max": 56587.0, 
+              "min": 0.1818181872367859
+            }, 
+            "type": "FLOAT"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }
+            }, 
+            "name": "compression_bin", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "coverage", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }, 
+              "max": 1.0
+            }, 
+            "type": "FLOAT"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }
+            }, 
+            "name": "coverage_bin", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }
+            }, 
+            "name": "date", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "density", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }, 
+              "max": 1037.0
+            }, 
+            "type": "FLOAT"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }
+            }, 
+            "name": "density_bin", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }
+            }, 
+            "name": "summary", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }
+            }, 
+            "name": "text", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }
+            }, 
+            "name": "title", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "108837"
+              }
+            }, 
+            "name": "url", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "108837"
+      }
+    }
+  ], 
+  "supervisedKeys": {
+    "input": "text", 
+    "output": "summary"
+  }, 
+  "version": "1.0.0"
+}

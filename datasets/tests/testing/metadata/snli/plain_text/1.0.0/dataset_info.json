@@ -1,0 +1,150 @@
+{
+  "citation": "@inproceedings{snli:emnlp2015,\n\tAuthor = {Bowman, Samuel R. and Angeli, Gabor and Potts, Christopher, and Manning, Christopher D.},\n\tBooktitle = {Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing (EMNLP)},\n\tPublisher = {Association for Computational Linguistics},\n\tTitle = {A large annotated corpus for learning natural language inference},\n\tYear = {2015}\n}\n", 
+  "description": "The SNLI corpus (version 1.0) is a collection of 570k human-written English\nsentence pairs manually labeled for balanced classification with the labels\nentailment, contradiction, and neutral, supporting the task of natural language\ninference (NLI), also known as recognizing textual entailment (RTE).\n", 
+  "location": {
+    "urls": [
+      "https://nlp.stanford.edu/projects/snli/"
+    ]
+  }, 
+  "name": "snli", 
+  "schema": {
+    "feature": [
+      {
+        "name": "hypothesis", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "premise", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "94550081", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "10000"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }, 
+              "max": 2.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "10000"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "2", 
+      "shardLengths": [
+        "550152"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "550152"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "550152"
+              }, 
+              "max": 2.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "550152"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "550152"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "10000"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }, 
+              "max": 2.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "10000"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

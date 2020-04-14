@@ -1,0 +1,183 @@
+{
+  "citation": "@inproceedings{MultiRC2018,\n    author = {Daniel Khashabi and Snigdha Chaturvedi and Michael Roth and Shyam Upadhyay and Dan Roth},\n    title = {Looking Beyond the Surface:A Challenge Set for Reading Comprehension over Multiple Sentences},\n    booktitle = {Proceedings of North American Chapter of the Association for Computational Linguistics (NAACL)},\n    year = {2018}\n}\n@article{wang2019superglue,\n  title={SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},\n  author={Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R},\n  journal={arXiv preprint arXiv:1905.00537},\n  year={2019}\n}\n\nNote that each SuperGLUE dataset has its own citation. Please see the source to\nget the correct citation for each contained dataset.\n", 
+  "description": "The Multi-Sentence Reading Comprehension dataset (MultiRC, Khashabi et al., 2018)\nis a true/false question-answering task. Each example consists of a context paragraph, a question\nabout that paragraph, and a list of possible answers to that question which must be labeled as true or\nfalse. Question-answering (QA) is a popular problem with many datasets. We use MultiRC because\nof a number of desirable properties: (i) each question can have multiple possible correct answers,\nso each question-answer pair must be evaluated independent of other pairs, (ii) the questions are\ndesigned such that answering each question requires drawing facts from multiple context sentences,\nand (iii) the question-answer pair format more closely matches the API of other SuperGLUE tasks\nthan span-based extractive QA does. The paragraphs are drawn from seven domains including news,\nfiction, and historical text.", 
+  "location": {
+    "urls": [
+      "https://cogcomp.org/multirc/", 
+      "https://super.gluebenchmark.com/"
+    ]
+  }, 
+  "name": "super_glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "answer", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "idx"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "paragraph", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "question", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "1216866", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "9693"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9693"
+              }
+            }, 
+            "name": "answer", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "9693"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9693"
+              }
+            }, 
+            "name": "paragraph", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "9693"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "9693"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "27243"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "27243"
+              }
+            }, 
+            "name": "answer", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "27243"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "27243"
+              }
+            }, 
+            "name": "paragraph", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "27243"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "27243"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "4848"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "4848"
+              }
+            }, 
+            "name": "answer", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "4848"
+              }, 
+              "max": 1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "4848"
+              }
+            }, 
+            "name": "paragraph", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "4848"
+              }
+            }, 
+            "name": "question", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "4848"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

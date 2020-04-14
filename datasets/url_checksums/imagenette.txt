@@ -1,0 +1,6 @@
+https://s3.amazonaws.com/fast-ai-imageclas/imagenette-160.tgz 98752094 4bacf19aa3f2454e330ac366c98ac1e470ccc6bebca8ff63ecc7f339cb2ead11
+https://s3.amazonaws.com/fast-ai-imageclas/imagenette-320.tgz 341289752 0e3ac85d7f3fd0a63d5e27d85c68511be9ac4dae260345b6f7434a0d4fa24b3f
+https://s3.amazonaws.com/fast-ai-imageclas/imagenette.tgz 1556495367 1bd650bc16884ca88e4f0f537ed8569b1f8d7ae865d37eba8ecdd87d9cd9dcfa
+https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-160.tgz 98948031 88daccb09b6fce93f45e6c09ddeb269cce705549e6bff322092a2a5a11489863
+https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz 341553947 5020a9130cea0348272823cb12d2db7e981c6f2afa3dce71ccd5b8013005c55e
+https://s3.amazonaws.com/fast-ai-imageclas/imagenette2.tgz 1556914727 de32de18a7d8df0114d5e2c3c14cafb9558e8f00441a73aa7953681ad02be49c

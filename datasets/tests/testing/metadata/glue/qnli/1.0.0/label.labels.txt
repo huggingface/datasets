@@ -1,0 +1,2 @@
+entailment
+not_entailment

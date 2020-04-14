@@ -1,0 +1,1 @@
+http://nlp.cs.washington.edu/triviaqa/data/triviaqa-rc.tar.gz 2665779500 ef94fac6db0541e5bb5b27020d067a8b13b1c1ffc52717e836832e02aaed87b9

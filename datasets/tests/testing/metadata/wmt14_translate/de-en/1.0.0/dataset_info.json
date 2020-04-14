@@ -1,0 +1,135 @@
+{
+  "citation": "\n@InProceedings{bojar-EtAl:2014:W14-33,\n  author    = {Bojar, Ondrej  and  Buck, Christian  and  Federmann, Christian  and  Haddow, Barry  and  Koehn, Philipp  and  Leveling, Johannes  and  Monz, Christof  and  Pecina, Pavel  and  Post, Matt  and  Saint-Amand, Herve  and  Soricut, Radu  and  Specia, Lucia  and  Tamchyna, Ale\u000b{s}},\n  title     = {Findings of the 2014 Workshop on Statistical Machine Translation},\n  booktitle = {Proceedings of the Ninth Workshop on Statistical Machine Translation},\n  month     = {June},\n  year      = {2014},\n  address   = {Baltimore, Maryland, USA},\n  publisher = {Association for Computational Linguistics},\n  pages     = {12--58},\n  url       = {http://www.aclweb.org/anthology/W/W14/W14-3302}\n}\n",
+  "description": "Translate dataset based on the data from statmt.org.\n\nVersions exists for the different years using a combination of multiple data\nsources. The base `wmt_translate` allows you to create your own config to choose\nyour own data/language pair by creating a custom `tfds.translate.wmt.WmtConfig`.\n\n```\nconfig = tfds.translate.wmt.WmtConfig(\n    version=\"0.0.1\",\n    language_pair=(\"fr\", \"de\"),\n    subsets={\n        tfds.Split.TRAIN: [\"commoncrawl_frde\"],\n        tfds.Split.VALIDATION: [\"euelections_dev2019\"],\n    },\n)\nbuilder = tfds.builder(\"wmt_translate\", config=config)\n```\n\n",
+  "location": {
+    "urls": [
+      "http://www.statmt.org/wmt14/translation-task.html"
+    ]
+  },
+  "name": "wmt14_translate",
+  "schema": {
+    "feature": [
+      {
+        "name": "de",
+        "type": "BYTES"
+      },
+      {
+        "name": "en",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "1695017123",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "3003"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3003"
+              }
+            },
+            "name": "de",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3003"
+              }
+            },
+            "name": "en",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "3003"
+      }
+    },
+    {
+      "name": "train",
+      "numShards": "10",
+      "shardLengths": [
+        "281799",
+        "281799",
+        "281799",
+        "281799",
+        "281799",
+        "281799",
+        "281799",
+        "281799",
+        "281800",
+        "281799",
+        "281799",
+        "281799",
+        "281799",
+        "281799",
+        "281799",
+        "281799"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "4508785"
+              }
+            },
+            "name": "de",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "4508785"
+              }
+            },
+            "name": "en",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "4508785"
+      }
+    },
+    {
+      "name": "validation",
+      "numShards": "1",
+      "shardLengths": [
+        "3000"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              }
+            },
+            "name": "de",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "3000"
+              }
+            },
+            "name": "en",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "3000"
+      }
+    }
+  ],
+  "supervisedKeys": {
+    "input": "de",
+    "output": "en"
+  },
+  "version": "1.0.0"
+}

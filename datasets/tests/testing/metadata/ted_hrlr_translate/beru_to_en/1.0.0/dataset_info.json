@@ -1,0 +1,120 @@
+{
+  "citation": "@inproceedings{Ye2018WordEmbeddings,\n  author  = {Ye, Qi and Devendra, Sachan and Matthieu, Felix and Sarguna, Padmanabhan and Graham, Neubig},\n  title   = {When and Why are pre-trained word embeddings useful for Neural Machine Translation},\n  booktitle = {HLT-NAACL},\n  year    = {2018},\n  }\n", 
+  "description": "Data sets derived from TED talk transcripts for comparing similar language pairs\nwhere one is high resource and the other is low resource.\n", 
+  "location": {
+    "urls": [
+      "https://github.com/neulab/word-embeddings-for-nmt"
+    ]
+  }, 
+  "name": "ted_hrlr_translate", 
+  "schema": {
+    "feature": [
+      {
+        "name": "be_ru", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "en", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "131005909", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "664"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "664"
+              }
+            }, 
+            "name": "be_ru", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "664"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "664"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "212614"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "212614"
+              }
+            }, 
+            "name": "be_ru", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "212614"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "212614"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "248"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "248"
+              }
+            }, 
+            "name": "be_ru", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "248"
+              }
+            }, 
+            "name": "en", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "248"
+      }
+    }
+  ], 
+  "supervisedKeys": {
+    "input": "be_ru", 
+    "output": "en"
+  }, 
+  "version": "1.0.0"
+}

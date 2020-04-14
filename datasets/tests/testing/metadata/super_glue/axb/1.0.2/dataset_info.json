@@ -1,0 +1,83 @@
+{
+  "citation": "\n@article{wang2019superglue,\n  title={SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},\n  author={Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R},\n  journal={arXiv preprint arXiv:1905.00537},\n  year={2019}\n}\n\nNote that each SuperGLUE dataset has its own citation. Please see the source to\nget the correct citation for each contained dataset.\n",
+  "description": "An expert-constructed,\ndiagnostic dataset that automatically tests models for a broad range of linguistic, commonsense, and\nworld knowledge. Each example in this broad-coverage diagnostic is a sentence pair labeled with\na three-way entailment relation (entailment, neutral, or contradiction) and tagged with labels that\nindicate the phenomena that characterize the relationship between the two sentences. Submissions\nto the GLUE leaderboard are required to include predictions from the submission's MultiNLI\nclassifier on the diagnostic dataset, and analyses of the results were shown alongside the main\nleaderboard. Since this broad-coverage diagnostic task has proved difficult for top models, we retain\nit in SuperGLUE. However, since MultiNLI is not part of SuperGLUE, we collapse contradiction\nand neutral into a single not_entailment label, and request that submissions include predictions\non the resulting set from the model used for the RTE task.\n",
+  "location": {
+    "urls": [
+      "https://gluebenchmark.com/diagnostics",
+      "https://super.gluebenchmark.com/"
+    ]
+  },
+  "name": "super_glue",
+  "schema": {
+    "feature": [
+      {
+        "name": "idx",
+        "type": "INT"
+      },
+      {
+        "name": "label",
+        "type": "INT"
+      },
+      {
+        "name": "sentence1",
+        "type": "BYTES"
+      },
+      {
+        "name": "sentence2",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "33950",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "1104"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "idx",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1104"
+              },
+              "max": 1103.0
+            }
+          },
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "1104"
+              },
+              "max": 1.0
+            }
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1104"
+              }
+            },
+            "name": "sentence1",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1104"
+              }
+            },
+            "name": "sentence2",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "1104"
+      }
+    }
+  ],
+  "version": "1.0.2"
+}

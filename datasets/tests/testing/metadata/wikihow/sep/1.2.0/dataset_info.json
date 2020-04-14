@@ -1,0 +1,228 @@
+{
+  "citation": "\n@misc{koupaee2018wikihow,\n    title={WikiHow: A Large Scale Text Summarization Dataset},\n    author={Mahnaz Koupaee and William Yang Wang},\n    year={2018},\n    eprint={1810.09305},\n    archivePrefix={arXiv},\n    primaryClass={cs.CL}\n}\n",
+  "description": "\nWikiHow is a new large-scale dataset using the online WikiHow\n(http://www.wikihow.com/) knowledge base.\n\nThere are two features:\n  - text: wikihow answers texts.\n  - headline: bold lines as summary.\n\nThere are two separate versions:\n  - all: consisting of the concatenation of all paragraphs as the articles and\n         the bold lines as the reference summaries.\n  - sep: consisting of each paragraph and its summary.\n\nDownload \"wikihowAll.csv\" and \"wikihowSep.csv\" from\nhttps://github.com/mahnazkoupaee/WikiHow-Dataset and place them in manual folder\nhttps://www.tensorflow.org/datasets/api_docs/python/tfds/download/DownloadConfig.\nTrain/validation/test splits are provided by the authors.\nPreprocessing is applied to remove short articles\n(abstract length < 0.75 article length) and clean up extra commas.\n",
+  "location": {
+    "urls": [
+      "https://github.com/mahnazkoupaee/WikiHow-Dataset"
+    ]
+  },
+  "name": "wikihow",
+  "schema": {
+    "feature": [
+      {
+        "name": "headline",
+        "type": "BYTES"
+      },
+      {
+        "name": "overview",
+        "type": "BYTES"
+      },
+      {
+        "name": "sectionLabel",
+        "type": "BYTES"
+      },
+      {
+        "name": "text",
+        "type": "BYTES"
+      },
+      {
+        "name": "title",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "sizeInBytes": "5460385",
+  "splits": [
+    {
+      "name": "test",
+      "numShards": "1",
+      "shardLengths": [
+        "37800"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37800"
+              }
+            },
+            "name": "headline",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37800"
+              }
+            },
+            "name": "overview",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37800"
+              }
+            },
+            "name": "sectionLabel",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37800"
+              }
+            },
+            "name": "text",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37800"
+              }
+            },
+            "name": "title",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "37800"
+      }
+    },
+    {
+      "name": "train",
+      "numShards": "1",
+      "shardLengths": [
+        "66296",
+        "66296",
+        "66295",
+        "66296",
+        "66296",
+        "66295",
+        "66296",
+        "66296",
+        "66296",
+        "66296",
+        "66295",
+        "66296",
+        "66296",
+        "66295",
+        "66296",
+        "66296"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1060732"
+              }
+            },
+            "name": "headline",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1060732"
+              }
+            },
+            "name": "overview",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1060732"
+              }
+            },
+            "name": "sectionLabel",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1060732"
+              }
+            },
+            "name": "text",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1060732"
+              }
+            },
+            "name": "title",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "1060732"
+      }
+    },
+    {
+      "name": "validation",
+      "numShards": "1",
+      "shardLengths": [
+        "37932"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37932"
+              }
+            },
+            "name": "headline",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37932"
+              }
+            },
+            "name": "overview",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37932"
+              }
+            },
+            "name": "sectionLabel",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37932"
+              }
+            },
+            "name": "text",
+            "type": "BYTES"
+          },
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "37932"
+              }
+            },
+            "name": "title",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "37932"
+      }
+    }
+  ],
+  "supervisedKeys": {
+    "input": "text",
+    "output": "headline"
+  },
+  "version": "1.2.0"
+}

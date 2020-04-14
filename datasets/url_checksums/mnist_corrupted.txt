@@ -1,0 +1,1 @@
+https://zenodo.org/record/3239543/files/mnist_c.zip 246661575 af9ee8c6a815870c7fdde5af84c7bf8db0bcfa1f41056db83871037fba70e493

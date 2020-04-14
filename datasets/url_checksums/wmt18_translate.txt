@@ -1,0 +1,15 @@
+http://data.statmt.org/wmt18/translation-task/rapid2016.tgz 161050516 41557dd5d8f0ed3a6d98bce3b798b1a9d3b68361eb99d902329ddbb943a6b55a
+http://data.statmt.org/wmt18/translation-task/training-parallel-ep-v8.tgz 246201434 953eaf7f24dcfc87eff6845d13ec6ca8acbee0ccf7edf4063b8b94e943933a96
+http://data.statmt.org/wmt18/translation-task/training-parallel-nc-v13.tgz 113157482 17992b7e919cfb754c60f4e754148bc23b80706ad0ed7b34150831a554b40c91
+http://data.statmt.org/wmt19/translation-task/dev.tgz 38654961 7a7deccf82ebb05ba508dba5eb21356492224e8f630ec4f992132b029b4b25e7
+http://ufal.mff.cuni.cz/czeng/download.php?f=convert_czeng16_to_17.pl.zip 2544381 e66466e00aecd392daaf547275590a9264bbc6aed70118c5c7cfd6946daf24ac
+http://www.statmt.org/wmt13/training-parallel-commoncrawl.tgz 918311367 c7a74e2ea01ac6c920123108627e35278d4ccb5701e15428ffa34de86fa3a9e5
+http://www.statmt.org/wmt13/training-parallel-europarl-v7.tgz 657632379 0224c7c710c8a063dfd893b0cc0830202d61f4c75c17eb8e31836103d27d96e7
+http://www.statmt.org/wmt15/wiki-titles.tgz 9487481 cd7cf81dbc99ef00b57e3106a4731b54cebcb7cff19088913cdab1c8114d3660
+https://s3.amazonaws.com/web-language-models/paracrawl/release1/paracrawl-release1.en-cs.zipporah0-dedup-clean.tgz 299052360 221f88bac9f48ed6ef94bad5490890066f508be00e8f102cf19edf2a1413c350
+https://s3.amazonaws.com/web-language-models/paracrawl/release1/paracrawl-release1.en-de.zipporah0-dedup-clean.tgz 1918708277 435ce65e26ed2d44dd0d627f0b558d25bfe31d9ccb35caef050938745c23ea8c
+https://s3.amazonaws.com/web-language-models/paracrawl/release1/paracrawl-release1.en-et.zipporah0-dedup-clean.tgz 78283314 1c3065a8e04a5a6d09d5d5c72ece8aeabcc418eb48cf85038bba6cdef638dc7d
+https://s3.amazonaws.com/web-language-models/paracrawl/release1/paracrawl-release1.en-fi.zipporah0-dedup-clean.tgz 36138086 ce3b46e928d37ae02ab8ce7e0ae0e1f89d1aed5e60271056913e35ff742e65ff
+https://s3.amazonaws.com/web-language-models/paracrawl/release1/paracrawl-release1.en-ru.zipporah0-dedup-clean.tgz 667981874 d4902407ef462034e88fbf5d8712a11c4b32a6e0e82d3a1b4f42a6f33d94f3c0
+https://storage.googleapis.com/tfds-data/downloads/uncorpus/UNv1.0.en-ru.tar.gz 2453705236 f998570e7d60b87bf8648e50e854f150493eff4d7cf1133cf4781811bbe96566
+https://storage.googleapis.com/tfds-data/downloads/uncorpus/UNv1.0.en-zh.tar.gz 1386685703 6f9c6401d5f0a49b20661324570d99fb86822d82f974748a361e19b9b886dd49

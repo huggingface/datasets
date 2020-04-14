@@ -1,0 +1,180 @@
+{
+  "citation": "@article{de marneff_simons_tonhauser_2019,\n  title={The CommitmentBank: Investigating projection in naturally occurring discourse},\n  journal={proceedings of Sinn und Bedeutung 23},\n  author={De Marneff, Marie-Catherine and Simons, Mandy and Tonhauser, Judith},\n  year={2019}\n}\n@article{wang2019superglue,\n  title={SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},\n  author={Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R},\n  journal={arXiv preprint arXiv:1905.00537},\n  year={2019}\n}\n\nNote that each SuperGLUE dataset has its own citation. Please see the source to\nget the correct citation for each contained dataset.\n", 
+  "description": "The CommitmentBank (De Marneffe et al., 2019) is a corpus of short texts in which at least\none sentence contains an embedded clause. Each of these embedded clauses is annotated with the\ndegree to which we expect that the person who wrote the text is committed to the truth of the clause.\nThe resulting task framed as three-class textual entailment on examples that are drawn from the Wall\nStreet Journal, fiction from the British National Corpus, and Switchboard. Each example consists\nof a premise containing an embedded clause and the corresponding hypothesis is the extraction of\nthat clause. We use a subset of the data that had inter-annotator agreement above 0.85. The data is\nimbalanced (relatively fewer neutral examples), so we evaluate using accuracy and F1, where for\nmulti-class F1 we compute the unweighted average of the F1 per class.", 
+  "location": {
+    "urls": [
+      "https://github.com/mcdm/CommitmentBank", 
+      "https://super.gluebenchmark.com/"
+    ]
+  }, 
+  "name": "super_glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "hypothesis", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "idx", 
+        "type": "INT"
+      }, 
+      {
+        "name": "label", 
+        "type": "INT"
+      }, 
+      {
+        "name": "premise", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "75330", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "250"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "250"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "250"
+              }, 
+              "max": 249.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "250"
+              }, 
+              "max": -1.0, 
+              "min": -1.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "250"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "250"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "250"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "250"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "250"
+              }, 
+              "max": 249.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "250"
+              }, 
+              "max": 2.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "250"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "250"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "56"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "56"
+              }
+            }, 
+            "name": "hypothesis", 
+            "type": "BYTES"
+          }, 
+          {
+            "name": "idx", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "56"
+              }, 
+              "max": 55.0
+            }
+          }, 
+          {
+            "name": "label", 
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "56"
+              }, 
+              "max": 2.0
+            }
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "56"
+              }
+            }, 
+            "name": "premise", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "56"
+      }
+    }
+  ], 
+  "version": "1.0.0"
+}

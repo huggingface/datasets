@@ -1,0 +1,3 @@
+http://ufldl.stanford.edu/housenumbers/extra_32x32.mat 1329278602 a133a4beb38a00fcdda90c9489e0c04f900b660ce8a316a5e854838379a71eb3
+http://ufldl.stanford.edu/housenumbers/test_32x32.mat 64275384 cdce80dfb2a2c4c6160906d0bd7c68ec5a99d7ca4831afa54f09182025b6a75b
+http://ufldl.stanford.edu/housenumbers/train_32x32.mat 182040794 435e94d69a87fde4fd4d7f3dd208dfc32cb6ae8af2240d066de1df7508d083b8

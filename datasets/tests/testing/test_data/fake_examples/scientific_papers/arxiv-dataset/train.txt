@@ -1,0 +1,1 @@
+{"article_id": "PMC12345", "article_text": ["section one a", "section two"], "abstract_text": ["<S> title 1: text 1. </S>", "<S> title 2: text 2. </S>"], "labels": null, "section_names": ["Introduction", "Subjects and Methods", "References"], "sections": [["paragraph 1", "paragraph 2"], ["paragraph 3", "paragraph 4"], [""]]}

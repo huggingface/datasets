@@ -1,0 +1,87 @@
+{
+  "citation": "@misc{\n  author={Karpathy, Andrej},\n  title={char-rnn},\n  year={2015},\n  howpublished={\\url{https://github.com/karpathy/char-rnn}}\n}",
+  "description": "40,000 lines of Shakespeare from a variety of Shakespeare's plays. Featured in Andrej Karpathy's blog post 'The Unreasonable Effectiveness of Recurrent Neural Networks': http://karpathy.github.io/2015/05/21/rnn-effectiveness/.\n\nTo use for e.g. character modelling:\n```\nd = tfds.load(name='tiny_shakespeare')['train']\nd = d.map(lambda x: tf.strings.unicode_split(x['text'], 'UTF-8'))\n# train split includes vocabulary for other splits\nvocabulary = sorted(set(next(iter(d)).numpy()))\nd = d.map(lambda x: {'cur_char': x[:-1], 'next_char': x[1:]})\nd = d.unbatch()\nseq_len = 100\nbatch_size = 2\nd = d.batch(seq_len)\nd = d.batch(batch_size)\n```",
+  "location": {
+    "urls": [
+      "https://github.com/karpathy/char-rnn/blob/master/data/tinyshakespeare/input.txt"
+    ]
+  },
+  "name": "tiny_shakespeare",
+  "schema": {
+    "feature": [
+      {
+        "name": "text",
+        "type": "BYTES"
+      }
+    ]
+  },
+  "splits": [
+    {
+      "name": "test",
+      "numBytes": "55796",
+      "numShards": "1",
+      "shardLengths": [
+        "1"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1"
+              }
+            },
+            "name": "text",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "1"
+      }
+    },
+    {
+      "name": "train",
+      "numBytes": "1003880",
+      "numShards": "1",
+      "shardLengths": [
+        "1"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1"
+              }
+            },
+            "name": "text",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "1"
+      }
+    },
+    {
+      "name": "validation",
+      "numBytes": "55796",
+      "numShards": "1",
+      "shardLengths": [
+        "1"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "1"
+              }
+            },
+            "name": "text",
+            "type": "BYTES"
+          }
+        ],
+        "numExamples": "1"
+      }
+    }
+  ],
+  "version": "1.0.0"
+}

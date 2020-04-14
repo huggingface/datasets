@@ -1,0 +1,3 @@
+http://www.image-net.org/image/decathlon/decathlon-1.0-data-imagenet.tar 6535075840 93caac18a907266f917136849c1db7bbf88dd595120af1a8eea7177138962e4a
+http://www.robots.ox.ac.uk/~vgg/share/decathlon-1.0-data.tar.gz 775157760 c0efa6249d68cc82bced2d2af187ff5b5199a3bdb7a99ac2085321188a65aa7a
+http://www.robots.ox.ac.uk/~vgg/share/decathlon-1.0-devkit.tar.gz 337909760 67053b669a66c6c8af3b17ada83d7c6b6e802e33ad4793722945be28838620fb

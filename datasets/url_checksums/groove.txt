@@ -1,0 +1,2 @@
+https://storage.googleapis.com/magentadata/datasets/groove/groove-v1.0.0-midionly.zip 3260318 651cbc524ffb891be1a3e46d89dc82a1cecb09a57c748c7b45b844c4841dcc1e
+https://storage.googleapis.com/magentadata/datasets/groove/groove-v1.0.0.zip 5111599714 21559feb2f1c96ca53988fd4d7060b1f2afe1d854fb2a8dcea5ff95cf3cce7e9

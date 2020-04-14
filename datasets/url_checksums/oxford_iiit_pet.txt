@@ -1,0 +1,2 @@
+http://www.robots.ox.ac.uk/~vgg/data/pets/data/annotations.tar.gz 37969920 8568ffea346d0b62181808f9fe45d00d214e43a45cd9a28c55664a690bd4eb76
+http://www.robots.ox.ac.uk/~vgg/data/pets/data/images.tar.gz 802191360 5a13461893eb1873fa8ccf2ed6b6245af14fb3913c8686da1626c108c8522eea

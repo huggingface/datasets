@@ -1,0 +1,2 @@
+http://placeschallenge.csail.mit.edu/data/ChallengeData2017/annotations_instance.tar 90398720 5eb0db23c64779bc646ca535a3d495db0a75700b9467f8a79eecaf728b266acd
+http://placeschallenge.csail.mit.edu/data/ChallengeData2017/images.tar 892088320 0fb87b26bc41ea1dcf6735f34fdbbd79587a01dc92614830b16b6d787f52cbc7

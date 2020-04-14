@@ -1,0 +1,2 @@
+http://www.hlt.utdallas.edu/~vince/data/emnlp12/test.c.txt 67044 cf1cf025e1d59a5b363e6dcfbd5a13aae8a9830831ac16fd7f865aca7a1559d8
+http://www.hlt.utdallas.edu/~vince/data/emnlp12/train.c.txt 160409 bc0a54b3ca1009d8d5b2ca5a221086aee2b0fc5cd03b22b9dfa9cdf44c629cec

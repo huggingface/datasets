@@ -1,0 +1,1 @@
+https://storage.googleapis.com/tfds-data/manual_checksums/crema_d.txt 1339905 66b5d959dcee997321baf9080c80022a6937279419446db3a9d4827d839b0abb

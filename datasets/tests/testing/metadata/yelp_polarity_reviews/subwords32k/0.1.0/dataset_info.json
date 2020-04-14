@@ -1,0 +1,101 @@
+{
+  "citation": "@article{zhangCharacterlevelConvolutionalNetworks2015,\n  archivePrefix = {arXiv},\n  eprinttype = {arxiv},\n  eprint = {1509.01626},\n  primaryClass = {cs},\n  title = {Character-Level {{Convolutional Networks}} for {{Text Classification}}},\n  abstract = {This article offers an empirical exploration on the use of character-level convolutional networks (ConvNets) for text classification. We constructed several large-scale datasets to show that character-level convolutional networks could achieve state-of-the-art or competitive results. Comparisons are offered against traditional models such as bag of words, n-grams and their TFIDF variants, and deep learning models such as word-based ConvNets and recurrent neural networks.},\n  journal = {arXiv:1509.01626 [cs]},\n  author = {Zhang, Xiang and Zhao, Junbo and LeCun, Yann},\n  month = sep,\n  year = {2015},\n}\n\n",
+  "description": "Large Yelp Review Dataset.\nThis is a dataset for binary sentiment classification. We provide a set of 560,000 highly polar yelp reviews for training, and 38,000 for testing. \nORIGIN\nThe Yelp reviews dataset consists of reviews from Yelp. It is extracted\nfrom the Yelp Dataset Challenge 2015 data. For more information, please\nrefer to http://www.yelp.com/dataset_challenge\n\nThe Yelp reviews polarity dataset is constructed by\nXiang Zhang (xiang.zhang@nyu.edu) from the above dataset.\nIt is first used as a text classification benchmark in the following paper:\nXiang Zhang, Junbo Zhao, Yann LeCun. Character-level Convolutional Networks\nfor Text Classification. Advances in Neural Information Processing Systems 28\n(NIPS 2015).\n\n\nDESCRIPTION\n\nThe Yelp reviews polarity dataset is constructed by considering stars 1 and 2\nnegative, and 3 and 4 positive. For each polarity 280,000 training samples and\n19,000 testing samples are take randomly. In total there are 560,000 trainig\nsamples and 38,000 testing samples. Negative polarity is class 1,\nand positive class 2.\n\nThe files train.csv and test.csv contain all the training samples as\ncomma-sparated values. There are 2 columns in them, corresponding to class\nindex (1 and 2) and review text. The review texts are escaped using double\nquotes (\"), and any internal double quote is escaped by 2 double quotes (\"\").\nNew lines are escaped by a backslash followed with an \"n\" character,\nthat is \"\n\".\n",
+  "location": {
+    "urls": [
+      "https://course.fast.ai/datasets"
+    ]
+  },
+  "name": "yelp_polarity_reviews",
+  "schema": {
+    "feature": [
+      {
+        "name": "label",
+        "type": "INT"
+      },
+      {
+        "name": "text",
+        "shape": {
+          "dim": [
+            {
+              "size": "-1"
+            }
+          ]
+        },
+        "type": "INT"
+      }
+    ]
+  },
+  "splits": [
+    {
+      "name": "test",
+      "numBytes": "11529820",
+      "numShards": "1",
+      "shardLengths": [
+        "38000"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "38000"
+              },
+              "max": 1.0
+            }
+          },
+          {
+            "name": "text",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "38000"
+              },
+              "max": 32635.0,
+              "min": 1.0
+            }
+          }
+        ],
+        "numExamples": "38000"
+      }
+    },
+    {
+      "name": "train",
+      "numBytes": "170556321",
+      "numShards": "1",
+      "shardLengths": [
+        "280000",
+        "280000"
+      ],
+      "statistics": {
+        "features": [
+          {
+            "name": "label",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "560000"
+              },
+              "max": 1.0
+            }
+          },
+          {
+            "name": "text",
+            "numStats": {
+              "commonStats": {
+                "numNonMissing": "560000"
+              },
+              "max": 32635.0,
+              "min": 1.0
+            }
+          }
+        ],
+        "numExamples": "560000"
+      }
+    }
+  ],
+  "supervisedKeys": {
+    "input": "text",
+    "output": "label"
+  },
+  "version": "0.1.0"
+}

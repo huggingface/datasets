@@ -1,0 +1,197 @@
+{
+  "citation": "@article{zhang2018record,\n  title={Record: Bridging the gap between human and machine commonsense reading comprehension},\n  author={Zhang, Sheng and Liu, Xiaodong and Liu, Jingjing and Gao, Jianfeng and Duh, Kevin and Van Durme, Benjamin},\n  journal={arXiv preprint arXiv:1810.12885},\n  year={2018}\n}\n@article{wang2019superglue,\n  title={SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems},\n  author={Wang, Alex and Pruksachatkun, Yada and Nangia, Nikita and Singh, Amanpreet and Michael, Julian and Hill, Felix and Levy, Omer and Bowman, Samuel R},\n  journal={arXiv preprint arXiv:1905.00537},\n  year={2019}\n}\n\nNote that each SuperGLUE dataset has its own citation. Please see the source to\nget the correct citation for each contained dataset.\n", 
+  "description": "(Reading Comprehension with Commonsense Reasoning Dataset, Zhang et al., 2018) is a\nmultiple-choice QA task. Each example consists of a news article and a Cloze-style question about\nthe article in which one entity is masked out. The system must predict the masked out entity from a\ngiven list of possible entities in the provided passage, where the same entity may be expressed using\nmultiple different surface forms, all of which are considered correct. Articles are drawn from CNN\nand Daily Mail. Following the original work, we evaluate with max (over all mentions) token-level\nF1 and exact match (EM).", 
+  "location": {
+    "urls": [
+      "https://sheng-z.github.io/ReCoRD-explorer/", 
+      "https://super.gluebenchmark.com/"
+    ]
+  }, 
+  "name": "super_glue", 
+  "schema": {
+    "feature": [
+      {
+        "name": "answers", 
+        "shape": {
+          "dim": [
+            {
+              "size": "-1"
+            }
+          ]
+        }, 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "entities", 
+        "shape": {
+          "dim": [
+            {
+              "size": "-1"
+            }
+          ]
+        }, 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "idx"
+      }, 
+      {
+        "name": "passage", 
+        "type": "BYTES"
+      }, 
+      {
+        "name": "query", 
+        "type": "BYTES"
+      }
+    ]
+  }, 
+  "sizeInBytes": "51757880", 
+  "splits": [
+    {
+      "name": "test", 
+      "numShards": "1", 
+      "shardLengths": [
+        "10000"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "answers", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "entities", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "passage", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "query", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "10000"
+      }
+    }, 
+    {
+      "name": "train", 
+      "numShards": "1", 
+      "shardLengths": [
+        "50365", 
+        "50365"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "100730"
+              }
+            }, 
+            "name": "answers", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "100730"
+              }
+            }, 
+            "name": "entities", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "100730"
+              }
+            }, 
+            "name": "passage", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "100730"
+              }
+            }, 
+            "name": "query", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "100730"
+      }
+    }, 
+    {
+      "name": "validation", 
+      "numShards": "1", 
+      "shardLengths": [
+        "10000"
+      ], 
+      "statistics": {
+        "features": [
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "answers", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "entities", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "passage", 
+            "type": "BYTES"
+          }, 
+          {
+            "bytesStats": {
+              "commonStats": {
+                "numNonMissing": "10000"
+              }
+            }, 
+            "name": "query", 
+            "type": "BYTES"
+          }
+        ], 
+        "numExamples": "10000"
+      }
+    }
+  ], 
+  "version": "1.0.1"
+}

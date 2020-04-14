@@ -1,0 +1,9 @@
+http://www.image-net.org/image/downsample//Imagenet16_train_npz.zip 931837742 dea57cdc1d4e252a9e4b76d3b0783486c13b572b883b25fae9283f19695e63b9
+http://www.image-net.org/image/downsample//Imagenet16_val_npz.zip 36354395 6dda90de8f6fd43b204422578b4be05d3f658d7792b344de4da768a71c02c4c4
+http://www.image-net.org/image/downsample//Imagenet32_train_npz.zip 3580435279 94226337ecc1b0309d9fcd0167127aaadc931587035fbcb53925235edbaec4fc
+http://www.image-net.org/image/downsample//Imagenet32_val_npz.zip 139697668 013990e6dec1237dcd1f9beadbab81ead6604cc119af5cacbfb59ae28148377a
+http://www.image-net.org/image/downsample//Imagenet64_train_part1_npz.zip 6783426789 9422dc1dc5d092e9814a70a1cb7fc74880d2db5d88a0cb8a34ee363b12bde3f1
+http://www.image-net.org/image/downsample//Imagenet64_train_part2_npz.zip 6780506068 9fafc115afb7e6c301e66dc16b2d737152b427bd5dab26e1293487a6819c7f30
+http://www.image-net.org/image/downsample//Imagenet64_val_npz.zip 529522927 e1e75133158a1924135a9c6f97a80d2d237b158945e0b34074e58e6c8430eeb8
+http://www.image-net.org/image/downsample//Imagenet8_train_npz.zip 239296243 b18b72ca559afee05ad3325d12222db345fc2c557f23129d47fa439bddb4ee69
+http://www.image-net.org/image/downsample//Imagenet8_val_npz.zip 9327124 001df303a5524b85045a4f6f43c79e097497cd64847cdcf5f17dd0fa416a2c23

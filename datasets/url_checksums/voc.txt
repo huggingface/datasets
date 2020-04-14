@@ -1,0 +1,4 @@
+http://pjreddie.com/media/files/VOC2012test.tar 1850626560 f08582b1935816c5eab3bbb1eb6d06201a789eaa173cdf1cf400c26f0cac2fb3
+http://pjreddie.com/media/files/VOCtest_06-Nov-2007.tar 451020800 6836888e2e01dca84577a849d339fa4f73e1e4f135d312430c4856b5609b4892
+http://pjreddie.com/media/files/VOCtrainval_06-Nov-2007.tar 460032000 7d8cd951101b0957ddfd7a530bdc8a94f06121cfc1e511bb5937e973020c7508
+http://pjreddie.com/media/files/VOCtrainval_11-May-2012.tar 1999639040 e14f763270cf193d0b5f74b169f44157a4b0c6efa708f4dd0ff78ee691763bcb
