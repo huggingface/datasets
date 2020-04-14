@@ -85,6 +85,7 @@ class ConvertCommand(BaseTransformersCLICommand):
                 else:
                     out_line = out_line.replace('tfds.core', 'nlp')
                     out_line = out_line.replace('tf.io.gfile.GFile', 'open')
+                    out_line = out_line.replace('tf.bool', 'nlp.bool_')
                     out_line = out_line.replace('tf.', 'nlp.')
                     out_line = out_line.replace('tfds.features.Text()', 'nlp.string')
                     out_line = out_line.replace('The TensorFlow Datasets Authors',
