@@ -116,10 +116,6 @@ def _make_file_instructions_from_absolutes(
     num_examples = 0
     for abs_instr in absolute_instructions:
         length = name2len[abs_instr.splitname]
-        if not length:
-            raise ValueError(
-                    'Split empty. This might means that dataset hasn\'t been generated '
-                    'yet and info not restored from GCS, or that legacy dataset is used.')
         filename = filename_for_dataset_split(
                 dataset_name=name,
                 split=abs_instr.splitname,
@@ -147,7 +143,8 @@ def _read_files(files, info):
     for f_dict in files:
         pa_table: pa.Table = _get_dataset_from_filename(f_dict)
         pa_batches.extend(pa_table.to_batches())
-    pa_table = pa.Table.from_batches(pa_batches)
+    if pa_batches:
+        pa_table = pa.Table.from_batches(pa_batches)
     ds = Dataset(arrow_table=pa_table, data_files=files, info=info)
     return ds
 
