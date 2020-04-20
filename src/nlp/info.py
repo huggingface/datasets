@@ -335,7 +335,11 @@ class DatasetInfo(object):
                 for k, split in sorted(self.splits.items())
         ] + ["}"]))
         features_pprint = _indent(repr(self.features))
-        citation_pprint = _indent('"""{}"""'.format(self.citation.strip()))
+        citation_pprint = self.citation
+
+        if self.citation:
+            citation_pprint = _indent('"""{}"""'.format(self.citation.strip()))
+
         return INFO_STR.format(
                 name=self.name,
                 version=self.version,
