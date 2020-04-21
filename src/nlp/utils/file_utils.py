@@ -140,7 +140,8 @@ def filename_to_url(filename, cache_dir=None):
     if not os.path.exists(cache_path):
         raise EnvironmentError("file {} not found".format(cache_path))
 
-    meta_path = cache_path + ".json"
+    # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
+    meta_path = cache_path.split(".py")[0] + ".json"
     if not os.path.exists(meta_path):
         raise EnvironmentError("file {} not found".format(meta_path))
 
