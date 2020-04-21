@@ -13,7 +13,7 @@ def convert_command_factory(args: Namespace):
     :return: ServeCommand
     """
     return ConvertCommand(
-        args.tfds_directory, args.nlp_directory
+        args.tfds_directory, args.nlp_directory, args.tfds_rel_filename
     )
 
 
@@ -33,6 +33,9 @@ class ConvertCommand(BaseTransformersCLICommand):
             "--tfds_directory", type=str, required=True, help="Path to the TensorFlow Datasets folder."
         )
         train_parser.add_argument(
+            "--tfds_rel_filename", type=str, default=None, required=False, help="Relative path from `tfds_directory` to a specific TensorFlow Dataset script to convert. If arg is used then only this file is converted.",
+        )
+        train_parser.add_argument(
             "--nlp_directory", type=str, required=True, help="Path to the HuggingFace NLP folder."
         )
         train_parser.set_defaults(func=convert_command_factory)
@@ -41,26 +44,35 @@ class ConvertCommand(BaseTransformersCLICommand):
         self,
         tfds_directory: str,
         nlp_directory: str,
+        tfds_rel_filename: str,
         *args
     ):
         self._logger = getLogger("nlp-cli/converting")
 
         self._tfds_directory = tfds_directory
+        self._tfds_rel_filename = tfds_rel_filename
         self._nlp_directory = nlp_directory
 
     def run(self):
         abs_tfds_path = os.path.abspath(self._tfds_directory)
         abs_nlp_path = os.path.abspath(self._nlp_directory)
+
         self._logger.info("Converting datasets from %s to %s", abs_tfds_path, abs_nlp_path)
 
         utils_files = []
         imports_to_builder_map = {}
-        for f_name in os.listdir(abs_tfds_path):
+
+        if self._tfds_rel_filename is None:
+            file_names = os.listdir(abs_tfds_path)
+        else:
+            file_names = [self._tfds_rel_filename]
+
+        for f_name in file_names:
             self._logger.info("Looking at file %s", f_name)
             input_file = os.path.join(abs_tfds_path, f_name)
             output_file = os.path.join(abs_nlp_path, f_name)
 
-            if not os.path.isfile(input_file) or '__init__' in f_name or '_test' in f_name or not '.py' in f_name:
+            if not os.path.isfile(input_file) or '__init__' in f_name or '_test' in f_name or '.py' not in f_name:
                 self._logger.info("Skipping file")
                 continue
 
@@ -99,7 +111,7 @@ class ConvertCommand(BaseTransformersCLICommand):
                     out_line = 'from . import ' + match.group(1)
 
                 # Check we have not forget anything
-                assert not 'tf.' in out_line and not 'tfds.' in out_line and not 'tensorflow_datasets' in out_line, f"Error converting {out_line.strip()}"
+                assert 'tf.' not in out_line and 'tfds.' not in out_line and 'tensorflow_datasets' not in out_line, f"Error converting {out_line.strip()}"
 
                 if "GeneratorBasedBuilder" in out_line or "BeamBasedBuilder" in out_line:
                     is_builder = True
