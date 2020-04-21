@@ -13,7 +13,7 @@
   - Add dummy data that consists of a) A dummy *train* and/or *test* and/or *validation* data file in the format as the real one has and for each dummy data file a *.json* file having the exact same output then the one that you expect to get.
   
 2. **Add to nlp repo**
-  - Execute the conversion script in the nlp repo as follows: `python nlp-cli convert --tfds_directory <path/to/tensorflow_datasets/text> --tfds_rel_filename <your_dataset_name>.py --nlp_directory <path/to/nlp/datasets/nlp>
+  - Execute the conversion script in the nlp repo as follows: `python nlp-cli convert --tfds_directory <path/to/tensorflow_datasets/text> --tfds_rel_filename <your_dataset_name>.py --nlp_directory <path/to/nlp/datasets/nlp>`
   - Now you should have a converted file in the folder `nlp/datasets/nlp/<your_dataset_name>/<your_dataset_name>.py`.
   - Upload the folder to aws. To get access to aws, first ask Julien. Make sure you don't accidently delete anything here. Use the command `aws s3 cp <path/to/nlp/datasets/nlp/<your_dataset_name>/<your_dataset_name>.py s3://datasets.huggingface.co/nlp/<your_dataset_name>/<your_dataset_name>.py`
   - Make sure that your object has public read access on AWS. Otherwise it cannot be downloaded.
