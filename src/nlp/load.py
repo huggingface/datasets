@@ -109,7 +109,8 @@ def load_dataset(path: str,
         # Record metadata associating original dataset path with local unique folder
         logger.info("Creating metadata file for dataset %s at %s", local_path, dataset_file_path + ".json")
         meta = {"original path": local_path, "library path": dataset_file_path}
-        meta_path = dataset_file_path + ".json"
+        # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
+        meta_path = dataset_file_path.split(".py")[0] + ".json"
         with open(meta_path, "w") as meta_file:
             json.dump(meta, meta_file)
 
