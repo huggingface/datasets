@@ -389,7 +389,11 @@ class Dataset(object):
         def does_function_return_dict(inputs, indices):
             """ Does the function returns a dict. """
             processed_inputs = function(inputs, indices) if with_indices else function(inputs)
-            return isinstance(processed_inputs, Mapping)
+            does_return_dict = isinstance(processed_inputs, Mapping)
+
+            if not does_return_dict and processed_inputs is not None:
+                raise TypeError("Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` to print out elements.".format(type(processed_inputs)))
+            return does_return_dict
 
         # We only update the data table (and use the cache) if the function returns a dict.
         # Test it on the first element or a small batch (0, 1) for batched inputs
