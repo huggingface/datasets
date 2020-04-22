@@ -9,9 +9,11 @@ from transformers import BertTokenizerFast
 
 logging.basicConfig(level=logging.INFO)
 
-tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
+# %%
+d = nlp.load('/Users/thomwolf/Documents/GitHub/datasets/datasets/nlp/bbc')
 
-d = nlp.load('squad', split='validation[:10%]')
+# %%
+tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
 
 
 # %%

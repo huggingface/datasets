@@ -71,10 +71,10 @@ def load_dataset(path: str,
         name = list(filter(lambda x: x, path.split('/')))[-1] + '.py'
 
     combined_path = os.path.join(path, name)
-    if os.path.isfile(path) or is_remote_url(path):
-        dataset_file = path
-    elif os.path.isfile(combined_path) or is_remote_url(combined_path):
+    if os.path.isfile(combined_path) or is_remote_url(combined_path):
         dataset_file = combined_path
+    elif os.path.isfile(path) or is_remote_url(path):
+        dataset_file = path
     else:
         dataset_file = hf_bucket_url(path, postfix=name)
 
