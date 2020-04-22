@@ -1,2 +1,0 @@
-entailment
-not_entailment

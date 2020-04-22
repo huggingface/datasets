@@ -1,2 +1,0 @@
-val_url1
-val_url2

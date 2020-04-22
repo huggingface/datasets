@@ -26,3 +26,6 @@ dist/
 # keep only the empty datasets directory
 /src/*/datasets/*
 !/src/*/datasets/__init__.py
+
+# Vim
+.*.swp
