@@ -24,6 +24,7 @@ import json
 import shutil
 import logging
 import importlib
+from filelock import FileLock
 
 from typing import Optional, Dict, Union
 
@@ -32,7 +33,7 @@ from .builder import DatasetBuilder
 from .utils import py_utils
 from .splits import Split
 from .utils.file_utils import (HF_DATASETS_CACHE, is_remote_url, hf_bucket_url,
-                         cached_path, url_to_filename)
+                         cached_path, code_to_hash)
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,13 @@ def load_dataset(path: str,
     if name is None:
         name = list(filter(lambda x: x, path.split('/')))[-1] + '.py'
 
+    if not name.endswith('.py') or '/' in name:
+        raise ValueError("The provided name should be the filename of a python script (ends with '.py')")
+
+    # We have three ways to find the dataset processing file:
+    # - if os.path.join(path, name) is a file or a remote url
+    # - if path is a file or a remote url
+    # - otherwise we assume path/name is a path to our S3 bucket
     combined_path = os.path.join(path, name)
     if os.path.isfile(combined_path) or is_remote_url(combined_path):
         dataset_file = combined_path
@@ -78,7 +86,9 @@ def load_dataset(path: str,
     else:
         dataset_file = hf_bucket_url(path, postfix=name)
 
-    # Get the file on our local file system (either cache_dir or already local path)
+    # Load the module in two steps:
+    # 1. get the dataset processing file on the local filesystem if it's not there (download to cache dir)
+    # 2. copy from the local file system inside the library to import it
     local_path = cached_path(
         dataset_file,
         cache_dir=data_dir,
@@ -89,39 +99,65 @@ def load_dataset(path: str,
     )
 
     # Define a directory with a unique name in our dataset folder
-    dataset_id = url_to_filename(local_path)
-    dataset_folder_path = os.path.join(DATASETS_PATH, dataset_id)
-    dataset_file_path = os.path.join(dataset_folder_path, name)
+    # path is: ./datasets/dataset_name/hash_from_code/script.py
+    # we use a hash to be able to have multiple versions of a dataset processing file together
+    dataset_name = name[:-3]  # Removing the '.py' at the end
+    dataset_hash = code_to_hash(local_path)
+    dataset_main_folder_path = os.path.join(DATASETS_PATH, dataset_name)
+    dataset_hash_folder_path = os.path.join(dataset_main_folder_path, dataset_hash)
+    dataset_file_path = os.path.join(dataset_hash_folder_path, name)
 
-    # Check if the dataset directory was already there
-    if os.path.exists(dataset_file_path) and not force_reload:
-        logger.info("Dataset script %s already found in datasets directory at %s, returning it. Use `force_reload=True` to override.",
-                    local_path, dataset_file_path)
-    else:
-        # Create directory for dataset in DATASETS_PATH
-        logger.info("Creating unique folder for dataset %s in datasets directory at %s", local_path, dataset_folder_path)
-        shutil.rmtree(dataset_folder_path, ignore_errors=True)
-        os.makedirs(dataset_folder_path)
+    # Prevent parallel disk operations
+    lock_path = local_path + ".lock"
+    with FileLock(lock_path):
+        # Create main dataset folder if needed
+        if not os.path.exists(dataset_main_folder_path):
+            logger.info("Creating main folder for dataset %s at %s", dataset_file, dataset_main_folder_path)
+            os.makedirs(dataset_main_folder_path, exist_ok=True)
+        else:
+            logger.info("Found main folder for dataset %s at %s", dataset_file, dataset_main_folder_path)
 
-        # Copy dataset.py file there
-        shutil.copyfile(local_path, dataset_file_path)
+        # add an __init__ file to the main dataset folder if needed
+        init_file_path = os.path.join(dataset_main_folder_path, '__init__.py')
+        if not os.path.exists(init_file_path):
+            with open(init_file_path, 'w'):
+                pass
+
+        # Create hash dataset folder if needed
+        if not os.path.exists(dataset_hash_folder_path):
+            logger.info("Creating specific version folder for dataset %s at %s", dataset_file, dataset_hash_folder_path)
+            os.makedirs(dataset_hash_folder_path)
+        else:
+            logger.info("Found specific version folder for dataset %s at %s", dataset_file, dataset_hash_folder_path)
+
+        # add an __init__ file to the hash dataset folder if needed
+        init_file_path = os.path.join(dataset_hash_folder_path, '__init__.py')
+        if not os.path.exists(init_file_path):
+            with open(init_file_path, 'w'):
+                pass
+
+        # Copy dataset.py file in hash folder if needed
+        if not os.path.exists(dataset_file_path):
+            logger.info("Copying script file from %s to %s", dataset_file, dataset_file_path)
+            shutil.copyfile(local_path, dataset_file_path)
+        else:
+            logger.info("Found script file from %s to %s", dataset_file, dataset_file_path)
 
         # Record metadata associating original dataset path with local unique folder
-        logger.info("Creating metadata file for dataset %s at %s", local_path, dataset_file_path + ".json")
-        meta = {"original path": local_path, "library path": dataset_file_path}
-        # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
         meta_path = dataset_file_path.split(".py")[0] + ".json"
-        with open(meta_path, "w") as meta_file:
-            json.dump(meta, meta_file)
+        if not os.path.exists(meta_path):
+            logger.info("Creating metadata file for dataset %s at %s", dataset_file, meta_path)
+            meta = {"original file path": dataset_file, "local file path": dataset_file_path}
+            # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
+            with open(meta_path, "w") as meta_file:
+                json.dump(meta, meta_file)
+        else:
+            logger.info("Found metadata file for dataset %s at %s", dataset_file, meta_path)
 
-        # Add an empty __init__ file to load the module
-        init_file_path = os.path.join(dataset_folder_path, '__init__.py')
-        with open(init_file_path, 'w'):
-            pass
-
+    # Load the module
     importlib.invalidate_caches()
-    module_name = name.replace('.py', '')
-    module_path = '.'.join([DATASETS_MODULE, dataset_id, module_name])
+    module_name = dataset_name
+    module_path = '.'.join([DATASETS_MODULE, dataset_name, dataset_hash, module_name])
     dataset_module = importlib.import_module(module_path)
 
     builder_cls = None

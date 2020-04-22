@@ -120,36 +120,26 @@ def url_to_filename(url, etag=None):
         etag_hash = sha256(etag_bytes)
         filename += "." + etag_hash.hexdigest()
 
-    if url.endswith(".h5"):
-        filename += ".h5"
+    if url.endswith(".py"):
+        filename += ".py"
 
     return filename
 
 
-def filename_to_url(filename, cache_dir=None):
+def code_to_hash(path):
     """
-    Return the url and etag (which may be ``None``) stored for `filename`.
-    Raise ``EnvironmentError`` if `filename` or its stored metadata do not exist.
+    Convert a text file at path into a hashed filename in a repeatable way.
     """
-    if cache_dir is None:
-        cache_dir = HF_DATASETS_CACHE
-    if isinstance(cache_dir, Path):
-        cache_dir = str(cache_dir)
+    lines = []
+    with open(path, mode='r') as f:
+        lines = f.readlines()
+    file_str = '\n'.join(lines)
 
-    cache_path = os.path.join(cache_dir, filename)
-    if not os.path.exists(cache_path):
-        raise EnvironmentError("file {} not found".format(cache_path))
+    file_bytes = file_str.encode("utf-8")
+    file_hash = sha256(file_bytes)
+    filename = file_hash.hexdigest()
 
-    meta_path = cache_path + ".json"
-    if not os.path.exists(meta_path):
-        raise EnvironmentError("file {} not found".format(meta_path))
-
-    with open(meta_path, encoding="utf-8") as meta_file:
-        metadata = json.load(meta_file)
-    url = metadata["url"]
-    etag = metadata["etag"]
-
-    return url, etag
+    return filename
 
 
 def cached_path(

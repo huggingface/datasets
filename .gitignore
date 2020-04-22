@@ -23,9 +23,12 @@ dist/
 .idea
 .vscode
 
-# keep only the empty datasets directory
+# keep only the empty datasets directory with it's __init__.py file
 /src/*/datasets/*
 !/src/*/datasets/__init__.py
 
 # Vim
 .*.swp
+
+# playground
+/playground
