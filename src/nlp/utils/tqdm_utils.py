@@ -25,7 +25,7 @@ from tqdm import auto as tqdm_lib
 class EmptyTqdm(object):
     """Dummy tqdm which doesn't do anything."""
 
-    def __init__(self, *args, **kwargs):   # pylint: disable=unused-argument
+    def __init__(self, *args, **kwargs):  # pylint: disable=unused-argument
         self._iterator = args[0] if args else None
 
     def __iter__(self):
@@ -33,8 +33,10 @@ class EmptyTqdm(object):
 
     def __getattr__(self, _):
         """Return empty function."""
-        def empty_fn(*args, **kwargs):   # pylint: disable=unused-argument
+
+        def empty_fn(*args, **kwargs):  # pylint: disable=unused-argument
             return
+
         return empty_fn
 
     def __enter__(self):
@@ -42,6 +44,7 @@ class EmptyTqdm(object):
 
     def __exit__(self, type_, value, traceback):
         return
+
 
 _active = True
 
@@ -101,6 +104,7 @@ def _async_tqdm(*args, **kwargs):
 
 class _TqdmPbarAsync(object):
     """Wrapper around Tqdm pbar which be shared between thread."""
+
     _tqdm_bars = []
 
     def __init__(self, pbar):

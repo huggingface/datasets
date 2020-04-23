@@ -88,7 +88,6 @@ import abc
 import collections
 
 import numpy as np
-
 import pyarrow as pa
 
 
@@ -114,26 +113,18 @@ class TensorInfo(object):
     def copy_from(cls, tensor_info):
         """Copy constructor."""
         return cls(
-                shape=tensor_info.shape,
-                dtype=tensor_info.dtype,
-                default_value=tensor_info.default_value,
-                sequence_rank=tensor_info.sequence_rank,
+            shape=tensor_info.shape,
+            dtype=tensor_info.dtype,
+            default_value=tensor_info.default_value,
+            sequence_rank=tensor_info.sequence_rank,
         )
 
     def __eq__(self, other):
         """Equality."""
-        return (
-                self.shape == other.shape and
-                self.dtype == other.dtype and
-                self.default_value == other.default_value
-        )
+        return self.shape == other.shape and self.dtype == other.dtype and self.default_value == other.default_value
 
     def __repr__(self):
-        return '{}(shape={}, dtype={})'.format(
-                type(self).__name__,
-                self.shape,
-                repr(self.dtype),
-        )
+        return "{}(shape={}, dtype={})".format(type(self).__name__, self.shape, repr(self.dtype),)
 
 
 class FeatureConnector(metaclass=abc.ABCMeta):
@@ -287,14 +278,13 @@ class FeatureConnector(metaclass=abc.ABCMeta):
 
         # Apply the decoding to each of the individual distributed features.
         return tf.map_fn(
-                self.decode_example,
-                tfexample_data,
-                dtype=self.dtype,
-                parallel_iterations=10,
-                back_prop=False,
-                name='sequence_decode',
+            self.decode_example,
+            tfexample_data,
+            dtype=self.dtype,
+            parallel_iterations=10,
+            back_prop=False,
+            name="sequence_decode",
         )
-
 
     def decode_ragged_example(self, tfexample_data):
         """Decode nested features from a pa.RaggedTensor.

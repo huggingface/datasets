@@ -17,13 +17,10 @@
 """`nlp.features.FeatureConnector` API defining feature types."""
 
 from .class_label_feature import ClassLabel
-from .feature import FeatureConnector
-from .feature import Tensor
-from .feature import TensorInfo
+from .feature import FeatureConnector, Tensor, TensorInfo
 from .features_dict import FeaturesDict, Sequence
 from .text_feature import Text
-from .translation_feature import Translation
-from .translation_feature import TranslationVariableLanguages
+from .translation_feature import Translation, TranslationVariableLanguages
 
 __all__ = [
     "ClassLabel",

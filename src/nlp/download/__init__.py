@@ -17,14 +17,11 @@
 """`nlp.download.DownloadManager` API."""
 
 from .checksums import add_checksums_dir
-from .download_manager import DownloadConfig
-from .download_manager import DownloadManager
+from .download_manager import DownloadConfig, DownloadManager
 from .downloader import DownloadError
 from .extractor import iter_archive
-from .resource import ExtractMethod
-from .resource import Resource
-from .util import ComputeStatsMode
-from .util import GenerateMode
+from .resource import ExtractMethod, Resource
+from .util import ComputeStatsMode, GenerateMode
 
 __all__ = [
     "add_checksums_dir",

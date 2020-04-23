@@ -18,27 +18,28 @@
 import collections
 import itertools
 import json
-import os
-
-from typing import Dict, List, Optional, Any
-
 import logging
+import os
+from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
 
 logger = logging.getLogger(__name__)
 
+
 class ArrowWriter(object):
     """Shuffles and writes Examples to Arrow files.
     """
 
-    def __init__(self,
-                 data_type: Optional[pa.DataType] = None,
-                 schema: Optional[pa.Schema] = None,
-                 path: Optional[str] = None,
-                 stream: Optional[pa.NativeFile] = None,
-                 writer_batch_size: Optional[int] = None,
-                 disable_nullable: bool = True):
+    def __init__(
+        self,
+        data_type: Optional[pa.DataType] = None,
+        schema: Optional[pa.Schema] = None,
+        path: Optional[str] = None,
+        stream: Optional[pa.NativeFile] = None,
+        writer_batch_size: Optional[int] = None,
+        disable_nullable: bool = True,
+    ):
         if data_type is None and schema is None:
             raise ValueError("At least one of data_type and schema must be provided.")
         if path is None and stream is None:
@@ -57,7 +58,7 @@ class ArrowWriter(object):
 
         self._path = path
         if stream is None:
-            self.stream = pa.OSFile(self._path, 'wb')
+            self.stream = pa.OSFile(self._path, "wb")
         else:
             self.stream = stream
 
@@ -110,9 +111,12 @@ class ArrowWriter(object):
         self.writer.close()
         if close_stream:
             self.stream.close()
-        logger.info("Done writing %s examples in %s bytes %s.",
-                    self._num_examples, self._num_bytes,
-                    self._path if self._path else "")
+        logger.info(
+            "Done writing %s examples in %s bytes %s.",
+            self._num_examples,
+            self._num_bytes,
+            self._path if self._path else "",
+        )
         return self._num_examples, self._num_bytes
 
 
@@ -120,10 +124,12 @@ class BeamWriter(object):
     """Shuffles and writes Examples to Parquet files.
     """
 
-    def __init__(self,
-                 data_type: Optional[pa.DataType] = None,
-                 schema: Optional[pa.Schema] = None,
-                 path: Optional[str] = None,
-                 stream: Optional[pa.NativeFile] = None,
-                 writer_batch_size: Optional[int] = None):
+    def __init__(
+        self,
+        data_type: Optional[pa.DataType] = None,
+        schema: Optional[pa.Schema] = None,
+        path: Optional[str] = None,
+        stream: Optional[pa.NativeFile] = None,
+        writer_batch_size: Optional[int] = None,
+    ):
         raise NotImplementedError

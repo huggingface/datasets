@@ -16,10 +16,9 @@
 # Lint as: python3
 """Util import."""
 
-# pylint: disable=wildcard-import
-from .py_utils import *
 from .file_utils import *
+from .py_utils import *
 from .tqdm_utils import *
-from .version import Experiment
-from .version import Version
+from .version import Experiment, Version
+
 # pylint: enable=wildcard-import
