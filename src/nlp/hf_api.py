@@ -22,7 +22,6 @@ from typing import Dict, List, Optional, Tuple
 import requests
 from tqdm import tqdm
 
-
 ENDPOINT = "https://huggingface.co"
 
 

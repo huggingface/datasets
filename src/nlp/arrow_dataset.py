@@ -16,15 +16,15 @@
 # Lint as: python3
 """ Simple Dataset wrapping an Arrow Table."""
 
-import os
-import logging
-import dill
 import hashlib
-from tqdm import tqdm
+import logging
+import os
 from collections.abc import Mapping
-from typing import Union, Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional, Union
 
+import dill
 import pyarrow as pa
+from tqdm import tqdm
 
 from .arrow_writer import ArrowWriter
 
@@ -34,8 +34,7 @@ logger = logging.getLogger(__name__)
 def convert_tuples_in_lists(data_struct):
     # Could add support for more exotic data_struct, like OrderedDict
     if isinstance(data_struct, dict):
-        return {k: convert_tuples_in_lists(v)
-                for k, v in data_struct.items()}
+        return {k: convert_tuples_in_lists(v) for k, v in data_struct.items()}
     else:
         if isinstance(data_struct, (list, tuple)):
             return [convert_tuples_in_lists(v) for v in data_struct]
@@ -46,10 +45,13 @@ class Dataset(object):
     """ A Dataset backed by an Arrow table or Record Batch
         This allow us to do memory mapping to disk i.e. train on datasets larger than RAM
     """
-    def __init__(self,
-                 arrow_table: Union[pa.Table, pa.RecordBatch],
-                 data_files: Optional[List[dict]] = None,
-                 info: Optional[Any] = None):
+
+    def __init__(
+        self,
+        arrow_table: Union[pa.Table, pa.RecordBatch],
+        data_files: Optional[List[dict]] = None,
+        info: Optional[Any] = None,
+    ):
         self._info = info
         self._data: pa.Table = arrow_table
         self._data_files: List[dict] = data_files if data_files is not None else []
@@ -61,7 +63,7 @@ class Dataset(object):
         mmap = pa.memory_map(filename)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
-        return cls(arrow_table=pa_table, data_files=[{'filename': filename}])
+        return cls(arrow_table=pa_table, data_files=[{"filename": filename}])
 
     @classmethod
     def from_buffer(cls, buffer):
@@ -119,9 +121,11 @@ class Dataset(object):
         if isinstance(columns, str):
             columns = [columns]
         if any(col not in self._data.column_names for col in columns):
-            raise ValueError("Columns {} not in the dataset. Current columns in the dataset: {}".format(
-                             list(filter(lambda col: col not in self._data.column_names, columns)),
-                             self._data.column_names))
+            raise ValueError(
+                "Columns {} not in the dataset. Current columns in the dataset: {}".format(
+                    list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
+                )
+            )
         self._data = self._data.drop(columns)
 
     def unique(self, column: str):
@@ -171,38 +175,45 @@ class Dataset(object):
 
     @property
     def format(self):
-        return {'type': 'python' if self._format_type is None else self._format_type,
-                'columns': self.column_names if self._format_columns is None else self._format_columns}
+        return {
+            "type": "python" if self._format_type is None else self._format_type,
+            "columns": self.column_names if self._format_columns is None else self._format_columns,
+        }
 
     def set_format(self, type: Optional[str] = None, columns: Optional[List] = None):
         # Check return type
-        if type == 'torch':
+        if type == "torch":
             try:
                 import torch
             except ImportError:
                 logger.error("PyTorch needs to be installed to be able to return PyTorch tensors.")
-        elif type == 'tensorflow':
+        elif type == "tensorflow":
             try:
                 import tensorflow
             except ImportError:
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
         else:
-            assert type is None or type == 'numpy', "Return type should be None or selected in ['numpy', 'torch', 'tensorflow']."
+            assert (
+                type is None or type == "numpy"
+            ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow']."
 
         # Check filter column
         if isinstance(columns, str):
             columns = [columns]
         if columns is not None and any(col not in self._data.column_names for col in columns):
-            raise ValueError("Columns {} not in the dataset. Current columns in the dataset: {}".format(
-                             list(filter(lambda col: col not in self._data.column_names, columns)),
-                             self._data.column_names))
+            raise ValueError(
+                "Columns {} not in the dataset. Current columns in the dataset: {}".format(
+                    list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
+                )
+            )
 
         self._format_type = type
         self._format_columns = columns
-        logger.info("Set __getitem__(key) output type to %s and filter %s columns "
-                    " (when key is int or slice).",
-                    'python objects' if type is None else type,
-                    'no' if columns is None else str(columns))
+        logger.info(
+            "Set __getitem__(key) output type to %s and filter %s columns " " (when key is int or slice).",
+            "python objects" if type is None else type,
+            "no" if columns is None else str(columns),
+        )
 
     def reset_format(self):
         self.set_format()
@@ -213,14 +224,17 @@ class Dataset(object):
                 return {k: v for k, v in outputs.items() if k in self._format_columns}
             return outputs
 
-        if self._format_type == 'numpy':
+        if self._format_type == "numpy":
             import numpy
+
             command = numpy.array
-        elif self._format_type == 'torch':
+        elif self._format_type == "torch":
             import torch
+
             command = torch.tensor
-        elif self._format_type == 'tensorflow':
+        elif self._format_type == "tensorflow":
             import tensorflow
+
             command = tensorflow.constant
         else:
             command = lambda x: x
@@ -228,10 +242,13 @@ class Dataset(object):
         try:
             if isinstance(outputs, (list, tuple)):
                 return command(outputs)
-            return {k: command(v) for k, v in outputs.items()
-                    if self._format_columns is None or k in self._format_columns}
+            return {
+                k: command(v) for k, v in outputs.items() if self._format_columns is None or k in self._format_columns
+            }
         except TypeError as e:
-            raise TypeError(str(e) + " You should probably filter the output columns with self.set_format(columns=...).")
+            raise TypeError(
+                str(e) + " You should probably filter the output columns with self.set_format(columns=...)."
+            )
 
     @staticmethod
     def unnest(py_dict):
@@ -273,16 +290,16 @@ class Dataset(object):
             Return:
                 Number of removed files
         """
-        if not self._data_files or 'filename' not in self._data_files[0]:
+        if not self._data_files or "filename" not in self._data_files[0]:
             return None
-        current_cache_file = os.path.abspath(self._data_files[0]['filename'])
+        current_cache_file = os.path.abspath(self._data_files[0]["filename"])
         cache_directory = os.path.dirname(current_cache_file)
         logger.info(f"Listing files in {cache_directory}")
         files: List[str] = os.listdir(cache_directory)
         files_to_remove = []
         for f_name in files:
             full_name = os.path.abspath(os.path.join(cache_directory, f_name))
-            if f_name.startswith('cache-') and f_name.endswith('.arrow'):
+            if f_name.startswith("cache-") and f_name.endswith(".arrow"):
                 if full_name == current_cache_file:
                     logger.info(f"Keeping current cache file at {full_name}")
                     continue
@@ -295,29 +312,35 @@ class Dataset(object):
     def _get_cache_file_path(self, function, cache_kwargs):
         """ Find a unique name from the filenames, kwargs and the function
         """
-        if not self._data_files or 'filename' not in self._data_files[0]:
+        if not self._data_files or "filename" not in self._data_files[0]:
             return None
-        previous_files_string = '-'.join('-'.join(str(k) + '-' + str(v) for k, v in cache_kwargs.items()) for f in self._data_files)
-        cache_kwargs_string = '-'.join(str(k) + '-' + str(v) for k, v in cache_kwargs.items())
+        previous_files_string = "-".join(
+            "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items()) for f in self._data_files
+        )
+        cache_kwargs_string = "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items())
         function_bytes = dill.dumps(function)
-        output_hash = hashlib.md5(previous_files_string.encode('utf-8') + cache_kwargs_string.encode('utf-8') + function_bytes).hexdigest()
-        cache_file_name = 'cache-' + output_hash + '.arrow'
-        cache_directory = os.path.dirname(self._data_files[0]['filename'])
+        output_hash = hashlib.md5(
+            previous_files_string.encode("utf-8") + cache_kwargs_string.encode("utf-8") + function_bytes
+        ).hexdigest()
+        cache_file_name = "cache-" + output_hash + ".arrow"
+        cache_directory = os.path.dirname(self._data_files[0]["filename"])
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
-    def map(self,
-            function,
-            with_indices: bool = False,
-            batched: bool = False,
-            batch_size: Optional[int] = 1000,
-            remove_columns: Optional[List[str]] = None,
-            keep_in_memory: bool = False,
-            load_from_cache_file: bool = True,
-            cache_file_name: Optional[str] = None,
-            writer_batch_size: Optional[int] = 1000,
-            arrow_schema: Optional[pa.Schema] = None,
-            disable_nullable: bool = True):
+    def map(
+        self,
+        function,
+        with_indices: bool = False,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+        remove_columns: Optional[List[str]] = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+        arrow_schema: Optional[pa.Schema] = None,
+        disable_nullable: bool = True,
+    ):
         """ Apply a function to all the elements in the table (individually or in batches)
             and update the table (if function does updated examples).
             
@@ -351,9 +374,12 @@ class Dataset(object):
 
         # Select the columns (arrow columns) to process
         if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
-            raise ValueError("Column to remove {} not in the dataset. Current columns in the dataset: {}".format(
-                             list(filter(lambda col: col not in self._data.column_names, remove_columns)),
-                             self._data.column_names))
+            raise ValueError(
+                "Column to remove {} not in the dataset. Current columns in the dataset: {}".format(
+                    list(filter(lambda col: col not in self._data.column_names, remove_columns)),
+                    self._data.column_names,
+                )
+            )
 
         # If we do batch computation but no batch sze is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
@@ -398,16 +424,18 @@ class Dataset(object):
         if self._data_files and update_data:
             if cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
-                cache_kwargs = {"with_indices": with_indices,
-                                "batched": batched,
-                                "batch_size": batch_size,
-                                "remove_columns": remove_columns,
-                                "keep_in_memory": keep_in_memory,
-                                "load_from_cache_file": load_from_cache_file,
-                                "cache_file_name": cache_file_name,
-                                "writer_batch_size": writer_batch_size,
-                                "arrow_schema": arrow_schema,
-                                "disable_nullable": disable_nullable,}
+                cache_kwargs = {
+                    "with_indices": with_indices,
+                    "batched": batched,
+                    "batch_size": batch_size,
+                    "remove_columns": remove_columns,
+                    "keep_in_memory": keep_in_memory,
+                    "load_from_cache_file": load_from_cache_file,
+                    "cache_file_name": cache_file_name,
+                    "writer_batch_size": writer_batch_size,
+                    "arrow_schema": arrow_schema,
+                    "disable_nullable": disable_nullable,
+                }
                 cache_file_name = self._get_cache_file_path(function, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
                 logger.info("Loading cached processed dataset at %s", cache_file_name)
@@ -431,8 +459,8 @@ class Dataset(object):
                     writer.write(example)
         else:
             for i in tqdm(range(0, len(self), batch_size)):
-                batch = self[i:i+batch_size]
-                indices = list(range(*(slice(i, i+batch_size).indices(self._data.num_rows))))  # Something simpler?
+                batch = self[i : i + batch_size]
+                indices = list(range(*(slice(i, i + batch_size).indices(self._data.num_rows))))  # Something simpler?
                 batch = apply_function_on_filtered_inputs(batch, indices)
                 if update_data:
                     writer.write_batch(batch)

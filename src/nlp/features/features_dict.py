@@ -17,14 +17,12 @@
 """FeatureDict: Main feature connector container.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import pyarrow as pa
 
 from .. import utils
-from .feature import Tensor, FeatureConnector
+from .feature import FeatureConnector, Tensor
 from .top_level_feature import TopLevelFeature
 
 
@@ -138,30 +136,25 @@ class FeaturesDict(TopLevelFeature):
 
     def get_type(self) -> pa.DataType:
         """See base class for details."""
-        return  pa.struct({
-                feature_key: feature.get_type()
-                for feature_key, feature in self._feature_dict.items()
-        })
+        return pa.struct({feature_key: feature.get_type() for feature_key, feature in self._feature_dict.items()})
 
     def encode_example(self, example_dict):
         """See base class for details."""
         return {
-                k: feature.encode_example(example_value)
-                for k, (feature, example_value)
-                in utils.zip_dict(self._feature_dict, example_dict)
+            k: feature.encode_example(example_value)
+            for k, (feature, example_value) in utils.zip_dict(self._feature_dict, example_dict)
         }
 
     def _flatten(self, x):
         """See base class for details."""
         if x and not isinstance(x, (dict, FeaturesDict)):
-            raise ValueError(
-                    'Error while flattening dict: FeaturesDict received a non dict item: '
-                    '{}'.format(x))
+            raise ValueError("Error while flattening dict: FeaturesDict received a non dict item: " "{}".format(x))
 
-        cache = {'counter': 0}  # Could use nonlocal in Python
+        cache = {"counter": 0}  # Could use nonlocal in Python
+
         def _get(k):
             if x and k in x:
-                cache['counter'] += 1
+                cache["counter"] += 1
                 return x[k]
             return None
 
@@ -169,13 +162,14 @@ class FeaturesDict(TopLevelFeature):
         for k, f in sorted(self.items()):
             out.extend(f._flatten(_get(k)))  # pylint: disable=protected-access
 
-        if x and cache['counter'] != len(x):
+        if x and cache["counter"] != len(x):
             raise ValueError(
-                    'Error while flattening dict: Not all dict items have been consumed, '
-                    'this means that the provided dict structure does not match the '
-                    '`FeatureDict`. Please check for typos in the key names. '
-                    'Available keys: {}. Unrecognized keys: {}'.format(
-                            list(self.keys()), list(set(x.keys()) - set(self.keys())))
+                "Error while flattening dict: Not all dict items have been consumed, "
+                "this means that the provided dict structure does not match the "
+                "`FeatureDict`. Please check for typos in the key names. "
+                "Available keys: {}. Unrecognized keys: {}".format(
+                    list(self.keys()), list(set(x.keys()) - set(self.keys()))
+                )
             )
         return out
 
@@ -185,30 +179,31 @@ class FeaturesDict(TopLevelFeature):
         out = {}
         for k, f in sorted(self.items()):
             offset = len(f._flatten(None))  # pylint: disable=protected-access
-            out[k] = f._nest(list_x[curr_pos:curr_pos+offset])  # pylint: disable=protected-access
+            out[k] = f._nest(list_x[curr_pos : curr_pos + offset])  # pylint: disable=protected-access
             curr_pos += offset
         if curr_pos != len(list_x):
             raise ValueError(
-                    'Error while nesting: Expected length {} does not match input '
-                    'length {} of {}'.format(curr_pos, len(list_x), list_x))
+                "Error while nesting: Expected length {} does not match input "
+                "length {} of {}".format(curr_pos, len(list_x), list_x)
+            )
         return out
 
     def save_metadata(self, data_dir, feature_name=None):
         """See base class for details."""
         # Recursively save all child features
         for feature_key, feature in self._feature_dict.items():
-            feature_key = feature_key.replace('/', '.')
+            feature_key = feature_key.replace("/", ".")
             if feature_name:
-                feature_key = '-'.join((feature_name, feature_key))
+                feature_key = "-".join((feature_name, feature_key))
             feature.save_metadata(data_dir, feature_name=feature_key)
 
     def load_metadata(self, data_dir, feature_name=None):
         """See base class for details."""
         # Recursively load all child features
         for feature_key, feature in self._feature_dict.items():
-            feature_key = feature_key.replace('/', '.')
+            feature_key = feature_key.replace("/", ".")
             if feature_name:
-                feature_key = '-'.join((feature_name, feature_key))
+                feature_key = "-".join((feature_name, feature_key))
             feature.load_metadata(data_dir, feature_name=feature_key)
 
 
@@ -298,12 +293,13 @@ class Sequence(TopLevelFeature):
         # If length is static, ensure that the given length match
         if self._length is not None and len(sequence_elements) != self._length:
             raise ValueError(
-                    'Input sequence length do not match the defined one. Got {} != '
-                    '{}'.format(len(sequence_elements), self._length)
+                "Input sequence length do not match the defined one. Got {} != "
+                "{}".format(len(sequence_elements), self._length)
             )
 
         # Empty sequences return empty arrays
         if not sequence_elements:
+
             def _build_empty_np(serialized_info):
                 return []
                 # return np.empty(
@@ -314,19 +310,16 @@ class Sequence(TopLevelFeature):
             return utils.map_nested(_build_empty_np, self.get_serialized_info())
 
         # Encode each individual elements
-        sequence_elements = [
-                self.feature.encode_example(sequence_elem)
-                for sequence_elem in sequence_elements
-        ]
+        sequence_elements = [self.feature.encode_example(sequence_elem) for sequence_elem in sequence_elements]
 
         # Then convert back list[nested dict] => nested dict[list]
         def _stack_nested(sequence_elements):
             """Recursivelly stack the tensors from the same dict field."""
             if isinstance(sequence_elements[0], dict):
                 return {
-                        # Stack along the first dimension
-                        k: _stack_nested(sub_sequence)
-                        for k, sub_sequence in utils.zip_dict(*sequence_elements)
+                    # Stack along the first dimension
+                    k: _stack_nested(sub_sequence)
+                    for k, sub_sequence in utils.zip_dict(*sequence_elements)
                 }
             # Note: As each field can be a nested ragged list, we don't check here
             # that all elements from the list have matching dtype/shape.
@@ -367,11 +360,11 @@ class Sequence(TopLevelFeature):
     # it when unplickling.
     def __getstate__(self):
         state = self.__dict__.copy()
-        state['__getattr__'] = 0
+        state["__getattr__"] = 0
         return state
 
     def __setstate__(self, state):
-        del state['__getattr__']
+        del state["__getattr__"]
         self.__dict__.update(state)
 
 
@@ -385,8 +378,9 @@ def _np_to_list(elem):
         return list(elem)
     else:
         raise ValueError(
-                'Input elements of a sequence should be either a numpy array, a '
-                'python list or tuple. Got {}'.format(type(elem)))
+            "Input elements of a sequence should be either a numpy array, a "
+            "python list or tuple. Got {}".format(type(elem))
+        )
 
 
 def _transpose_dict_list(dict_list):
@@ -396,21 +390,24 @@ def _transpose_dict_list(dict_list):
 
     # 2. Extract the sequence length (and ensure the length is constant for all
     # elements)
-    length = {'value': None}  # dict because `nonlocal` is Python3 only
+    length = {"value": None}  # dict because `nonlocal` is Python3 only
+
     def update_length(elem):
-        if length['value'] is None:
-            length['value'] = len(elem)
-        elif length['value'] != len(elem):
+        if length["value"] is None:
+            length["value"] = len(elem)
+        elif length["value"] != len(elem):
             raise ValueError(
-                    'The length of all elements of one sequence should be the same. '
-                    'Got {} != {}'.format(length['value'], len(elem)))
+                "The length of all elements of one sequence should be the same. "
+                "Got {} != {}".format(length["value"], len(elem))
+            )
         return elem
+
     utils.map_nested(update_length, dict_list, dict_only=True)
 
     # 3. Extract each individual elements
     return [
-            utils.map_nested(lambda elem: elem[i], dict_list, dict_only=True)   # pylint: disable=cell-var-from-loop
-            for i in range(length['value'])
+        utils.map_nested(lambda elem: elem[i], dict_list, dict_only=True)  # pylint: disable=cell-var-from-loop
+        for i in range(length["value"])
     ]
 
 

@@ -34,33 +34,23 @@ The main library entrypoints are:
 __version__ = "0.0.1"
 
 # Types are pyarrow types
-from pyarrow import (null, bool_,
-                     int8, int16, int32, int64,
-                     uint8, uint16, uint32, uint64,
-                     time32, time64, timestamp, date32, date64, duration,
-                     float16, float32, float64,
-                     binary, string, utf8,
-                     large_binary, large_string, large_utf8,
-                     decimal128,
-                     list_, large_list, map_, struct, union, dictionary)
-from pyarrow import total_allocated_bytes
+from pyarrow import (binary, bool_, date32, date64, decimal128, dictionary,
+                     duration, float16, float32, float64, int8, int16, int32,
+                     int64, large_binary, large_list, large_string, large_utf8,
+                     list_, map_, null, string, struct, time32, time64,
+                     timestamp, total_allocated_bytes, uint8, uint16, uint32,
+                     uint64, union, utf8)
 
-from . import download, features, load, datasets
-from .load import builder, load
-from .download import GenerateMode
+from . import datasets, download, features, load
 from .arrow_dataset import Dataset
-from .splits import percent
-from .splits import Split
-from .utils.tqdm_utils import disable_progress_bar
-
-from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
-
-from .info import DatasetInfo
-
-from .lazy_imports_lib import lazy_imports
-
-from .splits import NamedSplit, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo
-
 from .arrow_reader import ReadInstruction
-
+from .builder import (BeamBasedBuilder, BuilderConfig, DatasetBuilder,
+                      GeneratorBasedBuilder)
+from .download import GenerateMode
+from .info import DatasetInfo
+from .lazy_imports_lib import lazy_imports
+from .load import builder, load
+from .splits import (NamedSplit, Split, SplitBase, SplitDict, SplitGenerator,
+                     SplitInfo, SubSplitInfo, percent)
 from .utils import *
+from .utils.tqdm_utils import disable_progress_bar

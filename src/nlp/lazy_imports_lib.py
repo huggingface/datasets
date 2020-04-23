@@ -16,9 +16,7 @@
 # Lint as: python3
 """Lazy imports for heavy dependencies."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import importlib
 
@@ -31,10 +29,12 @@ def _try_import(module_name):
         mod = importlib.import_module(module_name)
         return mod
     except ImportError:
-        err_msg = ("Failed importing {name}. This likely means that the dataset "
-                             "requires additional dependencies that have to be "
-                             "manually installed (usually with `pip install {name}`). See "
-                             "setup.py extras_require.").format(name=module_name)
+        err_msg = (
+            "Failed importing {name}. This likely means that the dataset "
+            "requires additional dependencies that have to be "
+            "manually installed (usually with `pip install {name}`). See "
+            "setup.py extras_require."
+        ).format(name=module_name)
         utils.reraise(suffix=err_msg)
 
 

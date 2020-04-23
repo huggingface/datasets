@@ -16,11 +16,12 @@
 # Lint as: python3
 """DatasetBuilder base class."""
 
-import pyarrow as pa
-
 import logging
 
+import pyarrow as pa
+
 logger = logging.getLogger(__name__)
+
 
 def type_to_string(arrow_type):
     """ Convert an Arrow type (possibly nested) in a string """

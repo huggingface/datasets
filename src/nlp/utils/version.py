@@ -19,12 +19,7 @@
 import enum
 import re
 
-
-
-_VERSION_TMPL = (
-        r"^(?P<major>{v})"
-        r"\.(?P<minor>{v})"
-        r"\.(?P<patch>{v})$")
+_VERSION_TMPL = r"^(?P<major>{v})" r"\.(?P<minor>{v})" r"\.(?P<patch>{v})$"
 _VERSION_WILDCARD_REG = re.compile(_VERSION_TMPL.format(v=r"\d+|\*"))
 _VERSION_RESOLVED_REG = re.compile(_VERSION_TMPL.format(v=r"\d+"))
 
@@ -45,6 +40,7 @@ class Experiment(enum.Enum):
                 nlp.Experiment.EXP_A: True,
                 })
     """
+
     # A Dummy experiment, which should NOT be used, except for testing.
     DUMMY = 1
 
@@ -60,13 +56,12 @@ class Version(object):
     """Dataset version MAJOR.MINOR.PATCH."""
 
     _DEFAULT_EXPERIMENTS = {
-            Experiment.DUMMY: False,
-            Experiment.S3: True,
-            Experiment.METADATA: False,
+        Experiment.DUMMY: False,
+        Experiment.S3: True,
+        Experiment.METADATA: False,
     }
 
-    def __init__(self, version_str, description=None, experiments=None,
-                             nlp_version_to_prepare=None):
+    def __init__(self, version_str, description=None, experiments=None, nlp_version_to_prepare=None):
         """Version init.
 
         Args:
@@ -79,8 +74,7 @@ class Version(object):
                 used instead.
         """
         if description is not None and not isinstance(description, str):
-            raise TypeError(
-                    "Description should be a string. Got {}".format(description))
+            raise TypeError("Description should be a string. Got {}".format(description))
         self.description = description
         self._experiments = self._DEFAULT_EXPERIMENTS.copy()
         self.nlp_version_to_prepare = nlp_version_to_prepare
@@ -104,8 +98,7 @@ class Version(object):
             return Version(other)
         elif isinstance(other, Version):
             return other
-        raise AssertionError("{} (type {}) cannot be compared to version.".format(
-                other, type(other)))
+        raise AssertionError("{} (type {}) cannot be compared to version.".format(other, type(other)))
 
     def __eq__(self, other):
         other = self._validate_operand(other)
@@ -139,8 +132,7 @@ class Version(object):
                 number or a wildcard.
         """
         major, minor, patch = _str_to_version(other_version, allow_wildcard=True)
-        return (major in [self.major, "*"] and minor in [self.minor, "*"]
-                        and patch in [self.patch, "*"])
+        return major in [self.major, "*"] and minor in [self.minor, "*"] and patch in [self.patch, "*"]
 
 
 def _str_to_version(version_str, allow_wildcard=False):
@@ -154,6 +146,4 @@ def _str_to_version(version_str, allow_wildcard=False):
         else:
             msg += " with {x,y,z} being digits."
         raise ValueError(msg)
-    return tuple(
-            v if v == "*" else int(v)
-            for v in [res.group("major"), res.group("minor"), res.group("patch")])
+    return tuple(v if v == "*" else int(v) for v in [res.group("major"), res.group("minor"), res.group("patch")])

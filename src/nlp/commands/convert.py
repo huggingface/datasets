@@ -12,9 +12,7 @@ def convert_command_factory(args: Namespace):
     Factory function used to convert a model TF 1.0 checkpoint in a PyTorch checkpoint.
     :return: ServeCommand
     """
-    return ConvertCommand(
-        args.tfds_directory, args.nlp_directory, args.tfds_rel_filename
-    )
+    return ConvertCommand(args.tfds_directory, args.nlp_directory, args.tfds_rel_filename)
 
 
 class ConvertCommand(BaseTransformersCLICommand):
@@ -26,27 +24,24 @@ class ConvertCommand(BaseTransformersCLICommand):
         :return:
         """
         train_parser = parser.add_parser(
-            "convert",
-            help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
+            "convert", help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
         )
         train_parser.add_argument(
             "--tfds_directory", type=str, required=True, help="Path to the TensorFlow Datasets folder."
         )
         train_parser.add_argument(
-            "--tfds_rel_filename", type=str, default=None, required=False, help="Relative path from `tfds_directory` to a specific TensorFlow Dataset script to convert. If arg is used then only this file is converted.",
+            "--tfds_rel_filename",
+            type=str,
+            default=None,
+            required=False,
+            help="Relative path from `tfds_directory` to a specific TensorFlow Dataset script to convert. If arg is used then only this file is converted.",
         )
         train_parser.add_argument(
             "--nlp_directory", type=str, required=True, help="Path to the HuggingFace NLP folder."
         )
         train_parser.set_defaults(func=convert_command_factory)
 
-    def __init__(
-        self,
-        tfds_directory: str,
-        nlp_directory: str,
-        tfds_rel_filename: str,
-        *args
-    ):
+    def __init__(self, tfds_directory: str, nlp_directory: str, tfds_rel_filename: str, *args):
         self._logger = getLogger("nlp-cli/converting")
 
         self._tfds_directory = tfds_directory
@@ -72,7 +67,7 @@ class ConvertCommand(BaseTransformersCLICommand):
             input_file = os.path.join(abs_tfds_path, f_name)
             output_file = os.path.join(abs_nlp_path, f_name)
 
-            if not os.path.isfile(input_file) or '__init__' in f_name or '_test' in f_name or '.py' not in f_name:
+            if not os.path.isfile(input_file) or "__init__" in f_name or "_test" in f_name or ".py" not in f_name:
                 self._logger.info("Skipping file")
                 continue
 
@@ -86,32 +81,36 @@ class ConvertCommand(BaseTransformersCLICommand):
                 out_line = line
 
                 # Convert imports
-                if 'import tensorflow.compat.v2 as tf' in out_line:
+                if "import tensorflow.compat.v2 as tf" in out_line:
                     continue
-                elif '@tfds.core' in out_line:
+                elif "@tfds.core" in out_line:
                     continue
-                elif 'import tensorflow_datasets.public_api as tfds' in out_line:
-                    out_line = 'import nlp\n'
-                elif 'from absl import logging' in out_line:
-                    out_line = 'import logging\n'
+                elif "import tensorflow_datasets.public_api as tfds" in out_line:
+                    out_line = "import nlp\n"
+                elif "from absl import logging" in out_line:
+                    out_line = "import logging\n"
                 else:
-                    out_line = out_line.replace('tfds.core', 'nlp')
-                    out_line = out_line.replace('tf.io.gfile.GFile', 'open')
-                    out_line = out_line.replace('tf.bool', 'nlp.bool_')
-                    out_line = out_line.replace('tf.', 'nlp.')
-                    out_line = out_line.replace('tfds.features.Text()', 'nlp.string')
-                    out_line = out_line.replace('The TensorFlow Datasets Authors',
-                                                'The TensorFlow Datasets Authors and the HuggingFace NLP Authors')
-                    out_line = out_line.replace('tfds.', 'nlp.')
+                    out_line = out_line.replace("tfds.core", "nlp")
+                    out_line = out_line.replace("tf.io.gfile.GFile", "open")
+                    out_line = out_line.replace("tf.bool", "nlp.bool_")
+                    out_line = out_line.replace("tf.", "nlp.")
+                    out_line = out_line.replace("tfds.features.Text()", "nlp.string")
+                    out_line = out_line.replace(
+                        "The TensorFlow Datasets Authors",
+                        "The TensorFlow Datasets Authors and the HuggingFace NLP Authors",
+                    )
+                    out_line = out_line.replace("tfds.", "nlp.")
 
                 # Take care of saving utilities (to later move them together with main script)
-                if 'tensorflow_datasets' in out_line:
+                if "tensorflow_datasets" in out_line:
                     match = re.match(r"from\stensorflow_datasets.*import\s([^\.\r\n]+)", out_line)
-                    tfds_imports.extend(imp.strip() for imp in match.group(1).split(','))
-                    out_line = 'from . import ' + match.group(1)
+                    tfds_imports.extend(imp.strip() for imp in match.group(1).split(","))
+                    out_line = "from . import " + match.group(1)
 
                 # Check we have not forget anything
-                assert 'tf.' not in out_line and 'tfds.' not in out_line and 'tensorflow_datasets' not in out_line, f"Error converting {out_line.strip()}"
+                assert (
+                    "tf." not in out_line and "tfds." not in out_line and "tensorflow_datasets" not in out_line
+                ), f"Error converting {out_line.strip()}"
 
                 if "GeneratorBasedBuilder" in out_line or "BeamBasedBuilder" in out_line:
                     is_builder = True
@@ -119,7 +118,7 @@ class ConvertCommand(BaseTransformersCLICommand):
 
             if is_builder:
                 # We create a new directory for each dataset
-                dir_name = f_name.replace('.py', '')
+                dir_name = f_name.replace(".py", "")
                 output_dir = os.path.join(abs_nlp_path, dir_name)
                 output_file = os.path.join(output_dir, f_name)
                 os.makedirs(output_dir, exist_ok=True)
@@ -136,7 +135,7 @@ class ConvertCommand(BaseTransformersCLICommand):
         for utils_file in utils_files:
             try:
                 f_name = os.path.basename(utils_file)
-                dest_folder = imports_to_builder_map[f_name.replace('.py', '')]
+                dest_folder = imports_to_builder_map[f_name.replace(".py", "")]
                 self._logger.info("Moving %s to %s", utils_file, dest_folder)
                 shutil.copy(utils_file, dest_folder)
             except KeyError:

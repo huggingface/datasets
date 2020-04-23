@@ -5,11 +5,11 @@ Copyright by the AllenNLP authors.
 """
 
 import fnmatch
+import importlib
 import json
 import logging
 import os
 import shutil
-import importlib
 import sys
 import tarfile
 import tempfile
@@ -69,11 +69,9 @@ default_cache_path = os.path.join(hf_cache_home, "datasets")
 try:
     from pathlib import Path
 
-    HF_DATASETS_CACHE = Path(
-        os.getenv("HF_DATASETS_CACHE", default_cache_path))
+    HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", default_cache_path))
 except (AttributeError, ImportError):
-    HF_DATASETS_CACHE = os.getenv(
-        os.getenv("HF_DATASETS_CACHE", default_cache_path))
+    HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_cache_path))
 
 S3_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp"
 CLOUDFRONT_DISTRIB_PREFIX = "https://d2ws9o8vfrpkyk.cloudfront.net"  # TODO: update to datasets front

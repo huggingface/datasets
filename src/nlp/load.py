@@ -17,44 +17,45 @@
 """Access datasets."""
 
 import abc
-import inspect
-import re
-import os
-import json
-import shutil
-import logging
 import importlib
-
-from typing import Optional, Dict, Union
+import inspect
+import json
+import logging
+import os
+import re
+import shutil
+from typing import Dict, Optional, Union
 
 from . import naming
 from .builder import DatasetBuilder
-from .utils import py_utils
 from .splits import Split
-from .utils.file_utils import (HF_DATASETS_CACHE, is_remote_url, hf_bucket_url,
-                         cached_path, url_to_filename)
+from .utils import py_utils
+from .utils.file_utils import (HF_DATASETS_CACHE, cached_path, hf_bucket_url,
+                               is_remote_url, url_to_filename)
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-        "builder",
-        "load",
+    "builder",
+    "load",
 ]
 
 
 CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, 'datasets')
+DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "datasets")
 DATASETS_MODULE = "nlp.datasets"
 
 
-def load_dataset(path: str,
-                 name: Optional[str] = None,
-                 force_reload: bool = False,
-                 resume_download: bool = False,
-                 proxies: Optional[Dict] = None,
-                 local_files_only: bool = False,
-                 data_dir: Optional[str] = None,
-                 **kwargs):
+def load_dataset(
+    path: str,
+    name: Optional[str] = None,
+    force_reload: bool = False,
+    resume_download: bool = False,
+    proxies: Optional[Dict] = None,
+    local_files_only: bool = False,
+    data_dir: Optional[str] = None,
+    **kwargs
+):
     r"""
         Download/extract/cache a dataset to add to the lib from a path or url which can be:
             - a path to a local directory containing the dataset processing python script
@@ -68,7 +69,7 @@ def load_dataset(path: str,
             the local path to the dataset
     """
     if name is None:
-        name = list(filter(lambda x: x, path.split('/')))[-1] + '.py'
+        name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
     combined_path = os.path.join(path, name)
     if os.path.isfile(path) or is_remote_url(path):
@@ -95,11 +96,16 @@ def load_dataset(path: str,
 
     # Check if the dataset directory was already there
     if os.path.exists(dataset_file_path) and not force_reload:
-        logger.info("Dataset script %s already found in datasets directory at %s, returning it. Use `force_reload=True` to override.",
-                    local_path, dataset_file_path)
+        logger.info(
+            "Dataset script %s already found in datasets directory at %s, returning it. Use `force_reload=True` to override.",
+            local_path,
+            dataset_file_path,
+        )
     else:
         # Create directory for dataset in DATASETS_PATH
-        logger.info("Creating unique folder for dataset %s in datasets directory at %s", local_path, dataset_folder_path)
+        logger.info(
+            "Creating unique folder for dataset %s in datasets directory at %s", local_path, dataset_folder_path
+        )
         shutil.rmtree(dataset_folder_path, ignore_errors=True)
         os.makedirs(dataset_folder_path)
 
@@ -115,13 +121,13 @@ def load_dataset(path: str,
             json.dump(meta, meta_file)
 
         # Add an empty __init__ file to load the module
-        init_file_path = os.path.join(dataset_folder_path, '__init__.py')
-        with open(init_file_path, 'w'):
+        init_file_path = os.path.join(dataset_folder_path, "__init__.py")
+        with open(init_file_path, "w"):
             pass
 
     importlib.invalidate_caches()
-    module_name = name.replace('.py', '')
-    module_path = '.'.join([DATASETS_MODULE, dataset_id, module_name])
+    module_name = name.replace(".py", "")
+    module_path = ".".join([DATASETS_MODULE, dataset_id, module_name])
     dataset_module = importlib.import_module(module_path)
 
     builder_cls = None
@@ -134,9 +140,7 @@ def load_dataset(path: str,
     return builder_cls
 
 
-def builder(path: str,
-            name: Optional[str] = None,
-            **builder_init_kwargs):
+def builder(path: str, name: Optional[str] = None, **builder_init_kwargs):
     """Fetches a `nlp.DatasetBuilder` by string name.
 
     Args:
@@ -169,18 +173,20 @@ def builder(path: str,
     return builder_instance
 
 
-def load(path: str,
-         name: Optional[str] = None,
-         split: Optional[Union[str, Split]] = None,
-         data_dir: Optional[str] = None,
-                 batch_size=None,
-                 in_memory=None,
-                 download=True,
-                 as_supervised=False,
-                 with_info=False,
-                 builder_kwargs=None,
-                 download_and_prepare_kwargs=None,
-                 as_dataset_kwargs=None):
+def load(
+    path: str,
+    name: Optional[str] = None,
+    split: Optional[Union[str, Split]] = None,
+    data_dir: Optional[str] = None,
+    batch_size=None,
+    in_memory=None,
+    download=True,
+    as_supervised=False,
+    with_info=False,
+    builder_kwargs=None,
+    download_and_prepare_kwargs=None,
+    as_dataset_kwargs=None,
+):
     # pylint: disable=line-too-long
     """Loads the named dataset.
 
@@ -299,12 +305,13 @@ def load(path: str,
 _VERSION_RE = r""
 
 _NAME_REG = re.compile(
-        r"^"
-        r"(?P<dataset_name>\w+)"
-        r"(/(?P<config>[\w\-\.]+))?"
-        r"(:(?P<version>(\d+|\*)(\.(\d+|\*)){2}))?"
-        r"(/(?P<kwargs>(\w+=\w+)(,\w+=[^,]+)*))?"
-        r"$")
+    r"^"
+    r"(?P<dataset_name>\w+)"
+    r"(/(?P<config>[\w\-\.]+))?"
+    r"(:(?P<version>(\d+|\*)(\.(\d+|\*)){2}))?"
+    r"(/(?P<kwargs>(\w+=\w+)(,\w+=[^,]+)*))?"
+    r"$"
+)
 
 
 _NAME_STR_ERR = """\
@@ -328,6 +335,7 @@ The builder config string must be of the following format:
         my_dataset/config1:1.2.3/right=True,foo=bar,rate=1.2
 """
 
+
 def _dataset_name_and_kwargs_from_name_str(name_str):
     """Extract kwargs from name str."""
     res = _NAME_REG.match(name_str)
@@ -345,7 +353,7 @@ def _dataset_name_and_kwargs_from_name_str(name_str):
             kwargs[attr] = val
         return name, kwargs
     except:
-        logger.error(_NAME_STR_ERR.format(name_str))   # pylint: disable=logging-format-interpolation
+        logger.error(_NAME_STR_ERR.format(name_str))  # pylint: disable=logging-format-interpolation
         raise
 
 
