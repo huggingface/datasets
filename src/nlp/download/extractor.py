@@ -97,8 +97,7 @@ class _Extractor(object):
 def _copy(src_file, dest_path):
 	"""Copy data read from src file obj to new file in dest_path."""
 	# create dir if does not already exist
-	if not os.path.isdir(os.path.dirname(dest_path)):
-	        os.makedirs(os.path.dirname(dest_path))
+	os.makedirs(os.path.dirname(dest_path), exist_ok=True)
 	with open(dest_path, 'wb') as dest_file:
 		while True:
 			data = src_file.read(io.DEFAULT_BUFFER_SIZE)
