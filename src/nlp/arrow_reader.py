@@ -223,7 +223,7 @@ class ArrowReader(object):
 @dataclass(frozen=True)
 class _AbsoluteInstruction:
     """A machine friendly slice: defined absolute positive boundaries."""
-    splitname: str  # type: Text
+    splitname: str
     from_: int  # uint (starting index).
     to: int  # uint (ending index).
 
@@ -231,7 +231,7 @@ class _AbsoluteInstruction:
 @dataclass(frozen=True)
 class _RelativeInstruction:
     """Represents a single parsed slicing instruction, can use % and negatives."""
-    splitname: str  # type: Text
+    splitname: str
     from_: Optional[int] = None  # int (starting index) or None if no lower boundary.
     to: Optional[int] = None  # int (ending index) or None if no upper boundary.
     unit: Optional[str] = None
