@@ -17,10 +17,9 @@
 """Data downloads using the Kaggle CLI."""
 
 import collections
+import logging
 import os
 import subprocess as sp
-
-import logging
 
 from .. import utils
 
@@ -41,21 +40,11 @@ Competition %s not found. Please ensure you have spelled the competition name \
 correctly.
 """
 
-KaggleType = collections.namedtuple(
-        "KaggleType",
-        ["prefix", "download_cmd", "dl_flag", "extra_flag"])
+KaggleType = collections.namedtuple("KaggleType", ["prefix", "download_cmd", "dl_flag", "extra_flag"])
 
 _KAGGLE_TYPES = {
-        "dataset": KaggleType(
-                prefix="dataset",
-                download_cmd="datasets",
-                dl_flag="-d",
-                extra_flag="--unzip"),
-        "competition": KaggleType(
-                prefix="competition",
-                download_cmd="competitions",
-                dl_flag="-c",
-                extra_flag="")
+    "dataset": KaggleType(prefix="dataset", download_cmd="datasets", dl_flag="-d", extra_flag="--unzip"),
+    "competition": KaggleType(prefix="competition", download_cmd="competitions", dl_flag="-c", extra_flag=""),
 }
 
 
@@ -68,6 +57,7 @@ def _get_kaggle_type(competition_name):
 
 class KaggleFile(object):
     """Represents a Kaggle competition file."""
+
     _URL_PREFIX = "kaggle://"
 
     def __init__(self, competition_name, filename):
@@ -87,8 +77,7 @@ class KaggleFile(object):
     def from_url(cls, url):
         if not KaggleFile.is_kaggle_url(url):
             raise TypeError("Not a valid kaggle URL")
-        download_type, competition_name, filename = (
-                url[len(cls._URL_PREFIX):].split("/", 2))
+        download_type, competition_name, filename = url[len(cls._URL_PREFIX) :].split("/", 2)
         if download_type == "dataset":
             dataset_name, filename = filename.split("/", 1)
             competition_name = "%s/%s" % (competition_name, dataset_name)
@@ -99,10 +88,7 @@ class KaggleFile(object):
         return url.startswith(KaggleFile._URL_PREFIX)
 
     def to_url(self):
-        return "%s%s/%s/%s" % (self._URL_PREFIX,
-                                                     self.type.prefix,
-                                                     self._competition_name,
-                                                     self._filename)
+        return "%s%s/%s/%s" % (self._URL_PREFIX, self.type.prefix, self._competition_name, self._filename)
 
 
 class KaggleCompetitionDownloader(object):
@@ -127,40 +113,37 @@ class KaggleCompetitionDownloader(object):
     def competition_files(self):
         """List of competition files."""
         command = [
-                "kaggle",
-                self._kaggle_type.download_cmd,
-                "files",
-                "-v",
-                self._competition_name,
+            "kaggle",
+            self._kaggle_type.download_cmd,
+            "files",
+            "-v",
+            self._competition_name,
         ]
         output = _run_kaggle_command(command, self._competition_name)
-        return sorted([
-                line.split(",")[0] for line in output.split("\n")[1:] if line
-        ])
+        return sorted([line.split(",")[0] for line in output.split("\n")[1:] if line])
 
     @utils.memoized_property
     def competition_urls(self):
         """Returns 'kaggle://' urls."""
         return [
-                KaggleFile(self._competition_name, fname).to_url()
-                for fname in self.competition_files  # pylint: disable=not-an-iterable
+            KaggleFile(self._competition_name, fname).to_url()
+            for fname in self.competition_files  # pylint: disable=not-an-iterable
         ]
 
     def download_file(self, fname, output_dir):
         """Downloads competition file to output_dir."""
         if fname not in self.competition_files:  # pylint: disable=unsupported-membership-test
-            raise ValueError("%s is not one of the competition's "
-                                             "files: %s" % (fname, self.competition_files))
+            raise ValueError("%s is not one of the competition's " "files: %s" % (fname, self.competition_files))
         command = [
-                "kaggle",
-                self._kaggle_type.download_cmd,
-                "download",
-                "--file",
-                fname,
-                "--path",
-                output_dir,
-                self._kaggle_type.dl_flag,
-                self._competition_name
+            "kaggle",
+            self._kaggle_type.download_cmd,
+            "download",
+            "--file",
+            fname,
+            "--path",
+            output_dir,
+            self._kaggle_type.dl_flag,
+            self._competition_name,
         ]
         if self._kaggle_type.extra_flag:
             command.append(self._kaggle_type.extra_flag)

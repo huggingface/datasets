@@ -24,28 +24,26 @@ python -m nlp.scripts.create_new_dataset \
 
 import os
 
-from absl import app
-from absl import flags
-
+from absl import app, flags
 from nlp import naming  # pylint: disable=g-import-not-at-top
 from nlp import py_utils
 
 FLAGS = flags.FLAGS
 
 _DATASET_TYPE = [
-        'audio',
-        'image',
-        'object_detection',
-        'structured',
-        'summarization',
-        'text',
-        'translate',
-        'video',
+    "audio",
+    "image",
+    "object_detection",
+    "structured",
+    "summarization",
+    "text",
+    "translate",
+    "video",
 ]
 
-flags.DEFINE_string('nlp_dir', None, 'Root directory of nlp (auto-computed)')
-flags.DEFINE_string('dataset', None, 'Dataset name')
-flags.DEFINE_enum('type', None, _DATASET_TYPE, 'Dataset type')
+flags.DEFINE_string("nlp_dir", None, "Root directory of nlp (auto-computed)")
+flags.DEFINE_string("dataset", None, "Dataset name")
+flags.DEFINE_enum("type", None, _DATASET_TYPE, "Dataset type")
 
 
 _HEADER = """\
@@ -156,48 +154,43 @@ _CHECKSUM_FILE = """\
 
 def create_dataset_file(root_dir, data):
     """Create a new dataset from a template."""
-    file_path = os.path.join(root_dir, '{dataset_type}', '{dataset_name}.py')
-    context = (
-            _HEADER + _DATASET_DEFAULT_IMPORTS + _CITATION + _DESCRIPTION +
-            _DATASET_DEFAULTS)
+    file_path = os.path.join(root_dir, "{dataset_type}", "{dataset_name}.py")
+    context = _HEADER + _DATASET_DEFAULT_IMPORTS + _CITATION + _DESCRIPTION + _DATASET_DEFAULTS
 
-    with open(file_path.format(**data), 'w') as f:
+    with open(file_path.format(**data), "w") as f:
         f.write(context.format(**data))
 
 
 def add_the_init(root_dir, data):
     """Append the new dataset file to the __init__.py."""
-    init_file = os.path.join(root_dir, '{dataset_type}', '__init__.py')
-    context = ('from nlp.{dataset_type}.{dataset_name} import '
-                         '{dataset_cls}  # {TODO} Sort alphabetically\n')
-    with open(init_file.format(**data), 'a') as f:
+    init_file = os.path.join(root_dir, "{dataset_type}", "__init__.py")
+    context = "from nlp.{dataset_type}.{dataset_name} import " "{dataset_cls}  # {TODO} Sort alphabetically\n"
+    with open(init_file.format(**data), "a") as f:
         f.write(context.format(**data))
 
 
 def create_dataset_test_file(root_dir, data):
     """Create the test file associated with the dataset."""
-    file_path = os.path.join(root_dir, '{dataset_type}', '{dataset_name}_test.py')
-    context = (_HEADER + _DATASET_TEST_DEFAULTS_IMPORTS + _DATASET_TEST_DEFAULTS)
+    file_path = os.path.join(root_dir, "{dataset_type}", "{dataset_name}_test.py")
+    context = _HEADER + _DATASET_TEST_DEFAULTS_IMPORTS + _DATASET_TEST_DEFAULTS
 
-    with open(file_path.format(**data), 'w') as f:
+    with open(file_path.format(**data), "w") as f:
         f.write(context.format(**data))
 
 
 def create_fake_data(root_dir, data):
-    fake_examples_dir = os.path.join(root_dir, 'testing', 'test_data',
-                                                                     'fake_examples', '{dataset_name}')
+    fake_examples_dir = os.path.join(root_dir, "testing", "test_data", "fake_examples", "{dataset_name}")
     fake_examples_dir = fake_examples_dir.format(**data)
     gfile.makedirs(fake_examples_dir)
 
-    fake_path = os.path.join(fake_examples_dir,
-                                                     'TODO-add_fake_data_in_this_directory.txt')
-    with open(fake_path, 'w') as f:
-        f.write('{TODO}: Add fake data in this directory'.format(**data))
+    fake_path = os.path.join(fake_examples_dir, "TODO-add_fake_data_in_this_directory.txt")
+    with open(fake_path, "w") as f:
+        f.write("{TODO}: Add fake data in this directory".format(**data))
 
 
 def create_checksum_file(root_dir, data):
-    checksum_path = os.path.join(root_dir, 'url_checksums', '{dataset_name}.txt')
-    with open(checksum_path.format(**data), 'w') as f:
+    checksum_path = os.path.join(root_dir, "url_checksums", "{dataset_name}.txt")
+    with open(checksum_path.format(**data), "w") as f:
         f.write(_CHECKSUM_FILE.format(**data))
 
 
@@ -209,10 +202,10 @@ def main(_):
         root_dir = py_utils.nlp_dir()
 
     data = dict(
-            dataset_name=dataset_name,
-            dataset_type=dataset_type,
-            dataset_cls=naming.snake_to_camelcase(dataset_name),
-            TODO='TODO({})'.format(dataset_name),
+        dataset_name=dataset_name,
+        dataset_type=dataset_type,
+        dataset_cls=naming.snake_to_camelcase(dataset_name),
+        TODO="TODO({})".format(dataset_name),
     )
 
     create_dataset_file(root_dir, data)
@@ -222,12 +215,13 @@ def main(_):
     create_checksum_file(root_dir, data)
 
     print(
-            'Dataset generated in {}\n'
-            'You can start with searching TODO({}).\n'
-            'Please check this '
-            '`https://github.com/tensorflow/datasets/blob/master/docs/add_dataset.md`'
-            'for details.'.format(root_dir, dataset_name))
+        "Dataset generated in {}\n"
+        "You can start with searching TODO({}).\n"
+        "Please check this "
+        "`https://github.com/tensorflow/datasets/blob/master/docs/add_dataset.md`"
+        "for details.".format(root_dir, dataset_name)
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(main)

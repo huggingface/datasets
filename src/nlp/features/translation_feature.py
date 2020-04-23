@@ -18,6 +18,7 @@
 
 from .features_dict import FeaturesDict, Sequence
 from .text_feature import Text
+
 try:
     # This fallback applies for all versions of Python before 3.3
     import collections.abc as collections_abc  # pylint:disable=g-import-not-at-top
@@ -84,8 +85,8 @@ class Translation(FeaturesDict):
             encoder_config = [encoder_config] * len(languages)
 
         super(Translation, self).__init__(
-                {lang: Text(enc, enc_conf) for lang, enc, enc_conf in zip(
-                        languages, encoder, encoder_config)})
+            {lang: Text(enc, enc_conf) for lang, enc, enc_conf in zip(languages, encoder, encoder_config)}
+        )
 
     @property
     def languages(self):
@@ -147,10 +148,9 @@ class TranslationVariableLanguages(Sequence):
         # for FixedVarLenFeatures.
 
         self._languages = set(languages) if languages else None
-        super(TranslationVariableLanguages, self).__init__({
-                "language": Text(),
-                "translation": Text(),
-        })
+        super(TranslationVariableLanguages, self).__init__(
+            {"language": Text(), "translation": Text(),}
+        )
 
     @property
     def num_languages(self):
@@ -165,9 +165,10 @@ class TranslationVariableLanguages(Sequence):
     def encode_example(self, translation_dict):
         if self.languages and set(translation_dict) - self._languages:
             raise ValueError(
-                    "Some languages in example ({0}) are not in valid set ({1}).".format(
-                            ", ".join(sorted(set(translation_dict) - self._languages)),
-                            ", ".join(self.languages)))
+                "Some languages in example ({0}) are not in valid set ({1}).".format(
+                    ", ".join(sorted(set(translation_dict) - self._languages)), ", ".join(self.languages)
+                )
+            )
 
         # Convert dictionary into tuples, splitting out cases where there are
         # multiple translations for a single language.
@@ -182,6 +183,5 @@ class TranslationVariableLanguages(Sequence):
         languages, translations = zip(*sorted(translation_tuples))
 
         return super(TranslationVariableLanguages, self).encode_example(
-                {"language": languages,
-                 "translation": translations})
-
+            {"language": languages, "translation": translations}
+        )

@@ -54,8 +54,7 @@ def filepattern_for_dataset_split(dataset_name, split, data_dir, filetype_suffix
     return "%s*" % filepath
 
 
-def filename_for_dataset_split(
-        dataset_name, split, filetype_suffix=None):
+def filename_for_dataset_split(dataset_name, split, filetype_suffix=None):
     prefix = filename_prefix_for_split(dataset_name, split)
     if filetype_suffix:
         prefix += ".%s" % filetype_suffix
@@ -63,10 +62,6 @@ def filename_for_dataset_split(
 
 
 def filepath_for_dataset_split(dataset_name, split, data_dir, filetype_suffix=None):
-    filename = filename_for_dataset_split(
-            dataset_name=dataset_name,
-            split=split,
-            filetype_suffix=filetype_suffix,
-    )
+    filename = filename_for_dataset_split(dataset_name=dataset_name, split=split, filetype_suffix=filetype_suffix,)
     filepath = os.path.join(data_dir, filename)
     return filepath

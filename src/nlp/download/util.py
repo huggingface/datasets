@@ -20,7 +20,6 @@ import enum
 import functools
 import os
 import threading
-
 import urllib
 
 
@@ -39,9 +38,9 @@ class GenerateMode(enum.Enum):
     | `FORCE_REDOWNLOAD`                 | Fresh     | Fresh   |
     """
 
-    REUSE_DATASET_IF_EXISTS = 'reuse_dataset_if_exists'
-    REUSE_CACHE_IF_EXISTS = 'reuse_cache_if_exists'
-    FORCE_REDOWNLOAD = 'force_redownload'
+    REUSE_DATASET_IF_EXISTS = "reuse_dataset_if_exists"
+    REUSE_CACHE_IF_EXISTS = "reuse_cache_if_exists"
+    FORCE_REDOWNLOAD = "force_redownload"
 
 
 class ComputeStatsMode(enum.Enum):
@@ -58,9 +57,9 @@ class ComputeStatsMode(enum.Enum):
 
     """
 
-    AUTO = 'auto'
-    FORCE = 'force'
-    SKIP = 'skip'
+    AUTO = "auto"
+    FORCE = "force"
+    SKIP = "skip"
 
 
 # TODO(epot): Move some of those functions into py_utils
@@ -87,7 +86,6 @@ def build_synchronize_decorator():
     lock = threading.Lock()
 
     def lock_decorator(fn):
-
         @functools.wraps(fn)
         def lock_decorated(*args, **kwargs):
             with lock:
@@ -100,4 +98,4 @@ def build_synchronize_decorator():
 
 def get_file_name(url):
     """Returns file name of file at given url."""
-    return os.path.basename(urllib.parse.urlparse(url).path) or 'unknown_name'
+    return os.path.basename(urllib.parse.urlparse(url).path) or "unknown_name"
