@@ -30,7 +30,7 @@ from . import splits as splits_lib
 from . import utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
-from .download import DownloadConfig, DownloadManager, GenerateMode
+from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMode
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
 from .utils.file_utils import HF_DATASETS_CACHE
@@ -455,7 +455,6 @@ class DatasetBuilder:
     def _make_download_manager(self, download_dir, download_config):
         """Creates a new download manager object."""
         download_dir = download_dir or os.path.join(self._data_dir_root, "downloads")
-        extract_dir = download_config.extract_dir or os.path.join(download_dir, "extracted")
 
         # Use manual_dir only if MANUAL_DOWNLOAD_INSTRUCTIONS are set.
         if self.MANUAL_DOWNLOAD_INSTRUCTIONS:
@@ -467,11 +466,9 @@ class DatasetBuilder:
         return DownloadManager(
             dataset_name=self.name,
             download_dir=download_dir,
-            extract_dir=extract_dir,
             manual_dir=manual_dir,
             manual_dir_instructions=self.MANUAL_DOWNLOAD_INSTRUCTIONS,
             force_download=(download_config.download_mode == FORCE_REDOWNLOAD),
-            force_extraction=(download_config.download_mode == FORCE_REDOWNLOAD),
             register_checksums=download_config.register_checksums,
         )
 
