@@ -187,7 +187,7 @@ class Dataset(object):
             except ImportError:
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
         else:
-            assert type is None or type == 'numpy', "Return type should be None or selected in ['numpy', 'torch', 'tensorflow']."
+            assert type is None or type == 'numpy' or type == 'pandas', "Return type should be None or selected in ['numpy', 'pandas', 'torch', 'tensorflow']."
 
         # Check filter column
         if isinstance(columns, str):
@@ -222,11 +222,16 @@ class Dataset(object):
         elif self._format_type == 'tensorflow':
             import tensorflow
             command = tensorflow.constant
+        elif self._format_type == 'pandas':
+            import pandas
+            command = pandas.DataFrame
         else:
             command = lambda x: x
 
         try:
-            if isinstance(outputs, (list, tuple)):
+            if self._format_type == 'pandas':
+                return command(outputs)
+            elif isinstance(outputs, (list, tuple)):
                 return command(outputs)
             return {k: command(v) for k, v in outputs.items()
                     if self._format_columns is None or k in self._format_columns}
