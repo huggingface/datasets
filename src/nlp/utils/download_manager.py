@@ -167,8 +167,15 @@ class DownloadManager(object):
         Returns:
             Generator yielding tuple (path_within_archive, file_obj).
         """
-        # TODO implement
-        pass
+        extracted_path = self.extract(path)
+        if os.path.isfile(extracted_path):
+            with open(extracted_path, "rb") as file_obj:
+                yield (extracted_path, file_obj)
+        with os.scandir(path) as it:
+            for entry in it:
+                if entry.is_file():
+                    with open(entry.path, "rb") as file_obj:
+                        yield (entry.path, file_obj)
 
     def extract(self, path_or_paths):
         """Extract given path(s).
