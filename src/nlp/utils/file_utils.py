@@ -17,7 +17,7 @@ import tempfile
 from contextlib import contextmanager
 from functools import partial, wraps
 from hashlib import sha256
-from typing import Optional
+from typing import Optional, Tuple
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
@@ -459,9 +459,9 @@ def is_gzip(path: str) -> bool:
             return False
 
 
-def get_sizes_checksum(path: str) -> str:
+def get_size_checksum(path: str) -> Tuple[int, str]:
     m = sha256()
     with open(path, 'rb') as f: 
             for chunk in iter(lambda: f.read(4096),b""):
                 m.update(chunk)
-    return m.hexdigest()
+    return os.path.getsize(path), m.hexdigest()

@@ -20,7 +20,7 @@ import logging
 import os
 import enum
 
-from .file_utils import cached_path, HF_DATASETS_CACHE, get_sizes_checksum
+from .file_utils import cached_path, HF_DATASETS_CACHE, get_size_checksum
 from .py_utils import map_nested, flatten_nest_dict
 
 logger = logging.getLogger(__name__)
@@ -131,13 +131,13 @@ class DownloadManager(object):
         """Record size/checksum of downloaded files."""
         if isinstance(url_or_urls, str):
             url, path = url_or_urls, downloaded_path_or_paths
-            self._recorded_sizes_checksums[url] = get_sizes_checksum(path) 
+            self._recorded_sizes_checksums[url] = get_size_checksum(path) 
         elif isinstance(url_or_urls, dict):
             url_or_urls = list(flatten_nest_dict(url_or_urls).values())
             downloaded_path_or_paths = list(flatten_nest_dict(downloaded_path_or_paths).values())
         assert isinstance(url_or_urls, (list, tuple))
         for url, path in zip(url_or_urls, downloaded_path_or_paths):
-            self._recorded_sizes_checksums[url] = get_sizes_checksum(path) 
+            self._recorded_sizes_checksums[url] = get_size_checksum(path) 
 
     def download(self, url_or_urls):
         """Download given url(s).
