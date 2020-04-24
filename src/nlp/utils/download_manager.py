@@ -20,8 +20,8 @@ import logging
 import os
 import enum
 
-from .file_utils import cached_path, HF_DATASETS_CACHE
-from .py_utils import map_nested
+from .file_utils import cached_path, HF_DATASETS_CACHE, get_sizes_checksum
+from .py_utils import map_nested, flatten_nest_dict
 
 logger = logging.getLogger(__name__)
 
@@ -127,20 +127,17 @@ class DownloadManager(object):
         """Returns the total size of downloaded files."""
         return sum(size for size, sha256 in self._recorded_sizes_checksums.values())
 
-    def _record_sizes_checksums(self):
-        """Store in file when recorded size/checksum of downloaded files."""
-        #TODO implement
-        pass
-
-    def download_checksums(self, checksums_url):
-        """Downloads checksum file from the given URL and adds it to registry."""
-        #TODO implement
-        pass
-
-    def download_kaggle_data(self, competition_name):
-        """Download data for a given Kaggle competition."""
-        #TODO implement
-        pass
+    def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
+        """Record size/checksum of downloaded files."""
+        if isinstance(url_or_urls, str):
+            url, path = url_or_urls, downloaded_path_or_paths
+            self._recorded_sizes_checksums[url] = get_sizes_checksum(path) 
+        elif isinstance(url_or_urls, dict):
+            url_or_urls = list(flatten_nest_dict(url_or_urls).values())
+            downloaded_path_or_paths = list(flatten_nest_dict(downloaded_path_or_paths).values())
+        assert isinstance(url_or_urls, (list, tuple))
+        for url, path in zip(url_or_urls, downloaded_path_or_paths):
+            self._recorded_sizes_checksums[url] = get_sizes_checksum(path) 
 
     def download(self, url_or_urls):
         """Download given url(s).
@@ -153,11 +150,13 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        return map_nested(lambda url_or_urls: cached_path(
+        downloaded_path_or_paths = map_nested(lambda url_or_urls: cached_path(
             url_or_urls,
             cache_dir=self._download_dir,
             force_download=self._force_download,
         ), url_or_urls)
+        self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
+        return downloaded_path_or_paths
 
     def iter_archive(self, path):
         """Returns iterator over files within archive.
@@ -204,13 +203,7 @@ class DownloadManager(object):
         Returns:
             extracted_path(s): `str`, extracted paths of given URL(s).
         """
-        return map_nested(lambda url_or_urls: cached_path(
-            url_or_urls,
-            cache_dir=self._download_dir,
-            force_download=self._force_download,
-            extract_compressed_file=True,
-            force_extract=True
-        ), url_or_urls)
+        return self.extract(self.download(url_or_urls))
 
     @property
     def manual_dir(self):
@@ -230,5 +223,5 @@ class DownloadManager(object):
 
 
 def add_checksums_dir(path):
-    # TODO implement
+    # TODO implement (used only in download_and_prepare script)
     pass

@@ -449,7 +449,7 @@ def get_from_cache(
     return cache_path
 
 
-def is_gzip(path):
+def is_gzip(path: str) -> bool:
     """from https://stackoverflow.com/a/60634210"""
     with gzip.open(path, 'r') as fh:
         try:
@@ -457,3 +457,11 @@ def is_gzip(path):
             return True
         except OSError:
             return False
+
+
+def get_sizes_checksum(path: str) -> str:
+    m = sha256()
+    with open(path, 'rb') as f: 
+            for chunk in iter(lambda: f.read(4096),b""):
+                m.update(chunk)
+    return m.hexdigest()
