@@ -227,8 +227,3 @@ class DownloadManager(object):
                 )
             )
         return self._manual_dir
-
-
-def add_checksums_dir(path):
-    # TODO implement (used only in download_and_prepare script)
-    pass
