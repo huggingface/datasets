@@ -108,12 +108,7 @@ class Scan(nlp.GeneratorBasedBuilder):
 
   def _split_generators(self, dl_manager):
     """Returns SplitGenerators."""
-    data_dir = dl_manager.download_and_extract(
-        nlp.download.Resource(
-            url=_DATA_URL,
-            # Specify extract method manually as filename reported by github.com
-            # misses the .zip extension so auto-detection doesn't work.
-            extract_method=nlp.download.ExtractMethod.ZIP))
+    data_dir = dl_manager.download_and_extract(_DATA_URL)
     data_dir = os.path.join(data_dir, 'SCAN-master',
                             self.builder_config.directory)
     split = self.builder_config.name

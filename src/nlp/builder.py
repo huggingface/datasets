@@ -319,8 +319,7 @@ class DatasetBuilder:
 
         Args:
             download_dir: `str`, directory where downloaded files are stored.
-                Defaults to "~/nlp/downloads".
-            download_config: `nlp.download.DownloadConfig`, further configuration for
+            download_config: `nlp.DownloadConfig`, further configuration for
                 downloading and preparing dataset.
 
         Raises:
@@ -804,7 +803,7 @@ class BeamBasedBuilder(DatasetBuilder):
             raise ValueError(
                 "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
                 "or PipelineOptions() has been provided. Please pass a "
-                "nlp.download.DownloadConfig(beam_runner=...) object to the "
+                "nlp.DownloadConfig(beam_runner=...) object to the "
                 "builder.download_and_prepare(download_config=...) method"
             )
 

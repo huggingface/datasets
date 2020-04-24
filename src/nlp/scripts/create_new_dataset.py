@@ -107,7 +107,7 @@ class {dataset_cls}(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         \"""Returns SplitGenerators.\"""
         # {TODO}: Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a nlp.DownloadManager that can be used to
         # download and extract URLs
         return [
                 nlp.SplitGenerator(

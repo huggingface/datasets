@@ -130,10 +130,12 @@ class DownloadManager(object):
     def _record_sizes_checksums(self):
         """Store in file when recorded size/checksum of downloaded files."""
         #TODO implement
+        pass
 
     def download_checksums(self, checksums_url):
         """Downloads checksum file from the given URL and adds it to registry."""
         #TODO implement
+        pass
 
     def download_kaggle_data(self, competition_name):
         """Download data for a given Kaggle competition."""
@@ -225,3 +227,8 @@ class DownloadManager(object):
                 )
             )
         return self._manual_dir
+
+
+def add_checksums_dir(path):
+    # TODO implement
+    pass
