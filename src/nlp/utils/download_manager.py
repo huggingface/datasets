@@ -131,10 +131,12 @@ class DownloadManager(object):
         """Record size/checksum of downloaded files."""
         if isinstance(url_or_urls, str):
             url, path = url_or_urls, downloaded_path_or_paths
-            self._recorded_sizes_checksums[url] = get_size_checksum(path) 
+            self._recorded_sizes_checksums[url] = get_size_checksum(path)
+            return
         elif isinstance(url_or_urls, dict):
             url_or_urls = list(flatten_nest_dict(url_or_urls).values())
             downloaded_path_or_paths = list(flatten_nest_dict(downloaded_path_or_paths).values())
+        print(url_or_urls)
         assert isinstance(url_or_urls, (list, tuple))
         for url, path in zip(url_or_urls, downloaded_path_or_paths):
             self._recorded_sizes_checksums[url] = get_size_checksum(path) 
