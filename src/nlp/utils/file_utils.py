@@ -12,6 +12,7 @@ import os
 import shutil
 import sys
 import tarfile
+import gzip
 import tempfile
 from contextlib import contextmanager
 from functools import partial, wraps
@@ -209,7 +210,7 @@ def cached_path(
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
     if extract_compressed_file:
-        if not is_zipfile(output_path) and not tarfile.is_tarfile(output_path):
+        if not is_zipfile(output_path) and not tarfile.is_tarfile(output_path) and not is_gzip(output_path):
             return output_path
 
         # Path where we extract compressed archives
@@ -234,6 +235,11 @@ def cached_path(
                 tar_file = tarfile.open(output_path)
                 tar_file.extractall(output_path_extracted)
                 tar_file.close()
+            elif is_gzip(output_path):
+                os.rmdir(output_path_extracted)
+                with gzip.open(output_path, 'rb') as gzip_file:
+                    with open(output_path_extracted, 'wb') as extracted_file:
+                        shutil.copyfileobj(gzip_file, extracted_file)
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
@@ -441,3 +447,13 @@ def get_from_cache(
             json.dump(meta, meta_file)
 
     return cache_path
+
+
+def is_gzip(path):
+    """from https://stackoverflow.com/a/60634210"""
+    with gzip.open(path, 'r') as fh:
+        try:
+            fh.read(1)
+            return True
+        except OSError:
+            return False
