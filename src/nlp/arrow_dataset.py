@@ -195,7 +195,7 @@ class Dataset(object):
         else:
             assert (
                 type is None or type == "numpy" or type == 'pandas'
-            ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow']."
+            ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas']."
 
         # Check filter column
         if isinstance(columns, str):
