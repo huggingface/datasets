@@ -159,7 +159,8 @@ def load_dataset_module(
     proxies: Optional[Dict] = None,
     local_files_only: bool = False,
     data_dir: Optional[str] = None,
-    **kwargs,
+    filenames: Optional[Dict] = None,
+    **kwargs
 ):
     r"""
         Download/extract/cache a dataset to add to the lib from a path or url which can be:
@@ -173,7 +174,12 @@ def load_dataset_module(
             the unique id associated to the dataset
             the local path to the dataset
     """
-    if name is None:
+    if name is None and path == "csv":
+        raise ValueError("Generic CSV datasets needs a name")
+    elif path == "csv":
+        name += ".py"
+        combined_path = os.path.join("datasets/nlp/csv", "csv.py")
+    elif name is None:
         name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
     if not name.endswith(".py") or "/" in name:

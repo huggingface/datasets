@@ -21,6 +21,7 @@ from __future__ import absolute_import, division, print_function
 
 import numpy as np
 import pyarrow as pa
+import numpy as np
 
 from .. import utils
 from .feature import FeatureConnector, Tensor
