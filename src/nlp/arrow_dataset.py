@@ -235,7 +235,7 @@ class Dataset(object):
         elif self._format_type == "tensorflow":
             import tensorflow
 
-            command = tensorflow.constant
+            command = tensorflow.ragged.constant
         else:
             command = lambda x: x
 
