@@ -41,12 +41,11 @@ from pyarrow import (binary, bool_, date32, date64, decimal128, dictionary,
                      timestamp, total_allocated_bytes, uint8, uint16, uint32,
                      uint64, union, utf8)
 
-from . import datasets, download, features, load
+from . import datasets, features, load
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import (BeamBasedBuilder, BuilderConfig, DatasetBuilder,
                       GeneratorBasedBuilder)
-from .download import GenerateMode
 from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
 from .load import builder, load

@@ -69,9 +69,7 @@ class Aeslc(nlp.GeneratorBasedBuilder):
 
   def _split_generators(self, dl_manager):
     """Returns SplitGenerators."""
-    dl_path = dl_manager.download_and_extract(nlp.download.Resource(
-        url=_URL,
-        extract_method=nlp.download.ExtractMethod.ZIP))
+    dl_path = dl_manager.download_and_extract(_URL)
     input_path = os.path.join(dl_path, "AESLC-master", "enron_subject_line")
     return [
         nlp.SplitGenerator(

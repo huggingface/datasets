@@ -67,16 +67,8 @@ flags.DEFINE_boolean(
 
 flags.DEFINE_string("data_dir", DEFAULT_DATA_DIR, "Where to place the data.")
 flags.DEFINE_string("download_dir", None, "Where to place downloads.")
-flags.DEFINE_string("extract_dir", None, "Where to extract files.")
 flags.DEFINE_string("manual_dir", None, "Directory where dataset have manually been downloaded / extracted.")
 flags.DEFINE_string("checksums_dir", None, "For external datasets, specify the location of the " "dataset checksums.")
-default_compute_stats = nlp.download.ComputeStatsMode.AUTO
-flags.DEFINE_enum(
-    "compute_stats",
-    default_compute_stats.value,
-    [e.value for e in nlp.download.ComputeStatsMode],
-    "Whether to compute or not the dynamic statistics.",
-)
 flags.DEFINE_integer(
     "max_examples_per_split", None, "optional max number of examples to write into each split (for testing)."
 )
@@ -102,12 +94,10 @@ flags.DEFINE_boolean("disable_tqdm", False, "If True, disable tqdm.")
 
 
 def download_config():
-    return nlp.download.DownloadConfig(
-        extract_dir=FLAGS.extract_dir,
+    return nlp.DownloadConfig(
         manual_dir=FLAGS.manual_dir,
-        compute_stats=FLAGS.compute_stats,
         # TODO(b/116270825): Add flag to force extraction / preparation.
-        download_mode=nlp.download.GenerateMode.REUSE_DATASET_IF_EXISTS,
+        download_mode=nlp.GenerateMode.REUSE_DATASET_IF_EXISTS,
         max_examples_per_split=FLAGS.max_examples_per_split,
         register_checksums=FLAGS.register_checksums,
     )
@@ -123,7 +113,6 @@ def download_and_prepare(builder):
         beam = nlp.lazy_imports.apache_beam
         # TODO(b/129149715): Restore compute stats. Currently skipped because not
         # beam supported.
-        dl_config.compute_stats = nlp.download.ComputeStatsMode.SKIP
         dl_config.beam_options = beam.options.pipeline_options.PipelineOptions(
             flags=["--%s" % opt for opt in FLAGS.beam_pipeline_options]
         )
@@ -158,7 +147,7 @@ def main(_):
         nlp.disable_progress_bar()
 
     if FLAGS.checksums_dir:
-        nlp.download.add_checksums_dir(FLAGS.checksums_dir)
+        nlp.add_checksums_dir(FLAGS.checksums_dir)
 
     datasets_to_build = set(FLAGS.datasets and FLAGS.datasets.split(","))
     datasets_to_build -= set(FLAGS.exclude_datasets.split(","))

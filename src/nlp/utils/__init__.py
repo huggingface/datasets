@@ -16,6 +16,7 @@
 # Lint as: python3
 """Util import."""
 
+from .download_manager import *
 from .file_utils import *
 from .py_utils import *
 from .tqdm_utils import *
