@@ -93,6 +93,10 @@ def is_remote_url(url_or_filename):
     return parsed.scheme in ("http", "https", "s3")
 
 
+def path_to_py_script_name(path):
+    return list(filter(lambda x: x, path.split("/")))[-1] + ".py"
+
+
 def hf_bucket_url(identifier, postfix=None, cdn=False) -> str:
     endpoint = CLOUDFRONT_DISTRIB_PREFIX if cdn else S3_BUCKET_PREFIX
     if postfix is None:
