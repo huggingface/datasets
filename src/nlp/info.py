@@ -36,13 +36,13 @@ import collections
 import json
 import logging
 import os
+import posixpath
 import shutil
 import tempfile
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-import posixpath
 from dataclasses_json import dataclass_json
 
 from .splits import SplitDict, check_splits_equals
@@ -79,10 +79,12 @@ class SupervisedKeysData:
 class RedistributionInfoData:
     license: str = ""
 
+
 @dataclass
 class DownloadChecksumsEntryData:
     key: str = ""
     value: str = ""
+
 
 @dataclass_json
 @dataclass
@@ -115,15 +117,17 @@ class DatasetInfo(object):
     builder.download_and_prepare()`).
     """
 
-    def __init__(self,
-                    builder,
-                    description=None,
-                    features=None,
-                    supervised_keys=None,
-                    homepage=None,
-                    citation=None,
-                    metadata=None,
-                    license=None):
+    def __init__(
+        self,
+        builder,
+        description=None,
+        features=None,
+        supervised_keys=None,
+        homepage=None,
+        citation=None,
+        metadata=None,
+        license=None,
+    ):
         """Constructs DatasetInfo.
 
         Args:
@@ -149,19 +153,19 @@ class DatasetInfo(object):
         self._builder = builder
 
         self._info_data = DatasetInfoData(
-                name=builder.name,
-                description=description,
-                version=str(builder._version),  # pylint: disable=protected-access
-                citation=citation,
-                homepage=homepage,
-                splits=SplitDict(builder.name),
-                license=license)
+            name=builder.name,
+            description=description,
+            version=str(builder._version),  # pylint: disable=protected-access
+            citation=citation,
+            homepage=homepage,
+            splits=SplitDict(builder.name),
+            license=license,
+        )
 
         if supervised_keys is not None:
             assert isinstance(supervised_keys, tuple)
             assert len(supervised_keys) == 2
-            self._info_data.supervised_keys = SupervisedKeysData(input=supervised_keys[0],
-                                                                 output=supervised_keys[1])
+            self._info_data.supervised_keys = SupervisedKeysData(input=supervised_keys[0], output=supervised_keys[1])
 
         self._features = features
 
@@ -259,8 +263,7 @@ class DatasetInfo(object):
         assert isinstance(split_dict, SplitDict)
 
         # If splits are already defined and identical, then we do not update
-        if self.splits and check_splits_equals(
-                self.splits, split_dict):
+        if self.splits and check_splits_equals(self.splits, split_dict):
             return
 
         self.data.splits = split_dict.copy()
@@ -302,8 +305,7 @@ class DatasetInfo(object):
         """
         logger.info("Loading Dataset info from %s", dataset_info_dir)
         if not dataset_info_dir:
-            raise ValueError(
-                    "Calling read_from_directory with undefined dataset_info_dir.")
+            raise ValueError("Calling read_from_directory with undefined dataset_info_dir.")
 
         dataset_info_path = self._dataset_info_path(dataset_info_dir)
 
@@ -325,15 +327,18 @@ class DatasetInfo(object):
 
         if self._builder._version != self.version:  # pylint: disable=protected-access
             raise AssertionError(
-                    "The constructed DatasetInfo instance and the restored proto version "
-                    "do not match. Builder version: {}. Proto version: {}".format(
-                            self._builder._version, self.version))  # pylint: disable=protected-access
+                "The constructed DatasetInfo instance and the restored proto version "
+                "do not match. Builder version: {}. Proto version: {}".format(self._builder._version, self.version)
+            )  # pylint: disable=protected-access
 
     def __repr__(self):
-        splits_pprint = _indent("\n".join(["{"] + [
-                "    '{}': {},".format(k, split.num_examples)
-                for k, split in sorted(self.splits.items())
-        ] + ["}"]))
+        splits_pprint = _indent(
+            "\n".join(
+                ["{"]
+                + ["    '{}': {},".format(k, split.num_examples) for k, split in sorted(self.splits.items())]
+                + ["}"]
+            )
+        )
         features_pprint = _indent(repr(self.features))
         citation_pprint = self.citation
 
@@ -341,17 +346,18 @@ class DatasetInfo(object):
             citation_pprint = _indent('"""{}"""'.format(self.citation.strip()))
 
         return INFO_STR.format(
-                name=self.name,
-                version=self.version,
-                description=self.description,
-                total_num_examples=self.splits.total_num_examples,
-                features=features_pprint,
-                splits=splits_pprint,
-                citation=citation_pprint,
-                homepage=self.homepage,
-                supervised_keys=self.supervised_keys,
-                # Proto add a \n that we strip.
-                license=str(self.license).strip())
+            name=self.name,
+            version=self.version,
+            description=self.description,
+            total_num_examples=self.splits.total_num_examples,
+            features=features_pprint,
+            splits=splits_pprint,
+            citation=citation_pprint,
+            homepage=self.homepage,
+            supervised_keys=self.supervised_keys,
+            # Proto add a \n that we strip.
+            license=str(self.license).strip(),
+        )
 
 
 def _indent(content):

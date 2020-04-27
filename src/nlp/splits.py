@@ -21,12 +21,14 @@ from __future__ import absolute_import, division, print_function
 import abc
 import collections
 import operator
-from typing import Dict, Optional, List, Union
 from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Union
+
 from dataclasses_json import dataclass_json
 
-from .utils.py_utils import NonMutableDict, zip_dict
 from .arrow_reader import FileInstructions, make_file_instructions
+from .utils.py_utils import NonMutableDict, zip_dict
+
 
 @dataclass_json
 @dataclass
@@ -40,11 +42,7 @@ class SplitInfo:
     def file_instructions(self):
         """Returns the list of dict(filename, take, skip)."""
         # `self._dataset_name` is assigned in `SplitDict.add()`.
-        instructions = make_file_instructions(
-                name=self._dataset_name,
-                split_infos=[self],
-                instruction=str(self.name),
-        )
+        instructions = make_file_instructions(name=self._dataset_name, split_infos=[self], instruction=str(self.name),)
         return instructions.file_instructions
 
 
@@ -57,6 +55,7 @@ class SubSplitInfo:
     info.splits['train[75%:]'].num_examples
     ```
     """
+
     instructions: FileInstructions
 
     @property
@@ -120,8 +119,7 @@ class SplitBase(metaclass=abc.ABCMeta):
         """Equality: nlp.Split.TRAIN == 'train'."""
         if isinstance(other, (NamedSplit, str)):
             return False
-        raise NotImplementedError(
-                "Equality is not implemented between merged/sub splits.")
+        raise NotImplementedError("Equality is not implemented between merged/sub splits.")
 
     def __ne__(self, other):
         """InEquality: nlp.Split.TRAIN != 'test'."""
@@ -131,7 +129,7 @@ class SplitBase(metaclass=abc.ABCMeta):
         """Merging: nlp.Split.TRAIN + nlp.Split.TEST."""
         return _SplitMerged(self, other)
 
-    def subsplit(self, arg=None, k=None, percent=None, weighted=None):   # pylint: disable=redefined-outer-name
+    def subsplit(self, arg=None, k=None, percent=None, weighted=None):  # pylint: disable=redefined-outer-name
         """Divides this split into subsplits.
 
         There are 3 ways to define subsplits, which correspond to the 3
@@ -194,22 +192,17 @@ class SplitBase(metaclass=abc.ABCMeta):
 
         if not (k or percent or weighted):
             raise ValueError(
-                    "Invalid split argument {}. Only list, slice and int supported. "
-                    "One of k, weighted or percent should be set to a non empty value."
-                    .format(arg)
+                "Invalid split argument {}. Only list, slice and int supported. "
+                "One of k, weighted or percent should be set to a non empty value.".format(arg)
             )
 
         def assert_slices_coverage(slices):
             # Ensure that the expended slices cover all percents.
-            assert (
-                    sum((list(range(*s.indices(100))) for s in slices), []) ==
-                    list(range(100))
-            )
+            assert sum((list(range(*s.indices(100))) for s in slices), []) == list(range(100))
 
         if k:
             if not 0 < k <= 100:
-                raise ValueError(
-                        "Subsplit k should be between 0 and 100, got {}".format(k))
+                raise ValueError("Subsplit k should be between 0 and 100, got {}".format(k))
             shift = 100 // k
             slices = [slice(i * shift, (i + 1) * shift) for i in range(k)]
             # Round up last element to ensure all elements are taken
@@ -248,12 +241,9 @@ class SplitBase(metaclass=abc.ABCMeta):
 # Instances are not documented, so we want nlp.percent to be a class, but to
 # have it be sliceable, we need this metaclass.
 class PercentSliceMeta(type):
-
     def __getitem__(cls, slice_value):
         if not isinstance(slice_value, slice):
-            raise ValueError(
-                    "nlp.percent should only be called with slice, not {}".format(
-                            slice_value))
+            raise ValueError("nlp.percent should only be called with slice, not {}".format(slice_value))
         return slice_value
 
 
@@ -303,10 +293,9 @@ class _SubSplit(SplitBase):
         if self._slice_value.step is not None:
             slice_str += ":{step}"
         slice_str = slice_str.format(
-                start=
-                "" if self._slice_value.start is None else self._slice_value.start,
-                stop="" if self._slice_value.stop is None else self._slice_value.stop,
-                step=self._slice_value.step,
+            start="" if self._slice_value.start is None else self._slice_value.start,
+            stop="" if self._slice_value.stop is None else self._slice_value.stop,
+            step=self._slice_value.step,
         )
         return "{!r}(nlp.percent[{}])".format(self._split, slice_str)
 
@@ -368,14 +357,13 @@ class NamedSplit(SplitBase):
     def __eq__(self, other):
         """Equality: nlp.Split.TRAIN == 'train'."""
         if isinstance(other, NamedSplit):
-            return self._name == other._name   # pylint: disable=protected-access
+            return self._name == other._name  # pylint: disable=protected-access
         elif isinstance(other, SplitBase):
             return False
         elif isinstance(other, str):  # Other should be string
             return self._name == other
         else:
-            raise ValueError("Equality not supported between split {} and {}".format(
-                    self, other))
+            raise ValueError("Equality not supported between split {} and {}".format(self, other))
 
     def __hash__(self):
         return hash(self._name)
@@ -430,10 +418,7 @@ class Split(object):
 
 
 # Similar to SplitInfo, but contain an additional slice info
-SlicedSplitInfo = collections.namedtuple("SlicedSplitInfo", [
-        "split_info",
-        "slice_value",
-])
+SlicedSplitInfo = collections.namedtuple("SlicedSplitInfo", ["split_info", "slice_value",])
 
 
 class SplitReadInstruction(object):
@@ -453,9 +438,7 @@ class SplitReadInstruction(object):
     """
 
     def __init__(self, split_info=None):
-        self._splits = NonMutableDict(
-                error_msg="Overlap between splits. Split {key} has been added with "
-                "itself.")
+        self._splits = NonMutableDict(error_msg="Overlap between splits. Split {key} has been added with " "itself.")
 
         if split_info:
             self.add(SlicedSplitInfo(split_info=split_info, slice_value=None))
@@ -473,8 +456,8 @@ class SplitReadInstruction(object):
         # TODO(epot): If a split is already added but there is no overlap between
         # the slices, should merge the slices (ex: [:10] + [80:])
         split_instruction = SplitReadInstruction()
-        split_instruction._splits.update(self._splits)   # pylint: disable=protected-access
-        split_instruction._splits.update(other._splits)   # pylint: disable=protected-access
+        split_instruction._splits.update(self._splits)  # pylint: disable=protected-access
+        split_instruction._splits.update(other._splits)  # pylint: disable=protected-access
         return split_instruction
 
     def __getitem__(self, slice_value):
@@ -483,9 +466,7 @@ class SplitReadInstruction(object):
         split_instruction = SplitReadInstruction()
         for v in self._splits.values():
             if v.slice_value is not None:
-                raise ValueError(
-                        "Trying to slice Split {} which has already been sliced".format(
-                                v.split_info.name))
+                raise ValueError("Trying to slice Split {} which has already been sliced".format(v.split_info.name))
             v = v._asdict()
             v["slice_value"] = slice_value
             split_instruction.add(SlicedSplitInfo(**v))
@@ -508,11 +489,7 @@ class SplitDict(NonMutableDict):
             return super(SplitDict, self).__getitem__(str(key))
         # 2nd case: Uses instructions: `info.splits['train[50%]']`
         else:
-            instructions = make_file_instructions(
-                    name=self._dataset_name,
-                    split_infos=self.values(),
-                    instruction=key,
-            )
+            instructions = make_file_instructions(name=self._dataset_name, split_infos=self.values(), instruction=key,)
             return SubSplitInfo(instructions)
 
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
@@ -539,7 +516,7 @@ class SplitDict(NonMutableDict):
             split_infos = list(split_infos.values())
 
         if dataset_name is None:
-            dataset_name = split_infos[0]['_dataset_name']
+            dataset_name = split_infos[0]["_dataset_name"]
 
         split_dict = cls(dataset_name)
 
@@ -563,8 +540,7 @@ def check_splits_equals(splits1, splits2):
     if set(splits1) ^ set(splits2):  # Name intersection should be null
         return False
     for _, (split1, split2) in zip_dict(splits1, splits2):
-        if (split1.num_shards != split2.num_shards or
-                split1.shard_lengths != split2.shard_lengths):
+        if split1.num_shards != split2.num_shards or split1.shard_lengths != split2.shard_lengths:
             return False
     return True
 
@@ -584,6 +560,7 @@ class SplitGenerator:
         gen_kwargs: `dict`, kwargs to forward to the _generate_examples() method
             of the builder.
     """
+
     name: str
     gen_kwargs: Dict = field(default_factory=dict)
     split_info: SplitInfo = field(init=False)

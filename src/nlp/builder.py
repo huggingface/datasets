@@ -17,23 +17,22 @@
 """DatasetBuilder base class."""
 
 import abc
+import contextlib
 import functools
 import inspect
 import itertools
-import contextlib
-import shutil
-import os
-import sys
-
 import logging
+import os
+import shutil
+import sys
 
 from . import splits as splits_lib
 from . import utils
-from .download import GenerateMode, DownloadConfig, DownloadManager
-from .lazy_imports_lib import lazy_imports
-from .naming import filename_prefix_for_split
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
+from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMode
+from .lazy_imports_lib import lazy_imports
+from .naming import filename_prefix_for_split
 from .utils.file_utils import HF_DATASETS_CACHE
 
 logger = logging.getLogger(__name__)
@@ -50,8 +49,7 @@ class BuilderConfig(object):
     `BuilderConfig` and add their own properties.
     """
 
-    def __init__(self, name, version=None, supported_versions=None,
-                             description=None):
+    def __init__(self, name, version=None, supported_versions=None, description=None):
         self._name = name
         self._version = version
         self._supported_versions = supported_versions or []
@@ -75,11 +73,11 @@ class BuilderConfig(object):
 
     def __repr__(self):
         return "<{cls_name} name={name}, version={version}>".format(
-                cls_name=type(self).__name__,
-                name=self.name,
-                version=self.version or "None")
+            cls_name=type(self).__name__, name=self.name, version=self.version or "None"
+        )
 
-class DatasetBuilder():
+
+class DatasetBuilder:
     """Abstract base class for all datasets.
 
     `DatasetBuilder` has 3 key methods:
@@ -136,7 +134,6 @@ class DatasetBuilder():
     # displayed in the dataset documentation.
     MANUAL_DOWNLOAD_INSTRUCTIONS = None
 
-
     def __init__(self, data_dir=None, config=None, version=None):
         """Constructs a DatasetBuilder.
 
@@ -161,9 +158,9 @@ class DatasetBuilder():
         # Extract code version (VERSION or config)
         if not self._builder_config and not self.VERSION:
             raise AssertionError(
-                    "DatasetBuilder {} does not have a defined version. Please add a "
-                    "`VERSION = nlp.Version('x.y.z')` to the class.".format(
-                            self.name))
+                "DatasetBuilder {} does not have a defined version. Please add a "
+                "`VERSION = nlp.Version('x.y.z')` to the class.".format(self.name)
+            )
         self._version = self._pick_version(version)
         self._data_dir_root = os.path.expanduser(data_dir or HF_DATASETS_CACHE)
         self._data_dir = self._build_data_dir()
@@ -186,16 +183,16 @@ class DatasetBuilder():
         """Create and validate BuilderConfig object."""
         if builder_config is None and self.BUILDER_CONFIGS:
             builder_config = self.BUILDER_CONFIGS[0]
-            logger.info("No config specified, defaulting to first: %s/%s", self.name,
-                                     builder_config.name)
+            logger.info("No config specified, defaulting to first: %s/%s", self.name, builder_config.name)
         if not builder_config:
             return None
         if isinstance(builder_config, str):
             name = builder_config
             builder_config = self.builder_configs.get(name)
             if builder_config is None:
-                raise ValueError("BuilderConfig %s not found. Available: %s" %
-                                                 (name, list(self.builder_configs.keys())))
+                raise ValueError(
+                    "BuilderConfig %s not found. Available: %s" % (name, list(self.builder_configs.keys()))
+                )
         name = builder_config.name
         if not name:
             raise ValueError("BuilderConfig must have a name, got %s" % name)
@@ -205,9 +202,10 @@ class DatasetBuilder():
         else:
             if builder_config is not self.builder_configs[name]:
                 raise ValueError(
-                        "Cannot name a custom BuilderConfig the same as an available "
-                        "BuilderConfig. Change the name. Available BuilderConfigs: %s" %
-                        (list(self.builder_configs.keys())))
+                    "Cannot name a custom BuilderConfig the same as an available "
+                    "BuilderConfig. Change the name. Available BuilderConfigs: %s"
+                    % (list(self.builder_configs.keys()))
+                )
             if not builder_config.version:
                 raise ValueError("BuilderConfig %s must have a version" % name)
             if not builder_config.description:
@@ -222,8 +220,7 @@ class DatasetBuilder():
         config_dict = {config.name: config for config in cls.BUILDER_CONFIGS}
         if len(config_dict) != len(cls.BUILDER_CONFIGS):
             names = [config.name for config in cls.BUILDER_CONFIGS]
-            raise ValueError(
-                    "Names in BUILDER_CONFIGS must not be duplicated. Got %s" % names)
+            raise ValueError("Names in BUILDER_CONFIGS must not be duplicated. Got %s" % names)
         return config_dict
 
     @utils.memoized_property
@@ -242,8 +239,7 @@ class DatasetBuilder():
     def versions(self):
         """Versions (canonical + availables), in preference order."""
         return [
-                utils.Version(v) if isinstance(v, str) else v
-                for v in [self.canonical_version] + self.supported_versions
+            utils.Version(v) if isinstance(v, str) else v for v in [self.canonical_version] + self.supported_versions
         ]
 
     def _pick_version(self, requested_version):
@@ -255,7 +251,8 @@ class DatasetBuilder():
                 return version
         available_versions = [str(v) for v in self.versions]
         msg = "Dataset {} cannot be loaded at version {}, only: {}.".format(
-                self.name, requested_version, ", ".join(available_versions))
+            self.name, requested_version, ", ".join(available_versions)
+        )
         raise AssertionError(msg)
 
     @property
@@ -281,10 +278,8 @@ class DatasetBuilder():
 
     def _build_data_dir(self):
         """Return the data directory for the current version."""
-        builder_data_dir = os.path.join(
-                self._data_dir_root, self._relative_data_dir(with_version=False))
-        version_data_dir = os.path.join(
-                self._data_dir_root, self._relative_data_dir(with_version=True))
+        builder_data_dir = os.path.join(self._data_dir_root, self._relative_data_dir(with_version=False))
+        version_data_dir = os.path.join(self._data_dir_root, self._relative_data_dir(with_version=True))
 
         def _other_versions_on_disk():
             """Returns previous versions on disk."""
@@ -306,13 +301,15 @@ class DatasetBuilder():
             other_version = version_dirs[0][0]
             if other_version != self._version:
                 warn_msg = (
-                        "Found a different version {other_version} of dataset {name} in "
-                        "data_dir {data_dir}. Using currently defined version "
-                        "{cur_version}.".format(
-                                other_version=str(other_version),
-                                name=self.name,
-                                data_dir=self._data_dir_root,
-                                cur_version=str(self._version)))
+                    "Found a different version {other_version} of dataset {name} in "
+                    "data_dir {data_dir}. Using currently defined version "
+                    "{cur_version}.".format(
+                        other_version=str(other_version),
+                        name=self.name,
+                        data_dir=self._data_dir_root,
+                        cur_version=str(self._version),
+                    )
+                )
                 logger.warning(warn_msg)
 
         return version_data_dir
@@ -322,8 +319,7 @@ class DatasetBuilder():
 
         Args:
             download_dir: `str`, directory where downloaded files are stored.
-                Defaults to "~/nlp/downloads".
-            download_config: `nlp.download.DownloadConfig`, further configuration for
+            download_config: `nlp.DownloadConfig`, further configuration for
                 downloading and preparing dataset.
 
         Raises:
@@ -341,38 +337,38 @@ class DatasetBuilder():
         # it will always be reloaded and data_dir will be set at construction.
         if data_exists:
             raise ValueError(
-                    "Trying to overwrite an existing dataset {} at {}. A dataset with "
-                    "the same version {} already exists. If the dataset has changed, "
-                    "please update the version number.".format(self.name, self._data_dir, self.version))
+                "Trying to overwrite an existing dataset {} at {}. A dataset with "
+                "the same version {} already exists. If the dataset has changed, "
+                "please update the version number.".format(self.name, self._data_dir, self.version)
+            )
 
         logger.info("Generating dataset %s (%s)", self.name, self._data_dir)
         if not utils.has_sufficient_disk_space(
-                self.info.dataset_size + self.info.download_size,
-                directory=self._data_dir_root):
+            self.info.dataset_size + self.info.download_size, directory=self._data_dir_root
+        ):
             raise IOError(
-                    "Not enough disk space. Needed: {} (download: {}, generated: {})"
-                    .format(
-                            utils.size_str(self.info.dataset_size + self.info.download_size),
-                            utils.size_str(self.info.download_size),
-                            utils.size_str(self.info.dataset_size),
-                    ))
+                "Not enough disk space. Needed: {} (download: {}, generated: {})".format(
+                    utils.size_str(self.info.dataset_size + self.info.download_size),
+                    utils.size_str(self.info.download_size),
+                    utils.size_str(self.info.dataset_size),
+                )
+            )
 
         # Print is intentional: we want this to always go to stdout so user has
         # information needed to cancel download/preparation if needed.
         # This comes right before the progress bar.
         print(
-                "Downloading and preparing dataset {} (download: {}, generated: {}, "
-                "total: {}) to {}...".format(
-                        self.info.full_name,
-                        utils.size_str(self.info.download_size),
-                        utils.size_str(self.info.dataset_size),
-                        utils.size_str(self.info.download_size + self.info.dataset_size),
-                        self._data_dir,
-                ))
+            "Downloading and preparing dataset {} (download: {}, generated: {}, "
+            "total: {}) to {}...".format(
+                self.info.full_name,
+                utils.size_str(self.info.download_size),
+                utils.size_str(self.info.dataset_size),
+                utils.size_str(self.info.download_size + self.info.dataset_size),
+                self._data_dir,
+            )
+        )
 
-        dl_manager = self._make_download_manager(
-                download_dir=download_dir,
-                download_config=download_config)
+        dl_manager = self._make_download_manager(download_dir=download_dir, download_config=download_config)
 
         @contextlib.contextmanager
         def incomplete_dir(dirname):
@@ -391,9 +387,7 @@ class DatasetBuilder():
             # Temporarily assign _data_dir to tmp_data_dir to avoid having to forward
             # it to every sub function.
             with utils.temporary_assignment(self, "_data_dir", tmp_data_dir):
-                self._download_and_prepare(
-                        dl_manager=dl_manager,
-                        download_config=download_config)
+                self._download_and_prepare(dl_manager=dl_manager, download_config=download_config)
 
                 # NOTE: If modifying the lines below to put additional information in
                 # DatasetInfo, you'll likely also want to update
@@ -413,16 +407,14 @@ class DatasetBuilder():
                 #             download_config.compute_stats)
                 # else:  # Mode is forced or stats do not exists yet
                 #     logger.info("No statistics computed for now.")
-                    # self.info.compute_dynamic_properties()
+                # self.info.compute_dynamic_properties()
                 self.info.download_size = dl_manager.downloaded_size
                 # Write DatasetInfo to disk, even if we haven't computed statistics.
                 self.info.write_to_directory(self._data_dir)
 
-        msg = ("Dataset {name} downloaded and prepared to {data_dir}. "
-                     "Subsequent calls will reuse this data.").format(
-                             name=self.name,
-                             data_dir=self._data_dir,
-                     )
+        msg = (
+            "Dataset {name} downloaded and prepared to {data_dir}. " "Subsequent calls will reuse this data."
+        ).format(name=self.name, data_dir=self._data_dir,)
         print(msg)
 
     def _download_and_prepare(self, dl_manager, **prepare_split_kwargs):
@@ -441,15 +433,13 @@ class DatasetBuilder():
 
         # Generating data for all splits
         split_dict = splits_lib.SplitDict(dataset_name=self.name)
-        split_generators_kwargs = self._make_split_generators_kwargs(
-                prepare_split_kwargs)
-        for split_generator in self._split_generators(
-                dl_manager, **split_generators_kwargs):
+        split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
+        for split_generator in self._split_generators(dl_manager, **split_generators_kwargs):
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(
-                        "`all` is a special split keyword corresponding to the "
-                        "union of all splits, so cannot be used as key in "
-                        "._split_generator()."
+                    "`all` is a special split keyword corresponding to the "
+                    "union of all splits, so cannot be used as key in "
+                    "._split_generator()."
                 )
 
             logger.info("Generating split %s", split_generator.split_info.name)
@@ -464,26 +454,21 @@ class DatasetBuilder():
     def _make_download_manager(self, download_dir, download_config):
         """Creates a new download manager object."""
         download_dir = download_dir or os.path.join(self._data_dir_root, "downloads")
-        extract_dir = (download_config.extract_dir or
-                                     os.path.join(download_dir, "extracted"))
 
         # Use manual_dir only if MANUAL_DOWNLOAD_INSTRUCTIONS are set.
         if self.MANUAL_DOWNLOAD_INSTRUCTIONS:
-            manual_dir = (
-                    download_config.manual_dir or os.path.join(download_dir, "manual"))
+            manual_dir = download_config.manual_dir or os.path.join(download_dir, "manual")
             manual_dir = os.path.join(manual_dir, self.name)
         else:
             manual_dir = None
 
         return DownloadManager(
-                dataset_name=self.name,
-                download_dir=download_dir,
-                extract_dir=extract_dir,
-                manual_dir=manual_dir,
-                manual_dir_instructions=self.MANUAL_DOWNLOAD_INSTRUCTIONS,
-                force_download=(download_config.download_mode == FORCE_REDOWNLOAD),
-                force_extraction=(download_config.download_mode == FORCE_REDOWNLOAD),
-                register_checksums=download_config.register_checksums,
+            dataset_name=self.name,
+            download_dir=download_dir,
+            manual_dir=manual_dir,
+            manual_dir_instructions=self.MANUAL_DOWNLOAD_INSTRUCTIONS,
+            force_download=(download_config.download_mode == FORCE_REDOWNLOAD),
+            register_checksums=download_config.register_checksums,
         )
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -491,10 +476,7 @@ class DatasetBuilder():
         del prepare_split_kwargs
         return {}
 
-    def as_dataset(self,
-                    split=None,
-                    batch_size=None,
-                    as_supervised=False):
+    def as_dataset(self, split=None, batch_size=None, as_supervised=False):
         # pylint: disable=line-too-long
         """Constructs a `Dataset`.
 
@@ -561,47 +543,38 @@ class DatasetBuilder():
             Dataset>`.
         """
         # pylint: enable=line-too-long
-        logger.info("Constructing Dataset for split %s, from %s",
-                                 split, self._data_dir)
+        logger.info("Constructing Dataset for split %s, from %s", split, self._data_dir)
         if not os.path.exists(self._data_dir):
             raise AssertionError(
-                    ("Dataset %s: could not find data in %s. Please make sure to call "
-                     "builder.download_and_prepare(), or pass download=True to "
-                     "nlp.load() before trying to access the Dataset object."
-                    ) % (self.name, self._data_dir_root))
+                (
+                    "Dataset %s: could not find data in %s. Please make sure to call "
+                    "builder.download_and_prepare(), or pass download=True to "
+                    "nlp.load() before trying to access the Dataset object."
+                )
+                % (self.name, self._data_dir_root)
+            )
 
         # By default, return all splits
         if split is None:
             split = {s: s for s in self.info.splits}
 
-
         # Create a dataset for each of the given splits
         build_single_dataset = functools.partial(
-                self._build_single_dataset,
-                batch_size=batch_size,
-                as_supervised=as_supervised,
+            self._build_single_dataset, batch_size=batch_size, as_supervised=as_supervised,
         )
         datasets = utils.map_nested(build_single_dataset, split, map_tuple=True)
         return datasets
 
-    def _build_single_dataset(
-            self,
-            split,
-            batch_size,
-            as_supervised):
+    def _build_single_dataset(self, split, batch_size, as_supervised):
         """as_dataset for a single split."""
         if isinstance(split, str):
             split = splits_lib.Split(split)
 
         # Build base dataset
-        ds = self._as_dataset(
-                split=split,
-        )
+        ds = self._as_dataset(split=split,)
         return ds
 
-    def _as_dataset(
-            self,
-            split=splits_lib.Split.TRAIN):
+    def _as_dataset(self, split=splits_lib.Split.TRAIN):
         """Constructs a `Dataset`.
 
         This is the internal implementation to overwrite called when user calls
@@ -616,9 +589,7 @@ class DatasetBuilder():
         """
 
         ds = ArrowReader(self._data_dir, self.info).read(
-                name=self.name,
-                instructions=split,
-                split_infos=self.info.splits.values(),
+            name=self.name, instructions=split, split_infos=self.info.splits.values(),
         )
         return ds
 
@@ -632,9 +603,10 @@ class DatasetBuilder():
             # Message for developper creating new dataset. Will trigger if they are
             # using .info in the constructor before calling super().__init__
             raise AssertionError(
-                    "Info should not been called before version has been defined. "
-                    "Otherwise, the created .info may not match the info version from "
-                    "the restored dataset.")
+                "Info should not been called before version has been defined. "
+                "Otherwise, the created .info may not match the info version from "
+                "the restored dataset."
+            )
         return self._info()
 
     @abc.abstractmethod
@@ -749,16 +721,14 @@ class GeneratorBasedBuilder(DatasetBuilder):
     def _download_and_prepare(self, dl_manager, download_config):
         # Extract max_examples_per_split and forward it to _prepare_split
         super(GeneratorBasedBuilder, self)._download_and_prepare(
-                dl_manager=dl_manager,
-                max_examples_per_split=download_config.max_examples_per_split,
+            dl_manager=dl_manager, max_examples_per_split=download_config.max_examples_per_split,
         )
 
     def _prepare_split(self, split_generator, max_examples_per_split):
         generator = self._generate_examples(**split_generator.gen_kwargs)
         split_info = split_generator.split_info
         if max_examples_per_split is not None:
-            logger.warning("Splits capped at %s examples max.",
-                                            max_examples_per_split)
+            logger.warning("Splits capped at %s examples max.", max_examples_per_split)
             generator = itertools.islice(generator, max_examples_per_split)
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._data_dir, fname)
@@ -785,8 +755,7 @@ class BeamBasedBuilder(DatasetBuilder):
         # it's in the call signature of `_split_generators()`.
         # This allows for global preprocessing in beam.
         split_generators_kwargs = {}
-        split_generators_arg_names = (
-                inspect.signature(self._split_generators).parameters.keys())
+        split_generators_arg_names = inspect.signature(self._split_generators).parameters.keys()
         if "pipeline" in split_generators_arg_names:
             split_generators_kwargs["pipeline"] = prepare_split_kwargs["pipeline"]
         return split_generators_kwargs
@@ -832,29 +801,23 @@ class BeamBasedBuilder(DatasetBuilder):
 
         if not download_config.beam_runner and not download_config.beam_options:
             raise ValueError(
-                    "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
-                    "or PipelineOptions() has been provided. Please pass a "
-                    "nlp.download.DownloadConfig(beam_runner=...) object to the "
-                    "builder.download_and_prepare(download_config=...) method"
+                "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
+                "or PipelineOptions() has been provided. Please pass a "
+                "nlp.DownloadConfig(beam_runner=...) object to the "
+                "builder.download_and_prepare(download_config=...) method"
             )
 
-        beam_options = (download_config.beam_options or
-                                        beam.options.pipeline_options.PipelineOptions())
+        beam_options = download_config.beam_options or beam.options.pipeline_options.PipelineOptions()
         # Beam type checking assumes transforms multiple outputs are of same type,
         # which is not our case. Plus it doesn't handle correctly all types, so we
         # are better without it.
-        beam_options.view_as(
-                beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
+        beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
-        with beam.Pipeline(
-                runner=download_config.beam_runner,
-                options=beam_options,
-        ) as pipeline:
+        with beam.Pipeline(runner=download_config.beam_runner, options=beam_options,) as pipeline:
             # TODO(nlp): Should eventually try to add support to
             # download_config.max_examples_per_split
             super(BeamBasedBuilder, self)._download_and_prepare(
-                    dl_manager,
-                    pipeline=pipeline,
+                dl_manager, pipeline=pipeline,
             )
 
         # Update `info.splits` with number of shards and shard lengths.
@@ -875,16 +838,14 @@ class BeamBasedBuilder(DatasetBuilder):
         os.makedirs(self._data_dir, exist_ok=True)
 
         split_name = split_generator.split_info.name
-        output_prefix = filename_prefix_for_split(
-                self.name, split_name)
+        output_prefix = filename_prefix_for_split(self.name, split_name)
         output_prefix = os.path.join(self._data_dir, output_prefix)
 
         # To write examples to disk:
         fname = "{}-{}.arrow".format(self.name, split_name)
         fpath = os.path.join(self._data_dir, fname)
         examples_type = self.info.features.get_type()
-        beam_writer = BeamWriter(
-                examples_type, fpath, hash_salt=split_name)
+        beam_writer = BeamWriter(examples_type, fpath, hash_salt=split_name)
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example
@@ -895,11 +856,9 @@ class BeamBasedBuilder(DatasetBuilder):
         def _build_pcollection(pipeline):
             """PTransformation which build a single split."""
             # Encode the PCollection
-            pcoll_examples = self._build_pcollection(
-                    pipeline, **split_generator.gen_kwargs)
-            pcoll_examples |= "Encode" >> beam.Map(
-                    lambda key_ex: (key_ex[0], encode_example(key_ex[1])))
+            pcoll_examples = self._build_pcollection(pipeline, **split_generator.gen_kwargs)
+            pcoll_examples |= "Encode" >> beam.Map(lambda key_ex: (key_ex[0], encode_example(key_ex[1])))
             return beam_writer.write_from_pcollection(pcoll_examples)
 
         # Add the PCollection to the pipeline
-        _ = pipeline | split_name >> _build_pcollection()   # pylint: disable=no-value-for-parameter
+        _ = pipeline | split_name >> _build_pcollection()  # pylint: disable=no-value-for-parameter

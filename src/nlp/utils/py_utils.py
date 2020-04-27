@@ -19,20 +19,16 @@
 """
 
 import contextlib
+import functools
 import hashlib
 import io
 import itertools
 import os
 import sys
 import uuid
-
-
-from .file_utils import INCOMPLETE_SUFFIX
-
 from shutil import disk_usage
 
-import functools
-
+from .file_utils import INCOMPLETE_SUFFIX
 
 # NOTE: When used on an instance method, the cache is shared across all
 # instances and IS NOT per-instance.
@@ -56,8 +52,7 @@ def size_str(size_in_bytes):
     if not size_in_bytes:
         return "Unknown size"
 
-    _NAME_LIST = [("PiB", 2**50), ("TiB", 2**40), ("GiB",  2**30), ("MiB", 2**20),
-                                ("KiB", 2**10)]
+    _NAME_LIST = [("PiB", 2 ** 50), ("TiB", 2 ** 40), ("GiB", 2 ** 30), ("MiB", 2 ** 20), ("KiB", 2 ** 10)]
 
     size_in_bytes = float(size_in_bytes)
     for (name, size_bytes) in _NAME_LIST:
@@ -72,6 +67,7 @@ def is_notebook():
     # Inspired from the tfdm autonotebook code
     try:
         from IPython import get_ipython  # pylint: disable=import-outside-toplevel,g-import-not-at-top
+
         if "IPKernelApp" not in get_ipython().config:
             return False  # Run in a IPython terminal
     except:  # pylint: disable=bare-except
@@ -105,10 +101,7 @@ class NonMutableDict(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        self._error_msg = kwargs.pop(
-                "error_msg",
-                "Try to overwrite existing key: {key}",
-        )
+        self._error_msg = kwargs.pop("error_msg", "Try to overwrite existing key: {key}",)
         if kwargs:
             raise ValueError("NonMutableDict cannot be initialized with kwargs.")
         super(NonMutableDict, self).__init__(*args, **kwargs)
@@ -116,7 +109,7 @@ class NonMutableDict(dict):
     def __setitem__(self, key, value):
         if key in self:
             raise ValueError(self._error_msg.format(key=key))
-        return super(NonMutableDict, self). __setitem__(key, value)
+        return super(NonMutableDict, self).__setitem__(key, value)
 
     def update(self, other):
         if any(k in self for k in other):
@@ -153,17 +146,13 @@ def map_nested(function, data_struct, dict_only=False, map_tuple=False):
 
     # Could add support for more exotic data_struct, like OrderedDict
     if isinstance(data_struct, dict):
-        return {
-                k: map_nested(function, v, dict_only, map_tuple)
-                for k, v in data_struct.items()
-        }
+        return {k: map_nested(function, v, dict_only, map_tuple) for k, v in data_struct.items()}
     elif not dict_only:
         types = [list]
         if map_tuple:
             types.append(tuple)
         if isinstance(data_struct, tuple(types)):
-            mapped = [map_nested(function, v, dict_only, map_tuple)
-                                for v in data_struct]
+            mapped = [map_nested(function, v, dict_only, map_tuple) for v in data_struct]
             if isinstance(data_struct, list):
                 return mapped
             else:
@@ -180,9 +169,7 @@ def zip_nested(arg0, *args, **kwargs):
 
     # Could add support for more exotic data_struct, like OrderedDict
     if isinstance(arg0, dict):
-        return {
-                k: zip_nested(*a, dict_only=dict_only) for k, a in zip_dict(arg0, *args)
-        }
+        return {k: zip_nested(*a, dict_only=dict_only) for k, a in zip_dict(arg0, *args)}
     elif not dict_only:
         if isinstance(arg0, list):
             return [zip_nested(*a, dict_only=dict_only) for a in zip(arg0, *args)]
@@ -196,9 +183,7 @@ def flatten_nest_dict(d):
     flat_dict = NonMutableDict()
     for k, v in d.items():
         if isinstance(v, dict):
-            flat_dict.update({
-                    "{}/{}".format(k, k2): v2 for k2, v2 in flatten_nest_dict(v).items()
-            })
+            flat_dict.update({"{}/{}".format(k, k2): v2 for k2, v2 in flatten_nest_dict(v).items()})
         else:
             flat_dict[k] = v
     return flat_dict
@@ -210,17 +195,15 @@ def pack_as_nest_dict(flat_d, nest_d):
     for k, v in nest_d.items():
         if isinstance(v, dict):
             v_flat = flatten_nest_dict(v)
-            sub_d = {
-                    k2: flat_d.pop("{}/{}".format(k, k2)) for k2, _ in v_flat.items()
-            }
+            sub_d = {k2: flat_d.pop("{}/{}".format(k, k2)) for k2, _ in v_flat.items()}
             # Recursivelly pack the dictionary
             nest_out_d[k] = pack_as_nest_dict(sub_d, v)
         else:
             nest_out_d[k] = flat_d.pop(k)
     if flat_d:  # At the end, flat_d should be empty
         raise ValueError(
-                "Flat dict strucure do not match the nested dict. Extra keys: "
-                "{}".format(list(flat_d.keys())))
+            "Flat dict strucure do not match the nested dict. Extra keys: " "{}".format(list(flat_d.keys()))
+        )
     return nest_out_d
 
 
@@ -274,7 +257,7 @@ def reraise(prefix=None, suffix=None):
     prefix = prefix or ""
     suffix = "\n" + suffix if suffix else ""
     msg = prefix + str(exc_value) + suffix
-    raise(exc_type, exc_type(msg), exc_traceback)
+    raise (exc_type, exc_type(msg), exc_traceback)
 
 
 @contextlib.contextmanager
@@ -282,14 +265,16 @@ def try_reraise(*args, **kwargs):
     """Reraise an exception with an additional message."""
     try:
         yield
-    except Exception:   # pylint: disable=broad-except
+    except Exception:  # pylint: disable=broad-except
         reraise(*args, **kwargs)
 
 
 def rgetattr(obj, attr, *args):
     """Get attr that handles dots in attr name."""
+
     def _getattr(obj, attr):
         return getattr(obj, attr, *args)
+
     return functools.reduce(_getattr, [obj] + attr.split("."))
 
 

@@ -5,22 +5,22 @@ Copyright by the AllenNLP authors.
 """
 
 import fnmatch
+import importlib
 import json
 import logging
 import os
 import shutil
-import importlib
 import sys
 import tarfile
+import gzip
 import tempfile
 from contextlib import contextmanager
 from functools import partial, wraps
 from hashlib import sha256
-from typing import Optional
+from typing import Optional, Tuple
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
-import boto3
 import requests
 from botocore.config import Config
 from botocore.exceptions import ClientError
@@ -69,11 +69,9 @@ default_cache_path = os.path.join(hf_cache_home, "datasets")
 try:
     from pathlib import Path
 
-    HF_DATASETS_CACHE = Path(
-        os.getenv("HF_DATASETS_CACHE", default_cache_path))
+    HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", default_cache_path))
 except (AttributeError, ImportError):
-    HF_DATASETS_CACHE = os.getenv(
-        os.getenv("HF_DATASETS_CACHE", default_cache_path))
+    HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_cache_path))
 
 S3_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp"
 CLOUDFRONT_DISTRIB_PREFIX = "https://d2ws9o8vfrpkyk.cloudfront.net"  # TODO: update to datasets front
@@ -92,6 +90,10 @@ def is_tf_available():
 def is_remote_url(url_or_filename):
     parsed = urlparse(url_or_filename)
     return parsed.scheme in ("http", "https", "s3")
+
+
+def path_to_py_script_name(path):
+    return list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
 
 def hf_bucket_url(identifier, postfix=None, cdn=False) -> str:
@@ -185,7 +187,7 @@ def cached_path(
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
     if extract_compressed_file:
-        if not is_zipfile(output_path) and not tarfile.is_tarfile(output_path):
+        if not is_zipfile(output_path) and not tarfile.is_tarfile(output_path) and not is_gzip(output_path):
             return output_path
 
         # Path where we extract compressed archives
@@ -210,61 +212,17 @@ def cached_path(
                 tar_file = tarfile.open(output_path)
                 tar_file.extractall(output_path_extracted)
                 tar_file.close()
+            elif is_gzip(output_path):
+                os.rmdir(output_path_extracted)
+                with gzip.open(output_path, 'rb') as gzip_file:
+                    with open(output_path_extracted, 'wb') as extracted_file:
+                        shutil.copyfileobj(gzip_file, extracted_file)
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
         return output_path_extracted
 
     return output_path
-
-
-def split_s3_path(url):
-    """Split a full s3 path into the bucket name and path."""
-    parsed = urlparse(url)
-    if not parsed.netloc or not parsed.path:
-        raise ValueError("bad s3 path {}".format(url))
-    bucket_name = parsed.netloc
-    s3_path = parsed.path
-    # Remove '/' at beginning of path.
-    if s3_path.startswith("/"):
-        s3_path = s3_path[1:]
-    return bucket_name, s3_path
-
-
-def s3_request(func):
-    """
-    Wrapper function for s3 requests in order to create more helpful error
-    messages.
-    """
-
-    @wraps(func)
-    def wrapper(url, *args, **kwargs):
-        try:
-            return func(url, *args, **kwargs)
-        except ClientError as exc:
-            if int(exc.response["Error"]["Code"]) == 404:
-                raise EnvironmentError("file {} not found".format(url))
-            else:
-                raise
-
-    return wrapper
-
-
-@s3_request
-def s3_etag(url, proxies=None):
-    """Check ETag on S3 object."""
-    s3_resource = boto3.resource("s3", config=Config(proxies=proxies))
-    bucket_name, s3_path = split_s3_path(url)
-    s3_object = s3_resource.Object(bucket_name, s3_path)
-    return s3_object.e_tag
-
-
-@s3_request
-def s3_get(url, temp_file, proxies=None):
-    """Pull a file directly from S3."""
-    s3_resource = boto3.resource("s3", config=Config(proxies=proxies))
-    bucket_name, s3_path = split_s3_path(url)
-    s3_resource.Bucket(bucket_name).download_fileobj(s3_path, temp_file)
 
 
 def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None):
@@ -327,17 +285,13 @@ def get_from_cache(
 
     etag = None
     if not local_files_only:
-        # Get eTag to add to filename, if it exists.
-        if url.startswith("s3://"):
-            etag = s3_etag(url, proxies=proxies)
-        else:
-            try:
-                response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
-                if response.status_code == 200:
-                    etag = response.headers.get("ETag")
-            except (EnvironmentError, requests.exceptions.Timeout):
-                # etag is already None
-                pass
+        try:
+            response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
+            if response.status_code == 200:
+                etag = response.headers.get("ETag")
+        except (EnvironmentError, requests.exceptions.Timeout):
+            # etag is already None
+            pass
 
     filename = url_to_filename(url, etag)
 
@@ -400,12 +354,7 @@ def get_from_cache(
             logger.info("%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name)
 
             # GET file object
-            if url.startswith("s3://"):
-                if resume_download:
-                    logger.warn('Warning: resumable downloads are not implemented for "s3://" urls')
-                s3_get(url, temp_file, proxies=proxies)
-            else:
-                http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent)
+            http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent)
 
         logger.info("storing %s in cache at %s", url, cache_path)
         os.rename(temp_file.name, cache_path)
@@ -417,3 +366,21 @@ def get_from_cache(
             json.dump(meta, meta_file)
 
     return cache_path
+
+
+def is_gzip(path: str) -> bool:
+    """from https://stackoverflow.com/a/60634210"""
+    with gzip.open(path, 'r') as fh:
+        try:
+            fh.read(1)
+            return True
+        except OSError:
+            return False
+
+
+def get_size_checksum(path: str) -> Tuple[int, str]:
+    m = sha256()
+    with open(path, 'rb') as f: 
+            for chunk in iter(lambda: f.read(4096),b""):
+                m.update(chunk)
+    return os.path.getsize(path), m.hexdigest()

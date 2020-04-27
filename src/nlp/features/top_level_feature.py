@@ -68,9 +68,9 @@ class TopLevelFeature(FeatureConnector):
         # pylint: enable=line-too-long
         if not self.__is_top_level:
             raise AssertionError(
-                    'Feature {} can only be decoded when defined as top-level '
-                    'feature, through info.features.decode_example()'.format(
-                            type(self).__name__))
+                "Feature {} can only be decoded when defined as top-level "
+                "feature, through info.features.decode_example()".format(type(self).__name__)
+            )
 
         # Step 1: Flatten the nested dict => []
         flat_example = self._flatten(serialized_example)
@@ -80,22 +80,12 @@ class TopLevelFeature(FeatureConnector):
 
         # Step 2: Apply the decoding
         flatten_decoded = []
-        for (
-                feature,
-                example,
-                serialized_info,
-                decoder,
-        ) in zip(
-                flat_features,
-                flat_example,
-                flat_serialized_info,
-                flat_decoders):
-            flatten_decoded.append(_decode_feature(
-                    feature=feature,
-                    example=example,
-                    serialized_info=serialized_info,
-                    decoder=decoder,
-            ))
+        for (feature, example, serialized_info, decoder,) in zip(
+            flat_features, flat_example, flat_serialized_info, flat_decoders
+        ):
+            flatten_decoded.append(
+                _decode_feature(feature=feature, example=example, serialized_info=serialized_info, decoder=decoder,)
+            )
 
         # Step 3: Restore nesting [] => {}
         nested_decoded = self._nest(flatten_decoded)
@@ -131,8 +121,8 @@ def _get_sequence_rank(serialized_info):
     sequence_ranks = set(all_sequence_rank)
     if len(sequence_ranks) != 1:
         raise NotImplementedError(
-                'Decoding do not support mixing sequence and context features within a '
-                'single FeatureConnector. Received inputs of different sequence_rank: '
-                '{}'.format(sequence_ranks)
+            "Decoding do not support mixing sequence and context features within a "
+            "single FeatureConnector. Received inputs of different sequence_rank: "
+            "{}".format(sequence_ranks)
         )
     return next(iter(sequence_ranks))

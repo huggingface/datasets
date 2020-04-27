@@ -18,15 +18,14 @@
 
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import os
 
 import pyarrow as pa
 
 from .feature import Tensor
+
 # from .text import SubwordTextEncoder, TextEncoderConfig
 
 
@@ -56,8 +55,7 @@ class Text(Tensor):
 
         has_encoder = bool(encoder or self._encoder_cls)
         super(Text, self).__init__(
-                shape=(None,) if has_encoder else (),
-                dtype=pa.int64 if has_encoder else pa.string,
+            shape=(None,) if has_encoder else (), dtype=pa.int64 if has_encoder else pa.string,
         )
 
     @property
@@ -72,9 +70,9 @@ class Text(Tensor):
         encoder_cls = self._encoder_cls or type(None)
         if not isinstance(new_encoder, encoder_cls):
             raise ValueError(
-                    "Changing type of encoder. Got %s but must be %s" %
-                    (type(new_encoder).__name__,
-                     self._encoder_cls.__name__))
+                "Changing type of encoder. Got %s but must be %s"
+                % (type(new_encoder).__name__, self._encoder_cls.__name__)
+            )
 
     def maybe_set_encoder(self, new_encoder):
         """Set encoder, but no-op if encoder is already set."""
@@ -89,15 +87,13 @@ class Text(Tensor):
     def str2ints(self, str_value):
         """Conversion string => encoded list[int]."""
         if not self._encoder:
-            raise ValueError(
-                    "Text.str2ints is not available because encoder hasn't been defined.")
+            raise ValueError("Text.str2ints is not available because encoder hasn't been defined.")
         return self._encoder.encode(str_value)
 
     def ints2str(self, int_values):
         """Conversion list[int] => decoded string."""
         if not self._encoder:
-            raise ValueError(
-                    "Text.ints2str is not available because encoder hasn't been defined.")
+            raise ValueError("Text.ints2str is not available because encoder hasn't been defined.")
         return self._encoder.decode(int_values)
 
     def encode_example(self, example_data):
@@ -121,14 +117,13 @@ class Text(Tensor):
             return
 
         # Error checking: ensure there are no metadata files
-        feature_files = [
-                f for f in os.listdir(data_dir) if f.startswith(fname_prefix)
-        ]
+        feature_files = [f for f in os.listdir(data_dir) if f.startswith(fname_prefix)]
         if feature_files:
             raise ValueError(
-                    "Text feature files found for feature %s but encoder_cls=None. "
-                    "Make sure to set encoder_cls in the TextEncoderConfig. "
-                    "Files: %s" % (feature_name, feature_files))
+                "Text feature files found for feature %s but encoder_cls=None. "
+                "Make sure to set encoder_cls in the TextEncoderConfig. "
+                "Files: %s" % (feature_name, feature_files)
+            )
 
     def maybe_build_from_corpus(self, corpus_generator, **kwargs):
         """Call SubwordTextEncoder.build_from_corpus is encoder_cls is such.

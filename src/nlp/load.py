@@ -16,12 +16,11 @@
 # Lint as: python3
 """Access datasets."""
 
-import abc
-import inspect
-import re
 import os
+import abc
+import importlib
+import inspect
 import json
-import shutil
 import logging
 import importlib
 from hashlib import sha256
@@ -33,22 +32,21 @@ from typing import Optional, Dict, Union, List
 
 from . import naming
 from .builder import DatasetBuilder
-from .utils import py_utils
 from .splits import Split
 from .utils.file_utils import (HF_DATASETS_CACHE, is_remote_url, hf_bucket_url,
                                cached_path)
+from .utils import py_utils
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-        "builder",
-        "load",
-        "list",
+    "builder"
+    "load",
 ]
 
 
 CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, 'datasets')
+DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "datasets")
 DATASETS_MODULE = "nlp.datasets"
 
 
@@ -140,7 +138,7 @@ def get_imports(file_path: str):
     return imports
 
 
-def load_dataset(path: str,
+def load_dataset_module(path: str,
                  name: Optional[str] = None,
                  force_reload: bool = False,
                  resume_download: bool = False,
@@ -161,7 +159,7 @@ def load_dataset(path: str,
             the local path to the dataset
     """
     if name is None:
-        name = list(filter(lambda x: x, path.split('/')))[-1] + '.py'
+        name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
     if not name.endswith('.py') or '/' in name:
         raise ValueError("The provided name should be the filename of a python script (ends with '.py')")
@@ -296,9 +294,7 @@ def load_dataset(path: str,
     return builder_cls
 
 
-def builder(path: str,
-            name: Optional[str] = None,
-            **builder_init_kwargs):
+def builder(path: str, name: Optional[str] = None, **builder_init_kwargs):
     """Fetches a `nlp.DatasetBuilder` by string name.
 
     Args:
@@ -326,23 +322,26 @@ def builder(path: str,
         builder_kwargs.update(builder_init_kwargs)
     else:
         builder_kwargs = builder_init_kwargs
-    builder_cls = load_dataset(path, name=name, **builder_kwargs)
+    builder_module = load_dataset_module(path, name=name)
+    builder_cls = get_builder_cls_from_module(builder_module)
     builder_instance = builder_cls(**builder_kwargs)
     return builder_instance
 
 
-def load(path: str,
-         name: Optional[str] = None,
-         split: Optional[Union[str, Split]] = None,
-         data_dir: Optional[str] = None,
-                 batch_size=None,
-                 in_memory=None,
-                 download=True,
-                 as_supervised=False,
-                 with_info=False,
-                 builder_kwargs=None,
-                 download_and_prepare_kwargs=None,
-                 as_dataset_kwargs=None):
+def load(
+    path: str,
+    name: Optional[str] = None,
+    split: Optional[Union[str, Split]] = None,
+    data_dir: Optional[str] = None,
+    batch_size=None,
+    in_memory=None,
+    download=True,
+    as_supervised=False,
+    with_info=False,
+    builder_kwargs=None,
+    download_and_prepare_kwargs=None,
+    as_dataset_kwargs=None,
+):
     # pylint: disable=line-too-long
     """Loads the named dataset.
 
@@ -461,12 +460,13 @@ def load(path: str,
 _VERSION_RE = r""
 
 _NAME_REG = re.compile(
-        r"^"
-        r"(?P<dataset_name>\w+)"
-        r"(/(?P<config>[\w\-\.]+))?"
-        r"(:(?P<version>(\d+|\*)(\.(\d+|\*)){2}))?"
-        r"(/(?P<kwargs>(\w+=\w+)(,\w+=[^,]+)*))?"
-        r"$")
+    r"^"
+    r"(?P<dataset_name>\w+)"
+    r"(/(?P<config>[\w\-\.]+))?"
+    r"(:(?P<version>(\d+|\*)(\.(\d+|\*)){2}))?"
+    r"(/(?P<kwargs>(\w+=\w+)(,\w+=[^,]+)*))?"
+    r"$"
+)
 
 
 _NAME_STR_ERR = """\
@@ -490,6 +490,7 @@ The builder config string must be of the following format:
         my_dataset/config1:1.2.3/right=True,foo=bar,rate=1.2
 """
 
+
 def _dataset_name_and_kwargs_from_name_str(name_str):
     """Extract kwargs from name str."""
     res = _NAME_REG.match(name_str)
@@ -507,7 +508,7 @@ def _dataset_name_and_kwargs_from_name_str(name_str):
             kwargs[attr] = val
         return name, kwargs
     except:
-        logger.error(_NAME_STR_ERR.format(name_str))   # pylint: disable=logging-format-interpolation
+        logger.error(_NAME_STR_ERR.format(name_str))  # pylint: disable=logging-format-interpolation
         raise
 
 
