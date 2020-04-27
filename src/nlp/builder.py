@@ -30,9 +30,10 @@ from . import splits as splits_lib
 from . import utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
-from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMode
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
+from .utils.download_manager import (DownloadConfig, DownloadManager,
+                                     GenerateMode)
 from .utils.file_utils import HF_DATASETS_CACHE
 
 logger = logging.getLogger(__name__)

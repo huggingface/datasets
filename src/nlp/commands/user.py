@@ -4,9 +4,10 @@ from argparse import ArgumentParser
 from getpass import getpass
 from typing import List, Union
 
+from requests.exceptions import HTTPError
+
 from nlp.commands import BaseTransformersCLICommand
 from nlp.hf_api import HfApi, HfFolder
-from requests.exceptions import HTTPError
 
 UPLOAD_MAX_FILES = 15
 

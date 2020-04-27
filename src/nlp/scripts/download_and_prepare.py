@@ -43,9 +43,10 @@ import os
 import pdb
 import time
 
+from absl import app, flags
+
 import nlp
 import tensorflow.compat.v2 as tf
-from absl import app, flags
 
 logger = logging.getLogger(__name__)
 

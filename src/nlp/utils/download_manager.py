@@ -16,12 +16,12 @@
 # Lint as: python3
 """Download manager interface."""
 
+import enum
 import logging
 import os
-import enum
 
-from .file_utils import cached_path, HF_DATASETS_CACHE, get_size_checksum
-from .py_utils import map_nested, flatten_nest_dict
+from .file_utils import HF_DATASETS_CACHE, cached_path, get_size_checksum
+from .py_utils import flatten_nest_dict, map_nested
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class DownloadManager(object):
         manual_dir_instructions=None,
         dataset_name=None,
         force_download=False,
-        register_checksums=False
+        register_checksums=False,
     ):
         """Download manager constructor.
 
@@ -139,7 +139,7 @@ class DownloadManager(object):
         print(url_or_urls)
         assert isinstance(url_or_urls, (list, tuple))
         for url, path in zip(url_or_urls, downloaded_path_or_paths):
-            self._recorded_sizes_checksums[url] = get_size_checksum(path) 
+            self._recorded_sizes_checksums[url] = get_size_checksum(path)
 
     def download(self, url_or_urls):
         """Download given url(s).
@@ -152,11 +152,12 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        downloaded_path_or_paths = map_nested(lambda url_or_urls: cached_path(
+        downloaded_path_or_paths = map_nested(
+            lambda url_or_urls: cached_path(
+                url_or_urls, cache_dir=self._download_dir, force_download=self._force_download,
+            ),
             url_or_urls,
-            cache_dir=self._download_dir,
-            force_download=self._force_download,
-        ), url_or_urls)
+        )
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
 
@@ -190,11 +191,10 @@ class DownloadManager(object):
             extracted_path(s): `str`, The extracted paths matching the given input
                 path_or_paths.
         """
-        return map_nested(lambda path_or_paths: cached_path(
+        return map_nested(
+            lambda path_or_paths: cached_path(path_or_paths, extract_compressed_file=True, force_extract=True),
             path_or_paths,
-            extract_compressed_file=True,
-            force_extract=True
-        ), path_or_paths)
+        )
 
     def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.

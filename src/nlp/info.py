@@ -36,13 +36,13 @@ import collections
 import json
 import logging
 import os
-import posixpath
 import shutil
 import tempfile
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+import posixpath
 from dataclasses_json import dataclass_json
 
 from .splits import SplitDict, check_splits_equals

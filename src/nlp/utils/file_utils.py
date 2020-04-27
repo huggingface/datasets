@@ -5,6 +5,7 @@ Copyright by the AllenNLP authors.
 """
 
 import fnmatch
+import gzip
 import importlib
 import json
 import logging
@@ -12,7 +13,6 @@ import os
 import shutil
 import sys
 import tarfile
-import gzip
 import tempfile
 from contextlib import contextmanager
 from functools import partial, wraps
@@ -90,10 +90,6 @@ def is_tf_available():
 def is_remote_url(url_or_filename):
     parsed = urlparse(url_or_filename)
     return parsed.scheme in ("http", "https", "s3")
-
-
-def path_to_py_script_name(path):
-    return list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
 
 def hf_bucket_url(identifier, postfix=None, cdn=False) -> str:
@@ -214,8 +210,8 @@ def cached_path(
                 tar_file.close()
             elif is_gzip(output_path):
                 os.rmdir(output_path_extracted)
-                with gzip.open(output_path, 'rb') as gzip_file:
-                    with open(output_path_extracted, 'wb') as extracted_file:
+                with gzip.open(output_path, "rb") as gzip_file:
+                    with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(gzip_file, extracted_file)
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
@@ -370,7 +366,7 @@ def get_from_cache(
 
 def is_gzip(path: str) -> bool:
     """from https://stackoverflow.com/a/60634210"""
-    with gzip.open(path, 'r') as fh:
+    with gzip.open(path, "r") as fh:
         try:
             fh.read(1)
             return True
@@ -380,7 +376,7 @@ def is_gzip(path: str) -> bool:
 
 def get_size_checksum(path: str) -> Tuple[int, str]:
     m = sha256()
-    with open(path, 'rb') as f: 
-            for chunk in iter(lambda: f.read(4096),b""):
-                m.update(chunk)
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            m.update(chunk)
     return os.path.getsize(path), m.hexdigest()
