@@ -421,7 +421,7 @@ class DatasetBuilder:
         split_dict = splits_lib.SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
-        dl_manager.check_or_register_checksums(urls_checksums_dir)  # verify checksums
+        dl_manager.check_or_register_checksums(urls_checksums_dir, self.info.full_name)  # verify checksums
         for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(

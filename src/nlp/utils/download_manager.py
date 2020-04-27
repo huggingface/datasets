@@ -244,19 +244,28 @@ class DownloadManager(object):
             )
         return self._manual_dir
     
-    def check_or_register_checksums(self, urls_checksums_dir):
+    def check_or_register_checksums(self, urls_checksums_dir, full_name):
         if not self._ignore_checksums:
+            filename = full_name.replace("/", ":") + ".txt"
+            checksums_path = os.path.join(urls_checksums_dir, filename)
             if self._register_checksums:
-                #TODO(checksums): create urls_checksums folder
+                os.makedirs(urls_checksums_dir, exist_ok=True)
+                self._store_sizes_checksums(checksums_path)
                 logger.info("Stored the recorded checksums in {}.".format(urls_checksums_dir))
             else:
-                exp_size_checksum = load_urls_checksums_dir(urls_checksums_dir)
+                expected_sizes_checksums = load_sizes_checksums(checksums_path)
                 for url, rec_size_checksum in self._recorded_sizes_checksums.items():
+                    exp_size_checksum = expected_sizes_checksums.get(url)
                     if exp_size_checksum is None:
                         raise MissingChecksumError(url)
                     if exp_size_checksum != rec_size_checksum:
                         raise NonMatchingChecksumError(url)
                 logger.info("All checksums matched successfully.")
+    
+    def _store_sizes_checksums(self, path):
+        with open(path, 'w') as f:
+            for url, (size, checksum) in sorted(self.get_recorded_sizes_checksums().items()):
+                f.write('%s %s %s\n' % (url, size, checksum))
     
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()
@@ -276,11 +285,8 @@ def parse_sizes_checksums(checksums_file) -> dict:
     return checksums
 
 
-def load_urls_checksums_dir(urls_checksums_dir) -> dict:
+def load_sizes_checksums(checksums_path) -> dict:
     sizes_checksums = {}
-    with os.scandir(urls_checksums_dir) as it:
-        for entry in it:
-            if entry.is_file() and entry.name.endswith(".txt"):
-                with open(entry.path, "r") as checksums_file:
-                    sizes_checksums.update(parse_sizes_checksums(checksums_file))
+    with open(checksums_path, "r") as checksums_file:
+        sizes_checksums.update(parse_sizes_checksums(checksums_file))
     return sizes_checksums
