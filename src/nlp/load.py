@@ -31,12 +31,13 @@ from .builder import DatasetBuilder
 from .splits import Split
 from .utils import py_utils
 from .utils.file_utils import (HF_DATASETS_CACHE, cached_path, hf_bucket_url,
-                               is_remote_url, url_to_filename)
+                               is_remote_url, url_to_filename,)
+from .utils.file_utils import path_to_py_script_name
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "builder",
+    "builder"
     "load",
 ]
 
@@ -46,7 +47,7 @@ DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "datasets")
 DATASETS_MODULE = "nlp.datasets"
 
 
-def load_dataset(
+def load_dataset_module(
     path: str,
     name: Optional[str] = None,
     force_reload: bool = False,
@@ -69,7 +70,7 @@ def load_dataset(
             the local path to the dataset
     """
     if name is None:
-        name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
+        name = path_to_py_script_name(path)
 
     combined_path = os.path.join(path, name)
     if os.path.isfile(path) or is_remote_url(path):
@@ -130,13 +131,16 @@ def load_dataset(
     module_path = ".".join([DATASETS_MODULE, dataset_id, module_name])
     dataset_module = importlib.import_module(module_path)
 
+    return dataset_module
+
+
+def get_builder_cls_from_module(dataset_module):
     builder_cls = None
     for name, obj in dataset_module.__dict__.items():
         if isinstance(obj, type) and issubclass(obj, DatasetBuilder):
             builder_cls = obj
             builder_cls.name = naming.camelcase_to_snakecase(name)
             break
-
     return builder_cls
 
 
@@ -168,7 +172,8 @@ def builder(path: str, name: Optional[str] = None, **builder_init_kwargs):
         builder_kwargs.update(builder_init_kwargs)
     else:
         builder_kwargs = builder_init_kwargs
-    builder_cls = load_dataset(path, name=name, **builder_kwargs)
+    builder_module = load_dataset_module(path, name=name)
+    builder_cls = get_builder_cls_from_module(builder_module)
     builder_instance = builder_cls(**builder_kwargs)
     return builder_instance
 
