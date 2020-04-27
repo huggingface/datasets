@@ -13,43 +13,93 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from nlp import load_dataset, hf_bucket_url
+
+from parameterized import parameterized_class
+
+import unittest
+
 
 class DatasetTesterMixin:
 
-    Dataset = None
-    Config = None
+    dataset_tester = None
+    dataset_name = None
 
-    # similar to model_classes in `transformers`
-    config_names = ()
-    mock_folder_structure_fn = None
+    def test_dataset_bucket_url(self):
+        if self.dataset_name is None:
+            return
+
+        dataset_file = hf_bucket_url(self.dataset_name)
+
+    def test_dataset_builder(self):
+        if self.dataset_name is None:
+            return
+
+        dataset_builder = self.dataset_tester.load_builder_cls()
+
+    def test_load_dataset(self):
+        if self.dataset_name is None:
+            return
+
+        config_names = self.dataset_tester.prepare_config_names()
+        dataset_builder_class_cls = self.dataset_tester.load_builder_cls()
+
+        for config_name in config_names:
+            # create config and dataset
+            dataset_builder = dataset_builder_class_cls(config_name)
+
+            path_to_dummy_data = self.dataset_tester.download_dummy_data(config_name)
+
+            # create mock data loader manager with test specific mock_folder_strucutre_fn
+            mock_dl_manager = DatasetTesterMixin.MockDataLoaderManager(path_to_dummy_data)
+
+            # use the mock_dl_manager to create mock data and get split generators from there
+            split_generators = dataset_builder._split_generators(mock_dl_manager)
+
+            # ...
+
+
+def get_dataset_names():
+    # this function will call the dataset API and get the current names
+    return [{"dataset_name": "crime_and_punish"}, {"dataset_name": "sentiment140"}]
+
+
+@parameterized_class(get_dataset_names())
+class DatasetTest(unittest.TestCase, DatasetTesterMixin):
+
+    dataset_name = None
 
     class MockDataLoaderManager(object):
-
         # this can actually be defined here and is the data_dir used to
         data_dir = None
 
-        def __init__(self, mock_folder_structure_fn, config_name):
-            self.config_name = config_name
-            self.mock_folder_structure_fn = mock_folder_structure_fn
-            # save the created mock data files
-            # Here a check that the mock_folder_structure_fn has the wanted signutare,
-            # which is def mock_folder_structure_fn(config) -> path_to_created_folder_structure
+        def __init__(self, path_to_dummy_data):
+            self.path_to_dummy_data = path_to_dummy_data
 
         def download_and_extract(self, *args):
             # this function has to be in the manager under this name to work
-            return self.mock_folder_structure_fn(self.config_name, self.data_dir)
+            return self.path_to_dummy_data
 
-    def test_load_dataset(self):
+    class DatasetTester(object):
 
-        for config_name in self.config_names:
-            # create config and dataset
-            config = self.Config(config_name)
-            dataset = self.Dataset(config=config)
+        def __init__(self, parent):
+            self.parent = parent
+            self.dataset_name = parent.dataset_name
 
-            # create mock data loader manager with test specific mock_folder_strucutre_fn
-            mock_dl_manager = DatasetTesterMixin.MockDataLoaderManager(self.mock_folder_structure_fn, config_name)
+        def load_builder_cls(self):
+            return load_dataset(self.dataset_name)
 
-            # use the mock_dl_manager to create mock data and get split generators from there
-            split_generators = dataset._split_generators(mock_dl_manager)
+        def prepare_config_names(self):
+            # this function will return all configs
+            pass
 
-            # from here the rest is easy to test since we have working split generators
+        def download_dummy_data(self, config_name):
+            # this function will download the dummy data
+            # and return the path
+            pass
+        
+        def create_mock_data_loader(self, path_to_dummy_data):
+            return DatasetTest.MockDataLoaderManager(path_to_dummy_data)
+
+    def setUp(self):
+        self.dataset_tester = DatasetTest.DatasetTester(self)
