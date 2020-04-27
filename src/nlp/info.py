@@ -31,21 +31,16 @@ processed the dataset as well:
  - etc.
 """
 
-import abc
-import collections
-import json
 import logging
 import os
-import shutil
-import tempfile
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-import numpy as np
 import posixpath
 from dataclasses_json import dataclass_json
 
 from .splits import SplitDict, check_splits_equals
+
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +63,7 @@ INFO_STR = """DatasetInfo(
 """
 
 
-##### Replacing the p roto buff with a bunch of dataclasses for now
+# Replacing the p roto buff with a bunch of dataclasses for now
 @dataclass
 class SupervisedKeysData:
     input: str = ""
@@ -234,7 +229,7 @@ class DatasetInfo(object):
 
     @property
     def supervised_keys(self):
-        if not self.data.supervised_keys is not None:
+        if self.data.supervised_keys is None:
             return None
         supervised_keys = self.data.supervised_keys
         return (supervised_keys.input, supervised_keys.output)

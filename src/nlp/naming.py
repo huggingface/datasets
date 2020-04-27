@@ -19,6 +19,7 @@
 import os
 import re
 
+
 _first_cap_re = re.compile("(.)([A-Z][a-z0-9]+)")
 _all_cap_re = re.compile("([a-z0-9])([A-Z])")
 

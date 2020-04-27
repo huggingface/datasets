@@ -6,7 +6,6 @@ Copyright by the AllenNLP authors.
 
 import fnmatch
 import gzip
-import importlib
 import json
 import logging
 import os
@@ -15,19 +14,18 @@ import sys
 import tarfile
 import tempfile
 from contextlib import contextmanager
-from functools import partial, wraps
+from functools import partial
 from hashlib import sha256
 from typing import Optional, Tuple
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
 import requests
-from botocore.config import Config
-from botocore.exceptions import ClientError
 from filelock import FileLock
 from tqdm.auto import tqdm
 
 from .. import __version__
+
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 

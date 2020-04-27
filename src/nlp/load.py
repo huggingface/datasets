@@ -16,12 +16,12 @@
 # Lint as: python3
 """Access datasets."""
 
-import abc
 import importlib
-import inspect
 import json
 import logging
 import os
+import re
+import shutil
 from hashlib import sha256
 from pathlib import Path
 from typing import Dict, List, Optional, Union
@@ -32,14 +32,14 @@ from filelock import FileLock
 from . import naming
 from .builder import DatasetBuilder
 from .splits import Split
-from .utils import py_utils
-from .utils.file_utils import (HF_DATASETS_CACHE, cached_path, hf_bucket_url,
-                               is_remote_url)
+from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url
+
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "builder" "load",
+    "builder",
+    "load",
 ]
 
 
@@ -48,18 +48,23 @@ DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "datasets")
 DATASETS_MODULE = "nlp.datasets"
 
 
-def load_builder(dataset_name, dataset_hash):
-    """ Load the module """
-    importlib.invalidate_caches()
-    module_path = ".".join([DATASETS_MODULE, dataset_name, dataset_hash, dataset_name])
-    dataset_module = importlib.import_module(module_path)
-
+def get_builder_cls_from_module(dataset_module):
     builder_cls = None
     for name, obj in dataset_module.__dict__.items():
         if isinstance(obj, type) and issubclass(obj, DatasetBuilder):
             builder_cls = obj
             builder_cls.name = naming.camelcase_to_snakecase(name)
             break
+    return builder_cls
+
+
+def load_builder(dataset_name, dataset_hash):
+    """ Load the module """
+    importlib.invalidate_caches()
+    module_path = ".".join([DATASETS_MODULE, dataset_name, dataset_hash, dataset_name])
+    dataset_module = importlib.import_module(module_path)
+
+    builder_cls = get_builder_cls_from_module(dataset_module)
     return builder_cls, module_path
 
 
@@ -105,7 +110,7 @@ def get_imports(file_path: str):
         - external dependencies whose url is specified with a comment starting from "# From:' followed by an url to a file, an archive or a github repository.
             external dependencies will be downloaded (and extracted if needed in the dataset folder).
             We also add an `__init__.py` to each sub-folder of a downloaded folder so the user can import from them in the script.
-    
+
         Note that only direct import in the dataset processing script will be handled
         We don't recursively explore the additional import to download further files.
 
@@ -122,6 +127,8 @@ def get_imports(file_path: str):
     imports = []
     for line in lines:
         match = re.match(r"(?:from|import)\s+\.([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line)
+        if match is None:
+            continue
         if match.group(2):
             url_path = match.group(2)
             if _is_github_url(url_path):
@@ -144,7 +151,7 @@ def load_dataset_module(
     proxies: Optional[Dict] = None,
     local_files_only: bool = False,
     data_dir: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ):
     r"""
         Download/extract/cache a dataset to add to the lib from a path or url which can be:
@@ -176,7 +183,7 @@ def load_dataset_module(
     else:
         dataset_file = hf_bucket_url(path, postfix=name)
 
-    dataset_base_path = "".join(list(filter(lambda x: x, path.split("/")))[:-1])  # remove the filename
+    dataset_base_path = os.path.dirname(dataset_file)  # remove the filename
 
     # Load the module in two steps:
     # 1. get the dataset processing file on the local filesystem if it's not there (download to cache dir)
@@ -202,7 +209,7 @@ def load_dataset_module(
             raise ValueError("Script import should be external or internal.")
 
         local_import_path = cached_path(
-            import_name_or_path,
+            url_or_filename,
             cache_dir=data_dir,
             force_download=force_reload,
             extract_compressed_file=True,
@@ -324,8 +331,7 @@ def builder(path: str, name: Optional[str] = None, **builder_init_kwargs):
         builder_kwargs.update(builder_init_kwargs)
     else:
         builder_kwargs = builder_init_kwargs
-    builder_module = load_dataset_module(path, name=name)
-    builder_cls = get_builder_cls_from_module(builder_module)
+    builder_cls = load_dataset_module(path, name=name)
     builder_instance = builder_cls(**builder_kwargs)
     return builder_instance
 
@@ -509,7 +515,7 @@ def _dataset_name_and_kwargs_from_name_str(name_str):
                 raise ValueError("Dataset %s: cannot pass %s twice." % (name, attr))
             kwargs[attr] = val
         return name, kwargs
-    except:
+    except:  # noqa: E722
         logger.error(_NAME_STR_ERR.format(name_str))  # pylint: disable=logging-format-interpolation
         raise
 

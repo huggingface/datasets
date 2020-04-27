@@ -19,6 +19,7 @@
 from .features_dict import FeaturesDict, Sequence
 from .text_feature import Text
 
+
 try:
     # This fallback applies for all versions of Python before 3.3
     import collections.abc as collections_abc  # pylint:disable=g-import-not-at-top
@@ -149,7 +150,7 @@ class TranslationVariableLanguages(Sequence):
 
         self._languages = set(languages) if languages else None
         super(TranslationVariableLanguages, self).__init__(
-            {"language": Text(), "translation": Text(),}
+            {"language": Text(), "translation": Text(),}  # noqa: E231
         )
 
     @property

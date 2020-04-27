@@ -15,14 +15,11 @@
 
 # Lint as: python3
 """To write records into Parquet files."""
-import collections
-import itertools
-import json
 import logging
-import os
 from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
+
 
 logger = logging.getLogger(__name__)
 

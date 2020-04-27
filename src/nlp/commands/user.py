@@ -9,6 +9,7 @@ from requests.exceptions import HTTPError
 from nlp.commands import BaseTransformersCLICommand
 from nlp.hf_api import HfApi, HfFolder
 
+
 UPLOAD_MAX_FILES = 15
 
 

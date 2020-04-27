@@ -24,7 +24,6 @@ import itertools
 import logging
 import os
 import shutil
-import sys
 
 from . import splits as splits_lib
 from . import utils
@@ -32,9 +31,9 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
-from .utils.download_manager import (DownloadConfig, DownloadManager,
-                                     GenerateMode)
+from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE
+
 
 logger = logging.getLogger(__name__)
 
@@ -395,7 +394,7 @@ class DatasetBuilder:
                 # DatasetInfo.read_from_directory to possibly restore these attributes
                 # when reading from package data.
 
-                splits = list(self.info.splits.values())
+                # splits = list(self.info.splits.values())
                 # statistics_already_computed = bool(
                 #         splits and splits[0].num_examples)
                 # # Update DatasetInfo metadata by computing statistics from the data.

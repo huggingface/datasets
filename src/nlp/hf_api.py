@@ -22,6 +22,7 @@ from typing import Dict, List, Optional, Tuple
 import requests
 from tqdm import tqdm
 
+
 ENDPOINT = "https://huggingface.co"
 
 
@@ -56,7 +57,7 @@ class S3Object:
         lastModified: str,
         size: int,
         rfilename: str,  # filename relative to config.json
-        **kwargs
+        **kwargs,
     ):
         self.key = key
         self.etag = etag
@@ -78,7 +79,7 @@ class DatasetInfo:
         downloads: Optional[int] = None,
         tags: List[str] = [],
         siblings: List[Dict] = [],  # list of files that constitute the dataset
-        **kwargs
+        **kwargs,
     ):
         self.datasetId = datasetId
         self.key = key
