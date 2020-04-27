@@ -60,8 +60,10 @@ class DatasetTesterMixin:
 
 
 def get_dataset_names():
+    datasets = [ "crime_and_punish", "sentiment140", "squad"]
     # this function will call the dataset API and get the current names
-    return [{"dataset_name": "crime_and_punish"}, {"dataset_name": "sentiment140"}]
+    dataset_names_parametrized = [{"dataset_name": x} for x in datasets]
+    return dataset_names_parametrized
 
 
 @parameterized_class(get_dataset_names())
