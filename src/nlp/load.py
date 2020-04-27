@@ -85,7 +85,7 @@ def files_to_hash(file_paths: List[str]):
     for file_path in to_use_files:
         with open(file_path, mode="r") as f:
             lines.extend(f.readlines())
-    file_str = "\n".join(lines)
+    file_str = "".join(lines)
 
     # Make a hash from all this code
     file_bytes = file_str.encode("utf-8")
