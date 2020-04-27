@@ -194,8 +194,8 @@ class Dataset(object):
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
         else:
             assert (
-                type is None or type == "numpy"
-            ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow']."
+                type is None or type == "numpy" or type == 'pandas'
+            ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas']."
 
         # Check filter column
         if isinstance(columns, str):
@@ -266,20 +266,29 @@ class Dataset(object):
                 key = self._data.num_rows + key
             if key >= self._data.num_rows:
                 raise ValueError(f"Index ({key}) outside of table length ({self._data.num_rows}).")
-            outputs = self.unnest(self._data.slice(key, 1).to_pydict())
+            if self._format_type is not None and self._format_type == "pandas":
+                outputs = self._data.slice(key, 1).to_pandas()
+            else:
+                outputs = self.unnest(self._data.slice(key, 1).to_pydict())
         elif isinstance(key, slice):
             key = key.indices(self._data.num_rows)
             if key[2] != 1 or key[1] < key[0]:
                 raise ValueError(f"Slicing can only take contiguous and ordered slices.")
-            outputs = self._data.slice(key[0], key[1] - key[0]).to_pydict()
+            if self._format_type is not None and self._format_type == "pandas":
+                outputs = self._data.slice(key[0], key[1] - key[0]).to_pandas()
+            else:
+                outputs = self._data.slice(key[0], key[1] - key[0]).to_pydict()
         elif isinstance(key, str):
             if key not in self._data.column_names:
                 raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
-            outputs = self._data[key].to_pylist()
+            if self._format_type is not None and self._format_type == "pandas":
+                outputs = self._data[key].to_pandas()
+            else:
+                outputs = self._data[key].to_pylist()
         else:
             raise ValueError("Can only get row(s) (int or slice) or columns (string).")
 
-        if (self._format_type is not None or self._format_columns is not None) and not isinstance(key, str):
+        if (self._format_type is not None or self._format_columns is not None) and not isinstance(key, str) and self._format_type != "pandas":
             outputs = self.convert_outputs(outputs)
         return outputs
 
