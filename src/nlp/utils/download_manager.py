@@ -26,6 +26,9 @@ from .py_utils import map_nested, flatten_nest_dict
 logger = logging.getLogger(__name__)
 
 
+class MissingChecksumsFile(Exception):
+  """The checksum file is missing."""
+
 class MissingChecksumError(Exception):
   """The expected checksum of the download file is missing."""
 
@@ -292,6 +295,8 @@ def parse_sizes_checksums(checksums_file) -> dict:
 
 def load_sizes_checksums(checksums_path) -> dict:
     sizes_checksums = {}
+    if not os.path.isfile(checksums_path):
+        raise MissingChecksumsFile(checksums_path)
     with open(checksums_path, "r") as checksums_file:
         sizes_checksums.update(parse_sizes_checksums(checksums_file))
     return sizes_checksums

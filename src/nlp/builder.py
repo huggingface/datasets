@@ -371,30 +371,49 @@ class DatasetBuilder:
 
         dl_manager = self._make_download_manager(download_dir=download_dir, download_config=download_config)
 
-        self._download_and_prepare(dl_manager=dl_manager, download_config=download_config)
+        @contextlib.contextmanager
+        def incomplete_dir(dirname):
+            """Create temporary dir for dirname and rename on exit."""
+            tmp_dir = dirname + ".incomplete"
+            os.makedirs(tmp_dir)
+            try:
+                yield tmp_dir
+                if os.path.isdir(dirname):
+                    shutil.rmtree(dirname)
+                os.rename(tmp_dir, dirname)
+            finally:
+                if os.path.exists(tmp_dir):
+                    shutil.rmtree(tmp_dir)
 
-        # NOTE: If modifying the lines below to put additional information in
-        # DatasetInfo, you'll likely also want to update
-        # DatasetInfo.read_from_directory to possibly restore these attributes
-        # when reading from package data.
+        # Create a tmp dir and rename to self._data_dir on successful exit.
+        with incomplete_dir(self._data_dir) as tmp_data_dir:
+            # Temporarily assign _data_dir to tmp_data_dir to avoid having to forward
+            # it to every sub function.
+            with utils.temporary_assignment(self, "_data_dir", tmp_data_dir):
+                self._download_and_prepare(dl_manager=dl_manager, download_config=download_config)
 
-        splits = list(self.info.splits.values())
-        # statistics_already_computed = bool(
-        #         splits and splits[0].num_examples)
-        # # Update DatasetInfo metadata by computing statistics from the data.
-        # if (download_config.compute_stats == download.ComputeStatsMode.SKIP or
-        #         download_config.compute_stats == download.ComputeStatsMode.AUTO
-        #         and statistics_already_computed
-        #         ):
-        #     logger.info(
-        #             "Skipping computing stats for mode %s.",
-        #             download_config.compute_stats)
-        # else:  # Mode is forced or stats do not exists yet
-        #     logger.info("No statistics computed for now.")
-        # self.info.compute_dynamic_properties()
-        self.info.download_size = dl_manager.downloaded_size
-        # Write DatasetInfo to disk, even if we haven't computed statistics.
-        self.info.write_to_directory(self._data_dir)
+                # NOTE: If modifying the lines below to put additional information in
+                # DatasetInfo, you'll likely also want to update
+                # DatasetInfo.read_from_directory to possibly restore these attributes
+                # when reading from package data.
+
+                splits = list(self.info.splits.values())
+                # statistics_already_computed = bool(
+                #         splits and splits[0].num_examples)
+                # # Update DatasetInfo metadata by computing statistics from the data.
+                # if (download_config.compute_stats == download.ComputeStatsMode.SKIP or
+                #         download_config.compute_stats == download.ComputeStatsMode.AUTO
+                #         and statistics_already_computed
+                #         ):
+                #     logger.info(
+                #             "Skipping computing stats for mode %s.",
+                #             download_config.compute_stats)
+                # else:  # Mode is forced or stats do not exists yet
+                #     logger.info("No statistics computed for now.")
+                # self.info.compute_dynamic_properties()
+                self.info.download_size = dl_manager.downloaded_size
+                # Write DatasetInfo to disk, even if we haven't computed statistics.
+                self.info.write_to_directory(self._data_dir)
 
         msg = (
             "Dataset {name} downloaded and prepared to {data_dir}. " "Subsequent calls will reuse this data."

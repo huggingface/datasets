@@ -32,7 +32,7 @@ from .splits import Split
 from .utils import py_utils
 from .utils.file_utils import (HF_DATASETS_CACHE, cached_path, hf_bucket_url,
                                is_remote_url, url_to_filename,)
-from .utils.file_utils import path_to_py_script_name
+from .utils.file_utils import path_to_py_script_name, name_to_py_script_name
 
 logger = logging.getLogger(__name__)
 
@@ -70,15 +70,18 @@ def load_dataset_module(
             the local path to the dataset
     """
     if name is None:
-        name = path_to_py_script_name(path)
+        py_script_name = path_to_py_script_name(path)
+        name = py_script_name[:-3]  # remove .py
+    else:
+        py_script_name = name_to_py_script_name(name)
 
-    combined_path = os.path.join(path, name)
+    combined_path = os.path.join(path, py_script_name)
     if os.path.isfile(path) or is_remote_url(path):
         dataset_file = path
     elif os.path.isfile(combined_path) or is_remote_url(combined_path):
         dataset_file = combined_path
     else:
-        dataset_file = hf_bucket_url(path, postfix=name)
+        dataset_file = hf_bucket_url(path, postfix=py_script_name)
 
     # Get the file on our local file system (either cache_dir or already local path)
     local_path = cached_path(
@@ -93,7 +96,7 @@ def load_dataset_module(
     # Define a directory with a unique name in our dataset folder
     dataset_id = url_to_filename(local_path)
     dataset_folder_path = os.path.join(DATASETS_PATH, dataset_id)
-    dataset_file_path = os.path.join(dataset_folder_path, name)
+    dataset_file_path = os.path.join(dataset_folder_path, py_script_name)
 
     # Check if the dataset directory was already there
     if os.path.exists(dataset_file_path) and not force_reload:
@@ -127,7 +130,7 @@ def load_dataset_module(
             pass
 
     importlib.invalidate_caches()
-    module_name = name.replace(".py", "")
+    module_name = name
     module_path = ".".join([DATASETS_MODULE, dataset_id, module_name])
     dataset_module = importlib.import_module(module_path)
 

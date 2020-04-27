@@ -96,6 +96,10 @@ def path_to_py_script_name(path):
     return list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
 
+def name_to_py_script_name(name):
+    return name.split("/")[0] + ".py"
+
+
 def hf_bucket_url(identifier, postfix=None, cdn=False) -> str:
     endpoint = CLOUDFRONT_DISTRIB_PREFIX if cdn else S3_BUCKET_PREFIX
     if postfix is None:
