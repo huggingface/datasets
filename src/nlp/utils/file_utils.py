@@ -126,22 +126,6 @@ def url_to_filename(url, etag=None):
     return filename
 
 
-def code_to_hash(path):
-    """
-    Convert a text file at path into a hashed filename in a repeatable way.
-    """
-    lines = []
-    with open(path, mode='r') as f:
-        lines = f.readlines()
-    file_str = '\n'.join(lines)
-
-    file_bytes = file_str.encode("utf-8")
-    file_hash = sha256(file_bytes)
-    filename = file_hash.hexdigest()
-
-    return filename
-
-
 def cached_path(
     url_or_filename,
     cache_dir=None,
