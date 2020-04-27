@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nlp import load_dataset_module, hf_bucket_url, path_to_py_script_name, DatasetBuilder, BuilderConfig, get_builder_cls_from_module
+from nlp import load_dataset_module, hf_bucket_url, path_to_py_script_name, DatasetBuilder, BuilderConfig, get_builder_cls_from_module, cached_path
+
+import os
 import requests
+import tempfile
 
 from parameterized import parameterized_class
 
@@ -26,6 +29,8 @@ class DatasetTesterMixin:
 
     dataset_tester = None
     dataset_name = None
+    dummy_folder_name = "dummy"
+    extracted_dummy_folder_name = "dummy_data"
 
     def test_dataset_has_valid_etag(self):
         if self.dataset_name is None:
@@ -61,8 +66,7 @@ class DatasetTesterMixin:
         if self.dataset_name is None:
             return
 
-        builder = self.dataset_tester.load_builder()
-        builder_configs = builder.BUILDER_CONFIGS
+        builder_configs = self.dataset_tester.load_all_configs()
         self.assertTrue(len(builder_configs) > 0)
         all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
 
@@ -70,22 +74,35 @@ class DatasetTesterMixin:
         if self.dataset_name is None:
             return
 
-        config_names = self.dataset_tester.prepare_config_names()
-        dataset_builder_class_cls = self.dataset_tester.load_builder_cls()
+        builder_configs = self.dataset_tester.load_all_configs()
 
-        for config_name in config_names:
-            # create config and dataset
-            dataset_builder = dataset_builder_class_cls(config_name)
+        for config in builder_configs:
+            with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
+                # create config and dataset
+                dataset_builder = self.dataset_tester.load_builder(config, data_dir=processed_temp_dir)
+                # get version
+                version = dataset_builder.version
+                version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
 
-            path_to_dummy_data = self.dataset_tester.download_dummy_data(config_name)
+                # dowloads dummy data
+                path_to_dummy_data = self.dataset_tester.download_dummy_data(config_name=config.name, version_name=version_name, cache_dir=raw_temp_dir)
 
-            # create mock data loader manager with test specific mock_folder_strucutre_fn
-            mock_dl_manager = DatasetTesterMixin.MockDataLoaderManager(path_to_dummy_data)
+                # create mock data loader manager with test specific mock_folder_strucutre_fn
+                mock_dl_manager = self.dataset_tester.create_mock_data_loader(path_to_dummy_data)
 
-            # use the mock_dl_manager to create mock data and get split generators from there
-            split_generators = dataset_builder._split_generators(mock_dl_manager)
+                # inject our fake download manager to the dataset_builder._make_download_manager fn
+                dataset_builder._make_download_manager = (lambda **kwargs: mock_dl_manager)
 
-            # ...
+                # build dataset from dummy data
+                dataset_builder.download_and_prepare()
+
+                # get dataset
+                dataset = dataset_builder.as_dataset()
+
+                # check that dataset is not empty
+                for split in dataset_builder.info.splits.keys():
+                    # check that loaded datset is not empty
+                    self.assertTrue(len(dataset[split]) > 0)
 
 
 def get_dataset_names():
@@ -106,9 +123,16 @@ class DatasetTest(unittest.TestCase, DatasetTesterMixin):
 
         def __init__(self, path_to_dummy_data):
             self.path_to_dummy_data = path_to_dummy_data
+            self.downloaded_size = 0
 
-        def download_and_extract(self, *args):
+        def download_and_extract(self, data_url, *args):
             # this function has to be in the manager under this name to work
+            # if data_url is a dict then return a dict with the correct file names
+            if isinstance(data_url, dict):
+                dummy_data_dict = {}
+                for key in data_url.keys():
+                    dummy_data_dict[key] = os.path.join(self.path_to_dummy_data, key)
+                return dummy_data_dict
             return self.path_to_dummy_data
 
     class DatasetTester(object):
@@ -117,23 +141,28 @@ class DatasetTest(unittest.TestCase, DatasetTesterMixin):
             self.parent = parent
             self.dataset_name = parent.dataset_name
 
-        def load_builder(self, config_name=None):
+        def load_builder(self, config=None, data_dir=None):
             module = load_dataset_module(self.dataset_name, force_reload=True)
             builder_cls = get_builder_cls_from_module(module)
-            builder = builder_cls(config=config_name)
+            builder = builder_cls(config=config, data_dir=data_dir)
             return builder
 
-        def prepare_config_names(self):
-            # this function will return all configs
-            pass
+        def load_all_configs(self):
+            module = load_dataset_module(self.dataset_name, force_reload=True)
+            builder_cls = get_builder_cls_from_module(module)
+            builder = builder_cls()
+            return builder.BUILDER_CONFIGS
 
-        def download_dummy_data(self, config_name):
-            # this function will download the dummy data
-            # and return the path
-            pass
+        def download_dummy_data(self, config_name, version_name, cache_dir):
+            postfix = os.path.join(self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + '.zip')
+            url_to_dummy_data_dir = hf_bucket_url(self.dataset_name, postfix=postfix)
+            # this function will download the dummy data and return the path
+            local_path = cached_path(url_to_dummy_data_dir, cache_dir=cache_dir, extract_compressed_file=True, force_extract=True)
+            return os.path.join(local_path, self.parent.extracted_dummy_folder_name)
 
         def create_mock_data_loader(self, path_to_dummy_data):
-            return DatasetTest.MockDataLoaderManager(path_to_dummy_data)
+            mock_dl_manager = DatasetTest.MockDataLoaderManager(path_to_dummy_data)
+            return mock_dl_manager
 
     def setUp(self):
         self.dataset_tester = DatasetTest.DatasetTester(self)
