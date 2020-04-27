@@ -4,7 +4,7 @@ from nlp.builder import DatasetBuilder, REUSE_CACHE_IF_EXISTS
 from nlp.commands import BaseTransformersCLICommand
 from nlp.load import HF_DATASETS_CACHE, builder
 from nlp.utils import DownloadConfig
-from nlp.utils.file_utils import hf_bucket_url
+from nlp.utils.file_utils import hf_bucket_url, path_to_py_script_name
 
 
 def test_command_factory(args):
@@ -41,7 +41,7 @@ class TestCommand(BaseTransformersCLICommand):
         path = self._datasets
         name = self._name
         if name is None:
-            name = list(filter(lambda x: x, self._datasets.split("/")))[-1] + ".py"
+            name = path_to_py_script_name(path)
         ds: DatasetBuilder = builder(path, self._name)
         ds.download_and_prepare(download_config=DownloadConfig(
             download_mode=REUSE_CACHE_IF_EXISTS,

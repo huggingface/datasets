@@ -134,6 +134,10 @@ class DatasetTest(unittest.TestCase, DatasetTesterMixin):
                     dummy_data_dict[key] = os.path.join(self.path_to_dummy_data, key)
                 return dummy_data_dict
             return self.path_to_dummy_data
+        
+        def check_or_register_checksums(self, urls_checksums_dir):
+            # we can edit this if we want to mock the checksum checks or registrations
+            pass
 
     class DatasetTester(object):
 
