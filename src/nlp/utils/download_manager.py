@@ -26,6 +26,13 @@ from .py_utils import map_nested, flatten_nest_dict
 logger = logging.getLogger(__name__)
 
 
+class MissingChecksumError(Exception):
+  """The expected checksum of the download file is missing."""
+
+class NonMatchingChecksumError(Exception):
+  """The downloaded file doesn't have expected checksum."""
+
+
 class GenerateMode(enum.Enum):
     """`Enum` for how to treat pre-existing downloads and data.
 
@@ -54,7 +61,9 @@ class DownloadConfig(object):
         manual_dir=None,
         download_mode=None,
         max_examples_per_split=None,
+        ignore_checksums=False,
         register_checksums=False,
+        sizes_checksums=None,
         beam_runner=None,
         beam_options=None,
     ):
@@ -69,8 +78,10 @@ class DownloadConfig(object):
                 reuse both downloads and data if it already exists.
             max_examples_per_split: `int`, optional max number of examples to write
                 into each split (used for testing).
-            register_checksums: `bool`, defaults to False. If True, checksum of
-                downloaded files are recorded.
+            ignore_checksums: `bool`, defaults to False. If True, wrong or missing checksums
+                will be ignored.
+            register_checkums: `bool`, defaults to False. If True, the checksums of the
+                downloaded files will be saved in the `urls_checksums` folder
             beam_runner: Runner to pass to `beam.Pipeline`, only used for datasets
                 based on Beam for the generation.
             beam_options: `PipelineOptions` to pass to `beam.Pipeline`, only used for
@@ -79,7 +90,9 @@ class DownloadConfig(object):
         self.manual_dir = manual_dir
         self.download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         self.max_examples_per_split = max_examples_per_split
+        self.ignore_checksums = ignore_checksums
         self.register_checksums = register_checksums
+        self.sizes_checksums = sizes_checksums
         self.beam_runner = beam_runner
         self.beam_options = beam_options
 
@@ -92,7 +105,8 @@ class DownloadManager(object):
         manual_dir_instructions=None,
         dataset_name=None,
         force_download=False,
-        register_checksums=False
+        ignore_checksums=False,
+        register_checksums=False,
     ):
         """Download manager constructor.
 
@@ -105,8 +119,10 @@ class DownloadManager(object):
             dataset_name: `str`, name of dataset this instance will be used for. If
                 provided, downloads will contain which datasets they were used for.
             force_download: `bool`, default to False. If True, always [re]download.
-            register_checksums: `bool`, default to False. If True, dl checksums aren't
-                checked, but stored into file.
+            ignore_checksums: `bool`, defaults to False. If True, wrong or missing checksums
+                will be ignored.
+            register_checkums: `bool`, defaults to False. If True, the checksums of the
+                downloaded files will be saved in the `urls_checksums` folder
         """
         self._dataset_name = dataset_name
         if download_dir is None:
@@ -116,12 +132,11 @@ class DownloadManager(object):
         self._manual_dir_instructions = manual_dir_instructions
         os.makedirs(self._download_dir, exist_ok=True)
         self._force_download = force_download
+        self._ignore_checksums = ignore_checksums
         self._register_checksums = register_checksums
-        # All known URLs: {url: (size, checksum)}
-        self._sizes_checksums = {}  # checksums.get_all_sizes_checksums()
         # To record what is being used: {url: (size, checksum)}
         self._recorded_sizes_checksums = {}
-
+    
     @property
     def downloaded_size(self):
         """Returns the total size of downloaded files."""
@@ -136,7 +151,6 @@ class DownloadManager(object):
         elif isinstance(url_or_urls, dict):
             url_or_urls = list(flatten_nest_dict(url_or_urls).values())
             downloaded_path_or_paths = list(flatten_nest_dict(downloaded_path_or_paths).values())
-        print(url_or_urls)
         assert isinstance(url_or_urls, (list, tuple))
         for url, path in zip(url_or_urls, downloaded_path_or_paths):
             self._recorded_sizes_checksums[url] = get_size_checksum(path) 
@@ -229,3 +243,44 @@ class DownloadManager(object):
                 )
             )
         return self._manual_dir
+    
+    def check_or_register_checksums(self, urls_checksums_dir):
+        if not self._ignore_checksums:
+            if self._register_checksums:
+                #TODO(checksums): create urls_checksums folder
+                logger.info("Stored the recorded checksums in {}.".format(urls_checksums_dir))
+            else:
+                exp_size_checksum = load_urls_checksums_dir(urls_checksums_dir)
+                for url, rec_size_checksum in self._recorded_sizes_checksums.items():
+                    if exp_size_checksum is None:
+                        raise MissingChecksumError(url)
+                    if exp_size_checksum != rec_size_checksum:
+                        raise NonMatchingChecksumError(url)
+                logger.info("All checksums matched successfully.")
+    
+    def get_recorded_sizes_checksums(self):
+        return self._recorded_sizes_checksums.copy()
+
+
+
+def parse_sizes_checksums(checksums_file) -> dict:
+    """Returns {URL: (size, checksum)}s stored within given file."""
+    checksums = {}
+    for line in checksums_file:
+        line = line.strip()  # Remove the trailing '\r' on Windows OS.
+        if not line or line.startswith('#'):
+            continue
+        # URL might have spaces inside, but size and checksum will not.
+        url, size, checksum = line.rsplit(' ', 2)
+        checksums[url] = (int(size), checksum)
+    return checksums
+
+
+def load_urls_checksums_dir(urls_checksums_dir) -> dict:
+    sizes_checksums = {}
+    with os.scandir(urls_checksums_dir) as it:
+        for entry in it:
+            if entry.is_file() and entry.name.endswith(".txt"):
+                with open(entry.path, "r") as checksums_file:
+                    sizes_checksums.update(parse_sizes_checksums(checksums_file))
+    return sizes_checksums

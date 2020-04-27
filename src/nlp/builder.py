@@ -25,6 +25,7 @@ import logging
 import os
 import shutil
 import sys
+import inspect
 
 from . import splits as splits_lib
 from . import utils
@@ -335,7 +336,7 @@ class DatasetBuilder:
         # Currently it's not possible to overwrite the data because it would
         # conflict with versioning: If the last version has already been generated,
         # it will always be reloaded and data_dir will be set at construction.
-        if data_exists:
+        if data_exists and download_config.download_mode != REUSE_CACHE_IF_EXISTS:
             raise ValueError(
                 "Trying to overwrite an existing dataset {} at {}. A dataset with "
                 "the same version {} already exists. If the dataset has changed, "
@@ -370,47 +371,30 @@ class DatasetBuilder:
 
         dl_manager = self._make_download_manager(download_dir=download_dir, download_config=download_config)
 
-        @contextlib.contextmanager
-        def incomplete_dir(dirname):
-            """Create temporary dir for dirname and rename on exit."""
-            tmp_dir = dirname + ".incomplete"
-            os.makedirs(tmp_dir)
-            try:
-                yield tmp_dir
-                os.rename(tmp_dir, dirname)
-            finally:
-                if os.path.exists(tmp_dir):
-                    shutil.rmtree(tmp_dir)
+        self._download_and_prepare(dl_manager=dl_manager, download_config=download_config)
 
-        # Create a tmp dir and rename to self._data_dir on successful exit.
-        with incomplete_dir(self._data_dir) as tmp_data_dir:
-            # Temporarily assign _data_dir to tmp_data_dir to avoid having to forward
-            # it to every sub function.
-            with utils.temporary_assignment(self, "_data_dir", tmp_data_dir):
-                self._download_and_prepare(dl_manager=dl_manager, download_config=download_config)
+        # NOTE: If modifying the lines below to put additional information in
+        # DatasetInfo, you'll likely also want to update
+        # DatasetInfo.read_from_directory to possibly restore these attributes
+        # when reading from package data.
 
-                # NOTE: If modifying the lines below to put additional information in
-                # DatasetInfo, you'll likely also want to update
-                # DatasetInfo.read_from_directory to possibly restore these attributes
-                # when reading from package data.
-
-                splits = list(self.info.splits.values())
-                # statistics_already_computed = bool(
-                #         splits and splits[0].num_examples)
-                # # Update DatasetInfo metadata by computing statistics from the data.
-                # if (download_config.compute_stats == download.ComputeStatsMode.SKIP or
-                #         download_config.compute_stats == download.ComputeStatsMode.AUTO
-                #         and statistics_already_computed
-                #         ):
-                #     logger.info(
-                #             "Skipping computing stats for mode %s.",
-                #             download_config.compute_stats)
-                # else:  # Mode is forced or stats do not exists yet
-                #     logger.info("No statistics computed for now.")
-                # self.info.compute_dynamic_properties()
-                self.info.download_size = dl_manager.downloaded_size
-                # Write DatasetInfo to disk, even if we haven't computed statistics.
-                self.info.write_to_directory(self._data_dir)
+        splits = list(self.info.splits.values())
+        # statistics_already_computed = bool(
+        #         splits and splits[0].num_examples)
+        # # Update DatasetInfo metadata by computing statistics from the data.
+        # if (download_config.compute_stats == download.ComputeStatsMode.SKIP or
+        #         download_config.compute_stats == download.ComputeStatsMode.AUTO
+        #         and statistics_already_computed
+        #         ):
+        #     logger.info(
+        #             "Skipping computing stats for mode %s.",
+        #             download_config.compute_stats)
+        # else:  # Mode is forced or stats do not exists yet
+        #     logger.info("No statistics computed for now.")
+        # self.info.compute_dynamic_properties()
+        self.info.download_size = dl_manager.downloaded_size
+        # Write DatasetInfo to disk, even if we haven't computed statistics.
+        self.info.write_to_directory(self._data_dir)
 
         msg = (
             "Dataset {name} downloaded and prepared to {data_dir}. " "Subsequent calls will reuse this data."
@@ -430,11 +414,15 @@ class DatasetBuilder:
             download_config: `DownloadConfig`, Additional options.
         """
         os.makedirs(self._data_dir, exist_ok=True)
+        urls_checksums_dir = os.path.dirname(inspect.getfile(self.__class__))
+        urls_checksums_dir = os.path.join(urls_checksums_dir, "urls_checksums")
 
         # Generating data for all splits
         split_dict = splits_lib.SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
-        for split_generator in self._split_generators(dl_manager, **split_generators_kwargs):
+        split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        dl_manager.check_or_register_checksums(urls_checksums_dir)  # verify checksums
+        for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(
                     "`all` is a special split keyword corresponding to the "
@@ -468,7 +456,8 @@ class DatasetBuilder:
             manual_dir=manual_dir,
             manual_dir_instructions=self.MANUAL_DOWNLOAD_INSTRUCTIONS,
             force_download=(download_config.download_mode == FORCE_REDOWNLOAD),
-            register_checksums=download_config.register_checksums,
+            ignore_checksums=download_config.ignore_checksums,
+            register_checksums=download_config.register_checksums
         )
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
