@@ -134,6 +134,9 @@ class DownloadManager(object):
         self._force_download = force_download
         self._ignore_checksums = ignore_checksums
         self._register_checksums = register_checksums
+        if ignore_checksums and register_checksums:
+            raise ValueError("Parameters `ignore_checksums` and `register_checksums` "
+            "shouldn't be True at the same time.")
         # To record what is being used: {url: (size, checksum)}
         self._recorded_sizes_checksums = {}
     
@@ -261,6 +264,8 @@ class DownloadManager(object):
                     if exp_size_checksum != rec_size_checksum:
                         raise NonMatchingChecksumError(url)
                 logger.info("All checksums matched successfully.")
+        else:
+            logger.info("Checksums tests were ignored.")
     
     def _store_sizes_checksums(self, path):
         with open(path, 'w') as f:
