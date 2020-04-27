@@ -55,7 +55,6 @@ REQUIRED_PKGS = [
     'numpy',
     'pyarrow>=0.16.0',
     'dill',
-    'promise',
     'dataclasses-json',
     # for downloading datasets over HTTPS
     'requests>=2.19.0',
@@ -63,8 +62,6 @@ REQUIRED_PKGS = [
     "tqdm >= 4.27",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
-    # accessing files from S3 directly
-    "boto3",
     # filesystem locks e.g. to prevent parallel downloads
     "filelock",
 ]
