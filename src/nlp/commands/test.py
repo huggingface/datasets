@@ -9,6 +9,7 @@ from nlp.commands import BaseTransformersCLICommand
 from nlp.load import HF_DATASETS_CACHE, builder
 from nlp.utils import DownloadConfig
 from nlp.utils.file_utils import hf_bucket_url, path_to_py_script_name
+from nlp.utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
 from nlp.hf_api import HfApi, HfFolder
 
 
@@ -90,11 +91,9 @@ class TestCommand(BaseTransformersCLICommand):
                 exit(1)
             self._check_ownership(self._datasets, token)
             urls_checksums_dir = os.path.dirname(inspect.getfile(db.__class__))
-            urls_checksums_dir = os.path.join(urls_checksums_dir, "urls_checksums")
-            full_name = db.info.full_name
-            filename = full_name.replace("/", ":") + ".txt"
-            checksums_path = os.path.join(urls_checksums_dir, filename)
-            remote_checksums_dir = db.info.name + "/" + "urls_checksums"
+            urls_checksums_dir = os.path.join(urls_checksums_dir, URLS_CHECKSUMS_FOLDER_NAME)
+            checksums_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
+            remote_checksums_dir = os.path.join(db.info.name, URLS_CHECKSUMS_FOLDER_NAME)
             
             # Upload
 

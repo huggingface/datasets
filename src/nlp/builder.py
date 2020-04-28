@@ -34,6 +34,7 @@ from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMod
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
 from .utils.file_utils import HF_DATASETS_CACHE
+from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -433,13 +434,13 @@ class DatasetBuilder:
         """
         os.makedirs(self._data_dir, exist_ok=True)
         urls_checksums_dir = os.path.dirname(inspect.getfile(self.__class__))
-        urls_checksums_dir = os.path.join(urls_checksums_dir, "urls_checksums")
+        urls_checksums_dir = os.path.join(urls_checksums_dir, URLS_CHECKSUMS_FOLDER_NAME)
 
         # Generating data for all splits
         split_dict = splits_lib.SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
-        dl_manager.check_or_register_checksums(urls_checksums_dir, self.info.full_name)  # verify checksums
+        dl_manager.check_or_register_checksums(urls_checksums_dir)  # verify checksums
         for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(

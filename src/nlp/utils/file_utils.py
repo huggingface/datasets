@@ -406,11 +406,3 @@ def is_gzip(path: str) -> bool:
             return True
         except OSError:
             return False
-
-
-def get_size_checksum(path: str) -> Tuple[int, str]:
-    m = sha256()
-    with open(path, 'rb') as f: 
-            for chunk in iter(lambda: f.read(4096),b""):
-                m.update(chunk)
-    return os.path.getsize(path), m.hexdigest()

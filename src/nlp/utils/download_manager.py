@@ -16,18 +16,17 @@
 # Lint as: python3
 """Download manager interface."""
 
+import enum
 import logging
 import os
-import enum
 
-from .file_utils import cached_path, HF_DATASETS_CACHE, get_size_checksum
-from .py_utils import map_nested, flatten_nest_dict
+from .checksums_utils import load_sizes_checksums, store_sizes_checksum
+from .file_utils import HF_DATASETS_CACHE, cached_path, get_size_checksum
+from .py_utils import flatten_nest_dict, map_nested
+from .checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
 
 logger = logging.getLogger(__name__)
 
-
-class MissingChecksumsFile(Exception):
-  """The checksum file is missing."""
 
 class MissingChecksumError(Exception):
   """The expected checksum of the download file is missing."""
@@ -250,10 +249,9 @@ class DownloadManager(object):
             )
         return self._manual_dir
     
-    def check_or_register_checksums(self, urls_checksums_dir, full_name):
+    def check_or_register_checksums(self, urls_checksums_dir):
         if not self._ignore_checksums:
-            filename = full_name.replace("/", ":") + ".txt"
-            checksums_path = os.path.join(urls_checksums_dir, filename)
+            checksums_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
             if self._register_checksums:
                 os.makedirs(urls_checksums_dir, exist_ok=True)
                 self._store_sizes_checksums(checksums_path)
@@ -275,32 +273,3 @@ class DownloadManager(object):
     
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()
-
-
-
-def parse_sizes_checksums(checksums_file) -> dict:
-    """Returns {URL: (size, checksum)}s stored within given file."""
-    checksums = {}
-    for line in checksums_file:
-        line = line.strip()  # Remove the trailing '\r' on Windows OS.
-        if not line or line.startswith('#'):
-            continue
-        # URL might have spaces inside, but size and checksum will not.
-        url, size, checksum = line.rsplit(' ', 2)
-        checksums[url] = (int(size), checksum)
-    return checksums
-
-
-def load_sizes_checksums(checksums_path) -> dict:
-    sizes_checksums = {}
-    if not os.path.isfile(checksums_path):
-        raise MissingChecksumsFile(checksums_path)
-    with open(checksums_path, "r") as checksums_file:
-        sizes_checksums.update(parse_sizes_checksums(checksums_file))
-    return sizes_checksums
-
-
-def store_sizes_checksum(sizes_checksums: dict, path: str):
-    with open(path, 'w') as f:
-        for url, (size, checksum) in sorted(sizes_checksums.items()):
-            f.write('%s %s %s\n' % (url, size, checksum))
