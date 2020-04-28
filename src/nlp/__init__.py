@@ -41,7 +41,7 @@ from pyarrow import (binary, bool_, date32, date64, decimal128, dictionary,
                      timestamp, total_allocated_bytes, uint8, uint16, uint32,
                      uint64, union, utf8)
 
-from . import datasets, features
+from . import datasets, features, metrics
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import (BeamBasedBuilder, BuilderConfig, DatasetBuilder,
