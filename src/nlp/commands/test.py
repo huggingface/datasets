@@ -3,12 +3,13 @@ import inspect
 import os
 import sys
 from typing import List
+from shutil import copyfile
 
 from nlp.builder import DatasetBuilder, REUSE_CACHE_IF_EXISTS
 from nlp.commands import BaseTransformersCLICommand
 from nlp.load import HF_DATASETS_CACHE, builder
 from nlp.utils import DownloadConfig
-from nlp.utils.file_utils import hf_bucket_url, path_to_py_script_name
+from nlp.utils.file_utils import hf_bucket_url, path_to_py_script_name, name_to_py_script_name
 from nlp.utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
 from nlp.hf_api import HfApi, HfFolder
 
@@ -84,55 +85,34 @@ class TestCommand(BaseTransformersCLICommand):
             ignore_checksums=self._ignore_checksums
         ))
         print("Test successful.")
+        # If register_checksums=True, the checksums file is created next to the loaded module file.
+        # Let's move it to the original directory of the dataset script, to allow the user to
+        # upload them on S3 at the same time afterwards.
         if self._register_checksums:
-            token = HfFolder.get_token()
-            if token is None:
-                print("Not logged in. Couln't upload registered checksums.")
-                exit(1)
-            self._check_ownership(self._datasets, token)
+            path = self._datasets
+            name = self._name
+
             urls_checksums_dir = os.path.dirname(inspect.getfile(db.__class__))
             urls_checksums_dir = os.path.join(urls_checksums_dir, URLS_CHECKSUMS_FOLDER_NAME)
             checksums_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
-            remote_checksums_dir = os.path.join(db.info.name, URLS_CHECKSUMS_FOLDER_NAME)
-            
-            # Upload
 
-            local_path = os.path.abspath(checksums_path)
-            if os.path.isfile(local_path):
-                filename = os.path.basename(local_path)
-                files = [(local_path, os.path.join(remote_checksums_dir, filename))]
+            if name is None:
+                py_script_name = path_to_py_script_name(path)
+                name = py_script_name[:-3]  # remove .py
             else:
-                raise ValueError("Not a valid file: {}".format(local_path))
+                py_script_name = name_to_py_script_name(name)
 
-            if sys.platform == "win32":
-                files = [(filepath, filename.replace(os.sep, "/")) for filepath, filename in files]
-
-            if len(files) > UPLOAD_MAX_FILES:
-                print(
-                    "About to upload {} files to S3. This is probably wrong. Please filter files before uploading.".format(
-                        ANSI.bold(len(files))
-                    )
-                )
+            combined_path = os.path.join(path, py_script_name)
+            if os.path.isfile(path):
+                dataset_dir = os.path.dirname(path)
+            elif os.path.isfile(combined_path):
+                dataset_dir = path
+            else:  # in case of a remote dataset
+                print("Checksums file saved at {}".format(checksums_path))
                 exit(1)
-
-            user, _ = self._api.whoami(token)
-            namespace = self._organization if self._organization is not None else user
-
-            for filepath, filename in files:
-                print(
-                    "About to upload checksums file {} to S3 under filename {} and namespace {}".format(
-                        ANSI.bold(filepath), ANSI.bold(filename), ANSI.bold(namespace)
-                    )
-                )
-
-            choice = input("Proceed? [Y/n] ").lower()
-            if not (choice == "" or choice == "y" or choice == "yes"):
-                print("Abort")
-                exit()
-            print(ANSI.bold("Uploading..."))
-            for filepath, filename in files:
-                access_url = self._api.presign_and_upload(
-                    token=token, filename=filename, filepath=filepath, organization=self._organization
-                )
-                print("Your file now lives at:")
-                print(access_url)
+            
+            user_urls_checksums_dir = os.path.join(dataset_dir, URLS_CHECKSUMS_FOLDER_NAME)
+            user_checksums_path = os.path.join(user_urls_checksums_dir, CHECKSUMS_FILE_NAME)
+            os.makedirs(user_urls_checksums_dir, exist_ok=True)
+            copyfile(checksums_path, user_checksums_path)
+            print("Checksums file saved at {}".format(user_checksums_path))
