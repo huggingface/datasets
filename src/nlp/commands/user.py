@@ -7,6 +7,8 @@ from typing import List, Union
 from nlp.commands import BaseTransformersCLICommand
 from nlp.hf_api import HfApi, HfFolder
 from requests.exceptions import HTTPError
+from nlp.utils.file_utils import hf_bucket_url, get_size_checksum
+from nlp.utils.download_manager import store_sizes_checksum
 
 UPLOAD_MAX_FILES = 15
 
@@ -36,6 +38,9 @@ class UserCommands(BaseTransformersCLICommand):
         upload_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
         upload_parser.add_argument(
             "--filename", type=str, default=None, help="Optional: override individual object filename on S3."
+        )
+        upload_parser.add_argument(
+            "--register_checksums", action="store_true", help="Upload the checksums file on S3 with the dataset"
         )
         upload_parser.set_defaults(func=lambda args: UploadCommand(args))
 
@@ -159,7 +164,8 @@ class DeleteObjCommand(BaseUserCommand):
 
 
 class UploadCommand(BaseUserCommand):
-    def walk_dir(self, rel_path):
+
+    def walk_dir(self, rel_path: str):
         """
         Recursively list all files in a folder.
         """
@@ -169,18 +175,39 @@ class UploadCommand(BaseUserCommand):
             if f.is_dir():
                 files += self.walk_dir(f.path)
         return files
+    
+    def _is_data_file(self, local_path: str):
+        return os.path.basename(local_path) != "checksums.txt"
+    
+    def _checksums_file(self, namespace: str, local_path: str, files: list):
+        sizes_checksums = {
+            hf_bucket_url(namespace + "/" + filename): get_size_checksum(local_file_path)
+            for local_file_path, filename in files if self._is_data_file(local_file_path)
+        }
+        urls_checksums_dir = os.path.join(local_path, "urls_checksums")
+        os.makedirs(urls_checksums_dir, exist_ok=True)
+        local_checksums_file = os.path.join(urls_checksums_dir, "checksums.txt")
+        rel_checksums_file = os.path.join(os.path.basename(local_path), "urls_checksums", "checksums.txt")
+        store_sizes_checksum(sizes_checksums, local_checksums_file)
+        return (local_checksums_file, rel_checksums_file)
 
     def run(self):
         token = HfFolder.get_token()
         if token is None:
             print("Not logged in")
             exit(1)
+        
+        user, _ = self._api.whoami(token)
+        namespace = self.args.organization if self.args.organization is not None else user
+
         local_path = os.path.abspath(self.args.path)
         if os.path.isdir(local_path):
             if self.args.filename is not None:
                 raise ValueError("Cannot specify a filename override when uploading a folder.")
             rel_path = os.path.basename(local_path)
             files = self.walk_dir(rel_path)
+            if self.args.register_checksums:
+                files.append(self._checksums_file(namespace, local_path, files))
         elif os.path.isfile(local_path):
             filename = self.args.filename if self.args.filename is not None else os.path.basename(local_path)
             files = [(local_path, filename)]
@@ -197,9 +224,6 @@ class UploadCommand(BaseUserCommand):
                 )
             )
             exit(1)
-
-        user, _ = self._api.whoami(token)
-        namespace = self.args.organization if self.args.organization is not None else user
 
         for filepath, filename in files:
             print(

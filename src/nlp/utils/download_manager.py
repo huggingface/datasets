@@ -271,9 +271,7 @@ class DownloadManager(object):
             logger.info("Checksums tests were ignored.")
     
     def _store_sizes_checksums(self, path):
-        with open(path, 'w') as f:
-            for url, (size, checksum) in sorted(self.get_recorded_sizes_checksums().items()):
-                f.write('%s %s %s\n' % (url, size, checksum))
+        store_sizes_checksum(self.get_recorded_sizes_checksums(), path)
     
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()
@@ -300,3 +298,9 @@ def load_sizes_checksums(checksums_path) -> dict:
     with open(checksums_path, "r") as checksums_file:
         sizes_checksums.update(parse_sizes_checksums(checksums_file))
     return sizes_checksums
+
+
+def store_sizes_checksum(sizes_checksums: dict, path: str):
+    with open(path, 'w') as f:
+        for url, (size, checksum) in sorted(sizes_checksums.items()):
+            f.write('%s %s %s\n' % (url, size, checksum))
