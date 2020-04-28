@@ -385,3 +385,26 @@ def _cast_to_pod(val):
             return float(val)
         except ValueError:
             return str(val)
+def load_metrics(metric_name: str, **kargs):
+    """
+    loading metrics from the lib
+    
+    Args:
+        metric_name: the name of the metric we want to load
+    """
+    if metric_name == 'sacrebleu': 
+        try:
+            import sacrebleu
+        except ImportError:
+            os.system('pip install sacrebleu')
+            import sacrebleu
+        return sacrebleu.corpus_bleu
+    elif metric_name == 'seqeval':
+        try:
+            #import seqeval
+            import seqeval.metrics
+        except ImportError:
+            os.system('pip install seqeval')
+            import seqeval.metrics
+        return seqeval.metrics
+            

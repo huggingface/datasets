@@ -49,7 +49,7 @@ from .builder import (BeamBasedBuilder, BuilderConfig, DatasetBuilder,
 from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
 from .load import (builder, get_builder_cls_from_module, load,
-                   load_dataset_module)
+                   load_dataset_module, load_metrics)
 from .splits import (NamedSplit, Split, SplitBase, SplitDict, SplitGenerator,
                      SplitInfo, SubSplitInfo, percent)
 from .utils import *
