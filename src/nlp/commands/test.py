@@ -64,10 +64,19 @@ class TestCommand(BaseTransformersCLICommand):
         self._ignore_checksums = ignore_checksums
         self._organization = organization
         self._api = HfApi()
+    
+    def _check_ownership(self, datasets_identifier: str, token: str):
+        user, orgas = self._api.whoami(token)
+        if self._organization is not None and self._organization not in orgas:
+            raise ValueError("You are not part of organization {}.".format(self._organization))
+        user_namespace = self._organization if self._organization is not None else user
+        datasets_namespace = datasets_identifier.split("/")[0] if "/" in datasets_identifier else None
+        if datasets_namespace is not None and datasets_namespace != user_namespace:
+            raise ValueError("You don't seem to own the namespace {}. Yours is {}.".format(datasets_namespace, user_namespace))
+
 
     def run(self):
-        path = self._datasets
-        db: DatasetBuilder = builder(path, self._name)
+        db: DatasetBuilder = builder(self._datasets, self._name)
         db.download_and_prepare(download_config=DownloadConfig(
             download_mode=REUSE_CACHE_IF_EXISTS,
             register_checksums=self._register_checksums,
@@ -79,6 +88,7 @@ class TestCommand(BaseTransformersCLICommand):
             if token is None:
                 print("Not logged in. Couln't upload registered checksums.")
                 exit(1)
+            self._check_ownership(self._datasets, token)
             urls_checksums_dir = os.path.dirname(inspect.getfile(db.__class__))
             urls_checksums_dir = os.path.join(urls_checksums_dir, "urls_checksums")
             full_name = db.info.full_name
@@ -93,7 +103,7 @@ class TestCommand(BaseTransformersCLICommand):
                 filename = os.path.basename(local_path)
                 files = [(local_path, os.path.join(remote_checksums_dir, filename))]
             else:
-                raise ValueError("Not a valid directory: {}".format(local_path))
+                raise ValueError("Not a valid file: {}".format(local_path))
 
             if sys.platform == "win32":
                 files = [(filepath, filename.replace(os.sep, "/")) for filepath, filename in files]
