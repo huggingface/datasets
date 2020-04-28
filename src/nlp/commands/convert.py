@@ -14,7 +14,14 @@ HIGHLIGHT_MESSAGE_PRE = """
 HIGHLIGHT_MESSAGE_POST = """=======
 >>>>>>>"""
 
-TO_HIGHLIGHT = ["TextEncoderConfig", "ByteTextEncoder", "SubwordTextEncoder", "encoder_config", "maybe_build_from_corpus"]
+TO_HIGHLIGHT = [
+    "TextEncoderConfig",
+    "ByteTextEncoder",
+    "SubwordTextEncoder",
+    "encoder_config",
+    "maybe_build_from_corpus",
+]
+
 
 def convert_command_factory(args: Namespace):
     """
@@ -36,7 +43,10 @@ class ConvertCommand(BaseTransformersCLICommand):
             "convert", help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
         )
         train_parser.add_argument(
-            "--tfds_path", type=str, required=True, help="Path to a TensorFlow Datasets folder to convert or a single tfds file to convert."
+            "--tfds_path",
+            type=str,
+            required=True,
+            help="Path to a TensorFlow Datasets folder to convert or a single tfds file to convert.",
         )
         train_parser.add_argument(
             "--nlp_directory", type=str, required=True, help="Path to the HuggingFace NLP folder."
@@ -162,4 +172,6 @@ class ConvertCommand(BaseTransformersCLICommand):
 
         if with_manual_update:
             for file_path in with_manual_update:
-                self._logger.warning(f"You need to manually update file {file_path} to remove configurations using 'TextEncoderConfig'.")
+                self._logger.warning(
+                    f"You need to manually update file {file_path} to remove configurations using 'TextEncoderConfig'."
+                )
