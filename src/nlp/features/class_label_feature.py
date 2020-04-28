@@ -29,22 +29,22 @@ class ClassLabel(Tensor):
     def __init__(self, num_classes=None, names=None, names_file=None):
         """Constructs a ClassLabel FeatureConnector.
 
-		There are 3 ways to define a ClassLabel, which correspond to the 3
-		arguments:
+        There are 3 ways to define a ClassLabel, which correspond to the 3
+        arguments:
 
-		 * `num_classes`: create 0 to (num_classes-1) labels
-		 * `names`: a list of label strings
-		 * `names_file`: a file containing the list of labels.
+         * `num_classes`: create 0 to (num_classes-1) labels
+         * `names`: a list of label strings
+         * `names_file`: a file containing the list of labels.
 
-		Note: On python2, the strings are encoded as utf-8.
+        Note: On python2, the strings are encoded as utf-8.
 
-		Args:
-			num_classes: `int`, number of classes. All labels must be < num_classes.
-			names: `list<str>`, string names for the integer classes. The
-				order in which the names are provided is kept.
-			names_file: `str`, path to a file with names for the integer
-				classes, one per line.
-		"""
+        Args:
+            num_classes: `int`, number of classes. All labels must be < num_classes.
+            names: `list<str>`, string names for the integer classes. The
+                order in which the names are provided is kept.
+            names_file: `str`, path to a file with names for the integer
+                classes, one per line.
+        """
         super(ClassLabel, self).__init__(shape=(), dtype=pa.int64)
 
         self._num_classes = None

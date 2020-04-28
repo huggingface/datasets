@@ -43,9 +43,11 @@ import os
 import pdb
 import time
 
-import nlp
 import tensorflow.compat.v2 as tf
 from absl import app, flags
+
+import nlp
+
 
 logger = logging.getLogger(__name__)
 
@@ -122,10 +124,10 @@ def download_and_prepare(builder):
     )
     print(str(builder.info.data))
 
-    if FLAGS.debug:
-        dataset = builder.as_dataset(split=nlp.Split.TRAIN)
-        pdb.set_trace()
-        del dataset
+    # if FLAGS.debug:
+    #     dataset = builder.as_dataset(split=nlp.Split.TRAIN)
+    #     pdb.set_trace()
+    #     del dataset
 
 
 def import_modules(modules):

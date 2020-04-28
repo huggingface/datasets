@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# flake8: noqa
 # Lint as: python3
 """Util import."""
 
@@ -21,5 +22,3 @@ from .file_utils import *
 from .py_utils import *
 from .tqdm_utils import *
 from .version import Experiment, Version
-
-# pylint: enable=wildcard-import

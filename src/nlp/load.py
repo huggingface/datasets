@@ -16,28 +16,29 @@
 # Lint as: python3
 """Access datasets."""
 
-import abc
 import importlib
-import inspect
 import json
 import logging
 import os
 import re
 import shutil
-from typing import Dict, Optional, Union
+from hashlib import sha256
+from pathlib import Path
+from typing import Dict, List, Optional, Union
+from urllib.parse import urlparse
+
+from filelock import FileLock
 
 from . import naming
 from .builder import DatasetBuilder
 from .splits import Split
-from .utils import py_utils
-from .utils.file_utils import (HF_DATASETS_CACHE, cached_path, hf_bucket_url,
-                               is_remote_url, url_to_filename,)
-from .utils.file_utils import path_to_py_script_name
+from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url
+
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "builder"
+    "builder",
     "load",
 ]
 
@@ -45,6 +46,109 @@ __all__ = [
 CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "datasets")
 DATASETS_MODULE = "nlp.datasets"
+
+
+def get_builder_cls_from_module(dataset_module):
+    builder_cls = None
+    for name, obj in dataset_module.__dict__.items():
+        if isinstance(obj, type) and issubclass(obj, DatasetBuilder):
+            builder_cls = obj
+            builder_cls.name = naming.camelcase_to_snakecase(name)
+            break
+    return builder_cls
+
+
+def import_builder_class(dataset_name, dataset_hash):
+    """ Load the module """
+    importlib.invalidate_caches()
+    module_path = ".".join([DATASETS_MODULE, dataset_name, dataset_hash, dataset_name])
+    dataset_module = importlib.import_module(module_path)
+
+    builder_cls = get_builder_cls_from_module(dataset_module)
+    return builder_cls, module_path
+
+
+def files_to_hash(file_paths: List[str]):
+    """
+    Convert a list of scripts or text files provided in file_paths into a hashed filename in a repeatable way.
+    """
+    # List all python files in directories if directories are supplied as part of external imports
+    to_use_files = []
+    for file_path in file_paths:
+        if os.path.isdir(file_path):
+            to_use_files.extend(list(Path(file_path).rglob("*.[pP][yY]")))
+        else:
+            to_use_files.append(file_path)
+
+    # Get the code from all these files
+    lines = []
+    for file_path in to_use_files:
+        with open(file_path, mode="r") as f:
+            lines.extend(f.readlines())
+    filtered_lines = []
+    for line in lines:
+        line.replace("\n", "")  # remove line breaks, white space and comments
+        line.replace(" ", "")
+        line.replace("\t", "")
+        line = re.sub(r"#.*", "", line)
+        if line:
+            filtered_lines.append(line)
+    file_str = "\n".join(filtered_lines)
+
+    # Make a hash from all this code
+    file_bytes = file_str.encode("utf-8")
+    file_hash = sha256(file_bytes)
+    filename = file_hash.hexdigest()
+
+    return filename
+
+
+def _is_github_url(url_or_filename):
+    """ Is this URL pointing to a github repository """
+    parsed = urlparse(url_or_filename)
+    return parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com"
+
+
+def get_imports(file_path: str):
+    """ Find whether we should import or clone additional files for a given processing script.
+        And list the import.
+
+        We allow:
+        - local dependencies and
+        - external dependencies whose url is specified with a comment starting from "# From:' followed by an url to a file, an archive or a github repository.
+            external dependencies will be downloaded (and extracted if needed in the dataset folder).
+            We also add an `__init__.py` to each sub-folder of a downloaded folder so the user can import from them in the script.
+
+        Note that only direct import in the dataset processing script will be handled
+        We don't recursively explore the additional import to download further files.
+
+        ```python
+        import .c4_utils
+        import .clicr.dataset-code.build_json_dataset  # From: https://github.com/clips/clicr
+        ```
+    """
+    lines = []
+    with open(file_path, mode="r") as f:
+        lines.extend(f.readlines())
+
+    logger.info("Checking %s for additional imports.", file_path)
+    imports = []
+    for line in lines:
+        match = re.match(r"(?:from|import)\s+\.([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line)
+        if match is None:
+            continue
+        if match.group(2):
+            url_path = match.group(2)
+            if _is_github_url(url_path):
+                # Parse github url to point to zip
+                repo_info, branch = url_path.split(":") if ":" in url_path else (url_path, "master")
+                repo_owner, repo_name = repo_info.split("/")
+                url_path = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
+            imports.append(("external", url_path))
+        elif match.group(1):
+            imports.append(("internal", match.group(1)))
+
+    return imports
 
 
 def load_dataset_module(
@@ -55,7 +159,7 @@ def load_dataset_module(
     proxies: Optional[Dict] = None,
     local_files_only: bool = False,
     data_dir: Optional[str] = None,
-    **kwargs
+    **kwargs,
 ):
     r"""
         Download/extract/cache a dataset to add to the lib from a path or url which can be:
@@ -70,17 +174,28 @@ def load_dataset_module(
             the local path to the dataset
     """
     if name is None:
-        name = path_to_py_script_name(path)
+        name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
+    if not name.endswith(".py") or "/" in name:
+        raise ValueError("The provided name should be the filename of a python script (ends with '.py')")
+
+    # We have three ways to find the dataset processing file:
+    # - if os.path.join(path, name) is a file or a remote url
+    # - if path is a file or a remote url
+    # - otherwise we assume path/name is a path to our S3 bucket
     combined_path = os.path.join(path, name)
-    if os.path.isfile(path) or is_remote_url(path):
-        dataset_file = path
-    elif os.path.isfile(combined_path) or is_remote_url(combined_path):
+    if os.path.isfile(combined_path) or is_remote_url(combined_path):
         dataset_file = combined_path
+    elif os.path.isfile(path) or is_remote_url(path):
+        dataset_file = path
     else:
         dataset_file = hf_bucket_url(path, postfix=name)
 
-    # Get the file on our local file system (either cache_dir or already local path)
+    dataset_base_path = os.path.dirname(dataset_file)  # remove the filename
+
+    # Load the module in two steps:
+    # 1. get the dataset processing file on the local filesystem if it's not there (download to cache dir)
+    # 2. copy from the local file system inside the library to import it
     local_path = cached_path(
         dataset_file,
         cache_dir=data_dir,
@@ -90,57 +205,109 @@ def load_dataset_module(
         local_files_only=local_files_only,
     )
 
+    # Download external imports if needed
+    imports = get_imports(local_path)
+    local_imports = []
+    for import_type, import_name_or_path in imports:
+        if import_type == "internal":
+            url_or_filename = dataset_base_path + "/" + import_name_or_path + ".py"
+        elif import_type == "external":
+            url_or_filename = import_name_or_path
+        else:
+            raise ValueError("Script import should be external or internal.")
+
+        local_import_path = cached_path(
+            url_or_filename,
+            cache_dir=data_dir,
+            force_download=force_reload,
+            extract_compressed_file=True,
+            force_extract=force_reload,
+            local_files_only=local_files_only,
+        )
+        local_imports.append(local_import_path)
+
     # Define a directory with a unique name in our dataset folder
-    dataset_id = url_to_filename(local_path)
-    dataset_folder_path = os.path.join(DATASETS_PATH, dataset_id)
-    dataset_file_path = os.path.join(dataset_folder_path, name)
+    # path is: ./datasets/dataset_name/hash_from_code/script.py
+    # we use a hash to be able to have multiple versions of a dataset processing file together
+    dataset_name = name[:-3]  # Removing the '.py' at the end
+    dataset_hash = files_to_hash([local_path] + local_imports)
+    dataset_main_folder_path = os.path.join(DATASETS_PATH, dataset_name)
+    dataset_hash_folder_path = os.path.join(dataset_main_folder_path, dataset_hash)
+    dataset_file_path = os.path.join(dataset_hash_folder_path, name)
 
-    # Check if the dataset directory was already there
-    if os.path.exists(dataset_file_path) and not force_reload:
-        logger.info(
-            "Dataset script %s already found in datasets directory at %s, returning it. Use `force_reload=True` to override.",
-            local_path,
-            dataset_file_path,
-        )
-    else:
-        # Create directory for dataset in DATASETS_PATH
-        logger.info(
-            "Creating unique folder for dataset %s in datasets directory at %s", local_path, dataset_folder_path
-        )
-        shutil.rmtree(dataset_folder_path, ignore_errors=True)
-        os.makedirs(dataset_folder_path)
+    # Prevent parallel disk operations
+    lock_path = local_path + ".lock"
+    with FileLock(lock_path):
+        # Create main dataset folder if needed
+        if not os.path.exists(dataset_main_folder_path):
+            logger.info("Creating main folder for dataset %s at %s", dataset_file, dataset_main_folder_path)
+            os.makedirs(dataset_main_folder_path, exist_ok=True)
+        else:
+            logger.info("Found main folder for dataset %s at %s", dataset_file, dataset_main_folder_path)
 
-        # Copy dataset.py file there
-        shutil.copyfile(local_path, dataset_file_path)
+        # add an __init__ file to the main dataset folder if needed
+        init_file_path = os.path.join(dataset_main_folder_path, "__init__.py")
+        if not os.path.exists(init_file_path):
+            with open(init_file_path, "w"):
+                pass
+
+        # Create hash dataset folder if needed
+        if not os.path.exists(dataset_hash_folder_path):
+            logger.info(
+                "Creating specific version folder for dataset %s at %s", dataset_file, dataset_hash_folder_path
+            )
+            os.makedirs(dataset_hash_folder_path)
+        else:
+            logger.info("Found specific version folder for dataset %s at %s", dataset_file, dataset_hash_folder_path)
+
+        # add an __init__ file to the hash dataset folder if needed
+        init_file_path = os.path.join(dataset_hash_folder_path, "__init__.py")
+        if not os.path.exists(init_file_path):
+            with open(init_file_path, "w"):
+                pass
+
+        # Copy dataset.py file in hash folder if needed
+        if not os.path.exists(dataset_file_path):
+            logger.info("Copying script file from %s to %s", dataset_file, dataset_file_path)
+            shutil.copyfile(local_path, dataset_file_path)
+        else:
+            logger.info("Found script file from %s to %s", dataset_file, dataset_file_path)
 
         # Record metadata associating original dataset path with local unique folder
-        logger.info("Creating metadata file for dataset %s at %s", local_path, dataset_file_path + ".json")
-        meta = {"original path": local_path, "library path": dataset_file_path}
-        # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
         meta_path = dataset_file_path.split(".py")[0] + ".json"
-        with open(meta_path, "w") as meta_file:
-            json.dump(meta, meta_file)
+        if not os.path.exists(meta_path):
+            logger.info("Creating metadata file for dataset %s at %s", dataset_file, meta_path)
+            meta = {"original file path": dataset_file, "local file path": dataset_file_path}
+            # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
+            with open(meta_path, "w") as meta_file:
+                json.dump(meta, meta_file)
+        else:
+            logger.info("Found metadata file for dataset %s at %s", dataset_file, meta_path)
 
-        # Add an empty __init__ file to load the module
-        init_file_path = os.path.join(dataset_folder_path, "__init__.py")
-        with open(init_file_path, "w"):
-            pass
+        # Copy all the additional imports
+        for local_import in local_imports:
+            tail_name = os.path.basename(os.path.abspath(local_import))  # keep the last file or directory
+            dataset_local_import = os.path.join(dataset_hash_folder_path, tail_name)
+            if not os.path.exists(dataset_local_import):
+                logger.info("Copying local import from %s to %s", local_import, dataset_local_import)
+                if os.path.isdir(local_import):
+                    shutil.copytree(local_import, dataset_local_import)
+                    # add an __init__ file to the sub-directories in the copied folder if needed
+                    # so people can relatively import from them
+                    for root, dirs, files in os.walk(dataset_local_import, topdown=False):
+                        if "__init__.py" not in files:
+                            init_file_path = os.path.join(root, "__init__.py")
+                            with open(init_file_path, "w"):
+                                pass
+                elif os.path.isfile(local_import):
+                    shutil.copyfile(local_import, dataset_local_import)
+                else:
+                    raise ValueError(f"Error when copying {local_import} to {dataset_local_import}")
+            else:
+                logger.info("Found local import from %s to %s", local_import, dataset_local_import)
 
-    importlib.invalidate_caches()
-    module_name = name.replace(".py", "")
-    module_path = ".".join([DATASETS_MODULE, dataset_id, module_name])
-    dataset_module = importlib.import_module(module_path)
+    builder_cls, _ = import_builder_class(dataset_name, dataset_hash)
 
-    return dataset_module
-
-
-def get_builder_cls_from_module(dataset_module):
-    builder_cls = None
-    for name, obj in dataset_module.__dict__.items():
-        if isinstance(obj, type) and issubclass(obj, DatasetBuilder):
-            builder_cls = obj
-            builder_cls.name = naming.camelcase_to_snakecase(name)
-            break
     return builder_cls
 
 
@@ -172,8 +339,7 @@ def builder(path: str, name: Optional[str] = None, **builder_init_kwargs):
         builder_kwargs.update(builder_init_kwargs)
     else:
         builder_kwargs = builder_init_kwargs
-    builder_module = load_dataset_module(path, name=name)
-    builder_cls = get_builder_cls_from_module(builder_module)
+    builder_cls = load_dataset_module(path, name=name)
     builder_instance = builder_cls(**builder_kwargs)
     return builder_instance
 
@@ -357,7 +523,7 @@ def _dataset_name_and_kwargs_from_name_str(name_str):
                 raise ValueError("Dataset %s: cannot pass %s twice." % (name, attr))
             kwargs[attr] = val
         return name, kwargs
-    except:
+    except:  # noqa: E722
         logger.error(_NAME_STR_ERR.format(name_str))  # pylint: disable=logging-format-interpolation
         raise
 

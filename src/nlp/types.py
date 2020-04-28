@@ -18,7 +18,6 @@
 
 import logging
 
-import pyarrow as pa
 
 logger = logging.getLogger(__name__)
 

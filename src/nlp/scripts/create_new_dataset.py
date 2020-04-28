@@ -25,8 +25,10 @@ python -m nlp.scripts.create_new_dataset \
 import os
 
 from absl import app, flags
+
 from nlp import naming  # pylint: disable=g-import-not-at-top
 from nlp import py_utils
+
 
 FLAGS = flags.FLAGS
 
@@ -181,7 +183,7 @@ def create_dataset_test_file(root_dir, data):
 def create_fake_data(root_dir, data):
     fake_examples_dir = os.path.join(root_dir, "testing", "test_data", "fake_examples", "{dataset_name}")
     fake_examples_dir = fake_examples_dir.format(**data)
-    gfile.makedirs(fake_examples_dir)
+    os.makedirs(fake_examples_dir)
 
     fake_path = os.path.join(fake_examples_dir, "TODO-add_fake_data_in_this_directory.txt")
     with open(fake_path, "w") as f:

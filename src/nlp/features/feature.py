@@ -85,9 +85,7 @@ This file contains the following FeatureConnector:
 """
 
 import abc
-import collections
 
-import numpy as np
 import pyarrow as pa
 
 
@@ -255,55 +253,6 @@ class FeatureConnector(metaclass=abc.ABCMeta):
                 object
         """
         return tfexample_data
-
-    def decode_batch_example(self, tfexample_data):
-        """Decode multiple features batched in a single pa.Tensor.
-
-        This function is used to decode features wrapped in
-        `nlp.features.Sequence()`.
-        By default, this function apply `decode_example` on each individual
-        elements using `pa.map_fn`. However, for optimization, features can
-        overwrite this method to apply a custom batch decoding.
-
-        Args:
-            tfexample_data: Same `pa.Tensor` inputs as `decode_example`, but with
-                and additional first dimension for the sequence length.
-
-        Returns:
-            tensor_data: Tensor or dictionary of tensor, output of the pa.data.Dataset
-                object
-        """
-        # Note: This all works fine in Eager mode (without pa.function) because
-        # pa.data pipelines are always executed in Graph mode.
-
-        # Apply the decoding to each of the individual distributed features.
-        return tf.map_fn(
-            self.decode_example,
-            tfexample_data,
-            dtype=self.dtype,
-            parallel_iterations=10,
-            back_prop=False,
-            name="sequence_decode",
-        )
-
-    def decode_ragged_example(self, tfexample_data):
-        """Decode nested features from a pa.RaggedTensor.
-
-        This function is used to decode features wrapped in nested
-        `nlp.features.Sequence()`.
-        By default, this function apply `decode_batch_example` on the flat values
-        of the ragged tensor. For optimization, features can
-        overwrite this method to apply a custom batch decoding.
-
-        Args:
-            tfexample_data: `pa.RaggedTensor` inputs containing the nested encoded
-                examples.
-
-        Returns:
-            tensor_data: The decoded `pa.RaggedTensor` or dictionary of tensor,
-                output of the pa.data.Dataset object
-        """
-        return tf.ragged.map_flat_values(self.decode_batch_example, tfexample_data)
 
     def _flatten(self, x):
         """Flatten the input dict into a list of values.

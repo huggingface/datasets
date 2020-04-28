@@ -28,6 +28,7 @@ from tqdm import tqdm
 
 from .arrow_writer import ArrowWriter
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -114,7 +115,7 @@ class Dataset(object):
 
     def drop(self, columns: Union[str, List[str]]):
         """ Drop one or more columns.
-        
+
         Args:
             columns: list of str
         """
@@ -130,7 +131,7 @@ class Dataset(object):
 
     def unique(self, column: str):
         """ Return a list of the unque elements in a column.
-        
+
         Args:
             columns: str
         """
@@ -142,7 +143,7 @@ class Dataset(object):
         """ Dictionary encode a column.
             Dictionnary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
             by storing a dictionnary of the strings. This only affect the internal storage.
-        
+
         Args:
             columns: str
         """
@@ -184,12 +185,12 @@ class Dataset(object):
         # Check return type
         if type == "torch":
             try:
-                import torch
+                import torch  # noqa: F401
             except ImportError:
                 logger.error("PyTorch needs to be installed to be able to return PyTorch tensors.")
         elif type == "tensorflow":
             try:
-                import tensorflow
+                import tensorflow  # noqa: F401
             except ImportError:
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
         else:
@@ -237,7 +238,11 @@ class Dataset(object):
 
             command = tensorflow.ragged.constant
         else:
-            command = lambda x: x
+
+            def identity(x):
+                return x
+
+            command = identity
 
         try:
             if isinstance(outputs, (list, tuple)):
@@ -352,7 +357,7 @@ class Dataset(object):
     ):
         """ Apply a function to all the elements in the table (individually or in batches)
             and update the table (if function does updated examples).
-            
+
             Args:
                 `function` (`callable`): with one of the following signature:
                     - `function(example: Dict) -> Union[Dict, Any]` if `batched=False` and `with_indices=False`
@@ -401,11 +406,19 @@ class Dataset(object):
             does_return_dict = isinstance(processed_inputs, Mapping)
 
             if does_return_dict is False and processed_inputs is not None:
-                raise TypeError("Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` if you are only interested in side effects.".format(type(processed_inputs)))
+                raise TypeError(
+                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` if you are only interested in side effects.".format(
+                        type(processed_inputs)
+                    )
+                )
             elif isinstance(test_indices, list) and does_return_dict is True:
                 all_dict_values_are_lists = all(isinstance(value, list) for value in processed_inputs.values())
                 if all_dict_values_are_lists is False:
-                    raise TypeError("Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types `list`.".format([type(x) for x in processed_inputs.values()]))
+                    raise TypeError(
+                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types `list`.".format(
+                            [type(x) for x in processed_inputs.values()]
+                        )
+                    )
 
             return does_return_dict
 

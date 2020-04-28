@@ -68,6 +68,7 @@ REQUIRED_PKGS = [
 
 TESTS_REQUIRE = [
     'apache-beam',
+    'parameterized',
     'jupyter',
     'pytest',
     'pytest-xdist',
@@ -98,6 +99,11 @@ EXTRAS_REQUIRE = {
     # Tests dependencies are installed in ./oss_scripts/oss_pip_install.sh
     # and run in ./oss_scripts/oss_tests.sh
     'tests': TESTS_REQUIRE + all_dataset_extras,
+    'quality': [
+    "black",
+    "isort @ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort",
+    "flake8",
+]
 }
 EXTRAS_REQUIRE.update(DATASET_EXTRAS)
 
