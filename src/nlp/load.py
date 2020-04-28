@@ -87,10 +87,10 @@ def files_to_hash(file_paths: List[str]):
             lines.extend(f.readlines())
     filtered_lines = []
     for line in lines:
-        line.replace('\n', '')  # remove line breaks, white space and comments
-        line.replace(' ', '')
-        line.replace('\t', '')
-        line = re.sub(r"#.*", '', line)
+        line.replace("\n", "")  # remove line breaks, white space and comments
+        line.replace(" ", "")
+        line.replace("\t", "")
+        line = re.sub(r"#.*", "", line)
         if line:
             filtered_lines.append(line)
     file_str = "\n".join(filtered_lines)
