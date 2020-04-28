@@ -9,7 +9,7 @@ from nlp.builder import DatasetBuilder, REUSE_CACHE_IF_EXISTS
 from nlp.commands import BaseTransformersCLICommand
 from nlp.load import HF_DATASETS_CACHE, builder
 from nlp.utils import DownloadConfig
-from nlp.utils.file_utils import hf_bucket_url, path_to_py_script_name, name_to_py_script_name
+from nlp.utils.file_utils import hf_bucket_url
 from nlp.utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
 from nlp.hf_api import HfApi, HfFolder
 
@@ -97,12 +97,12 @@ class TestCommand(BaseTransformersCLICommand):
             checksums_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
 
             if name is None:
-                py_script_name = path_to_py_script_name(path)
-                name = py_script_name[:-3]  # remove .py
-            else:
-                py_script_name = name_to_py_script_name(name)
+                name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
-            combined_path = os.path.join(path, py_script_name)
+            if not name.endswith(".py") or "/" in name:
+                raise ValueError("The provided name should be the filename of a python script (ends with '.py')")
+
+            combined_path = os.path.join(path, name)
             if os.path.isfile(path):
                 dataset_dir = os.path.dirname(path)
             elif os.path.isfile(combined_path):

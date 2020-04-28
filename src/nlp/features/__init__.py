@@ -1,3 +1,4 @@
+# flake8: noqa
 # coding=utf-8
 # Copyright 2020 The HuggingFace NLP Authors and the TensorFlow Datasets Authors.
 #
@@ -21,6 +22,7 @@ from .feature import FeatureConnector, Tensor, TensorInfo
 from .features_dict import FeaturesDict, Sequence
 from .text_feature import Text
 from .translation_feature import Translation, TranslationVariableLanguages
+
 
 __all__ = [
     "ClassLabel",

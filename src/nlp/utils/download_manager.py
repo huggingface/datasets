@@ -178,11 +178,11 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
-        downloaded_path_or_paths = map_nested(lambda url_or_urls: cached_path(
-            url_or_urls,
-            cache_dir=self._download_dir,
-            force_download=self._force_download,
-        ), url_or_urls)
+        downloaded_path_or_paths = map_nested(
+            lambda url_or_urls: cached_path(
+                url_or_urls, cache_dir=self._download_dir, force_download=self._force_download),
+            url_or_urls
+        )
         self._check_missing_files(url_or_urls, downloaded_path_or_paths)
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
@@ -217,11 +217,10 @@ class DownloadManager(object):
             extracted_path(s): `str`, The extracted paths matching the given input
                 path_or_paths.
         """
-        return map_nested(lambda path_or_paths: cached_path(
+        return map_nested(
+            lambda path_or_paths: cached_path(path_or_paths, extract_compressed_file=True, force_extract=True),
             path_or_paths,
-            extract_compressed_file=True,
-            force_extract=True
-        ), path_or_paths)
+        )
 
     def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.

@@ -17,19 +17,18 @@
 """ Arrow ArrowReader."""
 
 import copy
-import functools
 import math
 import os
 import re
 from dataclasses import dataclass
 from typing import List, Optional
 
-import numpy as np
 import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .naming import filename_for_dataset_split
 from .utils import py_utils
+
 
 _BUFFER_SIZE = 8 << 20  # 8 MiB per file.
 

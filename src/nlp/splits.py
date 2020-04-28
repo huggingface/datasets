@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 
 import abc
 import collections
-import operator
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union
 
@@ -420,7 +419,7 @@ class Split(object):
 
 
 # Similar to SplitInfo, but contain an additional slice info
-SlicedSplitInfo = collections.namedtuple("SlicedSplitInfo", ["split_info", "slice_value",])
+SlicedSplitInfo = collections.namedtuple("SlicedSplitInfo", ["split_info", "slice_value",])  # noqa: E231
 
 
 class SplitReadInstruction(object):

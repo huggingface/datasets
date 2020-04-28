@@ -5,29 +5,27 @@ Copyright by the AllenNLP authors.
 """
 
 import fnmatch
-import importlib
+import gzip
 import json
 import logging
 import os
 import shutil
 import sys
 import tarfile
-import gzip
 import tempfile
 from contextlib import contextmanager
-from functools import partial, wraps
+from functools import partial
 from hashlib import sha256
 from typing import Optional, Tuple
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
 import requests
-from botocore.config import Config
-from botocore.exceptions import ClientError
 from filelock import FileLock
 from tqdm.auto import tqdm
 
 from .. import __version__
+
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -96,10 +94,6 @@ def path_to_py_script_name(path):
     return list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
 
-def name_to_py_script_name(name):
-    return name.split("/")[0] + ".py"
-
-
 def hf_bucket_url(identifier, postfix=None, cdn=False) -> str:
     endpoint = CLOUDFRONT_DISTRIB_PREFIX if cdn else S3_BUCKET_PREFIX
     if postfix is None:
@@ -126,36 +120,10 @@ def url_to_filename(url, etag=None):
         etag_hash = sha256(etag_bytes)
         filename += "." + etag_hash.hexdigest()
 
-    if url.endswith(".h5"):
-        filename += ".h5"
+    if url.endswith(".py"):
+        filename += ".py"
 
     return filename
-
-
-def filename_to_url(filename, cache_dir=None):
-    """
-    Return the url and etag (which may be ``None``) stored for `filename`.
-    Raise ``EnvironmentError`` if `filename` or its stored metadata do not exist.
-    """
-    if cache_dir is None:
-        cache_dir = HF_DATASETS_CACHE
-    if isinstance(cache_dir, Path):
-        cache_dir = str(cache_dir)
-
-    cache_path = os.path.join(cache_dir, filename)
-    if not os.path.exists(cache_path):
-        raise EnvironmentError("file {} not found".format(cache_path))
-
-    meta_path = cache_path + ".json"
-    if not os.path.exists(meta_path):
-        raise EnvironmentError("file {} not found".format(meta_path))
-
-    with open(meta_path, encoding="utf-8") as meta_file:
-        metadata = json.load(meta_file)
-    url = metadata["url"]
-    etag = metadata["etag"]
-
-    return url, etag
 
 
 def cached_path(
@@ -244,8 +212,8 @@ def cached_path(
                 tar_file.close()
             elif is_gzip(output_path):
                 os.rmdir(output_path_extracted)
-                with gzip.open(output_path, 'rb') as gzip_file:
-                    with open(output_path_extracted, 'wb') as extracted_file:
+                with gzip.open(output_path, "rb") as gzip_file:
+                    with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(gzip_file, extracted_file)
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
@@ -400,7 +368,7 @@ def get_from_cache(
 
 def is_gzip(path: str) -> bool:
     """from https://stackoverflow.com/a/60634210"""
-    with gzip.open(path, 'r') as fh:
+    with gzip.open(path, "r") as fh:
         try:
             fh.read(1)
             return True

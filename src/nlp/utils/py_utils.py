@@ -30,6 +30,7 @@ from shutil import disk_usage
 
 from .file_utils import INCOMPLETE_SUFFIX
 
+
 # NOTE: When used on an instance method, the cache is shared across all
 # instances and IS NOT per-instance.
 # See
@@ -70,7 +71,7 @@ def is_notebook():
 
         if "IPKernelApp" not in get_ipython().config:
             return False  # Run in a IPython terminal
-    except:  # pylint: disable=bare-except
+    except:  # noqa: E722
         return False
     else:
         return True
