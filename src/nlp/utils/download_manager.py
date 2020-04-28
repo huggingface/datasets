@@ -21,15 +21,20 @@ import logging
 import os
 
 from .checksums_utils import load_sizes_checksums, store_sizes_checksum
-from .file_utils import HF_DATASETS_CACHE, cached_path, get_size_checksum
-from .py_utils import flatten_nest_dict, map_nested
-from .checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
+from .file_utils import HF_DATASETS_CACHE, cached_path
+from .py_utils import flatten_nested, map_nested
+from .checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME, get_size_checksum
 
 logger = logging.getLogger(__name__)
 
 
+class MissingFileError(Exception):
+    """A dataset file is missing."""
+
+
 class MissingChecksumError(Exception):
   """The expected checksum of the download file is missing."""
+
 
 class NonMatchingChecksumError(Exception):
   """The downloaded file doesn't have expected checksum."""
@@ -146,19 +151,21 @@ class DownloadManager(object):
     def downloaded_size(self):
         """Returns the total size of downloaded files."""
         return sum(size for size, sha256 in self._recorded_sizes_checksums.values())
+    
+    def _check_missing_files(self, url_or_urls, downloaded_path_or_paths):
+        flattened_urls_or_urls = flatten_nested(url_or_urls)
+        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
+        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
+            if path is None:
+                raise MissingFileError("Couldn't get file {}.".format(url))
+
 
     def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
         """Record size/checksum of downloaded files."""
-        if isinstance(url_or_urls, str):
-            url, path = url_or_urls, downloaded_path_or_paths
+        flattened_urls_or_urls = flatten_nested(url_or_urls)
+        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
+        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             self._recorded_sizes_checksums[url] = get_size_checksum(path)
-            return
-        elif isinstance(url_or_urls, dict):
-            url_or_urls = list(flatten_nest_dict(url_or_urls).values())
-            downloaded_path_or_paths = list(flatten_nest_dict(downloaded_path_or_paths).values())
-        assert isinstance(url_or_urls, (list, tuple))
-        for url, path in zip(url_or_urls, downloaded_path_or_paths):
-            self._recorded_sizes_checksums[url] = get_size_checksum(path) 
 
     def download(self, url_or_urls):
         """Download given url(s).
@@ -176,6 +183,7 @@ class DownloadManager(object):
             cache_dir=self._download_dir,
             force_download=self._force_download,
         ), url_or_urls)
+        self._check_missing_files(url_or_urls, downloaded_path_or_paths)
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
 
