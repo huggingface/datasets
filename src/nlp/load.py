@@ -58,7 +58,7 @@ def get_builder_cls_from_module(dataset_module):
     return builder_cls
 
 
-def load_builder(dataset_name, dataset_hash):
+def import_builder_class(dataset_name, dataset_hash):
     """ Load the module """
     importlib.invalidate_caches()
     module_path = ".".join([DATASETS_MODULE, dataset_name, dataset_hash, dataset_name])
@@ -85,7 +85,15 @@ def files_to_hash(file_paths: List[str]):
     for file_path in to_use_files:
         with open(file_path, mode="r") as f:
             lines.extend(f.readlines())
-    file_str = "\n".join(lines)
+    filtered_lines = []
+    for line in lines:
+        line.replace('\n', '')  # remove line breaks, white space and comments
+        line.replace(' ', '')
+        line.replace('\t', '')
+        line = re.sub(r"#.*", '', line)
+        if line:
+            filtered_lines.append(line)
+    file_str = "\n".join(filtered_lines)
 
     # Make a hash from all this code
     file_bytes = file_str.encode("utf-8")
@@ -298,7 +306,7 @@ def load_dataset_module(
             else:
                 logger.info("Found local import from %s to %s", local_import, dataset_local_import)
 
-    builder_cls, _ = load_builder(dataset_name, dataset_hash)
+    builder_cls, _ = import_builder_class(dataset_name, dataset_hash)
 
     return builder_cls
 
