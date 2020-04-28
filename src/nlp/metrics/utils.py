@@ -35,12 +35,4 @@ def n_grams(sequence, n):
         ngrams[ngram] += 1
     return ngrams
         
-if __name__ == '__main__':
-
-    sequence = 'my name is mariama'
-    tokens  = tokenize(sequence)
-    ngrams = n_grams(tokens, 3)
-    print(ngrams)
-    matches_by_order = [0] * 4
-    print(matches_by_order)
     
