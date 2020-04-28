@@ -25,7 +25,6 @@ import logging
 import os
 import shutil
 import sys
-import inspect
 
 from . import splits as splits_lib
 from . import utils
