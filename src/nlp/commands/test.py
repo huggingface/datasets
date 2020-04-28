@@ -5,6 +5,7 @@ from shutil import copyfile
 
 from nlp.builder import REUSE_CACHE_IF_EXISTS, DatasetBuilder
 from nlp.commands import BaseTransformersCLICommand
+from nlp.hf_api import HfApi
 from nlp.load import builder
 from nlp.utils import DownloadConfig
 from nlp.utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME

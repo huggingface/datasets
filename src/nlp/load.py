@@ -33,7 +33,7 @@ from . import naming
 from .builder import DatasetBuilder
 from .splits import Split
 from .utils import py_utils
-from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url, url_to_filename
+from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url
 
 
 logger = logging.getLogger(__name__)
@@ -309,16 +309,6 @@ def load_dataset_module(
 
     builder_cls, _ = import_builder_class(dataset_name, dataset_hash)
 
-    return builder_cls
-
-
-def get_builder_cls_from_module(dataset_module):
-    builder_cls = None
-    for name, obj in dataset_module.__dict__.items():
-        if isinstance(obj, type) and issubclass(obj, DatasetBuilder):
-            builder_cls = obj
-            builder_cls.name = naming.camelcase_to_snakecase(name)
-            break
     return builder_cls
 
 

@@ -20,13 +20,7 @@ import enum
 import logging
 import os
 
-from .checksums_utils import (
-    CHECKSUMS_FILE_NAME,
-    URLS_CHECKSUMS_FOLDER_NAME,
-    get_size_checksum,
-    load_sizes_checksums,
-    store_sizes_checksum,
-)
+from .checksums_utils import CHECKSUMS_FILE_NAME, get_size_checksum, load_sizes_checksums, store_sizes_checksum
 from .file_utils import HF_DATASETS_CACHE, cached_path
 from .py_utils import flatten_nested, map_nested
 
