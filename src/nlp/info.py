@@ -33,10 +33,10 @@ processed the dataset as well:
 
 import logging
 import os
+import posixpath
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-import posixpath
 from dataclasses_json import dataclass_json
 
 from .splits import SplitDict, check_splits_equals

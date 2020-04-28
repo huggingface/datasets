@@ -31,9 +31,9 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
+from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE
-from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 
 
 logger = logging.getLogger(__name__)
@@ -476,7 +476,7 @@ class DatasetBuilder:
             manual_dir_instructions=self.MANUAL_DOWNLOAD_INSTRUCTIONS,
             force_download=(download_config.download_mode == FORCE_REDOWNLOAD),
             ignore_checksums=download_config.ignore_checksums,
-            register_checksums=download_config.register_checksums
+            register_checksums=download_config.register_checksums,
         )
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):

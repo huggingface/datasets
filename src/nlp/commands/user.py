@@ -8,9 +8,14 @@ from requests.exceptions import HTTPError
 
 from nlp.commands import BaseTransformersCLICommand
 from nlp.hf_api import HfApi, HfFolder
-from requests.exceptions import HTTPError
+from nlp.utils.checksums_utils import (
+    CHECKSUMS_FILE_NAME,
+    URLS_CHECKSUMS_FOLDER_NAME,
+    get_size_checksum,
+    store_sizes_checksum,
+)
 from nlp.utils.file_utils import hf_bucket_url
-from nlp.utils.checksums_utils import store_sizes_checksum, get_size_checksum, URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
+
 
 UPLOAD_MAX_FILES = 15
 
@@ -166,7 +171,6 @@ class DeleteObjCommand(BaseUserCommand):
 
 
 class UploadCommand(BaseUserCommand):
-
     def walk_dir(self, rel_path: str):
         """
         Recursively list all files in a folder.
@@ -177,19 +181,22 @@ class UploadCommand(BaseUserCommand):
             if f.is_dir():
                 files += self.walk_dir(f.path)
         return files
-    
+
     def _is_data_file(self, local_path: str):
         return os.path.basename(local_path) != CHECKSUMS_FILE_NAME
-    
+
     def _checksums_file(self, namespace: str, local_path: str, files: list):
         sizes_checksums = {
             hf_bucket_url(namespace + "/" + filename): get_size_checksum(local_file_path)
-            for local_file_path, filename in files if self._is_data_file(local_file_path)
+            for local_file_path, filename in files
+            if self._is_data_file(local_file_path)
         }
         urls_checksums_dir = os.path.join(local_path, URLS_CHECKSUMS_FOLDER_NAME)
         os.makedirs(urls_checksums_dir, exist_ok=True)
         local_checksums_file = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
-        rel_checksums_file = os.path.join(os.path.basename(local_path), URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME)
+        rel_checksums_file = os.path.join(
+            os.path.basename(local_path), URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
+        )
         store_sizes_checksum(sizes_checksums, local_checksums_file)
         return (local_checksums_file, rel_checksums_file)
 
@@ -198,7 +205,7 @@ class UploadCommand(BaseUserCommand):
         if token is None:
             print("Not logged in")
             exit(1)
-        
+
         user, _ = self._api.whoami(token)
         namespace = self.args.organization if self.args.organization is not None else user
 

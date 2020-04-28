@@ -20,10 +20,16 @@ import enum
 import logging
 import os
 
-from .checksums_utils import load_sizes_checksums, store_sizes_checksum
+from .checksums_utils import (
+    CHECKSUMS_FILE_NAME,
+    URLS_CHECKSUMS_FOLDER_NAME,
+    get_size_checksum,
+    load_sizes_checksums,
+    store_sizes_checksum,
+)
 from .file_utils import HF_DATASETS_CACHE, cached_path
 from .py_utils import flatten_nested, map_nested
-from .checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME, get_size_checksum
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +39,11 @@ class MissingFileError(Exception):
 
 
 class MissingChecksumError(Exception):
-  """The expected checksum of the download file is missing."""
+    """The expected checksum of the download file is missing."""
 
 
 class NonMatchingChecksumError(Exception):
-  """The downloaded file doesn't have expected checksum."""
+    """The downloaded file doesn't have expected checksum."""
 
 
 class GenerateMode(enum.Enum):
@@ -142,23 +148,23 @@ class DownloadManager(object):
         self._ignore_checksums = ignore_checksums
         self._register_checksums = register_checksums
         if ignore_checksums and register_checksums:
-            raise ValueError("Parameters `ignore_checksums` and `register_checksums` "
-            "shouldn't be True at the same time.")
+            raise ValueError(
+                "Parameters `ignore_checksums` and `register_checksums` " "shouldn't be True at the same time."
+            )
         # To record what is being used: {url: (size, checksum)}
         self._recorded_sizes_checksums = {}
-    
+
     @property
     def downloaded_size(self):
         """Returns the total size of downloaded files."""
         return sum(size for size, sha256 in self._recorded_sizes_checksums.values())
-    
+
     def _check_missing_files(self, url_or_urls, downloaded_path_or_paths):
         flattened_urls_or_urls = flatten_nested(url_or_urls)
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
         for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             if path is None:
                 raise MissingFileError("Couldn't get file {}.".format(url))
-
 
     def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
         """Record size/checksum of downloaded files."""
@@ -180,8 +186,9 @@ class DownloadManager(object):
         """
         downloaded_path_or_paths = map_nested(
             lambda url_or_urls: cached_path(
-                url_or_urls, cache_dir=self._download_dir, force_download=self._force_download),
-            url_or_urls
+                url_or_urls, cache_dir=self._download_dir, force_download=self._force_download
+            ),
+            url_or_urls,
         )
         self._check_missing_files(url_or_urls, downloaded_path_or_paths)
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
@@ -255,7 +262,7 @@ class DownloadManager(object):
                 )
             )
         return self._manual_dir
-    
+
     def check_or_register_checksums(self, urls_checksums_dir):
         if not self._ignore_checksums:
             checksums_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
@@ -274,9 +281,9 @@ class DownloadManager(object):
                 logger.info("All checksums matched successfully.")
         else:
             logger.info("Checksums tests were ignored.")
-    
+
     def _store_sizes_checksums(self, path):
         store_sizes_checksum(self.get_recorded_sizes_checksums(), path)
-    
+
     def get_recorded_sizes_checksums(self):
         return self._recorded_sizes_checksums.copy()

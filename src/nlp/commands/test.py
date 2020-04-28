@@ -1,24 +1,28 @@
-from argparse import ArgumentParser
 import inspect
 import os
-import sys
-from typing import List
+from argparse import ArgumentParser
 from shutil import copyfile
 
-from nlp.builder import DatasetBuilder, REUSE_CACHE_IF_EXISTS
+from nlp.builder import REUSE_CACHE_IF_EXISTS, DatasetBuilder
 from nlp.commands import BaseTransformersCLICommand
-from nlp.load import HF_DATASETS_CACHE, builder
+from nlp.load import builder
 from nlp.utils import DownloadConfig
-from nlp.utils.file_utils import hf_bucket_url
-from nlp.utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
-from nlp.hf_api import HfApi, HfFolder
+from nlp.utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 
 
 UPLOAD_MAX_FILES = 15
 
 
 def test_command_factory(args):
-    return TestCommand(args.datasets, args.name, args.cache_dir, args.force, args.register_checksums, args.ignore_checksums, args.organization)
+    return TestCommand(
+        args.datasets,
+        args.name,
+        args.cache_dir,
+        args.force,
+        args.register_checksums,
+        args.ignore_checksums,
+        args.organization,
+    )
 
 
 class ANSI:
@@ -38,18 +42,12 @@ class TestCommand(BaseTransformersCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test")
-        test_parser.add_argument(
-            "--name", type=str, default=None, help="Dataset variant name"
-        )
-        test_parser.add_argument(
-            "--cache-dir", type=str, default=None, help="Path to location to store the datasets"
-        )
+        test_parser.add_argument("--name", type=str, default=None, help="Dataset variant name")
+        test_parser.add_argument("--cache-dir", type=str, default=None, help="Path to location to store the datasets")
         test_parser.add_argument(
             "--force", action="store_true", help="Force the datasets to be download even if already in cache-dir"
         )
-        test_parser.add_argument(
-            "--register_checksums", action="store_true", help="Save the checksums file on S3"
-        )
+        test_parser.add_argument("--register_checksums", action="store_true", help="Save the checksums file on S3")
         test_parser.add_argument(
             "--ignore_checksums", action="store_true", help="Run the test without checksums checks"
         )
@@ -57,7 +55,16 @@ class TestCommand(BaseTransformersCLICommand):
         test_parser.add_argument("datasets", type=str, help="Name of the datasets to download")
         test_parser.set_defaults(func=test_command_factory)
 
-    def __init__(self, datasets: str, name: str, cache: str, force: bool, register_checksums: bool, ignore_checksums: bool, organization: str):
+    def __init__(
+        self,
+        datasets: str,
+        name: str,
+        cache: str,
+        force: bool,
+        register_checksums: bool,
+        ignore_checksums: bool,
+        organization: str,
+    ):
         self._datasets = datasets
         self._name = name
         self._cache = cache
@@ -66,7 +73,7 @@ class TestCommand(BaseTransformersCLICommand):
         self._ignore_checksums = ignore_checksums
         self._organization = organization
         self._api = HfApi()
-    
+
     def _check_ownership(self, datasets_identifier: str, token: str):
         user, orgas = self._api.whoami(token)
         if self._organization is not None and self._organization not in orgas:
@@ -74,16 +81,19 @@ class TestCommand(BaseTransformersCLICommand):
         user_namespace = self._organization if self._organization is not None else user
         datasets_namespace = datasets_identifier.split("/")[0] if "/" in datasets_identifier else None
         if datasets_namespace is not None and datasets_namespace != user_namespace:
-            raise ValueError("You don't seem to own the namespace {}. Yours is {}.".format(datasets_namespace, user_namespace))
-
+            raise ValueError(
+                "You don't seem to own the namespace {}. Yours is {}.".format(datasets_namespace, user_namespace)
+            )
 
     def run(self):
         db: DatasetBuilder = builder(self._datasets, self._name)
-        db.download_and_prepare(download_config=DownloadConfig(
-            download_mode=REUSE_CACHE_IF_EXISTS,
-            register_checksums=self._register_checksums,
-            ignore_checksums=self._ignore_checksums
-        ))
+        db.download_and_prepare(
+            download_config=DownloadConfig(
+                download_mode=REUSE_CACHE_IF_EXISTS,
+                register_checksums=self._register_checksums,
+                ignore_checksums=self._ignore_checksums,
+            )
+        )
         print("Test successful.")
         # If register_checksums=True, the checksums file is created next to the loaded module file.
         # Let's move it to the original directory of the dataset script, to allow the user to
@@ -110,7 +120,7 @@ class TestCommand(BaseTransformersCLICommand):
             else:  # in case of a remote dataset
                 print("Checksums file saved at {}".format(checksums_path))
                 exit(1)
-            
+
             user_urls_checksums_dir = os.path.join(dataset_dir, URLS_CHECKSUMS_FOLDER_NAME)
             user_checksums_path = os.path.join(user_urls_checksums_dir, CHECKSUMS_FILE_NAME)
             os.makedirs(user_urls_checksums_dir, exist_ok=True)

@@ -33,8 +33,8 @@ from . import naming
 from .builder import DatasetBuilder
 from .splits import Split
 from .utils import py_utils
-from .utils.file_utils import (HF_DATASETS_CACHE, cached_path, hf_bucket_url,
-                               is_remote_url, url_to_filename,)
+from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url, url_to_filename
+
 
 logger = logging.getLogger(__name__)
 

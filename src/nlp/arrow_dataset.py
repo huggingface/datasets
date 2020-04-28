@@ -195,7 +195,7 @@ class Dataset(object):
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
         else:
             assert (
-                type is None or type == "numpy" or type == 'pandas'
+                type is None or type == "numpy" or type == "pandas"
             ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas']."
 
         # Check filter column
@@ -293,7 +293,11 @@ class Dataset(object):
         else:
             raise ValueError("Can only get row(s) (int or slice) or columns (string).")
 
-        if (self._format_type is not None or self._format_columns is not None) and not isinstance(key, str) and self._format_type != "pandas":
+        if (
+            (self._format_type is not None or self._format_columns is not None)
+            and not isinstance(key, str)
+            and self._format_type != "pandas"
+        ):
             outputs = self.convert_outputs(outputs)
         return outputs
 
