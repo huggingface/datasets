@@ -105,7 +105,7 @@ class TestCommand(BaseTransformersCLICommand):
 
             urls_checksums_dir = os.path.dirname(inspect.getfile(db.__class__))
             urls_checksums_dir = os.path.join(urls_checksums_dir, URLS_CHECKSUMS_FOLDER_NAME)
-            checksums_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
+            checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
 
             if name is None:
                 name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
@@ -119,11 +119,11 @@ class TestCommand(BaseTransformersCLICommand):
             elif os.path.isfile(combined_path):
                 dataset_dir = path
             else:  # in case of a remote dataset
-                print("Checksums file saved at {}".format(checksums_path))
+                print("Checksums file saved at {}".format(checksums_file_path))
                 exit(1)
 
             user_urls_checksums_dir = os.path.join(dataset_dir, URLS_CHECKSUMS_FOLDER_NAME)
-            user_checksums_path = os.path.join(user_urls_checksums_dir, CHECKSUMS_FILE_NAME)
+            user_checksums_file_path = os.path.join(user_urls_checksums_dir, CHECKSUMS_FILE_NAME)
             os.makedirs(user_urls_checksums_dir, exist_ok=True)
-            copyfile(checksums_path, user_checksums_path)
-            print("Checksums file saved at {}".format(user_checksums_path))
+            copyfile(checksums_file_path, user_checksums_file_path)
+            print("Checksums file saved at {}".format(user_checksums_file_path))

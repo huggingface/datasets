@@ -212,7 +212,7 @@ def load_dataset_module(
         raise ValueError("Couldn't find script file {}.".format(dataset_file))
 
     # Download the checksums file if available
-    local_checksums_path = cached_path(
+    local_checksums_file_path = cached_path(
         dataset_checksums_file,
         cache_dir=data_dir,
         force_download=force_reload,
@@ -251,7 +251,7 @@ def load_dataset_module(
     dataset_hash_folder_path = os.path.join(dataset_main_folder_path, dataset_hash)
     dataset_file_path = os.path.join(dataset_hash_folder_path, name)
     dataset_urls_checksums_dir = os.path.join(dataset_hash_folder_path, URLS_CHECKSUMS_FOLDER_NAME)
-    dataset_checksums_path = os.path.join(dataset_urls_checksums_dir, CHECKSUMS_FILE_NAME)
+    dataset_checksums_file_path = os.path.join(dataset_urls_checksums_dir, CHECKSUMS_FILE_NAME)
 
     # Prevent parallel disk operations
     lock_path = local_path + ".lock"
@@ -293,14 +293,14 @@ def load_dataset_module(
         
         # Copy checksums file if needed
         os.makedirs(dataset_urls_checksums_dir, exist_ok=True)
-        if not os.path.exists(dataset_checksums_path):
-            if local_checksums_path is not None:
-                logger.info("Copying checksums file from %s to %s", dataset_checksums_file, dataset_checksums_path)
-                shutil.copyfile(local_checksums_path, dataset_checksums_path)
+        if not os.path.exists(dataset_checksums_file_path):
+            if local_checksums_file_path is not None:
+                logger.info("Copying checksums file from %s to %s", dataset_checksums_file, dataset_checksums_file_path)
+                shutil.copyfile(local_checksums_file_path, dataset_checksums_file_path)
             else:
                 logger.info("Couldn't find checksums file at %s", dataset_checksums_file)
         else:
-            logger.info("Found checksums file from %s to %s", dataset_checksums_file, dataset_checksums_path)
+            logger.info("Found checksums file from %s to %s", dataset_checksums_file, dataset_checksums_file_path)
 
 
         # Record metadata associating original dataset path with local unique folder

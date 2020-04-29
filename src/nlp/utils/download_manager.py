@@ -259,13 +259,13 @@ class DownloadManager(object):
 
     def check_or_register_checksums(self, urls_checksums_dir):
         if not self._ignore_checksums:
-            checksums_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
+            checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
             if self._register_checksums:
                 os.makedirs(urls_checksums_dir, exist_ok=True)
-                self._store_sizes_checksums(checksums_path)
+                self._store_sizes_checksums(checksums_file_path)
                 logger.info("Stored the recorded checksums in {}.".format(urls_checksums_dir))
             else:
-                expected_sizes_checksums = load_sizes_checksums(checksums_path)
+                expected_sizes_checksums = load_sizes_checksums(checksums_file_path)
                 for url, rec_size_checksum in self._recorded_sizes_checksums.items():
                     exp_size_checksum = expected_sizes_checksums.get(url)
                     if exp_size_checksum is None:

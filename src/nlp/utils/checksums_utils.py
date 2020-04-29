@@ -24,11 +24,11 @@ def parse_sizes_checksums(checksums_file) -> dict:
     return checksums
 
 
-def load_sizes_checksums(checksums_path) -> dict:
+def load_sizes_checksums(checksums_file_path) -> dict:
     sizes_checksums = {}
-    if not os.path.isfile(checksums_path):
-        raise MissingChecksumsFile(checksums_path)
-    with open(checksums_path, "r") as checksums_file:
+    if not os.path.isfile(checksums_file_path):
+        raise MissingChecksumsFile(checksums_file_path)
+    with open(checksums_file_path, "r") as checksums_file:
         sizes_checksums.update(parse_sizes_checksums(checksums_file))
     return sizes_checksums
 
