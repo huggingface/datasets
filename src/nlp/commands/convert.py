@@ -129,7 +129,6 @@ class ConvertCommand(BaseTransformersCLICommand):
                     continue
                 else:
                     for pattern, replacement in TO_CONVERT:
-                        print(pattern, replacement)
                         out_line = re.sub(pattern, replacement, out_line)
 
                 # Take care of saving utilities (to later move them together with main script)

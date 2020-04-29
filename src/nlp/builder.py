@@ -666,7 +666,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             generator = itertools.islice(generator, max_examples_per_split)
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._data_dir, fname)
-        examples_type = self.info.features.get_type()
+        examples_type = self.info.features.type
         writer = ArrowWriter(data_type=examples_type, path=fpath)
         for key, record in utils.tqdm(generator, unit=" examples", total=split_info.num_examples, leave=False):
             example = self.info.features.encode_example(record)

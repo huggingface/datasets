@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 def get_nested_type(schema):
     print(schema, type(schema))
-    # We can have dict, list/tuples, sequences, classlabels, tensors or Arrow base types
+    # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
         return pa.struct({key: get_nested_type(value) for key, value in schema.items()})
     elif isinstance(schema, (list, tuple)):
@@ -42,17 +42,13 @@ def get_nested_type(schema):
         if isinstance(inner_type, pa.StructType):
             return pa.struct(dict((f.name, pa.list_(f.type, intlist_size=schema.length)) for f in inner_type))
         return pa.list_(inner_type, intlist_size=schema.length)
-    elif isinstance(schema, ClassLabel):
-        return schema.dtype()
-    elif isinstance(schema, Tensor):
-        return schema.dtype()
-    else:  # The schema object should be a native Arrow type
-        # assert issubclass(schema, pa.DataType), f"{schema} should be a base DataType and is {type(schema)}"
-        return schema()
+
+    # Other objects are callable which returns their data type (ClassLabel, Tensor, Translation, Arrow datatype creation methods)
+    return schema()
 
 
 def encode_nested_example(schema, obj):
-    # We can have dict, list/tuples, sequences, classlabels, tensors or Arrow base types
+    # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
         return dict((k, encode_nested_example(sub_schema, sub_obj))
                     for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj))
@@ -65,10 +61,14 @@ def encode_nested_example(schema, obj):
             return dict((k, [encode_nested_example(sub_schema, o) for o in sub_obj])
                         for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj))
         return [encode_nested_example(schema.feature, o) for o in obj]
-    elif isinstance(schema, ClassLabel):
+
+    # Object with special encoding:
+    # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
+    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages)):
         return schema.encode_example(obj)
-    else:  # Object should be a Tensor or directly convertible to a native Arrow type
-        return obj
+
+    # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
+    return obj
 
 
 @dataclass
@@ -87,18 +87,13 @@ class Tensor:
         else:
             self.dtype = self.dtype()
 
-@dataclass
-class Sequence:
-    """ Construct a list of feature from a single type or a dict of types.
-        Mostly here for compatiblity with tfds.
-    """
-    feature: Any
-    length: int = -1
+    def __call__(self):
+        return self.dtype
 
 
 class ClassLabel(object):
-    """Handle integer class labels.
-        Mostly here for compatiblity with tfds.
+    """ Handle integer class labels.
+        Here for compatiblity with tfds.
     """
 
     def __init__(self, num_classes=None, names=None, names_file=None):
@@ -136,9 +131,8 @@ class ClassLabel(object):
         else:
             self.names = names or _load_names_from_file(names_file)
 
-    @property
-    def dtype(self):
-        return pa.int64
+    def __call__(self):
+        return pa.int64()
 
     @property
     def num_classes(self):
@@ -254,6 +248,156 @@ class ClassLabel(object):
     def _write_names_to_file(names_filepath, names):
         with open(names_filepath, "w") as f:
             f.write("\n".join(names) + "\n")
+
+
+@dataclass
+class Sequence:
+    """ Construct a list of feature from a single type or a dict of types.
+        Mostly here for compatiblity with tfds.
+    """
+    feature: Any
+    length: int = -1
+
+
+class Translation(object):
+    """`FeatureConnector` for translations with fixed languages per example.
+        Here for compatiblity with tfds.
+
+    Input: The Translate feature accepts a dictionary for each example mapping
+        string language codes to string translations.
+
+    Output: A dictionary mapping string language codes to translations as `Text`
+        features.
+
+    Example:
+    At construction time:
+
+    ```
+    nlp.features.Translation(languages=['en', 'fr', 'de'])
+    ```
+
+    During data generation:
+
+    ```
+    yield {
+            'en': 'the cat',
+            'fr': 'le chat',
+            'de': 'die katze'
+    }
+    ```
+
+    Tensor returned by `.as_dataset()`:
+
+    ```
+    {
+            'en': 'the cat',
+            'fr': 'le chat',
+            'de': 'die katze',
+    }
+    ```
+    """
+
+    def __init__(self, languages):
+        """Constructs a Translation FeatureConnector.
+
+        Args:
+            languages: `list<string>` Full list of languages codes.
+        """
+        self._languages = languages
+
+    @property
+    def languages(self):
+        """ List of languages. """
+        return self._languages
+
+    def __call__(self):
+        return pa.struct({lang: pa.string() for lang in self._languages})
+
+
+class TranslationVariableLanguages(object):
+    """`FeatureConnector` for translations with variable languages per example.
+        Here for compatiblity with tfds.
+
+    Input: The TranslationVariableLanguages feature accepts a dictionary for each
+        example mapping string language codes to one or more string translations.
+        The languages present may vary from example to example.
+
+    Output:
+        language: variable-length 1D tf.Tensor of tf.string language codes, sorted
+            in ascending order.
+        translation: variable-length 1D tf.Tensor of tf.string plain text
+            translations, sorted to align with language codes.
+
+    Example (fixed language list):
+    At construction time:
+
+    ```
+    nlp.features.Translation(languages=['en', 'fr', 'de'])
+    ```
+
+    During data generation:
+
+    ```
+    yield {
+            'en': 'the cat',
+            'fr': ['le chat', 'la chatte,']
+            'de': 'die katze'
+    }
+    ```
+
+    Tensor returned :
+
+    ```
+    {
+            'language': ['en', 'de', 'fr', 'fr'],
+            'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
+    }
+    ```
+    """
+
+    def __init__(self, languages=None):
+        """Constructs a Translation FeatureConnector.
+
+        Args:
+            languages: `list<string>` (optional), full list of language codes if known
+                in advance.
+        """
+        self._languages = set(languages) if languages else None
+
+    def __call__(self):
+        return pa.struct({'language': pa.list_(pa.string()), 'translation': pa.list_(pa.string())})
+
+    @property
+    def num_languages(self):
+        """Number of languages or None, if not specified in advance."""
+        return len(self._languages) if self._languages else None
+
+    @property
+    def languages(self):
+        """List of languages or None, if not specified in advance."""
+        return sorted(list(self._languages)) if self._languages else None
+
+    def encode_example(self, translation_dict):
+        if self.languages and set(translation_dict) - self._languages:
+            raise ValueError(
+                "Some languages in example ({0}) are not in valid set ({1}).".format(
+                    ", ".join(sorted(set(translation_dict) - self._languages)), ", ".join(self.languages)
+                )
+            )
+
+        # Convert dictionary into tuples, splitting out cases where there are
+        # multiple translations for a single language.
+        translation_tuples = []
+        for lang, text in translation_dict.items():
+            if isinstance(text, str):
+                translation_tuples.append((lang, text))
+            else:
+                translation_tuples.extend([(lang, el) for el in text])
+
+        # Ensure translations are in ascending order by language code.
+        languages, translations = zip(*sorted(translation_tuples))
+
+        return {"language": languages, "translation": translations}
 
 
 class Features(object):
