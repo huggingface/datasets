@@ -4,7 +4,6 @@ from shutil import copyfile
 
 from nlp.builder import REUSE_CACHE_IF_EXISTS, DatasetBuilder
 from nlp.commands import BaseTransformersCLICommand
-from nlp.hf_api import HfApi
 from nlp.load import builder
 from nlp.utils import DownloadConfig
 from nlp.utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
@@ -14,11 +13,8 @@ def test_command_factory(args):
     return TestCommand(
         args.dataset,
         args.name,
-        args.cache_dir,
-        args.force,
         args.register_checksums,
         args.ignore_checksums,
-        args.organization,
     )
 
 
@@ -27,15 +23,10 @@ class TestCommand(BaseTransformersCLICommand):
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test")
         test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
-        test_parser.add_argument("--cache-dir", type=str, default=None, help="Path to location to store the datasets")
-        test_parser.add_argument(
-            "--force", action="store_true", help="Force the datasets to be download even if already in cache-dir"
-        )
         test_parser.add_argument("--register_checksums", action="store_true", help="Save the checksums file on S3")
         test_parser.add_argument(
             "--ignore_checksums", action="store_true", help="Run the test without checksums checks"
         )
-        test_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=test_command_factory)
 
@@ -43,20 +34,13 @@ class TestCommand(BaseTransformersCLICommand):
         self,
         dataset: str,
         name: str,
-        cache: str,
-        force: bool,
         register_checksums: bool,
         ignore_checksums: bool,
-        organization: str,
     ):
         self._dataset = dataset
         self._name = name
-        self._cache = cache
-        self._force = force
         self._register_checksums = register_checksums
         self._ignore_checksums = ignore_checksums
-        self._organization = organization
-        self._api = HfApi()
 
     def run(self):
         db: DatasetBuilder = builder(self._dataset, self._name)
