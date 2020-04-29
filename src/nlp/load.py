@@ -33,7 +33,9 @@ from . import naming
 from .builder import DatasetBuilder
 from .splits import Split
 from .utils import py_utils
+from .utils.download_manager import DownloadConfig
 from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url
+from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
 
 
 logger = logging.getLogger(__name__)
@@ -193,12 +195,25 @@ def load_dataset_module(
         dataset_file = hf_bucket_url(path, postfix=name)
 
     dataset_base_path = os.path.dirname(dataset_file)  # remove the filename
+    dataset_checksums_file = os.path.join(dataset_base_path, URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME)
 
     # Load the module in two steps:
     # 1. get the dataset processing file on the local filesystem if it's not there (download to cache dir)
     # 2. copy from the local file system inside the library to import it
     local_path = cached_path(
         dataset_file,
+        cache_dir=data_dir,
+        force_download=force_reload,
+        extract_compressed_file=True,
+        force_extract=force_reload,
+        local_files_only=local_files_only,
+    )
+    if local_path is None:
+        raise ValueError("Couldn't find script file {}.".format(dataset_file))
+
+    # Download the checksums file if available
+    local_checksums_path = cached_path(
+        dataset_checksums_file,
         cache_dir=data_dir,
         force_download=force_reload,
         extract_compressed_file=True,
@@ -235,6 +250,8 @@ def load_dataset_module(
     dataset_main_folder_path = os.path.join(DATASETS_PATH, dataset_name)
     dataset_hash_folder_path = os.path.join(dataset_main_folder_path, dataset_hash)
     dataset_file_path = os.path.join(dataset_hash_folder_path, name)
+    dataset_urls_checksums_dir = os.path.join(dataset_hash_folder_path, URLS_CHECKSUMS_FOLDER_NAME)
+    dataset_checksums_path = os.path.join(dataset_urls_checksums_dir, CHECKSUMS_FILE_NAME)
 
     # Prevent parallel disk operations
     lock_path = local_path + ".lock"
@@ -273,6 +290,18 @@ def load_dataset_module(
             shutil.copyfile(local_path, dataset_file_path)
         else:
             logger.info("Found script file from %s to %s", dataset_file, dataset_file_path)
+        
+        # Copy checksums file if needed
+        os.makedirs(dataset_urls_checksums_dir, exist_ok=True)
+        if not os.path.exists(dataset_checksums_path):
+            if local_checksums_path is not None:
+                logger.info("Copying checksums file from %s to %s", dataset_checksums_file, dataset_checksums_path)
+                shutil.copyfile(local_checksums_path, dataset_checksums_path)
+            else:
+                logger.info("Couldn't find checksums file at %s", dataset_checksums_file)
+        else:
+            logger.info("Found checksums file from %s to %s", dataset_checksums_file, dataset_checksums_path)
+
 
         # Record metadata associating original dataset path with local unique folder
         meta_path = dataset_file_path.split(".py")[0] + ".json"
@@ -358,6 +387,7 @@ def load(
     builder_kwargs=None,
     download_and_prepare_kwargs=None,
     as_dataset_kwargs=None,
+    ignore_checksums=False,
 ):
     # pylint: disable=line-too-long
     """Loads the named dataset.
@@ -433,6 +463,8 @@ def load(
             cache_dir and manual_dir will automatically be deduced from data_dir.
         as_dataset_kwargs: `dict` (optional), keyword arguments passed to
             `nlp.DatasetBuilder.as_dataset`.
+        ignore_checksums: `bool`, if True, checksums test of downloaded files
+            will be ignored. download_and_prepare_kwargs can overried this parameter.
 
     Returns:
         ds: `tf.data.Dataset`, the dataset requested, or if `split` is None, a
@@ -458,7 +490,9 @@ def load(
 
     dbuilder: DatasetBuilder = builder(path, name, data_dir=data_dir, **builder_kwargs)
     if download:
-        download_and_prepare_kwargs = download_and_prepare_kwargs or {}
+        download_and_prepare_kwargs = download_and_prepare_kwargs or {
+            "download_config": DownloadConfig(ignore_checksums=ignore_checksums)
+        }
         dbuilder.download_and_prepare(**download_and_prepare_kwargs)
 
     if as_dataset_kwargs is None:
