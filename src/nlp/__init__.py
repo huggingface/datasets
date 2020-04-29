@@ -71,7 +71,15 @@ from pyarrow import (
     utf8,
 )
 
-from . import datasets, features
+def tfds_sequence(obj, length=-1):
+    """ Reproduce the behavior of TensorFlow Datasets Sequence feature """
+    if isinstance(obj, dict):
+        return struct(dict((key, list_(value, intlist_size=length)) for key, value in obj.items()))
+    else:
+        return list_(obj, intlist_size=length)
+
+from . import datasets
+from .feature import Feature, Sequence, Tensor, ClassLabel
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder

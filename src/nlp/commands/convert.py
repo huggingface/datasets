@@ -7,12 +7,11 @@ from logging import getLogger
 from nlp.commands import BaseTransformersCLICommand
 
 
-HIGHLIGHT_MESSAGE_PRE = """
-<<<<<<< This should be modified
-"""
+HIGHLIGHT_MESSAGE_PRE = """<<<<<<< This should probably be modified because it mentions: """
 
 HIGHLIGHT_MESSAGE_POST = """=======
->>>>>>>"""
+>>>>>>>
+"""
 
 TO_HIGHLIGHT = [
     "TextEncoderConfig",
@@ -22,6 +21,21 @@ TO_HIGHLIGHT = [
     "maybe_build_from_corpus",
 ]
 
+TO_CONVERT = {
+    r"tfds.core", r"nlp",
+    r"tf.io.gfile.GFile",r"open",
+    r"tf.bool", r"nlp.bool_()",
+    r"tf.uint(\d+)", r'nlp.uint\1()',
+    r"tf.int(\d+)", r'nlp.int\1()',
+    r"tf.float(\d+)", r'nlp.float\1()',
+    r"tfds.features.Text()", r"nlp.string()",
+    r"tfds.features.Text(", r"nlp.string(),",
+    r"tfds.features.FeaturesDict(", r"nlp.struct(",
+    r"tfds.Sequence(", r"nlp.tfds_sequence(",
+    r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace NLP Authors",
+    r"tfds.", r"nlp.",
+}
+re.sub()
 
 def convert_command_factory(args: Namespace):
     """
@@ -110,22 +124,12 @@ class ConvertCommand(BaseTransformersCLICommand):
                     out_line = "import logging\n"
                 elif any(expression in out_line for expression in TO_HIGHLIGHT):
                     needs_manual_update = True
-                    out_lines.append(HIGHLIGHT_MESSAGE_PRE)
+                    to_remove = list(filter(lambda e: e in out_line, TO_HIGHLIGHT))
+                    out_lines.append(HIGHLIGHT_MESSAGE_PRE + str(to_remove) + '\n')
                     out_lines.append(out_line)
                     out_lines.append(HIGHLIGHT_MESSAGE_POST)
                     continue
                 else:
-                    out_line = out_line.replace("tfds.core", "nlp")
-                    out_line = out_line.replace("tf.io.gfile.GFile", "open")
-                    out_line = out_line.replace("tf.bool", "nlp.bool_")
-                    out_line = out_line.replace("tf.", "nlp.")
-                    out_line = out_line.replace("tfds.features.Text()", "nlp.string")
-                    out_line = out_line.replace("tfds.features.Text(", "nlp.string,")
-                    out_line = out_line.replace(
-                        "The TensorFlow Datasets Authors",
-                        "The TensorFlow Datasets Authors and the HuggingFace NLP Authors",
-                    )
-                    out_line = out_line.replace("tfds.", "nlp.")
 
                 # Take care of saving utilities (to later move them together with main script)
                 if "tensorflow_datasets" in out_line:
