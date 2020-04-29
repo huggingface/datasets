@@ -31,9 +31,9 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
-from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE
+from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 
 
 logger = logging.getLogger(__name__)
@@ -165,6 +165,7 @@ class DatasetBuilder:
         self._version = self._pick_version(version)
         self._data_dir_root = os.path.expanduser(data_dir or HF_DATASETS_CACHE)
         self._data_dir = self._build_data_dir()
+        self._script_file = inspect.getfile(self.__class__)
         if os.path.exists(self._data_dir):
             logger.info("Overwrite dataset info from restored data version.")
             self.info.read_from_directory(self._data_dir)
@@ -433,8 +434,7 @@ class DatasetBuilder:
             download_config: `DownloadConfig`, Additional options.
         """
         os.makedirs(self._data_dir, exist_ok=True)
-        urls_checksums_dir = os.path.dirname(inspect.getfile(self.__class__))
-        urls_checksums_dir = os.path.join(urls_checksums_dir, URLS_CHECKSUMS_FOLDER_NAME)
+        urls_checksums_dir = os.path.join(os.path.dirname(self._script_file), URLS_CHECKSUMS_FOLDER_NAME)
 
         # Generating data for all splits
         split_dict = splits_lib.SplitDict(dataset_name=self.name)
