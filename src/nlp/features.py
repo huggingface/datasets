@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_nested_type(schema):
+    print(schema, type(schema))
     # We can have dict, list/tuples, sequences, classlabels, tensors or Arrow base types
     if isinstance(schema, dict):
         return pa.struct({key: get_nested_type(value) for key, value in schema.items()})
@@ -46,7 +47,7 @@ def get_nested_type(schema):
     elif isinstance(schema, Tensor):
         return schema.dtype()
     else:  # The schema object should be a native Arrow type
-        assert issubclass(schema, pa.DataType), f"{schema} should be a base DataType and is {type(schema)}"
+        # assert issubclass(schema, pa.DataType), f"{schema} should be a base DataType and is {type(schema)}"
         return schema()
 
 
@@ -119,8 +120,6 @@ class ClassLabel(object):
             names_file: `str`, path to a file with names for the integer
                 classes, one per line.
         """
-        super(ClassLabel, self).__init__(shape=(), dtype=pa.int64)
-
         self._num_classes = None
         self._str2int = None
         self._int2str = None
@@ -136,6 +135,10 @@ class ClassLabel(object):
             self._num_classes = num_classes
         else:
             self.names = names or _load_names_from_file(names_file)
+
+    @property
+    def dtype(self):
+        return pa.int64
 
     @property
     def num_classes(self):
@@ -253,10 +256,10 @@ class ClassLabel(object):
             f.write("\n".join(names) + "\n")
 
 
-class Feature(object):
+class Features(object):
     def __init__(self, schema: Dict[str, Any]):
         self._schema = schema
-        self._type = self.get_nested_type(schema)
+        self._type = get_nested_type(schema)
 
     @property
     def type(self):

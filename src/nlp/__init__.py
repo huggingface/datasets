@@ -79,7 +79,7 @@ def tfds_sequence(obj, length=-1):
         return list_(obj, intlist_size=length)
 
 from . import datasets
-from .feature import Feature, Sequence, Tensor, ClassLabel
+from .features import Features, Sequence, Tensor, ClassLabel
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder

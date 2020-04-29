@@ -21,21 +21,19 @@ TO_HIGHLIGHT = [
     "maybe_build_from_corpus",
 ]
 
-TO_CONVERT = {
-    r"tfds.core", r"nlp",
-    r"tf.io.gfile.GFile",r"open",
-    r"tf.bool", r"nlp.bool_()",
-    r"tf.uint(\d+)", r'nlp.uint\1()',
-    r"tf.int(\d+)", r'nlp.int\1()',
-    r"tf.float(\d+)", r'nlp.float\1()',
-    r"tfds.features.Text()", r"nlp.string()",
-    r"tfds.features.Text(", r"nlp.string(),",
-    r"tfds.features.FeaturesDict(", r"nlp.struct(",
-    r"tfds.Sequence(", r"nlp.tfds_sequence(",
-    r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace NLP Authors",
-    r"tfds.", r"nlp.",
-}
-re.sub()
+TO_CONVERT = [
+    # (pattern, replacement)
+    # Order is important here for some replacements
+    (r"tfds\.core", r"nlp"),
+    (r"tf\.io\.gfile\.GFile", r"open"),
+    (r"tf\.bool", r"nlp.bool_"),
+    (r"tfds\.features\.Text\(\)", r"nlp.string"),
+    (r"tfds\.features\.Text\(", r"nlp.string,"),
+    (r"features\s*=\s*tfds.features.FeaturesDict\(", r"features=nlp.Features("),
+    (r"tfds\.features\.FeaturesDict\(", r"dict("),
+    (r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace NLP Authors"),
+    (r"tfds\.", r"nlp."),
+]
 
 def convert_command_factory(args: Namespace):
     """
@@ -130,6 +128,9 @@ class ConvertCommand(BaseTransformersCLICommand):
                     out_lines.append(HIGHLIGHT_MESSAGE_POST)
                     continue
                 else:
+                    for pattern, replacement in TO_CONVERT:
+                        print(pattern, replacement)
+                        out_line = re.sub(pattern, replacement, out_line)
 
                 # Take care of saving utilities (to later move them together with main script)
                 if "tensorflow_datasets" in out_line:
