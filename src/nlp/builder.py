@@ -139,7 +139,6 @@ class DatasetBuilder:
     # The associated module will be stored here
     _DYNAMICALLY_IMPORTED_MODULE = None
 
-
     def __init__(self, data_dir=None, config=None, version=None):
         """Constructs a DatasetBuilder.
 
@@ -184,7 +183,7 @@ class DatasetBuilder:
     def builder_config(self):
         """`nlp.BuilderConfig` for this builder."""
         return self._builder_config
-    
+
     @property
     def _urls_checksums_dir(self):
         if self._DYNAMICALLY_IMPORTED_MODULE is not None:

@@ -16,7 +16,7 @@ import tempfile
 from contextlib import contextmanager
 from functools import partial
 from hashlib import sha256
-from typing import Optional, Tuple
+from typing import Optional
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 

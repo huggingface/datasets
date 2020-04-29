@@ -1,4 +1,3 @@
-import inspect
 import os
 from argparse import ArgumentParser
 from shutil import copyfile

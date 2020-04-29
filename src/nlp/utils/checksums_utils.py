@@ -1,7 +1,9 @@
 import os
 from hashlib import sha256
 from typing import Tuple
+import logging
 
+logger = logging.getLogger(__name__)
 
 URLS_CHECKSUMS_FOLDER_NAME = "urls_checksums"
 CHECKSUMS_FILE_NAME = "checksums.txt"
@@ -33,9 +35,17 @@ def load_sizes_checksums(checksums_file_path) -> dict:
     return sizes_checksums
 
 
-def store_sizes_checksum(sizes_checksums: dict, path: str):
+def store_sizes_checksum(sizes_checksums: dict, path: str, overwrite=False):
+    total_sizes_checksums = {}
+    if os.path.isfile(path):
+        if overwrite:
+            logger.info("Checksums file {} already exists. Overwriting it.".format(path))
+        else:
+            logger.info("Checksums file {} already exists. Completing it with new checksums.".format(path))
+            total_sizes_checksums = load_sizes_checksums(path)
+    total_sizes_checksums.update(sizes_checksums)
     with open(path, "w") as f:
-        for url, (size, checksum) in sorted(sizes_checksums.items()):
+        for url, (size, checksum) in sorted(total_sizes_checksums.items()):
             f.write("%s %s %s\n" % (url, size, checksum))
 
 
