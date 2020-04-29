@@ -179,12 +179,12 @@ def cached_path(
         output_path = url_or_filename
     elif urlparse(url_or_filename).scheme == "":
         # File, but it doesn't exist.
-        raise EnvironmentError("file {} not found".format(url_or_filename))
+        return None
     else:
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
-    if extract_compressed_file:
+    if extract_compressed_file and output_path is not None:
         if not is_zipfile(output_path) and not tarfile.is_tarfile(output_path) and not is_gzip(output_path):
             return output_path
 
