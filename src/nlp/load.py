@@ -33,9 +33,9 @@ from . import naming
 from .builder import DatasetBuilder
 from .splits import Split
 from .utils import py_utils
+from .utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadConfig
 from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url
-from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
 
 
 logger = logging.getLogger(__name__)
@@ -290,18 +290,19 @@ def load_dataset_module(
             shutil.copyfile(local_path, dataset_file_path)
         else:
             logger.info("Found script file from %s to %s", dataset_file, dataset_file_path)
-        
+
         # Copy checksums file if needed
         os.makedirs(dataset_urls_checksums_dir, exist_ok=True)
         if not os.path.exists(dataset_checksums_file_path):
             if local_checksums_file_path is not None:
-                logger.info("Copying checksums file from %s to %s", dataset_checksums_file, dataset_checksums_file_path)
+                logger.info(
+                    "Copying checksums file from %s to %s", dataset_checksums_file, dataset_checksums_file_path
+                )
                 shutil.copyfile(local_checksums_file_path, dataset_checksums_file_path)
             else:
                 logger.info("Couldn't find checksums file at %s", dataset_checksums_file)
         else:
             logger.info("Found checksums file from %s to %s", dataset_checksums_file, dataset_checksums_file_path)
-
 
         # Record metadata associating original dataset path with local unique folder
         meta_path = dataset_file_path.split(".py")[0] + ".json"

@@ -11,12 +11,9 @@ from nlp.utils import DownloadConfig
 from nlp.utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 
 
-UPLOAD_MAX_FILES = 15
-
-
 def test_command_factory(args):
     return TestCommand(
-        args.datasets,
+        args.dataset,
         args.name,
         args.cache_dir,
         args.force,
@@ -26,24 +23,11 @@ def test_command_factory(args):
     )
 
 
-class ANSI:
-    """
-    Helper for en.wikipedia.org/wiki/ANSI_escape_code
-    """
-
-    _bold = "\u001b[1m"
-    _reset = "\u001b[0m"
-
-    @classmethod
-    def bold(cls, s):
-        return "{}{}{}".format(cls._bold, s, cls._reset)
-
-
 class TestCommand(BaseTransformersCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test")
-        test_parser.add_argument("--name", type=str, default=None, help="Dataset variant name")
+        test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         test_parser.add_argument("--cache-dir", type=str, default=None, help="Path to location to store the datasets")
         test_parser.add_argument(
             "--force", action="store_true", help="Force the datasets to be download even if already in cache-dir"
@@ -53,12 +37,12 @@ class TestCommand(BaseTransformersCLICommand):
             "--ignore_checksums", action="store_true", help="Run the test without checksums checks"
         )
         test_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
-        test_parser.add_argument("datasets", type=str, help="Name of the datasets to download")
+        test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=test_command_factory)
 
     def __init__(
         self,
-        datasets: str,
+        dataset: str,
         name: str,
         cache: str,
         force: bool,
@@ -66,7 +50,7 @@ class TestCommand(BaseTransformersCLICommand):
         ignore_checksums: bool,
         organization: str,
     ):
-        self._datasets = datasets
+        self._dataset = dataset
         self._name = name
         self._cache = cache
         self._force = force
@@ -75,19 +59,8 @@ class TestCommand(BaseTransformersCLICommand):
         self._organization = organization
         self._api = HfApi()
 
-    def _check_ownership(self, datasets_identifier: str, token: str):
-        user, orgas = self._api.whoami(token)
-        if self._organization is not None and self._organization not in orgas:
-            raise ValueError("You are not part of organization {}.".format(self._organization))
-        user_namespace = self._organization if self._organization is not None else user
-        datasets_namespace = datasets_identifier.split("/")[0] if "/" in datasets_identifier else None
-        if datasets_namespace is not None and datasets_namespace != user_namespace:
-            raise ValueError(
-                "You don't seem to own the namespace {}. Yours is {}.".format(datasets_namespace, user_namespace)
-            )
-
     def run(self):
-        db: DatasetBuilder = builder(self._datasets, self._name)
+        db: DatasetBuilder = builder(self._dataset, self._name)
         db.download_and_prepare(
             download_config=DownloadConfig(
                 download_mode=REUSE_CACHE_IF_EXISTS,
@@ -100,7 +73,7 @@ class TestCommand(BaseTransformersCLICommand):
         # Let's move it to the original directory of the dataset script, to allow the user to
         # upload them on S3 at the same time afterwards.
         if self._register_checksums:
-            path = self._datasets
+            path = self._dataset
             name = self._name
 
             urls_checksums_dir = os.path.dirname(inspect.getfile(db.__class__))

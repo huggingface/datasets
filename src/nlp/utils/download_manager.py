@@ -70,7 +70,6 @@ class DownloadConfig(object):
         max_examples_per_split=None,
         ignore_checksums=False,
         register_checksums=False,
-        sizes_checksums=None,
         beam_runner=None,
         beam_options=None,
     ):
@@ -99,7 +98,6 @@ class DownloadConfig(object):
         self.max_examples_per_split = max_examples_per_split
         self.ignore_checksums = ignore_checksums
         self.register_checksums = register_checksums
-        self.sizes_checksums = sizes_checksums
         self.beam_runner = beam_runner
         self.beam_options = beam_options
 
