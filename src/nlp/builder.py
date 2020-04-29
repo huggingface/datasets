@@ -135,6 +135,11 @@ class DatasetBuilder:
     # displayed in the dataset documentation.
     MANUAL_DOWNLOAD_INSTRUCTIONS = None
 
+    # Datasets scripts are imported dynamically.
+    # The associated module will be stored here
+    _DYNAMICALLY_IMPORTED_MODULE = None
+
+
     def __init__(self, data_dir=None, config=None, version=None):
         """Constructs a DatasetBuilder.
 
@@ -165,7 +170,6 @@ class DatasetBuilder:
         self._version = self._pick_version(version)
         self._data_dir_root = os.path.expanduser(data_dir or HF_DATASETS_CACHE)
         self._data_dir = self._build_data_dir()
-        self._script_file = inspect.getfile(self.__class__)
         if os.path.exists(self._data_dir):
             logger.info("Overwrite dataset info from restored data version.")
             self.info.read_from_directory(self._data_dir)
@@ -180,6 +184,13 @@ class DatasetBuilder:
     def builder_config(self):
         """`nlp.BuilderConfig` for this builder."""
         return self._builder_config
+    
+    @property
+    def _urls_checksums_dir(self):
+        if self._DYNAMICALLY_IMPORTED_MODULE is not None:
+            return os.path.join(os.path.dirname(self._DYNAMICALLY_IMPORTED_MODULE.__file__), URLS_CHECKSUMS_FOLDER_NAME)
+        else:
+            return self._data_dir
 
     def _create_builder_config(self, builder_config):
         """Create and validate BuilderConfig object."""
@@ -434,7 +445,7 @@ class DatasetBuilder:
             download_config: `DownloadConfig`, Additional options.
         """
         os.makedirs(self._data_dir, exist_ok=True)
-        urls_checksums_dir = os.path.join(os.path.dirname(self._script_file), URLS_CHECKSUMS_FOLDER_NAME)
+        urls_checksums_dir = self._urls_checksums_dir
 
         # Generating data for all splits
         split_dict = splits_lib.SplitDict(dataset_name=self.name)

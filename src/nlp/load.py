@@ -68,6 +68,7 @@ def import_builder_class(dataset_name, dataset_hash):
     dataset_module = importlib.import_module(module_path)
 
     builder_cls = get_builder_cls_from_module(dataset_module)
+    builder_cls._DYNAMICALLY_IMPORTED_MODULE = dataset_module
     return builder_cls, module_path
 
 

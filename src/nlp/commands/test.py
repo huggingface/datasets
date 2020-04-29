@@ -76,7 +76,7 @@ class TestCommand(BaseTransformersCLICommand):
             path = self._dataset
             name = self._name
 
-            urls_checksums_dir = os.path.join(os.path.dirname(db._script_file), URLS_CHECKSUMS_FOLDER_NAME)
+            urls_checksums_dir = db._urls_checksums_dir
             checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
 
             if name is None:
