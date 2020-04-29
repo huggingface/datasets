@@ -1,10 +1,11 @@
 import os
 from argparse import ArgumentParser
 from shutil import copyfile
+from typing import List
 
 from nlp.builder import REUSE_CACHE_IF_EXISTS, DatasetBuilder
 from nlp.commands import BaseTransformersCLICommand
-from nlp.load import builder
+from nlp.load import load_dataset_module, _dataset_name_and_kwargs_from_name_str
 from nlp.utils import DownloadConfig
 from nlp.utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 
@@ -13,6 +14,7 @@ def test_command_factory(args):
     return TestCommand(
         args.dataset,
         args.name,
+        args.all_configs,
         args.register_checksums,
         args.ignore_checksums,
     )
@@ -23,6 +25,7 @@ class TestCommand(BaseTransformersCLICommand):
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test")
         test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
+        test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         test_parser.add_argument("--register_checksums", action="store_true", help="Save the checksums file on S3")
         test_parser.add_argument(
             "--ignore_checksums", action="store_true", help="Run the test without checksums checks"
@@ -34,23 +37,42 @@ class TestCommand(BaseTransformersCLICommand):
         self,
         dataset: str,
         name: str,
+        all_configs: bool,
         register_checksums: bool,
         ignore_checksums: bool,
     ):
         self._dataset = dataset
         self._name = name
+        self._all_configs = all_configs
         self._register_checksums = register_checksums
         self._ignore_checksums = ignore_checksums
 
     def run(self):
-        db: DatasetBuilder = builder(self._dataset, self._name)
-        db.download_and_prepare(
-            download_config=DownloadConfig(
-                download_mode=REUSE_CACHE_IF_EXISTS,
-                register_checksums=self._register_checksums,
-                ignore_checksums=self._ignore_checksums,
+        if self._name is not None:
+            name, builder_kwargs = _dataset_name_and_kwargs_from_name_str(self._name)
+            if self._all_configs:
+                print("Both parameters `name` and `all_configs` can't be used at once.")
+        else:
+            name, builder_kwargs = self._name, {}
+        builder_cls = load_dataset_module(self._dataset, name=name)
+        builders: List[DatasetBuilder] = []
+        if self._all_configs:
+            for config in builder_cls.BUILDER_CONFIGS:
+                configured_builder_kwargs = builder_kwargs.copy()
+                configured_builder_kwargs["config"] = config
+                builders.append(builder_cls(**configured_builder_kwargs))
+        else:
+            builders.append(builder_cls(**builder_kwargs))
+
+        for builder in builders:
+            builder.download_and_prepare(
+                download_config=DownloadConfig(
+                    download_mode=REUSE_CACHE_IF_EXISTS,
+                    register_checksums=self._register_checksums,
+                    ignore_checksums=self._ignore_checksums,
+                )
             )
-        )
+
         print("Test successful.")
         # If register_checksums=True, the checksums file is created next to the loaded module file.
         # Let's move it to the original directory of the dataset script, to allow the user to
@@ -59,7 +81,7 @@ class TestCommand(BaseTransformersCLICommand):
             path = self._dataset
             name = self._name
 
-            urls_checksums_dir = db._urls_checksums_dir
+            urls_checksums_dir = builder._urls_checksums_dir
             checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
 
             if name is None:
