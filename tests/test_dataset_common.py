@@ -13,17 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nlp import load_dataset_module, hf_bucket_url, DatasetBuilder, BuilderConfig, cached_path, hf_api
-
 import os
-import requests
 import tempfile
 
+import requests
 from absl.testing import parameterized
+from nlp import BuilderConfig, DatasetBuilder, cached_path, hf_api, hf_bucket_url, load_dataset_module
 
 
 class MockDataLoaderManager(object):
-
     def __init__(self, path_to_dummy_data):
         self.path_to_dummy_data = path_to_dummy_data
         self.downloaded_size = 0
@@ -40,7 +38,6 @@ class MockDataLoaderManager(object):
 
 
 class DatasetTester(object):
-
     def __init__(self, parent):
         self.parent = parent
 
@@ -55,10 +52,14 @@ class DatasetTester(object):
         return builder.BUILDER_CONFIGS
 
     def download_dummy_data(self, dataset_name, config_name, version_name, cache_dir):
-        postfix = os.path.join(self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + '.zip')
+        postfix = os.path.join(
+            self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + ".zip"
+        )
         url_to_dummy_data_dir = hf_bucket_url(dataset_name, postfix=postfix)
         # this function will download the dummy data and return the path
-        local_path = cached_path(url_to_dummy_data_dir, cache_dir=cache_dir, extract_compressed_file=True, force_extract=True)
+        local_path = cached_path(
+            url_to_dummy_data_dir, cache_dir=cache_dir, extract_compressed_file=True, force_extract=True
+        )
         return os.path.join(local_path, self.parent.extracted_dummy_folder_name)
 
     def create_mock_data_loader(self, path_to_dummy_data):
@@ -68,9 +69,67 @@ class DatasetTester(object):
 
 def get_dataset_names():
     # This function will soon work after Julien's PR.
-#    api = hf_api.HfApi()
-#    datasets = [x.datasetId for x in api.dataset_list()]
-    datasets = ['aeslc', 'amazon_us_reviews', 'big_patent', 'billsum', 'blimp', 'c4', 'cfq', 'civil_comments', 'cnn_dailymail', 'cos_e', 'crime_and_punish', 'definite_pronoun_resolution', 'eraser_multi_rc', 'esnli', 'flores', 'forest_fires', 'gap', 'german_credit_numeric', 'gigaword', 'glue', 'higgs', 'imdb', 'iris', 'julien-c/squad', 'librispeech_lm', 'lm1b', 'math_dataset', 'movie_rationales', 'multi_news', 'multi_nli', 'multi_nli_mismatch', 'natural_questions', 'newsroom', 'opinosis', 'para_crawl', 'qa4mre', 'reddit_tifu', 'rock_you', 'scan', 'scicite', 'scientific_papers', 'sentiment140', 'snli', 'squad', 'super_glue', 'ted_hrlr', 'ted_multi', 'tiny_shakespeare', 'titanic', 'trivia_qa', 'wiki40b', 'wikihow', 'wikipedia', 'wmt', 'xnli', 'xsum', 'yelp_polarity']
+    #    api = hf_api.HfApi()
+    #    datasets = [x.datasetId for x in api.dataset_list()]
+    datasets = [
+        "aeslc",
+        "amazon_us_reviews",
+        "big_patent",
+        "billsum",
+        "blimp",
+        "c4",
+        "cfq",
+        "civil_comments",
+        "cnn_dailymail",
+        "cos_e",
+        "crime_and_punish",
+        "definite_pronoun_resolution",
+        "eraser_multi_rc",
+        "esnli",
+        "flores",
+        "forest_fires",
+        "gap",
+        "german_credit_numeric",
+        "gigaword",
+        "glue",
+        "higgs",
+        "imdb",
+        "iris",
+        "julien-c/squad",
+        "librispeech_lm",
+        "lm1b",
+        "math_dataset",
+        "movie_rationales",
+        "multi_news",
+        "multi_nli",
+        "multi_nli_mismatch",
+        "natural_questions",
+        "newsroom",
+        "opinosis",
+        "para_crawl",
+        "qa4mre",
+        "reddit_tifu",
+        "rock_you",
+        "scan",
+        "scicite",
+        "scientific_papers",
+        "sentiment140",
+        "snli",
+        "squad",
+        "super_glue",
+        "ted_hrlr",
+        "ted_multi",
+        "tiny_shakespeare",
+        "titanic",
+        "trivia_qa",
+        "wiki40b",
+        "wikihow",
+        "wikipedia",
+        "wmt",
+        "xnli",
+        "xsum",
+        "yelp_polarity",
+    ]
     dataset_names_parametrized = [{"testcase_name": x, "dataset_name": x} for x in datasets]
     return dataset_names_parametrized
 
@@ -121,13 +180,15 @@ class DatasetTest(parameterized.TestCase):
                 version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
 
                 # dowloads dummy data
-                path_to_dummy_data = self.dataset_tester.download_dummy_data(dataset_name, config_name=config.name, version_name=version_name, cache_dir=raw_temp_dir)
+                path_to_dummy_data = self.dataset_tester.download_dummy_data(
+                    dataset_name, config_name=config.name, version_name=version_name, cache_dir=raw_temp_dir
+                )
 
                 # create mock data loader manager with test specific mock_folder_strucutre_fn
                 mock_dl_manager = self.dataset_tester.create_mock_data_loader(path_to_dummy_data)
 
                 # inject our fake download manager to the dataset_builder._make_download_manager fn
-                dataset_builder._make_download_manager = (lambda **kwargs: mock_dl_manager)
+                dataset_builder._make_download_manager = lambda **kwargs: mock_dl_manager
 
                 # build dataset from dummy data
                 dataset_builder.download_and_prepare()
