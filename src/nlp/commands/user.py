@@ -33,9 +33,9 @@ class UserCommands(BaseTransformersCLICommand):
         rm_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
         rm_parser.set_defaults(func=lambda args: DeleteObjCommand(args))
         # upload
-        upload_parser = parser.add_parser("upload", help="Upload a model to S3.")
+        upload_parser = parser.add_parser("upload", help="Upload a dataset to S3.")
         upload_parser.add_argument(
-            "path", type=str, help="Local path of the model folder or individual file to upload."
+            "path", type=str, help="Local path of the dataset folder or individual file to upload."
         )
         upload_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
         upload_parser.add_argument(

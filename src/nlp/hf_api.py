@@ -78,7 +78,6 @@ class DatasetInfo:
         lastModified: Optional[str] = None,
         description: Optional[str] = None,
         citation: Optional[str] = None,
-        rfilename: Optional[str] = None,
         size: Optional[int] = None,
         etag: Optional[str] = None,
         siblings: List[Dict] = [],  # list of files that constitute the dataset
@@ -89,7 +88,6 @@ class DatasetInfo:
         self.lastModified = lastModified
         self.description = description
         self.citation = citation
-        self.rfilename = rfilename
         self.size = size
         self.etag = etag
         self.siblings = [S3Object(**x) for x in siblings]
