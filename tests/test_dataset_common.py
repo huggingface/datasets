@@ -37,7 +37,7 @@ class DatasetTesterMixin:
             return
 
         name = list(filter(lambda x: x, self.dataset_name.split("/")))[-1] + ".py"
-        dataset_url = hf_bucket_url(self.dataset_name, postfix=name)
+        dataset_url = hf_bucket_url(self.dataset_name, filename=name)
         etag = None
         try:
             response = requests.head(dataset_url, allow_redirects=True, proxies=None, timeout=10)
@@ -159,8 +159,8 @@ class DatasetTest(unittest.TestCase, DatasetTesterMixin):
             return builder.BUILDER_CONFIGS
 
         def download_dummy_data(self, config_name, version_name, cache_dir):
-            filename = os.path.join(self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + '.zip')
-            url_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=filename)
+            postfix = os.path.join(self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + '.zip')
+            url_to_dummy_data_dir = hf_bucket_url(self.dataset_name, postfix=postfix)
             # this function will download the dummy data and return the path
             local_path = cached_path(url_to_dummy_data_dir, cache_dir=cache_dir, extract_compressed_file=True, force_extract=True)
             return os.path.join(local_path, self.parent.extracted_dummy_folder_name)
