@@ -538,9 +538,9 @@ def check_splits_equals(splits1, splits2):
     """Check two split dicts have same name, shard_lengths and num_shards."""
     if set(splits1) ^ set(splits2):  # Name intersection should be null
         return False
-    for _, (split1, split2) in zip_dict(splits1, splits2):
-        if split1.num_shards != split2.num_shards or split1.shard_lengths != split2.shard_lengths:
-            return False
+    # for _, (split1, split2) in zip_dict(splits1, splits2):
+    #     if split1.num_shards != split2.num_shards or split1.shard_lengths != split2.shard_lengths:
+    #         return False
     return True
 
 

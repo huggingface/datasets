@@ -16,7 +16,7 @@ import tempfile
 from contextlib import contextmanager
 from functools import partial
 from hashlib import sha256
-from typing import Optional, Tuple
+from typing import Optional
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
@@ -172,12 +172,12 @@ def cached_path(
         output_path = url_or_filename
     elif urlparse(url_or_filename).scheme == "":
         # File, but it doesn't exist.
-        raise EnvironmentError("file {} not found".format(url_or_filename))
+        return None
     else:
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
-    if extract_compressed_file:
+    if extract_compressed_file and output_path is not None:
         if not is_zipfile(output_path) and not tarfile.is_tarfile(output_path) and not is_gzip(output_path):
             return output_path
 
@@ -367,11 +367,3 @@ def is_gzip(path: str) -> bool:
             return True
         except OSError:
             return False
-
-
-def get_size_checksum(path: str) -> Tuple[int, str]:
-    m = sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            m.update(chunk)
-    return os.path.getsize(path), m.hexdigest()

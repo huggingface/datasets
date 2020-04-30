@@ -190,6 +190,18 @@ def flatten_nest_dict(d):
     return flat_dict
 
 
+def flatten_nested(data_struct, expected_leaf_type=str):
+    """Flatten data struct of obj or `list`/`dict` of obj of type `expected_leaf_type`"""
+    assert expected_leaf_type not in (tuple, list, dict)
+    if isinstance(data_struct, expected_leaf_type):
+        obj = data_struct
+        return [("", obj)]
+    elif isinstance(data_struct, dict):
+        return list(flatten_nest_dict(data_struct).values())
+    assert isinstance(data_struct, (list, tuple))
+    return data_struct
+
+
 def pack_as_nest_dict(flat_d, nest_d):
     """Pack a 1-lvl dict into a nested dict with same structure as `nest_d`."""
     nest_out_d = {}

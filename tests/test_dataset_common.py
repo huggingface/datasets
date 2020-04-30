@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nlp import load_dataset_module, hf_bucket_url, path_to_py_script_name, DatasetBuilder, BuilderConfig, get_builder_cls_from_module, cached_path
+from nlp import load_dataset_module, hf_bucket_url, DatasetBuilder, BuilderConfig, get_builder_cls_from_module, cached_path
 
 import os
 import requests
@@ -36,7 +36,8 @@ class DatasetTesterMixin:
         if self.dataset_name is None:
             return
 
-        dataset_url = hf_bucket_url(self.dataset_name, postfix=path_to_py_script_name(self.dataset_name))
+        name = list(filter(lambda x: x, self.dataset_name.split("/")))[-1] + ".py"
+        dataset_url = hf_bucket_url(self.dataset_name, postfix=name)
         etag = None
         try:
             response = requests.head(dataset_url, allow_redirects=True, proxies=None, timeout=10)
@@ -134,6 +135,10 @@ class DatasetTest(unittest.TestCase, DatasetTesterMixin):
                     dummy_data_dict[key] = os.path.join(self.path_to_dummy_data, key)
                 return dummy_data_dict
             return self.path_to_dummy_data
+        
+        def check_or_save_checksums(self, urls_checksums_dir):
+            # we can edit this if we want to mock the checksum checks or registrations
+            pass
 
     class DatasetTester(object):
 
