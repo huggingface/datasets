@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 
 
 def get_nested_type(schema):
-    print(schema, type(schema))
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
         return pa.struct({key: get_nested_type(value) for key, value in schema.items()})
