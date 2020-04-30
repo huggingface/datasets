@@ -62,5 +62,5 @@ class Csv(nlp.GeneratorBasedBuilder):
                 parse_options=self.pa_parse_options
             ).to_pandas()
 
-            for k, v in content.to_dict(orient='index').items():
-                yield k, v
+            for _, v in content.to_dict(orient='index').items():
+                yield None, v
