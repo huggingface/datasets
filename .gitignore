@@ -1,3 +1,6 @@
+# Locked files
+*.lock
+
 # Compiled python modules.
 *.pyc
 

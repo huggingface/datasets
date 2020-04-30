@@ -181,15 +181,16 @@ def load_dataset_module(
         combined_path = os.path.join("datasets/nlp/csv", "csv.py")
     elif name is None:
         name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
+        combined_path = os.path.join(path, name)
 
-    if not name.endswith(".py") or "/" in name:
+    if (not name.endswith(".py") or "/" in name) and path != "csv":
         raise ValueError("The provided name should be the filename of a python script (ends with '.py')")
 
     # We have three ways to find the dataset processing file:
     # - if os.path.join(path, name) is a file or a remote url
     # - if path is a file or a remote url
     # - otherwise we assume path/name is a path to our S3 bucket
-    combined_path = os.path.join(path, name)
+    
     if os.path.isfile(combined_path) or is_remote_url(combined_path):
         dataset_file = combined_path
     elif os.path.isfile(path) or is_remote_url(path):
@@ -300,7 +301,7 @@ def load_dataset_module(
                     shutil.copytree(local_import, dataset_local_import)
                     # add an __init__ file to the sub-directories in the copied folder if needed
                     # so people can relatively import from them
-                    for root, dirs, files in os.walk(dataset_local_import, topdown=False):
+                    for root, _, files in os.walk(dataset_local_import, topdown=False):
                         if "__init__.py" not in files:
                             init_file_path = os.path.join(root, "__init__.py")
                             with open(init_file_path, "w"):
@@ -350,10 +351,51 @@ def builder(path: str, name: Optional[str] = None, **builder_init_kwargs):
     return builder_instance
 
 
+def csv_builder(path: str, name: str, dataset_files: Dict[Split, List], **csv_init_kwargs):
+    """Fetches a CSV `nlp.DatasetBuilder` by string name.
+
+    Args:
+        path: `str`, the path where the script is located.
+        name: `str`, the name of the `DatasetBuilder` (the snake case
+            version of the class name). This can be either `"dataset_name"` or
+            `"dataset_name/config_name"` for datasets with `BuilderConfig`s.
+            As a convenience, this string may contain comma-separated keyword
+            arguments for the builder. For example `"foo_bar/a=True,b=3"` would use
+            the `FooBar` dataset passing the keyword arguments `a=True` and `b=3`
+            (for builders with configs, it would be `"foo_bar/zoo/a=True,b=3"` to
+            use the `"zoo"` config and pass to the builder keyword arguments `a=True`
+            and `b=3`).
+        dataset_files: `dict` of `Split` as keys and each value is a `list` of files
+            location.
+        **csv_init_kwargs: `dict` of keyword arguments passed to the CSV
+            `DatasetBuilder`. These will override keyword arguments passed in `name`,
+            if any.
+
+    Returns:
+        A `nlp.DatasetBuilder`.
+
+    Raises:
+        DatasetNotFoundError: if `name` is unrecognized.
+    """
+    if name is None:
+        raise ValueError("The name parameter must be filled.")
+    
+    if dataset_files is None:
+        raise ValueError("The dataset_files must be filled.")
+    
+    name, csv_kwargs = _dataset_name_and_kwargs_from_name_str(name)
+    csv_kwargs.update(csv_init_kwargs)
+    builder_cls = load_dataset_module(path, name=name)
+    builder_instance = builder_cls(name, dataset_files, **csv_kwargs)
+
+    return builder_instance
+
+
 def load(
     path: str,
     name: Optional[str] = None,
     split: Optional[Union[str, Split]] = None,
+    dataset_files: Dict[Split, List] = None,
     data_dir: Optional[str] = None,
     batch_size=None,
     in_memory=None,
@@ -363,6 +405,7 @@ def load(
     builder_kwargs=None,
     download_and_prepare_kwargs=None,
     as_dataset_kwargs=None,
+    csv_kwargs=None,
 ):
     # pylint: disable=line-too-long
     """Loads the named dataset.
@@ -456,12 +499,20 @@ def load(
 
     if builder_kwargs is None:
         builder_kwargs = {}
+    
+    if csv_kwargs is None:
+        csv_kwargs = {}
 
     # Set data_dir
     if data_dir is None:
         data_dir = HF_DATASETS_CACHE
 
-    dbuilder: DatasetBuilder = builder(path, name, data_dir=data_dir, **builder_kwargs)
+    if path == "csv":
+        csv_kwargs.update(builder_kwargs)
+        dbuilder: DatasetBuilder = csv_builder(path, name, dataset_files, **csv_kwargs)
+    else:   
+        dbuilder: DatasetBuilder = builder(path, name, data_dir=data_dir, **builder_kwargs)
+    
     if download:
         download_and_prepare_kwargs = download_and_prepare_kwargs or {}
         dbuilder.download_and_prepare(**download_and_prepare_kwargs)
