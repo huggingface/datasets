@@ -135,7 +135,7 @@ class DatasetTest(unittest.TestCase, DatasetTesterMixin):
                     dummy_data_dict[key] = os.path.join(self.path_to_dummy_data, key)
                 return dummy_data_dict
             return self.path_to_dummy_data
-        
+
         def check_or_save_checksums(self, urls_checksums_dir):
             # we can edit this if we want to mock the checksum checks or registrations
             pass
@@ -159,8 +159,8 @@ class DatasetTest(unittest.TestCase, DatasetTesterMixin):
             return builder.BUILDER_CONFIGS
 
         def download_dummy_data(self, config_name, version_name, cache_dir):
-            postfix = os.path.join(self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + '.zip')
-            url_to_dummy_data_dir = hf_bucket_url(self.dataset_name, postfix=postfix)
+            filename = os.path.join(self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + '.zip')
+            url_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=filename)
             # this function will download the dummy data and return the path
             local_path = cached_path(url_to_dummy_data_dir, cache_dir=cache_dir, extract_compressed_file=True, force_extract=True)
             return os.path.join(local_path, self.parent.extracted_dummy_folder_name)
