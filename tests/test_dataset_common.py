@@ -37,6 +37,9 @@ class MockDataLoaderManager(object):
             return dummy_data_dict
         return self.path_to_dummy_data
 
+    def check_or_save_checksums(self, *args):
+        pass
+
 
 class DatasetTester(object):
     def __init__(self, parent):
