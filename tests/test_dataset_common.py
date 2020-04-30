@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding=utf-8
 # Copyright 2020 HuggingFace Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,10 +52,10 @@ class DatasetTester(object):
         return builder.BUILDER_CONFIGS
 
     def download_dummy_data(self, dataset_name, config_name, version_name, cache_dir):
-        postfix = os.path.join(
+        filename = os.path.join(
             self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + ".zip"
         )
-        url_to_dummy_data_dir = hf_bucket_url(dataset_name, postfix=postfix)
+        url_to_dummy_data_dir = hf_bucket_url(dataset_name, filename=filename)
         # this function will download the dummy data and return the path
         local_path = cached_path(
             url_to_dummy_data_dir, cache_dir=cache_dir, extract_compressed_file=True, force_extract=True
@@ -68,68 +68,9 @@ class DatasetTester(object):
 
 
 def get_dataset_names():
-    # This function will soon work after Julien's PR.
-    #    api = hf_api.HfApi()
-    #    datasets = [x.datasetId for x in api.dataset_list()]
-    datasets = [
-        "aeslc",
-        "amazon_us_reviews",
-        "big_patent",
-        "billsum",
-        "blimp",
-        "c4",
-        "cfq",
-        "civil_comments",
-        "cnn_dailymail",
-        "cos_e",
-        "crime_and_punish",
-        "definite_pronoun_resolution",
-        "eraser_multi_rc",
-        "esnli",
-        "flores",
-        "forest_fires",
-        "gap",
-        "german_credit_numeric",
-        "gigaword",
-        "glue",
-        "higgs",
-        "imdb",
-        "iris",
-        "julien-c/squad",
-        "librispeech_lm",
-        "lm1b",
-        "math_dataset",
-        "movie_rationales",
-        "multi_news",
-        "multi_nli",
-        "multi_nli_mismatch",
-        "natural_questions",
-        "newsroom",
-        "opinosis",
-        "para_crawl",
-        "qa4mre",
-        "reddit_tifu",
-        "rock_you",
-        "scan",
-        "scicite",
-        "scientific_papers",
-        "sentiment140",
-        "snli",
-        "squad",
-        "super_glue",
-        "ted_hrlr",
-        "ted_multi",
-        "tiny_shakespeare",
-        "titanic",
-        "trivia_qa",
-        "wiki40b",
-        "wikihow",
-        "wikipedia",
-        "wmt",
-        "xnli",
-        "xsum",
-        "yelp_polarity",
-    ]
+    # fetch all dataset names
+    api = hf_api.HfApi()
+    datasets = [x.datasetId for x in api.dataset_list()]
     dataset_names_parametrized = [{"testcase_name": x, "dataset_name": x} for x in datasets]
     return dataset_names_parametrized
 
@@ -267,5 +208,3 @@ class DatasetTest(unittest.TestCase, DatasetTesterMixin):
 
     def setUp(self):
         self.dataset_tester = DatasetTest.DatasetTester(self)
-=======
->>>>>>> improve tests
