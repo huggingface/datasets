@@ -36,8 +36,6 @@ class SplitInfo:
     num_bytes: int = 0
     num_examples: int = 0
     _dataset_name: str = field(init=False)
-    num_shards: int = 0
-    shard_lengths: int = 0
 
     @property
     def file_instructions(self):

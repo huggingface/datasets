@@ -31,9 +31,9 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
+from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE
-from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 
 
 logger = logging.getLogger(__name__)
@@ -187,7 +187,9 @@ class DatasetBuilder:
     @property
     def _urls_checksums_dir(self):
         if self._DYNAMICALLY_IMPORTED_MODULE is not None:
-            return os.path.join(os.path.dirname(self._DYNAMICALLY_IMPORTED_MODULE.__file__), URLS_CHECKSUMS_FOLDER_NAME)
+            return os.path.join(
+                os.path.dirname(self._DYNAMICALLY_IMPORTED_MODULE.__file__), URLS_CHECKSUMS_FOLDER_NAME
+            )
         else:
             return self._data_dir
 
@@ -450,7 +452,7 @@ class DatasetBuilder:
         split_dict = splits_lib.SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
-        dl_manager.check_or_register_checksums(urls_checksums_dir)  # verify checksums
+        dl_manager.check_or_save_checksums(urls_checksums_dir)  # verify checksums
         for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(
@@ -486,7 +488,7 @@ class DatasetBuilder:
             manual_dir_instructions=self.MANUAL_DOWNLOAD_INSTRUCTIONS,
             force_download=(download_config.download_mode == FORCE_REDOWNLOAD),
             ignore_checksums=download_config.ignore_checksums,
-            register_checksums=download_config.register_checksums,
+            save_checksums=download_config.save_checksums,
         )
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):

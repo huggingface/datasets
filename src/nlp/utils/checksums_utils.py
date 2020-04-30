@@ -1,7 +1,8 @@
+import logging
 import os
 from hashlib import sha256
 from typing import Tuple
-import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +15,13 @@ class MissingChecksumsFile(Exception):
 
 
 def parse_sizes_checksums(checksums_file) -> dict:
-    """Returns {URL: (size, checksum)}s stored within given file."""
+    """
+    Returns {URL: (size, checksum)}s stored within given file where
+    lines look like: <url> <size> <checksum>
+    """
     checksums = {}
     for line in checksums_file:
-        line = line.strip()  # Remove the trailing '\r' on Windows OS.
+        line = line.strip()  # Remove `\n` and the trailing '\r' on Windows OS.
         if not line or line.startswith("#"):
             continue
         # URL might have spaces inside, but size and checksum will not.
@@ -27,6 +31,14 @@ def parse_sizes_checksums(checksums_file) -> dict:
 
 
 def load_sizes_checksums(checksums_file_path) -> dict:
+    """
+    Load sizes_checksums data from a file.
+    The format is one line per (url, size, checksum), formated like this:
+    <url> <size> <checksum>
+
+    Args:
+        checksums_file_path: the file to load the data from
+    """
     sizes_checksums = {}
     if not os.path.isfile(checksums_file_path):
         raise MissingChecksumsFile(checksums_file_path)
@@ -36,6 +48,20 @@ def load_sizes_checksums(checksums_file_path) -> dict:
 
 
 def store_sizes_checksum(sizes_checksums: dict, path: str, overwrite=False):
+    """
+    Store sizes_checksums data in a file. You can either overwrite the file if it already exists, or simply complete it.
+    The format is one line per (url, size, checksum), formated like this:
+    <url> <size> <checksum>
+
+    Args:
+        sizes_checksums: `dict` of {url: (size, checksum)} is the data to store
+        path: `str` where to store the checksums
+        overwrite: if True, the file is overwritten. It is False by default,
+            so that previous data are simply completed with the new ones.
+            When completing the file, if the checksum of a url in `sizes_checksums`
+            already existed, it is replaced by the new one.
+
+    """
     total_sizes_checksums = {}
     if os.path.isfile(path):
         if overwrite:
@@ -50,6 +76,7 @@ def store_sizes_checksum(sizes_checksums: dict, path: str, overwrite=False):
 
 
 def get_size_checksum(path: str) -> Tuple[int, str]:
+    """Compute the file size and the sha256 checksum of a file"""
     m = sha256()
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):

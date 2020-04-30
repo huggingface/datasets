@@ -47,7 +47,7 @@ class UserCommands(BaseTransformersCLICommand):
             "--filename", type=str, default=None, help="Optional: override individual object filename on S3."
         )
         upload_parser.add_argument(
-            "--register_checksums", action="store_true", help="Upload the checksums file on S3 with the dataset"
+            "--upload_checksums", action="store_true", help="Upload the checksums file on S3 with the dataset"
         )
         upload_parser.set_defaults(func=lambda args: UploadCommand(args))
 
@@ -182,14 +182,11 @@ class UploadCommand(BaseUserCommand):
                 files += self.walk_dir(f.path)
         return files
 
-    def _is_data_file(self, local_path: str):
-        return os.path.basename(local_path) != CHECKSUMS_FILE_NAME
-
     def _checksums_file(self, namespace: str, local_path: str, files: list):
         sizes_checksums = {
             hf_bucket_url(namespace + "/" + filename): get_size_checksum(local_file_path)
             for local_file_path, filename in files
-            if self._is_data_file(local_file_path)
+            if os.path.basename(local_file_path) != CHECKSUMS_FILE_NAME
         }
         urls_checksums_dir = os.path.join(local_path, URLS_CHECKSUMS_FOLDER_NAME)
         os.makedirs(urls_checksums_dir, exist_ok=True)
@@ -215,7 +212,7 @@ class UploadCommand(BaseUserCommand):
                 raise ValueError("Cannot specify a filename override when uploading a folder.")
             rel_path = os.path.basename(local_path)
             files = self.walk_dir(rel_path)
-            if self.args.register_checksums:
+            if self.args.upload_checksums:
                 files.append(self._checksums_file(namespace, local_path, files))
         elif os.path.isfile(local_path):
             filename = self.args.filename if self.args.filename is not None else os.path.basename(local_path)

@@ -69,7 +69,7 @@ class DownloadConfig(object):
         download_mode=None,
         max_examples_per_split=None,
         ignore_checksums=False,
-        register_checksums=False,
+        save_checksums=False,
         beam_runner=None,
         beam_options=None,
     ):
@@ -86,7 +86,7 @@ class DownloadConfig(object):
                 into each split (used for testing).
             ignore_checksums: `bool`, defaults to False. If True, wrong or missing checksums
                 will be ignored.
-            register_checkums: `bool`, defaults to False. If True, the checksums of the
+            save_checksums: `bool`, defaults to False. If True, the checksums of the
                 downloaded files will be saved in the `urls_checksums` folder
             beam_runner: Runner to pass to `beam.Pipeline`, only used for datasets
                 based on Beam for the generation.
@@ -97,7 +97,7 @@ class DownloadConfig(object):
         self.download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         self.max_examples_per_split = max_examples_per_split
         self.ignore_checksums = ignore_checksums
-        self.register_checksums = register_checksums
+        self.save_checksums = save_checksums
         self.beam_runner = beam_runner
         self.beam_options = beam_options
 
@@ -111,7 +111,7 @@ class DownloadManager(object):
         dataset_name=None,
         force_download=False,
         ignore_checksums=False,
-        register_checksums=False,
+        save_checksums=False,
     ):
         """Download manager constructor.
 
@@ -126,7 +126,7 @@ class DownloadManager(object):
             force_download: `bool`, default to False. If True, always [re]download.
             ignore_checksums: `bool`, defaults to False. If True, wrong or missing checksums
                 will be ignored.
-            register_checkums: `bool`, defaults to False. If True, the checksums of the
+            save_checksums: `bool`, defaults to False. If True, the checksums of the
                 downloaded files will be saved in the `urls_checksums` folder
         """
         self._dataset_name = dataset_name
@@ -138,10 +138,10 @@ class DownloadManager(object):
         os.makedirs(self._download_dir, exist_ok=True)
         self._force_download = force_download
         self._ignore_checksums = ignore_checksums
-        self._register_checksums = register_checksums
-        if ignore_checksums and register_checksums:
+        self._save_checksums = save_checksums
+        if ignore_checksums and save_checksums:
             raise ValueError(
-                "Parameters `ignore_checksums` and `register_checksums` " "shouldn't be True at the same time."
+                "Parameters `ignore_checksums` and `save_checksums` " "shouldn't be True at the same time."
             )
         # To record what is being used: {url: (size, checksum)}
         self._recorded_sizes_checksums = {}
@@ -255,10 +255,10 @@ class DownloadManager(object):
             )
         return self._manual_dir
 
-    def check_or_register_checksums(self, urls_checksums_dir):
+    def check_or_save_checksums(self, urls_checksums_dir):
         if not self._ignore_checksums:
             checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
-            if self._register_checksums:
+            if self._save_checksums:
                 os.makedirs(urls_checksums_dir, exist_ok=True)
                 self._store_sizes_checksums(checksums_file_path)
                 logger.info("Stored the recorded checksums in {}.".format(urls_checksums_dir))
