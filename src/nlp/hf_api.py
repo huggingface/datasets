@@ -73,19 +73,25 @@ class DatasetInfo:
 
     def __init__(
         self,
-        datasetId: str,  # id of dataset
+        id: str,  # id of dataset
         key: str,  # S3 object key of config.json
-        author: Optional[str] = None,
-        downloads: Optional[int] = None,
-        tags: List[str] = [],
+        lastModified: Optional[str] = None,
+        description: Optional[str] = None,
+        citation: Optional[str] = None,
+        rfilename: Optional[str] = None,
+        size: Optional[int] = None,
+        etag: Optional[str] = None,
         siblings: List[Dict] = [],  # list of files that constitute the dataset
         **kwargs,
     ):
-        self.datasetId = datasetId
+        self.datasetId = id
         self.key = key
-        self.author = author
-        self.downloads = downloads
-        self.tags = tags
+        self.lastModified = lastModified
+        self.description = description
+        self.citation = citation
+        self.rfilename = rfilename
+        self.size = size
+        self.etag = etag
         self.siblings = [S3Object(**x) for x in siblings]
 
 
