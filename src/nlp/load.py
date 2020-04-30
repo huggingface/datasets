@@ -189,7 +189,7 @@ def load_dataset_module(
     elif os.path.isfile(path) or is_remote_url(path):
         dataset_file = path
     else:
-        dataset_file = hf_bucket_url(path, postfix=name)
+        dataset_file = hf_bucket_url(path, filename=name)
 
     dataset_base_path = os.path.dirname(dataset_file)  # remove the filename
 

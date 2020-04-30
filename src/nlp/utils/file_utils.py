@@ -72,7 +72,7 @@ except (AttributeError, ImportError):
     HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_cache_path))
 
 S3_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp"
-CLOUDFRONT_DISTRIB_PREFIX = "https://d2ws9o8vfrpkyk.cloudfront.net"  # TODO: update to datasets front
+CLOUDFRONT_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co"
 
 INCOMPLETE_SUFFIX = ".incomplete"
 
@@ -90,12 +90,9 @@ def is_remote_url(url_or_filename):
     return parsed.scheme in ("http", "https", "s3")
 
 
-def hf_bucket_url(identifier, postfix=None, cdn=False) -> str:
-    endpoint = CLOUDFRONT_DISTRIB_PREFIX if cdn else S3_BUCKET_PREFIX
-    if postfix is None:
-        return "/".join((endpoint, identifier))
-    else:
-        return "/".join((endpoint, identifier, postfix))
+def hf_bucket_url(identifier: str, filename: str, use_cdn=False) -> str:
+    endpoint = CLOUDFRONT_DISTRIB_PREFIX if use_cdn else S3_BUCKET_PREFIX
+    return "/".join((endpoint, identifier, filename))
 
 
 def url_to_filename(url, etag=None):
