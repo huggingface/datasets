@@ -3,9 +3,9 @@
 # Check that source code meets quality standards
 
 quality:
-	black --check --line-length 119 --target-version py36 src
-	isort --check-only --recursive src
-	flake8 src
+	black --check --line-length 119 --target-version py36 src tests
+	isort --check-only --recursive src tests
+	flake8 src tests
 
 # Format source code automatically
 
