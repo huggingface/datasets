@@ -29,8 +29,8 @@ from urllib.parse import urlparse
 
 from filelock import FileLock
 
-from .naming import camelcase_to_snakecase
 from .builder import DatasetBuilder
+from .naming import camelcase_to_snakecase
 from .splits import Split
 from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url
 

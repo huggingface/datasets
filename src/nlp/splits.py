@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import abc
 import collections
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union
 
 from .arrow_reader import FileInstructions, make_file_instructions

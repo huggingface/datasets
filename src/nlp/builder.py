@@ -52,6 +52,7 @@ class BuilderConfig:
     DatasetBuilder subclasses with data configuration options should subclass
     `BuilderConfig` and add their own properties.
     """
+
     name: str
     version: Version
     supported_versions: list = field(default_factory=list)
@@ -145,7 +146,9 @@ class DatasetBuilder:
 
         # Prepare version: TODO: can still be cleaned up
         self.canonical_version = self._builder_config.version if self._builder_config else self.VERSION
-        self.supported_versions = self._builder_config.supported_versions if self._builder_config else self.SUPPORTED_VERSIONS
+        self.supported_versions = (
+            self._builder_config.supported_versions if self._builder_config else self.SUPPORTED_VERSIONS
+        )
         self.versions = [
             utils.Version(v) if isinstance(v, str) else v for v in [self.canonical_version] + self.supported_versions
         ]

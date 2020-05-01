@@ -15,32 +15,32 @@
 
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
-import os
-import json
 import logging
-from collections import UserDict
-from typing import Any, Dict, List, Tuple, Union, Optional, ClassVar
 from dataclasses import dataclass
-from . import utils
+from typing import Any, ClassVar, Dict, List, Tuple, Union
 
 import pyarrow as pa
+
+from . import utils
 
 
 logger = logging.getLogger(__name__)
 
 
 def type_to_arrow(type_str: str):
-    if type_str.endswith('_'):
+    if type_str.endswith("_"):
         type_str = type_str[:-1]
     return pa.__dict__[type_str]()
+
 
 @dataclass
 class Value:
     """ Encapsulate an Arrow datatype for easy serialization.
     """
+
     dtype: str
     pa_type: ClassVar[Any] = None
-    _type: str = 'Value'
+    _type: str = "Value"
 
     def __post_init__(self):
         self.pa_type = type_to_arrow(self.dtype)
@@ -55,13 +55,14 @@ class Tensor:
         If 0D, the Tensor is an dtype element, if 1D it will be a fixed length list or dtype elements.
         Mostly here for compatiblity with tfds.
     """
+
     shape: Union[Tuple[int], List[int]]
     dtype: str
     pa_type: ClassVar[Any] = None
-    _type: str = 'Tensor'
+    _type: str = "Tensor"
 
     def __post_init__(self):
-        assert len(shape) < 2, "Tensor can only take 0 or 1 dimensional shapes ."
+        assert len(self.shape) < 2, "Tensor can only take 0 or 1 dimensional shapes ."
         if len(self.shape) == 1:
             self.pa_type = pa.list_(type_to_arrow(self.dtype), self.shape[0])
         else:
@@ -91,13 +92,14 @@ class ClassLabel:
             names_file: `str`, path to a file with names for the integer
                 classes, one per line.
     """
+
     num_classes: int = None
     names: List[str] = None
     names_file: str = None
 
     _str2int: ClassVar[Dict[str, int]] = None
     _int2str: ClassVar[Dict[int, int]] = None
-    _type: str = 'ClassLabel'
+    _type: str = "ClassLabel"
 
     def __post_init__(self):
         # The label is explicitly set as undefined (no label defined)
@@ -116,7 +118,7 @@ class ClassLabel:
             elif len(self.names) != self.num_classes:
                 raise ValueError(
                     "ClassLabel number of names do not match the defined num_classes. "
-                    "Got {} names VS {} num_classes".format(num_classes, self.num_classes)
+                    "Got {} names VS {} num_classes".format(len(self.names), self.num_classes)
                 )
 
         # Prepare mappings
@@ -232,7 +234,7 @@ class Translation:
     """
 
     languages: List[str]
-    _type: str = 'Translation'
+    _type: str = "Translation"
 
     def __call__(self):
         return pa.struct({lang: pa.string() for lang in self.languages})
@@ -282,14 +284,14 @@ class TranslationVariableLanguages:
 
     languages: List = None
     num_languages: int = None
-    _type: str = 'TranslationVariableLanguages'
+    _type: str = "TranslationVariableLanguages"
 
     def __post_init__(self):
         self.languages = list(sorted(list(set(self.languages)))) if self.languages else None
         self.num_languages = len(self.languages) if self.languages else None
 
     def __call__(self):
-        return pa.struct({'language': pa.list_(pa.string()), 'translation': pa.list_(pa.string())})
+        return pa.struct({"language": pa.list_(pa.string()), "translation": pa.list_(pa.string())})
 
     def encode_example(self, translation_dict):
         lang_set = set(self.languages)
@@ -320,9 +322,10 @@ class Sequence:
     """ Construct a list of feature from a single type or a dict of types.
         Mostly here for compatiblity with tfds.
     """
+
     feature: Any
     length: int = -1
-    _type: str = 'Sequence'
+    _type: str = "Sequence"
 
 
 def get_nested_type(schema):
@@ -351,16 +354,19 @@ def encode_nested_example(schema, obj):
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return dict((k, encode_nested_example(sub_schema, sub_obj))
-                    for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj))
+        return dict(
+            (k, encode_nested_example(sub_schema, sub_obj)) for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
+        )
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         return [encode_nested_example(sub_schema, o) for o in obj]
     elif isinstance(schema, Sequence):
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
         if isinstance(schema.feature, dict):
-            return dict((k, [encode_nested_example(sub_schema, o) for o in sub_obj])
-                        for k, (sub_schema, sub_obj) in utils.zip_dict(schema.feature, obj))
+            return dict(
+                (k, [encode_nested_example(sub_schema, o) for o in sub_obj])
+                for k, (sub_schema, sub_obj) in utils.zip_dict(schema.feature, obj)
+            )
         return [encode_nested_example(schema.feature, o) for o in obj]
 
     # Object with special encoding:
@@ -380,11 +386,11 @@ def generate_from_dict(obj):
     if isinstance(obj, list):
         return [generate_from_dict(value) for value in obj]
     # Otherwise we have a dict or a dataclass
-    if '_type' not in obj:
+    if "_type" not in obj:
         return {key: generate_from_dict(value) for key, value in obj.items()}
-    classobj = globals()[obj.pop('_type')]
+    classobj = globals()[obj.pop("_type")]
     if isinstance(classobj, Sequence):
-        return Sequence(feature=generate_from_dict(obj['feature']), length=obj['length'])
+        return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
     return classobj(**obj)
 
 

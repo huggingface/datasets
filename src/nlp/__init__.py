@@ -36,10 +36,10 @@ __version__ = "0.0.1"
 
 # Types are pyarrow types
 from . import datasets
-from .features import Features, Sequence, Tensor, Value, ClassLabel, Translation, TranslationVariableLanguages
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from .features import ClassLabel, Features, Sequence, Tensor, Translation, TranslationVariableLanguages, Value
 from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
 from .load import builder, get_builder_cls_from_module, load, load_dataset_module

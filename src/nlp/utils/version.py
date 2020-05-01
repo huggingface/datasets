@@ -16,7 +16,6 @@
 # Lint as: python3
 """Version utils."""
 
-import enum
 import re
 from dataclasses import dataclass
 
@@ -37,6 +36,7 @@ class Version:
                 dataset, but that at version {nlp_version_to_prepare} should be
                 used instead.
     """
+
     version_str: str
     description: str = None
     nlp_version_to_prepare: str = None

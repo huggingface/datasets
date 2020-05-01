@@ -30,14 +30,15 @@ processed the dataset as well:
  - etc.
 """
 
+import json
 import logging
 import os
-import json
-from dataclasses import dataclass, field, asdict
-from typing import Any, Dict, List, Optional
+from dataclasses import asdict, dataclass, field
+from typing import List, Optional
 
-from .splits import SplitDict, check_splits_equals
 from .features import Features
+from .splits import SplitDict, check_splits_equals
+
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,6 @@ class DatasetInfo:
             self.splits = SplitDict.from_split_dict(self.splits)
         if self.download_checksums and not isinstance(self.download_checksums[0], SupervisedKeysData):
             self.supervised_keys = [SupervisedKeysData(**kwargs) for kwargs in self.supervised_keys]
-
 
     @property
     def dataset_size(self):
