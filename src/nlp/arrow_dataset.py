@@ -25,8 +25,10 @@ from typing import Any, Dict, List, Optional, Union
 import pyarrow as pa
 from tqdm import tqdm
 
-from .arrow_writer import ArrowWriter
 from nlp.utils.py_utils import dumps
+
+from .arrow_writer import ArrowWriter
+
 
 logger = logging.getLogger(__name__)
 

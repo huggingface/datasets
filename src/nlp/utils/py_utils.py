@@ -26,11 +26,12 @@ import itertools
 import os
 import sys
 import uuid
-from shutil import disk_usage
 from io import BytesIO as StringIO
+from shutil import disk_usage
 from types import CodeType
 
 import dill
+
 from .file_utils import INCOMPLETE_SUFFIX
 
 
@@ -304,6 +305,7 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
 
 class Pickler(dill.Pickler):
     """Same Pickler as the one from dill, but improved for notebooks and shells"""
+
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
 
 
@@ -324,6 +326,7 @@ def pklregister(t):
     def proxy(func):
         Pickler.dispatch[t] = func
         return func
+
     return proxy
 
 
@@ -348,27 +351,57 @@ def save_code(pickler, obj):
     if dill._dill.PY3:
         if hasattr(obj, "co_posonlyargcount"):
             args = (
-                obj.co_argcount, obj.co_posonlyargcount,
-                obj.co_kwonlyargcount, obj.co_nlocals, obj.co_stacksize,
-                obj.co_flags, obj.co_code, obj.co_consts, obj.co_names,
-                obj.co_varnames, co_filename, obj.co_name,
-                co_firstlineno, obj.co_lnotab, obj.co_freevars,
-                obj.co_cellvars
+                obj.co_argcount,
+                obj.co_posonlyargcount,
+                obj.co_kwonlyargcount,
+                obj.co_nlocals,
+                obj.co_stacksize,
+                obj.co_flags,
+                obj.co_code,
+                obj.co_consts,
+                obj.co_names,
+                obj.co_varnames,
+                co_filename,
+                obj.co_name,
+                co_firstlineno,
+                obj.co_lnotab,
+                obj.co_freevars,
+                obj.co_cellvars,
             )
         else:
             args = (
-                obj.co_argcount, obj.co_kwonlyargcount, obj.co_nlocals,
-                obj.co_stacksize, obj.co_flags, obj.co_code, obj.co_consts,
-                obj.co_names, obj.co_varnames, co_filename,
-                obj.co_name, co_firstlineno, obj.co_lnotab,
-                obj.co_freevars, obj.co_cellvars
+                obj.co_argcount,
+                obj.co_kwonlyargcount,
+                obj.co_nlocals,
+                obj.co_stacksize,
+                obj.co_flags,
+                obj.co_code,
+                obj.co_consts,
+                obj.co_names,
+                obj.co_varnames,
+                co_filename,
+                obj.co_name,
+                co_firstlineno,
+                obj.co_lnotab,
+                obj.co_freevars,
+                obj.co_cellvars,
             )
     else:
         args = (
-            obj.co_argcount, obj.co_nlocals, obj.co_stacksize, obj.co_flags,
-            obj.co_code, obj.co_consts, obj.co_names, obj.co_varnames,
-            co_filename, obj.co_name, co_firstlineno, obj.co_lnotab,
-            obj.co_freevars, obj.co_cellvars
+            obj.co_argcount,
+            obj.co_nlocals,
+            obj.co_stacksize,
+            obj.co_flags,
+            obj.co_code,
+            obj.co_consts,
+            obj.co_names,
+            obj.co_varnames,
+            co_filename,
+            obj.co_name,
+            co_firstlineno,
+            obj.co_lnotab,
+            obj.co_freevars,
+            obj.co_cellvars,
         )
     pickler.save_reduce(CodeType, args, obj=obj)
     dill._dill.log.info("# Co")
