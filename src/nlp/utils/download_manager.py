@@ -194,16 +194,22 @@ class DownloadManager(object):
 
         Returns:
             Generator yielding tuple (path_within_archive, file_obj).
+            File-Obj are opened in byte mode (io.BufferedReader)
         """
+        logger.info("Extracting archive at %s", str(path))
         extracted_path = self.extract(path)
         if os.path.isfile(extracted_path):
             with open(extracted_path, "rb") as file_obj:
                 yield (extracted_path, file_obj)
-        with os.scandir(path) as it:
-            for entry in it:
-                if entry.is_file():
-                    with open(entry.path, "rb") as file_obj:
-                        yield (entry.path, file_obj)
+
+        # We do this complex absolute/relative scheme to reproduce the API of iter_tar of tfds
+        for root, dirs, files in os.walk(extracted_path, topdown=False):
+            relative_dir_path = root.replace(os.path.abspath(extracted_path) + "/", "")
+            for name in files:
+                relative_file_path = os.path.join(relative_dir_path, name)
+                absolute_file_path = os.path.join(root, name)
+                with open(absolute_file_path, "rb") as file_obj:
+                    yield (relative_file_path, file_obj)
 
     def extract(self, path_or_paths):
         """Extract given path(s).

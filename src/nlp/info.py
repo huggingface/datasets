@@ -272,8 +272,8 @@ class DatasetInfo(object):
     def write_to_directory(self, dataset_info_dir):
         """Write `DatasetInfo` as JSON to `dataset_info_dir`."""
         # Save the metadata from the features (vocabulary, labels,...)
-        if self.features:
-            self.features.save_metadata(dataset_info_dir)
+        # if self.features:
+        #     self.features.save_metadata(dataset_info_dir)
 
         # Save any additional metadata
         if self.metadata is not None:
@@ -314,8 +314,8 @@ class DatasetInfo(object):
         self._info_data.splits = SplitDict.from_split_dict(split_dict)
 
         # Restore the feature metadata (vocabulary, labels names,...)
-        if self.features:
-            self.features.load_metadata(dataset_info_dir)
+        # if self.features:
+        #     self.features.load_metadata(dataset_info_dir)
 
         if self.metadata is not None:
             self.metadata.load_metadata(dataset_info_dir)

@@ -7,12 +7,40 @@ from logging import getLogger
 from nlp.commands import BaseTransformersCLICommand
 
 
+HIGHLIGHT_MESSAGE_PRE = """<<<<<<< This should probably be modified because it mentions: """
+
+HIGHLIGHT_MESSAGE_POST = """=======
+>>>>>>>
+"""
+
+TO_HIGHLIGHT = [
+    "TextEncoderConfig",
+    "ByteTextEncoder",
+    "SubwordTextEncoder",
+    "encoder_config",
+    "maybe_build_from_corpus",
+]
+
+TO_CONVERT = [
+    # (pattern, replacement)
+    # Order is important here for some replacements
+    (r"tfds\.core", r"nlp"),
+    (r"tf\.io\.gfile\.GFile", r"open"),
+    (r"tf\.bool", r"nlp.bool_"),
+    (r"tfds\.features\.Text\(\)", r"nlp.string"),
+    (r"tfds\.features\.Text\(", r"nlp.string,"),
+    (r"features\s*=\s*tfds.features.FeaturesDict\(", r"features=nlp.Features("),
+    (r"tfds\.features\.FeaturesDict\(", r"dict("),
+    (r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace NLP Authors"),
+    (r"tfds\.", r"nlp."),
+]
+
 def convert_command_factory(args: Namespace):
     """
     Factory function used to convert a model TF 1.0 checkpoint in a PyTorch checkpoint.
     :return: ServeCommand
     """
-    return ConvertCommand(args.tfds_directory, args.nlp_directory, args.tfds_rel_filename)
+    return ConvertCommand(args.tfds_path, args.nlp_directory)
 
 
 class ConvertCommand(BaseTransformersCLICommand):
@@ -27,40 +55,42 @@ class ConvertCommand(BaseTransformersCLICommand):
             "convert", help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
         )
         train_parser.add_argument(
-            "--tfds_directory", type=str, required=True, help="Path to the TensorFlow Datasets folder."
-        )
-        train_parser.add_argument(
-            "--tfds_rel_filename",
+            "--tfds_path",
             type=str,
-            default=None,
-            required=False,
-            help="Relative path from `tfds_directory` to a specific TensorFlow Dataset script to convert. If arg is used then only this file is converted.",
+            required=True,
+            help="Path to a TensorFlow Datasets folder to convert or a single tfds file to convert.",
         )
         train_parser.add_argument(
             "--nlp_directory", type=str, required=True, help="Path to the HuggingFace NLP folder."
         )
         train_parser.set_defaults(func=convert_command_factory)
 
-    def __init__(self, tfds_directory: str, nlp_directory: str, tfds_rel_filename: str, *args):
+    def __init__(self, tfds_path: str, nlp_directory: str, *args):
         self._logger = getLogger("nlp-cli/converting")
 
-        self._tfds_directory = tfds_directory
-        self._tfds_rel_filename = tfds_rel_filename
+        self._tfds_path = tfds_path
         self._nlp_directory = nlp_directory
 
     def run(self):
-        abs_tfds_path = os.path.abspath(self._tfds_directory)
+        if os.path.isdir(self._tfds_path):
+            abs_tfds_path = os.path.abspath(self._tfds_path)
+        elif os.path.isfile(self._tfds_path):
+            abs_tfds_path = os.path.dirname(self._tfds_path)
+        else:
+            raise ValueError("--tfds_path is neither a directory nor a file. Please check path.")
+
         abs_nlp_path = os.path.abspath(self._nlp_directory)
 
         self._logger.info("Converting datasets from %s to %s", abs_tfds_path, abs_nlp_path)
 
         utils_files = []
+        with_manual_update = []
         imports_to_builder_map = {}
 
-        if self._tfds_rel_filename is None:
+        if os.path.isdir(self._tfds_path):
             file_names = os.listdir(abs_tfds_path)
         else:
-            file_names = [self._tfds_rel_filename]
+            file_names = [os.path.basename(self._tfds_path)]
 
         for f_name in file_names:
             self._logger.info("Looking at file %s", f_name)
@@ -76,6 +106,7 @@ class ConvertCommand(BaseTransformersCLICommand):
 
             out_lines = []
             is_builder = False
+            needs_manual_update = False
             tfds_imports = []
             for line in lines:
                 out_line = line
@@ -89,17 +120,16 @@ class ConvertCommand(BaseTransformersCLICommand):
                     out_line = "import nlp\n"
                 elif "from absl import logging" in out_line:
                     out_line = "import logging\n"
+                elif any(expression in out_line for expression in TO_HIGHLIGHT):
+                    needs_manual_update = True
+                    to_remove = list(filter(lambda e: e in out_line, TO_HIGHLIGHT))
+                    out_lines.append(HIGHLIGHT_MESSAGE_PRE + str(to_remove) + '\n')
+                    out_lines.append(out_line)
+                    out_lines.append(HIGHLIGHT_MESSAGE_POST)
+                    continue
                 else:
-                    out_line = out_line.replace("tfds.core", "nlp")
-                    out_line = out_line.replace("tf.io.gfile.GFile", "open")
-                    out_line = out_line.replace("tf.bool", "nlp.bool_")
-                    out_line = out_line.replace("tf.", "nlp.")
-                    out_line = out_line.replace("tfds.features.Text()", "nlp.string")
-                    out_line = out_line.replace(
-                        "The TensorFlow Datasets Authors",
-                        "The TensorFlow Datasets Authors and the HuggingFace NLP Authors",
-                    )
-                    out_line = out_line.replace("tfds.", "nlp.")
+                    for pattern, replacement in TO_CONVERT:
+                        out_line = re.sub(pattern, replacement, out_line)
 
                 # Take care of saving utilities (to later move them together with main script)
                 if "tensorflow_datasets" in out_line:
@@ -128,6 +158,9 @@ class ConvertCommand(BaseTransformersCLICommand):
                 # Utilities will be moved at the end
                 utils_files.append(output_file)
 
+            if needs_manual_update:
+                with_manual_update.append(output_file)
+
             with open(output_file, "w") as f:
                 f.writelines(out_lines)
             self._logger.info("Converted in %s", output_file)
@@ -140,3 +173,9 @@ class ConvertCommand(BaseTransformersCLICommand):
                 shutil.copy(utils_file, dest_folder)
             except KeyError:
                 self._logger.error(f"Cannot find destination folder for {utils_file}. Please copy manually.")
+
+        if with_manual_update:
+            for file_path in with_manual_update:
+                self._logger.warning(
+                    f"You need to manually update file {file_path} to remove configurations using 'TextEncoderConfig'."
+                )

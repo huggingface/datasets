@@ -71,7 +71,8 @@ from pyarrow import (
     utf8,
 )
 
-from . import datasets, features
+from . import datasets
+from .features import Features, Sequence, Tensor, ClassLabel
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
