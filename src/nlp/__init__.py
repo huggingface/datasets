@@ -80,9 +80,9 @@ from .lazy_imports_lib import lazy_imports
 from .load import builder, get_builder_cls_from_module, load, load_dataset_module
 from .metrics.metric import Metric
 from .metrics.sacrebleu_score import Sacrebleu
-from .metrics.bleu.bleu import compute_bleu
 from .metrics.seqeval_score import Seqeval
 from .metrics.bleu_score import Bleu
+from .metrics.rouge_score import Rouge
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar

@@ -99,7 +99,7 @@ def get_imports(file_path: str):
 
         ```python
         import .c4_utils
-        import .clicr.metric-code.build_json_dataset  # From: https://github.com/clips/clicr/{branch_name}
+        import .clicr.dataset-code.build_json_dataset  # From: https://github.com/clips/clicr/{branch_name}
         ```
     """
     lines = []
@@ -120,8 +120,8 @@ def get_imports(file_path: str):
                 repo_owner, repo_name, branch = url_path.split("/")[-3:]
                 url_path_zip = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
             imports.append(("external", url_path_zip))
-            filename = line.split('#')[0].strip().split('.')[-2:]
-            filename = os.path.join(filename[0], filename[1])
+            filename = line.split('#')[0].strip().split('.')[-2:] # returns the filename and its main folder
+            filename = os.path.join(filename[0], filename[1]) 
             external_imports.append((filename,url_path))
         elif match.group(1):
             imports.append(("internal", match.group(1)))
