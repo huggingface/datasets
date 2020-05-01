@@ -22,12 +22,11 @@ import os
 from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Union
 
-import dill
 import pyarrow as pa
 from tqdm import tqdm
 
 from .arrow_writer import ArrowWriter
-
+from nlp.utils.py_utils import dumps
 
 logger = logging.getLogger(__name__)
 
@@ -336,7 +335,7 @@ class Dataset(object):
             "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items()) for f in self._data_files
         )
         cache_kwargs_string = "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items())
-        function_bytes = dill.dumps(function)
+        function_bytes = dumps(function)
         output_hash = hashlib.md5(
             previous_files_string.encode("utf-8") + cache_kwargs_string.encode("utf-8") + function_bytes
         ).hexdigest()
