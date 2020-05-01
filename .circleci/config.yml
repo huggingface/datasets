@@ -7,7 +7,7 @@ jobs:
         resource_class: medium
         steps:
             - checkout
-            - run: python -m --system-site-packages venv venv
+            - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: python -m pytest -sv ./tests/test_dataset_common.py
