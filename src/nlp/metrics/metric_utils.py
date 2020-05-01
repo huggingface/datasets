@@ -38,7 +38,6 @@ logger = logging.getLogger(__name__)
 
 
 CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-METRICS_PATH = CURRENT_FILE_DIRECTORY 
 METRICS_MODULE = "nlp.metrics"
 
 
@@ -99,7 +98,7 @@ def get_imports(file_path: str):
 
         ```python
         import .c4_utils
-        import .clicr.dataset-code.build_json_dataset  # From: https://github.com/clips/clicr/{branch_name}
+        import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
         ```
     """
     lines = []
@@ -117,7 +116,7 @@ def get_imports(file_path: str):
             url_path = match.group(2)
             if _is_github_url(url_path):
                 # Parse github url to point to zip
-                repo_owner, repo_name, branch = url_path.split("/")[-3:]
+                repo_owner, repo_name, branch = url_path.split(".com/")[-1].split("/")[:3]
                 url_path_zip = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
             imports.append(("external", url_path_zip))
             filename = line.split('#')[0].strip().split('.')[-2:] # returns the filename and its main folder
@@ -151,7 +150,6 @@ def load_metric_module(
             the unique id associated to the metric
             the local path to the metric
     """
-    global METRICS_PATH
     remote_files = []
     
     if name is None:
@@ -210,7 +208,7 @@ def load_metric_module(
     # path is: ./METRICS/metric_name/hash_from_code/script.py
     metric_name = name[:-3]  # Removing the '.py' at the end
     metric_hash = files_to_hash([local_path] + local_imports)
-    metric_main_folder_path = os.path.join(METRICS_PATH, metric_name)
+    metric_main_folder_path = os.path.join(CURRENT_FILE_DIRECTORY , metric_name)
     metric_hash_folder_path = os.path.join(metric_main_folder_path, metric_hash)
     metric_file_path = os.path.join(metric_hash_folder_path, name)
     # Prevent parallel disk operations
@@ -238,7 +236,7 @@ def load_metric_module(
         else:
             logger.info("Found specific version folder for metric %s at %s", metric_file, metric_hash_folder_path)
         ## get external import files and copy them
-        metric_folder = os.path.join(METRICS_PATH, name.split('_')[0])  ## rouge_imports ==> rouge folder, bleu_imports ==> bleu folder
+        metric_folder = os.path.join(CURRENT_FILE_DIRECTORY , name.split('_')[0])  ## rouge_imports ==> rouge folder, bleu_imports ==> bleu folder
         if not os.path.exists(metric_folder):
             os.system('mkdir '+ metric_folder)
         for external_import in external_imports:

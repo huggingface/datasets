@@ -1,9 +1,8 @@
 from nlp.metrics import metric_utils
 import os
 
-CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-print(CURRENT_FILE_DIRECTORY)
-metric_utils.load_metric_module(CURRENT_FILE_DIRECTORY, name='bleu_imports.py')
+
+metric_utils.load_metric_module(os.path.dirname(os.path.abspath(__file__)), name='bleu_imports.py')
 try:
     from nlp.metrics.bleu.bleu import compute_bleu
 except ImportError:

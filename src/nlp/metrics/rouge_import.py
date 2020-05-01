@@ -1,1 +1,1 @@
-import .tensorflow.nmt.nmt.scripts.rouge  # From: https://github.com/tensorflow/nmt/master
+import .tensorflow.nmt.nmt.scripts.rouge  # From: https://raw.githubusercontent.com/tensorflow/nmt/master/nmt/scripts/rouge.py

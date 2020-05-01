@@ -119,7 +119,7 @@ def get_imports(file_path: str):
 
         We allow:
         - local dependencies and
-        - external dependencies whose url is specified with a comment starting from "# From:' followed by an url to a file, an archive or a github repository.
+        - external dependencies whose url is specified with a comment starting from "# From:' followed by the raw url to a file, an archive or a github repository.
             external dependencies will be downloaded (and extracted if needed in the dataset folder).
             We also add an `__init__.py` to each sub-folder of a downloaded folder so the user can import from them in the script.
 
@@ -128,7 +128,7 @@ def get_imports(file_path: str):
 
         ```python
         import .c4_utils
-        import .clicr.dataset-code.build_json_dataset  # From: https://github.com/clips/clicr/{branch_name}
+        import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
         ```
     """
     lines = []
@@ -145,7 +145,7 @@ def get_imports(file_path: str):
             url_path = match.group(2)
             if _is_github_url(url_path):
                 # Parse github url to point to zip
-                repo_owner, repo_name, branch = url_path.split("/")[-3:]
+                repo_owner, repo_name, branch = url_path.split(".com/")[-1].split("/")[:3]
                 url_path = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
             imports.append(("external", url_path))
         elif match.group(1):
