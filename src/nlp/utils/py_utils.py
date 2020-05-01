@@ -336,10 +336,6 @@ def save_code(pickler, obj):
     From dill._dill.save_code
     This is a modified version that removes the origin (filename + line no.)
     of functions created in notebooks or shells for example.
-
-    Usage:
-    >>> with patch.dict(dill.Pickler.dispatch, {CodeType: save_code}):
-    >>>     function_bytes = dill.dumps(function)
     """
     dill._dill.log.info("Co: %s" % obj)
     # Filenames of functions created in notebooks or shells start with '<'
