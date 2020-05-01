@@ -7,7 +7,9 @@ jobs:
         resource_class: medium
         steps:
             - checkout
-            - run: sudo pip install .[tests]
+            - run: virtualenv --system-site-packages -p python venv
+            - run: source venv/bin/activate
+            - run: pip install .[tests]
             - run: python -m pytest -sv ./tests/test_dataset_common.py
 
     check_code_quality:
