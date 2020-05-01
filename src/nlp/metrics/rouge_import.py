@@ -1,0 +1,1 @@
+import .tensorflow.nmt.nmt.scripts.rouge  # From: https://github.com/tensorflow/nmt/master

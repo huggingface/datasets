@@ -128,7 +128,7 @@ def get_imports(file_path: str):
 
         ```python
         import .c4_utils
-        import .clicr.dataset-code.build_json_dataset  # From: https://github.com/clips/clicr
+        import .clicr.dataset-code.build_json_dataset  # From: https://github.com/clips/clicr/{branch_name}
         ```
     """
     lines = []
@@ -145,8 +145,7 @@ def get_imports(file_path: str):
             url_path = match.group(2)
             if _is_github_url(url_path):
                 # Parse github url to point to zip
-                repo_info, branch = url_path.split(":") if ":" in url_path else (url_path, "master")
-                repo_owner, repo_name = repo_info.split("/")
+                repo_owner, repo_name, branch = url_path.split("/")[-3:]
                 url_path = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
             imports.append(("external", url_path))
         elif match.group(1):
