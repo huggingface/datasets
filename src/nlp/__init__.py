@@ -35,44 +35,8 @@ The main library entrypoints are:
 __version__ = "0.0.1"
 
 # Types are pyarrow types
-from pyarrow import (
-    binary,
-    bool_,
-    date32,
-    date64,
-    decimal128,
-    dictionary,
-    duration,
-    float16,
-    float32,
-    float64,
-    int8,
-    int16,
-    int32,
-    int64,
-    large_binary,
-    large_list,
-    large_string,
-    large_utf8,
-    list_,
-    map_,
-    null,
-    string,
-    struct,
-    time32,
-    time64,
-    timestamp,
-    total_allocated_bytes,
-    uint8,
-    uint16,
-    uint32,
-    uint64,
-    union,
-    utf8,
-)
-
 from . import datasets
-from .features import Features, Sequence, Tensor, ClassLabel
+from .features import Features, Sequence, Tensor, Value, ClassLabel, Translation, TranslationVariableLanguages
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder

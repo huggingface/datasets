@@ -29,7 +29,7 @@ from urllib.parse import urlparse
 
 from filelock import FileLock
 
-from . import naming
+from .naming import camelcase_to_snakecase
 from .builder import DatasetBuilder
 from .splits import Split
 from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url
@@ -53,7 +53,7 @@ def get_builder_cls_from_module(dataset_module):
     for name, obj in dataset_module.__dict__.items():
         if isinstance(obj, type) and issubclass(obj, DatasetBuilder):
             builder_cls = obj
-            builder_cls.name = naming.camelcase_to_snakecase(name)
+            builder_cls.name = camelcase_to_snakecase(name)
             break
     return builder_cls
 
