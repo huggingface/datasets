@@ -20,11 +20,24 @@ import enum
 import logging
 import os
 
-from .file_utils import HF_DATASETS_CACHE, cached_path, get_size_checksum
-from .py_utils import flatten_nest_dict, map_nested
+from .checksums_utils import CHECKSUMS_FILE_NAME, get_size_checksum, load_sizes_checksums, store_sizes_checksum
+from .file_utils import HF_DATASETS_CACHE, cached_path
+from .py_utils import flatten_nested, map_nested
 
 
 logger = logging.getLogger(__name__)
+
+
+class MissingFileError(Exception):
+    """A dataset file is missing."""
+
+
+class MissingChecksumError(Exception):
+    """The expected checksum of the download file is missing."""
+
+
+class NonMatchingChecksumError(Exception):
+    """The downloaded file doesn't have expected checksum."""
 
 
 class GenerateMode(enum.Enum):
@@ -55,7 +68,8 @@ class DownloadConfig(object):
         manual_dir=None,
         download_mode=None,
         max_examples_per_split=None,
-        register_checksums=False,
+        ignore_checksums=False,
+        save_checksums=False,
         beam_runner=None,
         beam_options=None,
     ):
@@ -70,8 +84,10 @@ class DownloadConfig(object):
                 reuse both downloads and data if it already exists.
             max_examples_per_split: `int`, optional max number of examples to write
                 into each split (used for testing).
-            register_checksums: `bool`, defaults to False. If True, checksum of
-                downloaded files are recorded.
+            ignore_checksums: `bool`, defaults to False. If True, wrong or missing checksums
+                will be ignored.
+            save_checksums: `bool`, defaults to False. If True, the checksums of the
+                downloaded files will be saved in the `urls_checksums` folder
             beam_runner: Runner to pass to `beam.Pipeline`, only used for datasets
                 based on Beam for the generation.
             beam_options: `PipelineOptions` to pass to `beam.Pipeline`, only used for
@@ -80,7 +96,8 @@ class DownloadConfig(object):
         self.manual_dir = manual_dir
         self.download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
         self.max_examples_per_split = max_examples_per_split
-        self.register_checksums = register_checksums
+        self.ignore_checksums = ignore_checksums
+        self.save_checksums = save_checksums
         self.beam_runner = beam_runner
         self.beam_options = beam_options
 
@@ -93,7 +110,8 @@ class DownloadManager(object):
         manual_dir_instructions=None,
         dataset_name=None,
         force_download=False,
-        register_checksums=False,
+        ignore_checksums=False,
+        save_checksums=False,
     ):
         """Download manager constructor.
 
@@ -106,8 +124,10 @@ class DownloadManager(object):
             dataset_name: `str`, name of dataset this instance will be used for. If
                 provided, downloads will contain which datasets they were used for.
             force_download: `bool`, default to False. If True, always [re]download.
-            register_checksums: `bool`, default to False. If True, dl checksums aren't
-                checked, but stored into file.
+            ignore_checksums: `bool`, defaults to False. If True, wrong or missing checksums
+                will be ignored.
+            save_checksums: `bool`, defaults to False. If True, the checksums of the
+                downloaded files will be saved in the `urls_checksums` folder
         """
         self._dataset_name = dataset_name
         if download_dir is None:
@@ -117,9 +137,12 @@ class DownloadManager(object):
         self._manual_dir_instructions = manual_dir_instructions
         os.makedirs(self._download_dir, exist_ok=True)
         self._force_download = force_download
-        self._register_checksums = register_checksums
-        # All known URLs: {url: (size, checksum)}
-        self._sizes_checksums = {}  # checksums.get_all_sizes_checksums()
+        self._ignore_checksums = ignore_checksums
+        self._save_checksums = save_checksums
+        if ignore_checksums and save_checksums:
+            raise ValueError(
+                "Parameters `ignore_checksums` and `save_checksums` " "shouldn't be True at the same time."
+            )
         # To record what is being used: {url: (size, checksum)}
         self._recorded_sizes_checksums = {}
 
@@ -128,18 +151,18 @@ class DownloadManager(object):
         """Returns the total size of downloaded files."""
         return sum(size for size, sha256 in self._recorded_sizes_checksums.values())
 
+    def _check_missing_files(self, url_or_urls, downloaded_path_or_paths):
+        flattened_urls_or_urls = flatten_nested(url_or_urls)
+        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
+        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
+            if path is None:
+                raise MissingFileError("Couldn't get file {}.".format(url))
+
     def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
         """Record size/checksum of downloaded files."""
-        if isinstance(url_or_urls, str):
-            url, path = url_or_urls, downloaded_path_or_paths
-            self._recorded_sizes_checksums[url] = get_size_checksum(path)
-            return
-        elif isinstance(url_or_urls, dict):
-            url_or_urls = list(flatten_nest_dict(url_or_urls).values())
-            downloaded_path_or_paths = list(flatten_nest_dict(downloaded_path_or_paths).values())
-        print(url_or_urls)
-        assert isinstance(url_or_urls, (list, tuple))
-        for url, path in zip(url_or_urls, downloaded_path_or_paths):
+        flattened_urls_or_urls = flatten_nested(url_or_urls)
+        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
+        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             self._recorded_sizes_checksums[url] = get_size_checksum(path)
 
     def download(self, url_or_urls):
@@ -155,10 +178,11 @@ class DownloadManager(object):
         """
         downloaded_path_or_paths = map_nested(
             lambda url_or_urls: cached_path(
-                url_or_urls, cache_dir=self._download_dir, force_download=self._force_download,
+                url_or_urls, cache_dir=self._download_dir, force_download=self._force_download
             ),
             url_or_urls,
         )
+        self._check_missing_files(url_or_urls, downloaded_path_or_paths)
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
 
@@ -236,3 +260,28 @@ class DownloadManager(object):
                 )
             )
         return self._manual_dir
+
+    def check_or_save_checksums(self, urls_checksums_dir):
+        if not self._ignore_checksums:
+            checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
+            if self._save_checksums:
+                os.makedirs(urls_checksums_dir, exist_ok=True)
+                self._store_sizes_checksums(checksums_file_path)
+                logger.info("Stored the recorded checksums in {}.".format(urls_checksums_dir))
+            else:
+                expected_sizes_checksums = load_sizes_checksums(checksums_file_path)
+                for url, rec_size_checksum in self._recorded_sizes_checksums.items():
+                    exp_size_checksum = expected_sizes_checksums.get(url)
+                    if exp_size_checksum is None:
+                        raise MissingChecksumError(url)
+                    if exp_size_checksum != rec_size_checksum:
+                        raise NonMatchingChecksumError(url)
+                logger.info("All checksums matched successfully.")
+        else:
+            logger.info("Checksums tests were ignored.")
+
+    def _store_sizes_checksums(self, path):
+        store_sizes_checksum(self.get_recorded_sizes_checksums(), path)
+
+    def get_recorded_sizes_checksums(self):
+        return self._recorded_sizes_checksums.copy()

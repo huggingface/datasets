@@ -33,7 +33,7 @@ from .arrow_writer import ArrowWriter, BeamWriter
 from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
-from .utils import Version
+from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE
 
@@ -54,7 +54,7 @@ class BuilderConfig:
     """
 
     name: str
-    version: Version
+    version: utils.Version
     supported_versions: list = field(default_factory=list)
     description: str = ""
 
@@ -300,6 +300,11 @@ class DatasetBuilder:
         """
         raise NotImplementedError
 
+    @classmethod
+    def get_imported_module_dir(cls):
+        """Return the path of the module of this class or subclass."""
+        return os.path.dirname(inspect.getfile(inspect.getmodule(cls)))
+
     def download_and_prepare(self, download_dir=None, download_config=None):
         """Downloads and prepares dataset for reading.
 
@@ -321,7 +326,7 @@ class DatasetBuilder:
         # Currently it's not possible to overwrite the data because it would
         # conflict with versioning: If the last version has already been generated,
         # it will always be reloaded and data_dir will be set at construction.
-        if data_exists:
+        if data_exists and download_config.download_mode != REUSE_CACHE_IF_EXISTS:
             raise ValueError(
                 "Trying to overwrite an existing dataset {} at {}. A dataset with "
                 "the same version {} already exists. If the dataset has changed, "
@@ -363,6 +368,8 @@ class DatasetBuilder:
             os.makedirs(tmp_dir)
             try:
                 yield tmp_dir
+                if os.path.isdir(dirname):
+                    shutil.rmtree(dirname)
                 os.rename(tmp_dir, dirname)
             finally:
                 if os.path.exists(tmp_dir):
@@ -416,11 +423,14 @@ class DatasetBuilder:
             download_config: `DownloadConfig`, Additional options.
         """
         os.makedirs(self._data_dir, exist_ok=True)
+        urls_checksums_dir = os.path.join(self.get_imported_module_dir(), URLS_CHECKSUMS_FOLDER_NAME)
 
         # Generating data for all splits
         split_dict = splits_lib.SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
-        for split_generator in self._split_generators(dl_manager, **split_generators_kwargs):
+        split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        dl_manager.check_or_save_checksums(urls_checksums_dir)  # verify checksums
+        for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(
                     "`all` is a special split keyword corresponding to the "
@@ -454,7 +464,8 @@ class DatasetBuilder:
             manual_dir=manual_dir,
             manual_dir_instructions=self.MANUAL_DOWNLOAD_INSTRUCTIONS,
             force_download=(download_config.download_mode == FORCE_REDOWNLOAD),
-            register_checksums=download_config.register_checksums,
+            ignore_checksums=download_config.ignore_checksums,
+            save_checksums=download_config.save_checksums,
         )
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
