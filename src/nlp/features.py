@@ -15,13 +15,14 @@
 
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
-import os
 import logging
-from typing import Any, Dict, List, Tuple, Union, Optional
+import os
 from dataclasses import dataclass
-from . import utils
+from typing import Any, Dict, List, Tuple, Union
 
 import pyarrow as pa
+
+from . import utils
 
 
 logger = logging.getLogger(__name__)
@@ -49,16 +50,19 @@ def get_nested_type(schema):
 def encode_nested_example(schema, obj):
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return dict((k, encode_nested_example(sub_schema, sub_obj))
-                    for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj))
+        return dict(
+            (k, encode_nested_example(sub_schema, sub_obj)) for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
+        )
     elif isinstance(schema, (list, tuple)):
         sub_schema = schema[0]
         return [encode_nested_example(sub_schema, o) for o in obj]
     elif isinstance(schema, Sequence):
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
         if isinstance(schema.feature, dict):
-            return dict((k, [encode_nested_example(sub_schema, o) for o in sub_obj])
-                        for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj))
+            return dict(
+                (k, [encode_nested_example(sub_schema, o) for o in sub_obj])
+                for k, (sub_schema, sub_obj) in utils.zip_dict(schema, obj)
+            )
         return [encode_nested_example(schema.feature, o) for o in obj]
 
     # Object with special encoding:
@@ -76,11 +80,12 @@ class Tensor:
         If 0D, the Tensor is an dtype element, if 1D it will be a fixed length list or dtype elements.
         Mostly here for compatiblity with tfds.
     """
+
     shape: Union[Tuple[int], List[int]]
     dtype: pa.DataType
 
     def __post_init__(self):
-        assert len(shape) < 2, "Tensor can only take 0 or 1 dimensional shapes ."
+        assert len(self.shape) < 2, "Tensor can only take 0 or 1 dimensional shapes ."
         if len(self.shape) == 1:
             self.dtype = pa.list_(self.dtype(), intlist_size=self.shape[0])
         else:
@@ -128,7 +133,7 @@ class ClassLabel(object):
         if num_classes:
             self._num_classes = num_classes
         else:
-            self.names = names or _load_names_from_file(names_file)
+            self.names = names or self._load_names_from_file(names_file)
 
     def __call__(self):
         return pa.int64()
@@ -227,7 +232,7 @@ class ClassLabel(object):
     def load_metadata(self, data_dir, feature_name=None):
         """See base class for details."""
         # Restore names if defined
-        names_filepath = _get_names_filepath(data_dir, feature_name)
+        names_filepath = self._get_names_filepath(data_dir, feature_name)
         if os.path.exists(names_filepath):
             self.names = self._load_names_from_file(names_filepath)
 
@@ -254,6 +259,7 @@ class Sequence:
     """ Construct a list of feature from a single type or a dict of types.
         Mostly here for compatiblity with tfds.
     """
+
     feature: Any
     length: int = -1
 
@@ -364,7 +370,7 @@ class TranslationVariableLanguages(object):
         self._languages = set(languages) if languages else None
 
     def __call__(self):
-        return pa.struct({'language': pa.list_(pa.string()), 'translation': pa.list_(pa.string())})
+        return pa.struct({"language": pa.list_(pa.string()), "translation": pa.list_(pa.string())})
 
     @property
     def num_languages(self):

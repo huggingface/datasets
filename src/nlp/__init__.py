@@ -72,10 +72,10 @@ from pyarrow import (
 )
 
 from . import datasets
-from .features import Features, Sequence, Tensor, ClassLabel
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from .features import ClassLabel, Features, Sequence, Tensor
 from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
 from .load import builder, get_builder_cls_from_module, load, load_dataset_module

@@ -26,7 +26,7 @@ from typing import Dict, List, Optional, Union
 from dataclasses_json import dataclass_json
 
 from .arrow_reader import FileInstructions, make_file_instructions
-from .utils.py_utils import NonMutableDict, zip_dict
+from .utils.py_utils import NonMutableDict
 
 
 @dataclass_json

@@ -35,6 +35,7 @@ TO_CONVERT = [
     (r"tfds\.", r"nlp."),
 ]
 
+
 def convert_command_factory(args: Namespace):
     """
     Factory function used to convert a model TF 1.0 checkpoint in a PyTorch checkpoint.
@@ -123,7 +124,7 @@ class ConvertCommand(BaseTransformersCLICommand):
                 elif any(expression in out_line for expression in TO_HIGHLIGHT):
                     needs_manual_update = True
                     to_remove = list(filter(lambda e: e in out_line, TO_HIGHLIGHT))
-                    out_lines.append(HIGHLIGHT_MESSAGE_PRE + str(to_remove) + '\n')
+                    out_lines.append(HIGHLIGHT_MESSAGE_PRE + str(to_remove) + "\n")
                     out_lines.append(out_line)
                     out_lines.append(HIGHLIGHT_MESSAGE_POST)
                     continue
