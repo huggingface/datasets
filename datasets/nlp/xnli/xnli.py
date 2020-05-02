@@ -72,9 +72,8 @@ class Xnli(nlp.GeneratorBasedBuilder):
 
   def _info(self):
     return nlp.DatasetInfo(
-        builder=self,
         description=_DESCRIPTION,
-        features=nlp.features.FeaturesDict({
+        features=nlp.Features({
             'premise':
                 nlp.features.Translation(
                     languages=_LANGUAGES,),
