@@ -18,7 +18,7 @@ you can use seqeval with nlp as follow:
 
 """
 
-from nlp.metrics import metric
+from nlp import metric
 
 try:
      from seqeval.metrics import accuracy_score, recall_score, f1_score, precision_score

@@ -32,9 +32,12 @@ venv.bak/
 .idea
 .vscode
 
-# keep only the empty datasets directory with it's __init__.py file
+# keep only the empty datasets and metrics directory with it's __init__.py file
 /src/*/datasets/*
 !/src/*/datasets/__init__.py
+
+/src/*/metrics/*
+!/src/*/metrics/__init__.py
 
 # Vim
 .*.swp
