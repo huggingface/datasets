@@ -18,8 +18,9 @@ import tempfile
 
 import requests
 from absl.testing import parameterized
+from nlp import BuilderConfig, DatasetBuilder, cached_path, hf_api, hf_bucket_url, load, load_dataset_module
 
-from nlp import BuilderConfig, DatasetBuilder, cached_path, hf_api, hf_bucket_url, load_dataset_module
+from .utils import slow
 
 
 class MockDataLoaderManager(object):
@@ -144,3 +145,10 @@ class DatasetTest(parameterized.TestCase):
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.assertTrue(len(dataset[split]) > 0)
+
+    @slow
+    def test_load_real_dataset(self, dataset_name):
+        with tempfile.TemporaryDirectory() as temp_data_dir:
+            dataset = load(dataset_name, data_dir=temp_data_dir)
+            for split in dataset.info.splits.keys():
+                self.assertTrue(len(dataset[split]) > 0)
