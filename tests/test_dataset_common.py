@@ -151,5 +151,5 @@ class DatasetTest(parameterized.TestCase):
     def test_load_real_dataset(self, dataset_name):
         with tempfile.TemporaryDirectory() as temp_data_dir:
             dataset = load(dataset_name, data_dir=temp_data_dir)
-            for split in dataset.info.splits.keys():
+            for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
