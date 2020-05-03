@@ -26,9 +26,9 @@ TO_CONVERT = [
     # Order is important here for some replacements
     (r"tfds\.core", r"nlp"),
     (r"tf\.io\.gfile\.GFile", r"open"),
-    (r"tf\.bool", r"nlp.bool_"),
-    (r"tfds\.features\.Text\(\)", r"nlp.string"),
-    (r"tfds\.features\.Text\(", r"nlp.string,"),
+    (r"tf\.([\w\d]+)", r"nlp.Value('\1')"),
+    (r"tfds\.features\.Text\(\)", r"nlp.Value('string')"),
+    (r"tfds\.features\.Text\(", r"nlp.Value('string'),"),
     (r"features\s*=\s*tfds.features.FeaturesDict\(", r"features=nlp.Features("),
     (r"tfds\.features\.FeaturesDict\(", r"dict("),
     (r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace NLP Authors"),
@@ -116,6 +116,8 @@ class ConvertCommand(BaseTransformersCLICommand):
                 if "import tensorflow.compat.v2 as tf" in out_line:
                     continue
                 elif "@tfds.core" in out_line:
+                    continue
+                elif "builder=self" in out_line:
                     continue
                 elif "import tensorflow_datasets.public_api as tfds" in out_line:
                     out_line = "import nlp\n"

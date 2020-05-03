@@ -29,8 +29,8 @@ from urllib.parse import urlparse
 
 from filelock import FileLock
 
-from . import naming
 from .builder import DatasetBuilder
+from .naming import camelcase_to_snakecase
 from .splits import Split
 from .utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadConfig
@@ -55,7 +55,7 @@ def get_builder_cls_from_module(dataset_module):
     for name, obj in dataset_module.__dict__.items():
         if isinstance(obj, type) and issubclass(obj, DatasetBuilder):
             builder_cls = obj
-            builder_cls.name = naming.camelcase_to_snakecase(name)
+            builder_cls.name = camelcase_to_snakecase(name)
             break
     return builder_cls
 

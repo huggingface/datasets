@@ -24,11 +24,13 @@ import itertools
 import logging
 import os
 import shutil
+from dataclasses import dataclass, field
 
 from . import splits as splits_lib
 from . import utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
+from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
 from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
@@ -43,39 +45,18 @@ REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
 REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
 
 
-class BuilderConfig(object):
+@dataclass
+class BuilderConfig:
     """Base class for `DatasetBuilder` data configuration.
 
     DatasetBuilder subclasses with data configuration options should subclass
     `BuilderConfig` and add their own properties.
     """
 
-    def __init__(self, name, version=None, supported_versions=None, description=None):
-        self._name = name
-        self._version = version
-        self._supported_versions = supported_versions or []
-        self._description = description
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def version(self):
-        return self._version
-
-    @property
-    def supported_versions(self):
-        return self._supported_versions
-
-    @property
-    def description(self):
-        return self._description
-
-    def __repr__(self):
-        return "<{cls_name} name={name}, version={version}>".format(
-            cls_name=type(self).__name__, name=self.name, version=self.version or "None"
-        )
+    name: str
+    version: utils.Version
+    supported_versions: list = field(default_factory=list)
+    description: str = ""
 
 
 class DatasetBuilder:
@@ -162,12 +143,36 @@ class DatasetBuilder:
                 "DatasetBuilder {} does not have a defined version. Please add a "
                 "`VERSION = nlp.Version('x.y.z')` to the class.".format(self.name)
             )
-        self._version = self._pick_version(version)
+
+        # Prepare version: TODO: can still be cleaned up
+        self.canonical_version = self._builder_config.version if self._builder_config else self.VERSION
+        self.supported_versions = (
+            self._builder_config.supported_versions if self._builder_config else self.SUPPORTED_VERSIONS
+        )
+        self.versions = [
+            utils.Version(v) if isinstance(v, str) else v for v in [self.canonical_version] + self.supported_versions
+        ]
+        if version == "experimental_latest":
+            self._version = max(self.versions)
+        else:
+            for vers in self.versions:
+                if version is None or version.match(vers):
+                    self._version = vers
+                    break
+
+        # prepare info
+        info = self._info()
+        info.name = self.name
+        info.version = self._version
+        info.splits.dataset_name = self.name
+        self.info = info
+
+        # prepare data dirs
         self._data_dir_root = os.path.expanduser(data_dir or HF_DATASETS_CACHE)
         self._data_dir = self._build_data_dir()
         if os.path.exists(self._data_dir):
             logger.info("Overwrite dataset info from restored data version.")
-            self.info.read_from_directory(self._data_dir)
+            self.info = DatasetInfo.from_directory(self._data_dir)
 
     def __getstate__(self):
         return self._original_state
@@ -223,38 +228,6 @@ class DatasetBuilder:
             names = [config.name for config in cls.BUILDER_CONFIGS]
             raise ValueError("Names in BUILDER_CONFIGS must not be duplicated. Got %s" % names)
         return config_dict
-
-    @utils.memoized_property
-    def canonical_version(self):
-        if self._builder_config:
-            return self._builder_config.version
-        return self.VERSION
-
-    @utils.memoized_property
-    def supported_versions(self):
-        if self._builder_config:
-            return self._builder_config.supported_versions
-        return self.SUPPORTED_VERSIONS
-
-    @utils.memoized_property
-    def versions(self):
-        """Versions (canonical + availables), in preference order."""
-        return [
-            utils.Version(v) if isinstance(v, str) else v for v in [self.canonical_version] + self.supported_versions
-        ]
-
-    def _pick_version(self, requested_version):
-        """Returns utils.Version instance, or raise AssertionError."""
-        if requested_version == "experimental_latest":
-            return max(self.versions)
-        for version in self.versions:
-            if requested_version is None or version.match(requested_version):
-                return version
-        available_versions = [str(v) for v in self.versions]
-        msg = "Dataset {} cannot be loaded at version {}, only: {}.".format(
-            self.name, requested_version, ", ".join(available_versions)
-        )
-        raise AssertionError(msg)
 
     @property
     def version(self):
@@ -315,6 +288,18 @@ class DatasetBuilder:
 
         return version_data_dir
 
+    @abc.abstractmethod
+    def _info(self) -> DatasetInfo:
+        """Construct the DatasetInfo object. See `DatasetInfo` for details.
+
+        Warning: This function is only called once and the result is cached for all
+        following .info() calls.
+
+        Returns:
+            info: (DatasetInfo) The dataset information
+        """
+        raise NotImplementedError
+
     @classmethod
     def get_imported_module_dir(cls):
         """Return the path of the module of this class or subclass."""
@@ -366,7 +351,7 @@ class DatasetBuilder:
         print(
             "Downloading and preparing dataset {} (download: {}, generated: {}, "
             "total: {}) to {}...".format(
-                self.info.full_name,
+                self.info.name,
                 utils.size_str(self.info.download_size),
                 utils.size_str(self.info.dataset_size),
                 utils.size_str(self.info.download_size + self.info.dataset_size),
@@ -399,7 +384,7 @@ class DatasetBuilder:
 
                 # NOTE: If modifying the lines below to put additional information in
                 # DatasetInfo, you'll likely also want to update
-                # DatasetInfo.read_from_directory to possibly restore these attributes
+                # DatasetInfo.from_directory to possibly restore these attributes
                 # when reading from package data.
 
                 # splits = list(self.info.splits.values())
@@ -538,34 +523,6 @@ class DatasetBuilder:
             name=self.name, instructions=split, split_infos=self.info.splits.values(),
         )
         return ds
-
-    @utils.memoized_property
-    def info(self):
-        """`DatasetInfo` for this builder."""
-        # Ensure .info hasn't been called before versioning is set-up
-        # Otherwise, backward compatibility cannot be guaranteed as some code will
-        # depend on the code version instead of the restored data version
-        if not getattr(self, "_version", None):
-            # Message for developper creating new dataset. Will trigger if they are
-            # using .info in the constructor before calling super().__init__
-            raise AssertionError(
-                "Info should not been called before version has been defined. "
-                "Otherwise, the created .info may not match the info version from "
-                "the restored dataset."
-            )
-        return self._info()
-
-    @abc.abstractmethod
-    def _info(self):
-        """Construct the DatasetInfo object. See `DatasetInfo` for details.
-
-        Warning: This function is only called once and the result is cached for all
-        following .info() calls.
-
-        Returns:
-            info: (DatasetInfo) The dataset information
-        """
-        raise NotImplementedError
 
     @abc.abstractmethod
     def _split_generators(self, dl_manager):
