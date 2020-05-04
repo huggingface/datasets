@@ -69,9 +69,13 @@ class DatasetTester(object):
     def load_all_configs(self, dataset_name):
         builder_cls = load_dataset_module(dataset_name, force_reload=True)
         builder = builder_cls()
+        if not hasattr("BUILDER_CONFIGS", builder):
+            return [None]
         return builder.BUILDER_CONFIGS
 
     def download_dummy_data(self, dataset_name, config_name, version_name, cache_dir):
+        if config_name is None:
+            config_name = ""
         filename = os.path.join(
             self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + ".zip"
         )
@@ -126,7 +130,9 @@ class DatasetTest(parameterized.TestCase):
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
         self.assertTrue(len(builder_configs) > 0)
-        all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+
+        if builder_configs[0] is not None:
+            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
 
     def test_load_dataset(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
