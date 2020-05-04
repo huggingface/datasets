@@ -13,15 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 import tempfile
 
 import requests
 from absl.testing import parameterized
 
-from nlp import BuilderConfig, DatasetBuilder, cached_path, hf_api, hf_bucket_url, load, load_dataset_module
+from nlp import (
+    BuilderConfig,
+    DatasetBuilder,
+    DownloadConfig,
+    GenerateMode,
+    cached_path,
+    hf_api,
+    hf_bucket_url,
+    load,
+    load_dataset_module,
+)
 
 from .utils import slow
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 class MockDataLoaderManager(object):
@@ -150,6 +164,12 @@ class DatasetTest(parameterized.TestCase):
     @slow
     def test_load_real_dataset(self, dataset_name):
         with tempfile.TemporaryDirectory() as temp_data_dir:
-            dataset = load(dataset_name, data_dir=temp_data_dir)
+            download_config = DownloadConfig()
+            download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
+            download_and_prepare_kwargs = {"download_config": download_config}
+
+            dataset = load(
+                dataset_name, data_dir=temp_data_dir, download_and_prepare_kwargs=download_and_prepare_kwargs
+            )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
