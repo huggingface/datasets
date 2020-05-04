@@ -82,8 +82,6 @@ class DatasetTester(object):
         filename = os.path.join(
             self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + ".zip"
         )
-        import ipdb
-        ipdb.set_trace()
         url_to_dummy_data_dir = hf_bucket_url(dataset_name, filename=filename)
         # this function will download the dummy data and return the path
         local_path = cached_path(
