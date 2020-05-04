@@ -29,11 +29,10 @@ from urllib.parse import urlparse
 
 from filelock import FileLock
 
-from . import naming
 from .builder import DatasetBuilder
 from .metric import Metric
+from .naming import camelcase_to_snakecase
 from .splits import Split
-from .utils import py_utils
 from .utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadConfig
 from .utils.file_utils import HF_DATASETS_CACHE, cached_path, hf_bucket_url, is_remote_url
@@ -72,7 +71,7 @@ def import_main_class(name, hash, dataset=True):
             module_main_cls = obj
             break
 
-    module_main_cls.name = naming.camelcase_to_snakecase(name)
+    module_main_cls.name = camelcase_to_snakecase(name)
     module_main_cls._DYNAMICALLY_IMPORTED_MODULE = module
 
     return module_main_cls, module_path

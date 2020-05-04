@@ -23,25 +23,22 @@ import collections
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union
 
-from dataclasses_json import dataclass_json
-
 from .arrow_reader import FileInstructions, make_file_instructions
-from .utils.py_utils import NonMutableDict, zip_dict
+from .utils.py_utils import NonMutableDict
 
 
-@dataclass_json
 @dataclass
 class SplitInfo:
     name: str = ""
     num_bytes: int = 0
     num_examples: int = 0
-    _dataset_name: str = field(init=False)
+    dataset_name: str = None
 
     @property
     def file_instructions(self):
         """Returns the list of dict(filename, take, skip)."""
-        # `self._dataset_name` is assigned in `SplitDict.add()`.
-        instructions = make_file_instructions(name=self._dataset_name, split_infos=[self], instruction=str(self.name),)
+        # `self.dataset_name` is assigned in `SplitDict.add()`.
+        instructions = make_file_instructions(name=self.dataset_name, split_infos=[self], instruction=str(self.name),)
         return instructions.file_instructions
 
 
@@ -475,12 +472,13 @@ class SplitReadInstruction(object):
         return list(sorted(self._splits.values(), key=lambda x: x.split_info.name))
 
 
-class SplitDict(NonMutableDict):
+class SplitDict(dict):
     """Split info object."""
 
-    def __init__(self, dataset_name, *args, **kwargs):
-        super(SplitDict, self).__init__(*args, error_msg="Split {key} already present", **kwargs)
-        self._dataset_name = dataset_name
+    def __init__(self, *args, dataset_name=None, **kwargs):
+        super(SplitDict, self).__init__(*args, **kwargs)
+        # super(SplitDict, self).__init__(error_msg="Split {key} already present", **kwargs)
+        self.dataset_name = dataset_name
 
     def __getitem__(self, key: Union[SplitBase, str]):
         # 1st case: The key exists: `info.splits['train']`
@@ -488,7 +486,7 @@ class SplitDict(NonMutableDict):
             return super(SplitDict, self).__getitem__(str(key))
         # 2nd case: Uses instructions: `info.splits['train[50%]']`
         else:
-            instructions = make_file_instructions(name=self._dataset_name, split_infos=self.values(), instruction=key,)
+            instructions = make_file_instructions(name=self.dataset_name, split_infos=self.values(), instruction=key,)
             return SubSplitInfo(instructions)
 
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
@@ -500,7 +498,7 @@ class SplitDict(NonMutableDict):
             raise ValueError("Split {} already present".format(split_info.name))
         # Forward the dataset name required to build file instructions:
         # info.splits['train'].file_instructions
-        split_info._dataset_name = self._dataset_name
+        split_info.dataset_name = self.dataset_name
         super(SplitDict, self).__setitem__(split_info.name, split_info)
 
     @property
@@ -515,12 +513,13 @@ class SplitDict(NonMutableDict):
             split_infos = list(split_infos.values())
 
         if dataset_name is None:
-            dataset_name = split_infos[0]["_dataset_name"]
+            dataset_name = split_infos[0]["dataset_name"]
 
-        split_dict = cls(dataset_name)
+        split_dict = cls(dataset_name=dataset_name)
 
-        for split_info_dict in split_infos:
-            split_info = SplitInfo.from_dict(split_info_dict)
+        for split_info in split_infos:
+            if isinstance(split_info, dict):
+                split_info = SplitInfo(**split_info)
             split_dict.add(split_info)
 
         return split_dict
@@ -531,7 +530,7 @@ class SplitDict(NonMutableDict):
         return sorted([s for s in self.values()], key=lambda s: s.name)
 
     def copy(self):
-        return SplitDict.from_split_dict(self.to_split_dict(), self._dataset_name)
+        return SplitDict.from_split_dict(self.to_split_dict(), self.dataset_name)
 
 
 def check_splits_equals(splits1, splits2):

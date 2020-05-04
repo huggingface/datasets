@@ -13,13 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 import tempfile
 
 import requests
 from absl.testing import parameterized
 
-from nlp import BuilderConfig, DatasetBuilder, cached_path, hf_api, hf_bucket_url, load_dataset_module
+from nlp import (
+    BuilderConfig,
+    DatasetBuilder,
+    DownloadConfig,
+    GenerateMode,
+    cached_path,
+    hf_api,
+    hf_bucket_url,
+    load,
+    load_dataset_module,
+)
+
+from .utils import slow
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 class MockDataLoaderManager(object):
@@ -53,9 +69,16 @@ class DatasetTester(object):
     def load_all_configs(self, dataset_name):
         builder_cls = load_dataset_module(dataset_name, force_reload=True)
         builder = builder_cls()
+        if len(builder.BUILDER_CONFIGS) == 0:
+            return [None]
         return builder.BUILDER_CONFIGS
 
-    def download_dummy_data(self, dataset_name, config_name, version_name, cache_dir):
+    def download_dummy_data(self, dataset_name, config, version_name, cache_dir):
+        if config is None:
+            config_name = ""
+        else:
+            config_name = config.name
+
         filename = os.path.join(
             self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + ".zip"
         )
@@ -110,7 +133,9 @@ class DatasetTest(parameterized.TestCase):
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
         self.assertTrue(len(builder_configs) > 0)
-        all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+
+        if builder_configs[0] is not None:
+            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
 
     def test_load_dataset(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
@@ -125,7 +150,7 @@ class DatasetTest(parameterized.TestCase):
 
                 # dowloads dummy data
                 path_to_dummy_data = self.dataset_tester.download_dummy_data(
-                    dataset_name, config_name=config.name, version_name=version_name, cache_dir=raw_temp_dir
+                    dataset_name, config=config, version_name=version_name, cache_dir=raw_temp_dir
                 )
 
                 # create mock data loader manager with test specific mock_folder_strucutre_fn
@@ -144,3 +169,16 @@ class DatasetTest(parameterized.TestCase):
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.assertTrue(len(dataset[split]) > 0)
+
+    @slow
+    def test_load_real_dataset(self, dataset_name):
+        with tempfile.TemporaryDirectory() as temp_data_dir:
+            download_config = DownloadConfig()
+            download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
+            download_and_prepare_kwargs = {"download_config": download_config}
+
+            dataset = load(
+                dataset_name, data_dir=temp_data_dir, download_and_prepare_kwargs=download_and_prepare_kwargs
+            )
+            for split in dataset.keys():
+                self.assertTrue(len(dataset[split]) > 0)
