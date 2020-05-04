@@ -53,12 +53,16 @@ METRICS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "metrics")
 METRICS_MODULE = "nlp.metrics"
 
 
-def import_main_class(name, hash, dataset=True):
+def import_module(name, hash, dataset=True):
     """ Load the module """
     importlib.invalidate_caches()
     module_path = ".".join([DATASETS_MODULE if dataset else METRICS_MODULE, name, hash, name])
     module = importlib.import_module(module_path)
 
+    return module, module_path
+
+
+def get_main_class(module, dataset=True):
     if dataset:
         main_cls_type = DatasetBuilder
     else:
@@ -66,15 +70,14 @@ def import_main_class(name, hash, dataset=True):
 
     # Find the main class in our imported module
     module_main_cls = None
-    for name, obj in dataset_module.__dict__.items():
+    for name, obj in module.__dict__.items():
         if isinstance(obj, type) and issubclass(obj, main_cls_type):
             module_main_cls = obj
             break
 
     module_main_cls.name = camelcase_to_snakecase(name)
     module_main_cls._DYNAMICALLY_IMPORTED_MODULE = module
-
-    return module_main_cls, module_path
+    return module_main_cls
 
 
 def files_to_hash(file_paths: List[str]):
@@ -115,9 +118,9 @@ def files_to_hash(file_paths: List[str]):
 def convert_github_url(url_path: str):
     parsed = urlparse(url_path)
     if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
-        assert url_path.endswith('.py'), "External import from gitbhu should direcly point to a file ending with '.py'"
-        assert 'blob' in url_path, "External import from gitbhu should direcly point to a file"
-        url_path = url_path.replace('blob', 'raw')  # Point to the raw file
+        assert url_path.endswith(".py"), "External import from gitbhu should direcly point to a file ending with '.py'"
+        assert "blob" in url_path, "External import from gitbhu should direcly point to a file"
+        url_path = url_path.replace("blob", "raw")  # Point to the raw file
     return url_path
 
 
@@ -146,7 +149,7 @@ def get_imports(file_path: str):
     logger.info("Checking %s for additional imports.", file_path)
     imports = []
     for line in lines:
-        match = re.match(r"(?:from|import)\s+(\.)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line)
+        match = re.match(r"(?:from|import)\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line)
         if match is None:
             continue
         if match.group(1):
@@ -154,18 +157,18 @@ def get_imports(file_path: str):
             if match.group(3):
                 # The import has a comment with 'From:', we'll retreive it from the given url
                 url_path = match.group(3)
-                url_path = convert_github_url(url_path):
-                imports.append(("external", url_path))
+                url_path = convert_github_url(url_path)
+                imports.append(("external", match.group(2), url_path))
             elif match.group(2):
                 # The import should be at the same place as the file
-                imports.append(("internal", match.group(2)))
+                imports.append(("internal", match.group(2), match.group(2)))
         else:
-            imports.append(("library", match.group(2)))
+            imports.append(("library", match.group(2), match.group(2)))
 
     return imports
 
 
-def load_module(
+def load_main_class(
     path: str,
     name: Optional[str] = None,
     force_reload: bool = False,
@@ -189,12 +192,17 @@ def load_module(
             the unique id associated to the dataset/metric
             the local path to the dataset/metric
     """
-    module_type = 'dataset' if dataset else 'metric'
+    module_type = "dataset" if dataset else "metric"
     if name is None:
-        name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
+        name = list(filter(lambda x: x, path.split("/")))[-1]
+        if not name.endswith(".py"):
+            name = name + ".py"
 
     if not name.endswith(".py") or "/" in name:
         raise ValueError("The provided name should be the filename of a python script (ends with '.py')")
+
+    # Short name is name without the '.py' at the end (for the module)
+    short_name = name[:-3]
 
     # We have three ways to find the processing file:
     # - if os.path.join(path, name) is a file or a remote url
@@ -206,7 +214,7 @@ def load_module(
     elif os.path.isfile(path) or is_remote_url(path):
         file_path = path
     else:
-        file_path = hf_bucket_url(path, filename=name)
+        file_path = hf_bucket_url(path, filename=name, dataset=dataset)
 
     base_path = os.path.dirname(file_path)  # remove the filename
     checksums_file = os.path.join(base_path, URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME)
@@ -239,14 +247,24 @@ def load_module(
     imports = get_imports(local_path)
     local_imports = []
     library_imports = []
-    for import_type, import_name_or_path in imports:
-        if import_type == "internal":
-            url_or_filename = base_path + "/" + import_name_or_path + ".py"
-        elif import_type == "external":
-            url_or_filename = import_name_or_path
-        else:
-            library_imports.append(import_name_or_path)  # Import from a library
+    for import_type, import_name, import_path in imports:
+        if import_type == "library":
+            library_imports.append(import_name)  # Import from a library
             continue
+
+        if import_name == short_name:
+            raise ValueError(
+                f"Error in {module_type} script at {file_path}, importing relative {import_name} module "
+                f"but {import_name} is the name of the {module_type} script. "
+                f"Please change relative import {import_name} to another name and add a '# From: URL_OR_PATH' "
+                f"comment pointing to the original realtive import file path."
+            )
+        if import_type == "internal":
+            url_or_filename = base_path + "/" + import_path + ".py"
+        elif import_type == "external":
+            url_or_filename = import_path
+        else:
+            raise ValueError("Wrong import_type")
 
         local_import_path = cached_path(
             url_or_filename,
@@ -256,25 +274,26 @@ def load_module(
             force_extract=force_reload,
             local_files_only=local_files_only,
         )
-        local_imports.append(local_import_path)
+        local_imports.append((import_name, local_import_path))
 
     # Check library imports
     needs_to_be_installed = []
     for library_import in library_imports:
         try:
-            lib = importlib.import_module(library_import)
-        except ImportError, ModuleNotFoundError:
+            lib = importlib.import_module(library_import)  # noqa F841
+        except ImportError:
             needs_to_be_installed.append(library_import)
     if needs_to_be_installed:
-        raise ImportError(f"To be able to use this {module_type}, you need to install the following dependencies {needs_to_be_installed}. "
-                          f"using 'pip install {' '.join(needs_to_be_installed)}' for instance'")
+        raise ImportError(
+            f"To be able to use this {module_type}, you need to install the following dependencies {needs_to_be_installed} "
+            f"using 'pip install {' '.join(needs_to_be_installed)}' for instance'"
+        )
 
     # Define a directory with a unique name in our dataset or metric folder
     # path is: ./datasets|metrics/dataset|metric_name/hash_from_code/script.py
     # we use a hash to be able to have multiple versions of a dataset/metric processing file together
-    name = name[:-3]  # Removing the '.py' at the end
-    hash = files_to_hash([local_path] + local_imports)
-    main_folder_path = os.path.join(DATASETS_PATH, name)
+    hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
+    main_folder_path = os.path.join(DATASETS_PATH if dataset else METRICS_PATH, short_name)
     hash_folder_path = os.path.join(main_folder_path, hash)
     local_file_path = os.path.join(hash_folder_path, name)
     urls_checksums_dir = os.path.join(hash_folder_path, URLS_CHECKSUMS_FOLDER_NAME)
@@ -298,8 +317,7 @@ def load_module(
 
         # Create hash dataset folder if needed
         if not os.path.exists(hash_folder_path):
-            logger.info(
-                f"Creating specific version folder for {module_type} {file_path} at {hash_folder_path}")
+            logger.info(f"Creating specific version folder for {module_type} {file_path} at {hash_folder_path}")
             os.makedirs(hash_folder_path)
         else:
             logger.info(f"Found specific version folder for {module_type} {file_path} at {hash_folder_path}")
@@ -321,9 +339,7 @@ def load_module(
         os.makedirs(urls_checksums_dir, exist_ok=True)
         if not os.path.exists(checksums_file_path):
             if local_checksums_file_path is not None:
-                logger.info(
-                    "Copying checksums file from %s to %s", checksums_file, checksums_file_path
-                )
+                logger.info("Copying checksums file from %s to %s", checksums_file, checksums_file_path)
                 shutil.copyfile(local_checksums_file_path, checksums_file_path)
             else:
                 logger.info("Couldn't find checksums file at %s", checksums_file)
@@ -342,30 +358,18 @@ def load_module(
             logger.info(f"Found metadata file for {module_type} {file_path} at {meta_path}")
 
         # Copy all the additional imports
-        for local_import in local_imports:
-            tail_name = os.path.basename(os.path.abspath(local_import))  # keep the last file or directory
-            dataset_local_import = os.path.join(hash_folder_path, tail_name)
+        for import_name, import_path in local_imports:
+            dataset_local_import = os.path.join(hash_folder_path, import_name + ".py")
             if not os.path.exists(dataset_local_import):
-                logger.info("Copying local import from %s to %s", local_import, dataset_local_import)
-                if os.path.isdir(local_import):
-                    shutil.copytree(local_import, dataset_local_import)
-                    # add an __init__ file to the sub-directories in the copied folder if needed
-                    # so people can relatively import from them
-                    for root, dirs, files in os.walk(dataset_local_import, topdown=False):
-                        if "__init__.py" not in files:
-                            init_file_path = os.path.join(root, "__init__.py")
-                            with open(init_file_path, "w"):
-                                pass
-                elif os.path.isfile(local_import):
-                    shutil.copyfile(local_import, dataset_local_import)
-                else:
-                    raise ValueError(f"Error when copying {local_import} to {dataset_local_import}")
+                logger.info("Copying local import from %s at %s", import_path, dataset_local_import)
+                shutil.copyfile(import_path, dataset_local_import)
             else:
-                logger.info("Found local import from %s to %s", local_import, dataset_local_import)
+                logger.info("Found local import from %s at %s", import_path, dataset_local_import)
 
-    builder_cls, _ = import_main_class(name, hash, dataset=dataset)
+    module, _ = import_module(short_name, hash, dataset=dataset)
+    main_cls = get_main_class(module, dataset=dataset)
 
-    return builder_cls
+    return main_cls
 
 
 def load_metric(path: str, name: Optional[str] = None, **metric_init_kwargs):
@@ -391,8 +395,8 @@ def load_metric(path: str, name: Optional[str] = None, **metric_init_kwargs):
     Raises:
         MetricNotFoundError: if `name` is unrecognized.
     """
-    builder_cls = load_module(path, name=name, dataset=False)
-    builder_instance = builder_cls(**builder_kwargs)
+    builder_cls = load_main_class(path, name=name, dataset=False)
+    builder_instance = builder_cls(**metric_init_kwargs)
     return builder_instance
 
 
@@ -424,7 +428,7 @@ def builder(path: str, name: Optional[str] = None, **builder_init_kwargs):
         builder_kwargs.update(builder_init_kwargs)
     else:
         builder_kwargs = builder_init_kwargs
-    builder_cls = load_module(path, name=name, dataset=True)
+    builder_cls = load_main_class(path, name=name, dataset=True)
     builder_instance = builder_cls(**builder_kwargs)
     return builder_instance
 

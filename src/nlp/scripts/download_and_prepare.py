@@ -112,7 +112,8 @@ def download_and_prepare(builder):
     dl_config = download_config()
 
     if isinstance(builder, nlp.BeamBasedBuilder):
-        beam = nlp.lazy_imports.apache_beam
+        import beam
+
         # TODO(b/129149715): Restore compute stats. Currently skipped because not
         # beam supported.
         dl_config.beam_options = beam.options.pipeline_options.PipelineOptions(

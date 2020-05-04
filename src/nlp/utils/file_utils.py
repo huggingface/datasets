@@ -59,20 +59,32 @@ try:
 except (ImportError, AssertionError):
     _tf_available = False  # pylint: disable=invalid-name
 
+
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
 )
-default_cache_path = os.path.join(hf_cache_home, "datasets")
-
+default_datasets_cache_path = os.path.join(hf_cache_home, "datasets")
 try:
     from pathlib import Path
 
-    HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", default_cache_path))
+    HF_DATASETS_CACHE = Path(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
 except (AttributeError, ImportError):
-    HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_cache_path))
+    HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
 
-S3_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp"
-CLOUDFRONT_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co"
+S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp"
+CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co"
+
+
+default_metrics_cache_path = os.path.join(hf_cache_home, "metrics")
+try:
+    from pathlib import Path
+
+    HF_METRICS_CACHE = Path(os.getenv("HF_METRICS_CACHE", default_metrics_cache_path))
+except (AttributeError, ImportError):
+    HF_METRICS_CACHE = os.getenv(os.getenv("HF_METRICS_CACHE", default_metrics_cache_path))
+
+S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/metrics.huggingface.co/nlp"
+CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-metrics.huggingface.co"
 
 INCOMPLETE_SUFFIX = ".incomplete"
 
@@ -90,8 +102,11 @@ def is_remote_url(url_or_filename):
     return parsed.scheme in ("http", "https", "s3")
 
 
-def hf_bucket_url(identifier: str, filename: str, use_cdn=False) -> str:
-    endpoint = CLOUDFRONT_DISTRIB_PREFIX if use_cdn else S3_BUCKET_PREFIX
+def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
+    if dataset:
+        endpoint = CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else S3_DATASETS_BUCKET_PREFIX
+    else:
+        endpoint = CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else S3_METRICS_BUCKET_PREFIX
     return "/".join((endpoint, identifier, filename))
 
 

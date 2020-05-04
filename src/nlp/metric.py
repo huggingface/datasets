@@ -15,28 +15,37 @@
 
 # Lint as: python3
 """ Metrics base class."""
-import os
 import logging
+import os
 from typing import Optional
-from filelock import FileLock, Timeout
 
 import pyarrow as pa
+from filelock import FileLock, Timeout
 
-from .arrow_writer import ArrowWriter
 from .arrow_reader import ArrowReader
-from .utils import convert_tuples_in_lists
+from .arrow_writer import ArrowWriter
+from .utils import convert_tuples_in_lists, HF_METRICS_CACHE, Version
 
 
 logger = logging.getLogger(__file__)
 
 
 class Metric(object):
-    name: str = 'unknown-metric'
+    name: str = "unknown-metric"
 
-    def __init__(self, node_id: int = 0, data_dir: Optional[str] = None, experiment_id: Optional[str] = None, in_memory=False, arrow_schema=None, **kwargs):
+    def __init__(
+        self,
+        process_id: int = 0,
+        num_process: int = 1,
+        data_dir: Optional[str] = None,
+        experiment_id: Optional[str] = None,
+        in_memory=False,
+        arrow_schema=None,
+        **kwargs,
+    ):
         """ A Metrics is the base class and common API for all metrics.
             Args:
-                node_id (int): specify the id of the node in a distributed settings between 0 and num_nodes-1
+                process_id (int): specify the id of the node in a distributed settings between 0 and num_nodes-1
                     This can be used, to compute metrics on distributed setups
                     (in particular non-additive metrics like F1).
                 data_dir (str): path to a directory in which temporary data will be stored.
@@ -45,12 +54,20 @@ class Metric(object):
                     the same caching directory (will be indicated in the raise error)
                 in_memory (bool): keep all predictions and references in memory. Not possible in distributed settings.
         """
-        assert isinstance(node_id, int) and node_id >= 0, "'node_id' should a number between 0 and num_nodes-1"
-        assert node_id == 0 or not in_memory, "Using 'in_memory' is not possible in distributed setting (node_id > 0)."
-        self.node_id = node_id
+        assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
+        assert (
+            isinstance(num_process, int) and num_process > process_id
+        ), "'num_process' should be a number greater than process_id"
+        assert (
+            process_id == 0 or not in_memory
+        ), "Using 'in_memory' is not possible in distributed setting (process_id > 0)."
+        self.process_id = process_id
+        self.num_process = num_process
         self.in_memory = in_memory
         self.experiment_id = experiment_id if experiment_id is not None else "cache"
-        self.data_dir = data_dir
+        self._version = "1.0.0"
+        self._data_dir_root = os.path.expanduser(data_dir or HF_METRICS_CACHE)
+        self.data_dir = self._build_data_dir()
 
         self.arrow_schema = arrow_schema
         self.buf_writer = None
@@ -59,63 +76,124 @@ class Metric(object):
         self.data = None
 
         # Check we can write on the cache file without competitors
-        self.cache_file_name = os.path.join(self.data_dir, self._get_file_name(self.node_id))
-        self.filelock = FileLock(self.cache_file_name + '.lock')
+        self.cache_file_name = os.path.join(self.data_dir, self._get_file_name(self.process_id))
+        self.filelock = FileLock(self.cache_file_name + ".lock")
         try:
             self.filelock.acquire(timeout=1)
         except Timeout:
-            raise ValueError("Cannot acquire lock, caching file might be used by another process, "
-                             "you should setup a unique 'experiment_id' for this run.")
+            raise ValueError(
+                "Cannot acquire lock, caching file might be used by another process, "
+                "you should setup a unique 'experiment_id' for this run."
+            )
+
+    def _relative_data_dir(self, with_version=True):
+        """Relative path of this dataset in data_dir."""
+        builder_data_dir = self.name
+        # builder_config = self._builder_config
+        # if builder_config:
+        #     builder_data_dir = os.path.join(builder_data_dir, builder_config.name)
+        if not with_version:
+            return builder_data_dir
+
+        version = self._version
+        version_data_dir = os.path.join(builder_data_dir, str(version))
+        return version_data_dir
+
+    def _build_data_dir(self):
+        """Return the directory for the current version."""
+        builder_data_dir = os.path.join(self._data_dir_root, self._relative_data_dir(with_version=False))
+        version_data_dir = os.path.join(self._data_dir_root, self._relative_data_dir(with_version=True))
+
+        def _other_versions_on_disk():
+            """Returns previous versions on disk."""
+            if not os.path.exists(builder_data_dir):
+                return []
+
+            version_dirnames = []
+            for dir_name in os.listdir(builder_data_dir):
+                try:
+                    version_dirnames.append((Version(dir_name), dir_name))
+                except ValueError:  # Invalid version (ex: incomplete data dir)
+                    pass
+            version_dirnames.sort(reverse=True)
+            return version_dirnames
+
+        # Check and warn if other versions exist on disk
+        version_dirs = _other_versions_on_disk()
+        if version_dirs:
+            other_version = version_dirs[0][0]
+            if other_version != self._version:
+                warn_msg = (
+                    "Found a different version {other_version} of metric {name} in "
+                    "data_dir {data_dir}. Using currently defined version "
+                    "{cur_version}.".format(
+                        other_version=str(other_version),
+                        name=self.name,
+                        data_dir=self._data_dir_root,
+                        cur_version=str(self._version),
+                    )
+                )
+                logger.warning(warn_msg)
+
+        os.makedirs(version_data_dir, exist_ok=True)
+        return version_data_dir
 
     def _get_file_name(self, node_id):
         return f"{self.experiment_id}-{self.name}-{node_id}.arrow"
 
-    def finalize(self, num_nodes, timeout=120):
-        """ Close all the writing process and load/gather the data from all the nodes. """
+    def finalize(self, timeout=120):
+        """ Close all the writing process and load/gather the data
+            from all the nodes if main node or all_process is True.
+        """
         self.writer.finalize()
+        self.writer = None
+        self.buf_writer = None
         self.filelock.release()
 
-        # Let's acquire a lock on each node files to be sure they have finished writing
-        node_files = []
-        locks = []
-        for node_id in range(num_nodes):
-            node_file = self._get_file_name(node_id)
-            filelock = FileLock(node_file + '.lock')
-            filelock.acquire(timeout=timeout)
-            node_files.append(node_file)
-            locks.append(filelock)
+        if self.process_id == 0:
+            # Let's acquire a lock on each node files to be sure they are finished writing
+            node_files = []
+            locks = []
+            for node_id in range(self.num_process):
+                node_file = self._get_file_name(node_id)
+                filelock = FileLock(node_file + ".lock")
+                filelock.acquire(timeout=timeout)
+                node_files.append({'filename': node_file})
+                locks.append(filelock)
 
-        # Read the predictions and references
-        reader = ArrowReader(path=self.data_dir, info=None)
-        self.data = reader.read_files(node_files)
+            # Read the predictions and references
+            reader = ArrowReader(path=self.data_dir, info=None)
+            self.data = reader.read_files(node_files)
 
-        # Release all of our locks
-        for lock in locks:
-            lock.release()
+            # Release all of our locks
+            for lock in locks:
+                lock.release()
 
-    def compute(self, predictions=None, references=None, num_nodes=1, **kwargs):
+    def compute(self, predictions=None, references=None, timeout=120, **metrics_kwargs):
         """ We add predictions and references to our stack. """
         if predictions is not None:
             self.add(predictions=predictions, references=references)
-        if num_nodes-1 < self.node_id:
-            raise ValueError(f"'num_node' should be the total number of nodes used in distributed setup and "
-                             f"cannot be less than self.node_id + 1. Currently num_node={num_nodes} and self.node_id={self.node_id}")
-        self.finalize(num_nodes)
-        self._compute(self.data['predictions'], self.data['references'], **kwargs)
+        self.finalize(timeout=timeout)
+        output = self._compute(self.data["predictions"], self.data["references"], **metrics_kwargs)
+        return output
 
     def add(self, predictions=None, references=None, **kwargs):
         """ Add predictions and references for the metric """
-        batch = {'predictions': predictions, 'references': references}
+        batch = {"predictions": predictions, "references": references}
         if self.writer is None:
             if self.arrow_schema is None:
                 batch = convert_tuples_in_lists(batch)
                 self.arrow_schema = pa.Table.from_pydict(batch).schema
             if self.in_memory:
                 self.buf_writer = pa.BufferOutputStream()
-                self.writer = ArrowWriter(schema=self.arrow_schema, stream=self.buf_writer, writer_batch_size=self.writer_batch_size)
+                self.writer = ArrowWriter(
+                    schema=self.arrow_schema, stream=self.buf_writer, writer_batch_size=self.writer_batch_size
+                )
             else:
                 self.buf_writer = None
-                self.writer = ArrowWriter(schema=self.arrow_schema, path=self.cache_file_name, writer_batch_size=self.writer_batch_size)
+                self.writer = ArrowWriter(
+                    schema=self.arrow_schema, path=self.cache_file_name, writer_batch_size=self.writer_batch_size
+                )
 
         self.writer.write_batch(batch)
 

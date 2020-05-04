@@ -55,14 +55,15 @@ def _get_dataset_from_filename(filename_skip_take):
     """Returns a Dataset instance from given (filename, skip, take)."""
     filename, skip, take = (
         filename_skip_take["filename"],
-        filename_skip_take["skip"],
-        filename_skip_take["take"],
+        filename_skip_take["skip"] if 'skip' in filename_skip_take else None,
+        filename_skip_take["take"] if 'take' in filename_skip_take else None,
     )
 
     mmap = pa.memory_map(filename)
     f = pa.ipc.open_stream(mmap)
     pa_table = f.read_all()
-    pa_table = pa_table.slice(skip, take)
+    if skip is not None and take is not None:
+        pa_table = pa_table.slice(skip, take)
     return pa_table
 
 

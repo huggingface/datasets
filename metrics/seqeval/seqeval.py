@@ -1,5 +1,6 @@
 import nlp
-import seqeval
+
+from seqeval.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 class Seqeval(nlp.Metric):
     """ Seqeval uses the seqeval library (https://github.com/chakki-works/seqeval) to compute accuracy, f1, precision and recall scores.
@@ -20,15 +21,15 @@ class Seqeval(nlp.Metric):
             # you can also set the precision and recal to true if you want to compute them
 
     """
-    def compute(self, predictions, references, accuracy=True, precision=True, recall=True, f1=True):
+    def _compute(self, predictions, references, accuracy=True, precision=True, recall=True, f1=True, **kwargs):
         scores = {}
         if accuracy:
-            scores['accuracy'] = seqeval.metrics.accuracy_score(predictions, references)
+            scores['accuracy'] = accuracy_score(references, predictions)
         if precision:
-            scores['precision'] = seqeval.metrics.precision_score(precision, references)
+            scores['precision'] = precision_score(references, predictions, **kwargs)
         if recall:
-            scores['recall'] = seqeval.metrics.recall_score(predictions, references)
+            scores['recall'] = recall_score(references, predictions, **kwargs)
         if f1:
-            scores['f1'] = seqeval.metrics.f1_score(predictions, references)
+            scores['f1'] = f1_score(references, predictions, **kwargs)
             
         return scores

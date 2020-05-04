@@ -41,7 +41,7 @@ from .arrow_reader import ReadInstruction
 from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .features import ClassLabel, Features, Sequence, Tensor, Translation, TranslationVariableLanguages, Value
 from .info import DatasetInfo
-from .load import builder, get_builder_cls_from_module, load, load_dataset_module, load_metric
+from .load import builder, get_main_class, import_module, load, load_main_class, load_metric
 from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *

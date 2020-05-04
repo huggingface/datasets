@@ -82,7 +82,7 @@ class DatasetTester(object):
         filename = os.path.join(
             self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + ".zip"
         )
-        url_to_dummy_data_dir = hf_bucket_url(dataset_name, filename=filename)
+        url_to_dummy_data_dir = hf_bucket_url(dataset_name, filename=filename, dataset=True)
         # this function will download the dummy data and return the path
         local_path = cached_path(
             url_to_dummy_data_dir, cache_dir=cache_dir, extract_compressed_file=True, force_extract=True
@@ -114,7 +114,7 @@ class DatasetTest(parameterized.TestCase):
 
     def test_dataset_has_valid_etag(self, dataset_name):
         py_script_path = list(filter(lambda x: x, dataset_name.split("/")))[-1] + ".py"
-        dataset_url = hf_bucket_url(dataset_name, filename=py_script_path)
+        dataset_url = hf_bucket_url(dataset_name, filename=py_script_path, dataset=True)
         etag = None
         try:
             response = requests.head(dataset_url, allow_redirects=True, proxies=None, timeout=10)
