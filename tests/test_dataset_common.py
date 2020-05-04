@@ -73,12 +73,17 @@ class DatasetTester(object):
             return [None]
         return builder.BUILDER_CONFIGS
 
-    def download_dummy_data(self, dataset_name, config_name, version_name, cache_dir):
-        if config_name is None:
+    def download_dummy_data(self, dataset_name, config, version_name, cache_dir):
+        if config is None:
             config_name = ""
+        else:
+            config_name = config.name
+
         filename = os.path.join(
             self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + ".zip"
         )
+        import ipdb
+        ipdb.set_trace()
         url_to_dummy_data_dir = hf_bucket_url(dataset_name, filename=filename)
         # this function will download the dummy data and return the path
         local_path = cached_path(
@@ -147,7 +152,7 @@ class DatasetTest(parameterized.TestCase):
 
                 # dowloads dummy data
                 path_to_dummy_data = self.dataset_tester.download_dummy_data(
-                    dataset_name, config_name=config.name, version_name=version_name, cache_dir=raw_temp_dir
+                    dataset_name, config=config, version_name=version_name, cache_dir=raw_temp_dir
                 )
 
                 # create mock data loader manager with test specific mock_folder_strucutre_fn
