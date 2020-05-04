@@ -45,7 +45,7 @@ class TestCommand(BaseTransformersCLICommand):
             name, builder_kwargs = self._name, {}
         builder_cls = load_dataset_module(self._dataset, name=name)
         builders: List[DatasetBuilder] = []
-        if self._all_configs:
+        if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
                 configured_builder_kwargs = builder_kwargs.copy()
                 configured_builder_kwargs["config"] = config
