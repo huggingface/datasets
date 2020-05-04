@@ -43,7 +43,7 @@ class TestCommand(BaseTransformersCLICommand):
                 print("Both parameters `name` and `all_configs` can't be used at once.")
         else:
             name, builder_kwargs = self._name, {}
-        builder_cls = load_dataset_module(self._dataset, name=name, force_reload=True)
+        builder_cls = load_dataset_module(self._dataset, name=name)
         builders: List[DatasetBuilder] = []
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
