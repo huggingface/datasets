@@ -12,9 +12,10 @@ from nlp.utils.checksums_utils import (
     CHECKSUMS_FILE_NAME,
     URLS_CHECKSUMS_FOLDER_NAME,
     get_size_checksum,
+    load_sizes_checksums,
     store_sizes_checksum,
 )
-from nlp.utils.file_utils import hf_bucket_url
+from nlp.utils.file_utils import cached_path, hf_bucket_url
 
 
 UPLOAD_MAX_FILES = 15
@@ -195,11 +196,26 @@ class UploadCommand(BaseUserCommand):
         return files
 
     def _checksums_file(self, namespace: str, local_path: str, files: list):
-        sizes_checksums = {
-            hf_bucket_url(namespace + "/" + filename): get_size_checksum(local_file_path)
-            for local_file_path, filename in files
-            if os.path.basename(local_file_path) != CHECKSUMS_FILE_NAME
-        }
+        previous_checksums_filename = os.path.join(
+            os.path.basename(local_path), URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
+        )
+        previous_checksums_path = cached_path(hf_bucket_url(namespace, filename=previous_checksums_filename))
+        if previous_checksums_path is not None:
+            print(
+                "Checksums file at {} under namespace {} will be updated".format(
+                    previous_checksums_filename, namespace
+                )
+            )
+            sizes_checksums = load_sizes_checksums(previous_checksums_path)
+        else:
+            sizes_checksums = {}
+        sizes_checksums.update(
+            {
+                hf_bucket_url(namespace, filename=filename): get_size_checksum(local_file_path)
+                for local_file_path, filename in files
+                if os.path.basename(local_file_path) != CHECKSUMS_FILE_NAME
+            }
+        )
         urls_checksums_dir = os.path.join(local_path, URLS_CHECKSUMS_FOLDER_NAME)
         os.makedirs(urls_checksums_dir, exist_ok=True)
         local_checksums_file = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
