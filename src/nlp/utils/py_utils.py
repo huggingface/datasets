@@ -199,7 +199,7 @@ def flatten_nested(data_struct, expected_leaf_type=str):
     assert expected_leaf_type not in (tuple, list, dict)
     if isinstance(data_struct, expected_leaf_type):
         obj = data_struct
-        return [("", obj)]
+        return [obj]
     elif isinstance(data_struct, dict):
         return list(flatten_nest_dict(data_struct).values())
     assert isinstance(data_struct, (list, tuple))
