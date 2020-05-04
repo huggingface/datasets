@@ -43,9 +43,11 @@ class TestCommand(BaseTransformersCLICommand):
                 print("Both parameters `name` and `all_configs` can't be used at once.")
         else:
             name, builder_kwargs = self._name, {}
-        builder_cls = load_dataset_module(self._dataset, name=name)
+        import ipdb
+        ipdb.set_trace()
+        builder_cls = load_dataset_module(self._dataset, name=name, force_reload=True)
         builders: List[DatasetBuilder] = []
-        if self._all_configs:
+        if self._all_configs and hasattr(builder_cls, "BUILDER_CONFIGS"):
             for config in builder_cls.BUILDER_CONFIGS:
                 configured_builder_kwargs = builder_kwargs.copy()
                 configured_builder_kwargs["config"] = config
