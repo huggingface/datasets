@@ -69,7 +69,7 @@ class DatasetTester(object):
     def load_all_configs(self, dataset_name):
         builder_cls = load_dataset_module(dataset_name, force_reload=True)
         builder = builder_cls()
-        if not hasattr(builder, "BUILDER_CONFIGS"):
+        if len(builder.BUILDER_CONFIGS) == 0:
             return [None]
         return builder.BUILDER_CONFIGS
 
