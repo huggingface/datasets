@@ -370,7 +370,7 @@ def builder(path: str, name: Optional[str] = None, **builder_init_kwargs):
         builder_kwargs.update(builder_init_kwargs)
     else:
         builder_kwargs = builder_init_kwargs
-    builder_cls = load_dataset_module(path, name=name)
+    builder_cls = load_dataset_module(path, name=name, **builder_kwargs)
     builder_instance = builder_cls(**builder_kwargs)
     return builder_instance
 
