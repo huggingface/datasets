@@ -76,13 +76,8 @@ from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .info import DatasetInfo
-from .lazy_imports_lib import lazy_imports
-from .load import builder, get_builder_cls_from_module, load, load_dataset_module
-from .metrics.metric import Metric
-from .metrics.sacrebleu_score import Sacrebleu
-from .metrics.seqeval_score import Seqeval
-from .metrics.bleu_score import Bleu
-from .metrics.rouge_score import Rouge
+from .load import builder, get_builder_cls_from_module, load, load_dataset_module, load_metric
+from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar

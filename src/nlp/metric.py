@@ -60,7 +60,7 @@ class Metric(object):
 
         # Check we can write on the cache file without competitors
         self.cache_file_name = os.path.join(self.data_dir, self._get_file_name(self.node_id))
-        self.filelock = FileLock(self.cache_file_name)
+        self.filelock = FileLock(self.cache_file_name + '.lock')
         try:
             self.filelock.acquire(timeout=1)
         except Timeout:
@@ -80,7 +80,7 @@ class Metric(object):
         locks = []
         for node_id in range(num_nodes):
             node_file = self._get_file_name(node_id)
-            filelock = FileLock(node_file)
+            filelock = FileLock(node_file + '.lock')
             filelock.acquire(timeout=timeout)
             node_files.append(node_file)
             locks.append(filelock)
