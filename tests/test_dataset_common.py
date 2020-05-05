@@ -156,11 +156,8 @@ class DatasetTest(parameterized.TestCase):
                 # create mock data loader manager with test specific mock_folder_strucutre_fn
                 mock_dl_manager = self.dataset_tester.create_mock_data_loader(path_to_dummy_data)
 
-                # inject our fake download manager to the dataset_builder._make_download_manager fn
-                dataset_builder._make_download_manager = lambda **kwargs: mock_dl_manager
-
                 # build dataset from dummy data
-                dataset_builder.download_and_prepare()
+                dataset_builder.download_and_prepare(dl_manager=mock_dl_manager)
 
                 # get dataset
                 dataset = dataset_builder.as_dataset()

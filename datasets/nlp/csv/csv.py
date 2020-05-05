@@ -34,7 +34,6 @@ class Csv(nlp.GeneratorBasedBuilder):
 
     def _info(self):
         return nlp.DatasetInfo(
-                builder=self,
                 description="bla",
                 features=nlp.features.FeaturesDict(
                     self.features
