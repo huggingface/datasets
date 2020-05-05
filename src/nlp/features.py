@@ -28,9 +28,17 @@ logger = logging.getLogger(__name__)
 
 
 def type_to_arrow(type_str: str):
-    if type_str.endswith("_"):
-        type_str = type_str[:-1]
-    return pa.__dict__[type_str]()
+    if type_str not in pa.__dict__:
+        assert (
+            str(type_str + "_") in pa.__dict__
+        ), "Neither {} nor {} seems to be a pyarrow data type. Please make sure to use a correct data type, see: https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions".format(
+            type_str, type_str + "_"
+        )
+        arrow_data_type_str = str(type_str + "_")
+    else:
+        arrow_data_type_str = type_str
+
+    return pa.__dict__[arrow_data_type_str]()
 
 
 @dataclass
