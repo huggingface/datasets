@@ -128,5 +128,40 @@ class BeamWriter(object):
         path: Optional[str] = None,
         stream: Optional[pa.NativeFile] = None,
         writer_batch_size: Optional[int] = None,
+        hash_salt: Optional[str] = None
     ):
-        raise NotImplementedError
+        if data_type is None and schema is None:
+            raise ValueError("At least one of data_type and schema must be provided.")
+        if path is None and stream is None:
+            raise ValueError("At least one of path and stream must be provided.")
+
+        if data_type is not None:
+            self._type: pa.DataType = data_type
+            self._schema: pa.Schema = pa.schema(field for field in self._type)
+        else:
+            self._schema: pa.Schema = schema
+            self._type: pa.DataType = pa.struct(field for field in self._schema)
+
+        self._path = path
+        if stream is None:
+            self.stream = pa.OSFile(self._path, "wb")
+        else:
+            self.stream = stream
+        
+        self.hash_salt = hash_salt
+
+        self.writer = None
+        self.writer_batch_size = writer_batch_size
+
+        self._num_examples = 0
+        self._num_bytes = 0
+        self.current_rows = []
+
+        self.data = None
+
+    def write_from_pcollection(self, pcoll_examples):
+        self.data = pcoll_examples
+
+    def finalize(self):
+        shard_lengths, total_size = [], 0
+        return shard_lengths, total_size

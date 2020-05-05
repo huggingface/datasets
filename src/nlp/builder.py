@@ -702,13 +702,13 @@ class BeamBasedBuilder(DatasetBuilder):
         # Create the Beam pipeline and forward it to _prepare_split
         beam = lazy_imports.apache_beam
 
-        if not download_config.beam_runner and not download_config.beam_options:
-            raise ValueError(
-                "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
-                "or PipelineOptions() has been provided. Please pass a "
-                "nlp.DownloadConfig(beam_runner=...) object to the "
-                "builder.download_and_prepare(download_config=...) method"
-            )
+        # if not download_config.beam_runner and not download_config.beam_options:
+        #     raise ValueError(
+        #         "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
+        #         "or PipelineOptions() has been provided. Please pass a "
+        #         "nlp.DownloadConfig(beam_runner=...) object to the "
+        #         "builder.download_and_prepare(download_config=...) method"
+        #     )
 
         beam_options = download_config.beam_options or beam.options.pipeline_options.PipelineOptions()
         # Beam type checking assumes transforms multiple outputs are of same type,
@@ -729,7 +729,7 @@ class BeamBasedBuilder(DatasetBuilder):
             logger.info("Retrieving shard lengths for %s...", split_name)
             shard_lengths, total_size = beam_writer.finalize()
             split_info = split_dict[split_name]
-            split_info.shard_lengths.extend(shard_lengths)
+            split_info.shard_lengths = shard_lengths
             split_info.num_shards = len(shard_lengths)
             split_info.num_bytes = total_size
         logger.info("Updating split info...")
@@ -747,8 +747,8 @@ class BeamBasedBuilder(DatasetBuilder):
         # To write examples to disk:
         fname = "{}-{}.arrow".format(self.name, split_name)
         fpath = os.path.join(self._data_dir, fname)
-        examples_type = self.info.features.get_type()
-        beam_writer = BeamWriter(examples_type, fpath, hash_salt=split_name)
+        examples_type = self.info.features.type
+        beam_writer = BeamWriter(examples_type, path=fpath, hash_salt=split_name)
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example
