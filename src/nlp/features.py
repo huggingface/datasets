@@ -142,7 +142,7 @@ class ClassLabel:
 
     def str2int(self, str_value):
         """Conversion class name string => integer."""
-        str_value = str(str_value)
+        str_value = str(str_value).strip()
         if self._str2int:
             return self._str2int[str_value]
 
