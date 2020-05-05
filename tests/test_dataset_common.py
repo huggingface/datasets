@@ -93,6 +93,38 @@ class DatasetTester(object):
         mock_dl_manager = MockDataLoaderManager(path_to_dummy_data)
         return mock_dl_manager
 
+    def check_load_dataset(self, dataset_name, configs):
+        # test only first config to speed up testing
+        for config in configs:
+            with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
+                # create config and dataset
+                dataset_builder = self.load_builder(dataset_name, config, data_dir=processed_temp_dir)
+                # get version
+                version = dataset_builder.version
+                version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
+
+                # dowloads dummy data
+                path_to_dummy_data = self.download_dummy_data(
+                    dataset_name, config=config, version_name=version_name, cache_dir=raw_temp_dir
+                )
+
+                # create mock data loader manager with test specific mock_folder_strucutre_fn
+                mock_dl_manager = self.create_mock_data_loader(path_to_dummy_data)
+
+                # inject our fake download manager to the dataset_builder._make_download_manager fn
+                dataset_builder._make_download_manager = lambda **kwargs: mock_dl_manager
+
+                # build dataset from dummy data
+                dataset_builder.download_and_prepare()
+
+                # get dataset
+                dataset = dataset_builder.as_dataset()
+
+                # check that dataset is not empty
+                for split in dataset_builder.info.splits.keys():
+                    # check that loaded datset is not empty
+                    self.parent.assertTrue(len(dataset[split]) > 0)
+
 
 def get_dataset_names():
     # fetch all dataset names
@@ -138,37 +170,14 @@ class DatasetTest(parameterized.TestCase):
             all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
 
     def test_load_dataset(self, dataset_name):
-        builder_configs = self.dataset_tester.load_all_configs(dataset_name)
+        # test only first config
+        configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
+        self.dataset_tester.check_load_dataset(dataset_name, configs)
 
-        for config in builder_configs:
-            with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
-                # create config and dataset
-                dataset_builder = self.dataset_tester.load_builder(dataset_name, config, data_dir=processed_temp_dir)
-                # get version
-                version = dataset_builder.version
-                version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
-
-                # dowloads dummy data
-                path_to_dummy_data = self.dataset_tester.download_dummy_data(
-                    dataset_name, config=config, version_name=version_name, cache_dir=raw_temp_dir
-                )
-
-                # create mock data loader manager with test specific mock_folder_strucutre_fn
-                mock_dl_manager = self.dataset_tester.create_mock_data_loader(path_to_dummy_data)
-
-                # inject our fake download manager to the dataset_builder._make_download_manager fn
-                dataset_builder._make_download_manager = lambda **kwargs: mock_dl_manager
-
-                # build dataset from dummy data
-                dataset_builder.download_and_prepare()
-
-                # get dataset
-                dataset = dataset_builder.as_dataset()
-
-                # check that dataset is not empty
-                for split in dataset_builder.info.splits.keys():
-                    # check that loaded datset is not empty
-                    self.assertTrue(len(dataset[split]) > 0)
+    @slow
+    def test_load_dataset_all_configs(self, dataset_name):
+        configs = self.dataset_tester.load_all_configs(dataset_name)
+        self.dataset_tester.check_load_dataset(dataset_name, configs)
 
     @slow
     def test_load_real_dataset(self, dataset_name):
