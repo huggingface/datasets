@@ -179,8 +179,7 @@ def load_dataset_module(
     if name is None:
         name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
-    if not name.endswith(".py") or "/" in name:
-        raise ValueError("The provided name should be the filename of a python script (ends with '.py')")
+    name += ".py"
 
     # We have three ways to find the dataset processing file:
     # - if os.path.join(path, name) is a file or a remote url
