@@ -365,12 +365,26 @@ def builder(path: str, name: Optional[str] = None, **builder_init_kwargs):
     Raises:
         DatasetNotFoundError: if `name` is unrecognized.
     """
+
+    # extract module kwargs
+    module_kwargs = {
+        argument[len("module_") :]: value
+        for argument, value in builder_init_kwargs.items()
+        if argument.startswith("module_")
+    }
+
+    # extract builder kwargs
+    builder_init_kwargs = {
+        argument: value for argument, value in builder_init_kwargs.items() if not argument.startswith("module_")
+    }
+
     if name is not None:
         name, builder_kwargs = _dataset_name_and_kwargs_from_name_str(name)
         builder_kwargs.update(builder_init_kwargs)
     else:
         builder_kwargs = builder_init_kwargs
-    builder_cls = load_dataset_module(path, name=name, **builder_kwargs)
+
+    builder_cls = load_dataset_module(path, name=name, **module_kwargs)
     builder_instance = builder_cls(**builder_kwargs)
     return builder_instance
 

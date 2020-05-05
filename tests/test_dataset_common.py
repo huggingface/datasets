@@ -176,7 +176,7 @@ class DatasetTest(parameterized.TestCase):
             download_config = DownloadConfig()
             download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
             download_and_prepare_kwargs = {"download_config": download_config}
-            builder_kwargs = {"force_reload": True}
+            builder_kwargs = {"module_force_reload": True}
 
             dataset = load(
                 dataset_name,
