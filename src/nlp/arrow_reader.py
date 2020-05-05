@@ -58,10 +58,12 @@ def _get_dataset_from_filename(filename_skip_take):
         filename_skip_take["skip"],
         filename_skip_take["take"],
     )
-
-    mmap = pa.memory_map(filename)
-    f = pa.ipc.open_stream(mmap)
-    pa_table = f.read_all()
+    if filename.endswith(".parquet"):  # parquet file
+        pa_table = pa.parquet.read_table(filename, memory_map=True)
+    else:  # standard .arrow file
+        mmap = pa.memory_map(filename)
+        f = pa.ipc.open_stream(mmap)
+        pa_table = f.read_all()
     pa_table = pa_table.slice(skip, take)
     return pa_table
 
@@ -81,7 +83,7 @@ class FileInstructions:
     file_instructions: List[dict]
 
 
-def make_file_instructions(name, split_infos, instruction):
+def make_file_instructions(name, split_infos, instruction, filetype_suffix):
     """Returns instructions of the split dict.
 
     Args:
@@ -99,20 +101,20 @@ def make_file_instructions(name, split_infos, instruction):
     absolute_instructions = instruction.to_absolute(name2len)
 
     return _make_file_instructions_from_absolutes(
-        name=name, name2len=name2len, absolute_instructions=absolute_instructions,
+        name=name, name2len=name2len, absolute_instructions=absolute_instructions, filetype_suffix=filetype_suffix
     )
 
 
-def _make_file_instructions_from_absolutes(
-    name, name2len, absolute_instructions,
-):
+def _make_file_instructions_from_absolutes(name, name2len, absolute_instructions, filetype_suffix):
     """Returns the files instructions from the absolute instructions list."""
     # For each split, return the files instruction (skip/take)
     file_instructions = []
     num_examples = 0
     for abs_instr in absolute_instructions:
         length = name2len[abs_instr.splitname]
-        filename = filename_for_dataset_split(dataset_name=name, split=abs_instr.splitname, filetype_suffix="arrow")
+        filename = filename_for_dataset_split(
+            dataset_name=name, split=abs_instr.splitname, filetype_suffix=filetype_suffix
+        )
         from_ = 0 if abs_instr.from_ is None else abs_instr.from_
         to = length if abs_instr.to is None else abs_instr.to
         num_examples += to - from_
@@ -145,6 +147,8 @@ class ArrowReader(object):
     This class should not typically be exposed to the user.
     """
 
+    _FILETYPE_SUFFIX = "arrow"
+
     def __init__(self, path, info):
         """Initializes ArrowReader.
 
@@ -173,7 +177,7 @@ class ArrowReader(object):
         """
 
         def _read_instruction_to_ds(instruction):
-            file_instructions = make_file_instructions(name, split_infos, instruction)
+            file_instructions = make_file_instructions(name, split_infos, instruction, self._FILETYPE_SUFFIX)
             files = file_instructions.file_instructions
             if not files:
                 msg = 'Instruction "%s" corresponds to no data!' % instruction
@@ -201,6 +205,10 @@ class ArrowReader(object):
             f.update(filename=os.path.join(self._path, f["filename"]))
         dataset = _read_files(files=files, info=self._info,)
         return dataset
+
+
+class ParquetReader(ArrowReader):
+    _FILETYPE_SUFFIX = "parquet"
 
 
 @dataclass(frozen=True)

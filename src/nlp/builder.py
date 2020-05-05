@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 
 from . import splits as splits_lib
 from . import utils
-from .arrow_reader import ArrowReader
+from .arrow_reader import ArrowReader, ParquetReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
@@ -698,6 +698,25 @@ class BeamBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
+    def _as_dataset(self, split=splits_lib.Split.TRAIN):
+        """Constructs a `Dataset`.
+
+        This is the internal implementation to overwrite called when user calls
+        `as_dataset`. It should read the pre-processed datasets files and generate
+        the `Dataset` object.
+
+        Args:
+            split: `nlp.Split` which subset of the data to read.
+
+        Returns:
+            `Dataset`
+        """
+
+        ds = ParquetReader(self._data_dir, self.info).read(
+            name=self.name, instructions=split, split_infos=self.info.splits.values(),
+        )
+        return ds
+
     def _download_and_prepare(self, dl_manager, download_config):
         # Create the Beam pipeline and forward it to _prepare_split
         beam = lazy_imports.apache_beam
@@ -726,12 +745,14 @@ class BeamBasedBuilder(DatasetBuilder):
         # Update `info.splits` with number of shards and shard lengths.
         split_dict = self.info.splits
         for split_name, beam_writer in self._beam_writers.items():
-            logger.info("Retrieving shard lengths for %s...", split_name)
-            shard_lengths, total_size = beam_writer.finalize()
+            # logger.info("Retrieving shard lengths for %s...", split_name)
+            # shard_lengths, total_size = beam_writer.finalize()
+            num_examples = beam_writer.finalize()
             split_info = split_dict[split_name]
-            split_info.shard_lengths = shard_lengths
-            split_info.num_shards = len(shard_lengths)
-            split_info.num_bytes = total_size
+            split_info.num_examples = num_examples
+            # split_info.shard_lengths = shard_lengths
+            # split_info.num_shards = len(shard_lengths)
+            # split_info.num_bytes = total_size
         logger.info("Updating split info...")
         self.info.update_splits_if_different(split_dict)
 
@@ -745,10 +766,10 @@ class BeamBasedBuilder(DatasetBuilder):
         output_prefix = os.path.join(self._data_dir, output_prefix)
 
         # To write examples to disk:
-        fname = "{}-{}.arrow".format(self.name, split_name)
+        fname = "{}-{}.parquet".format(self.name, split_name)
         fpath = os.path.join(self._data_dir, fname)
         examples_type = self.info.features.type
-        beam_writer = BeamWriter(examples_type, path=fpath, hash_salt=split_name)
+        beam_writer = BeamWriter(examples_type, path=fpath)
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example

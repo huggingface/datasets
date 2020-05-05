@@ -15,10 +15,14 @@
 
 # Lint as: python3
 """To write records into Parquet files."""
+import json
 import logging
+import os
 from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
+
+from .lazy_imports_lib import lazy_imports
 
 
 logger = logging.getLogger(__name__)
@@ -122,18 +126,12 @@ class BeamWriter(object):
     """
 
     def __init__(
-        self,
-        data_type: Optional[pa.DataType] = None,
-        schema: Optional[pa.Schema] = None,
-        path: Optional[str] = None,
-        stream: Optional[pa.NativeFile] = None,
-        writer_batch_size: Optional[int] = None,
-        hash_salt: Optional[str] = None
+        self, data_type: Optional[pa.DataType] = None, schema: Optional[pa.Schema] = None, path: Optional[str] = None,
     ):
         if data_type is None and schema is None:
             raise ValueError("At least one of data_type and schema must be provided.")
-        if path is None and stream is None:
-            raise ValueError("At least one of path and stream must be provided.")
+        if path is None:
+            raise ValueError("Path must be provided.")
 
         if data_type is not None:
             self._type: pa.DataType = data_type
@@ -143,25 +141,43 @@ class BeamWriter(object):
             self._type: pa.DataType = pa.struct(field for field in self._schema)
 
         self._path = path
-        if stream is None:
-            self.stream = pa.OSFile(self._path, "wb")
-        else:
-            self.stream = stream
-        
-        self.hash_salt = hash_salt
-
-        self.writer = None
-        self.writer_batch_size = writer_batch_size
-
-        self._num_examples = 0
-        self._num_bytes = 0
-        self.current_rows = []
-
-        self.data = None
+        self._num_examples = None
+        self._pcoll_outputs_metadata = []
 
     def write_from_pcollection(self, pcoll_examples):
-        self.data = pcoll_examples
+        beam = lazy_imports.apache_beam
+
+        # create some metadata that will be used in .finalize()
+        num_examples = (
+            pcoll_examples
+            | "Add metadata key" >> beam.Map(lambda v: ("num_examples", v))
+            | "Count" >> beam.CombinePerKey(beam.transforms.combiners.CountCombineFn())
+        )
+
+        def save_metatada(metadata_items):
+            with open(self._path + ".json", "w") as metadata_file:
+                json.dump(metadata_items, metadata_file)
+
+        # save metadata
+        _ = (
+            (num_examples,)
+            | "Merge pcollections" >> beam.Flatten()
+            | "Create Dict" >> beam.transforms.combiners.ToDict()
+            | "Save metadata" >> beam.ParDo(save_metatada)
+        )
+
+        # save dataset
+        return (
+            pcoll_examples
+            | "Get values" >> beam.Values()
+            | "Save to parquet" >> beam.io.parquetio.WriteToParquet(self._path, self._schema, num_shards=1)
+        )
 
     def finalize(self):
-        shard_lengths, total_size = [], 0
-        return shard_lengths, total_size
+        shard_suffix = "-00000-of-00001"
+        os.rename(self._path + shard_suffix, self._path)
+        with open(self._path + ".json", "r") as metadata_file:
+            metadata = json.load(metadata_file)
+        self._num_examples = metadata["num_examples"]
+        os.remove(self._path + ".json")
+        return self._num_examples
