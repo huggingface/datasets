@@ -33,7 +33,6 @@ TO_CONVERT = [
     (r"tfds\.features\.FeaturesDict\(", r"dict("),
     (r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace NLP Authors"),
     (r"tfds\.", r"nlp."),
-    (r"import tensorflow as tf\.", r""),
 ]
 
 
@@ -122,6 +121,10 @@ class ConvertCommand(BaseTransformersCLICommand):
                     continue
                 elif "import tensorflow_datasets.public_api as tfds" in out_line:
                     out_line = "import nlp\n"
+                elif "import tensorflow" in out_line:
+                    # order is important here
+                    out_line = ""
+                    continue
                 elif "from absl import logging" in out_line:
                     out_line = "import logging\n"
                 elif any(expression in out_line for expression in TO_HIGHLIGHT):
