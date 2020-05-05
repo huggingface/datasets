@@ -33,6 +33,7 @@ TO_CONVERT = [
     (r"tfds\.features\.FeaturesDict\(", r"dict("),
     (r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace NLP Authors"),
     (r"tfds\.", r"nlp."),
+    (r"import tensorflow as tf\.", r""),
 ]
 
 
