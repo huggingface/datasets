@@ -143,7 +143,11 @@ class ClassLabel:
     def str2int(self, str_value):
         """Conversion class name string => integer."""
         str_value = str(str_value)
+
         if self._str2int:
+            # strip key if not in dict
+            if str_value not in self._str2int:
+                str_value = str_value.strip()
             return self._str2int[str_value]
 
         # No names provided, try to integerize
