@@ -30,6 +30,8 @@ logger = logging.getLogger(__name__)
 def type_to_arrow(type_str: str):
     if type_str.endswith("_"):
         type_str = type_str[:-1]
+    if type_str == "bool":
+        type_str = "bool_"
     return pa.__dict__[type_str]()
 
 
