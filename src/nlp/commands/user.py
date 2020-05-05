@@ -8,6 +8,14 @@ from requests.exceptions import HTTPError
 
 from nlp.commands import BaseTransformersCLICommand
 from nlp.hf_api import HfApi, HfFolder
+from nlp.utils.checksums_utils import (
+    CHECKSUMS_FILE_NAME,
+    URLS_CHECKSUMS_FOLDER_NAME,
+    get_size_checksum,
+    load_sizes_checksums,
+    store_sizes_checksum,
+)
+from nlp.utils.file_utils import cached_path, hf_bucket_url
 
 
 UPLOAD_MAX_FILES = 15
@@ -33,11 +41,16 @@ class UserCommands(BaseTransformersCLICommand):
         rm_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
         rm_parser.set_defaults(func=lambda args: DeleteObjCommand(args))
         # upload
-        upload_parser = parser.add_parser("upload")
-        upload_parser.add_argument("path", type=str, help="Local path of the folder or individual file to upload.")
+        upload_parser = parser.add_parser("upload", help="Upload a dataset to S3.")
+        upload_parser.add_argument(
+            "path", type=str, help="Local path of the dataset folder or individual file to upload."
+        )
         upload_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
         upload_parser.add_argument(
             "--filename", type=str, default=None, help="Optional: override individual object filename on S3."
+        )
+        upload_parser.add_argument(
+            "--upload_checksums", action="store_true", help="Upload the checksums file on S3 with the dataset"
         )
         upload_parser.set_defaults(func=lambda args: UploadCommand(args))
 
@@ -48,11 +61,16 @@ class ANSI:
     """
 
     _bold = "\u001b[1m"
+    _red = "\u001b[31m"
     _reset = "\u001b[0m"
 
     @classmethod
     def bold(cls, s):
         return "{}{}{}".format(cls._bold, s, cls._reset)
+
+    @classmethod
+    def red(cls, s):
+        return "{}{}{}".format(cls._bold + cls._red, s, cls._reset)
 
 
 class BaseUserCommand:
@@ -80,6 +98,7 @@ class LoginCommand(BaseUserCommand):
         except HTTPError as e:
             # probably invalid credentials, display error message.
             print(e)
+            print(ANSI.red(e.response.text))
             exit(1)
         HfFolder.save_token(token)
         print("Login successful")
@@ -100,6 +119,8 @@ class WhoamiCommand(BaseUserCommand):
                 print(ANSI.bold("orgs: "), ",".join(orgs))
         except HTTPError as e:
             print(e)
+            print(ANSI.red(e.response.text))
+            exit(1)
 
 
 class LogoutCommand(BaseUserCommand):
@@ -138,6 +159,7 @@ class ListObjsCommand(BaseUserCommand):
             objs = self._api.list_objs(token, organization=self.args.organization)
         except HTTPError as e:
             print(e)
+            print(ANSI.red(e.response.text))
             exit(1)
         if len(objs) == 0:
             print("No shared file yet")
@@ -156,12 +178,13 @@ class DeleteObjCommand(BaseUserCommand):
             self._api.delete_obj(token, filename=self.args.filename, organization=self.args.organization)
         except HTTPError as e:
             print(e)
+            print(ANSI.red(e.response.text))
             exit(1)
         print("Done")
 
 
 class UploadCommand(BaseUserCommand):
-    def walk_dir(self, rel_path):
+    def walk_dir(self, rel_path: str):
         """
         Recursively list all files in a folder.
         """
@@ -172,17 +195,53 @@ class UploadCommand(BaseUserCommand):
                 files += self.walk_dir(f.path)
         return files
 
+    def _checksums_file(self, namespace: str, local_path: str, files: list):
+        previous_checksums_filename = os.path.join(
+            os.path.basename(local_path), URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
+        )
+        previous_checksums_path = cached_path(hf_bucket_url(namespace, filename=previous_checksums_filename))
+        if previous_checksums_path is not None:
+            print(
+                "Checksums file at {} under namespace {} will be updated".format(
+                    previous_checksums_filename, namespace
+                )
+            )
+            sizes_checksums = load_sizes_checksums(previous_checksums_path)
+        else:
+            sizes_checksums = {}
+        sizes_checksums.update(
+            {
+                hf_bucket_url(namespace, filename=filename): get_size_checksum(local_file_path)
+                for local_file_path, filename in files
+                if os.path.basename(local_file_path) != CHECKSUMS_FILE_NAME
+            }
+        )
+        urls_checksums_dir = os.path.join(local_path, URLS_CHECKSUMS_FOLDER_NAME)
+        os.makedirs(urls_checksums_dir, exist_ok=True)
+        local_checksums_file = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
+        rel_checksums_file = os.path.join(
+            os.path.basename(local_path), URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
+        )
+        store_sizes_checksum(sizes_checksums, local_checksums_file)
+        return (local_checksums_file, rel_checksums_file)
+
     def run(self):
         token = HfFolder.get_token()
         if token is None:
             print("Not logged in")
             exit(1)
+
+        user, _ = self._api.whoami(token)
+        namespace = self.args.organization if self.args.organization is not None else user
+
         local_path = os.path.abspath(self.args.path)
         if os.path.isdir(local_path):
             if self.args.filename is not None:
                 raise ValueError("Cannot specify a filename override when uploading a folder.")
             rel_path = os.path.basename(local_path)
             files = self.walk_dir(rel_path)
+            if self.args.upload_checksums:
+                files.append(self._checksums_file(namespace, local_path, files))
         elif os.path.isfile(local_path):
             filename = self.args.filename if self.args.filename is not None else os.path.basename(local_path)
             files = [(local_path, filename)]
@@ -200,9 +259,6 @@ class UploadCommand(BaseUserCommand):
             )
             exit(1)
 
-        user, _ = self._api.whoami(token)
-        namespace = self.args.organization if self.args.organization is not None else user
-
         for filepath, filename in files:
             print(
                 "About to upload file {} to S3 under filename {} and namespace {}".format(
@@ -216,8 +272,13 @@ class UploadCommand(BaseUserCommand):
             exit()
         print(ANSI.bold("Uploading... This might take a while if files are large"))
         for filepath, filename in files:
-            access_url = self._api.presign_and_upload(
-                token=token, filename=filename, filepath=filepath, organization=self.args.organization
-            )
+            try:
+                access_url = self._api.presign_and_upload(
+                    token=token, filename=filename, filepath=filepath, organization=self.args.organization
+                )
+            except HTTPError as e:
+                print(e)
+                print(ANSI.red(e.response.text))
+                exit(1)
             print("Your file now lives at:")
             print(access_url)

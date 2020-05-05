@@ -55,7 +55,6 @@ REQUIRED_PKGS = [
     'numpy',
     'pyarrow>=0.16.0',
     'dill',
-    'dataclasses-json',
     # for downloading datasets over HTTPS
     'requests>=2.19.0',
     # progress bars in download and scripts
@@ -68,7 +67,7 @@ REQUIRED_PKGS = [
 
 TESTS_REQUIRE = [
     'apache-beam',
-    'parameterized',
+    'absl-py',
     'jupyter',
     'pytest',
     'pytest-xdist',

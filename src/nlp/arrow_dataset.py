@@ -22,9 +22,10 @@ import os
 from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Union
 
-import dill
 import pyarrow as pa
 from tqdm import tqdm
+
+from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
 
@@ -195,7 +196,7 @@ class Dataset(object):
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
         else:
             assert (
-                type is None or type == "numpy" or type == 'pandas'
+                type is None or type == "numpy" or type == "pandas"
             ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas']."
 
         # Check filter column
@@ -293,7 +294,11 @@ class Dataset(object):
         else:
             raise ValueError("Can only get row(s) (int or slice) or columns (string).")
 
-        if (self._format_type is not None or self._format_columns is not None) and not isinstance(key, str) and self._format_type != "pandas":
+        if (
+            (self._format_type is not None or self._format_columns is not None)
+            and not isinstance(key, str)
+            and self._format_type != "pandas"
+        ):
             outputs = self.convert_outputs(outputs)
         return outputs
 
@@ -332,7 +337,7 @@ class Dataset(object):
             "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items()) for f in self._data_files
         )
         cache_kwargs_string = "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items())
-        function_bytes = dill.dumps(function)
+        function_bytes = dumps(function)
         output_hash = hashlib.md5(
             previous_files_string.encode("utf-8") + cache_kwargs_string.encode("utf-8") + function_bytes
         ).hexdigest()

@@ -24,13 +24,16 @@ import itertools
 import logging
 import os
 import shutil
+from dataclasses import dataclass, field
 
 from . import splits as splits_lib
 from . import utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
+from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
 from .naming import filename_prefix_for_split
+from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadConfig, DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE
 
@@ -42,39 +45,18 @@ REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
 REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
 
 
-class BuilderConfig(object):
+@dataclass
+class BuilderConfig:
     """Base class for `DatasetBuilder` data configuration.
 
     DatasetBuilder subclasses with data configuration options should subclass
     `BuilderConfig` and add their own properties.
     """
 
-    def __init__(self, name, version=None, supported_versions=None, description=None):
-        self._name = name
-        self._version = version
-        self._supported_versions = supported_versions or []
-        self._description = description
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def version(self):
-        return self._version
-
-    @property
-    def supported_versions(self):
-        return self._supported_versions
-
-    @property
-    def description(self):
-        return self._description
-
-    def __repr__(self):
-        return "<{cls_name} name={name}, version={version}>".format(
-            cls_name=type(self).__name__, name=self.name, version=self.version or "None"
-        )
+    name: str
+    version: utils.Version
+    supported_versions: list = field(default_factory=list)
+    description: str = ""
 
 
 class DatasetBuilder:
@@ -161,12 +143,36 @@ class DatasetBuilder:
                 "DatasetBuilder {} does not have a defined version. Please add a "
                 "`VERSION = nlp.Version('x.y.z')` to the class.".format(self.name)
             )
-        self._version = self._pick_version(version)
+
+        # Prepare version: TODO: can still be cleaned up
+        self.canonical_version = self._builder_config.version if self._builder_config else self.VERSION
+        self.supported_versions = (
+            self._builder_config.supported_versions if self._builder_config else self.SUPPORTED_VERSIONS
+        )
+        self.versions = [
+            utils.Version(v) if isinstance(v, str) else v for v in [self.canonical_version] + self.supported_versions
+        ]
+        if version == "experimental_latest":
+            self._version = max(self.versions)
+        else:
+            for vers in self.versions:
+                if version is None or version.match(vers):
+                    self._version = vers
+                    break
+
+        # prepare info
+        info = self._info()
+        info.name = self.name
+        info.version = self._version
+        info.splits.dataset_name = self.name
+        self.info = info
+
+        # prepare data dirs
         self._data_dir_root = os.path.expanduser(data_dir or HF_DATASETS_CACHE)
         self._data_dir = self._build_data_dir()
         if os.path.exists(self._data_dir):
             logger.info("Overwrite dataset info from restored data version.")
-            self.info.read_from_directory(self._data_dir)
+            self.info = DatasetInfo.from_directory(self._data_dir)
 
     def __getstate__(self):
         return self._original_state
@@ -222,38 +228,6 @@ class DatasetBuilder:
             names = [config.name for config in cls.BUILDER_CONFIGS]
             raise ValueError("Names in BUILDER_CONFIGS must not be duplicated. Got %s" % names)
         return config_dict
-
-    @utils.memoized_property
-    def canonical_version(self):
-        if self._builder_config:
-            return self._builder_config.version
-        return self.VERSION
-
-    @utils.memoized_property
-    def supported_versions(self):
-        if self._builder_config:
-            return self._builder_config.supported_versions
-        return self.SUPPORTED_VERSIONS
-
-    @utils.memoized_property
-    def versions(self):
-        """Versions (canonical + availables), in preference order."""
-        return [
-            utils.Version(v) if isinstance(v, str) else v for v in [self.canonical_version] + self.supported_versions
-        ]
-
-    def _pick_version(self, requested_version):
-        """Returns utils.Version instance, or raise AssertionError."""
-        if requested_version == "experimental_latest":
-            return max(self.versions)
-        for version in self.versions:
-            if requested_version is None or version.match(requested_version):
-                return version
-        available_versions = [str(v) for v in self.versions]
-        msg = "Dataset {} cannot be loaded at version {}, only: {}.".format(
-            self.name, requested_version, ", ".join(available_versions)
-        )
-        raise AssertionError(msg)
 
     @property
     def version(self):
@@ -314,6 +288,23 @@ class DatasetBuilder:
 
         return version_data_dir
 
+    @abc.abstractmethod
+    def _info(self) -> DatasetInfo:
+        """Construct the DatasetInfo object. See `DatasetInfo` for details.
+
+        Warning: This function is only called once and the result is cached for all
+        following .info() calls.
+
+        Returns:
+            info: (DatasetInfo) The dataset information
+        """
+        raise NotImplementedError
+
+    @classmethod
+    def get_imported_module_dir(cls):
+        """Return the path of the module of this class or subclass."""
+        return os.path.dirname(inspect.getfile(inspect.getmodule(cls)))
+
     def download_and_prepare(self, download_dir=None, download_config=None):
         """Downloads and prepares dataset for reading.
 
@@ -335,7 +326,7 @@ class DatasetBuilder:
         # Currently it's not possible to overwrite the data because it would
         # conflict with versioning: If the last version has already been generated,
         # it will always be reloaded and data_dir will be set at construction.
-        if data_exists:
+        if data_exists and download_config.download_mode != REUSE_CACHE_IF_EXISTS:
             raise ValueError(
                 "Trying to overwrite an existing dataset {} at {}. A dataset with "
                 "the same version {} already exists. If the dataset has changed, "
@@ -360,7 +351,7 @@ class DatasetBuilder:
         print(
             "Downloading and preparing dataset {} (download: {}, generated: {}, "
             "total: {}) to {}...".format(
-                self.info.full_name,
+                self.info.name,
                 utils.size_str(self.info.download_size),
                 utils.size_str(self.info.dataset_size),
                 utils.size_str(self.info.download_size + self.info.dataset_size),
@@ -377,6 +368,8 @@ class DatasetBuilder:
             os.makedirs(tmp_dir)
             try:
                 yield tmp_dir
+                if os.path.isdir(dirname):
+                    shutil.rmtree(dirname)
                 os.rename(tmp_dir, dirname)
             finally:
                 if os.path.exists(tmp_dir):
@@ -391,7 +384,7 @@ class DatasetBuilder:
 
                 # NOTE: If modifying the lines below to put additional information in
                 # DatasetInfo, you'll likely also want to update
-                # DatasetInfo.read_from_directory to possibly restore these attributes
+                # DatasetInfo.from_directory to possibly restore these attributes
                 # when reading from package data.
 
                 # splits = list(self.info.splits.values())
@@ -430,11 +423,14 @@ class DatasetBuilder:
             download_config: `DownloadConfig`, Additional options.
         """
         os.makedirs(self._data_dir, exist_ok=True)
+        urls_checksums_dir = os.path.join(self.get_imported_module_dir(), URLS_CHECKSUMS_FOLDER_NAME)
 
         # Generating data for all splits
         split_dict = splits_lib.SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
-        for split_generator in self._split_generators(dl_manager, **split_generators_kwargs):
+        split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+        dl_manager.check_or_save_checksums(urls_checksums_dir)  # verify checksums
+        for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(
                     "`all` is a special split keyword corresponding to the "
@@ -468,7 +464,8 @@ class DatasetBuilder:
             manual_dir=manual_dir,
             manual_dir_instructions=self.MANUAL_DOWNLOAD_INSTRUCTIONS,
             force_download=(download_config.download_mode == FORCE_REDOWNLOAD),
-            register_checksums=download_config.register_checksums,
+            ignore_checksums=download_config.ignore_checksums,
+            save_checksums=download_config.save_checksums,
         )
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -477,72 +474,6 @@ class DatasetBuilder:
         return {}
 
     def as_dataset(self, split=None, batch_size=None, as_supervised=False):
-        # pylint: disable=line-too-long
-        """Constructs a `Dataset`.
-
-        Callers must pass arguments as keyword arguments.
-
-        The output types vary depending on the parameters. Examples:
-
-        ```python
-        builder = nlp.builder('imdb_reviews')
-        builder.download_and_prepare()
-
-        # Default parameters: Returns the dict of Dataset
-        ds_all_dict = builder.as_dataset()
-        assert isinstance(ds_all_dict, dict)
-        print(ds_all_dict.keys())  # ==> ['test', 'train', 'unsupervised']
-
-        assert isinstance(ds_all_dict['test'], Dataset)
-        # Each dataset (test, train, unsup.) consists of dictionaries
-        # {'label': <tf.Tensor: .. dtype=int64, numpy=1>,
-        #  'text': <tf.Tensor: .. dtype=string, numpy=b"I've watched the movie ..">}
-        # {'label': <tf.Tensor: .. dtype=int64, numpy=1>,
-        #  'text': <tf.Tensor: .. dtype=string, numpy=b'If you love Japanese ..'>}
-
-        # With as_supervised: Dataset only contains (feature, label) tuples
-        ds_all_supervised = builder.as_dataset(as_supervised=True)
-        assert isinstance(ds_all_supervised, dict)
-        print(ds_all_supervised.keys())  # ==> ['test', 'train', 'unsupervised']
-
-        assert isinstance(ds_all_supervised['test'], Dataset)
-        # Each dataset (test, train, unsup.) consists of tuples (text, label)
-        # (<tf.Tensor: ... dtype=string, numpy=b"I've watched the movie ..">,
-        #  <tf.Tensor: ... dtype=int64, numpy=1>)
-        # (<tf.Tensor: ... dtype=string, numpy=b"If you love Japanese ..">,
-        #  <tf.Tensor: ... dtype=int64, numpy=1>)
-
-        # Same as above plus requesting a particular split
-        ds_test_supervised = builder.as_dataset(as_supervised=True, split='test')
-        assert isinstance(ds_test_supervised, Dataset)
-        # The dataset consists of tuples (text, label)
-        # (<tf.Tensor: ... dtype=string, numpy=b"I've watched the movie ..">,
-        #  <tf.Tensor: ... dtype=int64, numpy=1>)
-        # (<tf.Tensor: ... dtype=string, numpy=b"If you love Japanese ..">,
-        #  <tf.Tensor: ... dtype=int64, numpy=1>)
-        ```
-
-        Args:
-            split: `nlp.SplitBase`, which subset(s) of the data to read. If None
-                (default), returns all splits in a dict
-                `<key: nlp.Split, value: Dataset>`.
-            batch_size: `int`, batch size. Note that variable-length features will
-                be 0-padded if `batch_size` is set. Users that want more custom behavior
-                should use `batch_size=None` and use the `tf.data` API to construct a
-                custom pipeline. If `batch_size == -1`, will return feature
-                dictionaries of the whole dataset with `tf.Tensor`s instead of a
-                `Dataset`.
-            as_supervised: `bool`, if `True`, the returned `Dataset`
-                will have a 2-tuple structure `(input, label)` according to
-                `builder.info.supervised_keys`. If `False`, the default,
-                the returned `Dataset` will have a dictionary with all the
-                features.
-
-        Returns:
-            `Dataset`, or if `split=None`, `dict<key: nlp.Split, value:
-            Dataset>`.
-        """
-        # pylint: enable=line-too-long
         logger.info("Constructing Dataset for split %s, from %s", split, self._data_dir)
         if not os.path.exists(self._data_dir):
             raise AssertionError(
@@ -592,34 +523,6 @@ class DatasetBuilder:
             name=self.name, instructions=split, split_infos=self.info.splits.values(),
         )
         return ds
-
-    @utils.memoized_property
-    def info(self):
-        """`DatasetInfo` for this builder."""
-        # Ensure .info hasn't been called before versioning is set-up
-        # Otherwise, backward compatibility cannot be guaranteed as some code will
-        # depend on the code version instead of the restored data version
-        if not getattr(self, "_version", None):
-            # Message for developper creating new dataset. Will trigger if they are
-            # using .info in the constructor before calling super().__init__
-            raise AssertionError(
-                "Info should not been called before version has been defined. "
-                "Otherwise, the created .info may not match the info version from "
-                "the restored dataset."
-            )
-        return self._info()
-
-    @abc.abstractmethod
-    def _info(self):
-        """Construct the DatasetInfo object. See `DatasetInfo` for details.
-
-        Warning: This function is only called once and the result is cached for all
-        following .info() calls.
-
-        Returns:
-            info: (DatasetInfo) The dataset information
-        """
-        raise NotImplementedError
 
     @abc.abstractmethod
     def _split_generators(self, dl_manager):
@@ -732,7 +635,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
             generator = itertools.islice(generator, max_examples_per_split)
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._data_dir, fname)
-        examples_type = self.info.features.get_type()
+        examples_type = self.info.features.type
         writer = ArrowWriter(data_type=examples_type, path=fpath)
         for key, record in utils.tqdm(generator, unit=" examples", total=split_info.num_examples, leave=False):
             example = self.info.features.encode_example(record)

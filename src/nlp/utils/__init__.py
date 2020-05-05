@@ -21,4 +21,4 @@ from .download_manager import *
 from .file_utils import *
 from .py_utils import *
 from .tqdm_utils import *
-from .version import Experiment, Version
+from .version import Version

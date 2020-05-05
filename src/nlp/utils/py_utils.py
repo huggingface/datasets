@@ -26,7 +26,11 @@ import itertools
 import os
 import sys
 import uuid
+from io import BytesIO as StringIO
 from shutil import disk_usage
+from types import CodeType
+
+import dill
 
 from .file_utils import INCOMPLETE_SUFFIX
 
@@ -190,6 +194,18 @@ def flatten_nest_dict(d):
     return flat_dict
 
 
+def flatten_nested(data_struct, expected_leaf_type=str):
+    """Flatten data struct of obj or `list`/`dict` of obj of type `expected_leaf_type`"""
+    assert expected_leaf_type not in (tuple, list, dict)
+    if isinstance(data_struct, expected_leaf_type):
+        obj = data_struct
+        return [obj]
+    elif isinstance(data_struct, dict):
+        return list(flatten_nest_dict(data_struct).values())
+    assert isinstance(data_struct, (list, tuple))
+    return data_struct
+
+
 def pack_as_nest_dict(flat_d, nest_d):
     """Pack a 1-lvl dict into a nested dict with same structure as `nest_d`."""
     nest_out_d = {}
@@ -285,3 +301,104 @@ def has_sufficient_disk_space(needed_bytes, directory="."):
     except OSError:
         return True
     return needed_bytes < free_bytes
+
+
+class Pickler(dill.Pickler):
+    """Same Pickler as the one from dill, but improved for notebooks and shells"""
+
+    dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
+
+
+def dump(obj, file):
+    """pickle an object to a file"""
+    Pickler(file).dump(obj)
+    return
+
+
+def dumps(obj):
+    """pickle an object to a string"""
+    file = StringIO()
+    dump(obj, file)
+    return file.getvalue()
+
+
+def pklregister(t):
+    def proxy(func):
+        Pickler.dispatch[t] = func
+        return func
+
+    return proxy
+
+
+@pklregister(CodeType)
+def save_code(pickler, obj):
+    """
+    From dill._dill.save_code
+    This is a modified version that removes the origin (filename + line no.)
+    of functions created in notebooks or shells for example.
+    """
+    dill._dill.log.info("Co: %s" % obj)
+    # Filenames of functions created in notebooks or shells start with '<'
+    # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
+    # Only those two lines are different from the original implementation:
+    co_filename = "" if obj.co_filename.startswith("<") else obj.co_filename
+    co_firstlineno = 1 if obj.co_filename.startswith("<") else obj.co_firstlineno
+    # The rest is the same as in the original dill implementation
+    if dill._dill.PY3:
+        if hasattr(obj, "co_posonlyargcount"):
+            args = (
+                obj.co_argcount,
+                obj.co_posonlyargcount,
+                obj.co_kwonlyargcount,
+                obj.co_nlocals,
+                obj.co_stacksize,
+                obj.co_flags,
+                obj.co_code,
+                obj.co_consts,
+                obj.co_names,
+                obj.co_varnames,
+                co_filename,
+                obj.co_name,
+                co_firstlineno,
+                obj.co_lnotab,
+                obj.co_freevars,
+                obj.co_cellvars,
+            )
+        else:
+            args = (
+                obj.co_argcount,
+                obj.co_kwonlyargcount,
+                obj.co_nlocals,
+                obj.co_stacksize,
+                obj.co_flags,
+                obj.co_code,
+                obj.co_consts,
+                obj.co_names,
+                obj.co_varnames,
+                co_filename,
+                obj.co_name,
+                co_firstlineno,
+                obj.co_lnotab,
+                obj.co_freevars,
+                obj.co_cellvars,
+            )
+    else:
+        args = (
+            obj.co_argcount,
+            obj.co_nlocals,
+            obj.co_stacksize,
+            obj.co_flags,
+            obj.co_code,
+            obj.co_consts,
+            obj.co_names,
+            obj.co_varnames,
+            co_filename,
+            obj.co_name,
+            co_firstlineno,
+            obj.co_lnotab,
+            obj.co_freevars,
+            obj.co_cellvars,
+        )
+    pickler.save_reduce(CodeType, args, obj=obj)
+    dill._dill.log.info("# Co")
+    return
