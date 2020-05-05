@@ -176,9 +176,13 @@ class DatasetTest(parameterized.TestCase):
             download_config = DownloadConfig()
             download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
             download_and_prepare_kwargs = {"download_config": download_config}
+            builder_kwargs = {"force_reload": True}
 
             dataset = load(
-                dataset_name, data_dir=temp_data_dir, download_and_prepare_kwargs=download_and_prepare_kwargs
+                dataset_name,
+                data_dir=temp_data_dir,
+                download_and_prepare_kwargs=download_and_prepare_kwargs,
+                builder_kwargs=builder_kwargs,
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
