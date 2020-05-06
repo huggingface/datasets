@@ -176,8 +176,9 @@ class BeamWriter(object):
     def finalize(self):
         shard_suffix = "-00000-of-00001"
         os.rename(self._path + shard_suffix, self._path)
+        self._num_bytes = os.path.getsize(self._path)
         with open(self._path + ".json", "r") as metadata_file:
             metadata = json.load(metadata_file)
         self._num_examples = metadata["num_examples"]
         os.remove(self._path + ".json")
-        return self._num_examples
+        return self._num_examples, self._num_bytes

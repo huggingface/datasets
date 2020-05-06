@@ -747,9 +747,10 @@ class BeamBasedBuilder(DatasetBuilder):
         for split_name, beam_writer in self._beam_writers.items():
             # logger.info("Retrieving shard lengths for %s...", split_name)
             # shard_lengths, total_size = beam_writer.finalize()
-            num_examples = beam_writer.finalize()
+            num_examples, num_bytes = beam_writer.finalize()
             split_info = split_dict[split_name]
             split_info.num_examples = num_examples
+            split_info.num_bytes = num_bytes
             # split_info.shard_lengths = shard_lengths
             # split_info.num_shards = len(shard_lengths)
             # split_info.num_bytes = total_size
