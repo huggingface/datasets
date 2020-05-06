@@ -170,12 +170,11 @@ class BeamWriter(object):
         return (
             pcoll_examples
             | "Get values" >> beam.Values()
-            | "Save to parquet" >> beam.io.parquetio.WriteToParquet(self._path, self._schema, num_shards=1)
+            | "Save to parquet"
+            >> beam.io.parquetio.WriteToParquet(self._path, self._schema, num_shards=1, shard_name_template="")
         )
 
     def finalize(self):
-        shard_suffix = "-00000-of-00001"
-        os.rename(self._path + shard_suffix, self._path)
         self._num_bytes = os.path.getsize(self._path)
         with open(self._path + ".json", "r") as metadata_file:
             metadata = json.load(metadata_file)
