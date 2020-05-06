@@ -201,7 +201,7 @@ class DownloadManager(object):
                 os.makedirs(urls_checksums_dir, exist_ok=True)
                 self._store_sizes_checksums(checksums_file_path)
                 logger.info("Stored the recorded checksums in {}.".format(urls_checksums_dir))
-            else:
+            elif os.path.exists(checksums_file_path):
                 expected_sizes_checksums = load_sizes_checksums(checksums_file_path)
                 for url, rec_size_checksum in self._recorded_sizes_checksums.items():
                     exp_size_checksum = expected_sizes_checksums.get(url)
@@ -210,6 +210,8 @@ class DownloadManager(object):
                     if exp_size_checksum != rec_size_checksum:
                         raise NonMatchingChecksumError(url)
                 logger.info("All checksums matched successfully.")
+            else:
+                logger.info("Checksum file not found.")
         else:
             logger.info("Checksums tests were ignored.")
 

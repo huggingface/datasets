@@ -24,7 +24,7 @@ import re
 import shutil
 from hashlib import sha256
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 from filelock import FileLock
@@ -54,7 +54,7 @@ def get_builder_cls_from_module(dataset_module):
     return builder_cls
 
 
-def import_builder_class(dataset_name, dataset_hash):
+def import_main_class(dataset_name, dataset_hash):
     """ Load the module """
     importlib.invalidate_caches()
     module_path = ".".join([DATASETS_MODULE, dataset_name, dataset_hash, dataset_name])
@@ -62,7 +62,7 @@ def import_builder_class(dataset_name, dataset_hash):
 
     builder_cls = get_builder_cls_from_module(dataset_module)
     builder_cls._DYNAMICALLY_IMPORTED_MODULE = dataset_module
-    return builder_cls, module_path
+    return builder_cls
 
 
 def files_to_hash(file_paths: List[str]):
@@ -148,7 +148,7 @@ def get_imports(file_path: str):
     return imports
 
 
-def load_dataset_module(path: str, download_config=None, **download_kwargs,) -> DatasetBuilder:
+def setup_module(path: str, download_config=None, **download_kwargs,) -> DatasetBuilder:
     r"""
         Download/extract/cache a dataset to add to the lib from a path or url which can be:
             - a path to a local directory containing the dataset processing python script
@@ -175,8 +175,10 @@ def load_dataset_module(path: str, download_config=None, **download_kwargs,) -> 
     # - if os.path.join(path, name) is a file or a remote url
     # - if path is a file or a remote url
     # - otherwise we assume path/name is a path to our S3 bucket
-
-    if os.path.isfile(path):
+    combined_path = os.path.join(path, name)
+    if os.path.isfile(combined_path):
+        dataset_file = combined_path
+    elif os.path.isfile(path):
         dataset_file = path
     else:
         dataset_file = hf_bucket_url(path, filename=name)
@@ -303,26 +305,24 @@ def load_dataset_module(path: str, download_config=None, **download_kwargs,) -> 
             else:
                 logger.info("Found local import from %s to %s", local_import, dataset_local_import)
 
-    builder_cls, _ = import_builder_class(dataset_name, dataset_hash)
-
-    return builder_cls
+    return dataset_name, dataset_hash
 
 
 def load(
     path: str,
-    config: Optional[BuilderConfig] = None,
+    split: Optional[Union[str, Split]] = None,
     name: Optional[str] = None,
     version: Optional[str] = None,
     description: Optional[str] = None,
     data_dir: Optional[str] = None,
-    split: Optional[Union[str, Split]] = None,
+    data_files: Union[Dict, List] = None,
+    dataset_config: Optional[BuilderConfig] = None,
     in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
-    manual_dir: Optional[str] = None,
     ignore_checksums: bool = False,
     save_checksums: bool = False,
-    **dataset_kwargs,
+    **config_kwargs,
 ) -> Dataset:
     """Loads the named dataset.
 
@@ -378,21 +378,32 @@ def load(
             these will be full datasets as `tf.Tensor`s.
     """
 
-    # download kwargs
-    builder_cls = load_dataset_module(path, download_config=download_config)
+    # Download/copy dataset script
+    dataset_name, dataset_hash = setup_module(path, download_config=download_config)
 
+    # Get dataset builder class
+    builder_cls = import_main_class(dataset_name, dataset_hash)
+
+    # Instantiate dataset builder
     builder_instance = builder_cls(
-        config=config, name=name, version=version, description=description, data_dir=None, **dataset_kwargs
+        config=dataset_config,
+        name=name,
+        version=version,
+        description=description,
+        data_dir=data_dir,
+        data_files=data_files,
+        **config_kwargs,
     )
 
+    # Download and prepare data
     builder_instance.download_and_prepare(
         download_config=download_config,
         download_mode=download_mode,
-        manual_dir=manual_dir,
         ignore_checksums=ignore_checksums,
         save_checksums=save_checksums,
     )
 
+    # Build dataset for splits
     ds = builder_instance.as_dataset(split=split)
 
     return ds

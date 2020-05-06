@@ -23,12 +23,13 @@ import logging
 import os
 import shutil
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, List, Optional, Union
 
 from . import splits as splits_lib
 from . import utils
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
+from .features import Features, Value
 from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
@@ -52,10 +53,11 @@ class BuilderConfig:
     `BuilderConfig` and add their own properties.
     """
 
-    name: Optional[str] = None
-    version: Optional[utils.Version] = None
+    name: str = "no-name"
+    version: Optional[Union[str, utils.Version]] = "no-version"
     description: Optional[str] = None
     data_dir: str = None
+    data_files: Union[Dict, List] = None
 
 
 class DatasetBuilder:
@@ -106,7 +108,10 @@ class DatasetBuilder:
     MANUAL_DOWNLOAD_INSTRUCTIONS = None
 
     def __init__(
-        self, cache_dir=None, config=None, name=None, version=None, description=None, data_dir=None, *config_kwargs
+        self,
+        cache_dir=None,
+        config=None,
+        **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
 
@@ -126,15 +131,17 @@ class DatasetBuilder:
         self.name = camelcase_to_snakecase(self.__class__.__name__)
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
-        self._builder_config = self._create_builder_config(
-            config, name=name, version=version, description=description, data_dir=data_dir, **config_kwargs
+        config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
+        self.config = self._create_builder_config(
+            config,
+            **config_kwargs,
         )
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         info = self._info()
         info.builder_name = self.name
-        info.config_name = self._builder_config.name
-        info.version = self.version
+        info.config_name = self.config.name
+        info.version = self.config.version
         info.splits.dataset_name = self.name
         self.info = info
 
@@ -164,7 +171,8 @@ class DatasetBuilder:
             builder_config = BuilderConfig()
 
         for key, value in config_kwargs.items():
-            setattr(builder_config, key, value)
+            if value is not None:
+                setattr(builder_config, key, value)
 
         name = builder_config.name
         if not name:
@@ -181,8 +189,8 @@ class DatasetBuilder:
                 )
             if not builder_config.version:
                 raise ValueError("BuilderConfig %s must have a version" % name)
-            if not builder_config.description:
-                raise ValueError("BuilderConfig %s must have a description" % name)
+            # if not builder_config.description:
+            #     raise ValueError("BuilderConfig %s must have a description" % name)
         return builder_config
 
     @utils.classproperty
@@ -197,23 +205,19 @@ class DatasetBuilder:
         return config_dict
 
     @property
-    def version(self):
-        return self._version
-
-    @property
     def cache_dir(self):
         return self._cache_dir
 
     def _relative_data_dir(self, with_version=True):
         """Relative path of this dataset in cache_dir."""
         builder_data_dir = self.name
-        builder_config = self._builder_config
+        builder_config = self.config
         if builder_config:
             builder_data_dir = os.path.join(builder_data_dir, builder_config.name)
         if not with_version:
             return builder_data_dir
 
-        version = self._version
+        version = self.config.version
         version_data_dir = os.path.join(builder_data_dir, str(version))
         return version_data_dir
 
@@ -240,7 +244,7 @@ class DatasetBuilder:
         version_dirs = _other_versions_on_disk()
         if version_dirs:
             other_version = version_dirs[0][0]
-            if other_version != self._version:
+            if other_version != self.config.version:
                 warn_msg = (
                     "Found a different version {other_version} of dataset {name} in "
                     "cache_dir {cache_dir}. Using currently defined version "
@@ -248,7 +252,7 @@ class DatasetBuilder:
                         other_version=str(other_version),
                         name=self.name,
                         cache_dir=self._cache_dir_root,
-                        cur_version=str(self._version),
+                        cur_version=str(self.config.version),
                     )
                 )
                 logger.warning(warn_msg)
@@ -305,7 +309,7 @@ class DatasetBuilder:
             raise ValueError(
                 "Trying to overwrite an existing dataset {} at {}. A dataset with "
                 "the same version {} already exists. If the dataset has changed, "
-                "please update the version number.".format(self.name, self._cache_dir, self.version)
+                "please update the version number.".format(self.name, self._cache_dir, self.config.version)
             )
 
         logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
@@ -324,14 +328,9 @@ class DatasetBuilder:
         # information needed to cancel download/preparation if needed.
         # This comes right before the progress bar.
         print(
-            "Downloading and preparing dataset {} (download: {}, generated: {}, "
-            "total: {}) to {}...".format(
-                self.info.name,
-                utils.size_str(self.info.download_size),
-                utils.size_str(self.info.dataset_size),
-                utils.size_str(self.info.download_size + self.info.dataset_size),
-                self._cache_dir,
-            )
+            f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
+            f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
+            f"total: {utils.size_str(self.info.download_size + self.info.dataset_size)}) to {self._cache_dir}..."
         )
 
         if dl_manager is None:
@@ -582,6 +581,61 @@ class GeneratorBasedBuilder(DatasetBuilder):
         assert num_examples == num_examples, f"Expected to write {split_info.num_examples} but wrote {num_examples}"
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
+
+
+class ArrowBasedBuilder(DatasetBuilder):
+    """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet).
+
+    """
+
+    @abc.abstractmethod
+    def _generate_examples(self, **kwargs):
+        """Default function generating examples for each `SplitGenerator`.
+
+        This function preprocess the examples from the raw data to the preprocessed
+        dataset files.
+        This function is called once for each `SplitGenerator` defined in
+        `_split_generators`. The examples yielded here will be written on
+        disk.
+
+        Args:
+            **kwargs: `dict`, Arguments forwarded from the SplitGenerator.gen_kwargs
+
+        Yields:
+            key: `str` or `int`, a unique deterministic example identification key.
+                * Unique: An error will be raised if two examples are yield with the
+                    same key.
+                * Deterministic: When generating the dataset twice, the same example
+                    should have the same key.
+                Good keys can be the image id, or line number if examples are extracted
+                from a text file.
+                The key will be hashed and sorted to shuffle examples deterministically,
+                such as generating the dataset multiple times keep examples in the
+                same order.
+            example: `dict<str feature_name, feature_value>`, a feature dictionary
+                ready to be encoded and written to disk. The example will be
+                encoded with `self.info.features.encode_example({...})`.
+        """
+        raise NotImplementedError()
+
+    def _prepare_split(self, split_generator):
+        fname = "{}-{}.arrow".format(self.name, split_generator.name)
+        fpath = os.path.join(self._cache_dir, fname)
+
+        writer = ArrowWriter(path=fpath)
+
+        generator = self._generate_tables(**split_generator.gen_kwargs)
+        for key, table in utils.tqdm(generator, unit=" tables", leave=False):
+                writer.write_table(table)
+        num_examples, num_bytes = writer.finalize()
+
+        split_generator.split_info.num_examples = num_examples
+        split_generator.split_info.num_bytes = num_bytes
+        self.info.features = Features(
+            {
+                field.name: Value(str(field.type)) for field in writer.schema
+            }  # TODO have nested conversion from Arrow to Python
+        )
 
 
 class BeamBasedBuilder(DatasetBuilder):
