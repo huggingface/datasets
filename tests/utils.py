@@ -104,8 +104,11 @@ class MockDataLoaderManager(object):
         dummy_data_dict = {}
         for key, abs_path in data_url.items():
             # we force the name of each key to be the last file / folder name of the url path
-            rel_path = abs_path.split("/")[-1]
-            dummy_data_dict[key] = os.path.join(path_to_dummy_data, rel_path)
+            if isinstance(abs_path, list):
+                value = [os.path.join(path_to_dummy_data, x.split("/")[-1]) for x in abs_path]
+            else:
+                value = os.path.join(path_to_dummy_data, abs_path.split("/")[-1])
+            dummy_data_dict[key] = value
         return dummy_data_dict
 
     def check_or_save_checksums(self, *args):
