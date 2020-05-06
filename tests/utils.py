@@ -90,14 +90,29 @@ class MockDataLoaderManager(object):
             dummy_data_folder = self.create_dummy_data_dict(self.dummy_data_extracted_folder_name, data_url)
             logging.info(str(20 * "-" + " EXPECTED STRUCTURE OF {} " + 10 * "-").format(self.dummy_data_file_name))
             for key, value in dummy_data_folder.items():
-                logging.info("{} contains folder/file: {}".format(self.dummy_data_file_name, value))
+                logging.info(
+                    "{} contains folder or file, depending on the `_generate_splits` method called: {} .".format(
+                        self.dummy_data_file_name, value
+                    )
+                )
+                if ".zip" in value:
+                    logging.info(
+                        "data url in `_generate_split` expects a zipped folder. {} should be a directory and match the folder structure of the extracted content of {}".format(
+                            value, data_url[key]
+                        )
+                    )
         else:
             logging.info(
-                "{} contains folder/file: {}".format(
+                "{} contains folder a folder or file depending on the `_generate_splits` method that matches names as specified in `_generate_splits`".format(
                     self.dummy_data_file_name,
-                    os.path.join(self.dummy_data_extracted_folder_name, data_url.split("/")[-1]),
                 )
             )
+            if ".zip" in data_url:
+                logging.info(
+                    "data url in `_generate_split` expects a zipped folder. The dummy folder structure should match the extracted zip file folder structure of {}".format(
+                        data_url
+                    )
+                )
         logging.info(68 * "*")
 
     def create_dummy_data_dict(self, path_to_dummy_data, data_url):
