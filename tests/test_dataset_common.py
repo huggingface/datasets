@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import logging
-import os
 import tempfile
 
 import requests
@@ -25,36 +24,16 @@ from nlp import (
     DatasetBuilder,
     DownloadConfig,
     GenerateMode,
-    cached_path,
     hf_api,
     hf_bucket_url,
     load,
     load_dataset_module,
 )
 
-from .utils import slow
+from .utils import MockDataLoaderManager, slow
 
 
 logging.basicConfig(level=logging.INFO)
-
-
-class MockDataLoaderManager(object):
-    def __init__(self, path_to_dummy_data):
-        self.path_to_dummy_data = path_to_dummy_data
-        self.downloaded_size = 0
-
-    def download_and_extract(self, data_url, *args):
-        # this function has to be in the manager under this name to work
-        # if data_url is a dict then return a dict with the correct file names
-        if isinstance(data_url, dict):
-            dummy_data_dict = {}
-            for key in data_url.keys():
-                dummy_data_dict[key] = os.path.join(self.path_to_dummy_data, key)
-            return dummy_data_dict
-        return self.path_to_dummy_data
-
-    def check_or_save_checksums(self, *args):
-        pass
 
 
 class DatasetTester(object):
@@ -73,43 +52,17 @@ class DatasetTester(object):
             return [None]
         return builder.BUILDER_CONFIGS
 
-    def download_dummy_data(self, dataset_name, config, version_name, cache_dir):
-        if config is None:
-            config_name = ""
-        else:
-            config_name = config.name
-
-        filename = os.path.join(
-            self.parent.dummy_folder_name, config_name, version_name, self.parent.extracted_dummy_folder_name + ".zip"
-        )
-        url_to_dummy_data_dir = hf_bucket_url(dataset_name, filename=filename)
-        # this function will download the dummy data and return the path
-        local_path = cached_path(
-            url_to_dummy_data_dir, cache_dir=cache_dir, extract_compressed_file=True, force_extract=True
-        )
-        return os.path.join(local_path, self.parent.extracted_dummy_folder_name)
-
-    def create_mock_data_loader(self, path_to_dummy_data):
-        mock_dl_manager = MockDataLoaderManager(path_to_dummy_data)
-        return mock_dl_manager
-
     def check_load_dataset(self, dataset_name, configs):
         # test only first config to speed up testing
         for config in configs:
             with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
                 # create config and dataset
                 dataset_builder = self.load_builder(dataset_name, config, data_dir=processed_temp_dir)
-                # get version
-                version = dataset_builder.version
-                version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
 
-                # dowloads dummy data
-                path_to_dummy_data = self.download_dummy_data(
-                    dataset_name, config=config, version_name=version_name, cache_dir=raw_temp_dir
+                # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
+                mock_dl_manager = MockDataLoaderManager(
+                    dataset_name=dataset_name, config=config, version=dataset_builder.version, cache_dir=raw_temp_dir
                 )
-
-                # create mock data loader manager with test specific mock_folder_strucutre_fn
-                mock_dl_manager = self.create_mock_data_loader(path_to_dummy_data)
 
                 # inject our fake download manager to the dataset_builder._make_download_manager fn
                 dataset_builder._make_download_manager = lambda **kwargs: mock_dl_manager
@@ -138,8 +91,6 @@ def get_dataset_names():
 class DatasetTest(parameterized.TestCase):
 
     dataset_name = None
-    dummy_folder_name = "dummy"
-    extracted_dummy_folder_name = "dummy_data"
 
     def setUp(self):
         self.dataset_tester = DatasetTester(self)
