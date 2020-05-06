@@ -1,13 +1,9 @@
+import logging
 import os
 import unittest
 from distutils.util import strtobool
 
-import logging
-
-from nlp import (
-    cached_path,
-    hf_bucket_url,
-)
+from nlp import cached_path, hf_bucket_url
 
 
 def parse_flag_from_env(key, default=False):
@@ -57,7 +53,9 @@ class MockDataLoaderManager(object):
         self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
 
         # structure is dummy / config_name / version_name / dummy_data.zip
-        self.path_to_dummy_file = os.path.join(self.dummy_data_folder_name, self.config_name, self.version_name, self.dummy_data_file_name)
+        self.path_to_dummy_file = os.path.join(
+            self.dummy_data_folder_name, self.config_name, self.version_name, self.dummy_data_file_name
+        )
 
     # this function has to be in the manager under this name to work
     def download_and_extract(self, data_url, *args):
@@ -90,18 +88,23 @@ class MockDataLoaderManager(object):
         # special case when data_url is a dict
         if isinstance(data_url, dict):
             dummy_data_folder = self.create_dummy_data_dict(self.dummy_data_extracted_folder_name, data_url)
-            logging.info(str(20 * "-" + " EXPECTED STRUCTURE OF {} " + 10 * '-').format(self.dummy_data_file_name))
+            logging.info(str(20 * "-" + " EXPECTED STRUCTURE OF {} " + 10 * "-").format(self.dummy_data_file_name))
             for key, value in dummy_data_folder.items():
                 logging.info("{} contains folder/file: {}".format(self.dummy_data_file_name, value))
         else:
-            logging.info("{} contains folder/file: {}".format(self.dummy_data_file_name, os.path.join(self.dummy_data_extracted_folder_name, data_url.split('/')[-1])))
+            logging.info(
+                "{} contains folder/file: {}".format(
+                    self.dummy_data_file_name,
+                    os.path.join(self.dummy_data_extracted_folder_name, data_url.split("/")[-1]),
+                )
+            )
         logging.info(68 * "*")
 
     def create_dummy_data_dict(self, path_to_dummy_data, data_url):
         dummy_data_dict = {}
         for key, abs_path in data_url.items():
             # we force the name of each key to be the last file / folder name of the url path
-            rel_path = abs_path.split('/')[-1]
+            rel_path = abs_path.split("/")[-1]
             dummy_data_dict[key] = os.path.join(path_to_dummy_data, rel_path)
         return dummy_data_dict
 

@@ -30,7 +30,7 @@ from nlp import (
     load_dataset_module,
 )
 
-from .utils import slow, MockDataLoaderManager
+from .utils import MockDataLoaderManager, slow
 
 
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +60,9 @@ class DatasetTester(object):
                 dataset_builder = self.load_builder(dataset_name, config, data_dir=processed_temp_dir)
 
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
-                mock_dl_manager = MockDataLoaderManager(dataset_name=dataset_name, config=config, version=dataset_builder.version, cache_dir=raw_temp_dir)
+                mock_dl_manager = MockDataLoaderManager(
+                    dataset_name=dataset_name, config=config, version=dataset_builder.version, cache_dir=raw_temp_dir
+                )
 
                 # inject our fake download manager to the dataset_builder._make_download_manager fn
                 dataset_builder._make_download_manager = lambda **kwargs: mock_dl_manager
