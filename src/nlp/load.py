@@ -178,8 +178,8 @@ def load_dataset_module(
     """
     if name is None:
         name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
-
-    name += ".py"
+    else:
+        name += ".py"
 
     # We have three ways to find the dataset processing file:
     # - if os.path.join(path, name) is a file or a remote url
