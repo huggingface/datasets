@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import pyarrow as pa
+import pyarrow.parquet
 
 from .arrow_dataset import Dataset
 from .naming import filename_for_dataset_split
