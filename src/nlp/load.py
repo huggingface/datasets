@@ -148,7 +148,7 @@ def get_imports(file_path: str):
     return imports
 
 
-def setup_module(path: str, download_config=None, **download_kwargs,) -> DatasetBuilder:
+def setup_module(file_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs,) -> DatasetBuilder:
     r"""
         Download/extract/cache a dataset to add to the lib from a path or url which can be:
             - a path to a local directory containing the dataset processing python script
@@ -166,7 +166,7 @@ def setup_module(path: str, download_config=None, **download_kwargs,) -> Dataset
     download_config.extract_compressed_file = True
     download_config.force_extract = True
 
-    name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
+    name = list(filter(lambda x: x, file_path.split("/")))[-1] + ".py"
 
     if not name.endswith(".py"):
         raise ValueError("The provided name should be the filename of a python script (ends with '.py')")
@@ -175,13 +175,13 @@ def setup_module(path: str, download_config=None, **download_kwargs,) -> Dataset
     # - if os.path.join(path, name) is a file or a remote url
     # - if path is a file or a remote url
     # - otherwise we assume path/name is a path to our S3 bucket
-    combined_path = os.path.join(path, name)
+    combined_path = os.path.join(file_path, name)
     if os.path.isfile(combined_path):
         dataset_file = combined_path
-    elif os.path.isfile(path):
-        dataset_file = path
+    elif os.path.isfile(file_path):
+        dataset_file = file_path
     else:
-        dataset_file = hf_bucket_url(path, filename=name)
+        dataset_file = hf_bucket_url(file_path, filename=name)
 
     dataset_base_path = os.path.dirname(dataset_file)  # remove the filename
     dataset_checksums_file = os.path.join(dataset_base_path, URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME)

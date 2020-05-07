@@ -27,7 +27,9 @@ from nlp import (
     hf_api,
     hf_bucket_url,
     load,
-    load_dataset_module,
+    setup_module,
+    import_main_class,
+    DownloadConfig,
 )
 
 from .utils import MockDataLoaderManager, slow
@@ -41,12 +43,23 @@ class DatasetTester(object):
         self.parent = parent
 
     def load_builder(self, dataset_name, config=None, data_dir=None):
-        builder_cls = load_dataset_module(dataset_name, force_reload=True)
-        builder = builder_cls(config=config, data_dir=data_dir)
+        # Download/copy dataset script
+        dataset_name, dataset_hash = setup_module(dataset_name, download_config=DownloadConfig(force_download=True))
+        # Get dataset builder class
+        builder_cls = import_main_class(dataset_name, dataset_hash)
+        # Instantiate dataset builder
+        builder = builder_cls(
+            config=config,
+            data_dir=data_dir,
+        )
         return builder
 
     def load_all_configs(self, dataset_name):
-        builder_cls = load_dataset_module(dataset_name, force_reload=True)
+        # Download/copy dataset script
+        dataset_name, dataset_hash = setup_module(dataset_name, download_config=DownloadConfig(force_download=True))
+        # Get dataset builder class
+        builder_cls = import_main_class(dataset_name, dataset_hash)
+        # Instantiate dataset builder
         builder = builder_cls()
         if len(builder.BUILDER_CONFIGS) == 0:
             return [None]
@@ -64,11 +77,8 @@ class DatasetTester(object):
                     dataset_name=dataset_name, config=config, version=dataset_builder.version, cache_dir=raw_temp_dir
                 )
 
-                # inject our fake download manager to the dataset_builder._make_download_manager fn
-                dataset_builder._make_download_manager = lambda **kwargs: mock_dl_manager
-
                 # build dataset from dummy data
-                dataset_builder.download_and_prepare()
+                dataset_builder.download_and_prepare(dl_manager=mock_dl_manager)
 
                 # get dataset
                 dataset = dataset_builder.as_dataset()
