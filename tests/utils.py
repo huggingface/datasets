@@ -57,7 +57,7 @@ class MockDataLoaderManager(object):
             self.dummy_data_folder_name, self.config_name, self.version_name, self.dummy_data_file_name
         )
 
-    # this function has to be in the manager under this name to work
+    # this function has to be in the manager under this name so that testing works
     def download_and_extract(self, data_url, *args):
         # download dummy data
         path_to_dummy_data = self.download_dummy_data()
@@ -70,6 +70,10 @@ class MockDataLoaderManager(object):
         if isinstance(data_url, dict):
             return self.create_dummy_data_dict(path_to_dummy_data, data_url)
         return path_to_dummy_data
+
+    # this function has to be in the manager under this name so that testing works
+    def extract(path):
+        return path
 
     def download_dummy_data(self):
         # get url to dummy data on AWS S3 bucket
