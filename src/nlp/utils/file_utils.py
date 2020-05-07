@@ -150,8 +150,10 @@ def cached_path(
 
     Raises:
         FileNotFoundError: in case of non-recoverable file
-            (non-existent or inaccessible url + no cache on disk)
-        ValueError: if it couln't parse the url or filename correctly
+            (non-existent or no cache on disk)
+        ConnectionError: in case of unreachable url
+            and no cache on disk
+        ValueError: if it couldn't parse the url or filename correctly
     """
     if cache_dir is None:
         cache_dir = HF_DATASETS_CACHE
@@ -272,7 +274,9 @@ def get_from_cache(
 
     Raises:
         FileNotFoundError: in case of non-recoverable file
-            (non-existent or inaccessible url + no cache on disk)
+            (non-existent or no cache on disk)
+        ConnectionError: in case of unreachable url
+            and no cache on disk
     """
     if cache_dir is None:
         cache_dir = HF_DATASETS_CACHE
@@ -313,6 +317,7 @@ def get_from_cache(
                 " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
                 " to False."
             )
+        raise ConnectionError("Coudln't reach {}".format(url))
 
     # From now on, connected is True.
     if os.path.exists(cache_path) and not force_download:
