@@ -146,8 +146,12 @@ def cached_path(
             re-extract the archive and overide the folder where it was extracted.
 
     Return:
-        None in case of non-recoverable file (non-existent or inaccessible url + no cache on disk).
-        Local path (string) otherwise
+        Local path (string)
+
+    Raises:
+        FileNotFoundError: in case of non-recoverable file
+            (non-existent or inaccessible url + no cache on disk)
+        ValueError: if it couln't parse the url or filename correctly
     """
     if cache_dir is None:
         cache_dir = HF_DATASETS_CACHE
@@ -172,7 +176,7 @@ def cached_path(
         output_path = url_or_filename
     elif urlparse(url_or_filename).scheme == "":
         # File, but it doesn't exist.
-        return None
+        raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
     else:
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
@@ -264,8 +268,11 @@ def get_from_cache(
     If it's not there, download it. Then return the path to the cached file.
 
     Return:
-        None in case of non-recoverable file (non-existent or inaccessible url + no cache on disk).
-        Local path (string) otherwise
+        Local path (string)
+
+    Raises:
+        FileNotFoundError: in case of non-recoverable file
+            (non-existent or inaccessible url + no cache on disk)
     """
     if cache_dir is None:
         cache_dir = HF_DATASETS_CACHE
@@ -287,7 +294,7 @@ def get_from_cache(
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))
         except (EnvironmentError, requests.exceptions.Timeout):
-            # etag is already None
+            # not connected
             pass
 
     filename = url_to_filename(url, etag)
@@ -300,24 +307,22 @@ def get_from_cache(
     if not connected:
         if os.path.exists(cache_path):
             return cache_path
-        else:
-            matching_files = [
-                file
-                for file in fnmatch.filter(os.listdir(cache_dir), filename + ".*")
-                if not file.endswith(".json") and not file.endswith(".lock")
-            ]
-            if len(matching_files) > 0:
-                return os.path.join(cache_dir, matching_files[-1])
-            else:
-                # If files cannot be found and local_files_only=True,
-                # the models might've been found if local_files_only=False
-                # Notify the user about that
-                if local_files_only:
-                    raise ValueError(
-                        "Cannot find the requested files in the cached path and outgoing traffic has been"
-                        " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
-                        " to False."
-                    )
+        matching_files = [
+            file
+            for file in fnmatch.filter(os.listdir(cache_dir), filename + ".*")
+            if not file.endswith(".json") and not file.endswith(".lock")
+        ]
+        if len(matching_files) > 0:
+            return os.path.join(cache_dir, matching_files[-1])
+        # If files cannot be found and local_files_only=True,
+        # the models might've been found if local_files_only=False
+        # Notify the user about that
+        if local_files_only:
+            raise FileNotFoundError(
+                "Cannot find the requested files in the cached path and outgoing traffic has been"
+                " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
+                " to False."
+            )
 
     # From now on, connected is True.
     if os.path.exists(cache_path) and not force_download:
