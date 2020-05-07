@@ -413,9 +413,9 @@ class Wikipedia(nlp.BeamBasedBuilder):
 
     def _split_generators(self, dl_manager):
         def _base_url(lang):
-            return _BASE_URL_TMPL.format(lang=lang.replace("-", "_"), date=self._builder_config.date)
+            return _BASE_URL_TMPL.format(lang=lang.replace("-", "_"), date=self.config.date)
 
-        lang = self._builder_config.language
+        lang = self.config.language
 
         info_url = _base_url(lang) + _INFO_FILE
         # Use dictionary since testing mock always returns the same result.

@@ -27,18 +27,10 @@ from . import utils
 logger = logging.getLogger(__name__)
 
 
-def type_to_arrow(type_str: str):
-    if type_str not in pa.__dict__:
-        assert (
-            str(type_str + "_") in pa.__dict__
-        ), "Neither {} nor {} seems to be a pyarrow data type. Please make sure to use a correct data type, see: https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions".format(
-            type_str, type_str + "_"
-        )
-        arrow_data_type_str = str(type_str + "_")
-    else:
-        arrow_data_type_str = type_str
-
-    return pa.__dict__[arrow_data_type_str]()
+def string_to_arrow(type_str: str):
+    if type_str.endswith("_"):
+        type_str = type_str[:-1]
+    return pa.__dict__[type_str]()
 
 
 @dataclass
@@ -51,7 +43,7 @@ class Value:
     _type: str = "Value"
 
     def __post_init__(self):
-        self.pa_type = type_to_arrow(self.dtype)
+        self.pa_type = string_to_arrow(self.dtype)
 
     def __call__(self):
         return self.pa_type
@@ -72,9 +64,9 @@ class Tensor:
     def __post_init__(self):
         assert len(self.shape) < 2, "Tensor can only take 0 or 1 dimensional shapes ."
         if len(self.shape) == 1:
-            self.pa_type = pa.list_(type_to_arrow(self.dtype), self.shape[0])
+            self.pa_type = pa.list_(string_to_arrow(self.dtype), self.shape[0])
         else:
-            self.pa_type = type_to_arrow(self.dtype)
+            self.pa_type = string_to_arrow(self.dtype)
 
     def __call__(self):
         return self.pa_type
