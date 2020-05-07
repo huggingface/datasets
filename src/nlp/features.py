@@ -400,10 +400,11 @@ def generate_from_dict(obj):
     # Otherwise we have a dict or a dataclass
     if "_type" not in obj:
         return {key: generate_from_dict(value) for key, value in obj.items()}
-    classobj = globals()[obj.pop("_type")]
-    if isinstance(classobj, Sequence):
+    class_type = globals()[obj.pop("_type")]
+
+    if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
-    return classobj(**obj)
+    return class_type(**obj)
 
 
 class Features(dict):
