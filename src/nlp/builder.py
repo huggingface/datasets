@@ -108,10 +108,7 @@ class DatasetBuilder:
     MANUAL_DOWNLOAD_INSTRUCTIONS = None
 
     def __init__(
-        self,
-        cache_dir=None,
-        config=None,
-        **config_kwargs,
+        self, cache_dir=None, config=None, **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
 
@@ -132,10 +129,7 @@ class DatasetBuilder:
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
-        self.config = self._create_builder_config(
-            config,
-            **config_kwargs,
-        )
+        self.config = self._create_builder_config(config, **config_kwargs,)
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         info = self._info()
