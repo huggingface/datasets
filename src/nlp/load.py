@@ -208,8 +208,6 @@ def load_dataset_module(
         force_extract=force_reload,
         local_files_only=local_files_only,
     )
-    if local_path is None:
-        raise ValueError("Couldn't find script file {}.".format(dataset_file))
 
     # Download the checksums file if available
     local_checksums_file_path = cached_path(
