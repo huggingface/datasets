@@ -57,6 +57,16 @@ class Value:
     def __call__(self):
         return self.pa_type
 
+    def encode_example(self, value):
+        if pa.is_boolean(self.pa_type):
+            return bool(value)
+        elif pa.is_integer(self.pa_type):
+            return int(value)
+        elif pa.is_floating(self.pa_type):
+            return float(value)
+        else:
+            return value
+
 
 @dataclass
 class Tensor:
@@ -384,7 +394,7 @@ def encode_nested_example(schema, obj):
 
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages)):
+    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value)):
         return schema.encode_example(obj)
 
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
