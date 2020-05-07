@@ -30,9 +30,11 @@ logger = logging.getLogger(__name__)
 def string_to_arrow(type_str: str):
     if type_str not in pa.__dict__:
         if str(type_str + "_") not in pa.__dict__:
-            raise ValueError(f"Neither {type_str} nor {type_str + '_'} seems to be a pyarrow data type. "
-                             f"Please make sure to use a correct data type, see: "
-                             f"https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions")
+            raise ValueError(
+                f"Neither {type_str} nor {type_str + '_'} seems to be a pyarrow data type. "
+                f"Please make sure to use a correct data type, see: "
+                f"https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions"
+            )
         arrow_data_type_str = str(type_str + "_")
     else:
         arrow_data_type_str = type_str
@@ -414,7 +416,7 @@ def generate_from_arrow(pa_type: pa.DataType):
     elif isinstance(pa_type, pa.ListType):
         return [generate_from_arrow(pa_type.value_type)]
     elif isinstance(pa_type, pa.DictionaryType):
-        return ClassLabel(names=pa_type.)
+        raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=str(pa_type))
     else:
