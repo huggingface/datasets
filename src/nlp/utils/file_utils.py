@@ -307,16 +307,6 @@ def get_from_cache(
     if not connected:
         if os.path.exists(cache_path):
             return cache_path
-        matching_files = [
-            file
-            for file in fnmatch.filter(os.listdir(cache_dir), filename + ".*")
-            if not file.endswith(".json") and not file.endswith(".lock")
-        ]
-        if len(matching_files) > 0:
-            return os.path.join(cache_dir, matching_files[-1])
-        # If files cannot be found and local_files_only=True,
-        # the models might've been found if local_files_only=False
-        # Notify the user about that
         if local_files_only:
             raise FileNotFoundError(
                 "Cannot find the requested files in the cached path and outgoing traffic has been"
