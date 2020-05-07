@@ -378,7 +378,7 @@ def encode_nested_example(schema, obj):
     return obj
 
 
-def generate_from_dict(obj):
+def generate_from_dict(obj: Any):
     """ Regenerate the nested feature object from a serialized dict.
         We use the '_type' fields to get the dataclass name to load.
     """
@@ -394,10 +394,30 @@ def generate_from_dict(obj):
     return classobj(**obj)
 
 
+def generate_from_arrow(pa_type: pa.DataType):
+    if isinstance(pa_type, pa.StructType):
+        return {field.name: generate_from_arrow(field.type) for field in pa_type}
+    elif isinstance(pa_type, pa.FixedSizeListType):
+        return Sequence(feature=generate_from_arrow(pa_type.value_type), length=pa_type.list_size)
+    elif isinstance(pa_type, pa.ListType):
+        return [generate_from_arrow(pa_type.value_type)]
+    elif isinstance(pa_type, pa.DictionaryType):
+        return ClassLabel(names=pa_type.)
+    elif isinstance(pa_type, pa.DataType):
+        return Value(dtype=str(pa_type))
+    else:
+        return ValueError(f"Cannot convert {pa_type} to a Feature type.")
+
+
 class Features(dict):
     @property
     def type(self):
         return get_nested_type(self)
+
+    @classmethod
+    def from_pyarrow_type(cls, pa_type: pa.DataType):
+        obj = generate_from_arrow(pa_type)
+        return cls(**obj)
 
     @classmethod
     def from_dict(cls, dic):

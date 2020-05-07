@@ -34,7 +34,7 @@ TO_CONVERT = [
     (r"tfds\.features\.FeaturesDict\(", r"dict("),
     (r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace NLP Authors"),
     (r"tfds\.", r"nlp."),
-    (r"dl_manager\.manual_dir", r"self.info.data_dir"),
+    (r"dl_manager\.manual_dir", r"self.config.data_dir"),
 ]
 
 
