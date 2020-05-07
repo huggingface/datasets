@@ -27,13 +27,14 @@ from . import utils
 logger = logging.getLogger(__name__)
 
 
-def type_to_arrow(type_str: str):
+def string_to_arrow(type_str: str):
     if type_str not in pa.__dict__:
-        assert (
-            str(type_str + "_") in pa.__dict__
-        ), "Neither {} nor {} seems to be a pyarrow data type. Please make sure to use a correct data type, see: https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions".format(
-            type_str, type_str + "_"
-        )
+        if str(type_str + "_") not in pa.__dict__:
+            raise ValueError(
+                f"Neither {type_str} nor {type_str + '_'} seems to be a pyarrow data type. "
+                f"Please make sure to use a correct data type, see: "
+                f"https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions"
+            )
         arrow_data_type_str = str(type_str + "_")
     else:
         arrow_data_type_str = type_str
@@ -51,7 +52,7 @@ class Value:
     _type: str = "Value"
 
     def __post_init__(self):
-        self.pa_type = type_to_arrow(self.dtype)
+        self.pa_type = string_to_arrow(self.dtype)
 
     def __call__(self):
         return self.pa_type
@@ -72,9 +73,9 @@ class Tensor:
     def __post_init__(self):
         assert len(self.shape) < 2, "Tensor can only take 0 or 1 dimensional shapes ."
         if len(self.shape) == 1:
-            self.pa_type = pa.list_(type_to_arrow(self.dtype), self.shape[0])
+            self.pa_type = pa.list_(string_to_arrow(self.dtype), self.shape[0])
         else:
-            self.pa_type = type_to_arrow(self.dtype)
+            self.pa_type = string_to_arrow(self.dtype)
 
     def __call__(self):
         return self.pa_type
@@ -390,7 +391,7 @@ def encode_nested_example(schema, obj):
     return obj
 
 
-def generate_from_dict(obj):
+def generate_from_dict(obj: Any):
     """ Regenerate the nested feature object from a serialized dict.
         We use the '_type' fields to get the dataclass name to load.
     """
@@ -407,10 +408,30 @@ def generate_from_dict(obj):
     return class_type(**obj)
 
 
+def generate_from_arrow(pa_type: pa.DataType):
+    if isinstance(pa_type, pa.StructType):
+        return {field.name: generate_from_arrow(field.type) for field in pa_type}
+    elif isinstance(pa_type, pa.FixedSizeListType):
+        return Sequence(feature=generate_from_arrow(pa_type.value_type), length=pa_type.list_size)
+    elif isinstance(pa_type, pa.ListType):
+        return [generate_from_arrow(pa_type.value_type)]
+    elif isinstance(pa_type, pa.DictionaryType):
+        raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
+    elif isinstance(pa_type, pa.DataType):
+        return Value(dtype=str(pa_type))
+    else:
+        return ValueError(f"Cannot convert {pa_type} to a Feature type.")
+
+
 class Features(dict):
     @property
     def type(self):
         return get_nested_type(self)
+
+    @classmethod
+    def from_pyarrow_type(cls, pa_type: pa.DataType):
+        obj = generate_from_arrow(pa_type)
+        return cls(**obj)
 
     @classmethod
     def from_dict(cls, dic):
