@@ -72,7 +72,7 @@ class MockDataLoaderManager(object):
         return path_to_dummy_data
 
     # this function has to be in the manager under this name so that testing works
-    def extract(path):
+    def extract(self, path):
         return path
 
     def download_dummy_data(self):
