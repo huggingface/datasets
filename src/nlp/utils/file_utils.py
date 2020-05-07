@@ -274,12 +274,18 @@ def get_from_cache(
 
     os.makedirs(cache_dir, exist_ok=True)
 
+    connected = False
     etag = None
     if not local_files_only:
         try:
             response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
-            if response.status_code == 200:
+            if response.status_code == 200:  # ok
                 etag = response.headers.get("ETag")
+                connected = True
+            # In some edge cases, head request returns 400 but the connection is actually ok
+            elif response.status_code == 400 and "firebasestorage.googleapis.com" in url:
+                connected = True
+                logger.info("Couldn't get ETag version for url {}".format(url))
         except (EnvironmentError, requests.exceptions.Timeout):
             # etag is already None
             pass
@@ -289,9 +295,9 @@ def get_from_cache(
     # get cache path to put the file
     cache_path = os.path.join(cache_dir, filename)
 
-    # etag is None = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
+    # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
-    if etag is None:
+    if not connected:
         if os.path.exists(cache_path):
             return cache_path
         else:
@@ -312,9 +318,8 @@ def get_from_cache(
                         " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
                         " to False."
                     )
-                return None
 
-    # From now on, etag is not None.
+    # From now on, connected is True.
     if os.path.exists(cache_path) and not force_download:
         return cache_path
 
