@@ -216,8 +216,8 @@ def load_dataset_module(
         dataset_checksums_file,
         cache_dir=data_dir,
         force_download=force_reload,
-        extract_compressed_file=True,
-        force_extract=force_reload,
+        extract_compressed_file=False,
+        force_extract=False,
         local_files_only=local_files_only,
     )
 
