@@ -28,9 +28,16 @@ logger = logging.getLogger(__name__)
 
 
 def string_to_arrow(type_str: str):
-    if type_str.endswith("_"):
-        type_str = type_str[:-1]
-    return pa.__dict__[type_str]()
+    if type_str not in pa.__dict__:
+        if str(type_str + "_") not in pa.__dict__:
+            raise ValueError(f"Neither {type_str} nor {type_str + '_'} seems to be a pyarrow data type. "
+                             f"Please make sure to use a correct data type, see: "
+                             f"https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions")
+        arrow_data_type_str = str(type_str + "_")
+    else:
+        arrow_data_type_str = type_str
+
+    return pa.__dict__[arrow_data_type_str]()
 
 
 @dataclass
@@ -143,7 +150,11 @@ class ClassLabel:
     def str2int(self, str_value):
         """Conversion class name string => integer."""
         str_value = str(str_value)
+
         if self._str2int:
+            # strip key if not in dict
+            if str_value not in self._str2int:
+                str_value = str_value.strip()
             return self._str2int[str_value]
 
         # No names provided, try to integerize
@@ -388,10 +399,11 @@ def generate_from_dict(obj: Any):
     # Otherwise we have a dict or a dataclass
     if "_type" not in obj:
         return {key: generate_from_dict(value) for key, value in obj.items()}
-    classobj = globals()[obj.pop("_type")]
-    if isinstance(classobj, Sequence):
+    class_type = globals()[obj.pop("_type")]
+
+    if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
-    return classobj(**obj)
+    return class_type(**obj)
 
 
 def generate_from_arrow(pa_type: pa.DataType):
