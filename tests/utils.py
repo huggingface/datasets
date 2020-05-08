@@ -51,10 +51,7 @@ class MockDataLoaderManager(object):
 
         self.config_name = config.name if config is not None else ""
 
-        if isinstance(version, str):
-            self.version_name = version
-        else:
-            self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
+        self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
 
         # structure is dummy / config_name / version_name / dummy_data.zip
         self.path_to_dummy_file = os.path.join(
@@ -82,6 +79,10 @@ class MockDataLoaderManager(object):
     def download_dummy_data(self):
         # get url to dummy data on AWS S3 bucket
         url_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=self.path_to_dummy_file)
+
+        import ipdb
+
+        ipdb.set_trace()
 
         # this function will download the dummy data and return the path
         local_path = cached_path(

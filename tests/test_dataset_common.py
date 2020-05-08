@@ -74,7 +74,7 @@ class DatasetTester(object):
                 if config is not None:
                     version = config.version
                 else:
-                    version = dataset_builder.info.version
+                    version = dataset_builder.VERSION
 
                 mock_dl_manager = MockDataLoaderManager(
                     dataset_name=dataset_name, config=config, version=version, cache_dir=raw_temp_dir
