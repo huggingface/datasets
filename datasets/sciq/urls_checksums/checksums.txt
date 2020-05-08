@@ -1,0 +1,1 @@
+https://s3-us-west-2.amazonaws.com/ai2-website/data/SciQ.zip 2821345 7f3312f6ac6b09970b32942d106a8c44ec0dad46a0369f17d635aff8e348a87c
