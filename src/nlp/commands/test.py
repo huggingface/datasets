@@ -11,7 +11,7 @@ from nlp.utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER
 
 def test_command_factory(args):
     return TestCommand(
-        args.dataset, args.name, args.all_configs, args.save_checksums, args.ignore_checksums, args.force_redownload
+        args.dataset, args.config, args.all_configs, args.save_checksums, args.ignore_checksums, args.force_redownload
     )
 
 
@@ -19,7 +19,7 @@ class TestCommand(BaseTransformersCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test")
-        test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
+        test_parser.add_argument("--config", type=str, default=None, help="Dataset processing config")
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         test_parser.add_argument("--save_checksums", action="store_true", help="Save the checksums file on S3")
         test_parser.add_argument(
@@ -32,32 +32,32 @@ class TestCommand(BaseTransformersCLICommand):
     def __init__(
         self,
         dataset: str,
-        name: str,
+        config: str,
         all_configs: bool,
         save_checksums: bool,
         ignore_checksums: bool,
         force_redownload: bool,
     ):
         self._dataset = dataset
-        self._name = name
+        self._config = config
         self._all_configs = all_configs
         self._save_checksums = save_checksums
         self._ignore_checksums = ignore_checksums
         self._force_redownload = force_redownload
 
     def run(self):
-        if self._name is not None and self._all_configs:
-            print("Both parameters `name` and `all_configs` can't be used at once.")
+        if self._config is not None and self._all_configs:
+            print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
-        path, name = self._dataset, self._name
+        path, config = self._dataset, self._config
         dataset_name, dataset_hash = prepare_module(path)
         builder_cls = import_main_class(dataset_name, dataset_hash)
         builders: List[DatasetBuilder] = []
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
-                builders.append(builder_cls(name=name, config=config))
+                builders.append(builder_cls(config=config))
         else:
-            builders.append(builder_cls(name=name))
+            builders.append(builder_cls(config=config))
 
         for builder in builders:
             builder.download_and_prepare(
@@ -71,17 +71,10 @@ class TestCommand(BaseTransformersCLICommand):
         # Let's move it to the original directory of the dataset script, to allow the user to
         # upload them on S3 at the same time afterwards.
         if self._save_checksums:
-            path = self._dataset
-            name = self._name
-
             urls_checksums_dir = os.path.join(builder_cls.get_imported_module_dir(), URLS_CHECKSUMS_FOLDER_NAME)
             checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
 
-            if name is None:
-                name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
-
-            if not name.endswith(".py") or "/" in name:
-                raise ValueError("The provided name should be the filename of a python script (ends with '.py')")
+            name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
             combined_path = os.path.join(path, name)
             if os.path.isfile(path):
