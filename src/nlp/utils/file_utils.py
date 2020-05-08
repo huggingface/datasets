@@ -4,7 +4,6 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
-import fnmatch
 import gzip
 import json
 import logging
@@ -14,9 +13,10 @@ import sys
 import tarfile
 import tempfile
 from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
-from typing import Optional
+from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
@@ -134,22 +134,9 @@ def url_to_filename(url, etag=None):
     return filename
 
 
-def cached_path(
-    url_or_filename,
-    cache_dir=None,
-    force_download=False,
-    proxies=None,
-    resume_download=False,
-    user_agent=None,
-    extract_compressed_file=False,
-    force_extract=False,
-    local_files_only=False,
-) -> Optional[str]:
-    """
-    Given something that might be a URL (or might be a local path),
-    determine which. If it's a URL, download the file and cache it, and
-    return the path to the cached file. If it's already a local path,
-    make sure the file exists and then return the path.
+@dataclass
+class DownloadConfig:
+    """ Configuration for our cached path manager
     Args:
         cache_dir: specify a cache directory to save the file to (overwrite the default cache dir).
         force_download: if True, re-dowload the file even if it's already cached in the cache dir.
@@ -160,39 +147,68 @@ def cached_path(
         force_extract: if True when extract_compressed_file is True and the archive was already extracted,
             re-extract the archive and overide the folder where it was extracted.
 
-    Return:
-        None in case of non-recoverable file (non-existent or inaccessible url + no cache on disk).
-        Local path (string) otherwise
+
     """
-    if cache_dir is None:
-        cache_dir = HF_DATASETS_CACHE
+
+    cache_dir: Optional[Union[str, Path]] = None
+    force_download: bool = False
+    resume_download: bool = False
+    local_files_only: bool = False
+    proxies: Optional[Dict] = None
+    user_agent: Optional[str] = None
+    extract_compressed_file: bool = False
+    force_extract: bool = False
+
+
+def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Optional[str]:
+    """
+    Given something that might be a URL (or might be a local path),
+    determine which. If it's a URL, download the file and cache it, and
+    return the path to the cached file. If it's already a local path,
+    make sure the file exists and then return the path.
+
+    Return:
+        Local path (string)
+
+    Raises:
+        FileNotFoundError: in case of non-recoverable file
+            (non-existent or no cache on disk)
+        ConnectionError: in case of unreachable url
+            and no cache on disk
+        ValueError: if it couldn't parse the url or filename correctly
+    """
+    if download_config is None:
+        download_config = DownloadConfig(**download_kwargs)
+
+    if download_config.cache_dir is None:
+        download_config.cache_dir = HF_DATASETS_CACHE
+    if isinstance(download_config.cache_dir, Path):
+        download_config.cache_dir = str(download_config.cache_dir)
     if isinstance(url_or_filename, Path):
         url_or_filename = str(url_or_filename)
-    if isinstance(cache_dir, Path):
-        cache_dir = str(cache_dir)
 
     if is_remote_url(url_or_filename):
         # URL, so get it from the cache (downloading if necessary)
         output_path = get_from_cache(
             url_or_filename,
-            cache_dir=cache_dir,
-            force_download=force_download,
-            proxies=proxies,
-            resume_download=resume_download,
-            user_agent=user_agent,
-            local_files_only=local_files_only,
+            cache_dir=download_config.cache_dir,
+            force_download=download_config.force_download,
+            proxies=download_config.proxies,
+            resume_download=download_config.resume_download,
+            user_agent=download_config.user_agent,
+            local_files_only=download_config.local_files_only,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
         output_path = url_or_filename
     elif urlparse(url_or_filename).scheme == "":
         # File, but it doesn't exist.
-        return None
+        raise FileNotFoundError("Local file {} doesn't exist".format(url_or_filename))
     else:
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
-    if extract_compressed_file and output_path is not None:
+    if download_config.extract_compressed_file and output_path is not None:
         if not is_zipfile(output_path) and not tarfile.is_tarfile(output_path) and not is_gzip(output_path):
             return output_path
 
@@ -202,7 +218,11 @@ def cached_path(
         output_extract_dir_name = output_file.replace(".", "-") + "-extracted"
         output_path_extracted = os.path.join(output_dir, output_extract_dir_name)
 
-        if os.path.isdir(output_path_extracted) and os.listdir(output_path_extracted) and not force_extract:
+        if (
+            os.path.isdir(output_path_extracted)
+            and os.listdir(output_path_extracted)
+            and not download_config.force_extract
+        ):
             return output_path_extracted
 
         # Prevent parallel extractions
@@ -279,8 +299,13 @@ def get_from_cache(
     If it's not there, download it. Then return the path to the cached file.
 
     Return:
-        None in case of non-recoverable file (non-existent or inaccessible url + no cache on disk).
-        Local path (string) otherwise
+        Local path (string)
+
+    Raises:
+        FileNotFoundError: in case of non-recoverable file
+            (non-existent or no cache on disk)
+        ConnectionError: in case of unreachable url
+            and no cache on disk
     """
     if cache_dir is None:
         cache_dir = HF_DATASETS_CACHE
@@ -289,14 +314,20 @@ def get_from_cache(
 
     os.makedirs(cache_dir, exist_ok=True)
 
+    connected = False
     etag = None
     if not local_files_only:
         try:
             response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
-            if response.status_code == 200:
+            if response.status_code == 200:  # ok
                 etag = response.headers.get("ETag")
+                connected = True
+            # In some edge cases, head request returns 400 but the connection is actually ok
+            elif response.status_code == 400 and "firebasestorage.googleapis.com" in url:
+                connected = True
+                logger.info("Couldn't get ETag version for url {}".format(url))
         except (EnvironmentError, requests.exceptions.Timeout):
-            # etag is already None
+            # not connected
             pass
 
     filename = url_to_filename(url, etag)
@@ -304,32 +335,20 @@ def get_from_cache(
     # get cache path to put the file
     cache_path = os.path.join(cache_dir, filename)
 
-    # etag is None = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
+    # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
-    if etag is None:
+    if not connected:
         if os.path.exists(cache_path):
             return cache_path
-        else:
-            matching_files = [
-                file
-                for file in fnmatch.filter(os.listdir(cache_dir), filename + ".*")
-                if not file.endswith(".json") and not file.endswith(".lock")
-            ]
-            if len(matching_files) > 0:
-                return os.path.join(cache_dir, matching_files[-1])
-            else:
-                # If files cannot be found and local_files_only=True,
-                # the models might've been found if local_files_only=False
-                # Notify the user about that
-                if local_files_only:
-                    raise ValueError(
-                        "Cannot find the requested files in the cached path and outgoing traffic has been"
-                        " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
-                        " to False."
-                    )
-                return None
+        if local_files_only:
+            raise FileNotFoundError(
+                "Cannot find the requested files in the cached path and outgoing traffic has been"
+                " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
+                " to False."
+            )
+        raise ConnectionError("Coudln't reach {}".format(url))
 
-    # From now on, etag is not None.
+    # From now on, connected is True.
     if os.path.exists(cache_path) and not force_download:
         return cache_path
 

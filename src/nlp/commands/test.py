@@ -3,15 +3,16 @@ from argparse import ArgumentParser
 from shutil import copyfile
 from typing import List
 
-from nlp.builder import REUSE_CACHE_IF_EXISTS, DatasetBuilder
+from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder
 from nlp.commands import BaseTransformersCLICommand
-from nlp.load import _dataset_name_and_kwargs_from_name_str, load_dataset_module
-from nlp.utils import DownloadConfig
+from nlp.load import import_main_class, prepare_module
 from nlp.utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 
 
 def test_command_factory(args):
-    return TestCommand(args.dataset, args.name, args.all_configs, args.save_checksums, args.ignore_checksums,)
+    return TestCommand(
+        args.dataset, args.name, args.all_configs, args.save_checksums, args.ignore_checksums, args.force_redownload
+    )
 
 
 class TestCommand(BaseTransformersCLICommand):
@@ -24,42 +25,45 @@ class TestCommand(BaseTransformersCLICommand):
         test_parser.add_argument(
             "--ignore_checksums", action="store_true", help="Run the test without checksums checks"
         )
+        test_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=test_command_factory)
 
     def __init__(
-        self, dataset: str, name: str, all_configs: bool, save_checksums: bool, ignore_checksums: bool,
+        self,
+        dataset: str,
+        name: str,
+        all_configs: bool,
+        save_checksums: bool,
+        ignore_checksums: bool,
+        force_redownload: bool,
     ):
         self._dataset = dataset
         self._name = name
         self._all_configs = all_configs
         self._save_checksums = save_checksums
         self._ignore_checksums = ignore_checksums
+        self._force_redownload = force_redownload
 
     def run(self):
-        if self._name is not None:
-            name, builder_kwargs = _dataset_name_and_kwargs_from_name_str(self._name)
-            if self._all_configs:
-                print("Both parameters `name` and `all_configs` can't be used at once.")
-        else:
-            name, builder_kwargs = self._name, {}
-        builder_cls = load_dataset_module(self._dataset, name=name)
+        if self._name is not None and self._all_configs:
+            print("Both parameters `name` and `all_configs` can't be used at once.")
+            exit(1)
+        path, name = self._dataset, self._name
+        dataset_name, dataset_hash = prepare_module(path)
+        builder_cls = import_main_class(dataset_name, dataset_hash)
         builders: List[DatasetBuilder] = []
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
-                configured_builder_kwargs = builder_kwargs.copy()
-                configured_builder_kwargs["config"] = config
-                builders.append(builder_cls(**configured_builder_kwargs))
+                builders.append(builder_cls(name=name, config=config))
         else:
-            builders.append(builder_cls(**builder_kwargs))
+            builders.append(builder_cls(name=name))
 
         for builder in builders:
             builder.download_and_prepare(
-                download_config=DownloadConfig(
-                    download_mode=REUSE_CACHE_IF_EXISTS,
-                    save_checksums=self._save_checksums,
-                    ignore_checksums=self._ignore_checksums,
-                )
+                download_mode=REUSE_CACHE_IF_EXISTS if not self._force_redownload else FORCE_REDOWNLOAD,
+                save_checksums=self._save_checksums,
+                ignore_checksums=self._ignore_checksums,
             )
 
         print("Test successful.")

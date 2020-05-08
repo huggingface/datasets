@@ -1,0 +1,3 @@
+https://raw.githubusercontent.com/google-research-datasets/gap-coreference/master/gap-development.tsv 1080993 b9a01434fcf58d8c2f9bc762480c27e58ce466cf1ffe8b09cfecbc7a20d2d634
+https://raw.githubusercontent.com/google-research-datasets/gap-coreference/master/gap-test.tsv 1075889 1c35e36d5b14f6313ec3f6cd67b275de282595dd59e59390e00cfff9897a6819
+https://raw.githubusercontent.com/google-research-datasets/gap-coreference/master/gap-validation.tsv 245089 2d784f66b390404f554704b9aef6dcde8845e79dda9886b8391cf7e9a24fdb98

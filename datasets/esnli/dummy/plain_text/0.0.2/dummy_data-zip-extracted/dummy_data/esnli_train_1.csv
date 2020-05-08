@@ -1,0 +1,2 @@
+pairID,gold_label,Sentence1,Sentence2,Explanation_1,WorkerId,Sentence1_marked_1,Sentence2_marked_1,Sentence1_Highlighted_1,Sentence2_Highlighted_1
+1,neutral,A man runs down a mountain.,A man runs really fast,Running fast does not imply running down a mountain,abc,A man runs down a mountain.,A man runs *really fast*.,{}."1,2,3"

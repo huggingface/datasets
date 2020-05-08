@@ -1,0 +1,37 @@
+{
+  "data": [
+    {
+      "title": "Blast of Silence",
+      "url": "https://en.wikipedia.org/wiki/Blast_of_Silence",
+      "paragraphs": [
+        {
+          "context": "Frankie Bono, a mentally disturbed hitman from Cleveland, comes back to his hometown in New York City during Christmas week to kill a middle-management mobster, Troiano. The assassination will be risky, with Frankie being warned by a fellow enforcer that should he be spotted before the hit is performed, the contract will be reneged.\nFirst he follows his target to select the best possible location, but opts to wait until Troiano isn't being accompanied by his bodyguards. Next, he goes to purchase a revolver from Big Ralph, an obese gun runner who keeps sewer rats as pets. The encounter with this old acquaintance leaves Frankie feeling disgusted.\nWith several hours left before the hit is to be performed, Frankie decides to kill time in the city, where he is plagued by memories of past trauma during his time living there. While sitting alone for a drink, Frankie is reunited with childhood friend Petey, who invites the reluctant Frankie to a Christmas party, where Frankie later encounters his old flame, Lori. The following day Frankie goes to see Lori at her apartment to get better reacquainted with her, but the visit ends in disaster when an at first vulnerable Frankie suddenly attempts to sexually assault her. Lori forgives Frankie for his actions and calmly asks him to leave, to which he obliges.\nThat same day, Frankie tails Troiano and his mistress to a Jazz club in Greenwich village. However, he is spotted by Big Ralph, who decides to blackmail Frankie out of the hit. In turn, Frankie stalks Ralph back to his tenement and strangles him to death following a violent brawl between the two. Losing his nerve, Frankie calls up his employers to tell them he wants to quit the job. Unsympathetic, the supervisor tells him he has until New Year's Eve to perform the hit.",
+          "context_id": "d35328103c90ab2f872ba3b0ffaa378540cd38a5",
+          "qas": [
+            {
+              "question": "What is the first name of the person who purchases a revolver?",
+              "id": "ec2a96d8f3e8e6cb2fbfd921e0046ac69093c216",
+              "answers": [
+                {
+                  "text": "Frankie",
+                  "answer_start": 208
+                }
+              ]
+            },
+            {
+              "question": "What is the first name of the person who has until New Year's Eve to perform a hit?",
+              "id": "bfc3b34d6b7e73c0bd82a009db12e9ce196b53e6",
+              "answers": [
+                {
+                  "text": "Frankie",
+                  "answer_start": 1633
+                }
+              ]
+            }
+]
+}
+]
+}
+]
+}
+

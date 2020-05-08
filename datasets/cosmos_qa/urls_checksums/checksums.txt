@@ -1,0 +1,3 @@
+https://github.com/wilburOne/cosmosqa/raw/master/data/test.jsonl 5610681 70005196dc2588b95de34f1657b25e2c1a4810cfe55b5bb0c0e15580c37b3ed0
+https://github.com/wilburOne/cosmosqa/raw/master/data/train.csv 16660449 d8d5ca1f9f6534b6530550718591af89372d976a8fc419360fab4158dee4d0b2
+https://github.com/wilburOne/cosmosqa/raw/master/data/valid.csv 2128345 a6a94fc1463ca82bb10f98ef68ed535405e6f5c36e044ff8e136b5c19dea63f3

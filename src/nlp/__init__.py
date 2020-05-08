@@ -38,10 +38,10 @@ __version__ = "0.0.1"
 from . import datasets
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
-from .builder import BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .features import ClassLabel, Features, Sequence, Tensor, Translation, TranslationVariableLanguages, Value
 from .info import DatasetInfo, MetricInfo
-from .load import builder, get_main_class, import_module, load, load_main_class, load_metric
+from .load import prepare_module, load, import_main_class, load_metric
 from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *

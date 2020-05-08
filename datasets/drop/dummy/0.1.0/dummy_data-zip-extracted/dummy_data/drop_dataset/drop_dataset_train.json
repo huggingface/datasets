@@ -1,0 +1,79 @@
+{
+    "nfl_2201": {
+        "passage": "To start the season, the Lions traveled south to Tampa, Florida to take on the Tampa Bay Buccaneers. The Lions scored first in the first quarter with a 23-yard field goal by Jason Hanson. The Buccaneers tied it up with a 38-yard field goal by Connor Barth, then took the lead when Aqib Talib intercepted a pass from Matthew Stafford and ran it in 28 yards. The Lions responded with a 28-yard field goal. In the second quarter, Detroit took the lead with a 36-yard touchdown catch by Calvin Johnson, and later added more points when Tony Scheffler caught an 11-yard TD pass. Tampa Bay responded with a 31-yard field goal just before halftime. The second half was relatively quiet, with each team only scoring one touchdown. First, Detroit's Calvin Johnson caught a 1-yard pass in the third quarter. The game's final points came when Mike Williams of Tampa Bay caught a 5-yard pass.  The Lions won their regular season opener for the first time since 2007",
+        "qa_pairs": [
+            {
+                "question": "How many points did the buccaneers need to tie in the first?",
+                "answer": {
+                    "number": "3",
+                    "date": {
+                        "day": "",
+                        "month": "",
+                        "year": ""
+                    },
+                    "spans": []
+                },
+                "query_id": "f16c0ee7-f131-4a8b-a6ac-4d275ea68066"
+            },
+            {
+                "question": "How many field goals did the Lions score?",
+                "answer": {
+                    "number": "2",
+                    "date": {
+                        "day": "",
+                        "month": "",
+                        "year": ""
+                    },
+                    "spans": []
+                },
+                "query_id": "c9582e03-b01b-42ed-83e0-b90a5334aefa"
+            },
+            {
+                "question": "How long was the Lion's longest field goal?",
+                "answer": {
+                    "number": "",
+                    "date": {
+                        "day": "",
+                        "month": "",
+                        "year": ""
+                    },
+                    "spans": [
+                        "28-yard"
+                    ]
+                },
+                "query_id": "f703d43d-73fa-4fda-8913-d81bd5569700"
+            },
+            {
+                "question": "Who caught the touchdown for the fewest yard?",
+                "answer": {
+                    "number": "",
+                    "date": {
+                        "day": "",
+                        "month": "",
+                        "year": ""
+                    },
+                    "spans": [
+                        "Mike Williams"
+                    ]
+                },
+                "query_id": "2fd4f473-af2b-44ce-929a-20c82fa6be2c"
+            },
+            {
+                "question": "Who caught the shortest touchdown pass?",
+                "answer": {
+                    "number": "",
+                    "date": {
+                        "day": "",
+                        "month": "",
+                        "year": ""
+                    },
+                    "spans": [
+                        "Calvin Johnson"
+                    ]
+                },
+                "query_id": "6592e06d-4ad6-484f-a9a5-5cb72c76dfee"
+            }
+]
+}
+}
+

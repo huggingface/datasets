@@ -21,7 +21,7 @@ import logging
 import os
 
 from .checksums_utils import CHECKSUMS_FILE_NAME, get_size_checksum, load_sizes_checksums, store_sizes_checksum
-from .file_utils import HF_DATASETS_CACHE, cached_path
+from .file_utils import cached_path, get_from_cache, url_to_filename
 from .py_utils import flatten_nested, map_nested
 
 
@@ -60,30 +60,19 @@ class GenerateMode(enum.Enum):
     FORCE_REDOWNLOAD = "force_redownload"
 
 
-class DownloadConfig(object):
-    """Configuration for `nlp.DatasetBuilder.download_and_prepare`."""
-
+class DownloadManager(object):
     def __init__(
-        self,
-        manual_dir=None,
-        download_mode=None,
-        max_examples_per_split=None,
-        ignore_checksums=False,
-        save_checksums=False,
-        beam_runner=None,
-        beam_options=None,
+        self, dataset_name=None, data_dir=None, ignore_checksums=False, save_checksums=False, download_config=None,
     ):
-        """Constructs a `DownloadConfig`.
+        """Download manager constructor.
 
         Args:
-            manual_dir: `str`, read-only directory where manually downloaded/extracted
-                data is stored. Defaults to
-                "<download_dir>/manual".
-            download_mode: `nlp.GenerateMode`, how to deal with downloads or data
-                that already exists. Defaults to `REUSE_DATASET_IF_EXISTS`, which will
-                reuse both downloads and data if it already exists.
-            max_examples_per_split: `int`, optional max number of examples to write
-                into each split (used for testing).
+            data_dir: can be used to specify a manual directory to get the files from.
+            cache_dir: `str`, path to directory where downloads are stored.
+            extract_dir: `str`, path to directory where artifacts are extracted.
+            dataset_name: `str`, name of dataset this instance will be used for. If
+                provided, downloads will contain which datasets they were used for.
+            force_download: `bool`, default to False. If True, always [re]download.
             ignore_checksums: `bool`, defaults to False. If True, wrong or missing checksums
                 will be ignored.
             save_checksums: `bool`, defaults to False. If True, the checksums of the
@@ -93,50 +82,9 @@ class DownloadConfig(object):
             beam_options: `PipelineOptions` to pass to `beam.Pipeline`, only used for
                 datasets based on Beam for the generation.
         """
-        self.manual_dir = manual_dir
-        self.download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
-        self.max_examples_per_split = max_examples_per_split
-        self.ignore_checksums = ignore_checksums
-        self.save_checksums = save_checksums
-        self.beam_runner = beam_runner
-        self.beam_options = beam_options
-
-
-class DownloadManager(object):
-    def __init__(
-        self,
-        download_dir=None,
-        manual_dir=None,
-        manual_dir_instructions=None,
-        dataset_name=None,
-        force_download=False,
-        ignore_checksums=False,
-        save_checksums=False,
-    ):
-        """Download manager constructor.
-
-        Args:
-            download_dir: `str`, path to directory where downloads are stored.
-            extract_dir: `str`, path to directory where artifacts are extracted.
-            manual_dir: `str`, path to manually downloaded/extracted data directory.
-            manual_dir_instructions: `str`, human readable instructions on how to
-                                                 prepare contents of the manual_dir for this dataset.
-            dataset_name: `str`, name of dataset this instance will be used for. If
-                provided, downloads will contain which datasets they were used for.
-            force_download: `bool`, default to False. If True, always [re]download.
-            ignore_checksums: `bool`, defaults to False. If True, wrong or missing checksums
-                will be ignored.
-            save_checksums: `bool`, defaults to False. If True, the checksums of the
-                downloaded files will be saved in the `urls_checksums` folder
-        """
         self._dataset_name = dataset_name
-        if download_dir is None:
-            download_dir = HF_DATASETS_CACHE
-        self._download_dir = download_dir
-        self._manual_dir = manual_dir and os.path.expanduser(manual_dir)
-        self._manual_dir_instructions = manual_dir_instructions
-        os.makedirs(self._download_dir, exist_ok=True)
-        self._force_download = force_download
+        self._data_dir = data_dir
+        self._download_config = download_config
         self._ignore_checksums = ignore_checksums
         self._save_checksums = save_checksums
         if ignore_checksums and save_checksums:
@@ -147,16 +95,13 @@ class DownloadManager(object):
         self._recorded_sizes_checksums = {}
 
     @property
+    def manual_dir(self):
+        return self._data_dir
+
+    @property
     def downloaded_size(self):
         """Returns the total size of downloaded files."""
         return sum(size for size, sha256 in self._recorded_sizes_checksums.values())
-
-    def _check_missing_files(self, url_or_urls, downloaded_path_or_paths):
-        flattened_urls_or_urls = flatten_nested(url_or_urls)
-        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
-        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
-            if path is None:
-                raise MissingFileError("Couldn't get file {}.".format(url))
 
     def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
         """Record size/checksum of downloaded files."""
@@ -164,6 +109,39 @@ class DownloadManager(object):
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
         for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             self._recorded_sizes_checksums[url] = get_size_checksum(path)
+
+    def download_custom(self, url_or_urls, custom_download):
+        """
+        Download given urls(s) by calling `custom_download`.
+
+        Args:
+            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
+                url is a `str`.
+            custom_download: Callable with signature (src_url: str, dst_path: str) -> Any
+                as for example `tf.io.gfile.copy`, that lets you download from google storage
+
+        Returns:
+            downloaded_path(s): `str`, The downloaded paths matching the given input
+                url_or_urls.
+        """
+
+        def url_to_downloaded_path(url):
+            return os.path.join(self._download_dir, url_to_filename(url))
+
+        downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
+        flattened_urls_or_urls = flatten_nested(url_or_urls)
+        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
+        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
+            try:
+                get_from_cache(url, cache_dir=self._download_dir, local_files_only=True)
+                cached = True
+            except FileNotFoundError:
+                cached = False
+            if not cached or self._force_download:
+                custom_download(url, path)
+                get_from_cache(url, cache_dir=self._download_dir, local_files_only=True)
+        self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
+        return downloaded_path_or_paths
 
     def download(self, url_or_urls):
         """Download given url(s).
@@ -177,12 +155,8 @@ class DownloadManager(object):
                 url_or_urls.
         """
         downloaded_path_or_paths = map_nested(
-            lambda url_or_urls: cached_path(
-                url_or_urls, cache_dir=self._download_dir, force_download=self._force_download
-            ),
-            url_or_urls,
+            lambda url_or_urls: cached_path(url_or_urls, download_config=self._download_config,), url_or_urls,
         )
-        self._check_missing_files(url_or_urls, downloaded_path_or_paths)
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
 
@@ -245,22 +219,6 @@ class DownloadManager(object):
         """
         return self.extract(self.download(url_or_urls))
 
-    @property
-    def manual_dir(self):
-        """Returns the directory containing the manually extracted data."""
-        if not self._manual_dir:
-            raise AssertionError(
-                "Manual directory was enabled. " "Did you set MANUAL_DOWNLOAD_INSTRUCTIONS in your dataset?"
-            )
-        if not os.path.exists(self._manual_dir):
-            raise AssertionError(
-                "Manual directory {} does not exist. Create it and download/extract "
-                "dataset artifacts in there. Additional instructions: {}".format(
-                    self._manual_dir, self._manual_dir_instructions
-                )
-            )
-        return self._manual_dir
-
     def check_or_save_checksums(self, urls_checksums_dir):
         if not self._ignore_checksums:
             checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
@@ -268,7 +226,7 @@ class DownloadManager(object):
                 os.makedirs(urls_checksums_dir, exist_ok=True)
                 self._store_sizes_checksums(checksums_file_path)
                 logger.info("Stored the recorded checksums in {}.".format(urls_checksums_dir))
-            else:
+            elif os.path.exists(checksums_file_path):
                 expected_sizes_checksums = load_sizes_checksums(checksums_file_path)
                 for url, rec_size_checksum in self._recorded_sizes_checksums.items():
                     exp_size_checksum = expected_sizes_checksums.get(url)
@@ -277,6 +235,8 @@ class DownloadManager(object):
                     if exp_size_checksum != rec_size_checksum:
                         raise NonMatchingChecksumError(url)
                 logger.info("All checksums matched successfully.")
+            else:
+                logger.info("Checksum file not found.")
         else:
             logger.info("Checksums tests were ignored.")
 
