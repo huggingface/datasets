@@ -80,10 +80,6 @@ class MockDataLoaderManager(object):
         # get url to dummy data on AWS S3 bucket
         url_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=self.path_to_dummy_file)
 
-        import ipdb
-
-        ipdb.set_trace()
-
         # this function will download the dummy data and return the path
         local_path = cached_path(
             url_to_dummy_data_dir, cache_dir=self.cache_dir, extract_compressed_file=True, force_extract=True
