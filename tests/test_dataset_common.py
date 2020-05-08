@@ -45,13 +45,13 @@ class DatasetTester(object):
     def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
         if is_local is True:
-            dataset_name, dataset_hash = prepare_module("./datasets/" + dataset_name)
+            module_path = prepare_module("./datasets/" + dataset_name)
         else:
-            dataset_name, dataset_hash = prepare_module(
+            module_path = prepare_module(
                 dataset_name, download_config=DownloadConfig(force_download=True)
             )
         # Get dataset builder class
-        builder_cls = import_main_class(dataset_name, dataset_hash)
+        builder_cls = import_main_class(module_path)
         # Instantiate dataset builder
         return builder_cls
 
