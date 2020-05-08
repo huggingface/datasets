@@ -48,6 +48,7 @@ class DatasetTester(object):
         builder_cls = import_main_class(dataset_name, dataset_hash)
         # Instantiate dataset builder
         builder = builder_cls(config=config, data_dir=data_dir,)
+
         return builder
 
     def load_all_configs(self, dataset_name):
