@@ -329,7 +329,9 @@ def get_from_cache(
                     )
                 else:
                     raise ValueError(
-                        "Cannot find the requested files in the cached path and cannot download from {} because cannot get etag from {}".format(url, url)
+                        "Cannot find the requested files in the cached path and cannot download from {} because cannot get etag from {}".format(
+                            url, url
+                        )
                     )
 
     # From now on, etag is not None.
