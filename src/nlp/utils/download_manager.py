@@ -21,7 +21,7 @@ import logging
 import os
 
 from .checksums_utils import CHECKSUMS_FILE_NAME, get_size_checksum, load_sizes_checksums, store_sizes_checksum
-from .file_utils import cached_path
+from .file_utils import cached_path, get_from_cache, url_to_filename
 from .py_utils import flatten_nested, map_nested
 
 
@@ -103,19 +103,45 @@ class DownloadManager(object):
         """Returns the total size of downloaded files."""
         return sum(size for size, sha256 in self._recorded_sizes_checksums.values())
 
-    def _check_missing_files(self, url_or_urls, downloaded_path_or_paths):
-        flattened_urls_or_urls = flatten_nested(url_or_urls)
-        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
-        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
-            if path is None:
-                raise MissingFileError("Couldn't get file {}.".format(url))
-
     def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
         """Record size/checksum of downloaded files."""
         flattened_urls_or_urls = flatten_nested(url_or_urls)
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
         for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             self._recorded_sizes_checksums[url] = get_size_checksum(path)
+
+    def download_custom(self, url_or_urls, custom_download):
+        """
+        Download given urls(s) by calling `custom_download`.
+
+        Args:
+            url_or_urls: url or `list`/`dict` of urls to download and extract. Each
+                url is a `str`.
+            custom_download: Callable with signature (src_url: str, dst_path: str) -> Any
+                as for example `tf.io.gfile.copy`, that lets you download from google storage
+
+        Returns:
+            downloaded_path(s): `str`, The downloaded paths matching the given input
+                url_or_urls.
+        """
+
+        def url_to_downloaded_path(url):
+            return os.path.join(self._download_dir, url_to_filename(url))
+
+        downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
+        flattened_urls_or_urls = flatten_nested(url_or_urls)
+        flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
+        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
+            try:
+                get_from_cache(url, cache_dir=self._download_dir, local_files_only=True)
+                cached = True
+            except FileNotFoundError:
+                cached = False
+            if not cached or self._force_download:
+                custom_download(url, path)
+                get_from_cache(url, cache_dir=self._download_dir, local_files_only=True)
+        self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
+        return downloaded_path_or_paths
 
     def download(self, url_or_urls):
         """Download given url(s).
@@ -131,7 +157,6 @@ class DownloadManager(object):
         downloaded_path_or_paths = map_nested(
             lambda url_or_urls: cached_path(url_or_urls, download_config=self._download_config,), url_or_urls,
         )
-        self._check_missing_files(url_or_urls, downloaded_path_or_paths)
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
 

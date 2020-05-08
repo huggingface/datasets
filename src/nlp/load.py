@@ -190,11 +190,12 @@ def prepare_module(path: str, download_config=None, **download_kwargs,) -> Datas
     # 1. get the dataset processing file on the local filesystem if it's not there (download to cache dir)
     # 2. copy from the local file system inside the library to import it
     local_path = cached_path(dataset_file, download_config=download_config)
-    if local_path is None:
-        raise ValueError("Couldn't find script file {}.".format(dataset_file))
 
     # Download the checksums file if available
-    local_checksums_file_path = cached_path(dataset_checksums_file, download_config=download_config,)
+    try:
+        local_checksums_file_path = cached_path(dataset_checksums_file, download_config=download_config,)
+    except (FileNotFoundError, ConnectionError):
+        local_checksums_file_path = None
 
     # Download external imports if needed
     imports = get_imports(local_path)
