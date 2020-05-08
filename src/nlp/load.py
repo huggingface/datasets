@@ -148,7 +148,7 @@ def get_imports(file_path: str):
     return imports
 
 
-def setup_module(path: str, download_config=None, **download_kwargs,) -> DatasetBuilder:
+def prepare_module(path: str, download_config=None, **download_kwargs,) -> DatasetBuilder:
     r"""
         Download/extract/cache a dataset to add to the lib from a path or url which can be:
             - a path to a local directory containing the dataset processing python script
@@ -379,7 +379,7 @@ def load(
     """
 
     # Download/copy dataset script
-    dataset_name, dataset_hash = setup_module(path, download_config=download_config)
+    dataset_name, dataset_hash = prepare_module(path, download_config=download_config)
 
     # Get dataset builder class
     builder_cls = import_main_class(dataset_name, dataset_hash)
