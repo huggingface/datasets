@@ -1,0 +1,27 @@
+{
+  "data": [
+    {
+      "title": "2007\u20132008 Nazko earthquakes 1",
+      "url": "https://en.wikipedia.org/wiki/2007%E2%80%932008_Nazko_earthquakes",
+      "paragraphs": [
+        {
+          "context": "The earthquake swarm was noted on October 12, 2007 in the Prince George Citizen by citizen staff, three days after the earthquakes began. Scientists mentioned in the report were seismologist John Cassidy of Natural Resources Canada and volcanologist Catherine Hickson, who was part of the Geological Survey of Canada at the time. At the time of the report, scientists did not know the origin of the swarm. Seismologist John Cassidy stated, \"the depth is enough to rule out hydrothermal but it's up in the air as to whether the cause is tectonic shifts or volcanic activity. If it is volcanic there are certain characteristics that we would expect, there's a tremor-like character to it. And so we'll be looking for the types of events that we see beneath volcanoes and we'll be looking to see if they're getting closer to the surface or if they're migrating at all.\"Even if the Nazko swarm were a warning of a volcanic eruption, Hickson doubted it would turn out to be a highly explosive eruption like those that can occur in subduction-zone volcanoes. \"We're not talking about an injection of tonnes of ash many kilometers into the air like the 1980 Mount St. Helens eruption or the 1991 Mount Pinatubo eruption. We're talking about something very small, relatively localized that should have a fairly limited impact... but it'll be extremely exciting\", Hickson said. If an eruption were to occur, Hickson suggested that it would be characterized by a lava fountain that sends globs of lava 100 m (330 ft) into the air. This is similar to those that occur in Hawaii. Hickson said that a Nazko eruption could be a tourist attraction, but warned that noxious gases such as carbon dioxide and sulfur dioxide would be released during the event.",
+          "context_id": "9821bc1796c741d48f9a50ad2e70a2f136f00338",
+          "qas": [
+            {
+              "question": "What is the first name of the person who doubted it would turn out to be a highly explosive eruption like those that can occur in subduction-zone volcanoes?",
+              "id": "ba3f052c7a557909526b59713430403dd134e01d",
+              "answers": [
+                {
+                  "text": "Catherine",
+                  "answer_start": 250
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+]
+}
+

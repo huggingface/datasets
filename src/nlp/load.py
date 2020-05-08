@@ -148,7 +148,7 @@ def get_imports(file_path: str):
     return imports
 
 
-def setup_module(path: str, download_config=None, **download_kwargs,) -> DatasetBuilder:
+def prepare_module(path: str, download_config=None, **download_kwargs,) -> DatasetBuilder:
     r"""
         Download/extract/cache a dataset to add to the lib from a path or url which can be:
             - a path to a local directory containing the dataset processing python script
@@ -190,11 +190,12 @@ def setup_module(path: str, download_config=None, **download_kwargs,) -> Dataset
     # 1. get the dataset processing file on the local filesystem if it's not there (download to cache dir)
     # 2. copy from the local file system inside the library to import it
     local_path = cached_path(dataset_file, download_config=download_config)
-    if local_path is None:
-        raise ValueError("Couldn't find script file {}.".format(dataset_file))
 
     # Download the checksums file if available
-    local_checksums_file_path = cached_path(dataset_checksums_file, download_config=download_config,)
+    try:
+        local_checksums_file_path = cached_path(dataset_checksums_file, download_config=download_config,)
+    except (FileNotFoundError, ConnectionError):
+        local_checksums_file_path = None
 
     # Download external imports if needed
     imports = get_imports(local_path)
@@ -379,7 +380,7 @@ def load(
     """
 
     # Download/copy dataset script
-    dataset_name, dataset_hash = setup_module(path, download_config=download_config)
+    dataset_name, dataset_hash = prepare_module(path, download_config=download_config)
 
     # Get dataset builder class
     builder_cls = import_main_class(dataset_name, dataset_hash)

@@ -1,0 +1,4 @@
+ID	Text	Pronoun	Pronoun-offset	A	A-offset	A-coref	B	B-offset	B-coref	URL
+validation-1	Lorem ipsum dolor	condimentum mattis pellentesque	948	aliquam ultrices sagittis	208	False	elementum curabitur vitae	435	False	sem fringilla ut
+validation-2	Lorem ipsum dolor	elementum curabitur vitae	82	sem fringilla ut	110	False	condimentum mattis pellentesque	737	False	aliquam ultrices sagitti
+validation-3	massa enim nec	elementum curabitur vitae	398	aliquam ultrices sagittis	383	False	condimentum mattis pellentesque	905	False	sem fringilla ut

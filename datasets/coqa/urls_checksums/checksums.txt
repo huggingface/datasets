@@ -1,0 +1,2 @@
+https://nlp.stanford.edu/data/coqa/coqa-dev-v1.0.json 9090845 dfa367a9733ce53222918d0231d9b3bedc2b8ee831a2845f62dfc70701f2540a
+https://nlp.stanford.edu/data/coqa/coqa-train-v1.0.json 49001836 b0fdb2bc1bd38dd3ca2ce5fa2ac3e02c6288ac914f241ac409a655ffb6619fa6

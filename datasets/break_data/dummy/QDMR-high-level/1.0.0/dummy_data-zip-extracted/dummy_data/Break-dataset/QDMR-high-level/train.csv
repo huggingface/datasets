@@ -1,0 +1,3 @@
+question_id,question_text,decomposition,operators,split
+ATIS_dev_101,what are the cheapest one way flights from atlanta to pittsburgh ,return flights ;return #1 from  atlanta ;return #2 to pittsburgh ;return #3 that  are one way ;return cheapness of #4 ;return #4 where #5 is  cheapest,"['select', 'filter', 'filter', 'filter', 'project', 'comparative']",dev
+ATIS_dev_102,what ground transportation is available from the pittsburgh airport to downtown and how much does it cost ,return ground transportation ;return #1 which  is  available ;return #2 from  the pittsburgh airport ;return #3 to downtown ;return the cost of #4,"['select', 'filter', 'filter', 'filter', 'project']",dev

@@ -1,0 +1,25 @@
+[
+  {
+    "cluster_id": "cluster-1754", 
+    "questions": [
+      "what years did cale yarborough win his cup championships?", 
+      "what years did cale yarborough win winston cup champs?"
+    ], 
+    "answers": [
+      "1976", 
+      "1978", 
+      "1977"
+    ]
+  }, 
+  {
+    "cluster_id": "cluster-1280", 
+    "questions": [
+      "who does the voice of carl in phineas and ferb?", 
+      "who is the voice of carl in phineas and ferb?"
+    ], 
+    "answers": [
+      "tyler alexander mann"
+    ]
+  }
+]
+

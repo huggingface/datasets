@@ -1,0 +1,4 @@
+ID	Text	Pronoun	Pronoun-offset	A	A-offset	A-coref	B	B-offset	B-coref	URL
+test-1	massa enim nec	elementum curabitur vitae	223	sem fringilla ut	352	False	condimentum mattis pellentesque	989	False	sem fringilla ut
+test-2	Lorem ipsum dolor	elementum curabitur vitae	529	sem fringilla ut	353	False	condimentum mattis pellentesque	49	False	aliquam ultrices sagittis
+test-3	Lorem ipsum dolor	elementum curabitur vitae	962	sem fringilla ut	256	False	elementum curabitur vitae	569	False	aliquam ultrices sagittis

@@ -1,0 +1,107 @@
+{
+    "nfl_1184": {
+        "passage": " Hoping to rebound from their loss to the Patriots, the Raiders stayed at home for a Week 16 duel with the Houston Texans.  Oakland would get the early lead in the first quarter as quarterback JaMarcus Russell completed a 20-yard touchdown pass to rookie wide receiver Chaz Schilens.  The Texans would respond with fullback Vonta Leach getting a 1-yard touchdown run, yet the Raiders would answer with kicker Sebastian Janikowski getting a 33-yard and a 30-yard field goal.  Houston would tie the game in the second quarter with kicker Kris Brown getting a 53-yard and a 24-yard field goal. Oakland would take the lead in the third quarter with wide receiver Johnnie Lee Higgins catching a 29-yard touchdown pass from Russell, followed up by an 80-yard punt return for a touchdown.  The Texans tried to rally in the fourth quarter as Brown nailed a 40-yard field goal, yet the Raiders' defense would shut down any possible attempt.",
+        "qa_pairs": [
+            {
+                "question": "Who scored the first touchdown of the game?",
+                "answer": {
+                    "number": "",
+                    "date": {
+                        "day": "",
+                        "month": "",
+                        "year": ""
+                    },
+                    "spans": [
+                        "Chaz Schilens"
+                    ]
+                },
+                "query_id": "f37e81fa-ef7b-4583-b671-762fc433faa9",
+                "validated_answers": [
+                    {
+                        "number": "",
+                        "date": {
+                            "day": "",
+                            "month": "",
+                            "year": ""
+                        },
+                        "spans": [
+                            "Chaz Schilens"
+                        ]
+                    },
+                    {
+                        "number": "",
+                        "date": {
+                            "day": "",
+                            "month": "",
+                            "year": ""
+                        },
+                        "spans": [
+                            "JaMarcus Russell"
+                        ]
+                    }
+                ]
+            },
+            {
+                "question": "How many field goals did Kris Brown kick?",
+                "answer": {
+                    "number": "3",
+                    "date": {
+                        "day": "",
+                        "month": "",
+                        "year": ""
+                    },
+                    "spans": []
+                },
+                "query_id": "ac6ba235-3024-4f63-a6ab-730a14def4cb",
+                "validated_answers": [
+                    {
+                        "number": "2",
+                        "date": {
+                            "day": "",
+                            "month": "",
+                            "year": ""
+                        },
+                        "spans": []
+                    },
+                    {
+                        "number": "3",
+                        "date": {
+                            "day": "",
+                            "month": "",
+                            "year": ""
+                        },
+                        "spans": []
+                    },
+                    {
+                        "number": "3",
+                        "date": {
+                            "day": "",
+                            "month": "",
+                            "year": ""
+                        },
+                        "spans": []
+                    },
+                    {
+                        "number": "3",
+                        "date": {
+                            "day": "",
+                            "month": "",
+                            "year": ""
+                        },
+                        "spans": []
+                    },
+                    {
+                        "number": "3",
+                        "date": {
+                            "day": "",
+                            "month": "",
+                            "year": ""
+                        },
+                        "spans": []
+                    }
+                ]
+            }
+]
+}
+}
+
