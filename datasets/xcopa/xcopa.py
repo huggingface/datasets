@@ -40,11 +40,11 @@ _LANG = ['et', 'ht', 'it', 'id', 'qu', 'sw', 'zh', 'ta', 'th', 'tr', 'vi']
 
 _URL = 'https://github.com/cambridgeltl/xcopa/archive/master.zip'
 
+
 class XcopaConfig(nlp.BuilderConfig):
     """BuilderConfig for Break"""
 
     def __init__(self,
-                 data_dir,
                  **kwargs
                  ):
         """
@@ -58,7 +58,6 @@ class XcopaConfig(nlp.BuilderConfig):
                 "1.0.0",
                 "New split API (https://tensorflow.org/datasets/splits)"),
             **kwargs)
-        self.data_dir = data_dir
 
 class Xcopa(nlp.GeneratorBasedBuilder):
   """TODO(xcopa): Short description of my dataset."""
@@ -69,9 +68,7 @@ class Xcopa(nlp.GeneratorBasedBuilder):
     XcopaConfig(
       name= lang,
       description='Xcopa language {}'.format(lang),
-      data_dir=lang
-      
-    )for lang in _LANG
+    ) for lang in _LANG
   ]
 
   def _info(self):
@@ -106,7 +103,7 @@ class Xcopa(nlp.GeneratorBasedBuilder):
     # download and extract URLs
     dl_dir = dl_manager.download_and_extract(_URL)
   
-    data_dir = os.path.join(dl_dir, 'xcopa-master', 'data', self.config.data_dir)
+    data_dir = os.path.join(dl_dir, 'xcopa-master', 'data', self.config.lang)
     return [
         nlp.SplitGenerator(
             name=nlp.Split.TEST,
