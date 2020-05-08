@@ -42,7 +42,7 @@ from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, Dataset
 from .features import ClassLabel, Features, Sequence, Tensor, Translation, TranslationVariableLanguages, Value
 from .info import DatasetInfo
 from .lazy_imports_lib import lazy_imports
-from .load import load
+from .load import import_main_class, load, prepare_module
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar

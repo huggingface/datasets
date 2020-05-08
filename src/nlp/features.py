@@ -58,11 +58,11 @@ class Value:
         return self.pa_type
 
     def encode_example(self, value):
-        if pa.is_boolean(self.pa_type):
+        if pa.types.is_boolean(self.pa_type):
             return bool(value)
-        elif pa.is_integer(self.pa_type):
+        elif pa.types.is_integer(self.pa_type):
             return int(value)
-        elif pa.is_floating(self.pa_type):
+        elif pa.types.is_floating(self.pa_type):
             return float(value)
         else:
             return value
