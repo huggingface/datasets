@@ -23,6 +23,8 @@ def parse_flag_from_env(key, default=False):
 
 
 _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
+_run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
+_run_aws_tests = parse_flag_from_env("RUN_AWS", default=False)
 
 
 def slow(test_case):
@@ -38,16 +40,45 @@ def slow(test_case):
     return test_case
 
 
+def local(test_case):
+    """
+    Decorator marking a test as local
+
+    Local tests are run by default. Set the RUN_LOCAL environment variable
+    to a falsy value to not run them.
+    """
+    if not _run_local_tests:
+        test_case = unittest.skip("test is local")(test_case)
+    return test_case
+
+
+def is_local():
+    return _run_local_tests
+
+
+def aws(test_case):
+    """
+    Decorator marking a test as one that relies on AWS.
+
+    AWS tests are skipped by default. Set the RUN_AWS environment variable
+    to a truthy value to run them.
+    """
+    if not _run_aws_tests:
+        test_case = unittest.skip("test requires aws")(test_case)
+    return test_case
+
+
 class MockDataLoaderManager(object):
     dummy_data_folder_name = "dummy"
     dummy_data_file_name = "dummy_data.zip"
     dummy_data_extracted_folder_name = "dummy_data"
 
-    def __init__(self, dataset_name, config, version, cache_dir, verbose=True):
+    def __init__(self, dataset_name, config, version, cache_dir, local=True, verbose=True):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
         self.cache_dir = cache_dir
-        self.verbose = True
+        self.verbose = verbose
+        self.local = local
 
         self.config_name = config.name if config is not None else ""
 
@@ -77,13 +108,18 @@ class MockDataLoaderManager(object):
         return path
 
     def download_dummy_data(self):
-        # get url to dummy data on AWS S3 bucket
-        url_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=self.path_to_dummy_file)
+        if local is True:
+            # extract local data
+            path_to_dummy_data_dir = os.path.join("datasets", self.dataset_name, self.path_to_dummy_file)
+        else:
+            # get url to dummy data on AWS S3 bucket
+            path_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=self.path_to_dummy_file)
 
-        # this function will download the dummy data and return the path
+            # this function will download the dummy data and return the path
         local_path = cached_path(
-            url_to_dummy_data_dir, cache_dir=self.cache_dir, extract_compressed_file=True, force_extract=True
+            path_to_dummy_data_dir, cache_dir=self.cache_dir, extract_compressed_file=True, force_extract=True
         )
+
         return os.path.join(local_path, self.dummy_data_extracted_folder_name)
 
     def print_dummy_data_folder_structure(self, data_url):
