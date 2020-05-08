@@ -1,0 +1,3 @@
+question_id,question_text,decomposition,operators,split
+ATIS_test_0,what flights go from dallas to phoenix ,,,test
+ATIS_test_1,what flights go from phoenix to salt lake city ,,,test

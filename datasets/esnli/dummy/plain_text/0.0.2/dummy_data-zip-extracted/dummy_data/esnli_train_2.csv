@@ -1,0 +1,2 @@
+pairID,gold_label,Sentence1,Sentence2,Explanation_1,WorkerId,Sentence1_marked_1,Sentence2_marked_1,Sentence1_Highlighted_1,Sentence2_Highlighted_1
+2,contradiction,A woman drinks a coffee.,A woman drinks a beer.,A woman cannot drink both a coffee and a beer,xyz,A woman drinks a *coffee*,A woman drinks a *beer*,{},"1,2,3"

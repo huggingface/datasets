@@ -1,0 +1,110 @@
+{
+    "data": [
+        {
+            "paragraphs": [
+                {
+                    "qas": [
+                        {
+                            "question": "Quando è iniziata la crisi petrolifera del 1973?",
+                            "answers": [
+                                {
+                                    "text": "ottobre 1973",
+                                    "answer_start": 43
+                                },
+                                {
+                                    "text": "ottobre 1973",
+                                    "answer_start": 43
+                                },
+                                {
+                                    "text": "ottobre 1973",
+                                    "answer_start": 43
+                                },
+                                {
+                                    "text": "ottobre",
+                                    "answer_start": 43
+                                },
+                                {
+                                    "text": "1973",
+                                    "answer_start": 25
+                                }
+                            ],
+                            "id": "5725b33f6a3fe71400b8952d"
+                        },
+                        {
+                            "question": "Quando è stata la seconda crisi petrolifera?",
+                            "answers": [
+                                {
+                                    "text": "1979",
+                                    "answer_start": 658
+                                },
+                                {
+                                    "text": "1979",
+                                    "answer_start": 658
+                                },
+                                {
+                                    "text": "1979",
+                                    "answer_start": 658
+                                },
+                                {
+                                    "text": "1979",
+                                    "answer_start": 658
+                                },
+                                {
+                                    "text": "1979",
+                                    "answer_start": 658
+                                }
+                            ],
+                            "id": "5725b33f6a3fe71400b8952f"
+                        },
+                        {
+                            "question": "Qual è stato un altro termine utilizzato per la crisi petrolifera?",
+                            "answers": [
+                                {
+                                    "text": "shock",
+                                    "answer_start": 471
+                                },
+                                {
+                                    "text": "shock",
+                                    "answer_start": 471
+                                },
+                                {
+                                    "text": "shock",
+                                    "answer_start": 471
+                                }
+                            ],
+                            "id": "5725b33f6a3fe71400b89530"
+                        },
+                        {
+                            "question": "Chi ha proclamato l' embargo petrolifero?",
+                            "answers": [
+                                {
+                                    "text": "membri dell' Organizzazione dei Paesi esportatori di petrolio arabo",
+                                    "answer_start": 65
+                                },
+                                {
+                                    "text": "membri dell' Organizzazione dei Paesi esportatori di petrolio arabo",
+                                    "answer_start": 65
+                                },
+                                {
+                                    "text": "Organizzazione dei Paesi esportatori di petrolio arabo",
+                                    "answer_start": 78
+                                },
+                                {
+                                    "text": "membri dell' Organizzazione dei Paesi esportatori di petrolio arabo",
+                                    "answer_start": 65
+                                },
+                                {
+                                    "text": "OAPEC",
+                                    "answer_start": 134
+                                }
+                            ],
+                            "id": "5725b33f6a3fe71400b89531"
+                        }
+                    ],
+                    "context": "La crisi petrolifera del 1973 iniziò nell' ottobre 1973 quando i membri dell' Organizzazione dei Paesi esportatori di petrolio arabo (OAPEC, composta dai membri arabi dell' OPEC più Egitto e Siria) proclamarono un embargo petrolifero. Alla fine dell' embargo, nel marzo 1974, il prezzo del petrolio era salito da 3 dollari al barile a quasi 12 dollari a livello mondiale; i prezzi americani erano notevolmente più elevati. L' embargo ha causato una crisi petrolifera, o \"shock\", con molti effetti a breve e lungo termine sulla politica globale e sull' economia globale. Più tardi fu chiamato il \"primo shock petrolifero\", seguito dalla crisi petrolifera del 1979, definita il \"secondo shock petrolifero\"."
+                }
+]
+}
+]
+}
+

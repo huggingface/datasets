@@ -1,0 +1,3 @@
+{"annotation_id": "train_1.txt", "classification": "NEG", "evidences":[[{"start_pos": 0, "end_pos": 7, "text": "Boring movie"}]]}
+{"annotation_id": "train_2.txt", "classification": "NEG", "evidences":[[{"start_pos": 0, "end_pos": 7, "text": "Lazy acting"}]]}
+{"annotation_id": "train_3.txt", "classification": "POS", "evidences":[[{"start_pos": 0, "end_pos": 7, "text": "Excellent direction"}]]}

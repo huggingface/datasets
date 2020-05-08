@@ -1,0 +1,6 @@
+QuestionID	Question	DocumentID	DocumentTitle	SentenceID	Sentence	Label
+Q1	how are glacier caves formed?	D1	Glacier cave	D1-0	A partly submerged glacier cave on Perito Moreno Glacier .	0
+Q1	how are glacier caves formed?	D1	Glacier cave	D1-1	The ice facade is approximately 60 m high	0
+Q1	how are glacier caves formed?	D1	Glacier cave	D1-2	Ice formations in the Titlis glacier cave	0
+Q1	how are glacier caves formed?	D1	Glacier cave	D1-3	A glacier cave is a cave formed within the ice of a glacier .	1
+Q1	how are glacier caves formed?	D1	Glacier cave	D1-4	Glacier caves are often called ice caves , but this term is properly used to describe bedrock caves that contain year-round ice.	0

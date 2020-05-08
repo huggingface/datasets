@@ -32,7 +32,7 @@ from nlp import (
     prepare_module,
 )
 
-from .utils import MockDataLoaderManager, aws, is_local, local, slow
+from .utils import MockDataLoaderManager, aws, is_local_mode, local, slow
 
 
 logging.basicConfig(level=logging.INFO)
@@ -42,9 +42,9 @@ class DatasetTester(object):
     def __init__(self, parent):
         self.parent = parent
 
-    def load_builder_class(self, dataset_name, local=False):
+    def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
-        if local is True:
+        if is_local is True:
             dataset_name, dataset_hash = prepare_module("./datasets/" + dataset_name)
         else:
             dataset_name, dataset_hash = prepare_module(
@@ -55,21 +55,21 @@ class DatasetTester(object):
         # Instantiate dataset builder
         return builder_cls
 
-    def load_all_configs(self, dataset_name, local=False):
+    def load_all_configs(self, dataset_name, is_local=False):
         # get builder class
-        builder_cls = self.load_builder_class(dataset_name, local=local)
+        builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
         builder = builder_cls()
 
         if len(builder.BUILDER_CONFIGS) == 0:
             return [None]
         return builder.BUILDER_CONFIGS
 
-    def check_load_dataset(self, dataset_name, configs, local=False):
+    def check_load_dataset(self, dataset_name, configs, is_local=False):
         # test only first config to speed up testing
         for config in configs:
             with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
                 # create config and dataset
-                dataset_builder_cls = self.load_builder_class(dataset_name, local=local)
+                dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
                 dataset_builder = dataset_builder_cls(config=config, data_dir=processed_temp_dir)
 
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
@@ -80,7 +80,11 @@ class DatasetTester(object):
                     version = dataset_builder.VERSION
 
                 mock_dl_manager = MockDataLoaderManager(
-                    dataset_name=dataset_name, config=config, version=version, cache_dir=raw_temp_dir, local=local
+                    dataset_name=dataset_name,
+                    config=config,
+                    version=version,
+                    cache_dir=raw_temp_dir,
+                    is_local=is_local,
                 )
 
                 # build dataset from dummy data
@@ -98,7 +102,7 @@ class DatasetTester(object):
 
 
 def get_dataset_names():
-    if is_local() is True:
+    if is_local_mode() is True:
         # fetch all dirs in "./datasets/"
         datasets = [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
     else:
@@ -155,8 +159,8 @@ class DatasetTest(parameterized.TestCase):
 
     @local
     def test_load_dataset_local(self, dataset_name):
-        configs = self.dataset_tester.load_all_configs(dataset_name, local=True)[:1]
-        self.dataset_tester.check_load_dataset(dataset_name, configs, local=True)
+        configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)[:1]
+        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
 
     @slow
     @aws
@@ -167,8 +171,8 @@ class DatasetTest(parameterized.TestCase):
     @slow
     @local
     def test_load_dataset_all_configs_local(self, dataset_name):
-        configs = self.dataset_tester.load_all_configs(dataset_name, local=True)
-        self.dataset_tester.check_load_dataset(dataset_name, configs, local=True)
+        configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
+        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
 
     @slow
     @aws

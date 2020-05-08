@@ -1,0 +1,10 @@
+[
+  {"questionPatternModEntities": "Who directed and produced M0?",
+   "sparqlPatternModEntities": "SELECT /director M0 . /producer M0"},
+  {"questionPatternModEntities": "Who directed and edited M0?",
+   "sparqlPatternModEntities": "SELECT /director M0 . /editor M0"},
+  {"questionPatternModEntities": "Who edited and directed M0?",
+   "sparqlPatternModEntities": "SELECT /editor M0 . /director M0"},
+  {"questionPatternModEntities": "Who produced and directed M0?",
+   "sparqlPatternModEntities": "SELECT /producer M0 . /director M0 . "}
+]

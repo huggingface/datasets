@@ -52,7 +52,7 @@ def local(test_case):
     return test_case
 
 
-def is_local():
+def is_local_mode():
     return _run_local_tests
 
 
@@ -73,12 +73,12 @@ class MockDataLoaderManager(object):
     dummy_data_file_name = "dummy_data.zip"
     dummy_data_extracted_folder_name = "dummy_data"
 
-    def __init__(self, dataset_name, config, version, cache_dir, local=True, verbose=True):
+    def __init__(self, dataset_name, config, version, cache_dir, is_local=False, verbose=True):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
         self.cache_dir = cache_dir
         self.verbose = verbose
-        self.local = local
+        self.is_local = is_local
 
         self.config_name = config.name if config is not None else ""
 
@@ -108,7 +108,7 @@ class MockDataLoaderManager(object):
         return path
 
     def download_dummy_data(self):
-        if local is True:
+        if self.is_local is True:
             # extract local data
             path_to_dummy_data_dir = os.path.join("datasets", self.dataset_name, self.path_to_dummy_file)
         else:
