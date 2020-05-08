@@ -1,0 +1,3 @@
+conv_id,utterance_idx,context,prompt,speaker_idx,utterance,selfeval,tags
+hit:0_conv:1,1,sentimental,I remember going to the fireworks with my best friend. There was a lot of people_comma_ but it only felt like us in the world.,1,I remember going to see the fireworks with my best friend. It was the first time we ever spent time alone together. Although there was a lot of people_comma_ we felt like the only people in the world.,5|5|5_2|2|5,
+hit:0_conv:1,2,sentimental,I remember going to the fireworks with my best friend. There was a lot of people_comma_ but it only felt like us in the world.,0,Was this a friend you were in love with_comma_ or just a best friend?,5|5|5_2|2|5,

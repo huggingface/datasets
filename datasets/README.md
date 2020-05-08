@@ -8,11 +8,11 @@ Cicle-ci should always be green so that we can be sure that newly added datasets
 
 **For the following datasets the test commands**:
 ```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_real_dataset_<your-dataset-name>
+RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_real_dataset_local_<your-dataset-name>
 ```
 and 
 ```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_dataset_all_configs_<your-dataset-name>
+RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_dataset_all_configs_local_<your-dataset-name>
 ```
 
 **passes**.
@@ -125,23 +125,22 @@ make style
 
 4) the dummy data should be added. For this it might be useful to take a look into the structure of other examples as shown in the PR here and at `<path/to/tensorflow_datasets/testing/test_data/test_data/fake_examples>` whether the same  data can be used.
 
-5)  the data can be uploaded to AWS using the command
-```
-aws s3 cp datasets/<your-dataset-folder> s3://datasets.huggingface.co/nlp/<your-dataset-folder> --recursive
-```
+5) check whether all works as expected using: 
 
-6) check whether all works as expected using: 
+**Important**
+You have to delete the local cache with `rm -r ~/.cache/huggingface/datasets/*` to not run into "file exists" errors. TODO (PATRICK) should fix this in code... 
+
 ```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_real_dataset_<your-dataset-name>
+RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_real_dataset_local_<your-dataset-name>
 ```
 and 
 ```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_dataset_all_configs_<your-dataset-name>
+RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_dataset_all_configs_local_<your-dataset-name>
 ```
 
-7) push to this PR and rerun the circle ci workflow to check whether circle ci stays green.
+6) push to this PR and rerun the circle ci workflow to check whether circle ci stays green.
 
-8) Edit this commend and tick off your newly added dataset :-) 
+7) Edit this commend and tick off your newly added dataset :-) 
 
 ## TODO-list
 

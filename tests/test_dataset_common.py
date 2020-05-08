@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glob
 import logging
 import tempfile
 
@@ -31,7 +32,7 @@ from nlp import (
     prepare_module,
 )
 
-from .utils import MockDataLoaderManager, slow
+from .utils import MockDataLoaderManager, aws, is_local_mode, local, slow
 
 
 logging.basicConfig(level=logging.INFO)
@@ -41,33 +42,35 @@ class DatasetTester(object):
     def __init__(self, parent):
         self.parent = parent
 
-    def load_builder(self, dataset_name, config=None, data_dir=None):
+    def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
-        dataset_name, dataset_hash = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
+        if is_local is True:
+            dataset_name, dataset_hash = prepare_module("./datasets/" + dataset_name)
+        else:
+            dataset_name, dataset_hash = prepare_module(
+                dataset_name, download_config=DownloadConfig(force_download=True)
+            )
         # Get dataset builder class
         builder_cls = import_main_class(dataset_name, dataset_hash)
         # Instantiate dataset builder
-        builder = builder_cls(config=config, data_dir=data_dir,)
+        return builder_cls
 
-        return builder
-
-    def load_all_configs(self, dataset_name):
-        # Download/copy dataset script
-        dataset_name, dataset_hash = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
-        # Get dataset builder class
-        builder_cls = import_main_class(dataset_name, dataset_hash)
-        # Instantiate dataset builder
+    def load_all_configs(self, dataset_name, is_local=False):
+        # get builder class
+        builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
         builder = builder_cls()
+
         if len(builder.BUILDER_CONFIGS) == 0:
             return [None]
         return builder.BUILDER_CONFIGS
 
-    def check_load_dataset(self, dataset_name, configs):
+    def check_load_dataset(self, dataset_name, configs, is_local=False):
         # test only first config to speed up testing
         for config in configs:
             with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
                 # create config and dataset
-                dataset_builder = self.load_builder(dataset_name, config, data_dir=processed_temp_dir)
+                dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
+                dataset_builder = dataset_builder_cls(config=config, data_dir=processed_temp_dir)
 
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
 
@@ -77,11 +80,17 @@ class DatasetTester(object):
                     version = dataset_builder.VERSION
 
                 mock_dl_manager = MockDataLoaderManager(
-                    dataset_name=dataset_name, config=config, version=version, cache_dir=raw_temp_dir
+                    dataset_name=dataset_name,
+                    config=config,
+                    version=version,
+                    cache_dir=raw_temp_dir,
+                    is_local=is_local,
                 )
 
                 # build dataset from dummy data
-                dataset_builder.download_and_prepare(dl_manager=mock_dl_manager)
+                dataset_builder.download_and_prepare(
+                    dl_manager=mock_dl_manager, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                )
 
                 # get dataset
                 dataset = dataset_builder.as_dataset()
@@ -93,9 +102,14 @@ class DatasetTester(object):
 
 
 def get_dataset_names():
-    # fetch all dataset names
-    api = hf_api.HfApi()
-    datasets = [x.datasetId for x in api.dataset_list()]
+    if is_local_mode() is True:
+        # fetch all dirs in "./datasets/"
+        datasets = [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
+    else:
+        # fetch all dataset names
+        api = hf_api.HfApi()
+        datasets = [x.datasetId for x in api.dataset_list()]
+
     dataset_names_parametrized = [{"testcase_name": x, "dataset_name": x} for x in datasets]
     return dataset_names_parametrized
 
@@ -108,6 +122,7 @@ class DatasetTest(parameterized.TestCase):
     def setUp(self):
         self.dataset_tester = DatasetTester(self)
 
+    @aws
     def test_dataset_has_valid_etag(self, dataset_name):
         py_script_path = list(filter(lambda x: x, dataset_name.split("/")))[-1] + ".py"
         dataset_url = hf_bucket_url(dataset_name, filename=py_script_path)
@@ -122,10 +137,13 @@ class DatasetTest(parameterized.TestCase):
 
         self.assertIsNotNone(etag)
 
+    @aws
     def test_builder_class(self, dataset_name):
-        builder = self.dataset_tester.load_builder(dataset_name)
+        builder_cls = self.dataset_tester.load_builder_class(dataset_name)
+        builder = builder_cls()
         self.assertTrue(isinstance(builder, DatasetBuilder))
 
+    @aws
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
         self.assertTrue(len(builder_configs) > 0)
@@ -133,17 +151,31 @@ class DatasetTest(parameterized.TestCase):
         if builder_configs[0] is not None:
             all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
 
+    @aws
     def test_load_dataset(self, dataset_name):
         # test only first config
         configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
         self.dataset_tester.check_load_dataset(dataset_name, configs)
 
+    @local
+    def test_load_dataset_local(self, dataset_name):
+        configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)[:1]
+        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
+
     @slow
+    @aws
     def test_load_dataset_all_configs(self, dataset_name):
         configs = self.dataset_tester.load_all_configs(dataset_name)
         self.dataset_tester.check_load_dataset(dataset_name, configs)
 
     @slow
+    @local
+    def test_load_dataset_all_configs_local(self, dataset_name):
+        configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
+        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
+
+    @slow
+    @aws
     def test_load_real_dataset(self, dataset_name):
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
@@ -152,6 +184,22 @@ class DatasetTest(parameterized.TestCase):
 
             dataset = load(
                 dataset_name, data_dir=temp_data_dir, download_and_prepare_kwargs=download_and_prepare_kwargs
+            )
+            for split in dataset.keys():
+                self.assertTrue(len(dataset[split]) > 0)
+
+    @slow
+    @local
+    def test_load_real_dataset_local(self, dataset_name):
+        with tempfile.TemporaryDirectory() as temp_data_dir:
+            download_config = DownloadConfig()
+            download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
+            download_and_prepare_kwargs = {"download_config": download_config}
+
+            dataset = load(
+                "./datasets/" + dataset_name,
+                data_dir=temp_data_dir,
+                download_and_prepare_kwargs=download_and_prepare_kwargs,
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)

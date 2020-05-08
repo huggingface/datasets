@@ -1,0 +1,80 @@
+{
+    "data": [
+        {
+            "paragraphs": [
+                {"qas": [
+                        {
+                            "question": "Perchè le nazioni europee e il Giappone si sono separati dagli Stati Uniti durante la crisi?",
+                            "answers": [
+                                {
+                                    "text": "evitare di essere presi di mira dal boicottaggio",
+                                    "answer_start": 243
+                                },
+                                {
+                                    "text": "evitare di essere presi di mira dal boicottaggio",
+                                    "answer_start": 243
+                                },
+                                {
+                                    "text": "evitare di essere presi di mira dal boicottaggio",
+                                    "answer_start": 243
+                                },
+                                {
+                                    "text": "evitare di essere presi di mira dal boicottaggio",
+                                    "answer_start": 243
+                                },
+                                {
+                                    "text": "evitare di essere presi di mira dal boicottaggio",
+                                    "answer_start": 243
+                                }
+                            ],
+                            "id": "5725b5a689a1e219009abd28"
+                        },
+                        {
+                            "question": "In quale data Henry Kissinger ha negoziato un ritiro di truppe israeliane dalla penisola del Sinai?",
+                            "answers": [
+                                {
+                                    "text": "18 gennaio 1974",
+                                    "answer_start": 625
+                                },
+                                {
+                                    "text": "18 gennaio 1974",
+                                    "answer_start": 625
+                                },
+                                {
+                                    "text": "18 gennaio 1974,",
+                                    "answer_start": 625
+                                }
+                            ],
+                            "id": "5725b5a689a1e219009abd29"
+                        },
+                        {
+                            "question": "Quando hanno revocato l' embargo i produttori di petrolio arabi?",
+                            "answers": [
+                                {
+                                    "text": "marzo 1974",
+                                    "answer_start": 935
+                                },
+                                {
+                                    "text": "marzo 1974",
+                                    "answer_start": 935
+                                },
+                                {
+                                    "text": "marzo 1974",
+                                    "answer_start": 935
+                                },
+                                {
+                                    "text": "marzo 1974",
+                                    "answer_start": 935
+                                },
+                                {
+                                    "text": "marzo 1974",
+                                    "answer_start": 935
+                                }
+                            ],
+                            "id": "5725b5a689a1e219009abd2a"
+                        }
+                    ],
+                    "context": "La crisi ha avuto un forte impatto sulle relazioni internazionali e ha creato una frattura all' interno della NATO. Alcune nazioni europee e il Giappone hanno cercato di dissociarsi dalla politica estera degli Stati Uniti in Medio Oriente per evitare di essere presi di mira dal boicottaggio. I produttori arabi di petrolio hanno collegato eventuali cambiamenti politici futuri alla pace tra i belligeranti. Per affrontare questo problema, l' amministrazione Nixon ha avviato negoziati multilaterali con i combattenti. Hanno fatto in modo che Israele tornasse dalla penisola del Sinai e dalle alture del Golan. A partire dal 18 gennaio 1974, il segretario di Stato statunitense Henry Kissinger aveva negoziato il ritiro di una truppa israeliana da alcune parti della penisola del Sinai. La promessa di un accordo negoziato tra Israele e Siria è stata sufficiente per convincere i produttori di petrolio arabo a revocare l' embargo nel marzo 1974."
+                }
+]}]}
+

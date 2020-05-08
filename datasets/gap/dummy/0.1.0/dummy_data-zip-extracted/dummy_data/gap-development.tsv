@@ -1,0 +1,6 @@
+ID	Text	Pronoun	Pronoun-offset	A	A-offset	A-coref	B	B-offset	B-coref	URL
+development-1	Lorem ipsum dolor	condimentum mattis pellentesque	267	aliquam ultrices sagittis	191	False	elementum curabitur vitae	965	False	sem fringilla ut
+development-2	massa enim nec	condimentum mattis pellentesque	683	aliquam ultrices sagittis	228	False	condimentum mattis pellentesque	83	False	aliquam ultrices sagittis
+development-3	massa enim nec	elementum curabitur vitae	754	aliquam ultrices sagittis	173	False	condimentum mattis pellentesque	165	False	aliquam ultrices sagittis
+development-4	massa enim nec	elementum curabitur vitae	86	sem fringilla ut	174	False	condimentum mattis pellentesque	849	False	aliquam ultrices sagittis
+development-5	Lorem ipsum dolor	elementum curabitur vitae	378	aliquam ultrices sagittis	219	False	condimentum mattis pellentesque	260	False	aliquam ultrices sagittis

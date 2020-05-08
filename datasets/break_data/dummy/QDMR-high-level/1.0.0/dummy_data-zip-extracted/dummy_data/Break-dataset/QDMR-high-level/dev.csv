@@ -1,0 +1,3 @@
+question_id,question_text,decomposition,operators,split
+ATIS_dev_0,what flights are available tomorrow from denver to philadelphia ,return flights ;return #1 from  denver ;return #2 to philadelphia ;return #3 if  available,"['select', 'filter', 'filter', 'filter']",dev
+ATIS_dev_1,show me the afternoon flights from washington to boston ,return flights ;return #1 from  washington ;return #2 to boston ;return #3 in the afternoon,"['select', 'filter', 'filter', 'filter']",dev

@@ -1,0 +1,26 @@
+{
+  "version": "v1.1",
+  "data": [{
+    "title": "Super_Bowl_50",
+    "paragraphs": [{
+      "context": "Super Bowl 50 foi um jogo de futebol americano para determinar o campe\u00e3o da National Football League (NFL) para a temporada de 2015. O campe\u00e3o da American Football Conference (AFC), Denver Broncos, derrotou a campe\u00e3 Carolina Panthers, da National Football Conference (NFC), por 24 a 10, e conquistou seu terceiro t\u00edtulo no Super Bowl. O jogo foi disputado em 7 de fevereiro de 2016, no Levi&#39;s Stadium, na \u00e1rea da ba\u00eda de San Francisco, em Santa Clara, Calif\u00f3rnia. Como este foi o 50\u00ba Super Bowl, a liga enfatizou o &quot;anivers\u00e1rio de ouro&quot; com v\u00e1rias iniciativas de ouro, bem como a suspens\u00e3o tempor\u00e1ria da tradi\u00e7\u00e3o de nomear cada jogo do Super Bowl com algarismos romanos (sob os quais o jogo seria conhecido como &quot; Super Bowl L &quot;), para que o logotipo possa destacar os algarismos ar\u00e1bicos 50.",
+      "qas": [{
+        "answers": [{
+          "answer_start": 182,
+          "text": "Denver Broncos"
+        },
+          {
+            "answer_start": 182,
+            "text": "Denver Broncos"
+          }, {
+            "answer_start": 182,
+            "text": "Denver Broncos"
+          }],
+        "question": "Qual time da NFL representou o AFC no Super Bowl 50?",
+        "id": "56be4db0acb8001400a502ec"},
+        {"answers":
+        [{"answer_start": 216, "text": "Carolina Panthers"}, {"answer_start": 216, "text": "Carolina Panthers"}, {"answer_start": 216, "text": "Carolina Panthers"}], "question": "Qual time da NFL representou o NFC no Super Bowl 50?", "id": "56be4db0acb8001400a502ed"}, {"answers": [{"answer_start": 443, "text": "Santa Clara, Calif\u00f3rnia"}, {"answer_start": 0, "text": "Est\u00e1dio de Levi"}, {"answer_start": 0, "text": "Est\u00e1dio de Levi no San Francisco Bay Area em Santa Clara, Calif\u00f3rnia."}],
+          "question": "Onde aconteceu o Super Bowl 50?", "id": "56be4db0acb8001400a502ee"}, {"answers": [{"answer_start": 182, "text": "Denver Broncos"}, {"answer_start": 182, "text": "Denver Broncos"}, {"answer_start": 182, "text": "Denver Broncos"}],
+          "question": "Qual time da NFL venceu o Super Bowl 50?", "id": "56be4db0acb8001400a502ef"}, {"answers": [{"answer_start": 540, "text": "ouro"}, {"answer_start": 540, "text": "ouro"}, {"answer_start": 540, "text": "ouro"}],
+          "question": "Que cor foi usada para enfatizar o 50\u00ba anivers\u00e1rio do Super Bowl?",
+          "id": "56be4db0acb8001400a502f0"}]}]}]}

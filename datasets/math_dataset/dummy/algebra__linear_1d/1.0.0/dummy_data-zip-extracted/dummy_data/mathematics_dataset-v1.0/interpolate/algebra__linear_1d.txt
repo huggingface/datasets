@@ -1,0 +1,12 @@
+Solve -282*d + 929 - 178 = -1223 for d.
+7
+Solve 49*l + 45*l - 125 - 63 = 0 for l.
+2
+Solve -64*t + 1387 - 848 + 933 = 0 for t.
+23
+Solve 75*g = 192*g - 71*g - 79*g - 264 for g.
+-8
+Solve -34*v + 232*v + 52351 = 48985 for v.
+-17
+Solve 21*w + 26*w - 9*w - 3*w + 980 = 0 for w.
+-28

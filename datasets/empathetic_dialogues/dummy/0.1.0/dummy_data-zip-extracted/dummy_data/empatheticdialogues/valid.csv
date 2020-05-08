@@ -1,0 +1,3 @@
+conv_id,utterance_idx,context,prompt,speaker_idx,utterance,selfeval,tags
+hit:0_conv:1,3,sentimental,I remember going to the fireworks with my best friend. There was a lot of people_comma_ but it only felt like us in the world.,1,This was a best friend. I miss her.,5|5|5_2|2|5,
+hit:0_conv:1,4,sentimental,I remember going to the fireworks with my best friend. There was a lot of people_comma_ but it only felt like us in the world.,0,Where has she gone?,5|5|5_2|2|5,
