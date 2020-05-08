@@ -1,0 +1,54 @@
+{
+  "data": [
+    {
+      "paragraphs": [
+        {
+          "context": "Die Verteidigung der Panthers gab nur 308 Punkte ab und belegte den sechsten Platz in der Liga, w\u00e4hrend sie die NFL mit 24 Interceptions in dieser Kategorie anf\u00fchrte und sich mit vier Pro Bowl-Selektionen r\u00fchmen konnte. Pro Bowl Defensive Tackle Kawann Short f\u00fchrte das Team mit 11 Sacks an, erzwang zudem drei Fumbles und erzielte zwei Fumble Recoverys. Mario Addison, ebenfalls Lineman, addierte 6\u00bd Sacks hinzu. Die Panthers-Line pr\u00e4sentierte auch den erfahrenen Defensive End Jared Allen, einen 5-fachen Pro-Bowler, der mit 136 Sacks der aktive Anf\u00fchrer in der NFL-Kategorie Karriere-Sacks war, sowie den Defensive End Kony Ealy, der 5 Sacks in nur 9 Starts erzielte. Nach ihnen wurden zwei der drei Linebacker der Panthers ausgew\u00e4hlt, um im Pro Bowl zu spielen: Thomas Davis und Luke Kuechly. Davis erzielte 5\u00bd Sacks, vier erzwungene Fumbles und vier Interceptions, w\u00e4hrend Kuechly das Team bei den Tackles anf\u00fchrte (118), zwei Fumbles erzwang und vier P\u00e4sse abfing. Carolinas Secondarys bestanden aus dem Pro Bowl-Safety Kurt Coleman, der das Team mit einem Karrierehoch von sieben Interceptions anf\u00fchrte und gleichzeitig 88 Tackles erzielen konnte, und Pro Bowl-Cornerback Josh Norman, der sich w\u00e4hrend der Saison zur Shutdown Corner entwickelte und vier Interceptions erzielte, von denen zwei zu Touchdowns f\u00fcr sein Team wurden.",
+          "qas": [
+            {
+              "answers": [
+                {
+                  "answer_start": 38,
+                  "text": "308"
+                }
+              ],
+              "id": "56beb4343aeaaa14008c925b",
+              "question": "Wie viele Punkte gab die Verteidigung der Panthers ab?"
+            },
+            {
+              "answers": [
+                {
+                  "answer_start": 527,
+                  "text": "136"
+                }
+              ],
+              "id": "56beb4343aeaaa14008c925c",
+              "question": "Wie viele Sacks erzielte Jared Allen in seiner Karriere?"
+            },
+            {
+              "answers": [
+                {
+                  "answer_start": 921,
+                  "text": "118"
+                }
+              ],
+              "id": "56beb4343aeaaa14008c925d",
+              "question": "Wie viele Tackles wurden bei Luke Kuechly registriert?"
+            },
+            {
+              "answers": [
+                {
+                  "answer_start": 179,
+                  "text": "vier"
+                }
+              ],
+              "id": "56beb4343aeaaa14008c925e",
+              "question": "Wie viele B\u00e4lle fing Josh Norman ab?"
+            }
+] 
+}
+]
+}
+]
+}
+

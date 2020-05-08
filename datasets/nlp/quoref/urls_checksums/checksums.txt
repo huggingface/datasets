@@ -1,0 +1,1 @@
+https://quoref-dataset.s3-us-west-2.amazonaws.com/train_and_dev/quoref-train-dev-v0.1.zip 5078438 aacde0863c04ba6e9ab46995ea844a5b0c6cea58a77ab6fd86a128e33a3ad8fb
