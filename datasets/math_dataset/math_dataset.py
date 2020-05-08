@@ -216,7 +216,7 @@ class MathDataset(nlp.GeneratorBasedBuilder):
             _QUESTION: nlp.Value('string'),
             _ANSWER: nlp.Value('string'),
         }),
-        supervised_keys=(_QUESTION, _ANSWER),
+        supervised_keys={"input": _QUESTION, "output": _ANSWER},
         homepage="https://github.com/deepmind/mathematics_dataset",
         citation=_CITATION,
     )
@@ -241,7 +241,7 @@ class MathDataset(nlp.GeneratorBasedBuilder):
     """Returns SplitGenerators."""
 
     directory = dl_manager.download_and_extract(_DATA_URL)
-    config = self.builder_config.name + ".txt"
+    config = self.config.name + ".txt"
 
     return [
         nlp.SplitGenerator(
