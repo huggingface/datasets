@@ -40,7 +40,7 @@ class Metric(object):
         num_process: int = 1,
         data_dir: Optional[str] = None,
         experiment_id: Optional[str] = None,
-        in_memory=False,
+        in_memory: bool = False,
         **kwargs,
     ):
         """ A Metrics is the base class and common API for all metrics.
