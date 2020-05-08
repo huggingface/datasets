@@ -30,8 +30,8 @@ from urllib.parse import urlparse
 from filelock import FileLock
 
 from .arrow_dataset import Dataset
-from .metric import Metric
 from .builder import BuilderConfig, DatasetBuilder
+from .metric import Metric
 from .splits import Split
 from .utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import GenerateMode
@@ -195,9 +195,9 @@ def prepare_module(path: str, download_config=None, dataset=True, **download_kwa
     # - otherwise we assume path/name is a path to our S3 bucket
     combined_path = os.path.join(path, name)
     if os.path.isfile(combined_path):
-        dataset_file = combined_path
+        file_path = combined_path
     elif os.path.isfile(path):
-        dataset_file = path
+        file_path = path
     else:
         file_path = hf_bucket_url(path, filename=name, dataset=dataset)
 
@@ -207,11 +207,11 @@ def prepare_module(path: str, download_config=None, dataset=True, **download_kwa
     # Load the module in two steps:
     # 1. get the processing file on the local filesystem if it's not there (download to cache dir)
     # 2. copy from the local file system inside the library to import it
-    local_path = cached_path(dataset_file, download_config=download_config)
+    local_path = cached_path(file_path, download_config=download_config)
 
     # Download the checksums file if available
     try:
-        local_checksums_file_path = cached_path(dataset_checksums_file, download_config=download_config,)
+        local_checksums_file_path = cached_path(checksums_file, download_config=download_config,)
     except (FileNotFoundError, ConnectionError):
         local_checksums_file_path = None
 
@@ -239,7 +239,7 @@ def prepare_module(path: str, download_config=None, dataset=True, **download_kwa
             raise ValueError("Wrong import_type")
 
         local_import_path = cached_path(url_or_filename, download_config=download_config,)
-        local_imports.append(local_import_path)
+        local_imports.append((import_name, local_import_path))
 
     # Check library imports
     needs_to_be_installed = []
@@ -335,7 +335,8 @@ def prepare_module(path: str, download_config=None, dataset=True, **download_kwa
     return module_path
 
 
-def load_metric(path: str,
+def load_metric(
+    path: str,
     process_id: int = 0,
     num_process: int = 1,
     data_dir: Optional[str] = None,
@@ -369,12 +370,14 @@ def load_metric(path: str,
     # Download/copy metric script
     module_path = prepare_module(path, download_config=download_config, dataset=False)
     metric_cls = import_main_class(module_path, dataset=False)
-    metric = metric_cls(process_id=process_id,
-                        num_process=num_process,
-                        data_dir=data_dir,
-                        experiment_id=experiment_id,
-                        in_memory=in_memory,
-                        **metric_init_kwargs)
+    metric = metric_cls(
+        process_id=process_id,
+        num_process=num_process,
+        data_dir=data_dir,
+        experiment_id=experiment_id,
+        in_memory=in_memory,
+        **metric_init_kwargs,
+    )
     return metric
 
 

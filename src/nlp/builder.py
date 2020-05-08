@@ -31,7 +31,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
 from .info import DatasetInfo
-from .naming import filename_prefix_for_split, camelcase_to_snakecase
+from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig
