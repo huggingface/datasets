@@ -103,7 +103,7 @@ class Xcopa(nlp.GeneratorBasedBuilder):
     # download and extract URLs
     dl_dir = dl_manager.download_and_extract(_URL)
   
-    data_dir = os.path.join(dl_dir, 'xcopa-master', 'data', self.config.lang)
+    data_dir = os.path.join(dl_dir, 'xcopa-master', 'data', self.config.name)
     return [
         nlp.SplitGenerator(
             name=nlp.Split.TEST,
