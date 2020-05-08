@@ -78,7 +78,8 @@ class DatasetInfo:
     supervised_keys: Optional[SupervisedKeysData] = None
 
     # Set later by the builder
-    name: Optional[str] = None
+    builder_name: Optional[str] = None
+    config_name: Optional[str] = None
     version: Optional[str] = None
     splits: Optional[dict] = field(default_factory=SplitDict)
     size_in_bytes: int = 0

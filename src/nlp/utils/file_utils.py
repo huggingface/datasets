@@ -14,9 +14,10 @@ import sys
 import tarfile
 import tempfile
 from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
-from typing import Optional
+from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
@@ -119,22 +120,9 @@ def url_to_filename(url, etag=None):
     return filename
 
 
-def cached_path(
-    url_or_filename,
-    cache_dir=None,
-    force_download=False,
-    proxies=None,
-    resume_download=False,
-    user_agent=None,
-    extract_compressed_file=False,
-    force_extract=False,
-    local_files_only=False,
-) -> Optional[str]:
-    """
-    Given something that might be a URL (or might be a local path),
-    determine which. If it's a URL, download the file and cache it, and
-    return the path to the cached file. If it's already a local path,
-    make sure the file exists and then return the path.
+@dataclass
+class DownloadConfig:
+    """ Configuration for our cached path manager
     Args:
         cache_dir: specify a cache directory to save the file to (overwrite the default cache dir).
         force_download: if True, re-dowload the file even if it's already cached in the cache dir.
@@ -145,6 +133,26 @@ def cached_path(
         force_extract: if True when extract_compressed_file is True and the archive was already extracted,
             re-extract the archive and overide the folder where it was extracted.
 
+
+    """
+
+    cache_dir: Optional[Union[str, Path]] = None
+    force_download: bool = False
+    resume_download: bool = False
+    local_files_only: bool = False
+    proxies: Optional[Dict] = None
+    user_agent: Optional[str] = None
+    extract_compressed_file: bool = False
+    force_extract: bool = False
+
+
+def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Optional[str]:
+    """
+    Given something that might be a URL (or might be a local path),
+    determine which. If it's a URL, download the file and cache it, and
+    return the path to the cached file. If it's already a local path,
+    make sure the file exists and then return the path.
+
     Return:
         Local path (string)
 
@@ -153,23 +161,26 @@ def cached_path(
             (non-existent or inaccessible url + no cache on disk)
         ValueError: if it couln't parse the url or filename correctly
     """
-    if cache_dir is None:
-        cache_dir = HF_DATASETS_CACHE
+    if download_config is None:
+        download_config = DownloadConfig(**download_kwargs)
+
+    if download_config.cache_dir is None:
+        download_config.cache_dir = HF_DATASETS_CACHE
+    if isinstance(download_config.cache_dir, Path):
+        download_config.cache_dir = str(download_config.cache_dir)
     if isinstance(url_or_filename, Path):
         url_or_filename = str(url_or_filename)
-    if isinstance(cache_dir, Path):
-        cache_dir = str(cache_dir)
 
     if is_remote_url(url_or_filename):
         # URL, so get it from the cache (downloading if necessary)
         output_path = get_from_cache(
             url_or_filename,
-            cache_dir=cache_dir,
-            force_download=force_download,
-            proxies=proxies,
-            resume_download=resume_download,
-            user_agent=user_agent,
-            local_files_only=local_files_only,
+            cache_dir=download_config.cache_dir,
+            force_download=download_config.force_download,
+            proxies=download_config.proxies,
+            resume_download=download_config.resume_download,
+            user_agent=download_config.user_agent,
+            local_files_only=download_config.local_files_only,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -181,7 +192,7 @@ def cached_path(
         # Something unknown
         raise ValueError("unable to parse {} as a URL or as a local path".format(url_or_filename))
 
-    if extract_compressed_file and output_path is not None:
+    if download_config.extract_compressed_file and output_path is not None:
         if not is_zipfile(output_path) and not tarfile.is_tarfile(output_path) and not is_gzip(output_path):
             return output_path
 
@@ -191,7 +202,11 @@ def cached_path(
         output_extract_dir_name = output_file.replace(".", "-") + "-extracted"
         output_path_extracted = os.path.join(output_dir, output_extract_dir_name)
 
-        if os.path.isdir(output_path_extracted) and os.listdir(output_path_extracted) and not force_extract:
+        if (
+            os.path.isdir(output_path_extracted)
+            and os.listdir(output_path_extracted)
+            and not download_config.force_extract
+        ):
             return output_path_extracted
 
         # Prevent parallel extractions
