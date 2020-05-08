@@ -21,8 +21,8 @@ import logging
 import os
 
 from .checksums_utils import CHECKSUMS_FILE_NAME, get_size_checksum, load_sizes_checksums, store_sizes_checksum
-from .file_utils import cached_path, url_to_filename, get_from_cache
-from .py_utils import flatten_nested, map_nested, zip_nested
+from .file_utils import cached_path, get_from_cache, url_to_filename
+from .py_utils import flatten_nested, map_nested
 
 
 logger = logging.getLogger(__name__)
@@ -124,8 +124,10 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
+
         def url_to_downloaded_path(url):
             return os.path.join(self._download_dir, url_to_filename(url))
+
         downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
         flattened_urls_or_urls = flatten_nested(url_or_urls)
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
