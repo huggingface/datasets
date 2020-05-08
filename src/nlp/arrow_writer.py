@@ -216,4 +216,10 @@ class BeamWriter(object):
             metadata = json.load(metadata_file)
         self._num_examples = metadata["num_examples"]
         os.remove(self._path + ".json")
+        logger.info(
+            "Done writing %s examples in %s bytes %s.",
+            self._num_examples,
+            self._num_bytes,
+            self._path if self._path else "",
+        )
         return self._num_examples, self._num_bytes
