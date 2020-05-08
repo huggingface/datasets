@@ -44,6 +44,3 @@ venv.bak/
 
 # playground
 /playground
-
-# unzipped dummy data
-/dummy_data/
