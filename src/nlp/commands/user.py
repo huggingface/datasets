@@ -199,7 +199,9 @@ class UploadCommand(BaseUserCommand):
         previous_checksums_filename = os.path.join(
             os.path.basename(local_path), URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME
         )
-        previous_checksums_path = cached_path(hf_bucket_url(namespace, filename=previous_checksums_filename, dataset=True))
+        previous_checksums_path = cached_path(
+            hf_bucket_url(namespace, filename=previous_checksums_filename, dataset=True)
+        )
         if previous_checksums_path is not None:
             print(
                 "Checksums file at {} under namespace {} will be updated".format(

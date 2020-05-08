@@ -17,7 +17,7 @@
 """ This class handle features definition in datasets and some utilities to display table type."""
 import logging
 from dataclasses import dataclass
-from typing import Any, ClassVar, Dict, List, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import pyarrow as pa
 
@@ -39,6 +39,8 @@ class Value:
     """
 
     dtype: str
+    id: Optional[str] = None
+    # Automatically constructed
     pa_type: ClassVar[Any] = None
     _type: str = "Value"
 
@@ -58,6 +60,8 @@ class Tensor:
 
     shape: Union[Tuple[int], List[int]]
     dtype: str
+    id: Optional[str] = None
+    # Automatically constructed
     pa_type: ClassVar[Any] = None
     _type: str = "Tensor"
 
@@ -96,7 +100,8 @@ class ClassLabel:
     num_classes: int = None
     names: List[str] = None
     names_file: str = None
-
+    id: Optional[str] = None
+    # Automatically constructed
     _str2int: ClassVar[Dict[str, int]] = None
     _int2str: ClassVar[Dict[int, int]] = None
     _type: str = "ClassLabel"
@@ -234,6 +239,8 @@ class Translation:
     """
 
     languages: List[str]
+    id: Optional[str] = None
+    # Automatically constructed
     _type: str = "Translation"
 
     def __call__(self):
@@ -284,6 +291,8 @@ class TranslationVariableLanguages:
 
     languages: List = None
     num_languages: int = None
+    id: Optional[str] = None
+    # Automatically constructed
     _type: str = "TranslationVariableLanguages"
 
     def __post_init__(self):
@@ -325,10 +334,15 @@ class Sequence:
 
     feature: Any
     length: int = -1
+    id: Optional[str] = None
+    # Automatically constructed
     _type: str = "Sequence"
 
 
-def get_nested_type(schema):
+FeatureType = Union[dict, list, tuple, Value, Tensor, ClassLabel, Translation, TranslationVariableLanguages, Sequence]
+
+
+def get_nested_type(schema: FeatureType) -> pa.DataType:
     """ Convert our Feature nested object in an Apache Arrow type """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):

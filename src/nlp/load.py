@@ -149,9 +149,15 @@ def get_imports(file_path: str):
     logger.info("Checking %s for additional imports.", file_path)
     imports = []
     for line in lines:
-        match = re.match(r"(?:from|import)\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line)
+        match = re.match(r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
         if match is None:
-            continue
+            match = re.match(
+                r"^from\s+(\.?)([^\s\.]+)(?:[^\s]*)\s+import\s+[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
+                line,
+                flags=re.MULTILINE,
+            )
+            if match is None:
+                continue
         if match.group(1):
             # The import starts with a '.', we will download the relevant file
             if match.group(3):

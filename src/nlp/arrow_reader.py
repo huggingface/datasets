@@ -55,8 +55,8 @@ def _get_dataset_from_filename(filename_skip_take):
     """Returns a Dataset instance from given (filename, skip, take)."""
     filename, skip, take = (
         filename_skip_take["filename"],
-        filename_skip_take["skip"] if 'skip' in filename_skip_take else None,
-        filename_skip_take["take"] if 'take' in filename_skip_take else None,
+        filename_skip_take["skip"] if "skip" in filename_skip_take else None,
+        filename_skip_take["take"] if "take" in filename_skip_take else None,
     )
 
     mmap = pa.memory_map(filename)

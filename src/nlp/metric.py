@@ -17,14 +17,15 @@
 """ Metrics base class."""
 import logging
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import pyarrow as pa
 from filelock import FileLock, Timeout
 
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
-from .utils import convert_tuples_in_lists, HF_METRICS_CACHE, Version
+from .info import MetricInfo
+from .utils import HF_METRICS_CACHE, Version
 
 
 logger = logging.getLogger(__file__)
@@ -40,7 +41,6 @@ class Metric(object):
         data_dir: Optional[str] = None,
         experiment_id: Optional[str] = None,
         in_memory=False,
-        arrow_schema=None,
         **kwargs,
     ):
         """ A Metrics is the base class and common API for all metrics.
@@ -69,7 +69,17 @@ class Metric(object):
         self._data_dir_root = os.path.expanduser(data_dir or HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
 
-        self.arrow_schema = arrow_schema
+        # prepare info
+        info = self._info()
+        info.name = self.name
+        info.version = self._version
+        self.info = info
+
+        # Update 'compute' and 'add' docstring
+        self.compute.__func__.__doc__ += self.info.inputs_description
+        self.add.__func__.__doc__ += self.info.inputs_description
+
+        self.arrow_schema = pa.schema(field for field in self.info.features.type)
         self.buf_writer = None
         self.writer = None
         self.writer_batch_size = None
@@ -100,7 +110,8 @@ class Metric(object):
         return version_data_dir
 
     def _build_data_dir(self):
-        """Return the directory for the current version."""
+        """ Return the directory for the current version.
+        """
         builder_data_dir = os.path.join(self._data_dir_root, self._relative_data_dir(with_version=False))
         version_data_dir = os.path.join(self._data_dir_root, self._relative_data_dir(with_version=True))
 
@@ -158,7 +169,7 @@ class Metric(object):
                 node_file = self._get_file_name(node_id)
                 filelock = FileLock(node_file + ".lock")
                 filelock.acquire(timeout=timeout)
-                node_files.append({'filename': node_file})
+                node_files.append({"filename": node_file})
                 locks.append(filelock)
 
             # Read the predictions and references
@@ -170,7 +181,8 @@ class Metric(object):
                 lock.release()
 
     def compute(self, predictions=None, references=None, timeout=120, **metrics_kwargs):
-        """ We add predictions and references to our stack. """
+        """ Compute the metrics.
+        """
         if predictions is not None:
             self.add(predictions=predictions, references=references)
         self.finalize(timeout=timeout)
@@ -178,12 +190,13 @@ class Metric(object):
         return output
 
     def add(self, predictions=None, references=None, **kwargs):
-        """ Add predictions and references for the metric """
+        """ Add predictions and references for the metric's stack.
+        """
         batch = {"predictions": predictions, "references": references}
         if self.writer is None:
-            if self.arrow_schema is None:
-                batch = convert_tuples_in_lists(batch)
-                self.arrow_schema = pa.Table.from_pydict(batch).schema
+            # if self.arrow_schema is None:
+            #     batch = convert_tuples_in_lists(batch)
+            #     self.arrow_schema = pa.Table.from_pydict(batch).schema
             if self.in_memory:
                 self.buf_writer = pa.BufferOutputStream()
                 self.writer = ArrowWriter(
@@ -197,6 +210,17 @@ class Metric(object):
 
         self.writer.write_batch(batch)
 
-    def _compute(self, predictions=None, references=None, **kwargs):
+    def _info(self) -> MetricInfo:
+        """Construct the MetricInfo object. See `MetricInfo` for details.
+
+        Warning: This function is only called once and the result is cached for all
+        following .info() calls.
+
+        Returns:
+            info: (MetricInfo) The metrics information
+        """
+        raise NotImplementedError
+
+    def _compute(self, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
         """ This method defines the common API for all the metrics in the library """
         raise NotImplementedError
