@@ -1,0 +1,1 @@
+https://public-aristo-processes.s3-us-west-2.amazonaws.com/wiqa_dataset_no_explanation_v2/wiqa-dataset-v2-october-2019.zip 5247733 afdab9bc33d814576f76516017f2b39dd101f8770f3f29ab6be2846ff59efb43
