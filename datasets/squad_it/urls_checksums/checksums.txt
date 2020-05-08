@@ -1,0 +1,2 @@
+https://github.com/crux82/squad-it/raw/master/SQuAD_it-test.json.gz 1051245 25986c617cc7d58e82e916755b8a5684e5efae69835332858a6534a304cd293c
+https://github.com/crux82/squad-it/raw/master/SQuAD_it-train.json.gz 7725286 75d4d2832961f7a0f76a43d7e919e56a880ccc55de434ec90ae82cd67bec5d25

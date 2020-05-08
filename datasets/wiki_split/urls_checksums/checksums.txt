@@ -1,0 +1,3 @@
+https://github.com/google-research-datasets/wiki-split/raw/master/test.tsv 1926782 88c3eff253f7ff3fcce9370bb54f750bc35f646c1b6d2a45df2b993c96670f7f
+https://github.com/google-research-datasets/wiki-split/raw/master/train.tsv.zip 96439435 42234243209fbb8f11405372284d634728faf47eafd5799cefb932c06c7b3a54
+https://github.com/google-research-datasets/wiki-split/raw/master/validation.tsv 1912947 63931ff45b7d95d60480bdcd466d69894fc02a0ec975cab8d0955e9b8cceb922

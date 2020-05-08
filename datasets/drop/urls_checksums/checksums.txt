@@ -1,0 +1,1 @@
+https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip 8308692 39d2278a29fd729de301b111a45f434c24834f40df8f4ff116d864589e3249d6
