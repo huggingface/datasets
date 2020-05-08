@@ -50,7 +50,11 @@ class MockDataLoaderManager(object):
         self.verbose = True
 
         self.config_name = config.name if config is not None else ""
-        self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
+
+        if isinstance(version, str):
+            self.version_name = version
+        else:
+            self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
 
         # structure is dummy / config_name / version_name / dummy_data.zip
         self.path_to_dummy_file = os.path.join(
