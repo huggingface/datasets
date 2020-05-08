@@ -5,7 +5,6 @@ from __future__ import division
 from __future__ import print_function
 
 import nlp
-import  tensorflow as tf
 import os
 import json
 # TODO(mlqa): BibTeX citation
@@ -56,19 +55,19 @@ class Mlqa(nlp.GeneratorBasedBuilder):
   VERSION = nlp.Version('1.0.0')
   BUILDER_CONFIGS = [
       MlqaConfig(
-          name='mlqa-translate-train',
+          name='mlqa-translate-train.'+lang,
           data_url=_URL + _TRANSLATE_TRAIN_URL,
           description='Machine-translated data for Translate-train (SQuAD Train and Dev sets machine-translated into '
                       'Arabic, German, Hindi, Vietnamese, Simplified Chinese and Spanish)'
 
-      ),
-
+      ) for lang in _LANG if lang != 'en'
+    ] + [
       MlqaConfig(
-          name='mlqa-translate-test',
+          name='mlqa-translate-test.'+lang,
           data_url=_URL + _TRANSLATE_TEST_URL,
           description='Machine-translated data for Translate-Test (MLQA-test set machine-translated into English) '
 
-      )
+      ) for lang in _LANG if lang != 'en'
   ] + [
       MlqaConfig(
           name='mlqa.'+lang1+'.'+lang2,
@@ -114,34 +113,34 @@ class Mlqa(nlp.GeneratorBasedBuilder):
     # TODO(mlqa): Downloads the data and defines the splits
     # dl_manager is a nlp.download.DownloadManager that can be used to
     # download and extract URLs
-    if self.config.name == 'mlqa-translate-train':
-        dl_file = dl_manager.download_and_extract(self.config.data_url)
-        for lang in _TRANSLATE_LANG:
-            return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        'filepath': os.path.join(os.path.join(dl_file, 'mlqa-translate-train'),
-                                                 '{}_squad-translate-train-train-v1.1.json'.format(lang)),
-                        'lang': lang
-                    },
-                ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        'filepath': os.path.join(os.path.join(dl_file,'mlqa-translate-train'),
-                                                 '{}_squad-translate-train-dev-v1.1.json'.format(lang)),
-                        'lang': lang
-                    },
-                ),
-            ]
+    if self.builder_config.name.startswith('mlqa-translate-train'):
+        dl_file = dl_manager.download_and_extract(self.builder_config.data_url)
+        lang = self.builder_config.name.split('.')[-1]
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    'filepath': os.path.join(os.path.join(dl_file, 'mlqa-translate-train'),
+                                             '{}_squad-translate-train-train-v1.1.json'.format(lang)),
+                    'lang': lang
+                },
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    'filepath': os.path.join(os.path.join(dl_file,'mlqa-translate-train'),
+                                             '{}_squad-translate-train-dev-v1.1.json'.format(lang)),
+                    'lang': lang
+                },
+            ),
+        ]
 
     else:
-        if self.config.name.startswith('mlqa.'):
-            dl_file = dl_manager.download_and_extract(self.config.data_url)
-            name = self.config.name.split('.')
+        if self.builder_config.name.startswith('mlqa.'):
+            dl_file = dl_manager.download_and_extract(self.builder_config.data_url)
+            name = self.builder_config.name.split('.')
             l1, l2 = name[1:]
             return [
                 nlp.SplitGenerator(
@@ -164,20 +163,20 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                 ),
             ]
         else:
-            if self.config.name == 'mlqa-translate-test':
-                dl_file = dl_manager.download_and_extract(self.config.data_url)
-                for lang in _TRANSLATE_LANG:
-                    return [
-                        nlp.SplitGenerator(
-                            name=nlp.Split.TEST,
-                            # These kwargs will be passed to _generate_examples
-                            gen_kwargs={
-                                'filepath': os.path.join(os.path.join(dl_file, 'mlqa-translate-test'),
-                                                         'translate-test-context-{}-question-{}.json'.format(lang, lang)),
-                                'lang': lang
-                            },
-                        ),
-                    ]
+            if self.builder_config.name.startswith('mlqa-translate-test'):
+                dl_file = dl_manager.download_and_extract(self.builder_config.data_url)
+                lang = self.builder_config.name.split('.')[-1]
+                return [
+                    nlp.SplitGenerator(
+                        name=nlp.Split.TEST,
+                        # These kwargs will be passed to _generate_examples
+                        gen_kwargs={
+                            'filepath': os.path.join(os.path.join(dl_file, 'mlqa-translate-test'),
+                                                     'translate-test-context-{}-question-{}.json'.format(lang, lang)),
+                            'lang': lang
+                        },
+                    ),
+                ]
 
 
   def _generate_examples(self, filepath, lang):

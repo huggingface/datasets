@@ -241,7 +241,7 @@ class MathDataset(nlp.GeneratorBasedBuilder):
     """Returns SplitGenerators."""
 
     directory = dl_manager.download_and_extract(_DATA_URL)
-    config = self.config.name + ".txt"
+    config = self.builder_config.name + ".txt"
 
     return [
         nlp.SplitGenerator(
