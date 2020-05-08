@@ -47,9 +47,7 @@ class DatasetTester(object):
         if is_local is True:
             module_path = prepare_module("./datasets/" + dataset_name)
         else:
-            module_path = prepare_module(
-                dataset_name, download_config=DownloadConfig(force_download=True)
-            )
+            module_path = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
         # Get dataset builder class
         builder_cls = import_main_class(module_path)
         # Instantiate dataset builder
