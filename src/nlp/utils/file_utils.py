@@ -327,7 +327,10 @@ def get_from_cache(
                         " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
                         " to False."
                     )
-                return None
+                else:
+                    raise ValueError(
+                        "Cannot find the requested files in the cached path and cannot download from {} because cannot get etag from {}".format(url, url)
+                    )
 
     # From now on, etag is not None.
     if os.path.exists(cache_path) and not force_download:
