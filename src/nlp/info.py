@@ -33,7 +33,7 @@ import json
 import logging
 import os
 from dataclasses import asdict, dataclass, field
-from typing import ClassVar, List, NamedTuple, Optional
+from typing import ClassVar, List, Optional
 
 from .features import Features, FeatureType, Sequence
 from .splits import SplitDict, check_splits_equals
@@ -47,12 +47,14 @@ LICENSE_FILENAME = "LICENSE"
 METRIC_INFO_FILENAME = "metric_info.json"
 
 
-class SupervisedKeysData(NamedTuple):
+@dataclass
+class SupervisedKeysData:
     input: str = ""
     output: str = ""
 
 
-class DownloadChecksumsEntryData(NamedTuple):
+@dataclass
+class DownloadChecksumsEntryData:
     key: str = ""
     value: str = ""
 
@@ -88,12 +90,18 @@ class DatasetInfo:
         # Convert back to the correct classes when we reload from dict
         if self.features is not None and not isinstance(self.features, Features):
             self.features = Features.from_dict(self.features)
-        if self.supervised_keys is not None and not isinstance(self.supervised_keys, SupervisedKeysData):
-            self.supervised_keys = SupervisedKeysData(*self.supervised_keys)
         if self.splits is not None and not isinstance(self.splits, SplitDict):
             self.splits = SplitDict.from_split_dict(self.splits)
+        if self.supervised_keys is not None and not isinstance(self.supervised_keys, SupervisedKeysData):
+            if isinstance(self.supervised_keys, (tuple, list)):
+                self.supervised_keys = SupervisedKeysData(*self.supervised_keys)
+            else:
+                self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
         if self.download_checksums and not isinstance(self.download_checksums[0], DownloadChecksumsEntryData):
-            self.download_checksums = [DownloadChecksumsEntryData(*args) for args in self.download_checksums]
+            if isinstance(self.download_checksums[0], (tuple, list)):
+                self.download_checksums = [DownloadChecksumsEntryData(*args) for args in self.download_checksums]
+            else:
+                self.download_checksums = [DownloadChecksumsEntryData(**args) for args in self.download_checksums]
 
     @property
     def dataset_size(self):
