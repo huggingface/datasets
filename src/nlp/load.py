@@ -64,7 +64,6 @@ def import_main_class(module_path, dataset=True):
             module_main_cls = obj
             break
 
-    module_main_cls._DYNAMICALLY_IMPORTED_MODULE = module
     return module_main_cls
 
 
