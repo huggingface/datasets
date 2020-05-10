@@ -22,8 +22,6 @@ from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
 
-from .lazy_imports_lib import lazy_imports
-
 
 logger = logging.getLogger(__name__)
 
@@ -181,7 +179,7 @@ class BeamWriter(object):
         self._pcoll_outputs_metadata = []
 
     def write_from_pcollection(self, pcoll_examples):
-        beam = lazy_imports.apache_beam
+        import apache_beam as beam
 
         # create some metadata that will be used in .finalize()
         num_examples = (
