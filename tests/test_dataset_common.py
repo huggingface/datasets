@@ -70,7 +70,7 @@ class DatasetTester(object):
             with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
                 # create config and dataset
                 dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
-                dataset_builder = dataset_builder_cls(config=config, data_dir=processed_temp_dir)
+                dataset_builder = dataset_builder_cls(config=config, cache_dir=processed_temp_dir)
 
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
 
