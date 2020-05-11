@@ -27,7 +27,7 @@ from typing import Dict, List, Optional, Union
 
 from . import splits as splits_lib
 from . import utils
-from .arrow_reader import ArrowReader
+from .arrow_reader import ArrowReader, ParquetReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
 from .info import DatasetInfo
@@ -636,6 +636,8 @@ class BeamBasedBuilder(DatasetBuilder):
 
     def __init__(self, *args, **kwargs):
         super(BeamBasedBuilder, self).__init__(*args, **kwargs)
+        self._beam_runner = kwargs.get("beam_runner")
+        self._beam_options = kwargs.get("beam_options")
         self._beam_writers = {}  # {split: beam_writer} mapping.
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -683,19 +685,39 @@ class BeamBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
+    def _as_dataset(self, split=splits_lib.Split.TRAIN):
+        """Constructs a `Dataset`.
+
+        This is the internal implementation to overwrite called when user calls
+        `as_dataset`. It should read the pre-processed datasets files and generate
+        the `Dataset` object.
+
+        Args:
+            split: `nlp.Split` which subset of the data to read.
+
+        Returns:
+            `Dataset`
+        """
+
+        ds = ParquetReader(self._cache_dir, self.info).read(
+            name=self.name, instructions=split, split_infos=self.info.splits.values(),
+        )
+        return ds
+
     def _download_and_prepare(self, dl_manager):
         # Create the Beam pipeline and forward it to _prepare_split
         import beam
 
-        beam_runner = dl_manager.beam_runner
-        beam_options = dl_manager.beam_options
+        beam_runner = self._beam_runner
+        beam_options = self._beam_options
 
         if not beam_runner and not beam_options:
-            raise ValueError(
+            logger.warning(
                 "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
                 "or PipelineOptions() has been provided. Please pass a "
                 "nlp.DownloadConfig(beam_runner=...) object to the "
-                "builder.download_and_prepare(download_config=...) method"
+                "builder.download_and_prepare(download_config=...) method. "
+                "Default values will be used."
             )
 
         beam_options = beam_options or beam.options.pipeline_options.PipelineOptions()
@@ -705,21 +727,17 @@ class BeamBasedBuilder(DatasetBuilder):
         beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
         with beam.Pipeline(runner=beam_runner, options=beam_options,) as pipeline:
-            # TODO(nlp): Should eventually try to add support to
-            # download_config.max_examples_per_split
             super(BeamBasedBuilder, self)._download_and_prepare(
                 dl_manager, pipeline=pipeline,
             )
 
-        # Update `info.splits` with number of shards and shard lengths.
+        # Update `info.splits`.
         split_dict = self.info.splits
         for split_name, beam_writer in self._beam_writers.items():
-            logger.info("Retrieving shard lengths for %s...", split_name)
-            shard_lengths, total_size = beam_writer.finalize()
+            num_examples, num_bytes = beam_writer.finalize()
             split_info = split_dict[split_name]
-            split_info.shard_lengths.extend(shard_lengths)
-            split_info.num_shards = len(shard_lengths)
-            split_info.num_bytes = total_size
+            split_info.num_examples = num_examples
+            split_info.num_bytes = num_bytes
         logger.info("Updating split info...")
         self.info.update_splits_if_different(split_dict)
 
@@ -733,10 +751,10 @@ class BeamBasedBuilder(DatasetBuilder):
         output_prefix = os.path.join(self._cache_dir, output_prefix)
 
         # To write examples to disk:
-        fname = "{}-{}.arrow".format(self.name, split_name)
+        fname = "{}-{}.parquet".format(self.name, split_name)
         fpath = os.path.join(self._cache_dir, fname)
-        examples_type = self.info.features.get_type()
-        beam_writer = BeamWriter(examples_type, fpath, hash_salt=split_name)
+        examples_type = self.info.features.type
+        beam_writer = BeamWriter(examples_type, path=fpath)
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example

@@ -15,7 +15,9 @@
 
 # Lint as: python3
 """To write records into Parquet files."""
+import json
 import logging
+import os
 from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
@@ -158,11 +160,64 @@ class BeamWriter(object):
     """
 
     def __init__(
-        self,
-        data_type: Optional[pa.DataType] = None,
-        schema: Optional[pa.Schema] = None,
-        path: Optional[str] = None,
-        stream: Optional[pa.NativeFile] = None,
-        writer_batch_size: Optional[int] = None,
+        self, data_type: Optional[pa.DataType] = None, schema: Optional[pa.Schema] = None, path: Optional[str] = None,
     ):
-        raise NotImplementedError
+        if data_type is None and schema is None:
+            raise ValueError("At least one of data_type and schema must be provided.")
+        if path is None:
+            raise ValueError("Path must be provided.")
+
+        if data_type is not None:
+            self._type: pa.DataType = data_type
+            self._schema: pa.Schema = pa.schema(field for field in self._type)
+        else:
+            self._schema: pa.Schema = schema
+            self._type: pa.DataType = pa.struct(field for field in self._schema)
+
+        self._path = path
+        self._num_examples = None
+        self._pcoll_outputs_metadata = []
+
+    def write_from_pcollection(self, pcoll_examples):
+        import apache_beam as beam
+
+        # create some metadata that will be used in .finalize()
+        num_examples = (
+            pcoll_examples
+            | "Add metadata key" >> beam.Map(lambda v: ("num_examples", v))
+            | "Count" >> beam.CombinePerKey(beam.transforms.combiners.CountCombineFn())
+        )
+
+        def save_metatada(metadata_items):
+            with open(self._path + ".json", "w") as metadata_file:
+                json.dump(metadata_items, metadata_file)
+
+        # save metadata
+        _ = (
+            (num_examples,)
+            | "Merge pcollections" >> beam.Flatten()
+            | "Create Dict" >> beam.transforms.combiners.ToDict()
+            | "Save metadata" >> beam.ParDo(save_metatada)
+        )
+
+        # save dataset
+        return (
+            pcoll_examples
+            | "Get values" >> beam.Values()
+            | "Save to parquet"
+            >> beam.io.parquetio.WriteToParquet(self._path, self._schema, num_shards=1, shard_name_template="")
+        )
+
+    def finalize(self):
+        self._num_bytes = os.path.getsize(self._path)
+        with open(self._path + ".json", "r") as metadata_file:
+            metadata = json.load(metadata_file)
+        self._num_examples = metadata["num_examples"]
+        os.remove(self._path + ".json")
+        logger.info(
+            "Done writing %s examples in %s bytes %s.",
+            self._num_examples,
+            self._num_bytes,
+            self._path if self._path else "",
+        )
+        return self._num_examples, self._num_bytes

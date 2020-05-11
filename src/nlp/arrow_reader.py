@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import pyarrow as pa
+import pyarrow.parquet
 
 from .arrow_dataset import Dataset
 from .naming import filename_for_dataset_split
@@ -51,22 +52,6 @@ $
 _ADDITION_SEP_RE = re.compile(r"\s*\+\s*")
 
 
-def _get_dataset_from_filename(filename_skip_take):
-    """Returns a Dataset instance from given (filename, skip, take)."""
-    filename, skip, take = (
-        filename_skip_take["filename"],
-        filename_skip_take["skip"] if "skip" in filename_skip_take else None,
-        filename_skip_take["take"] if "take" in filename_skip_take else None,
-    )
-
-    mmap = pa.memory_map(filename)
-    f = pa.ipc.open_stream(mmap)
-    pa_table = f.read_all()
-    if skip is not None and take is not None:
-        pa_table = pa_table.slice(skip, take)
-    return pa_table
-
-
 @dataclass(frozen=True)
 class FileInstructions:
     """The file instructions associated with a split ReadInstruction.
@@ -82,13 +67,14 @@ class FileInstructions:
     file_instructions: List[dict]
 
 
-def make_file_instructions(name, split_infos, instruction):
+def make_file_instructions(name, split_infos, instruction, filetype_suffix=None):
     """Returns instructions of the split dict.
 
     Args:
         name: Name of the dataset.
         split_infos: `List[SplitInfo]`, Dataset splits information
         instruction: `ReadInstruction` or `str`
+        filetype_suffix: `Optional[str]` suffix of dataset files, e.g. 'arrow' or 'parquet'
 
     Returns:
         file_intructions: FileInstructions instance
@@ -100,20 +86,20 @@ def make_file_instructions(name, split_infos, instruction):
     absolute_instructions = instruction.to_absolute(name2len)
 
     return _make_file_instructions_from_absolutes(
-        name=name, name2len=name2len, absolute_instructions=absolute_instructions,
+        name=name, name2len=name2len, absolute_instructions=absolute_instructions, filetype_suffix=filetype_suffix
     )
 
 
-def _make_file_instructions_from_absolutes(
-    name, name2len, absolute_instructions,
-):
+def _make_file_instructions_from_absolutes(name, name2len, absolute_instructions, filetype_suffix=None):
     """Returns the files instructions from the absolute instructions list."""
     # For each split, return the files instruction (skip/take)
     file_instructions = []
     num_examples = 0
     for abs_instr in absolute_instructions:
         length = name2len[abs_instr.splitname]
-        filename = filename_for_dataset_split(dataset_name=name, split=abs_instr.splitname, filetype_suffix="arrow")
+        filename = filename_for_dataset_split(
+            dataset_name=name, split=abs_instr.splitname, filetype_suffix=filetype_suffix
+        )
         from_ = 0 if abs_instr.from_ is None else abs_instr.from_
         to = length if abs_instr.to is None else abs_instr.to
         num_examples += to - from_
@@ -122,28 +108,9 @@ def _make_file_instructions_from_absolutes(
     return FileInstructions(num_examples=num_examples, file_instructions=file_instructions,)
 
 
-def _read_files(files, info):
-    """Returns Dataset for given file instructions.
-
-    Args:
-        files: List[dict(filename, skip, take)], the files information.
-            The filenames contain the absolute path, not relative.
-            skip/take indicates which example read in the file: `ds.slice(skip, take)`
+class BaseReader:
     """
-    pa_batches = []
-    for f_dict in files:
-        pa_table: pa.Table = _get_dataset_from_filename(f_dict)
-        pa_batches.extend(pa_table.to_batches())
-    if pa_batches:
-        pa_table = pa.Table.from_batches(pa_batches)
-    ds = Dataset(arrow_table=pa_table, data_files=files, info=info)
-    return ds
-
-
-class ArrowReader(object):
-    """Build a Dataset object out of Instruction instance(s).
-
-    This class should not typically be exposed to the user.
+    Build a Dataset object out of Instruction instance(s).
     """
 
     def __init__(self, path, info):
@@ -151,9 +118,32 @@ class ArrowReader(object):
 
         Args:
             path (str): path where tfrecords are stored.
+            info (DatasetInfo): info about the dataset.
         """
         self._path = path
         self._info = info
+        self._filetype_suffix = None
+
+    def _get_dataset_from_filename(self, filename_skip_take):
+        """Returns a Dataset instance from given (filename, skip, take)."""
+        raise NotImplementedError
+
+    def _read_files(self, files, info):
+        """Returns Dataset for given file instructions.
+
+        Args:
+            files: List[dict(filename, skip, take)], the files information.
+                The filenames contain the absolute path, not relative.
+                skip/take indicates which example read in the file: `ds.slice(skip, take)`
+        """
+        pa_batches = []
+        for f_dict in files:
+            pa_table: pa.Table = self._get_dataset_from_filename(f_dict)
+            pa_batches.extend(pa_table.to_batches())
+        if pa_batches:
+            pa_table = pa.Table.from_batches(pa_batches)
+        ds = Dataset(arrow_table=pa_table, data_files=files, info=info)
+        return ds
 
     def read(
         self, name, instructions, split_infos,
@@ -174,7 +164,9 @@ class ArrowReader(object):
         """
 
         def _read_instruction_to_ds(instruction):
-            file_instructions = make_file_instructions(name, split_infos, instruction)
+            file_instructions = make_file_instructions(
+                name, split_infos, instruction, filetype_suffix=self._filetype_suffix
+            )
             files = file_instructions.file_instructions
             if not files:
                 msg = 'Instruction "%s" corresponds to no data!' % instruction
@@ -200,8 +192,68 @@ class ArrowReader(object):
         files = copy.deepcopy(files)
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
-        dataset = _read_files(files=files, info=self._info,)
+        dataset = self._read_files(files=files, info=self._info,)
         return dataset
+
+
+class ArrowReader(BaseReader):
+    """
+    Build a Dataset object out of Instruction instance(s).
+    This Reader uses memory mapping on arrow files.
+    """
+
+    def __init__(self, path, info):
+        """Initializes ArrowReader.
+
+        Args:
+            path (str): path where tfrecords are stored.
+            info (DatasetInfo): info about the dataset.
+        """
+        super().__init__(path, info)
+        self._filetype_suffix = "arrow"
+
+    def _get_dataset_from_filename(self, filename_skip_take):
+        """Returns a Dataset instance from given (filename, skip, take)."""
+        filename, skip, take = (
+            filename_skip_take["filename"],
+            filename_skip_take["skip"] if "skip" in filename_skip_take else None,
+            filename_skip_take["take"] if "take" in filename_skip_take else None,
+        )
+        mmap = pa.memory_map(filename)
+        f = pa.ipc.open_stream(mmap)
+        pa_table = f.read_all()
+        if skip is not None and take is not None:
+            pa_table = pa_table.slice(skip, take)
+        return pa_table
+
+
+class ParquetReader(BaseReader):
+    """
+    Build a Dataset object out of Instruction instance(s).
+    This Reader uses memory mapping on parquet files.
+    """
+
+    def __init__(self, path, info):
+        """Initializes ParquetReader.
+
+        Args:
+            path (str): path where tfrecords are stored.
+            info (DatasetInfo): info about the dataset.
+        """
+        super().__init__(path, info)
+        self._filetype_suffix = "parquet"
+
+    def _get_dataset_from_filename(self, filename_skip_take):
+        """Returns a Dataset instance from given (filename, skip, take)."""
+        filename, skip, take = (
+            filename_skip_take["filename"],
+            filename_skip_take["skip"] if "skip" in filename_skip_take else None,
+            filename_skip_take["take"] if "take" in filename_skip_take else None,
+        )
+        pa_table = pa.parquet.read_table(filename, memory_map=True)
+        if skip is not None and take is not None:
+            pa_table = pa_table.slice(skip, take)
+        return pa_table
 
 
 @dataclass(frozen=True)
