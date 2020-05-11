@@ -45,13 +45,11 @@ class DatasetTester(object):
     def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
         if is_local is True:
-            dataset_name, dataset_hash = prepare_module("./datasets/" + dataset_name)
+            module_path = prepare_module("./datasets/" + dataset_name)
         else:
-            dataset_name, dataset_hash = prepare_module(
-                dataset_name, download_config=DownloadConfig(force_download=True)
-            )
+            module_path = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
         # Get dataset builder class
-        builder_cls = import_main_class(dataset_name, dataset_hash)
+        builder_cls = import_main_class(module_path)
         # Instantiate dataset builder
         return builder_cls
 
@@ -125,7 +123,7 @@ class DatasetTest(parameterized.TestCase):
     @aws
     def test_dataset_has_valid_etag(self, dataset_name):
         py_script_path = list(filter(lambda x: x, dataset_name.split("/")))[-1] + ".py"
-        dataset_url = hf_bucket_url(dataset_name, filename=py_script_path)
+        dataset_url = hf_bucket_url(dataset_name, filename=py_script_path, dataset=True)
         etag = None
         try:
             response = requests.head(dataset_url, allow_redirects=True, proxies=None, timeout=10)

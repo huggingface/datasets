@@ -58,7 +58,7 @@ class Opinosis(nlp.GeneratorBasedBuilder):
             _REVIEW_SENTS: nlp.Value('string'),
             _SUMMARIES: nlp.features.Sequence(nlp.Value('string'))
         }),
-        supervised_keys={"input": _REVIEW_SENTS, "output": _SUMMARIES},
+        supervised_keys=(_REVIEW_SENTS, _SUMMARIES),
         homepage="http://kavita-ganesan.com/opinosis/",
         citation=_CITATION,
     )

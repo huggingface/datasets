@@ -95,7 +95,7 @@ class CivilComments(nlp.GeneratorBasedBuilder):
             'sexual_explicit': nlp.Value('float32')
         }),
         # The supervised_keys version is very impoverished.
-        supervised_keys=({"input": 'text', "output":'toxicity'}),
+        supervised_keys=('text', 'toxicity'),
         homepage='https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data',
         citation=_CITATION,
     )

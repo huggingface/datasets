@@ -50,8 +50,8 @@ class TestCommand(BaseTransformersCLICommand):
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
         path, config = self._dataset, self._config
-        dataset_name, dataset_hash = prepare_module(path)
-        builder_cls = import_main_class(dataset_name, dataset_hash)
+        module_path = prepare_module(path)
+        builder_cls = import_main_class(module_path)
         builders: List[DatasetBuilder] = []
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:

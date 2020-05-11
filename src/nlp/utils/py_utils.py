@@ -43,6 +43,16 @@ from .file_utils import INCOMPLETE_SUFFIX
 memoize = functools.lru_cache
 
 
+def convert_tuples_in_lists(data_struct):
+    # Could add support for more exotic data_struct, like OrderedDict
+    if isinstance(data_struct, dict):
+        return {k: convert_tuples_in_lists(v) for k, v in data_struct.items()}
+    else:
+        if isinstance(data_struct, (list, tuple)):
+            return [convert_tuples_in_lists(v) for v in data_struct]
+    return data_struct
+
+
 def size_str(size_in_bytes):
     """Returns a human readable size string.
 

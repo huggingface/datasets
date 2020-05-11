@@ -100,7 +100,7 @@ class Cfq(nlp.GeneratorBasedBuilder):
             _QUESTION: nlp.Value('string'),
             _QUERY: nlp.Value('string'),
         }),
-        supervised_keys={"input": _QUESTION, "output": _QUERY},
+        supervised_keys=(_QUESTION, _QUERY),
         homepage='https://github.com/google-research/google-research/tree/master/cfq',
         citation=_CITATION,
     )

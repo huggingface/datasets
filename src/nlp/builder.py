@@ -31,7 +31,6 @@ from .arrow_reader import ArrowReader, ParquetReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
 from .info import DatasetInfo
-from .lazy_imports_lib import lazy_imports
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadManager, GenerateMode
@@ -707,7 +706,7 @@ class BeamBasedBuilder(DatasetBuilder):
 
     def _download_and_prepare(self, dl_manager):
         # Create the Beam pipeline and forward it to _prepare_split
-        beam = lazy_imports.apache_beam
+        import beam
 
         beam_runner = self._beam_runner
         beam_options = self._beam_options
@@ -743,7 +742,7 @@ class BeamBasedBuilder(DatasetBuilder):
         self.info.update_splits_if_different(split_dict)
 
     def _prepare_split(self, split_generator, pipeline):
-        beam = lazy_imports.apache_beam
+        import beam
 
         os.makedirs(self._cache_dir, exist_ok=True)
 

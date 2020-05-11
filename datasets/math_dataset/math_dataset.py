@@ -216,7 +216,7 @@ class MathDataset(nlp.GeneratorBasedBuilder):
             _QUESTION: nlp.Value('string'),
             _ANSWER: nlp.Value('string'),
         }),
-        supervised_keys={"input": _QUESTION, "output": _ANSWER},
+        supervised_keys=(_QUESTION, _ANSWER),
         homepage="https://github.com/deepmind/mathematics_dataset",
         citation=_CITATION,
     )

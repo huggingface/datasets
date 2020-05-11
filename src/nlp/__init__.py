@@ -40,9 +40,9 @@ from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .features import ClassLabel, Features, Sequence, Tensor, Translation, TranslationVariableLanguages, Value
-from .info import DatasetInfo
-from .lazy_imports_lib import lazy_imports
-from .load import import_main_class, load, prepare_module
+from .info import DatasetInfo, MetricInfo
+from .load import import_main_class, load, load_metric, prepare_module
+from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar

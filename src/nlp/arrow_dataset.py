@@ -28,19 +28,10 @@ from tqdm import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
+from .utils import convert_tuples_in_lists
 
 
 logger = logging.getLogger(__name__)
-
-
-def convert_tuples_in_lists(data_struct):
-    # Could add support for more exotic data_struct, like OrderedDict
-    if isinstance(data_struct, dict):
-        return {k: convert_tuples_in_lists(v) for k, v in data_struct.items()}
-    else:
-        if isinstance(data_struct, (list, tuple)):
-            return [convert_tuples_in_lists(v) for v in data_struct]
-    return data_struct
 
 
 class Dataset(object):

@@ -62,7 +62,7 @@ class Aeslc(nlp.GeneratorBasedBuilder):
             _DOCUMENT: nlp.Value('string'),
             _SUMMARY: nlp.Value('string')
         }),
-        supervised_keys={"input": _DOCUMENT, "output": _SUMMARY},
+        supervised_keys=(_DOCUMENT, _SUMMARY),
         homepage="https://github.com/ryanzhumich/AESLC",
         citation=_CITATION,
     )
