@@ -20,19 +20,13 @@
 
 import contextlib
 import functools
-import hashlib
-import io
 import itertools
 import os
-import sys
-import uuid
 from io import BytesIO as StringIO
 from shutil import disk_usage
 from types import CodeType
 
 import dill
-
-from .file_utils import INCOMPLETE_SUFFIX
 
 
 # NOTE: When used on an instance method, the cache is shared across all
@@ -216,36 +210,9 @@ def flatten_nested(data_struct):
     return [data_struct]
 
 
-def pack_as_nest_dict(flat_d, nest_d):
-    """Pack a 1-lvl dict into a nested dict with same structure as `nest_d`."""
-    nest_out_d = {}
-    for k, v in nest_d.items():
-        if isinstance(v, dict):
-            v_flat = flatten_nest_dict(v)
-            sub_d = {k2: flat_d.pop("{}/{}".format(k, k2)) for k2, _ in v_flat.items()}
-            # Recursivelly pack the dictionary
-            nest_out_d[k] = pack_as_nest_dict(sub_d, v)
-        else:
-            nest_out_d[k] = flat_d.pop(k)
-    if flat_d:  # At the end, flat_d should be empty
-        raise ValueError(
-            "Flat dict strucure do not match the nested dict. Extra keys: " "{}".format(list(flat_d.keys()))
-        )
-    return nest_out_d
-
-
 def nlp_dir():
     """Path to nlp directory."""
     return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
-
-@contextlib.contextmanager
-def atomic_write(path, mode):
-    """Writes to path atomically, by writing to temp file and renaming it."""
-    tmp_path = "%s%s_%s" % (path, INCOMPLETE_SUFFIX, uuid.uuid4().hex)
-    with open(tmp_path, mode) as file_:
-        yield file_
-    os.rename(tmp_path, path)
 
 
 class abstractclassmethod(classmethod):  # pylint: disable=invalid-name
@@ -262,47 +229,6 @@ def get_nlp_path(relative_path):
     """Returns absolute path to file given path relative to nlp root."""
     path = os.path.join(nlp_dir(), relative_path)
     return path
-
-
-def read_checksum_digest(path, checksum_cls=hashlib.sha256):
-    """Given a hash constructor, returns checksum digest and size of file."""
-    checksum = checksum_cls()
-    size = 0
-    with open(path, "rb") as f:
-        while True:
-            block = f.read(io.DEFAULT_BUFFER_SIZE)
-            size += len(block)
-            if not block:
-                break
-            checksum.update(block)
-    return checksum.hexdigest(), size
-
-
-def reraise(prefix=None, suffix=None):
-    """Reraise an exception with an additional message."""
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    prefix = prefix or ""
-    suffix = "\n" + suffix if suffix else ""
-    msg = prefix + str(exc_value) + suffix
-    raise (exc_type, exc_type(msg), exc_traceback)
-
-
-@contextlib.contextmanager
-def try_reraise(*args, **kwargs):
-    """Reraise an exception with an additional message."""
-    try:
-        yield
-    except Exception:  # pylint: disable=broad-except
-        reraise(*args, **kwargs)
-
-
-def rgetattr(obj, attr, *args):
-    """Get attr that handles dots in attr name."""
-
-    def _getattr(obj, attr):
-        return getattr(obj, attr, *args)
-
-    return functools.reduce(_getattr, [obj] + attr.split("."))
 
 
 def has_sufficient_disk_space(needed_bytes, directory="."):
