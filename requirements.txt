@@ -1,0 +1,5 @@
+argparse==1.2.1		
+cchardet==0.3.5		
+lxml==3.3.3		
+requests==2.2.1		
+wsgiref==0.1.2
