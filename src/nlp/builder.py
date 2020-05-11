@@ -706,7 +706,7 @@ class BeamBasedBuilder(DatasetBuilder):
 
     def _download_and_prepare(self, dl_manager):
         # Create the Beam pipeline and forward it to _prepare_split
-        import beam
+        import apache_beam as beam
 
         beam_runner = self._beam_runner
         beam_options = self._beam_options
@@ -742,7 +742,7 @@ class BeamBasedBuilder(DatasetBuilder):
         self.info.update_splits_if_different(split_dict)
 
     def _prepare_split(self, split_generator, pipeline):
-        import beam
+        import apache_beam as beam
 
         os.makedirs(self._cache_dir, exist_ok=True)
 
