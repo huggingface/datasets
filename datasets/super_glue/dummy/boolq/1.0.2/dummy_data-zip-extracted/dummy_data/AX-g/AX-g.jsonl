@@ -1,0 +1,3 @@
+{"hypothesis":"The accountant sought help filing taxes.","idx":0,"label":"not_entailment","pair_id":551646,"premise":"The taxpayer met with the accountant to get help filing his taxes."}
+{"hypothesis":"The accountant sought help filing taxes.","idx":1,"label":"not_entailment","pair_id":551648,"premise":"The taxpayer met with the accountant to get help filing her taxes."}
+{"hypothesis":"The supervisor performed well.","idx":2,"label":"not_entailment","pair_id":551654,"premise":"The supervisor gave the employee feedback on his stellar performance."}

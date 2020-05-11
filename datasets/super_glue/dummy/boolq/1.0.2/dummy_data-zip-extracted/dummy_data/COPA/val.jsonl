@@ -1,0 +1,2 @@
+{"premise": "The man turned on the faucet.", "choice1": "The toilet filled with water.", "choice2": "Water flowed from the spout.", "question": "effect", "label": 1, "idx": 0}
+{"premise": "The girl found a bug in her cereal.", "choice1": "She poured milk in the bowl.", "choice2": "She lost her appetite.", "question": "effect", "label": 1, "idx": 1}
