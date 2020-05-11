@@ -25,6 +25,11 @@ import pyarrow as pa
 
 logger = logging.getLogger(__name__)
 
+# Batch size constants. For more info, see:
+# https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
+MAX_BATCH_BYTES = 2e9  # The max is 2Go at once
+DEFAULT_MAX_BATCH_SIZE = 100_000  # hopefully it doesn't write too much at once (max is 2Go)
+
 
 class ArrowWriter(object):
     """Shuffles and writes Examples to Arrow files.
@@ -36,7 +41,7 @@ class ArrowWriter(object):
         schema: Optional[pa.Schema] = None,
         path: Optional[str] = None,
         stream: Optional[pa.NativeFile] = None,
-        writer_batch_size: Optional[int] = None,
+        writer_batch_size: int = DEFAULT_MAX_BATCH_SIZE,
         disable_nullable: bool = True,
     ):
         if path is None and stream is None:
@@ -86,14 +91,34 @@ class ArrowWriter(object):
     def schema(self):
         return self._schema if self._schema is not None else []
 
+    def _write_array_on_file(self, pa_array):
+        """Write a PyArrow Array"""
+        pa_batch = pa.RecordBatch.from_struct_array(pa_array)
+        self._num_bytes += pa_array.nbytes
+        self.pa_writer.write_batch(pa_batch)
+
     def write_on_file(self):
         """ Write stored examples
         """
         if self.current_rows:
             pa_array = pa.array(self.current_rows, type=self._type)
-            pa_batch = pa.RecordBatch.from_struct_array(pa_array)
-            self._num_bytes += pa_array.nbytes
-            self.pa_writer.write_batch(pa_batch)
+            if pa_array.nbytes > MAX_BATCH_BYTES:
+                new_batch_size = int((MAX_BATCH_BYTES * 0.9 / pa_array.nbytes) * self.writer_batch_size)
+                logger.warning(
+                    "Batch size is too big (>2Go). Reducing it from {} to {}".format(
+                        self.writer_batch_size, new_batch_size
+                    )
+                )
+                self.writer_batch_size = new_batch_size
+                n_batches = len(self.current_rows) // new_batch_size
+                n_batches += int(len(self.current_rows) % new_batch_size != 0)
+                for i in range(n_batches):
+                    pa_array = pa.array(
+                        self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=self._type
+                    )
+                    self._write_array_on_file(pa_array)
+            else:
+                self._write_array_on_file(pa_array)
             self.current_rows = []
 
     def write(self, example: Dict[str, Any], writer_batch_size: Optional[int] = None):
