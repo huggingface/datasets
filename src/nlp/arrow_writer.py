@@ -104,12 +104,18 @@ class ArrowWriter(object):
             pa_array = pa.array(self.current_rows, type=self._type)
             if pa_array.nbytes > MAX_BATCH_BYTES:
                 new_batch_size = int((MAX_BATCH_BYTES * 0.9 / pa_array.nbytes) * self.writer_batch_size)
-                logger.warning("Batch size is too big (>2Go). Reducing it from {} to {}".format(self.writer_batch_size, new_batch_size))
+                logger.warning(
+                    "Batch size is too big (>2Go). Reducing it from {} to {}".format(
+                        self.writer_batch_size, new_batch_size
+                    )
+                )
                 self.writer_batch_size = new_batch_size
                 n_batches = len(self.current_rows) // new_batch_size
                 n_batches += int(len(self.current_rows) % new_batch_size != 0)
                 for i in range(n_batches):
-                    pa_array = pa.array(self.current_rows[i * new_batch_size: (i + 1) * new_batch_size], type=self._type)
+                    pa_array = pa.array(
+                        self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=self._type
+                    )
                     self._write_array_on_file(pa_array)
             else:
                 self._write_array_on_file(pa_array)
