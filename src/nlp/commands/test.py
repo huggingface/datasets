@@ -6,7 +6,7 @@ from typing import List
 from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder
 from nlp.commands import BaseTransformersCLICommand
 from nlp.load import import_main_class, prepare_module
-from nlp.utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME, CACHED_SIZES_FILE_NAME
+from nlp.utils.checksums_utils import CACHED_SIZES_FILE_NAME, CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 
 
 def test_command_factory(args):
@@ -21,7 +21,9 @@ class TestCommand(BaseTransformersCLICommand):
         test_parser = parser.add_parser("test")
         test_parser.add_argument("--config", type=str, default=None, help="Dataset processing config")
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
-        test_parser.add_argument("--save_checksums", action="store_true", help="Save the checksums file and cached file sizes")
+        test_parser.add_argument(
+            "--save_checksums", action="store_true", help="Save the checksums file and cached file sizes"
+        )
         test_parser.add_argument(
             "--ignore_checksums", action="store_true", help="Run the test without checksums checks"
         )
