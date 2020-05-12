@@ -1,0 +1,779 @@
+{
+  "version": "1.0",
+  "data": [
+    {
+      "source": "mctest",
+      "id": "3dr23u6we5exclen4th8uq9rb42tel",
+      "filename": "mc160.test.41",
+      "story": "Once upon a time, in a barn near a farm house, there lived a little white kitten named Cotton. Cotton lived high up in a nice warm place above the barn where all of the farmer's horses slept. But Cotton wasn't alone in her little home above the barn, oh no. She shared her hay bed with her mommy and 5 other sisters. All of her sisters were cute and fluffy, like Cotton. But she was the only white one in the bunch. The rest of her sisters were all orange with beautiful white tiger stripes like Cotton's mommy. Being different made Cotton quite sad. She often wished she looked like the rest of her family. So one day, when Cotton found a can of the old farmer's orange paint, she used it to paint herself like them. When her mommy and sisters found her they started laughing. \n\n\"What are you doing, Cotton?!\" \n\n\"I only wanted to be more like you\". \n\nCotton's mommy rubbed her face on Cotton's and said \"Oh Cotton, but your fur is so pretty and special, like you. We would never want you to be any other way\". And with that, Cotton's mommy picked her up and dropped her into a big bucket of water. When Cotton came out she was herself again. Her sisters licked her face until Cotton's fur was all all dry. \n\n\"Don't ever do that again, Cotton!\" they all cried. \"Next time you might mess up that pretty white fur of yours and we wouldn't want that!\" \n\nThen Cotton thought, \"I change my mind. I like being special\".",
+      "questions": [
+        {
+          "input_text": "What color was Cotton?",
+          "turn_id": 1
+        },
+        {
+          "input_text": "Where did she live?",
+          "turn_id": 2
+        },
+        {
+          "input_text": "Did she live alone?",
+          "turn_id": 3
+        },
+        {
+          "input_text": "Who did she live with?",
+          "turn_id": 4
+        },
+        {
+          "input_text": "What color were her sisters?",
+          "turn_id": 5
+        },
+        {
+          "input_text": "Was Cotton happy that she looked different than the rest of her family?",
+          "turn_id": 6
+        },
+        {
+          "input_text": "What did she do to try to make herself the same color as her sisters?",
+          "turn_id": 7
+        },
+        {
+          "input_text": "Whose paint was it?",
+          "turn_id": 8
+        },
+        {
+          "input_text": "What did Cotton's mother and siblings do when they saw her painted orange?",
+          "turn_id": 9
+        },
+        {
+          "input_text": "Where did Cotton's mother put her to clean the paint off?",
+          "turn_id": 10
+        },
+        {
+          "input_text": "What did the other cats do when Cotton emerged from the bucket of water?",
+          "turn_id": 11
+        },
+        {
+          "input_text": "Did they want Cotton to change the color of her fur?",
+          "turn_id": 12
+        }
+      ],
+      "answers": [
+        {
+          "span_start": 59,
+          "span_end": 93,
+          "span_text": "a little white kitten named Cotton",
+          "input_text": "white",
+          "turn_id": 1
+        },
+        {
+          "span_start": 18,
+          "span_end": 80,
+          "span_text": "in a barn near a farm house, there lived a little white kitten",
+          "input_text": "in a barn",
+          "turn_id": 2
+        },
+        {
+          "span_start": 196,
+          "span_end": 215,
+          "span_text": "Cotton wasn't alone",
+          "input_text": "no",
+          "turn_id": 3
+        },
+        {
+          "span_start": 281,
+          "span_end": 315,
+          "span_text": "with her mommy and 5 other sisters",
+          "input_text": "with her mommy and 5 sisters",
+          "turn_id": 4
+        },
+        {
+          "span_start": 428,
+          "span_end": 490,
+          "span_text": "her sisters were all orange with beautiful white tiger stripes",
+          "input_text": "orange and white",
+          "turn_id": 5
+        },
+        {
+          "span_start": 512,
+          "span_end": 549,
+          "span_text": "Being different made Cotton quite sad",
+          "input_text": "no",
+          "turn_id": 6
+        },
+        {
+          "span_start": 678,
+          "span_end": 716,
+          "span_text": "she used it to paint herself like them",
+          "input_text": "she painted herself",
+          "turn_id": 7
+        },
+        {
+          "span_start": 647,
+          "span_end": 676,
+          "span_text": "the old farmer's orange paint",
+          "input_text": "the farmer",
+          "turn_id": 8
+        },
+        {
+          "span_start": 718,
+          "span_end": 776,
+          "span_text": "When her mommy and sisters found her they started laughing",
+          "input_text": "they started laughing",
+          "turn_id": 9
+        },
+        {
+          "span_start": 1035,
+          "span_end": 1097,
+          "span_text": "mommy picked her up and dropped her into a big bucket of water",
+          "input_text": "a bucket of water",
+          "turn_id": 10
+        },
+        {
+          "span_start": 1143,
+          "span_end": 1170,
+          "span_text": "Her sisters licked her face",
+          "input_text": "licked her face",
+          "turn_id": 11
+        },
+        {
+          "span_start": 965,
+          "span_end": 1008,
+          "span_text": "We would never want you to be any other way",
+          "input_text": "no",
+          "turn_id": 12
+        }
+      ],
+      "additional_answers": {
+        "0": [
+          {
+            "span_start": 68,
+            "span_end": 93,
+            "span_text": "white kitten named Cotton",
+            "input_text": "white",
+            "turn_id": 1
+          },
+          {
+            "span_start": 17,
+            "span_end": 93,
+            "span_text": " in a barn near a farm house, there lived a little white kitten named Cotton",
+            "input_text": "in a barn",
+            "turn_id": 2
+          },
+          {
+            "span_start": 192,
+            "span_end": 215,
+            "span_text": "But Cotton wasn't alone",
+            "input_text": "no",
+            "turn_id": 3
+          },
+          {
+            "span_start": 258,
+            "span_end": 315,
+            "span_text": "She shared her hay bed with her mommy and 5 other sisters",
+            "input_text": "her mommy and 5 other sisters",
+            "turn_id": 4
+          },
+          {
+            "span_start": 416,
+            "span_end": 490,
+            "span_text": "The rest of her sisters were all orange with beautiful white tiger stripes",
+            "input_text": "orange with white tiger stripes",
+            "turn_id": 5
+          },
+          {
+            "span_start": 512,
+            "span_end": 549,
+            "span_text": "Being different made Cotton quite sad",
+            "input_text": "no",
+            "turn_id": 6
+          },
+          {
+            "span_start": 678,
+            "span_end": 716,
+            "span_text": "she used it to paint herself like them",
+            "input_text": "she painted herself",
+            "turn_id": 7
+          },
+          {
+            "span_start": 655,
+            "span_end": 676,
+            "span_text": "farmer's orange paint",
+            "input_text": "the farmer's",
+            "turn_id": 8
+          },
+          {
+            "span_start": 718,
+            "span_end": 777,
+            "span_text": "When her mommy and sisters found her they started laughing.",
+            "input_text": "they started laughing",
+            "turn_id": 9
+          },
+          {
+            "span_start": 1059,
+            "span_end": 1097,
+            "span_text": "dropped her into a big bucket of water",
+            "input_text": "dropped her into a big bucket of water",
+            "turn_id": 10
+          },
+          {
+            "span_start": 1143,
+            "span_end": 1171,
+            "span_text": "Her sisters licked her face ",
+            "input_text": "licked her face",
+            "turn_id": 11
+          },
+          {
+            "span_start": 1209,
+            "span_end": 1244,
+            "span_text": "\"Don't ever do that again, Cotton!\"",
+            "input_text": "no",
+            "turn_id": 12
+          }
+        ],
+        "1": [
+          {
+            "span_start": 68,
+            "span_end": 74,
+            "span_text": "white ",
+            "input_text": "white",
+            "turn_id": 1
+          },
+          {
+            "span_start": 18,
+            "span_end": 27,
+            "span_text": "in a barn",
+            "input_text": "in a barn",
+            "turn_id": 2
+          },
+          {
+            "span_start": 202,
+            "span_end": 215,
+            "span_text": " wasn't alone",
+            "input_text": "No",
+            "turn_id": 3
+          },
+          {
+            "span_start": 286,
+            "span_end": 315,
+            "span_text": "her mommy and 5 other sisters",
+            "input_text": "her mommy and 5 other sisters",
+            "turn_id": 4
+          },
+          {
+            "span_start": 449,
+            "span_end": 456,
+            "span_text": "orange ",
+            "input_text": "orange",
+            "turn_id": 5
+          },
+          {
+            "span_start": 546,
+            "span_end": 549,
+            "span_text": "sad",
+            "input_text": "No",
+            "turn_id": 6
+          },
+          {
+            "span_start": 693,
+            "span_end": 716,
+            "span_text": "paint herself like them",
+            "input_text": "paint herself like them",
+            "turn_id": 7
+          },
+          {
+            "span_start": 647,
+            "span_end": 663,
+            "span_text": "the old farmer's",
+            "input_text": "the old farmer's",
+            "turn_id": 8
+          },
+          {
+            "span_start": 866,
+            "span_end": 882,
+            "span_text": " rubbed her face",
+            "input_text": "rubbed her face",
+            "turn_id": 9
+          },
+          {
+            "span_start": 1071,
+            "span_end": 1097,
+            "span_text": "into a big bucket of water",
+            "input_text": "into a big bucket of water",
+            "turn_id": 10
+          },
+          {
+            "span_start": 1154,
+            "span_end": 1170,
+            "span_text": " licked her face",
+            "input_text": "licked her face",
+            "turn_id": 11
+          },
+          {
+            "span_start": 974,
+            "span_end": 1008,
+            "span_text": "never want you to be any other way",
+            "input_text": "No",
+            "turn_id": 12
+          }
+        ],
+        "2": [
+          {
+            "span_start": 68,
+            "span_end": 94,
+            "span_text": "white kitten named Cotton.",
+            "input_text": "white",
+            "turn_id": 1
+          },
+          {
+            "span_start": 17,
+            "span_end": 94,
+            "span_text": " in a barn near a farm house, there lived a little white kitten named Cotton.",
+            "input_text": "in a barn near",
+            "turn_id": 2
+          },
+          {
+            "span_start": 191,
+            "span_end": 316,
+            "span_text": " But Cotton wasn't alone in her little home above the barn, oh no. She shared her hay bed with her mommy and 5 other sisters.",
+            "input_text": "no",
+            "turn_id": 3
+          },
+          {
+            "span_start": 258,
+            "span_end": 316,
+            "span_text": "She shared her hay bed with her mommy and 5 other sisters.",
+            "input_text": "her mommy and 5 other sisters",
+            "turn_id": 4
+          },
+          {
+            "span_start": 416,
+            "span_end": 511,
+            "span_text": "The rest of her sisters were all orange with beautiful white tiger stripes like Cotton's mommy.",
+            "input_text": "orange",
+            "turn_id": 5
+          },
+          {
+            "span_start": 512,
+            "span_end": 550,
+            "span_text": "Being different made Cotton quite sad.",
+            "input_text": "no",
+            "turn_id": 6
+          },
+          {
+            "span_start": 607,
+            "span_end": 718,
+            "span_text": " So one day, when Cotton found a can of the old farmer's orange paint, she used it to paint herself like them. ",
+            "input_text": "paint herself like them",
+            "turn_id": 7
+          },
+          {
+            "span_start": 608,
+            "span_end": 676,
+            "span_text": "So one day, when Cotton found a can of the old farmer's orange paint",
+            "input_text": "the farmer's",
+            "turn_id": 8
+          },
+          {
+            "span_start": 718,
+            "span_end": 778,
+            "span_text": "When her mommy and sisters found her they started laughing. ",
+            "input_text": "started laughing",
+            "turn_id": 9
+          },
+          {
+            "span_start": 1011,
+            "span_end": 1098,
+            "span_text": "And with that, Cotton's mommy picked her up and dropped her into a big bucket of water.",
+            "input_text": "a big bucket of water",
+            "turn_id": 10
+          },
+          {
+            "span_start": 1142,
+            "span_end": 1207,
+            "span_text": " Her sisters licked her face until Cotton's fur was all all dry. ",
+            "input_text": "licked her face",
+            "turn_id": 11
+          },
+          {
+            "span_start": 1209,
+            "span_end": 1260,
+            "span_text": "\"Don't ever do that again, Cotton!\" they all cried.",
+            "input_text": "no",
+            "turn_id": 12
+          }
+        ]
+      },
+      "name": "mc160.test.41"
+    },
+    {
+      "source": "mctest",
+      "id": "3azhrg4cu4ktme1zh7c2ro3pn2430d",
+      "filename": "mc500.test.4",
+      "story": "Once there was a beautiful fish named Asta. Asta lived in the ocean. There were lots of other fish in the ocean where Asta lived. They played all day long. \n\nOne day, a bottle floated by over the heads of Asta and his friends. They looked up and saw the bottle. \"What is it?\" said Asta's friend Sharkie. \"It looks like a bird's belly,\" said Asta. But when they swam closer, it was not a bird's belly. It was hard and clear, and there was something inside it. \n\nThe bottle floated above them. They wanted to open it. They wanted to see what was inside. So they caught the bottle and carried it down to the bottom of the ocean. They cracked it open on a rock. When they got it open, they found what was inside. It was a note. The note was written in orange crayon on white paper. Asta could not read the note. Sharkie could not read the note. They took the note to Asta's papa. \"What does it say?\" they asked. \n\nAsta's papa read the note. He told Asta and Sharkie, \"This note is from a little girl. She wants to be your friend. If you want to be her friend, we can write a note to her. But you have to find another bottle so we can send it to her.\" And that is what they did.",
+      "questions": [
+        {
+          "input_text": "what was the name of the fish",
+          "turn_id": 1
+        },
+        {
+          "input_text": "What looked like a birds belly",
+          "turn_id": 2
+        },
+        {
+          "input_text": "who said that",
+          "turn_id": 3
+        },
+        {
+          "input_text": "Was Sharkie a friend?",
+          "turn_id": 4
+        },
+        {
+          "input_text": "did they get the bottle?",
+          "turn_id": 5
+        },
+        {
+          "input_text": "What was in it",
+          "turn_id": 6
+        },
+        {
+          "input_text": "Did a little boy write the note",
+          "turn_id": 7
+        },
+        {
+          "input_text": "Who could read the note",
+          "turn_id": 8
+        },
+        {
+          "input_text": "What did they do with the note",
+          "turn_id": 9
+        },
+        {
+          "input_text": "did they write back",
+          "turn_id": 10
+        },
+        {
+          "input_text": "were they excited",
+          "turn_id": 11
+        }
+      ],
+      "answers": [
+        {
+          "span_start": 37,
+          "span_end": 43,
+          "span_text": " Asta.",
+          "input_text": "Asta.",
+          "turn_id": 1
+        },
+        {
+          "span_start": 167,
+          "span_end": 175,
+          "span_text": "a bottle",
+          "input_text": "a bottle",
+          "turn_id": 2
+        },
+        {
+          "span_start": 303,
+          "span_end": 346,
+          "span_text": " \"It looks like a bird's belly,\" said Asta.",
+          "input_text": "Asta.",
+          "turn_id": 3
+        },
+        {
+          "span_start": 281,
+          "span_end": 302,
+          "span_text": "Asta's friend Sharkie",
+          "input_text": "Yes",
+          "turn_id": 4
+        },
+        {
+          "span_start": 552,
+          "span_end": 577,
+          "span_text": "So they caught the bottle",
+          "input_text": "Yes",
+          "turn_id": 5
+        },
+        {
+          "span_start": 708,
+          "span_end": 723,
+          "span_text": " It was a note.",
+          "input_text": "a note",
+          "turn_id": 6
+        },
+        {
+          "span_start": 964,
+          "span_end": 995,
+          "span_text": "This note is from a little girl",
+          "input_text": "No",
+          "turn_id": 7
+        },
+        {
+          "span_start": 910,
+          "span_end": 935,
+          "span_text": "Asta's papa read the note",
+          "input_text": "Asta's papa",
+          "turn_id": 8
+        },
+        {
+          "span_start": -1,
+          "span_end": -1,
+          "span_text": "unknown",
+          "input_text": "unknown",
+          "turn_id": 9
+        },
+        {
+          "span_start": 1056,
+          "span_end": 1173,
+          "span_text": "we can write a note to her. But you have to find another bottle so we can send it to her.\" And that is what they did.",
+          "input_text": "yes",
+          "turn_id": 10
+        },
+        {
+          "span_text": "unknown",
+          "span_start": -1,
+          "span_end": -1,
+          "input_text": "unknown",
+          "turn_id": 11
+        }
+      ],
+      "additional_answers": {
+        "0": [
+          {
+            "span_start": 38,
+            "span_end": 42,
+            "span_text": "Asta",
+            "input_text": "Asta",
+            "turn_id": 1
+          },
+          {
+            "span_start": 167,
+            "span_end": 175,
+            "span_text": "a bottle",
+            "input_text": "a bottle",
+            "turn_id": 2
+          },
+          {
+            "span_start": 341,
+            "span_end": 345,
+            "span_text": "Asta",
+            "input_text": "Asta",
+            "turn_id": 3
+          },
+          {
+            "span_start": 288,
+            "span_end": 302,
+            "span_text": "friend Sharkie",
+            "input_text": "yes",
+            "turn_id": 4
+          },
+          {
+            "span_start": 555,
+            "span_end": 578,
+            "span_text": "they caught the bottle ",
+            "input_text": "yes",
+            "turn_id": 5
+          },
+          {
+            "span_start": 716,
+            "span_end": 722,
+            "span_text": "a note",
+            "input_text": "a note",
+            "turn_id": 6
+          },
+          {
+            "span_start": 981,
+            "span_end": 995,
+            "span_text": " a little girl",
+            "input_text": "no",
+            "turn_id": 7
+          },
+          {
+            "span_start": 910,
+            "span_end": 921,
+            "span_text": "Asta's papa",
+            "input_text": "Asta's papa",
+            "turn_id": 8
+          },
+          {
+            "span_start": 841,
+            "span_end": 874,
+            "span_text": "They took the note to Asta's papa",
+            "input_text": "They took the note to Asta's papa",
+            "turn_id": 9
+          },
+          {
+            "span_start": 1056,
+            "span_end": 1083,
+            "span_text": "we can write a note to her.",
+            "input_text": "yes",
+            "turn_id": 10
+          },
+          {
+            "span_text": "unknown",
+            "span_start": -1,
+            "span_end": -1,
+            "input_text": "unknown",
+            "turn_id": 11
+          }
+        ],
+        "1": [
+          {
+            "span_start": 37,
+            "span_end": 42,
+            "span_text": " Asta",
+            "input_text": "Asta",
+            "turn_id": 1
+          },
+          {
+            "span_start": 250,
+            "span_end": 260,
+            "span_text": "the bottle",
+            "input_text": "the bottle",
+            "turn_id": 2
+          },
+          {
+            "span_start": 295,
+            "span_end": 302,
+            "span_text": "Sharkie",
+            "input_text": "Sharkie",
+            "turn_id": 3
+          },
+          {
+            "span_start": 295,
+            "span_end": 303,
+            "span_text": "Sharkie.",
+            "input_text": "yes",
+            "turn_id": 4
+          },
+          {
+            "span_start": 552,
+            "span_end": 592,
+            "span_text": "So they caught the bottle and carried it",
+            "input_text": "yes",
+            "turn_id": 5
+          },
+          {
+            "span_start": 716,
+            "span_end": 722,
+            "span_text": "a note",
+            "input_text": "a note",
+            "turn_id": 6
+          },
+          {
+            "span_start": 982,
+            "span_end": 997,
+            "span_text": "a little girl. ",
+            "input_text": "no",
+            "turn_id": 7
+          },
+          {
+            "span_start": 910,
+            "span_end": 921,
+            "span_text": "Asta's papa",
+            "input_text": "Asta's papa",
+            "turn_id": 8
+          },
+          {
+            "span_start": 841,
+            "span_end": 874,
+            "span_text": "They took the note to Asta's papa",
+            "input_text": "They took the note to Asta's papa",
+            "turn_id": 9
+          },
+          {
+            "span_start": 1084,
+            "span_end": 1173,
+            "span_text": "But you have to find another bottle so we can send it to her.\" And that is what they did.",
+            "input_text": "yes",
+            "turn_id": 10
+          },
+          {
+            "span_text": "unknown",
+            "span_start": -1,
+            "span_end": -1,
+            "input_text": "unknown",
+            "turn_id": 11
+          }
+        ],
+        "2": [
+          {
+            "span_start": 38,
+            "span_end": 42,
+            "span_text": "Asta",
+            "input_text": "Asta",
+            "turn_id": 1
+          },
+          {
+            "span_start": 166,
+            "span_end": 175,
+            "span_text": " a bottle",
+            "input_text": "a bottle",
+            "turn_id": 2
+          },
+          {
+            "span_start": 341,
+            "span_end": 345,
+            "span_text": "Asta",
+            "input_text": "Asta",
+            "turn_id": 3
+          },
+          {
+            "span_start": 281,
+            "span_end": 302,
+            "span_text": "Asta's friend Sharkie",
+            "input_text": "yes",
+            "turn_id": 4
+          },
+          {
+            "span_start": 554,
+            "span_end": 577,
+            "span_text": " they caught the bottle",
+            "input_text": "yes",
+            "turn_id": 5
+          },
+          {
+            "span_start": 715,
+            "span_end": 722,
+            "span_text": " a note",
+            "input_text": "a note",
+            "turn_id": 6
+          },
+          {
+            "span_start": 981,
+            "span_end": 995,
+            "span_text": " a little girl",
+            "input_text": "no",
+            "turn_id": 7
+          },
+          {
+            "span_start": 910,
+            "span_end": 921,
+            "span_text": "Asta's papa",
+            "input_text": "Asta's papa",
+            "turn_id": 8
+          },
+          {
+            "span_start": 841,
+            "span_end": 875,
+            "span_text": "They took the note to Asta's papa.",
+            "input_text": "They took the note to Asta's papa.",
+            "turn_id": 9
+          },
+          {
+            "span_start": 1146,
+            "span_end": 1173,
+            "span_text": " And that is what they did.",
+            "input_text": "yes",
+            "turn_id": 10
+          },
+          {
+            "span_text": "unknown",
+            "span_start": -1,
+            "span_end": -1,
+            "input_text": "unknown",
+            "turn_id": 11
+          }
+        ]
+      },
+      "name": "mc500.test.4"
+    }
+  ]
+}
