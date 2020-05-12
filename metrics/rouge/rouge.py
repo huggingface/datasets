@@ -71,8 +71,8 @@ class Rouge(nlp.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            predictions_features=nlp.Sequence(nlp.Value('string')),
-            references_features=nlp.Sequence(nlp.Value('string')),
+            prediction_features=nlp.Value('string'),
+            reference_features=nlp.Value('string'),
             codebase_urls=["https://github.com/tensorflow/nmt/blob/master/nmt/scripts/rouge.py"],
             reference_urls=["https://en.wikipedia.org/wiki/ROUGE_(metric)",
                             "http://research.microsoft.com/en-us/um/people/cyl/download/papers/rouge-working-note-v1.3.1.pdf"]

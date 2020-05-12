@@ -178,14 +178,15 @@ class MetricInfo:
     # Set in the dataset scripts
     description: str
     citation: str
-    predictions_features: FeatureType
-    references_features: Optional[FeatureType] = None
+    prediction_features: FeatureType
+    reference_features: Optional[FeatureType] = None
     inputs_description: str = field(default_factory=str)
     homepage: str = field(default_factory=str)
     licence: str = field(default_factory=str)
     codebase_urls: List[str] = field(default_factory=list)
     reference_urls: List[str] = field(default_factory=list)
     streamable: bool = False
+    use_numpy: bool = False
 
     # Set later by the builder
     name: Optional[str] = None
@@ -195,15 +196,14 @@ class MetricInfo:
     features: ClassVar[Features] = None
 
     def __post_init__(self):
-        assert isinstance(self.predictions_features, Sequence)
+        # Add batch axis for our references and predictions
         feat_dic = {
-            "predictions": self.predictions_features.feature
-        }  # Remove the batch axis for our Arrow table schema
-        if self.references_features is not None:
-            assert isinstance(self.references_features, Sequence)
+            "predictions": Sequence(self.prediction_features)
+        }
+        if self.reference_features is not None:
             feat_dic.update(
-                {"references": self.references_features.feature}
-            )  # Remove the batch axis for our Arrow table schema
+                {"references": Sequence(self.reference_features.feature)}
+            )
         self.features = Features(feat_dic)
 
     def write_to_directory(self, metric_info_dir):
