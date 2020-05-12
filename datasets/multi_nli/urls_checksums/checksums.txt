@@ -1,0 +1,1 @@
+http://storage.googleapis.com/tfds-data/downloads/multi_nli/multinli_1.0.zip 226850426 049f507b9e36b1fcb756cfd5aeb3b7a0cfcb84bf023793652987f7e7e0957822
