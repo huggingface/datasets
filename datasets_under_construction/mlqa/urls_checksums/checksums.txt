@@ -1,3 +1,0 @@
-https://dl.fbaipublicfiles.com/MLQA/MLQA_V1.zip 75719050 246e8089933d13007fe80684d5c5c0713d6834cf8b3b4a0ec7c66f0a0d2baac8
-https://dl.fbaipublicfiles.com/MLQA/mlqa-translate-test.tar.gz 10075488 d6539141c529849d09e9d5ab95127a20e238e6b24081fa3abbc671af340ee4e7
-https://dl.fbaipublicfiles.com/MLQA/mlqa-translate-train.tar.gz 63364123 e510277b0bc3c0639f53839aba8591aebfe803b8b84c5c2ef0513768b86b7cf9
