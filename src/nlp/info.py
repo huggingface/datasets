@@ -35,7 +35,13 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import ClassVar, List, Optional, Union
 
-from nlp.utils.checksums_utils import CACHED_SIZES_FILE_NAME, load_cached_sizes, store_cached_sizes, CHECKSUMS_FILE_NAME, load_sizes_checksums
+from nlp.utils.checksums_utils import (
+    CACHED_SIZES_FILE_NAME,
+    CHECKSUMS_FILE_NAME,
+    load_cached_sizes,
+    load_sizes_checksums,
+    store_cached_sizes,
+)
 from nlp.utils.version import Version
 
 from .features import Features, FeatureType, Sequence
@@ -148,7 +154,7 @@ class DatasetInfo:
         with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "r") as f:
             dataset_info_dict = json.load(f)
         return cls(**dataset_info_dict)
-    
+
     def prefill_dataset_size_attributes_from_urls_checksums_dir(self, urls_checksums_dir: str):
         """Store upper bounds of dataset size if available"""
         checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
