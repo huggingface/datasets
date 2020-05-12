@@ -419,7 +419,7 @@ class DatasetBuilder:
                 (
                     "Dataset %s: could not find data in %s. Please make sure to call "
                     "builder.download_and_prepare(), or pass download=True to "
-                    "nlp.load() before trying to access the Dataset object."
+                    "nlp.load_dataset() before trying to access the Dataset object."
                 )
                 % (self.name, self._cache_dir_root)
             )

@@ -74,24 +74,27 @@ class SquadV2(nlp.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            prediction_features=nlp.Sequence([
-                                    nlp.Value('string', id='id'),
-                                    nlp.Value('string', id='answer'),
-                                    nlp.Value('float32', id='no-answer probability')]),
-            reference_features={
+            features=nlp.Features({
+                'predictions': {
+                    "id": nlp.Value("string"),
+                    "prediction_text": nlp.Value("string"),
+                    "no_answer_probability": nlp.Value("float32")
+                },
+                'references': {
                     "id": nlp.Value("string"),
                     "answers": nlp.features.Sequence(
                         {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
                     ),
                 },
+            }),
             codebase_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
             reference_urls=["https://rajpurkar.github.io/SQuAD-explorer/"]
         )
 
     def _compute(self, predictions, references, no_answer_threshold=1.0):
-        predictions = dict((p[0], p[1]) for p in predictions)
+        predictions = dict((p['id'], p['prediction_text']) for p in predictions)
         dataset = [{'paragraphs': [{'qas': references}]}]
-        no_answer_probabilities = dict((p[0], p[2]) for p in predictions)
+        no_answer_probabilities = dict((p['id'], p['no_answer_probability']) for p in predictions)
 
         qid_to_has_ans = evaluate.make_qid_to_has_ans(dataset)  # maps qid to True/False
         has_ans_qids = [k for k, v in qid_to_has_ans.items() if v]

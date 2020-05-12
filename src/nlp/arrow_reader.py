@@ -128,7 +128,7 @@ class BaseReader:
         """Returns a Dataset instance from given (filename, skip, take)."""
         raise NotImplementedError
 
-    def _read_files(self, files, info):
+    def _read_files(self, files, info) -> Dataset:
         """Returns Dataset for given file instructions.
 
         Args:

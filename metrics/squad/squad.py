@@ -37,12 +37,12 @@ from the corresponding reading passage, or the question might be unanswerable.
 _KWARGS_DESCRIPTION = """
 Computes SQuAD scores (F1 and EM).
 Args:
-    predictions: List of pair for question-answers to score with the two following elements:
-        - the question-answer 'id' field as given in the references (see below)
-        - the text of the answer
+    predictions: List of question-answers dictionaries with the following key-values:
+        - 'id': id of the question-answer pair as given in the references (see below)
+        - 'prediction_text': the text of the answer
     references: List of question-answers dictionaries with the following key-values:
-            - 'id': id of the question-answer pair (see above),
-            - 'answers': a list of Dict {'text': text of the answer as a string}
+        - 'id': id of the question-answer pair (see above),
+        - 'answers': a list of Dict {'text': text of the answer as a string}
 Returns:
     'exact_match': Exact match (the normalized answer exactly match the gold answer)
     'f1': The F-score of predicted tokens versus the gold answer
@@ -54,13 +54,18 @@ class Squad(nlp.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            prediction_features=nlp.Sequence(nlp.Value('string'), length=2),
-            reference_features={
+            features=nlp.Features({
+                'predictions': {
+                    "id": nlp.Value("string"),
+                    "prediction_text": nlp.Value("string")
+                },
+                'references': {
                     "id": nlp.Value("string"),
                     "answers": nlp.features.Sequence(
                         {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
                     ),
                 },
+            }),
             codebase_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
             reference_urls=["https://rajpurkar.github.io/SQuAD-explorer/"]
         )

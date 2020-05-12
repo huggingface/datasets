@@ -230,8 +230,10 @@ class Coval(nlp.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            prediction_features=nlp.Value('string'),
-            reference_features=nlp.Value('string'),
+            features=nlp.Features({
+                'predictions': nlp.Value('string', id='sequence'),
+                'references': nlp.Value('string', id='sequence'),
+            }),
             codebase_urls=["https://github.com/ns-moosavi/coval"],
             reference_urls=["https://github.com/ns-moosavi/coval",
                             "https://www.aclweb.org/anthology/P16-1060",

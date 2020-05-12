@@ -84,8 +84,10 @@ class Gleu(nlp.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            prediction_features=nlp.Sequence(nlp.Value('string')),
-            reference_features=nlp.Sequence(nlp.Sequence(nlp.Value('string'))),
+            features=nlp.Features({
+                'predictions': nlp.Sequence(nlp.Value('string', id='token'), id='sequence'),
+                'references': nlp.Sequence(nlp.Sequence(nlp.Value('string', id='token'), id='sequence'), id='references'),
+            }),
             codebase_urls=["https://github.com/cnap/gec-ranking"],
             reference_urls=["https://github.com/cnap/gec-ranking"]
         )

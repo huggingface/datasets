@@ -68,8 +68,10 @@ class Sacrebleu(nlp.Metric):
             citation=_CITATION,
             homepage="https://github.com/mjpost/sacreBLEU",
             inputs_description=_KWARGS_DESCRIPTION,
-            prediction_features=nlp.Value('string'),
-            reference_features=nlp.Sequence(nlp.Value('string')),
+            features=nlp.Features({
+                'predictions': nlp.Value('string', id='sequence'),
+                'references': nlp.Sequence(nlp.Value('string', id='sequence'), id='references'),
+            }),
             codebase_urls=["https://github.com/mjpost/sacreBLEU"],
             reference_urls=["https://github.com/mjpost/sacreBLEU",
                             "https://en.wikipedia.org/wiki/BLEU",
