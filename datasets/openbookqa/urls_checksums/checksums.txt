@@ -1,0 +1,1 @@
+https://s3-us-west-2.amazonaws.com/ai2-website/data/OpenBookQA-V1-Sep2018.zip 1446098 82368cf05df2e3b309c17d162e10b888b4d768fad6e171e0a041954c8553be46

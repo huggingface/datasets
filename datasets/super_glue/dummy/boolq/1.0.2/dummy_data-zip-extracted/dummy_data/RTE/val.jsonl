@@ -1,0 +1,2 @@
+{"premise": "Dana Reeve, the widow of the actor Christopher Reeve, has died of lung cancer at age 44, according to the Christopher Reeve Foundation.", "hypothesis": "Christopher Reeve had an accident.", "label": "not_entailment", "idx": 0}
+{"premise": "Yet, we now are discovering that antibiotics are losing their effectiveness against illness. Disease-causing bacteria are mutating faster than we can come up with new antibiotics to fight the new variations.", "hypothesis": "Bacteria is winning the war against antibiotics.", "label": "entailment", "idx": 1}

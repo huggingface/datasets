@@ -1,0 +1,3 @@
+{"idx": "0", "label": "not_entailment", "sentence1": "The cat sat on the mat.", "sentence2": "The cat did not sit on the mat.", "logic": "Negation"}
+{"idx": "1", "label": "not_entailment", "sentence1": "The cat did not sit on the mat.", "sentence2": "The cat sat on the mat.", "logic": "Negation"}
+{"idx": "2", "label": "not_entailment", "sentence1": "When you've got no snow, it's really hard to learn a snow sport so we looked at all the different ways I could mimic being on snow without actually being on snow.", "sentence2": "When you've got snow, it's really hard to learn a snow sport so we looked at all the different ways I could mimic being on snow without actually being on snow.", "logic": "Negation"}
