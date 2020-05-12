@@ -137,6 +137,8 @@ class DatasetBuilder:
         info.version = self.config.version
         info.splits.dataset_name = self.name
         self.info = info
+        urls_checksums_dir = os.path.join(self.get_imported_module_dir(), URLS_CHECKSUMS_FOLDER_NAME)
+        self.info.prefill_dataset_size_attributes_from_urls_checksums_dir(urls_checksums_dir)
 
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
@@ -409,6 +411,7 @@ class DatasetBuilder:
         # Update the info object with the splits.
         self.info.splits = split_dict.copy()
         self.info.download_size = dl_manager.downloaded_size
+        self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
         self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):

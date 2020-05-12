@@ -35,7 +35,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import ClassVar, List, Optional, Union
 
-from nlp.utils.checksums_utils import CACHED_SIZES_FILE_NAME, load_cached_sizes, store_cached_sizes
+from nlp.utils.checksums_utils import CACHED_SIZES_FILE_NAME, load_cached_sizes, store_cached_sizes, CHECKSUMS_FILE_NAME, load_sizes_checksums
 from nlp.utils.version import Version
 
 from .features import Features, FeatureType, Sequence
@@ -95,6 +95,7 @@ class DatasetInfo:
     splits: Optional[dict] = field(default_factory=SplitDict)
     size_in_bytes: int = 0
     download_size: int = 0
+    dataset_size: int = 0
     download_checksums: dict = field(default_factory=dict)
 
     def __post_init__(self):
@@ -113,12 +114,6 @@ class DatasetInfo:
                 self.supervised_keys = SupervisedKeysData(*self.supervised_keys)
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
-
-    @property
-    def dataset_size(self):
-        """Generated dataset files size, in bytes."""
-        # For old datasets, maybe empty.
-        return sum(split.num_bytes for split in self.splits.values())
 
     def _license_path(self, dataset_info_dir):
         return os.path.join(dataset_info_dir, LICENSE_FILENAME)
@@ -153,6 +148,16 @@ class DatasetInfo:
         with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "r") as f:
             dataset_info_dict = json.load(f)
         return cls(**dataset_info_dict)
+    
+    def prefill_dataset_size_attributes_from_urls_checksums_dir(self, urls_checksums_dir: str):
+        """Store upper bounds of dataset size if available"""
+        checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
+        cached_sizes_file_path = os.path.join(urls_checksums_dir, CACHED_SIZES_FILE_NAME)
+        if os.path.exists(checksums_file_path):
+            self.download_checksums = load_sizes_checksums(checksums_file_path)
+        if os.path.exists(cached_sizes_file_path):
+            cached_sizes = load_cached_sizes(cached_sizes_file_path)
+            self.dataset_size = sum(size_nexamples[0] for size_nexamples in cached_sizes.values())
 
     def cached_sizes(self):
         return {
