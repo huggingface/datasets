@@ -270,7 +270,7 @@ class Dataset(object):
         elif isinstance(key, slice):
             key = key.indices(self._data.num_rows)
             if key[2] != 1 or key[1] < key[0]:
-                raise ValueError(f"Slicing can only take contiguous and ordered slices.")
+                raise ValueError("Slicing can only take contiguous and ordered slices.")
             if self._format_type is not None and self._format_type == "pandas":
                 outputs = self._data.slice(key[0], key[1] - key[0]).to_pandas()
             else:

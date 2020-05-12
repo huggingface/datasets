@@ -209,7 +209,7 @@ def flatten_nested(data_struct):
     if isinstance(data_struct, dict):
         data_struct = list(flatten_nest_dict(data_struct).values())
         if data_struct and isinstance(data_struct[0], (list, tuple)):
-            data_struct = [x for l in data_struct for x in l]
+            data_struct = [x for list_ in data_struct for x in list_]
     if isinstance(data_struct, (list, tuple)):
         return data_struct
     # Singleton
