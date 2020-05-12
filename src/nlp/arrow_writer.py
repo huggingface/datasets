@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-MAX_BATCH_BYTES = 2e9  # The max is 2Go at once
 DEFAULT_MAX_BATCH_SIZE = 100_000  # hopefully it doesn't write too much at once (max is 2Go)
 
 
@@ -102,8 +101,13 @@ class ArrowWriter(object):
         """
         if self.current_rows:
             pa_array = pa.array(self.current_rows, type=self._type)
-            if pa_array.nbytes > MAX_BATCH_BYTES:
-                new_batch_size = int((MAX_BATCH_BYTES * 0.9 / pa_array.nbytes) * self.writer_batch_size)
+            first_example = pa.array(self.current_rows[0:1], type=self._type)[0]
+            # Sanity check
+            if pa_array[0] != first_example:
+                # There was an Overflow in StructArray. Let's reduce the batch_size
+                while pa_array[0] != first_example:
+                    new_batch_size = self.writer_batch_size // 2
+                    pa_array = pa.array(self.current_rows[:new_batch_size], type=self._type)
                 logger.warning(
                     "Batch size is too big (>2Go). Reducing it from {} to {}".format(
                         self.writer_batch_size, new_batch_size
@@ -118,6 +122,7 @@ class ArrowWriter(object):
                     )
                     self._write_array_on_file(pa_array)
             else:
+                # All good
                 self._write_array_on_file(pa_array)
             self.current_rows = []
 
