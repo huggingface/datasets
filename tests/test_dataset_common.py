@@ -56,7 +56,7 @@ class DatasetTester(object):
     def load_all_configs(self, dataset_name, is_local=False):
         # get builder class
         builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
-        builder = builder_cls()
+        builder = builder_cls
 
         if len(builder.BUILDER_CONFIGS) == 0:
             return [None]
@@ -87,7 +87,7 @@ class DatasetTester(object):
 
                 # build dataset from dummy data
                 dataset_builder.download_and_prepare(
-                    dl_manager=mock_dl_manager, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                    dl_manager=mock_dl_manager, download_mode=GenerateMode.FORCE_REDOWNLOAD, ignore_checksums=True
                 )
 
                 # get dataset
