@@ -358,8 +358,10 @@ class DatasetBuilder:
             # it to every sub function.
             with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
                 self._download_and_prepare(dl_manager=dl_manager, **download_and_prepare_kwargs)
-
-                self.info.download_size = dl_manager.downloaded_size
+                urls_checksums_dir = os.path.join(self.get_imported_module_dir(), URLS_CHECKSUMS_FOLDER_NAME)
+                self.info.check_or_save_cached_sizes(
+                    urls_checksums_dir, ignore_cached_sizes=ignore_checksums, save_cached_sizes=save_checksums
+                )
                 self.info.write_to_directory(self._cache_dir)
 
         print(
@@ -405,7 +407,9 @@ class DatasetBuilder:
                 raise OSError("Cannot find data file. " + (self.MANUAL_DOWNLOAD_INSTRUCTIONS or ""))
 
         # Update the info object with the splits.
-        self.info.update_splits_if_different(split_dict)
+        self.info.splits = split_dict.copy()
+        self.info.download_size = dl_manager.downloaded_size
+        self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
@@ -738,8 +742,6 @@ class BeamBasedBuilder(DatasetBuilder):
             split_info = split_dict[split_name]
             split_info.num_examples = num_examples
             split_info.num_bytes = num_bytes
-        logger.info("Updating split info...")
-        self.info.update_splits_if_different(split_dict)
 
     def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam
