@@ -152,3 +152,4 @@ class YelpPolarity(nlp.GeneratorBasedBuilder):
         # The format of the line is:
         # "1", "The text of the review."
         yield line_id, {"text": line[5:-2].strip(), "label": line[1]}
+
