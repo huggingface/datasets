@@ -1,0 +1,3 @@
+IN: jump left OUT: I_TURN_LEFT I_JUMP
+IN: walk twice OUT: I_WALK I_WALK
+IN: jump twice OUT: I_JUMP I_JUMP
