@@ -1,0 +1,19 @@
+There is more NLP work on English than on Bengali because it has rich linguistic resources.
+it
+English,Bengali
+English
+
+There is more NLP work on English than on Bengali because it has little linguistic resources.
+it
+English,Bengali
+Bengali
+
+There is currently more work on coreference resolution than on chunking because it is a problem that is nearly solved.
+it
+coreference resolution,chunking
+chunking
+
+There is currently more work on coreference resolution than on chunking because it is a problem that is still far from being solved.
+it
+coreference resolution,chunking
+coreference resolution
