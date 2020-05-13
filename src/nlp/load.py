@@ -401,10 +401,10 @@ def load_dataset(
 
     This method does the following under the hood:
         1. Download and import in the library the dataset loading script from ``path`` if it's not already cached inside the library.
-            
+
             Processing scripts are small python scripts that define the citation, info and format of the dataset,
             contain the URL to the original data files and the code to load examples from the original data files.
-            
+
             You can find some of the scripts here: https://github.com/huggingface/nlp/datasets
             and easily upload yours to share them using the CLI ``nlp-cli``.
 
