@@ -324,8 +324,8 @@ def get_from_cache(
                 etag = response.headers.get("ETag")
                 for k, v in response.cookies.items():
                     # In some edge cases, we need to get a confirmation token
-                    if k.startswith('download_warning') and "drive.google.com" in url:
-                        url += '&confirm=' + v
+                    if k.startswith("download_warning") and "drive.google.com" in url:
+                        url += "&confirm=" + v
                         cookies = response.cookies
                 connected = True
             # In some edge cases, head request returns 400 but the connection is actually ok
