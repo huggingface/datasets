@@ -251,7 +251,7 @@ def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Op
     return output_path
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None):
+def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
     ua = "datasets/{}; python/{}".format(__version__, sys.version.split()[0])
     if is_torch_available():
         ua += "; torch/{}".format(torch.__version__)
@@ -264,7 +264,7 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None):
     headers = {"user-agent": ua}
     if resume_size > 0:
         headers["Range"] = "bytes=%d-" % (resume_size,)
-    response = requests.get(url, stream=True, proxies=proxies, headers=headers)
+    response = requests.get(url, stream=True, proxies=proxies, headers=headers, cookies=cookies)
     if response.status_code == 416:  # Range not satisfiable
         return
     content_length = response.headers.get("Content-Length")
@@ -315,12 +315,18 @@ def get_from_cache(
     os.makedirs(cache_dir, exist_ok=True)
 
     connected = False
+    cookies = None
     etag = None
     if not local_files_only:
         try:
             response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
             if response.status_code == 200:  # ok
                 etag = response.headers.get("ETag")
+                for k, v in response.cookies.items():
+                    # In some edge cases, we need to get a confirmation token
+                    if k.startswith('download_warning') and "drive.google.com" in url:
+                        url += '&confirm=' + v
+                        cookies = response.cookies
                 connected = True
             # In some edge cases, head request returns 400 but the connection is actually ok
             elif response.status_code == 400 and "firebasestorage.googleapis.com" in url:
@@ -379,7 +385,7 @@ def get_from_cache(
             logger.info("%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name)
 
             # GET file object
-            http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent)
+            http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent, cookies=cookies)
 
         logger.info("storing %s in cache at %s", url, cache_path)
         os.rename(temp_file.name, cache_path)
