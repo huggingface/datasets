@@ -16,6 +16,7 @@
 
 import io
 import os
+from dataclasses import dataclass, field
 from os.path import expanduser
 from typing import Dict, List, Optional, Tuple
 
@@ -25,72 +26,50 @@ from tqdm import tqdm
 
 ENDPOINT = "https://huggingface.co"
 
-
+@dataclass
 class S3Obj:
     """
     Data structure that represents a file belonging to the current user.
     """
+    filename: str
+    LastModified: str
+    ETag: str
+    Size: int
 
-    def __init__(self, filename: str, LastModified: str, ETag: str, Size: int, **kwargs):
-        self.filename = filename
-        self.LastModified = LastModified
-        self.ETag = ETag
-        self.Size = Size
-
-
+@dataclass
 class PresignedUrl:
-    def __init__(self, write: str, access: str, type: str, **kwargs):
-        self.write = write
-        self.access = access
-        self.type = type  # mime-type to send to S3.
+    write: str
+    access: str
+    type: str  # mime-type to send to S3.
 
-
+@dataclass
 class S3Object:
     """
     Data structure that represents a public file accessible on our S3.
     """
-
-    def __init__(
-        self,
-        key: str,  # S3 object key
-        etag: str,
-        lastModified: str,
-        size: int,
-        rfilename: str,  # filename relative to config.json
-        **kwargs,
-    ):
-        self.key = key
-        self.etag = etag
-        self.lastModified = lastModified
-        self.size = size
-        self.rfilename = rfilename
+    key: str  # S3 object key
+    etag: str
+    lastModified: str
+    size: int
+    rfilename: str  # filename relative to config.json
 
 
-class DatasetInfo:
+@dataclass
+class ObjectInfo:
     """
-    Info about a public dataset accessible from our S3.
+    Info about a public dataset or Metric accessible from our S3.
     """
+    id: str  # id of dataset
+    key: str  # S3 object key of config.json
+    lastModified: Optional[str] = None
+    description: Optional[str] = None
+    citation: Optional[str] = None
+    size: Optional[int] = None
+    etag: Optional[str] = None
+    siblings: List[Dict] = None  # list of files that constitute the dataset
 
-    def __init__(
-        self,
-        id: str,  # id of dataset
-        key: str,  # S3 object key of config.json
-        lastModified: Optional[str] = None,
-        description: Optional[str] = None,
-        citation: Optional[str] = None,
-        size: Optional[int] = None,
-        etag: Optional[str] = None,
-        siblings: List[Dict] = [],  # list of files that constitute the dataset
-        **kwargs,
-    ):
-        self.datasetId = id
-        self.key = key
-        self.lastModified = lastModified
-        self.description = description
-        self.citation = citation
-        self.size = size
-        self.etag = etag
-        self.siblings = [S3Object(**x) for x in siblings]
+    def __post_init__(self):
+        self.siblings = [S3Object(**x) for x in self.siblings]
 
 
 class HfApi:
@@ -190,7 +169,7 @@ class HfApi:
         )
         r.raise_for_status()
 
-    def dataset_list(self) -> List[DatasetInfo]:
+    def dataset_list(self) -> List[ObjectInfo]:
         """
         Get the public list of all the datasets on huggingface, including the community datasets
         """
@@ -198,7 +177,17 @@ class HfApi:
         r = requests.get(path)
         r.raise_for_status()
         d = r.json()
-        return [DatasetInfo(**x) for x in d]
+        return [ObjectInfo(**x) for x in d]
+
+    def metric_list(self) -> List[ObjectInfo]:
+        """
+        Get the public list of all the metrics on huggingface, including the community metrics
+        """
+        path = "{}/api/metrics".format(self.endpoint)
+        r = requests.get(path)
+        r.raise_for_status()
+        d = r.json()
+        return [ObjectInfo(**x) for x in d]
 
 
 class TqdmProgressFileReader:
