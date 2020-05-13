@@ -93,7 +93,7 @@ class DatasetTester(object):
 
                 # build dataset from dummy data
                 dataset_builder.download_and_prepare(
-                    dl_manager=mock_dl_manager, download_mode=GenerateMode.FORCE_REDOWNLOAD, ignore_checksums=True
+                    dl_manager=mock_dl_manager, download_mode=GenerateMode.FORCE_REDOWNLOAD, ignore_verifications=True
                 )
 
                 # get dataset
