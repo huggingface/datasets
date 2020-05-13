@@ -53,7 +53,9 @@ DOCLINES = __doc__.split('\n')
 
 REQUIRED_PKGS = [
     'numpy',
+    # Backend and serialization
     'pyarrow>=0.16.0',
+    # For smart caching dataset processing
     'dill',
     # for downloading datasets over HTTPS
     'requests>=2.19.0',
@@ -68,26 +70,16 @@ REQUIRED_PKGS = [
 TESTS_REQUIRE = [
     'apache-beam',
     'absl-py',
-    'jupyter',
     'pytest',
     'pytest-xdist',
 ]
 
 
-# Extra dependencies required by specific datasets
-DATASET_EXTRAS = {
-    # In alphabetical order
-    'aflw2k3d': ['scipy'],
-    'c4': ['apache_beam', 'langdetect', 'nltk', 'tldextract'],
-    'the300w_lp': ['scipy'],
-    'wikipedia': ['mwparserfromhell', 'apache_beam'],
-}
-
-
-# Extra dataset deps are required for the tests
-all_dataset_extras = list(itertools.chain.from_iterable(
-    deps for ds_name, deps in DATASET_EXTRAS.items()
-))
+QUALITY_REQUIRE = [
+    "black",
+    "isort @ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort",
+    "flake8==3.7.9",
+]
 
 
 EXTRAS_REQUIRE = {
@@ -95,20 +87,13 @@ EXTRAS_REQUIRE = {
     'tensorflow': ['tensorflow>=1.15.0'],
     'tensorflow_gpu': ['tensorflow-gpu>=1.15.0'],
     'torch': ['torch'],
-    # Tests dependencies are installed in ./oss_scripts/oss_pip_install.sh
-    # and run in ./oss_scripts/oss_tests.sh
-    'tests': TESTS_REQUIRE + all_dataset_extras,
-    'quality': [
-    "black",
-    "isort @ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort",
-    "flake8==3.7.9",
-]
+    'tests': TESTS_REQUIRE,
+    'quality': QUALITY_REQUIRE,
 }
-EXTRAS_REQUIRE.update(DATASET_EXTRAS)
 
 setup(
     name='nlp',
-    version="0.0.1",
+    version="0.0.2",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',
@@ -127,11 +112,16 @@ setup(
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: Apache Software License',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords='nlp machine learning datasets',
+    keywords='nlp machine learning datasets metrics',
 )

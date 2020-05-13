@@ -31,7 +31,7 @@ The main library entrypoints are:
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 # Types are pyarrow types
 from . import datasets

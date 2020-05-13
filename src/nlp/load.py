@@ -397,33 +397,29 @@ def load_dataset(
     save_checksums: bool = False,
     **config_kwargs,
 ) -> Dataset:
-    """Loads the named dataset.
+    """ Load a dataset.
 
-    If `split=None` (the default), returns all splits for the dataset. Otherwise,
-    returns the specified split.
+    This method does the following under the hood:
+        1. Download and import in the library the dataset loading script from ``path`` if it's not already cached inside the library.
+            
+            Processing scripts are small python scripts that define the citation, info and format of the dataset,
+            contain the URL to the original data files and the code to load examples from the original data files.
+            
+            You can find some of the scripts here: https://github.com/huggingface/nlp/datasets
+            and easily upload yours to share them using the CLI ``nlp-cli``.
 
-    `load` is a convenience method that fetches the `nlp.DatasetBuilder` by
-    string name, optionally calls `DatasetBuilder.download_and_prepare`
-    (if `download=True`), and then calls `DatasetBuilder.as_dataset`.
-    This is roughly equivalent to:
+        2. Run the dataset loading script which will:
 
-    ```
-    dataset_builder = nlp.get_dataset_builder(name, data_dir=data_dir, **builder_kwargs)
-    dataset_builder.download_and_prepare(**download_and_prepare_kwargs)
-    ds = builder.as_dataset(split=split)
-    return ds
-    ```
+            * Download the dataset file from the original URL (see the script) if it's not already downloaded and cached.
+            * Process and cache the dataset in typed Arrow tables for caching.
 
-    If you'd like NumPy arrays instead of `tf.data.Dataset`s or `tf.Tensor`s,
-    you can pass the return value to `nlp.as_numpy`.
+                Arrow table are arbitrarly long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
+                They can be directly access from drive, loaded in RAM or even streamed over the web.
 
-    Callers must pass arguments as keyword arguments.
-
-    **Warning**: calling this function might potentially trigger the download
-    of hundreds of GiB to disk. Refer to the `download` argument.
+        3. Return a dataset build from the requested splits in ``split`` (default: all).
 
     Args:
-        name: `str`, the name of the `Dataset` (the snake case
+        path: `str`, the name of the `Dataset` (the snake case
             version of the class name). This can be either `"dataset_name"` or
             `"dataset_name/config_name"` for datasets with `BuilderConfig`s.
             As a convenience, this string may contain comma-separated keyword
