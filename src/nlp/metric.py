@@ -25,6 +25,7 @@ from filelock import FileLock, Timeout
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .info import MetricInfo
+from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, Version
 
 
@@ -32,8 +33,6 @@ logger = logging.getLogger(__file__)
 
 
 class Metric(object):
-    name: str = "unknown-metric"
-
     def __init__(
         self,
         name: str = None,
@@ -55,6 +54,7 @@ class Metric(object):
                     the same caching directory (will be indicated in the raise error)
                 in_memory (bool): keep all predictions and references in memory. Not possible in distributed settings.
         """
+        # Safety checks
         assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
         assert (
             isinstance(num_process, int) and num_process > process_id
@@ -62,7 +62,12 @@ class Metric(object):
         assert (
             process_id == 0 or not in_memory
         ), "Using 'in_memory' is not possible in distributed setting (process_id > 0)."
+
+        # Metric name
+        self.name = camelcase_to_snakecase(self.__class__.__name__)
+        # Configuration name
         self.config_name = name
+
         self.process_id = process_id
         self.num_process = num_process
         self.in_memory = in_memory

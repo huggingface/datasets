@@ -15,25 +15,13 @@
 # limitations under the License.
 
 # Lint as: python3
-# pylint: disable=line-too-long
-"""`nlp` defines a collection of datasets ready-to-use.
-
-Each dataset is defined as a `nlp.DatasetBuilder`, which encapsulates
-the logic to download the dataset and construct an input pipeline, as well as
-contains the dataset documentation (version, splits, number of examples, etc.).
-
-The main library entrypoints are:
-
-* `nlp.load_dataset`: convenience method to construct a builder, download the data, and
-    create an input pipeline, returning an NLP dataset.
-
-"""
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
 __version__ = "0.0.2"
 
-# Types are pyarrow types
+from pyarrow import total_allocated_bytes
+
 from . import datasets
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
