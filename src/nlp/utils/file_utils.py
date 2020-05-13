@@ -346,7 +346,7 @@ def get_from_cache(
                 " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
                 " to False."
             )
-        raise ConnectionError("Coudln't reach {}".format(url))
+        raise ConnectionError("Couldn't reach {}".format(url))
 
     # From now on, connected is True.
     if os.path.exists(cache_path) and not force_download:

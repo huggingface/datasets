@@ -164,6 +164,8 @@ class DatasetBuilder:
                 )
         if not builder_config:
             builder_config = BuilderConfig()
+            if hasattr(self, 'VERSION') and self.VERSION:
+                builder_config.version = self.VERSION
 
         for key, value in config_kwargs.items():
             if value is not None:

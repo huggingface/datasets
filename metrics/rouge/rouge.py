@@ -23,6 +23,7 @@ import numpy  # Here to have a nice missing dependency error message early on
 import six  # Here to have a nice missing dependency error message early on
 
 from rouge_score import rouge_scorer
+from rouge_score import scoring
 
 _CITATION = """\
 @inproceedings{lin-2004-rouge,
@@ -76,9 +77,28 @@ class Rouge(nlp.Metric):
                             "https://github.com/google-research/google-research/tree/master/rouge"]
         )
 
-    def _compute(self, predictions, references, rouge_types=None, use_stemmer=False):
+    def _compute(self, predictions, references, rouge_types=None, use_agregator=True, use_stemmer=False):
         if rouge_types is None:
             rouge_types = ['rouge1', 'rougeL']
+
         scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=use_stemmer)
-        scores = scorer.score(references, predictions)
-        return scores
+        if use_agregator:
+            aggregator = scoring.BootstrapAggregator()
+        else:
+            scores = []
+
+        for ref, pred in zip(references, predictions):
+            score = scorer.score(ref, pred)
+            if use_agregator:
+                aggregator.add_scores(score)
+            else:
+                scores.append(score)
+
+        if use_agregator:
+            result = aggregator.aggregate()
+        else:
+            result = {}
+            for key in scores[0]:
+                result[key] = list(score[key] for score in scores)
+
+        return result
