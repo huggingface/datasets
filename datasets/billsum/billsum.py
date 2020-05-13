@@ -16,14 +16,13 @@
 # Lint as: python3
 """BillSum Dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import json
 import os
 
 import nlp
+
 
 _CITATION = """
 @misc{kornilova2019billsum,
@@ -55,66 +54,49 @@ _SUMMARY = "summary"
 
 
 class Billsum(nlp.GeneratorBasedBuilder):
-  """BillSum Dataset."""
+    """BillSum Dataset."""
 
-  # 2.0.0 data source updated to filter near duplicates.
-  # 3.0.0  none of the test examples are 'near duplicates' of an example in the
-  #   train set AND they dont have the same title, regardless of similarity.
-  VERSION = nlp.Version("3.0.0")
+    # 2.0.0 data source updated to filter near duplicates.
+    # 3.0.0  none of the test examples are 'near duplicates' of an example in the
+    #   train set AND they dont have the same title, regardless of similarity.
+    VERSION = nlp.Version("3.0.0")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            _DOCUMENT: nlp.Value('string'),
-            _SUMMARY: nlp.Value('string'),
-            "title": nlp.Value('string'),
-        }),
-        supervised_keys=(_DOCUMENT, _SUMMARY),
-        homepage="https://github.com/FiscalNote/BillSum",
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features(
+                {_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string"), "title": nlp.Value("string"),}
+            ),
+            supervised_keys=(_DOCUMENT, _SUMMARY),
+            homepage="https://github.com/FiscalNote/BillSum",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    dl_path = dl_manager.download_and_extract(_URL)
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                "path":
-                    os.path.join(dl_path, "us_train_data_final_OFFICIAL.jsonl"),
-                "key":
-                    "bill_id"
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={
-                "path":
-                    os.path.join(dl_path, "us_test_data_final_OFFICIAL.jsonl"),
-                "key":
-                    "bill_id"
-            },
-        ),
-        nlp.SplitGenerator(
-            name="ca_test",
-            gen_kwargs={
-                "path":
-                    os.path.join(dl_path, "ca_test_data_final_OFFICIAL.jsonl"),
-                "key":
-                    "external_id"
-            },
-        ),
-    ]
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        dl_path = dl_manager.download_and_extract(_URL)
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(dl_path, "us_train_data_final_OFFICIAL.jsonl"), "key": "bill_id"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"path": os.path.join(dl_path, "us_test_data_final_OFFICIAL.jsonl"), "key": "bill_id"},
+            ),
+            nlp.SplitGenerator(
+                name="ca_test",
+                gen_kwargs={"path": os.path.join(dl_path, "ca_test_data_final_OFFICIAL.jsonl"), "key": "external_id"},
+            ),
+        ]
 
-  def _generate_examples(self, path=None, key=None):
-    """Yields examples."""
-    with open(path) as f:
-      for line in f:
-        # in us bills, json has fields:
-        #   text, summary, title, bill_id, text_len, sum_len
-        # in ca bills, json has fields:
-        #   text, summary, title, external_id
-        d = json.loads(line)
-        yield d[key], {k: d[k] for k in [_DOCUMENT, _SUMMARY, "title"]}
+    def _generate_examples(self, path=None, key=None):
+        """Yields examples."""
+        with open(path) as f:
+            for line in f:
+                # in us bills, json has fields:
+                #   text, summary, title, bill_id, text_len, sum_len
+                # in ca bills, json has fields:
+                #   text, summary, title, external_id
+                d = json.loads(line)
+                yield d[key], {k: d[k] for k in [_DOCUMENT, _SUMMARY, "title"]}
