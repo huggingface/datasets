@@ -16,11 +16,10 @@
 # Lint as: python3
 """Librispeech language modeling dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import nlp
+
 
 _CITATION = """\
 @inproceedings{panayotov2015librispeech,
@@ -37,43 +36,36 @@ _DESCRIPTION = """\
 Language modeling resources to be used in conjunction with the LibriSpeech ASR corpus.
 """
 
-_URL = 'http://www.openslr.org/11'
+_URL = "http://www.openslr.org/11"
 
-_DL_URL = 'http://www.openslr.org/resources/11/librispeech-lm-norm.txt.gz'
+_DL_URL = "http://www.openslr.org/resources/11/librispeech-lm-norm.txt.gz"
 
 
 class LibrispeechLm(nlp.GeneratorBasedBuilder):
-  """Librispeech language modeling dataset."""
+    """Librispeech language modeling dataset."""
 
-  VERSION = nlp.Version('0.1.0')
+    VERSION = nlp.Version("0.1.0")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            'text': nlp.Value('string'),
-        }),
-        supervised_keys=('text', 'text'),
-        homepage=_URL,
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({"text": nlp.Value("string"),}),
+            supervised_keys=("text", "text"),
+            homepage=_URL,
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    archive_path = dl_manager.download(_DL_URL)
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={'files_iter': dl_manager.iter_archive(archive_path)},
-        ),
-    ]
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        archive_path = dl_manager.download_and_extract(_DL_URL)
+        return [
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"archive_path": archive_path}),
+        ]
 
-  def _generate_examples(self, files_iter):
-    """Yields examples."""
-    # The archive contains a single file.
-    _, f = next(files_iter)
-    for key, line in enumerate(f):
-      text = line.strip()
-      if text:  # Skip empty lines.
-        yield key, {'text': text}
-
+    def _generate_examples(self, archive_path):
+        """Yields examples."""
+        with open(archive_path, "r") as f:
+            for key, line in enumerate(f):
+                text = line.strip()
+                if text:  # Skip empty lines.
+                    yield key, {"text": text}
