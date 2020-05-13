@@ -42,7 +42,7 @@ compositional learning and zero-shot generalization.
 See https://github.com/brendenlake/SCAN for a description of the splits.
 
 Example usage:
-data = nlp.load('scan/length')
+data = nlp.load_dataset('scan/length')
 """
 
 _DATA_URL = 'https://github.com/brendenlake/SCAN/archive/master.zip'
