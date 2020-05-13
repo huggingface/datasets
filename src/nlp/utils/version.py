@@ -95,6 +95,10 @@ class Version:
         major, minor, patch = _str_to_version(other_version, allow_wildcard=True)
         return major in [self.major, "*"] and minor in [self.minor, "*"] and patch in [self.patch, "*"]
 
+    @classmethod
+    def from_dict(cls, dic):
+        return cls(**dic)
+
 
 def _str_to_version(version_str, allow_wildcard=False):
     """Return the tuple (major, minor, patch) version extracted from the str."""

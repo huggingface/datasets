@@ -173,3 +173,6 @@ class MockDataLoaderManager(object):
 
     def check_or_save_checksums(self, *args):
         pass
+
+    def get_recorded_sizes_checksums(self):
+        return {}

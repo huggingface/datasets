@@ -6,7 +6,7 @@ from typing import List
 from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder
 from nlp.commands import BaseTransformersCLICommand
 from nlp.load import import_main_class, prepare_module
-from nlp.utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
+from nlp.utils.checksums_utils import CACHED_SIZES_FILE_NAME, CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 
 
 def test_command_factory(args):
@@ -21,7 +21,9 @@ class TestCommand(BaseTransformersCLICommand):
         test_parser = parser.add_parser("test")
         test_parser.add_argument("--config", type=str, default=None, help="Dataset processing config")
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
-        test_parser.add_argument("--save_checksums", action="store_true", help="Save the checksums file on S3")
+        test_parser.add_argument(
+            "--save_checksums", action="store_true", help="Save the checksums file and cached file sizes"
+        )
         test_parser.add_argument(
             "--ignore_checksums", action="store_true", help="Run the test without checksums checks"
         )
@@ -73,6 +75,7 @@ class TestCommand(BaseTransformersCLICommand):
         if self._save_checksums:
             urls_checksums_dir = os.path.join(builder_cls.get_imported_module_dir(), URLS_CHECKSUMS_FOLDER_NAME)
             checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
+            cached_sizes_file_path = os.path.join(urls_checksums_dir, CACHED_SIZES_FILE_NAME)
 
             name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
 
@@ -87,6 +90,8 @@ class TestCommand(BaseTransformersCLICommand):
 
             user_urls_checksums_dir = os.path.join(dataset_dir, URLS_CHECKSUMS_FOLDER_NAME)
             user_checksums_file_path = os.path.join(user_urls_checksums_dir, CHECKSUMS_FILE_NAME)
+            user_cached_sizes_file_path = os.path.join(user_urls_checksums_dir, CACHED_SIZES_FILE_NAME)
             os.makedirs(user_urls_checksums_dir, exist_ok=True)
             copyfile(checksums_file_path, user_checksums_file_path)
+            copyfile(cached_sizes_file_path, user_cached_sizes_file_path)
             print("Checksums file saved at {}".format(user_checksums_file_path))
