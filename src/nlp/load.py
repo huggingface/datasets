@@ -336,6 +336,7 @@ def prepare_module(path: str, download_config=None, dataset=True, **download_kwa
 
 def load_metric(
     path: str,
+    name: Optional[str] = None,
     process_id: int = 0,
     num_process: int = 1,
     data_dir: Optional[str] = None,
@@ -370,6 +371,7 @@ def load_metric(
     module_path = prepare_module(path, download_config=download_config, dataset=False)
     metric_cls = import_main_class(module_path, dataset=False)
     metric = metric_cls(
+        name=name,
         process_id=process_id,
         num_process=num_process,
         data_dir=data_dir,
@@ -380,7 +382,7 @@ def load_metric(
     return metric
 
 
-def load(
+def load_dataset(
     path: str,
     split: Optional[Union[str, Split]] = None,
     name: Optional[str] = None,
@@ -389,7 +391,6 @@ def load(
     data_dir: Optional[str] = None,
     data_files: Union[Dict, List] = None,
     dataset_config: Optional[BuilderConfig] = None,
-    in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     ignore_checksums: bool = False,

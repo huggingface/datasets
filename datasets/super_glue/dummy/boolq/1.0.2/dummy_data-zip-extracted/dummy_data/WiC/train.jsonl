@@ -1,0 +1,3 @@
+{"word": "place", "sentence1": "Do you want to come over to my place later?", "sentence2": "A political system with no place for the less prominent groups.", "idx": 0, "label": false, "start1": 31, "start2": 27, "end1": 36, "end2": 32, "version": 1.1}
+{"word": "approach", "sentence1": "Approach a task.", "sentence2": "To approach the city.", "idx": 1, "label": false, "start1": 0, "start2": 3, "end1": 8, "end2": 11, "version": 1.1}
+{"word": "run", "sentence1": "Run rogue.", "sentence2": "She ran 10 miles that day.", "idx": 2, "label": false, "start1": 0, "start2": 4, "end1": 3, "end2": 7, "version": 1.1}

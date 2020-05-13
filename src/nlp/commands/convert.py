@@ -35,6 +35,7 @@ TO_CONVERT = [
     (r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace NLP Authors"),
     (r"tfds\.", r"nlp."),
     (r"dl_manager\.manual_dir", r"self.config.data_dir"),
+    (r"self\.builder_config", r"self.config"),
 ]
 
 

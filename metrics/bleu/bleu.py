@@ -79,8 +79,10 @@ class Bleu(nlp.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            predictions_features=nlp.Sequence(nlp.Sequence(nlp.Value('string'))),
-            references_features=nlp.Sequence(nlp.Sequence(nlp.Sequence(nlp.Value('string')))),
+            features=nlp.Features({
+                'predictions': nlp.Sequence(nlp.Value('string', id='token'), id='sequence'),
+                'references': nlp.Sequence(nlp.Sequence(nlp.Value('string', id='token'), id='sequence'), id='references'),
+            }),
             codebase_urls=["https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py"],
             reference_urls=["https://en.wikipedia.org/wiki/BLEU",
                             "https://towardsdatascience.com/evaluating-text-output-in-nlp-bleu-at-your-own-risk-e8609665a213"]

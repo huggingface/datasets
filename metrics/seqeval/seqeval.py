@@ -58,8 +58,10 @@ class Seqeval(nlp.Metric):
             citation=_CITATION,
             homepage="https://github.com/chakki-works/seqeval",
             inputs_description=_KWARGS_DESCRIPTION,
-            predictions_features=nlp.Sequence(nlp.Sequence(nlp.Value('string'))),
-            references_features=nlp.Sequence(nlp.Sequence(nlp.Value('string'))),
+            features=nlp.Features({
+                'predictions': nlp.Sequence(nlp.Value('string', id='label'), id='sequence'),
+                'references': nlp.Sequence(nlp.Value('string', id='label'), id='sequence'),
+            }),
             codebase_urls=["https://github.com/chakki-works/seqeval"],
             reference_urls=["https://github.com/chakki-works/seqeval"]
         )

@@ -21,6 +21,7 @@ import requests
 from absl.testing import parameterized
 
 from nlp import (
+    BeamBasedBuilder,
     BuilderConfig,
     DatasetBuilder,
     DownloadConfig,
@@ -69,6 +70,11 @@ class DatasetTester(object):
                 # create config and dataset
                 dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
                 dataset_builder = dataset_builder_cls(config=config, cache_dir=processed_temp_dir)
+
+                # TODO: skip Beam datasets for now
+                if isinstance(dataset_builder, BeamBasedBuilder):
+                    logging.info("Skip tests for Beam datasets for now")
+                    return
 
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
 

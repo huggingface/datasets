@@ -19,6 +19,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from pathlib import Path
 
 import csv
 import os
@@ -92,8 +93,8 @@ class Wikihow(nlp.GeneratorBasedBuilder):
   """WikiHow: A Large Scale Text Summarization Dataset."""
 
   MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-  Links to files can be found on https://github.com/mahnazkoupaee/WikiHow-Dataset
-  Please download both wikihowAll.csv and wikihowSep.csv.
+  You need to manually download wikihow. Links to files can be found on https://github.com/mahnazkoupaee/WikiHow-Dataset
+  Please download both wikihowAll.csv and wikihowSep.csv in ~/wikihow or change the manual dir to your downloded folder path
   """
 
   BUILDER_CONFIGS = [
@@ -110,55 +111,50 @@ class Wikihow(nlp.GeneratorBasedBuilder):
 
   def _info(self):
     feature_names = [_DOCUMENT, _SUMMARY, "title"]
-    if self.builder_config.name == "sep":
+    if self.config.name == "sep":
       feature_names.extend(["overview", "sectionLabel"])
     return nlp.DatasetInfo(
         description=_DESCRIPTION,
         features=nlp.Features(
             {k: nlp.Value('string') for k in feature_names}),
-        supervised_keys=(_DOCUMENT, _SUMMARY),
+        supervised_keys=None,
         homepage="https://github.com/mahnazkoupaee/WikiHow-Dataset",
         citation=_CITATION,
     )
 
   def _split_generators(self, dl_manager):
     """Returns SplitGenerators."""
-    dl_path = dl_manager.download(_URLS)
+    dl_path = dl_manager.download_and_extract(_URLS)
     titles = {k: set() for k in dl_path}
     for k, path in dl_path.items():
       with open(path) as f:
         for line in f:
           titles[k].add(line.strip())
-
+  
+    home = str(Path.home())
+    manual_dir = os.path.join(home, 'wikihow')
+    if not os.path.exists(manual_dir):
+        raise FileNotFoundError(self.MANUAL_DOWNLOAD_INSTRUCTIONS)
     return [
         nlp.SplitGenerator(
             name=nlp.Split.TRAIN,
             gen_kwargs={
-                "path":
-                    os.path.join(dl_manager.manual_dir,
-                                 self.builder_config.filename),
-                "title_set":
-                    titles["train"],
+                "path": os.path.join(manual_dir, self.config.filename),
+                "title_set": titles["train"],
             },
         ),
         nlp.SplitGenerator(
             name=nlp.Split.VALIDATION,
             gen_kwargs={
-                "path":
-                    os.path.join(dl_manager.manual_dir,
-                                 self.builder_config.filename),
-                "title_set":
-                    titles["validation"],
+                "path":os.path.join(manual_dir, self.config.filename),
+                "title_set": titles["validation"],
             },
         ),
         nlp.SplitGenerator(
             name=nlp.Split.TEST,
             gen_kwargs={
-                "path":
-                    os.path.join(dl_manager.manual_dir,
-                                 self.builder_config.filename),
-                "title_set":
-                    titles["test"],
+                "path":os.path.join(manual_dir, self.config.filename),
+                "title_set": titles["test"],
             },
         )
     ]
@@ -168,11 +164,11 @@ class Wikihow(nlp.GeneratorBasedBuilder):
     with open(path) as f:
       reader = csv.reader(f)
       headers = next(reader)
-      if self.builder_config.name == "all" and headers != [
+      if self.config.name == "all" and headers != [
           "headline", "title", "text"
       ]:
         raise ValueError("Mismatched header in WikiAll.txt")
-      if self.builder_config.name == "sep" and headers != [
+      if self.config.name == "sep" and headers != [
           "overview", "headline", "text", "sectionLabel", "title"
       ]:
         raise ValueError("Mismatched header in WikiSep.txt")

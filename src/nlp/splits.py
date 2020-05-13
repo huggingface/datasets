@@ -375,7 +375,7 @@ class NamedSplitAll(NamedSplit):
         super(NamedSplitAll, self).__init__("all")
 
     def __repr__(self):
-        return "NamedSplitAll('{name}')".format(name=self._name)
+        return f"NamedSplitAll({self._name}"
 
     def get_read_instruction(self, split_dict):
         # Merge all dataset split together

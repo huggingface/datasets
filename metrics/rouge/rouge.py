@@ -12,10 +12,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" ROUGE metric. """
+""" ROUGE metric from Google Research github repo. """
 
 import nlp
-from .nmt_rouge import rouge  # From: https://github.com/tensorflow/nmt/blob/master/nmt/scripts/rouge.py
+
+# The dependencies in https://github.com/google-research/google-research/blob/master/rouge/requirements.txt
+import absl  # Here to have a nice missing dependency error message early on
+import nltk  # Here to have a nice missing dependency error message early on
+import numpy  # Here to have a nice missing dependency error message early on
+import six  # Here to have a nice missing dependency error message early on
+
+from rouge_score import rouge_scorer
 
 _CITATION = """\
 @inproceedings{lin-2004-rouge,
@@ -36,14 +43,8 @@ ROUGE, or Recall-Oriented Understudy for Gisting Evaluation, is a set of metrics
 evaluating automatic summarization and machine translation software in natural language processing.
 The metrics compare an automatically produced summary or translation against a reference or a set of references (human-produced) summary or translation.
 
-The following five evaluation metrics are available:
-ROUGE-N: Overlap of N-grams[2] between the system and reference summaries.
-ROUGE-1 refers to the overlap of unigram (each word) between the system and reference summaries.
-ROUGE-2 refers to the overlap of bigrams between the system and reference summaries.
-ROUGE-L: Longest Common Subsequence (LCS)[3] based statistics. Longest common subsequence problem takes into account sentence level structure similarity naturally and identifies longest co-occurring in sequence n-grams automatically.
-ROUGE-W: Weighted LCS-based statistics that favors consecutive LCSes .
-ROUGE-S: Skip-bigram[4] based co-occurrence statistics. Skip-bigram is any pair of words in their sentence order.
-ROUGE-SU: Skip-bigram plus unigram-based co-occurrence statistics.
+This metrics is a wrapper around Google Research reimplementation of ROUGE:
+https://github.com/google-research/google-research/tree/master/rouge
 """
 
 _KWARGS_DESCRIPTION = """
@@ -54,15 +55,10 @@ Args:
     references: list of reference for each prediction. Each
         reference should be a string with tokens separated by spaces.
 Returns:
-    rouge_1/f_score: rouge_1 f1,
-    rouge_1/r_score: rouge_1 recall,
-    rouge_1/p_score: rouge_1 precision,
-    rouge_2/f_score: rouge_2 f1,
-    rouge_2/r_score: rouge_2 recall,
-    rouge_2/p_score: rouge_2 precision,
-    rouge_l/f_score: rouge_l f1,
-    rouge_l/r_score: rouge_l recall,
-    rouge_l/p_score: rouge_l precision
+    rouge1: rouge_1 f1,
+    rouge2: rouge_2 f1,
+    rougeL: rouge_l f1,
+    rougeLsum: rouge_l precision
 """
 
 class Rouge(nlp.Metric):
@@ -71,13 +67,18 @@ class Rouge(nlp.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            predictions_features=nlp.Sequence(nlp.Value('string')),
-            references_features=nlp.Sequence(nlp.Value('string')),
-            codebase_urls=["https://github.com/tensorflow/nmt/blob/master/nmt/scripts/rouge.py"],
+            features=nlp.Features({
+                'predictions': nlp.Value('string', id='sequence'),
+                'references': nlp.Value('string', id='sequence'),
+            }),
+            codebase_urls=["https://github.com/google-research/google-research/tree/master/rouge"],
             reference_urls=["https://en.wikipedia.org/wiki/ROUGE_(metric)",
-                            "http://research.microsoft.com/en-us/um/people/cyl/download/papers/rouge-working-note-v1.3.1.pdf"]
+                            "https://github.com/google-research/google-research/tree/master/rouge"]
         )
 
-    def _compute(self, predictions, references):
-        score = rouge(hypotheses=predictions, references=references)
-        return score
+    def _compute(self, predictions, references, rouge_types=None, use_stemmer=False):
+        if rouge_types is None:
+            rouge_types = ['rouge1', 'rougeL']
+        scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=use_stemmer)
+        scores = scorer.score(references, predictions)
+        return scores

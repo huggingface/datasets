@@ -1,0 +1,1 @@
+https://s3-us-west-2.amazonaws.com/ai2-s2-research/scicite/scicite.tar.gz 23189911 711ece2c4e61d116c8ae5bb07e9fbb2ee9ff7bba004b4cab7fbd0ac3af499193

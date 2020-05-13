@@ -1,0 +1,1 @@
+IN: walk left OUT: I_TURN_LEFT I_WALK

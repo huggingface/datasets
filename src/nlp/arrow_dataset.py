@@ -278,8 +278,13 @@ class Dataset(object):
         elif isinstance(key, str):
             if key not in self._data.column_names:
                 raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
-            if self._format_type is not None and self._format_type == "pandas":
-                outputs = self._data[key].to_pandas()
+            if self._format_type is not None:
+                if self._format_type == "pandas":
+                    outputs = self._data[key].to_pandas()
+                elif self._format_type == "numpy":
+                    outputs = self._data[key].to_numpy()
+                else:
+                    outputs = self.convert_outputs(self._data[key].to_pylist())
             else:
                 outputs = self._data[key].to_pylist()
         else:

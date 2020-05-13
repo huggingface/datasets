@@ -1,0 +1,14 @@
+He likes Cuba and hates Japan because it is not a communist country.
+it
+Cuba,Japan
+Japan
+
+Saudi Arabians do not respect the Bangladeshis because they are poor.
+they
+Saudi Arabians,Bangladeshis
+Bangladeshis
+
+Saudi Arabians do not respect the Bangladeshis because they are rich.
+they
+Saudi Arabians,Bangladeshis
+Saudi Arabians
