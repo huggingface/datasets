@@ -84,7 +84,7 @@ class DatasetInfo:
     splits: Optional[dict] = field(default_factory=SplitDict)
     size_in_bytes: int = 0
     download_size: int = 0
-    download_checksums: List[DownloadChecksumsEntryData] = field(default_factory=list)
+    download_checksums: dict = field(default_factory=dict)
 
     def __post_init__(self):
         # Convert back to the correct classes when we reload from dict
@@ -97,11 +97,6 @@ class DatasetInfo:
                 self.supervised_keys = SupervisedKeysData(*self.supervised_keys)
             else:
                 self.supervised_keys = SupervisedKeysData(**self.supervised_keys)
-        if self.download_checksums and not isinstance(self.download_checksums[0], DownloadChecksumsEntryData):
-            if isinstance(self.download_checksums[0], (tuple, list)):
-                self.download_checksums = [DownloadChecksumsEntryData(*args) for args in self.download_checksums]
-            else:
-                self.download_checksums = [DownloadChecksumsEntryData(**args) for args in self.download_checksums]
 
     @property
     def dataset_size(self):
