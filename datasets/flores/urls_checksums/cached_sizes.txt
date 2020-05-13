@@ -1,0 +1,5 @@
+# Cached sizes: <full_config_name> <num_bytes> <num_examples>
+flores/neen/1.1.0/test 1000483 2836
+flores/neen/1.1.0/validation 850660 2560
+flores/sien/1.1.0/test 984947 2767
+flores/sien/1.1.0/validation 1032610 2899
