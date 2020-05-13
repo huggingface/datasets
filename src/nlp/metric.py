@@ -25,8 +25,9 @@ from filelock import FileLock, Timeout
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .info import MetricInfo
-from .utils import HF_METRICS_CACHE, Version
 from .naming import camelcase_to_snakecase
+from .utils import HF_METRICS_CACHE, Version
+
 
 logger = logging.getLogger(__file__)
 

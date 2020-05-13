@@ -245,7 +245,7 @@ class Dataset(object):
                     continue
                 try:
                     out_v = command(v)
-                except:
+                except:  # noqa E722
                     out_v = v
                 output_dict[k] = out_v
         return output_dict
@@ -446,8 +446,11 @@ class Dataset(object):
                 for column in remove_columns:
                     inputs.pop(column)
             if self._format_type is not None:
-                inputs = self._getitem(key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1])),
-                                       format_type=None, format_columns=None)
+                inputs = self._getitem(
+                    key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1])),
+                    format_type=None,
+                    format_columns=None,
+                )
             inputs.update(processed_inputs)
             return inputs
 
