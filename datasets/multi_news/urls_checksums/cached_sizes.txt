@@ -1,0 +1,4 @@
+# Cached sizes: <full_config_name> <num_bytes> <num_examples>
+multi_news/no-name/1.0.0/test 70391756 5622
+multi_news/no-name/1.0.0/train 561166101 44972
+multi_news/no-name/1.0.0/validation 68619448 5622

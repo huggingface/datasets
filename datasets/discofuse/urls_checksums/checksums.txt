@@ -1,0 +1,3 @@
+# Checksums: <url> <num_bytes> <sha256>
+https://storage.googleapis.com/discofuse_dataset_v1/discofuse_v1_sports.tar.gz 4326640797 e2716f9ada309d50e5603182e9d1e8ecb9968b5b143dbd6251c4b10b9ae61517
+https://storage.googleapis.com/discofuse_dataset_v1/discofuse_v1_wikipedia.tar.gz 1717418045 f351abc85a581142fb9e70a2cbedcc0054bc3568f11ce8255389ef5c007eebde
