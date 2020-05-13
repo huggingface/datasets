@@ -1,12 +1,12 @@
 """TODO(com_qa): Add a description here."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import json
+import os
 
 import nlp
-import os
-import json
+
 
 # TODO(com_qa): BibTeX citation
 _CITATION = """\
@@ -40,101 +40,86 @@ in ComQA are grouped into 4,834 paraphrase clusters that express the same inform
 with its answer(s). ComQA answers come in the form of Wikipedia entities wherever possible. Wherever the answers are 
 temporal or measurable quantities, TIMEX3 and the International System of Units (SI) are used for normalization.
 """
-_URL = 'https://qa.mpi-inf.mpg.de/comqa'
-_TRAIN_FILE = 'comqa_train.json'
-_DEV_FILE = 'comqa_dev.json'
-_TEST_FILE = 'comqa_test.json'
+_URL = "https://qa.mpi-inf.mpg.de/comqa"
+_TRAIN_FILE = "comqa_train.json"
+_DEV_FILE = "comqa_dev.json"
+_TEST_FILE = "comqa_test.json"
+
 
 class ComQa(nlp.GeneratorBasedBuilder):
-  """TODO(com_qa): Short description of my dataset."""
+    """TODO(com_qa): Short description of my dataset."""
 
-  # TODO(com_qa): Set up version.
-  VERSION = nlp.Version('0.1.0')
+    # TODO(com_qa): Set up version.
+    VERSION = nlp.Version("0.1.0")
 
-  def _info(self):
-    # TODO(com_qa): Specifies the nlp.DatasetInfo object
-    return nlp.DatasetInfo(
-        # This is the description that will appear on the datasets page.
-        description=_DESCRIPTION,
-        # nlp.features.FeatureConnectors
-        features=nlp.Features({
-            'cluster_id': nlp.Value('string'),
-            'questions': nlp.features.Sequence({
-                'question': nlp.Value('string')
-            }),
-            'answers': nlp.features.Sequence({
-                'answer': nlp.Value('string')
-            }),
-            # These are the features of your dataset like images, labels ...
-        }),
-        # If there's a common (input, target) tuple from the features,
-        # specify them here. They'll be used if as_supervised=True in
-        # builder.as_dataset.
-        supervised_keys=None,
-        # Homepage of the dataset for documentation
-        homepage='http://qa.mpi-inf.mpg.de/comqa/',
-        citation=_CITATION,
-    )
-
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    # TODO(com_qa): Downloads the data and defines the splits
-    # dl_manager is a nlp.download.DownloadManager that can be used to
-    # download and extract URLs
-    urls_to_download = {
-        'train': os.path.join(_URL, _TRAIN_FILE),
-        'dev': os.path.join(_URL, _DEV_FILE),
-        'test': os.path.join(_URL, _TEST_FILE)
-    }
-    dl_dir = dl_manager.download_and_extract(urls_to_download)
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={
-                'filepath': dl_dir['train'],
-                'split': 'train'
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={
-                'filepath': dl_dir['test'],
-                'split': 'test'
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={
-                'filepath': dl_dir['dev'],
-                'split': 'dev'
-            },
-        ),
-    ]
-
-  def _generate_examples(self, filepath,split):
-    """Yields examples."""
-    # TODO(com_qa): Yields (key, example) tuples from the dataset
-    with open(filepath) as f:
-        data = json.load(f)
-        for id_, example in enumerate(data):
-            questions = []
-            if split == 'test':
-                cluster_id = str(example['id'])
-                questions.append(example['question'])
-            else:
-                cluster_id = example['cluster_id']
-                questions = example['questions']
-            answers = example['answers']
-            yield id_, {
-                'cluster_id': cluster_id,
-                'questions': {
-                    'question': questions
-                },
-                'answers': {
-                    'answer': answers
+    def _info(self):
+        # TODO(com_qa): Specifies the nlp.DatasetInfo object
+        return nlp.DatasetInfo(
+            # This is the description that will appear on the datasets page.
+            description=_DESCRIPTION,
+            # nlp.features.FeatureConnectors
+            features=nlp.Features(
+                {
+                    "cluster_id": nlp.Value("string"),
+                    "questions": nlp.features.Sequence({"question": nlp.Value("string")}),
+                    "answers": nlp.features.Sequence({"answer": nlp.Value("string")}),
+                    # These are the features of your dataset like images, labels ...
                 }
-            }
+            ),
+            # If there's a common (input, target) tuple from the features,
+            # specify them here. They'll be used if as_supervised=True in
+            # builder.as_dataset.
+            supervised_keys=None,
+            # Homepage of the dataset for documentation
+            homepage="http://qa.mpi-inf.mpg.de/comqa/",
+            citation=_CITATION,
+        )
 
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        # TODO(com_qa): Downloads the data and defines the splits
+        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # download and extract URLs
+        urls_to_download = {
+            "train": os.path.join(_URL, _TRAIN_FILE),
+            "dev": os.path.join(_URL, _DEV_FILE),
+            "test": os.path.join(_URL, _TEST_FILE),
+        }
+        dl_dir = dl_manager.download_and_extract(urls_to_download)
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": dl_dir["train"], "split": "train"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": dl_dir["test"], "split": "test"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": dl_dir["dev"], "split": "dev"},
+            ),
+        ]
+
+    def _generate_examples(self, filepath, split):
+        """Yields examples."""
+        # TODO(com_qa): Yields (key, example) tuples from the dataset
+        with open(filepath) as f:
+            data = json.load(f)
+            for id_, example in enumerate(data):
+                questions = []
+                if split == "test":
+                    cluster_id = str(example["id"])
+                    questions.append(example["question"])
+                else:
+                    cluster_id = example["cluster_id"]
+                    questions = example["questions"]
+                answers = example["answers"]
+                yield id_, {
+                    "cluster_id": cluster_id,
+                    "questions": {"question": questions},
+                    "answers": {"answer": answers},
+                }

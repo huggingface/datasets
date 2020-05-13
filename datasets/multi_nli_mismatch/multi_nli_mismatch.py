@@ -16,13 +16,12 @@
 # Lint as: python3
 """The Multi-Genre NLI Corpus."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import os
 
 import nlp
+
 
 _CITATION = """\
 @InProceedings{N18-1101,
@@ -57,73 +56,59 @@ ROOT_URL = "http://storage.googleapis.com/tfds-data/downloads/multi_nli/multinli
 
 
 class MultiNLIMismatchConfig(nlp.BuilderConfig):
-  """BuilderConfig for MultiNLI Mismatch."""
+    """BuilderConfig for MultiNLI Mismatch."""
 
-  def __init__(self, **kwargs):
-    """BuilderConfig for MultiNLI Mismatch.
+    def __init__(self, **kwargs):
+        """BuilderConfig for MultiNLI Mismatch.
 
     Args:
 
       **kwargs: keyword arguments forwarded to super.
     """
-    super(MultiNLIMismatchConfig, self).__init__(version=nlp.Version(
-            "1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs)
-
+        super(MultiNLIMismatchConfig, self).__init__(
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+        )
 
 
 class MultiNliMismatch(nlp.GeneratorBasedBuilder):
-  """MultiNLI: The Stanford Question Answering Dataset. Version 1.1."""
+    """MultiNLI: The Stanford Question Answering Dataset. Version 1.1."""
 
-  BUILDER_CONFIGS = [
-      MultiNLIMismatchConfig(
-          name="plain_text",
-          description="Plain text",
-      ),
-  ]
-
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            "premise":
-                nlp.Value('string'),
-            "hypothesis":
-                nlp.Value('string'),
-            "label":
-                nlp.Value('string'),
-        }),
-        # No default supervised_keys (as we have to pass both premise
-        # and hypothesis as input).
-        supervised_keys=None,
-        homepage="https://www.nyu.edu/projects/bowman/multinli/",
-        citation=_CITATION,
-    )
-
-  def _vocab_text_gen(self, filepath):
-    for _, ex in self._generate_examples(filepath):
-      yield " ".join([ex["premise"], ex["hypothesis"], ex["label"]])
-
-  def _split_generators(self, dl_manager):
-
-    downloaded_dir = dl_manager.download_and_extract(ROOT_URL)
-    mnli_path = os.path.join(downloaded_dir, "multinli_1.0")
-    train_path = os.path.join(mnli_path, "multinli_1.0_train.txt")
-
-    validation_path = os.path.join(mnli_path, "multinli_1.0_dev_mismatched.txt")
-
-   
-
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={"filepath": train_path}),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={"filepath": validation_path}),
+    BUILDER_CONFIGS = [
+        MultiNLIMismatchConfig(name="plain_text", description="Plain text",),
     ]
 
-  def _generate_examples(self, filepath):
-    """Generate mnli mismatch examples.
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features(
+                {"premise": nlp.Value("string"), "hypothesis": nlp.Value("string"), "label": nlp.Value("string"),}
+            ),
+            # No default supervised_keys (as we have to pass both premise
+            # and hypothesis as input).
+            supervised_keys=None,
+            homepage="https://www.nyu.edu/projects/bowman/multinli/",
+            citation=_CITATION,
+        )
+
+    def _vocab_text_gen(self, filepath):
+        for _, ex in self._generate_examples(filepath):
+            yield " ".join([ex["premise"], ex["hypothesis"], ex["label"]])
+
+    def _split_generators(self, dl_manager):
+
+        downloaded_dir = dl_manager.download_and_extract(ROOT_URL)
+        mnli_path = os.path.join(downloaded_dir, "multinli_1.0")
+        train_path = os.path.join(mnli_path, "multinli_1.0_train.txt")
+
+        validation_path = os.path.join(mnli_path, "multinli_1.0_dev_mismatched.txt")
+
+        return [
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_path}),
+            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": validation_path}),
+        ]
+
+    def _generate_examples(self, filepath):
+        """Generate mnli mismatch examples.
 
     Args:
       filepath: a string
@@ -131,13 +116,9 @@ class MultiNliMismatch(nlp.GeneratorBasedBuilder):
     Yields:
       dictionaries containing "premise", "hypothesis" and "label" strings
     """
-    for idx, line in enumerate(open(filepath, "rb")):
-      if idx == 0:
-        continue
-      line = line.strip().decode('utf-8')
-      split_line = line.split("\t")
-      yield idx, {
-          "premise": split_line[5],
-          "hypothesis": split_line[6],
-          "label": split_line[0]
-      }
+        for idx, line in enumerate(open(filepath, "rb")):
+            if idx == 0:
+                continue
+            line = line.strip().decode("utf-8")
+            split_line = line.split("\t")
+            yield idx, {"premise": split_line[5], "hypothesis": split_line[6], "label": split_line[0]}

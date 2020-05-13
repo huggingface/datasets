@@ -16,11 +16,10 @@
 # Lint as: python3
 """The Definite Pronoun Resolution Dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import nlp
+
 
 _CITATION = """\
 @inproceedings{rahman2012resolving,
@@ -44,68 +43,60 @@ the fourth line contains the correct antecedent. If the target pronoun appears
 more than once in the sentence, its first occurrence is the one to be resolved.
 """
 
-_DATA_URL_PATTERN = 'http://www.hlt.utdallas.edu/~vince/data/emnlp12/{}.c.txt'
+_DATA_URL_PATTERN = "http://www.hlt.utdallas.edu/~vince/data/emnlp12/{}.c.txt"
 
 
 class DefinitePronounResolution(nlp.GeneratorBasedBuilder):
-  """The Definite Pronoun Resolution Dataset."""
-  BUILDER_CONFIGS = [
-      nlp.BuilderConfig(
-          name='plain_text',
-          version=nlp.Version(
-              '1.0.0',
-              'New split API (https://tensorflow.org/datasets/splits)'),
-          description='Plain text import of the Definite Pronoun Resolution Dataset.',  # pylint: disable=line-too-long
-      )
-  ]
+    """The Definite Pronoun Resolution Dataset."""
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            'sentence':
-                nlp.Value('string'),
-            'pronoun':
-                nlp.Value('string'),
-            'candidates':
-                nlp.features.Sequence(nlp.Value('string'), length=2),
-            'label':
-                nlp.features.ClassLabel(num_classes=2),
-        }),
-        supervised_keys=('sentence', 'label'),
-        homepage='http://www.hlt.utdallas.edu/~vince/data/emnlp12/',
-        citation=_CITATION,
-    )
-
-  def _split_generators(self, dl_manager):
-    files = dl_manager.download_and_extract({
-        'train': _DATA_URL_PATTERN.format('train'),
-        'test': _DATA_URL_PATTERN.format('test'),
-    })
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={'filepath': files['test']}),
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={'filepath': files['train']}),
+    BUILDER_CONFIGS = [
+        nlp.BuilderConfig(
+            name="plain_text",
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            description="Plain text import of the Definite Pronoun Resolution Dataset.",  # pylint: disable=line-too-long
+        )
     ]
 
-  def _generate_examples(self, filepath):
-    with open(filepath) as f:
-      line_num = -1
-      while True:
-        line_num += 1
-        sentence = f.readline().strip()
-        pronoun = f.readline().strip()
-        candidates = [c.strip() for c in f.readline().strip().split(',')]
-        correct = f.readline().strip()
-        f.readline()
-        if not sentence:
-          break
-        yield line_num, {
-            'sentence': sentence,
-            'pronoun': pronoun,
-            'candidates': candidates,
-            'label': candidates.index(correct),
-        }
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features(
+                {
+                    "sentence": nlp.Value("string"),
+                    "pronoun": nlp.Value("string"),
+                    "candidates": nlp.features.Sequence(nlp.Value("string"), length=2),
+                    "label": nlp.features.ClassLabel(num_classes=2),
+                }
+            ),
+            supervised_keys=("sentence", "label"),
+            homepage="http://www.hlt.utdallas.edu/~vince/data/emnlp12/",
+            citation=_CITATION,
+        )
+
+    def _split_generators(self, dl_manager):
+        files = dl_manager.download_and_extract(
+            {"train": _DATA_URL_PATTERN.format("train"), "test": _DATA_URL_PATTERN.format("test"),}
+        )
+        return [
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": files["test"]}),
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": files["train"]}),
+        ]
+
+    def _generate_examples(self, filepath):
+        with open(filepath) as f:
+            line_num = -1
+            while True:
+                line_num += 1
+                sentence = f.readline().strip()
+                pronoun = f.readline().strip()
+                candidates = [c.strip() for c in f.readline().strip().split(",")]
+                correct = f.readline().strip()
+                f.readline()
+                if not sentence:
+                    break
+                yield line_num, {
+                    "sentence": sentence,
+                    "pronoun": pronoun,
+                    "candidates": candidates,
+                    "label": candidates.index(correct),
+                }

@@ -16,14 +16,13 @@
 # Lint as: python3
 """The Stanford Natural Language Inference (SNLI) Corpus."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import csv
 import os
 
 import nlp
+
 
 _CITATION = """\
 @inproceedings{snli:emnlp2015,
@@ -42,70 +41,62 @@ entailment, contradiction, and neutral, supporting the task of natural language
 inference (NLI), also known as recognizing textual entailment (RTE).
 """
 
-_DATA_URL = 'https://nlp.stanford.edu/projects/snli/snli_1.0.zip'
+_DATA_URL = "https://nlp.stanford.edu/projects/snli/snli_1.0.zip"
 
 
 class Snli(nlp.GeneratorBasedBuilder):
-  """The Stanford Natural Language Inference (SNLI) Corpus."""
-  BUILDER_CONFIGS = [
-      nlp.BuilderConfig(
-          name='plain_text',
-          version=nlp.Version(
-              '1.0.0',
-              'New split API (https://tensorflow.org/datasets/splits)'),
-          description='Plain text import of SNLI',
-      )
-  ]
+    """The Stanford Natural Language Inference (SNLI) Corpus."""
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            'premise':
-                nlp.Value('string'),
-            'hypothesis':
-                nlp.Value('string'),
-            'label':
-                nlp.features.ClassLabel(
-                    names=['entailment', 'neutral', 'contradiction']),
-        }),
-        # No default supervised_keys (as we have to pass both premise
-        # and hypothesis as input).
-        supervised_keys=None,
-        homepage='https://nlp.stanford.edu/projects/snli/',
-        citation=_CITATION,
-    )
-
-  def _split_generators(self, dl_manager):
-    dl_dir = dl_manager.download_and_extract(_DATA_URL)
-    data_dir = os.path.join(dl_dir, 'snli_1.0')
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={
-                'filepath': os.path.join(data_dir, 'snli_1.0_test.txt')
-            }),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={'filepath': os.path.join(data_dir,
-                                                 'snli_1.0_dev.txt')}),
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                'filepath': os.path.join(data_dir, 'snli_1.0_train.txt')
-            }),
+    BUILDER_CONFIGS = [
+        nlp.BuilderConfig(
+            name="plain_text",
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            description="Plain text import of SNLI",
+        )
     ]
 
-  def _generate_examples(self, filepath):
-    """This function returns the examples in the raw (text) form."""
-    print(filepath)
-    print('=='*100)
-    with open(filepath) as f:
-      reader = csv.DictReader(f, delimiter='\t', quoting=csv.QUOTE_NONE)
-      for idx, row in enumerate(reader):
-        label = -1 if row['gold_label'] == '-' else row['gold_label']
-        yield idx, {
-            'premise': row['sentence1'],
-            'hypothesis': row['sentence2'],
-            'label': label,
-        }
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features(
+                {
+                    "premise": nlp.Value("string"),
+                    "hypothesis": nlp.Value("string"),
+                    "label": nlp.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+                }
+            ),
+            # No default supervised_keys (as we have to pass both premise
+            # and hypothesis as input).
+            supervised_keys=None,
+            homepage="https://nlp.stanford.edu/projects/snli/",
+            citation=_CITATION,
+        )
+
+    def _split_generators(self, dl_manager):
+        dl_dir = dl_manager.download_and_extract(_DATA_URL)
+        data_dir = os.path.join(dl_dir, "snli_1.0")
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "snli_1.0_test.txt")}
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "snli_1.0_dev.txt")}
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "snli_1.0_train.txt")}
+            ),
+        ]
+
+    def _generate_examples(self, filepath):
+        """This function returns the examples in the raw (text) form."""
+        print(filepath)
+        print("==" * 100)
+        with open(filepath) as f:
+            reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
+            for idx, row in enumerate(reader):
+                label = -1 if row["gold_label"] == "-" else row["gold_label"]
+                yield idx, {
+                    "premise": row["sentence1"],
+                    "hypothesis": row["sentence2"],
+                    "label": label,
+                }

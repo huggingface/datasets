@@ -16,15 +16,15 @@
 # Lint as: python3
 """The SuperGLUE benchmark."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import json
 import os
 
 import six
+
 import nlp
+
 
 _SUPER_GLUE_CITATION = """\
 @article{wang2019superglue,
@@ -282,16 +282,10 @@ _AXG_CITATION = """\
 
 
 class SuperGlueConfig(nlp.BuilderConfig):
-  """BuilderConfig for SuperGLUE."""
+    """BuilderConfig for SuperGLUE."""
 
-  def __init__(self,
-               features,
-               data_url,
-               citation,
-               url,
-               label_classes=("False", "True"),
-               **kwargs):
-    """BuilderConfig for SuperGLUE.
+    def __init__(self, features, data_url, citation, url, label_classes=("False", "True"), **kwargs):
+        """BuilderConfig for SuperGLUE.
 
     Args:
       features: `list[string]`, list of the features that will appear in the
@@ -304,333 +298,311 @@ class SuperGlueConfig(nlp.BuilderConfig):
         'False' or 'True'.
       **kwargs: keyword arguments forwarded to super.
     """
-    # Version history:
-    # 1.0.2: Fixed non-nondeterminism in ReCoRD.
-    # 1.0.1: Change from the pre-release trial version of SuperGLUE (v1.9) to
-    #        the full release (v2.0).
-    # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
-    # 0.0.2: Initial version.
-    super(SuperGlueConfig, self).__init__(
-        version=nlp.Version("1.0.2"),
-        **kwargs)
-    self.features = features
-    self.label_classes = label_classes
-    self.data_url = data_url
-    self.citation = citation
-    self.url = url
+        # Version history:
+        # 1.0.2: Fixed non-nondeterminism in ReCoRD.
+        # 1.0.1: Change from the pre-release trial version of SuperGLUE (v1.9) to
+        #        the full release (v2.0).
+        # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
+        # 0.0.2: Initial version.
+        super(SuperGlueConfig, self).__init__(version=nlp.Version("1.0.2"), **kwargs)
+        self.features = features
+        self.label_classes = label_classes
+        self.data_url = data_url
+        self.citation = citation
+        self.url = url
 
 
 class SuperGlue(nlp.GeneratorBasedBuilder):
-  """The SuperGLUE benchmark."""
-  BUILDER_CONFIGS = [
-      SuperGlueConfig(
-          name="boolq",
-          description=_BOOLQ_DESCRIPTION,
-          features=["question", "passage"],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/BoolQ.zip",
-          citation=_BOOLQ_CITATION,
-          url="https://github.com/google-research-datasets/boolean-questions"),
-      SuperGlueConfig(
-          name="cb",
-          description=_CB_DESCRIPTION,
-          features=["premise", "hypothesis"],
-          label_classes=["entailment", "contradiction", "neutral"],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/CB.zip",
-          citation=_CB_CITATION,
-          url="https://github.com/mcdm/CommitmentBank"),
-      SuperGlueConfig(
-          name="copa",
-          description=_COPA_DESCRIPTION,
-          label_classes=["choice1", "choice2"],
-          # Note that question will only be the X in the statement "What's
-          # the X for this?".
-          features=["premise", "choice1", "choice2", "question"],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/COPA.zip",
-          citation=_COPA_CITATION,
-          url="http://people.ict.usc.edu/~gordon/copa.html"),
-      SuperGlueConfig(
-          name="multirc",
-          description=_MULTIRC_DESCRIPTION,
-          features=["paragraph", "question", "answer"],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/MultiRC.zip",
-          citation=_MULTIRC_CITATION,
-          url="https://cogcomp.org/multirc/"),
-      SuperGlueConfig(
-          name="record",
-          description=_RECORD_DESCRIPTION,
-          # Note that entities and answers will be a sequences of strings. Query
-          # will contain @placeholder as a substring, which represents the word
-          # to be substituted in.
-          features=["passage", "query", "entities", "answers"],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/ReCoRD.zip",
-          citation=_RECORD_CITATION,
-          url="https://sheng-z.github.io/ReCoRD-explorer/"),
-      SuperGlueConfig(
-          name="rte",
-          description=_RTE_DESCRIPTION,
-          features=["premise", "hypothesis"],
-          label_classes=["entailment", "not_entailment"],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/RTE.zip",
-          citation=_RTE_CITATION,
-          url="https://aclweb.org/aclwiki/Recognizing_Textual_Entailment"),
-      SuperGlueConfig(
-          name="wic",
-          description=_WIC_DESCRIPTION,
-          # Note that start1, start2, end1, and end2 will be integers stored as
-          # nlp.Value('int32').
-          features=[
-              "word", "sentence1", "sentence2", "start1", "start2", "end1",
-              "end2"
-          ],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WiC.zip",
-          citation=_WIC_CITATION,
-          url="https://pilehvar.github.io/wic/"),
-      SuperGlueConfig(
-          name="wsc",
-          description=_WSC_DESCRIPTION,
-          # Note that span1_index and span2_index will be integers stored as
-          # nlp.Value('int32').
-          features=[
-              "text", "span1_index", "span2_index", "span1_text", "span2_text"
-          ],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WSC.zip",
-          citation=_WSC_CITATION,
-          url="https://cs.nyu.edu/faculty/davise/papers/WinogradSchemas/WS.html"
-      ),
-      SuperGlueConfig(
-          name="wsc.fixed",
-          description=(
-              _WSC_DESCRIPTION +
-              "\n\nThis version fixes issues where the spans are not actually "
-              "substrings of the text."),
-          # Note that span1_index and span2_index will be integers stored as
-          # nlp.Value('int32').
-          features=[
-              "text", "span1_index", "span2_index", "span1_text", "span2_text"
-          ],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WSC.zip",
-          citation=_WSC_CITATION,
-          url="https://cs.nyu.edu/faculty/davise/papers/WinogradSchemas/WS.html"
-      ),
-      SuperGlueConfig(
-          name="axb",
-          description=_AXB_DESCRIPTION,
-          features=["sentence1", "sentence2"],
-          label_classes=["entailment", "not_entailment"],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/AX-b.zip",
-          citation="",  # The GLUE citation is sufficient.
-          url="https://gluebenchmark.com/diagnostics"),
-      SuperGlueConfig(
-          name="axg",
-          description=_AXG_DESCRIPTION,
-          features=["premise", "hypothesis"],
-          label_classes=["entailment", "not_entailment"],
-          data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/AX-g.zip",
-          citation=_AXG_CITATION,
-          url="https://github.com/rudinger/winogender-schemas"),
-  ]
+    """The SuperGLUE benchmark."""
 
-  def _info(self):
-    features = {
-        feature: nlp.Value('string')
-        for feature in self.config.features
-    }
-    if self.config.name.startswith("wsc"):
-      features["span1_index"] = nlp.Value('int32')
-      features["span2_index"] = nlp.Value('int32')
-    if self.config.name == "wic":
-      features["start1"] = nlp.Value('int32')
-      features["start2"] = nlp.Value('int32')
-      features["end1"] = nlp.Value('int32')
-      features["end2"] = nlp.Value('int32')
-    if self.config.name == "multirc":
-      features["idx"] = dict({
-          "paragraph": nlp.Value('int32'),
-          "question": nlp.Value('int32'),
-          "answer": nlp.Value('int32'),
-      })
-    elif self.config.name == "record":
-      features["idx"] = dict({
-          "passage": nlp.Value('int32'),
-          "query": nlp.Value('int32'),
-      })
-    else:
-      features["idx"] = nlp.Value('int32')
-
-    if self.config.name == "record":
-      # Entities are the set of possible choices for the placeholder.
-      features["entities"] = nlp.features.Sequence(nlp.Value('string'))
-      # Answers are the subset of entities that are correct.
-      features["answers"] = nlp.features.Sequence(nlp.Value('string'))
-    else:
-      features["label"] = nlp.features.ClassLabel(
-          names=self.config.label_classes)
-
-    return nlp.DatasetInfo(
-        description=_GLUE_DESCRIPTION + self.config.description,
-        features=nlp.Features(features),
-        homepage=self.config.url,
-        citation=self.config.citation + "\n" + _SUPER_GLUE_CITATION,
-    )
-
-  def _split_generators(self, dl_manager):
-    dl_dir = dl_manager.download_and_extract(self.config.data_url) or ""
-    task_name = _get_task_name_from_data_url(self.config.data_url)
-    dl_dir = os.path.join(dl_dir, task_name)
-    if self.config.name in ["axb", "axg"]:
-      return [
-          nlp.SplitGenerator(
-              name=nlp.Split.TEST,
-              gen_kwargs={
-                  "data_file":
-                      os.path.join(dl_dir, "{}.jsonl".format(task_name)),
-                  "split":
-                      nlp.Split.TEST,
-              }),
-      ]
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                "data_file": os.path.join(dl_dir, "train.jsonl"),
-                "split": nlp.Split.TRAIN,
-            }),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={
-                "data_file": os.path.join(dl_dir, "val.jsonl"),
-                "split": nlp.Split.VALIDATION,
-            }),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={
-                "data_file": os.path.join(dl_dir, "test.jsonl"),
-                "split": nlp.Split.TEST,
-            }),
+    BUILDER_CONFIGS = [
+        SuperGlueConfig(
+            name="boolq",
+            description=_BOOLQ_DESCRIPTION,
+            features=["question", "passage"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/BoolQ.zip",
+            citation=_BOOLQ_CITATION,
+            url="https://github.com/google-research-datasets/boolean-questions",
+        ),
+        SuperGlueConfig(
+            name="cb",
+            description=_CB_DESCRIPTION,
+            features=["premise", "hypothesis"],
+            label_classes=["entailment", "contradiction", "neutral"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/CB.zip",
+            citation=_CB_CITATION,
+            url="https://github.com/mcdm/CommitmentBank",
+        ),
+        SuperGlueConfig(
+            name="copa",
+            description=_COPA_DESCRIPTION,
+            label_classes=["choice1", "choice2"],
+            # Note that question will only be the X in the statement "What's
+            # the X for this?".
+            features=["premise", "choice1", "choice2", "question"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/COPA.zip",
+            citation=_COPA_CITATION,
+            url="http://people.ict.usc.edu/~gordon/copa.html",
+        ),
+        SuperGlueConfig(
+            name="multirc",
+            description=_MULTIRC_DESCRIPTION,
+            features=["paragraph", "question", "answer"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/MultiRC.zip",
+            citation=_MULTIRC_CITATION,
+            url="https://cogcomp.org/multirc/",
+        ),
+        SuperGlueConfig(
+            name="record",
+            description=_RECORD_DESCRIPTION,
+            # Note that entities and answers will be a sequences of strings. Query
+            # will contain @placeholder as a substring, which represents the word
+            # to be substituted in.
+            features=["passage", "query", "entities", "answers"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/ReCoRD.zip",
+            citation=_RECORD_CITATION,
+            url="https://sheng-z.github.io/ReCoRD-explorer/",
+        ),
+        SuperGlueConfig(
+            name="rte",
+            description=_RTE_DESCRIPTION,
+            features=["premise", "hypothesis"],
+            label_classes=["entailment", "not_entailment"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/RTE.zip",
+            citation=_RTE_CITATION,
+            url="https://aclweb.org/aclwiki/Recognizing_Textual_Entailment",
+        ),
+        SuperGlueConfig(
+            name="wic",
+            description=_WIC_DESCRIPTION,
+            # Note that start1, start2, end1, and end2 will be integers stored as
+            # nlp.Value('int32').
+            features=["word", "sentence1", "sentence2", "start1", "start2", "end1", "end2"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WiC.zip",
+            citation=_WIC_CITATION,
+            url="https://pilehvar.github.io/wic/",
+        ),
+        SuperGlueConfig(
+            name="wsc",
+            description=_WSC_DESCRIPTION,
+            # Note that span1_index and span2_index will be integers stored as
+            # nlp.Value('int32').
+            features=["text", "span1_index", "span2_index", "span1_text", "span2_text"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WSC.zip",
+            citation=_WSC_CITATION,
+            url="https://cs.nyu.edu/faculty/davise/papers/WinogradSchemas/WS.html",
+        ),
+        SuperGlueConfig(
+            name="wsc.fixed",
+            description=(
+                _WSC_DESCRIPTION + "\n\nThis version fixes issues where the spans are not actually "
+                "substrings of the text."
+            ),
+            # Note that span1_index and span2_index will be integers stored as
+            # nlp.Value('int32').
+            features=["text", "span1_index", "span2_index", "span1_text", "span2_text"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WSC.zip",
+            citation=_WSC_CITATION,
+            url="https://cs.nyu.edu/faculty/davise/papers/WinogradSchemas/WS.html",
+        ),
+        SuperGlueConfig(
+            name="axb",
+            description=_AXB_DESCRIPTION,
+            features=["sentence1", "sentence2"],
+            label_classes=["entailment", "not_entailment"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/AX-b.zip",
+            citation="",  # The GLUE citation is sufficient.
+            url="https://gluebenchmark.com/diagnostics",
+        ),
+        SuperGlueConfig(
+            name="axg",
+            description=_AXG_DESCRIPTION,
+            features=["premise", "hypothesis"],
+            label_classes=["entailment", "not_entailment"],
+            data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/AX-g.zip",
+            citation=_AXG_CITATION,
+            url="https://github.com/rudinger/winogender-schemas",
+        ),
     ]
 
-  def _generate_examples(self, data_file, split):
-    with open(data_file) as f:
-      for line in f:
-        row = json.loads(line)
-
+    def _info(self):
+        features = {feature: nlp.Value("string") for feature in self.config.features}
+        if self.config.name.startswith("wsc"):
+            features["span1_index"] = nlp.Value("int32")
+            features["span2_index"] = nlp.Value("int32")
+        if self.config.name == "wic":
+            features["start1"] = nlp.Value("int32")
+            features["start2"] = nlp.Value("int32")
+            features["end1"] = nlp.Value("int32")
+            features["end2"] = nlp.Value("int32")
         if self.config.name == "multirc":
-          paragraph = row["passage"]
-          for question in paragraph["questions"]:
-            for answer in question["answers"]:
-              label = answer.get("label")
-              key = "%s_%s_%s" % (row["idx"], question["idx"], answer["idx"])
-              yield key, {
-                  "paragraph": paragraph["text"],
-                  "question": question["question"],
-                  "answer": answer["text"],
-                  "label": -1 if label is None else _cast_label(bool(label)),
-                  "idx": {
-                      "paragraph": row["idx"],
-                      "question": question["idx"],
-                      "answer": answer["idx"]
-                  }
-              }
+            features["idx"] = dict(
+                {"paragraph": nlp.Value("int32"), "question": nlp.Value("int32"), "answer": nlp.Value("int32"),}
+            )
         elif self.config.name == "record":
-          passage = row["passage"]
-          for qa in row["qas"]:
-            yield qa["idx"], {
-                "passage": passage["text"],
-                "query": qa["query"],
-                "entities": _get_record_entities(passage),
-                "answers": _get_record_answers(qa),
-                "idx": {
-                    "passage": row["idx"],
-                    "query": qa["idx"]
-                }
-            }
+            features["idx"] = dict({"passage": nlp.Value("int32"), "query": nlp.Value("int32"),})
         else:
-          if self.config.name.startswith("wsc"):
-            row.update(row["target"])
-          example = {
-              feature: row[feature] for feature in self.config.features
-          }
-          if self.config.name == "wsc.fixed":
-            example = _fix_wst(example)
-          example["idx"] = row["idx"]
+            features["idx"] = nlp.Value("int32")
 
-          if "label" in row:
-            if self.config.name == "copa":
-              example["label"] = "choice2" if row["label"] else "choice1"
-            else:
-              example["label"] = _cast_label(row["label"])
-          else:
-            assert split == nlp.Split.TEST, row
-            example["label"] = -1
-          yield example["idx"], example
+        if self.config.name == "record":
+            # Entities are the set of possible choices for the placeholder.
+            features["entities"] = nlp.features.Sequence(nlp.Value("string"))
+            # Answers are the subset of entities that are correct.
+            features["answers"] = nlp.features.Sequence(nlp.Value("string"))
+        else:
+            features["label"] = nlp.features.ClassLabel(names=self.config.label_classes)
+
+        return nlp.DatasetInfo(
+            description=_GLUE_DESCRIPTION + self.config.description,
+            features=nlp.Features(features),
+            homepage=self.config.url,
+            citation=self.config.citation + "\n" + _SUPER_GLUE_CITATION,
+        )
+
+    def _split_generators(self, dl_manager):
+        dl_dir = dl_manager.download_and_extract(self.config.data_url) or ""
+        task_name = _get_task_name_from_data_url(self.config.data_url)
+        dl_dir = os.path.join(dl_dir, task_name)
+        if self.config.name in ["axb", "axg"]:
+            return [
+                nlp.SplitGenerator(
+                    name=nlp.Split.TEST,
+                    gen_kwargs={
+                        "data_file": os.path.join(dl_dir, "{}.jsonl".format(task_name)),
+                        "split": nlp.Split.TEST,
+                    },
+                ),
+            ]
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"data_file": os.path.join(dl_dir, "train.jsonl"), "split": nlp.Split.TRAIN,},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"data_file": os.path.join(dl_dir, "val.jsonl"), "split": nlp.Split.VALIDATION,},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"data_file": os.path.join(dl_dir, "test.jsonl"), "split": nlp.Split.TEST,},
+            ),
+        ]
+
+    def _generate_examples(self, data_file, split):
+        with open(data_file) as f:
+            for line in f:
+                row = json.loads(line)
+
+                if self.config.name == "multirc":
+                    paragraph = row["passage"]
+                    for question in paragraph["questions"]:
+                        for answer in question["answers"]:
+                            label = answer.get("label")
+                            key = "%s_%s_%s" % (row["idx"], question["idx"], answer["idx"])
+                            yield key, {
+                                "paragraph": paragraph["text"],
+                                "question": question["question"],
+                                "answer": answer["text"],
+                                "label": -1 if label is None else _cast_label(bool(label)),
+                                "idx": {"paragraph": row["idx"], "question": question["idx"], "answer": answer["idx"]},
+                            }
+                elif self.config.name == "record":
+                    passage = row["passage"]
+                    for qa in row["qas"]:
+                        yield qa["idx"], {
+                            "passage": passage["text"],
+                            "query": qa["query"],
+                            "entities": _get_record_entities(passage),
+                            "answers": _get_record_answers(qa),
+                            "idx": {"passage": row["idx"], "query": qa["idx"]},
+                        }
+                else:
+                    if self.config.name.startswith("wsc"):
+                        row.update(row["target"])
+                    example = {feature: row[feature] for feature in self.config.features}
+                    if self.config.name == "wsc.fixed":
+                        example = _fix_wst(example)
+                    example["idx"] = row["idx"]
+
+                    if "label" in row:
+                        if self.config.name == "copa":
+                            example["label"] = "choice2" if row["label"] else "choice1"
+                        else:
+                            example["label"] = _cast_label(row["label"])
+                    else:
+                        assert split == nlp.Split.TEST, row
+                        example["label"] = -1
+                    yield example["idx"], example
 
 
 def _fix_wst(ex):
-  """Fixes most cases where spans are not actually substrings of text."""
-  def _fix_span_text(k):
-    """Fixes a single span."""
-    text = ex[k + "_text"]
-    index = ex[k + "_index"]
+    """Fixes most cases where spans are not actually substrings of text."""
 
-    if text in ex["text"]:
-      return
+    def _fix_span_text(k):
+        """Fixes a single span."""
+        text = ex[k + "_text"]
+        index = ex[k + "_index"]
 
-    if text in ("Kamenev and Zinoviev", "Kamenev, Zinoviev, and Stalin"):
-      # There is no way to correct these examples since the subjects have
-      # intervening text.
-      return
+        if text in ex["text"]:
+            return
 
-    if "theyscold" in text:
-      ex["text"].replace("theyscold", "they scold")
-      ex["span2_index"] = 10
-    # Make sure case of the first words match.
-    first_word = ex["text"].split()[index]
-    if first_word[0].islower():
-      text = text[0].lower() + text[1:]
-    else:
-      text = text[0].upper() + text[1:]
-    # Remove punctuation in span.
-    text = text.rstrip(".")
-    # Replace incorrect whitespace character in span.
-    text = text.replace("\n", " ")
-    ex[k + "_text"] = text
-    assert ex[k + "_text"] in ex["text"], ex
-  _fix_span_text("span1")
-  _fix_span_text("span2")
-  return ex
+        if text in ("Kamenev and Zinoviev", "Kamenev, Zinoviev, and Stalin"):
+            # There is no way to correct these examples since the subjects have
+            # intervening text.
+            return
+
+        if "theyscold" in text:
+            ex["text"].replace("theyscold", "they scold")
+            ex["span2_index"] = 10
+        # Make sure case of the first words match.
+        first_word = ex["text"].split()[index]
+        if first_word[0].islower():
+            text = text[0].lower() + text[1:]
+        else:
+            text = text[0].upper() + text[1:]
+        # Remove punctuation in span.
+        text = text.rstrip(".")
+        # Replace incorrect whitespace character in span.
+        text = text.replace("\n", " ")
+        ex[k + "_text"] = text
+        assert ex[k + "_text"] in ex["text"], ex
+
+    _fix_span_text("span1")
+    _fix_span_text("span2")
+    return ex
 
 
 def _cast_label(label):
-  """Converts the label into the appropriate string version."""
-  if isinstance(label, six.string_types):
-    return label
-  elif isinstance(label, bool):
-    return "True" if label else "False"
-  elif isinstance(label, six.integer_types):
-    assert label in (0, 1)
-    return str(label)
-  else:
-    raise ValueError("Invalid label format.")
+    """Converts the label into the appropriate string version."""
+    if isinstance(label, six.string_types):
+        return label
+    elif isinstance(label, bool):
+        return "True" if label else "False"
+    elif isinstance(label, six.integer_types):
+        assert label in (0, 1)
+        return str(label)
+    else:
+        raise ValueError("Invalid label format.")
 
 
 def _get_record_entities(passage):
-  """Returns the unique set of entities."""
-  text = passage["text"]
-  entities = set()
-  for entity in passage["entities"]:
-    entities.add(text[entity["start"]:entity["end"] + 1])
-  return sorted(entities)
+    """Returns the unique set of entities."""
+    text = passage["text"]
+    entities = set()
+    for entity in passage["entities"]:
+        entities.add(text[entity["start"] : entity["end"] + 1])
+    return sorted(entities)
 
 
 def _get_record_answers(qa):
-  """Returns the unique set of answers."""
-  if "answers" not in qa:
-    return []
-  answers = set()
-  for answer in qa["answers"]:
-    answers.add(answer["text"])
-  return sorted(answers)
+    """Returns the unique set of answers."""
+    if "answers" not in qa:
+        return []
+    answers = set()
+    for answer in qa["answers"]:
+        answers.add(answer["text"])
+    return sorted(answers)
 
 
 def _get_task_name_from_data_url(data_url):
-  return data_url.split("/")[-1].split(".")[0]
+    return data_url.split("/")[-1].split(".")[0]

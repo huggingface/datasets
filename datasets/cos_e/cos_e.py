@@ -16,14 +16,13 @@
 # Lint as: python3
 """Commonsense Explanations (CoS-E) Dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import json
 import os
 
 import nlp
+
 
 _CITATION = """
 @inproceedings{rajani2019explain,
@@ -53,108 +52,101 @@ _CQA_URL_TEST = "https://s3.amazonaws.com/commensenseqa/test_rand_split_no_answe
 
 
 def _download_and_index_cqa(dl_manager):
-  """Downloads CQA and returns it, indexed by id, for joining with Cos-E."""
+    """Downloads CQA and returns it, indexed by id, for joining with Cos-E."""
 
-  downloaded_files = dl_manager.download_and_extract({
-      "cqa_train": _CQA_URL_TRAIN,
-      "cqa_dev": _CQA_URL_DEV,
-      "cqa_test": _CQA_URL_TEST
-  })
+    downloaded_files = dl_manager.download_and_extract(
+        {"cqa_train": _CQA_URL_TRAIN, "cqa_dev": _CQA_URL_DEV, "cqa_test": _CQA_URL_TEST}
+    )
 
-  # NB: "cqa_test" is included in the files, but not in any of the CoS-E splits.
-  cqa_splits = ["cqa_train", "cqa_dev"]
-  cqa_complete = []
-  for split in cqa_splits:
-    with open(downloaded_files[split]) as f:
-      for _, line in enumerate(f):
-        d = json.loads(line)
-        cqa_complete.append(d)
+    # NB: "cqa_test" is included in the files, but not in any of the CoS-E splits.
+    cqa_splits = ["cqa_train", "cqa_dev"]
+    cqa_complete = []
+    for split in cqa_splits:
+        with open(downloaded_files[split]) as f:
+            for _, line in enumerate(f):
+                d = json.loads(line)
+                cqa_complete.append(d)
 
-    # Index the CQA dataset by id for joining with Cos-E.
-    cqa_indexed = {}
-  for d in cqa_complete:
-    cqa_indexed[d["id"]] = d
-  return cqa_indexed
+        # Index the CQA dataset by id for joining with Cos-E.
+        cqa_indexed = {}
+    for d in cqa_complete:
+        cqa_indexed[d["id"]] = d
+    return cqa_indexed
 
 
 def _get_choices_and_answer(cqa):
-  """Returns choices and the answer from a cqa example."""
-  choices = []
-  answer_key = cqa["answerKey"]
-  answer = None
-  for choice in cqa["question"]["choices"]:
-    choices.append(choice["text"])
-    if answer_key == choice["label"]:
-      answer = choice["text"]
-  return choices, answer
+    """Returns choices and the answer from a cqa example."""
+    choices = []
+    answer_key = cqa["answerKey"]
+    answer = None
+    for choice in cqa["question"]["choices"]:
+        choices.append(choice["text"])
+        if answer_key == choice["label"]:
+            answer = choice["text"]
+    return choices, answer
 
 
 class CosE(nlp.GeneratorBasedBuilder):
-  """CoS-E: Common Sense Explanations corpus."""
+    """CoS-E: Common Sense Explanations corpus."""
 
-  VERSION = nlp.Version("0.0.1")
+    VERSION = nlp.Version("0.0.1")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            "id": nlp.Value('string'),
-            "question": nlp.Value('string'),
-            "choices": nlp.features.Sequence(nlp.Value('string')),
-            "answer": nlp.Value('string'),
-            "abstractive_explanation": nlp.Value('string'),
-            "extractive_explanation": nlp.Value('string'),
-        }),
-        supervised_keys=None,
-        homepage="https://github.com/salesforce/cos-e",
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features(
+                {
+                    "id": nlp.Value("string"),
+                    "question": nlp.Value("string"),
+                    "choices": nlp.features.Sequence(nlp.Value("string")),
+                    "answer": nlp.Value("string"),
+                    "abstractive_explanation": nlp.Value("string"),
+                    "extractive_explanation": nlp.Value("string"),
+                }
+            ),
+            supervised_keys=None,
+            homepage="https://github.com/salesforce/cos-e",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
 
-    # NB: The CQA Dataset should be read only once, and only by callers who
-    # want to _create_ the Cos-E dataset from scratch.
-    cqa_indexed = _download_and_index_cqa(dl_manager)
+        # NB: The CQA Dataset should be read only once, and only by callers who
+        # want to _create_ the Cos-E dataset from scratch.
+        cqa_indexed = _download_and_index_cqa(dl_manager)
 
-    files = dl_manager.download_and_extract({
-        "dev": [
-            os.path.join(_COS_E_URL, "v1.11/dev/cose_dev_v1.11_processed.jsonl")
-        ],
-        "train": [
-            os.path.join(_COS_E_URL,
-                         "v1.11/train/cose_train_v1.11_processed.jsonl")
+        files = dl_manager.download_and_extract(
+            {
+                "dev": [os.path.join(_COS_E_URL, "v1.11/dev/cose_dev_v1.11_processed.jsonl")],
+                "train": [os.path.join(_COS_E_URL, "v1.11/train/cose_train_v1.11_processed.jsonl")],
+            }
+        )
+
+        # We use the CoS-E/CQA dev set as our validation set.
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION, gen_kwargs={"files": files["dev"], "cqa_indexed": cqa_indexed},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN, gen_kwargs={"files": files["train"], "cqa_indexed": cqa_indexed},
+            ),
         ]
-    })
 
-    # We use the CoS-E/CQA dev set as our validation set.
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={"files": files["dev"],
-                        "cqa_indexed": cqa_indexed},
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={"files": files["train"],
-                        "cqa_indexed": cqa_indexed},
-        ),
-    ]
-
-  def _generate_examples(self, files, **kwargs):
-    """Yields examples."""
-    cqa_indexed = kwargs["cqa_indexed"]
-    for filepath in files:
-      with open(filepath) as f:
-        for line in f:
-          cos = json.loads(line)
-          cqa = cqa_indexed[cos["id"]]
-          choices, answer = _get_choices_and_answer(cqa)
-          yield cos["id"], {
-              "id": cos["id"],
-              "question": cqa["question"]["stem"],
-              "choices": choices,
-              "answer": answer,
-              "abstractive_explanation": cos["explanation"]["open-ended"],
-              "extractive_explanation": cos["explanation"]["selected"],
-          }
+    def _generate_examples(self, files, **kwargs):
+        """Yields examples."""
+        cqa_indexed = kwargs["cqa_indexed"]
+        for filepath in files:
+            with open(filepath) as f:
+                for line in f:
+                    cos = json.loads(line)
+                    cqa = cqa_indexed[cos["id"]]
+                    choices, answer = _get_choices_and_answer(cqa)
+                    yield cos["id"], {
+                        "id": cos["id"],
+                        "question": cqa["question"]["stem"],
+                        "choices": choices,
+                        "answer": answer,
+                        "abstractive_explanation": cos["explanation"]["open-ended"],
+                        "extractive_explanation": cos["explanation"]["selected"],
+                    }

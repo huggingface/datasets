@@ -16,14 +16,13 @@
 # Lint as: python3
 """e-SNLI: Natural Language Inference with Natural Language Explanations."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import csv
 import os
 
 import nlp
+
 
 _CITATION = """
 @incollection{NIPS2018_8163,
@@ -43,83 +42,66 @@ The e-SNLI dataset extends the Stanford Natural Language Inference Dataset to
 include human-annotated natural language explanations of the entailment
 relations.
 """
-_URL = 'https://raw.githubusercontent.com/OanaMariaCamburu/e-SNLI/master/dataset/'
+_URL = "https://raw.githubusercontent.com/OanaMariaCamburu/e-SNLI/master/dataset/"
 
 
 class Esnli(nlp.GeneratorBasedBuilder):
-  """e-SNLI: Natural Language Inference with Natural Language Explanations corpus."""
+    """e-SNLI: Natural Language Inference with Natural Language Explanations corpus."""
 
-  # Version History
-  # 0.0.2 Added explanation_2, explanation_3 fields which exist in the dev/test
-  # splits only.
-  # 0.0.1 Initial version
-  BUILDER_CONFIGS = [
-      nlp.BuilderConfig(
-          name='plain_text',
-          version=nlp.Version('0.0.2'),
-          description='Plain text import of e-SNLI',
-      )
-  ]
-
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            'premise':
-                nlp.Value('string'),
-            'hypothesis':
-                nlp.Value('string'),
-            'label':
-                nlp.features.ClassLabel(
-                    names=['entailment', 'neutral', 'contradiction']),
-            'explanation_1':
-                nlp.Value('string'),
-            'explanation_2':
-                nlp.Value('string'),
-            'explanation_3':
-                nlp.Value('string'),
-        }),
-        supervised_keys=None,
-        homepage='https://github.com/OanaMariaCamburu/e-SNLI',
-        citation=_CITATION,
-    )
-
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-
-    files = dl_manager.download_and_extract({
-        'train': [os.path.join(_URL, 'esnli_train_1.csv'),
-                  os.path.join(_URL, 'esnli_train_2.csv')],
-        'validation': [os.path.join(_URL, 'esnli_dev.csv')],
-        'test': [os.path.join(_URL, 'esnli_test.csv')]
-    })
-
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={'files': files['train']},
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={'files': files['validation']},
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={'files': files['test']},
-        ),
+    # Version History
+    # 0.0.2 Added explanation_2, explanation_3 fields which exist in the dev/test
+    # splits only.
+    # 0.0.1 Initial version
+    BUILDER_CONFIGS = [
+        nlp.BuilderConfig(name="plain_text", version=nlp.Version("0.0.2"), description="Plain text import of e-SNLI",)
     ]
 
-  def _generate_examples(self, files):
-    """Yields examples."""
-    for filepath in files:
-      with open(filepath) as f:
-        reader = csv.DictReader(f)
-        for _, row in enumerate(reader):
-          yield row['pairID'], {
-              'premise': row['Sentence1'],
-              'hypothesis': row['Sentence2'],
-              'label': row['gold_label'],
-              'explanation_1': row['Explanation_1'],
-              'explanation_2': row.get('Explanation_2', ''),
-              'explanation_3': row.get('Explanation_3', ''),
-          }
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features(
+                {
+                    "premise": nlp.Value("string"),
+                    "hypothesis": nlp.Value("string"),
+                    "label": nlp.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+                    "explanation_1": nlp.Value("string"),
+                    "explanation_2": nlp.Value("string"),
+                    "explanation_3": nlp.Value("string"),
+                }
+            ),
+            supervised_keys=None,
+            homepage="https://github.com/OanaMariaCamburu/e-SNLI",
+            citation=_CITATION,
+        )
+
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+
+        files = dl_manager.download_and_extract(
+            {
+                "train": [os.path.join(_URL, "esnli_train_1.csv"), os.path.join(_URL, "esnli_train_2.csv")],
+                "validation": [os.path.join(_URL, "esnli_dev.csv")],
+                "test": [os.path.join(_URL, "esnli_test.csv")],
+            }
+        )
+
+        return [
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": files["train"]},),
+            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"files": files["validation"]},),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"files": files["test"]},),
+        ]
+
+    def _generate_examples(self, files):
+        """Yields examples."""
+        for filepath in files:
+            with open(filepath) as f:
+                reader = csv.DictReader(f)
+                for _, row in enumerate(reader):
+                    yield row["pairID"], {
+                        "premise": row["Sentence1"],
+                        "hypothesis": row["Sentence2"],
+                        "label": row["gold_label"],
+                        "explanation_1": row["Explanation_1"],
+                        "explanation_2": row.get("Explanation_2", ""),
+                        "explanation_3": row.get("Explanation_3", ""),
+                    }

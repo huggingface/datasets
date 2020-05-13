@@ -1,12 +1,12 @@
 """TODO(hansards): Add a description here."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import glob
+import os
 
 import nlp
-import os
-import glob
+
 
 # TODO(hansards): BibTeX citation
 _CITATION = """
@@ -54,10 +54,7 @@ class HansardsConfig(nlp.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(HansardsConfig, self).__init__(
-            version=nlp.Version(
-                "1.0.0", "New split API (https://tensorflow.org/datasets/splits)"
-            ),
-            **kwargs
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
 
 
@@ -89,8 +86,8 @@ class Hansards(nlp.GeneratorBasedBuilder):
             # nlp.features.FeatureConnectors
             features=nlp.Features(
                 {
-                  "fr": nlp.Value('string'),
-                  "en": nlp.Value('string')
+                    "fr": nlp.Value("string"),
+                    "en": nlp.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -120,27 +117,23 @@ class Hansards(nlp.GeneratorBasedBuilder):
                 "test": os.path.join(_DATA_URL, _SENATE_DEBATES_TEST_SET_FILE),
             }
         else:
-            raise ValueError(
-                "Wrong builder config name '{}', it has to be either 'house' or 'senate'.".format(
-                    name
-                )
-            )
+            raise ValueError("Wrong builder config name '{}', it has to be either 'house' or 'senate'.".format(name))
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
         if type(downloaded_files) == str:
-          downloaded_files = {k: downloaded_files for k in urls_to_download.keys()}
+            downloaded_files = {k: downloaded_files for k in urls_to_download.keys()}
         fr_files = {}
         en_files = {}
         for split_name in downloaded_files.keys():
-          archive_dir = "hansard.36/Release-2001.1a/sentence-pairs/{}/debates/development/{}".format(
-            name, split_name + "ing"
-          )
-          data_dir = os.path.join(downloaded_files[split_name], archive_dir)
-          split_compress_files = list(glob.glob(os.path.join(data_dir, "*.gz")))
-          split_compress_files += list(glob.glob(os.path.join(data_dir, "**/*.gz")))
-          fr_split_compress_files = sorted([f for f in split_compress_files if f.endswith(".f.gz")])
-          en_split_compress_files = sorted([f for f in split_compress_files if f.endswith(".e.gz")])
-          fr_files[split_name] = dl_manager.extract(fr_split_compress_files)
-          en_files[split_name] = dl_manager.extract(en_split_compress_files)
+            archive_dir = "hansard.36/Release-2001.1a/sentence-pairs/{}/debates/development/{}".format(
+                name, split_name + "ing"
+            )
+            data_dir = os.path.join(downloaded_files[split_name], archive_dir)
+            split_compress_files = list(glob.glob(os.path.join(data_dir, "*.gz")))
+            split_compress_files += list(glob.glob(os.path.join(data_dir, "**/*.gz")))
+            fr_split_compress_files = sorted([f for f in split_compress_files if f.endswith(".f.gz")])
+            en_split_compress_files = sorted([f for f in split_compress_files if f.endswith(".e.gz")])
+            fr_files[split_name] = dl_manager.extract(fr_split_compress_files)
+            en_files[split_name] = dl_manager.extract(en_split_compress_files)
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
@@ -153,16 +146,14 @@ class Hansards(nlp.GeneratorBasedBuilder):
                 gen_kwargs={"fr_files": fr_files["test"], "en_files": en_files["test"]},
             ),
         ]
+
     def _generate_examples(self, fr_files, en_files):
         """Yields examples."""
         # TODO(hansards): Yields (key, example) tuples from the dataset
         for fr_file, en_file in zip(fr_files, en_files):
-          with open(fr_file, "rb") as fr:
-            with open(en_file, "rb") as en:
-              for j, (fr_line, en_line) in enumerate(zip(fr, en)):
-                line_id = "{}:{}".format(fr_file, j)
-                rec = {
-                  "fr": fr_line.decode("ISO-8859-1").strip(),
-                  "en": en_line.decode("ISO-8859-1").strip()
-                }
-                yield line_id, rec
+            with open(fr_file, "rb") as fr:
+                with open(en_file, "rb") as en:
+                    for j, (fr_line, en_line) in enumerate(zip(fr, en)):
+                        line_id = "{}:{}".format(fr_file, j)
+                        rec = {"fr": fr_line.decode("ISO-8859-1").strip(), "en": en_line.decode("ISO-8859-1").strip()}
+                        yield line_id, rec

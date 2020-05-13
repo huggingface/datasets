@@ -16,16 +16,16 @@
 # Lint as: python3
 """XNLI: The Cross-Lingual NLI Corpus."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import collections
 import csv
 import os
+
 import six
 
 import nlp
+
 
 _CITATION = """\
 @InProceedings{conneau2018xnli,
