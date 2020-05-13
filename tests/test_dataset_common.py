@@ -29,7 +29,7 @@ from nlp import (
     hf_api,
     hf_bucket_url,
     import_main_class,
-    load,
+    load_dataset,
     prepare_module,
 )
 
@@ -186,7 +186,7 @@ class DatasetTest(parameterized.TestCase):
             download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
             download_and_prepare_kwargs = {"download_config": download_config}
 
-            dataset = load(
+            dataset = load_dataset(
                 dataset_name, data_dir=temp_data_dir, download_and_prepare_kwargs=download_and_prepare_kwargs
             )
             for split in dataset.keys():
