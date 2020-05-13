@@ -33,9 +33,9 @@ import json
 import logging
 import os
 from dataclasses import asdict, dataclass, field
-from typing import ClassVar, List, Optional
+from typing import List, Optional
 
-from .features import Features, FeatureType, Sequence
+from .features import Features, Value
 from .splits import SplitDict, check_splits_equals
 
 
@@ -178,33 +178,29 @@ class MetricInfo:
     # Set in the dataset scripts
     description: str
     citation: str
-    predictions_features: FeatureType
-    references_features: Optional[FeatureType] = None
+    features: Features
     inputs_description: str = field(default_factory=str)
     homepage: str = field(default_factory=str)
     licence: str = field(default_factory=str)
     codebase_urls: List[str] = field(default_factory=list)
     reference_urls: List[str] = field(default_factory=list)
     streamable: bool = False
+    format: Optional[str] = None
 
     # Set later by the builder
-    name: Optional[str] = None
+    metric_name: Optional[str] = None
+    config_name: Optional[str] = None
     version: Optional[str] = None
 
-    # Automatically constructed
-    features: ClassVar[Features] = None
-
     def __post_init__(self):
-        assert isinstance(self.predictions_features, Sequence)
-        feat_dic = {
-            "predictions": self.predictions_features.feature
-        }  # Remove the batch axis for our Arrow table schema
-        if self.references_features is not None:
-            assert isinstance(self.references_features, Sequence)
-            feat_dic.update(
-                {"references": self.references_features.feature}
-            )  # Remove the batch axis for our Arrow table schema
-        self.features = Features(feat_dic)
+        assert "predictions" in self.features, "Need to have at least a 'predictions' field in 'features'."
+        if self.format is not None:
+            for key, value in self.features.items():
+                if not isinstance(value, Value):
+                    raise ValueError(
+                        f"When using 'numpy' format, all features should be a `nlp.Value` feature. "
+                        f"Here {key} is an instance of {value.__class__.__name__}"
+                    )
 
     def write_to_directory(self, metric_info_dir):
         """ Write `MetricInfo` as JSON to `metric_info_dir`.

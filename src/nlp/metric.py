@@ -36,6 +36,7 @@ class Metric(object):
 
     def __init__(
         self,
+        name: str = None,
         process_id: int = 0,
         num_process: int = 1,
         data_dir: Optional[str] = None,
@@ -61,6 +62,7 @@ class Metric(object):
         assert (
             process_id == 0 or not in_memory
         ), "Using 'in_memory' is not possible in distributed setting (process_id > 0)."
+        self.config_name = name
         self.process_id = process_id
         self.num_process = num_process
         self.in_memory = in_memory
@@ -71,7 +73,8 @@ class Metric(object):
 
         # prepare info
         info = self._info()
-        info.name = self.name
+        info.metric_name = self.name
+        info.config_name = self.config_name
         info.version = self._version
         self.info = info
 
@@ -186,7 +189,12 @@ class Metric(object):
         if predictions is not None:
             self.add(predictions=predictions, references=references)
         self.finalize(timeout=timeout)
-        output = self._compute(self.data["predictions"], self.data["references"], **metrics_kwargs)
+
+        self.data.set_format(type=self.info.format)
+
+        predictions = self.data["predictions"]
+        references = self.data["references"]
+        output = self._compute(predictions=predictions, references=references, **metrics_kwargs)
         return output
 
     def add(self, predictions=None, references=None, **kwargs):

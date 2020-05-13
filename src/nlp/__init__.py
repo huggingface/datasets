@@ -24,8 +24,7 @@ contains the dataset documentation (version, splits, number of examples, etc.).
 
 The main library entrypoints are:
 
-* `nlp.builder`: fetch a `nlp.DatasetBuilder` by name
-* `nlp.load`: convenience method to construct a builder, download the data, and
+* `nlp.load_dataset`: convenience method to construct a builder, download the data, and
     create an input pipeline, returning an NLP dataset.
 
 """
@@ -41,7 +40,7 @@ from .arrow_reader import ReadInstruction
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .features import ClassLabel, Features, Sequence, Tensor, Translation, TranslationVariableLanguages, Value
 from .info import DatasetInfo, MetricInfo
-from .load import import_main_class, load, load_metric, prepare_module
+from .load import import_main_class, load_dataset, load_metric, prepare_module
 from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *

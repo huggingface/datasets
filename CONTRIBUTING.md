@@ -20,6 +20,6 @@
   - Awesome, your dataset can now be used with nlp. You should try out that everything works as expected by opening a python shell and loading your dataset: 
      ```python 
      import nlp
-     dataset = nlp.load("your_dataset_name")
+     dataset = nlp.load_dataset("your_dataset_name")
      ...
      ```
