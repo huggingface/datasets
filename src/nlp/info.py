@@ -33,7 +33,7 @@ import json
 import logging
 import os
 from dataclasses import asdict, dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from nlp.utils.checksums_utils import (
     CACHED_SIZES_FILE_NAME,
