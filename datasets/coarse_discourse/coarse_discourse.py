@@ -1,12 +1,12 @@
 """TODO(coarse_discourse): Add a description here."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import json
+import os
 
 import nlp
-import os
-import json
+
 
 # TODO(coarse_discourse): BibTeX citation
 _CITATION = """\
@@ -17,102 +17,101 @@ _CITATION = """\
 _DESCRIPTION = """\
 dataset contains discourse annotation and relation on threads from reddit during 2016
 """
-_URL ='https://github.com/google-research-datasets/coarse-discourse/archive/master.zip'
+_URL = "https://github.com/google-research-datasets/coarse-discourse/archive/master.zip"
+
 
 class CoarseDiscourse(nlp.GeneratorBasedBuilder):
-  """TODO(coarse_discourse): Short description of my dataset."""
+    """TODO(coarse_discourse): Short description of my dataset."""
 
-  # TODO(coarse_discourse): Set up version.
-  VERSION = nlp.Version('0.1.0')
+    # TODO(coarse_discourse): Set up version.
+    VERSION = nlp.Version("0.1.0")
 
-  def _info(self):
-    # TODO(coarse_discourse): Specifies the nlp.DatasetInfo object
-    return nlp.DatasetInfo(
-        # This is the description that will appear on the datasets page.
-        description=_DESCRIPTION,
+    def _info(self):
+        # TODO(coarse_discourse): Specifies the nlp.DatasetInfo object
+        return nlp.DatasetInfo(
+            # This is the description that will appear on the datasets page.
+            description=_DESCRIPTION,
+            # nlp.features.FeatureConnectors
+            features=nlp.Features(
+                {
+                    # These are the features of your dataset like images, labels ...
+                    "title": nlp.Value("string"),
+                    "is_self_post": nlp.Value("bool"),
+                    "subreddit": nlp.Value("string"),
+                    "url": nlp.Value("string"),
+                    "majority_link": nlp.Value("string"),
+                    "is_first_post": nlp.Value("bool"),
+                    "majority_type": nlp.Value("string"),
+                    "id_post": nlp.Value("string"),
+                    "post_depth": nlp.Value("int32"),
+                    "in_reply_to": nlp.Value("string"),
+                    "annotations": nlp.features.Sequence(
+                        {
+                            "annotator": nlp.Value("string"),
+                            "link_to_post": nlp.Value("string"),
+                            "main_type": nlp.Value("string"),
+                        }
+                    ),
+                }
+            ),
+            # If there's a common (input, target) tuple from the features,
+            # specify them here. They'll be used if as_supervised=True in
+            # builder.as_dataset.
+            supervised_keys=None,
+            # Homepage of the dataset for documentation
+            homepage="https://github.com/google-research-datasets/coarse-discourse",
+            citation=_CITATION,
+        )
 
-        # nlp.features.FeatureConnectors
-        features=nlp.Features({
-            # These are the features of your dataset like images, labels ...
-            'title': nlp.Value('string'),
-            'is_self_post': nlp.Value('bool'),
-            'subreddit': nlp.Value('string'),
-            'url': nlp.Value('string'),
-            'majority_link': nlp.Value('string'),
-            'is_first_post': nlp.Value('bool'),
-            'majority_type': nlp.Value('string'),
-            "id_post": nlp.Value('string'),
-            "post_depth": nlp.Value('int32'),
-            "in_reply_to": nlp.Value('string'),
-            'annotations': nlp.features.Sequence({
-                'annotator': nlp.Value('string'),
-                'link_to_post': nlp.Value('string'),
-                'main_type': nlp.Value('string')
-            }),
-        }),
-        # If there's a common (input, target) tuple from the features,
-        # specify them here. They'll be used if as_supervised=True in
-        # builder.as_dataset.
-        supervised_keys=None,
-        # Homepage of the dataset for documentation
-        homepage='https://github.com/google-research-datasets/coarse-discourse',
-        citation=_CITATION,
-    )
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        # TODO(coarse_discourse): Downloads the data and defines the splits
+        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # download and extract URLs
+        dl_dir = dl_manager.download_and_extract(_URL)
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": os.path.join(dl_dir, "coarse-discourse-master", "coarse_discourse_dataset.json")
+                },
+            ),
+        ]
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    # TODO(coarse_discourse): Downloads the data and defines the splits
-    # dl_manager is a nlp.download.DownloadManager that can be used to
-    # download and extract URLs
-    dl_dir = dl_manager.download_and_extract(_URL)
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={
-                'filepath': os.path.join(dl_dir, 'coarse-discourse-master', 'coarse_discourse_dataset.json')
-            },
-        ),
-    ]
+    def _generate_examples(self, filepath):
+        """Yields examples."""
+        # TODO(coarse_discourse): Yields (key, example) tuples from the dataset
+        with open(filepath) as f:
+            for id_, row in enumerate(f):
+                data = json.loads(row)
+                url = data.get("url", "")
+                is_self_post = data.get("is_self_post", "")
+                subreddit = data.get("subreddit", "")
+                title = data.get("title", "")
+                posts = data.get("posts", "")
+                for id1, post in enumerate(posts):
+                    maj_link = post.get("majority_link", "")
+                    maj_type = post.get("majority_type", "")
+                    id_post = post.get("id", "")
+                    is_first_post = post.get("is_firs_post", "")
+                    post_depth = post.get("post_depth", -1)
+                    in_reply_to = post.get("in_reply_to", "")
+                    annotations = post["annotations"]
+                    annotators = [annotation.get("annotator", "") for annotation in annotations]
+                    main_types = [annotation.get("main_type", "") for annotation in annotations]
+                    link_posts = [annotation.get("linkk_to_post", "") for annotation in annotations]
 
-  def _generate_examples(self, filepath):
-    """Yields examples."""
-    # TODO(coarse_discourse): Yields (key, example) tuples from the dataset
-    with open(filepath) as f:
-        for id_, row in enumerate(f):
-            data = json.loads(row)
-            url = data.get('url', '')
-            is_self_post = data.get('is_self_post', '')
-            subreddit = data.get('subreddit', '')
-            title = data.get('title', '')
-            posts = data.get('posts', '')
-            for id1, post in enumerate(posts):
-                maj_link = post.get('majority_link', '')
-                maj_type = post.get('majority_type', '')
-                id_post = post.get('id', '')
-                is_first_post = post.get('is_firs_post', '')
-                post_depth = post.get('post_depth', -1)
-                in_reply_to = post.get('in_reply_to', '')
-                annotations = post['annotations']
-                annotators = [annotation.get('annotator', '') for annotation in annotations]
-                main_types = [annotation.get('main_type', '') for annotation in annotations]
-                link_posts = [annotation.get('linkk_to_post', '') for annotation in annotations]
-
-                yield str(id_)+ '_' + str(id1), {
-                        'title': title,
-                        'is_self_post': is_self_post,
-                        'subreddit': subreddit,
-                        'url': url,
-                        'majority_link': maj_link,
-                        'is_first_post':is_first_post,
-                        'majority_type': maj_type,
+                    yield str(id_) + "_" + str(id1), {
+                        "title": title,
+                        "is_self_post": is_self_post,
+                        "subreddit": subreddit,
+                        "url": url,
+                        "majority_link": maj_link,
+                        "is_first_post": is_first_post,
+                        "majority_type": maj_type,
                         "id_post": id_post,
                         "post_depth": post_depth,
                         "in_reply_to": in_reply_to,
-                        'annotations': {
-                            'annotator': annotators,
-                            'link_to_post': link_posts,
-                            'main_type':main_types
-                        }
-                }
-
+                        "annotations": {"annotator": annotators, "link_to_post": link_posts, "main_type": main_types},
+                    }

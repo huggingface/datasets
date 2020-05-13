@@ -32,16 +32,9 @@ processed the dataset as well:
 import json
 import logging
 import os
-from dataclasses import asdict, dataclass, field
+from dataclasses import _asdict_inner, asdict, dataclass, field
 from typing import List, Optional, Union
 
-from nlp.utils.checksums_utils import (
-    CACHED_SIZES_FILE_NAME,
-    CHECKSUMS_FILE_NAME,
-    load_cached_sizes,
-    load_sizes_checksums,
-    store_cached_sizes,
-)
 from nlp.utils.version import Version
 
 from .features import Features, Value
@@ -52,6 +45,7 @@ logger = logging.getLogger(__name__)
 
 # Name of the file to output the DatasetInfo p rotobuf object.
 DATASET_INFO_FILENAME = "dataset_info.json"
+DATASET_INFOS_DICT_FILE_NAME = "dataset_infos.json"
 LICENSE_FILENAME = "LICENSE"
 METRIC_INFO_FILENAME = "metric_info.json"
 
@@ -98,11 +92,12 @@ class DatasetInfo:
     builder_name: Optional[str] = None
     config_name: Optional[str] = None
     version: Optional[Union[str, Version]] = None
-    splits: Optional[dict] = field(default_factory=SplitDict)
-    size_in_bytes: int = 0
-    download_size: int = 0
-    dataset_size: int = 0
-    download_checksums: dict = field(default_factory=dict)
+    # Set later by `download_and_prepare`
+    splits: Optional[dict] = None
+    download_checksums: Optional[dict] = None
+    download_size: Optional[int] = None
+    dataset_size: Optional[int] = None
+    size_in_bytes: Optional[int] = None
 
     def __post_init__(self):
         # Convert back to the correct classes when we reload from dict
@@ -155,44 +150,35 @@ class DatasetInfo:
             dataset_info_dict = json.load(f)
         return cls(**dataset_info_dict)
 
-    def prefill_dataset_size_attributes_from_urls_checksums_dir(self, urls_checksums_dir: str):
-        """Store upper bounds of dataset size if available"""
-        checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
-        cached_sizes_file_path = os.path.join(urls_checksums_dir, CACHED_SIZES_FILE_NAME)
-        if os.path.exists(checksums_file_path):
-            self.download_checksums = load_sizes_checksums(checksums_file_path)
-        if os.path.exists(cached_sizes_file_path):
-            cached_sizes = load_cached_sizes(cached_sizes_file_path)
-            self.dataset_size = sum(size_nexamples[0] for size_nexamples in cached_sizes.values())
+    def update(self, other_dataset_info, ignore_none=True):
+        self_dict = self.__dict__
+        self_dict.update(
+            **{k: v for k, v in other_dataset_info.__dict__.items() if (v is not None or not ignore_none)}
+        )
 
-    def cached_sizes(self):
-        return {
-            "/".join([str(self.builder_name), str(self.config_name), str(self.version), split_name]): (
-                split_info.num_bytes,
-                split_info.num_examples,
-            )
-            for split_name, split_info in self.splits.items()
-        }
 
-    def check_or_save_cached_sizes(self, urls_checksums_dir: str, ignore_cached_sizes: bool, save_cached_sizes):
-        if not ignore_cached_sizes:
-            cached_sizes_file_path = os.path.join(urls_checksums_dir, CACHED_SIZES_FILE_NAME)
-            if save_cached_sizes:
-                store_cached_sizes(self.cached_sizes(), cached_sizes_file_path)
-                logger.info("Stored the recorded cached sizes in {}.".format(urls_checksums_dir))
-            elif os.path.exists(cached_sizes_file_path):
-                expected_cached_sizes = load_cached_sizes(cached_sizes_file_path)
-                for full_config_name, rec_size_numexamples in self.cached_sizes().items():
-                    exp_size_numexamples = expected_cached_sizes.get(full_config_name)
-                    if exp_size_numexamples is None:
-                        raise MissingCachedSizesConfigError(full_config_name)
-                    if exp_size_numexamples != rec_size_numexamples:
-                        raise NonMatchingCachedSizesError(full_config_name)
-                logger.info("All cached sizes matched successfully.")
-            else:
-                logger.info("Cached sizes file not found.")
+class DatasetInfosDict(dict):
+    def write_to_directory(self, dataset_infos_dir, overwrite=False):
+        total_dataset_infos = {}
+        dataset_infos_path = os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME)
+        if os.path.exists(dataset_infos_path) and not overwrite:
+            logger.info("Dataset Infos already exists in {}. Completing it with new infos.".format(dataset_infos_dir))
+            total_dataset_infos = self.from_directory(dataset_infos_dir)
         else:
-            logger.info("Cached sizes tests were ignored.")
+            logger.info("Writing new Dataset Infos in {}".format(dataset_infos_dir))
+        total_dataset_infos.update(self)
+        with open(dataset_infos_path, "w") as f:
+            json.dump(_asdict_inner(total_dataset_infos, dict), f)
+
+    @classmethod
+    def from_directory(cls, dataset_infos_dir):
+        logger.info("Loading Dataset Infos from {}".format(dataset_infos_dir))
+        with open(os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME), "r") as f:
+            dataset_info_dict = {
+                config_name: DatasetInfo(**dataset_info_dict)
+                for config_name, dataset_info_dict in json.load(f).items()
+            }
+        return cls(**dataset_info_dict)
 
 
 @dataclass

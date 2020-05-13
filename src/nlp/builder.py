@@ -22,7 +22,7 @@ import inspect
 import logging
 import os
 import shutil
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Dict, List, Optional, Union
 
 from . import splits as splits_lib
@@ -30,11 +30,11 @@ from . import utils
 from .arrow_reader import ArrowReader, ParquetReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
-from .info import DatasetInfo
+from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo, DatasetInfosDict
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
-from .utils.checksums_utils import URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig
+from .utils.info_utils import verify_checksums, verify_splits
 
 
 logger = logging.getLogger(__name__)
@@ -131,14 +131,13 @@ class DatasetBuilder:
         self.config = self._create_builder_config(config, **config_kwargs,)
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
-        info = self._info()
+        # Prefill datasetinfo
+        info = self.get_exported_dataset_info()
+        info.update(self._info())
         info.builder_name = self.name
         info.config_name = self.config.name
         info.version = self.config.version
-        info.splits.dataset_name = self.name
         self.info = info
-        urls_checksums_dir = os.path.join(self.get_imported_module_dir(), URLS_CHECKSUMS_FOLDER_NAME)
-        self.info.prefill_dataset_size_attributes_from_urls_checksums_dir(urls_checksums_dir)
 
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
@@ -146,6 +145,18 @@ class DatasetBuilder:
         if os.path.exists(self._cache_dir):
             logger.info("Overwrite dataset info from restored data version.")
             self.info = DatasetInfo.from_directory(self._cache_dir)
+
+    @classmethod
+    def get_all_exported_dataset_infos(cls) -> dict:
+        """Empty dict if doesn't exist"""
+        dset_infos_file_path = os.path.join(cls.get_imported_module_dir(), DATASET_INFOS_DICT_FILE_NAME)
+        if os.path.exists(dset_infos_file_path):
+            return DatasetInfosDict.from_directory(cls.get_imported_module_dir())
+        return {}
+
+    def get_exported_dataset_info(self) -> DatasetInfo:
+        """Empty DatasetInfo if doesn't exist"""
+        return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
     def _create_builder_config(self, builder_config=None, **config_kwargs):
         """ Create and validate BuilderConfig object.
@@ -277,8 +288,8 @@ class DatasetBuilder:
         self,
         download_config=None,
         download_mode=None,
-        ignore_checksums=False,
-        save_checksums=False,
+        ignore_verifications=False,
+        save_infos=False,
         dl_manager=None,
         **download_and_prepare_kwargs,
     ):
@@ -310,14 +321,12 @@ class DatasetBuilder:
             )
 
         logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
-        if not utils.has_sufficient_disk_space(
-            self.info.dataset_size + self.info.download_size, directory=self._cache_dir_root
-        ):
+        if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
             raise IOError(
                 "Not enough disk space. Needed: {} (download: {}, generated: {})".format(
-                    utils.size_str(self.info.dataset_size + self.info.download_size),
-                    utils.size_str(self.info.download_size),
-                    utils.size_str(self.info.dataset_size),
+                    utils.size_str(self.info.size_in_bytes or 0),
+                    utils.size_str(self.info.download_size or 0),
+                    utils.size_str(self.info.dataset_size or 0),
                 )
             )
 
@@ -327,7 +336,7 @@ class DatasetBuilder:
         print(
             f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
             f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
-            f"total: {utils.size_str(self.info.download_size + self.info.dataset_size)}) to {self._cache_dir}..."
+            f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
         )
 
         if dl_manager is None:
@@ -335,12 +344,7 @@ class DatasetBuilder:
             download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
             download_config.force_download = download_mode == FORCE_REDOWNLOAD
 
-            dl_manager = DownloadManager(
-                dataset_name=self.name,
-                ignore_checksums=ignore_checksums,
-                save_checksums=save_checksums,
-                download_config=download_config,
-            )
+            dl_manager = DownloadManager(dataset_name=self.name, download_config=download_config,)
 
         @contextlib.contextmanager
         def incomplete_dir(dirname):
@@ -361,19 +365,27 @@ class DatasetBuilder:
             # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
             # it to every sub function.
             with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
-                self._download_and_prepare(dl_manager=dl_manager, **download_and_prepare_kwargs)
-                urls_checksums_dir = os.path.join(self.get_imported_module_dir(), URLS_CHECKSUMS_FOLDER_NAME)
-                self.info.check_or_save_cached_sizes(
-                    urls_checksums_dir, ignore_cached_sizes=ignore_checksums, save_cached_sizes=save_checksums
+                verify_infos = not save_infos and not ignore_verifications
+                self._download_and_prepare(
+                    dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
                 )
+                # Sync info
+                self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
+                self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
+                self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
+                # Save info
                 self.info.write_to_directory(self._cache_dir)
+
+        # Save to datasetinfos
+        if save_infos:
+            DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
         print(
             f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
             f"Subsequent calls will reuse this data."
         )
 
-    def _download_and_prepare(self, dl_manager, **prepare_split_kwargs):
+    def _download_and_prepare(self, dl_manager, verify_infos, **prepare_split_kwargs):
         """Downloads and prepares dataset for reading.
 
         This is the internal implementation to overwrite called when user calls
@@ -383,16 +395,18 @@ class DatasetBuilder:
         Args:
             dl_manager: (DownloadManager) `DownloadManager` used to download and cache
                 data.
+            verify_infos: bool, if True, do not perform checksums and size tests.
             download_config: `DownloadConfig`, Additional options.
         """
         os.makedirs(self._cache_dir, exist_ok=True)
-        urls_checksums_dir = os.path.join(self.get_imported_module_dir(), URLS_CHECKSUMS_FOLDER_NAME)
 
         # Generating data for all splits
         split_dict = splits_lib.SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
-        dl_manager.check_or_save_checksums(urls_checksums_dir)  # verify checksums
+        # Checksums verification
+        if verify_infos:
+            verify_checksums(self.info.download_checksums, dl_manager.get_recorded_sizes_checksums())
         for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(
@@ -410,11 +424,11 @@ class DatasetBuilder:
             except OSError:
                 raise OSError("Cannot find data file. " + (self.MANUAL_DOWNLOAD_INSTRUCTIONS or ""))
 
+        if verify_infos:
+            verify_splits(self.info.splits, split_dict)
         # Update the info object with the splits.
         self.info.splits = split_dict.copy()
         self.info.download_size = dl_manager.downloaded_size
-        self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
-        self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
