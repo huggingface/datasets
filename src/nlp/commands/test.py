@@ -21,9 +21,7 @@ class TestCommand(BaseTransformersCLICommand):
         test_parser = parser.add_parser("test")
         test_parser.add_argument("--config", type=str, default=None, help="Dataset processing config")
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
-        test_parser.add_argument(
-            "--save_infos", action="store_true", help="Save the dataset infos file"
-        )
+        test_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
         test_parser.add_argument(
             "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
         )
