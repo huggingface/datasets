@@ -1,12 +1,12 @@
 """TODO(arc): Add a description here."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import json
+import os
 
 import nlp
-import os
-import json
+
 
 # TODO(ai2_arc): BibTeX citation
 _CITATION = """\
@@ -99,29 +99,17 @@ class Ai2Arc(nlp.GeneratorBasedBuilder):
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir, self.config.name, self.config.name + "-Train.jsonl"
-                    )
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, self.config.name, self.config.name + "-Train.jsonl")},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir, self.config.name, self.config.name + "-Test.jsonl"
-                    )
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, self.config.name, self.config.name + "-Test.jsonl")},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(
-                        data_dir, self.config.name, self.config.name + "-Dev.jsonl"
-                    )
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, self.config.name, self.config.name + "-Dev.jsonl")},
             ),
         ]
 

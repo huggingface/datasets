@@ -10,5 +10,5 @@ quality:
 # Format source code automatically
 
 style:
-	black --line-length 119 --target-version py36 src tests
-	isort --recursive src tests
+	black --line-length 119 --target-version py36 src tests datasets
+	isort --recursive src tests datasets

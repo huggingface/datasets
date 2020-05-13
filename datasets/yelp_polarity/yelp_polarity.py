@@ -29,12 +29,12 @@
 # limitations under the License.
 """Yelp Polarity Reviews dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import os
+
 import nlp
+
 
 _DESCRIPTION = """\
 Large Yelp Review Dataset.
@@ -90,66 +90,51 @@ _DOWNLOAD_URL = "https://s3.amazonaws.com/fast-ai-nlp/yelp_review_polarity_csv.t
 
 
 class YelpPolarityReviewsConfig(nlp.BuilderConfig):
-  """BuilderConfig for YelpPolarityReviews."""
+    """BuilderConfig for YelpPolarityReviews."""
 
-  def __init__(self,  **kwargs):
-    """BuilderConfig for YelpPolarityReviews.
+    def __init__(self, **kwargs):
+        """BuilderConfig for YelpPolarityReviews.
 
     Args:
 
         **kwargs: keyword arguments forwarded to super.
     """
-    super(YelpPolarityReviewsConfig, self).__init__(version=nlp.Version(
-            "1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs)
-
+        super(YelpPolarityReviewsConfig, self).__init__(
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+        )
 
 
 class YelpPolarity(nlp.GeneratorBasedBuilder):
-  """Yelp Polarity reviews dataset."""
-  BUILDER_CONFIGS = [
-      YelpPolarityReviewsConfig(
-          name="plain_text",
-          description="Plain text",
-      )
-  ]
+    """Yelp Polarity reviews dataset."""
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            "text":
-                nlp.Value('string'),
-            "label":
-                nlp.features.ClassLabel(names=["1", "2"]),
-        }),
-        supervised_keys=None,
-        homepage="https://course.fast.ai/datasets",
-        citation=_CITATION,
-    )
+    BUILDER_CONFIGS = [YelpPolarityReviewsConfig(name="plain_text", description="Plain text",)]
 
-  def _vocab_text_gen(self, train_file):
-    for _, ex in self._generate_examples(train_file):
-      yield ex["text"]
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({"text": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["1", "2"]),}),
+            supervised_keys=None,
+            homepage="https://course.fast.ai/datasets",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    arch_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
-    train_file = os.path.join(arch_path, "yelp_review_polarity_csv",
-                              "train.csv")
-    test_file = os.path.join(arch_path, "yelp_review_polarity_csv", "test.csv")
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={"filepath": train_file}),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={"filepath": test_file}),
-    ]
+    def _vocab_text_gen(self, train_file):
+        for _, ex in self._generate_examples(train_file):
+            yield ex["text"]
 
-  def _generate_examples(self, filepath):
-    """Generate Yelp examples."""
-    with open(filepath) as f:
-      for line_id, line in enumerate(f):
-        # The format of the line is:
-        # "1", "The text of the review."
-        yield line_id, {"text": line[5:-2].strip(), "label": line[1]}
+    def _split_generators(self, dl_manager):
+        arch_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
+        train_file = os.path.join(arch_path, "yelp_review_polarity_csv", "train.csv")
+        test_file = os.path.join(arch_path, "yelp_review_polarity_csv", "test.csv")
+        return [
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_file}),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": test_file}),
+        ]
 
+    def _generate_examples(self, filepath):
+        """Generate Yelp examples."""
+        with open(filepath) as f:
+            for line_id, line in enumerate(f):
+                # The format of the line is:
+                # "1", "The text of the review."
+                yield line_id, {"text": line[5:-2].strip(), "label": line[1]}

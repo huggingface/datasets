@@ -16,13 +16,12 @@
 # Lint as: python3
 """Facebook Low Resource (FLoRes) machine translation benchmark dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import collections
 
 import nlp
+
 
 _DESCRIPTION = """\
 Evaluation datasets for low-resource machine translation: Nepali-English and Sinhala-English.
@@ -44,17 +43,14 @@ _DATA_URL = "https://github.com/facebookresearch/flores/raw/master/data/wikipedi
 # Tuple that describes a single pair of files with matching translations.
 # language_to_file is the map from language (2 letter string: example 'en')
 # to the file path in the extracted directory.
-TranslateData = collections.namedtuple("TranslateData",
-                                       ["url", "language_to_file"])
+TranslateData = collections.namedtuple("TranslateData", ["url", "language_to_file"])
 
 
 class FloresConfig(nlp.BuilderConfig):
-  """BuilderConfig for FLoRes."""
+    """BuilderConfig for FLoRes."""
 
-  def __init__(self,
-               language_pair=(None, None),
-               **kwargs):
-    """BuilderConfig for FLoRes.
+    def __init__(self, language_pair=(None, None), **kwargs):
+        """BuilderConfig for FLoRes.
 
     Args:
         for the `nlp.features.text.TextEncoder` used for the features feature.
@@ -63,95 +59,79 @@ class FloresConfig(nlp.BuilderConfig):
         as target in supervised mode. For example: ("se", "en").
       **kwargs: keyword arguments forwarded to super.
     """
-    name = "%s%s" % (language_pair[0], language_pair[1])
+        name = "%s%s" % (language_pair[0], language_pair[1])
 
-    description = (
-        "Translation dataset from %s to %s") % (
-            language_pair[0], language_pair[1])
-    super(FloresConfig, self).__init__(
-        name=name,
-        description=description,
-        version=nlp.Version(
-            "1.1.0",
-            "New split API (https://tensorflow.org/datasets/splits)"),
-        **kwargs)
+        description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
+        super(FloresConfig, self).__init__(
+            name=name,
+            description=description,
+            version=nlp.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            **kwargs,
+        )
 
-    # Validate language pair.
-    assert "en" in language_pair, (
-        "Config language pair must contain `en`, got: %s",
-        language_pair)
-    source, target = language_pair
-    non_en = source if target == "en" else target
-    assert non_en in ["ne", "si"], (
-        "Invalid non-en language in pair: %s", non_en)
+        # Validate language pair.
+        assert "en" in language_pair, ("Config language pair must contain `en`, got: %s", language_pair)
+        source, target = language_pair
+        non_en = source if target == "en" else target
+        assert non_en in ["ne", "si"], ("Invalid non-en language in pair: %s", non_en)
 
-    self.language_pair = language_pair
+        self.language_pair = language_pair
 
 
 class Flores(nlp.GeneratorBasedBuilder):
-  """FLoRes machine translation dataset."""
+    """FLoRes machine translation dataset."""
 
-  BUILDER_CONFIGS = [
-      FloresConfig(
-          language_pair=("ne", "en"),
-      ),
-      FloresConfig(
-          language_pair=("si", "en"),
-      ),
-  ]
-
-  def _info(self):
-    source, target = self.config.language_pair
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({"translation": nlp.features.Translation(
-            languages=self.config.language_pair)}),
-        supervised_keys=(source, target),
-        homepage="https://github.com/facebookresearch/flores/",
-        citation=_CITATION,
-    )
-
-  def _split_generators(self, dl_manager):
-    dl_dir = dl_manager.download_and_extract(_DATA_URL)
-
-    source, target = self.config.language_pair
-    non_en = source if target == "en" else target
-    path_tmpl = (
-        "{dl_dir}/wikipedia_en_ne_si_test_sets/wikipedia.{split}.{non_en}-en."
-        "{lang}")
-
-    files = {}
-    for split in ("dev", "devtest"):
-      files[split] = {
-          "source_file": path_tmpl.format(dl_dir=dl_dir, split=split, non_en=non_en, lang=source),
-          "target_file": path_tmpl.format(dl_dir=dl_dir, split=split, non_en=non_en, lang=target),
-      }
-
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs=files["dev"]),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs=files["devtest"]),
+    BUILDER_CONFIGS = [
+        FloresConfig(language_pair=("ne", "en"),),
+        FloresConfig(language_pair=("si", "en"),),
     ]
 
-  def _generate_examples(self, source_file, target_file):
-    """This function returns the examples in the raw (text) form."""
-    with open(source_file) as f:
-      source_sentences = f.read().split("\n")
-    with open(target_file) as f:
-      target_sentences = f.read().split("\n")
+    def _info(self):
+        source, target = self.config.language_pair
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({"translation": nlp.features.Translation(languages=self.config.language_pair)}),
+            supervised_keys=(source, target),
+            homepage="https://github.com/facebookresearch/flores/",
+            citation=_CITATION,
+        )
 
-    assert len(target_sentences) == len(
-        source_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (
-            len(source_sentences), len(target_sentences), source_file,
-            target_file)
+    def _split_generators(self, dl_manager):
+        dl_dir = dl_manager.download_and_extract(_DATA_URL)
 
-    source, target = self.config.language_pair
-    for idx, (l1, l2) in enumerate(
-        zip(source_sentences, target_sentences)):
-      result = {"translation": {source: l1, target: l2}}
-      # Make sure that both translations are non-empty.
-      if all(result.values()):
-        yield idx, result
+        source, target = self.config.language_pair
+        non_en = source if target == "en" else target
+        path_tmpl = "{dl_dir}/wikipedia_en_ne_si_test_sets/wikipedia.{split}.{non_en}-en." "{lang}"
+
+        files = {}
+        for split in ("dev", "devtest"):
+            files[split] = {
+                "source_file": path_tmpl.format(dl_dir=dl_dir, split=split, non_en=non_en, lang=source),
+                "target_file": path_tmpl.format(dl_dir=dl_dir, split=split, non_en=non_en, lang=target),
+            }
+
+        return [
+            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs=files["dev"]),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs=files["devtest"]),
+        ]
+
+    def _generate_examples(self, source_file, target_file):
+        """This function returns the examples in the raw (text) form."""
+        with open(source_file) as f:
+            source_sentences = f.read().split("\n")
+        with open(target_file) as f:
+            target_sentences = f.read().split("\n")
+
+        assert len(target_sentences) == len(source_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (
+            len(source_sentences),
+            len(target_sentences),
+            source_file,
+            target_file,
+        )
+
+        source, target = self.config.language_pair
+        for idx, (l1, l2) in enumerate(zip(source_sentences, target_sentences)):
+            result = {"translation": {source: l1, target: l2}}
+            # Make sure that both translations are non-empty.
+            if all(result.values()):
+                yield idx, result

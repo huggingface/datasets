@@ -5,8 +5,8 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-
 import nlp
+
 
 # TODO(jeopardy): BibTeX citation
 _CITATION = """
@@ -28,16 +28,16 @@ Note: Tiebreaker questions do happen but they're very rare (like once every 20 y
 'show_number' : int of show number, e.g '4680'
 'air_date' : string of the show air date in format YYYY-MM-DD
 """
-_URL = 'https://www.reddit.com/r/datasets/comments/1uyd0t/200000_jeopardy_questions_in_a_json_file/'
-_DATA_URL = 'http://skeeto.s3.amazonaws.com/share/JEOPARDY_QUESTIONS1.json.gz'
-_DATA_FILE = 'JEOPARDY_QUESTIONS1.json'
+_URL = "https://www.reddit.com/r/datasets/comments/1uyd0t/200000_jeopardy_questions_in_a_json_file/"
+_DATA_URL = "http://skeeto.s3.amazonaws.com/share/JEOPARDY_QUESTIONS1.json.gz"
+_DATA_FILE = "JEOPARDY_QUESTIONS1.json"
 
 
 class Jeopardy(nlp.GeneratorBasedBuilder):
     """TODO(jeopardy): Short description of my dataset."""
 
     # TODO(jeopardy): Set up version.
-    VERSION = nlp.Version('0.1.0')
+    VERSION = nlp.Version("0.1.0")
 
     def _info(self):
         # TODO(jeopardy): Specifies the nlp.DatasetInfo object
@@ -45,17 +45,19 @@ class Jeopardy(nlp.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # nlp.features.FeatureConnectors
-            features=nlp.Features({
-                "category": nlp.Value('string'),
-                "air_date": nlp.Value('string'),
-                "question": nlp.Value('string'),
-                "value": nlp.Value('int32'),
-                "answer": nlp.Value('string'),
-                "round": nlp.Value('string'),
-                "category": nlp.Value('string'),
-                "show_number": nlp.Value('int32'),
-                # These are the features of your dataset like images, labels ...
-            }),
+            features=nlp.Features(
+                {
+                    "category": nlp.Value("string"),
+                    "air_date": nlp.Value("string"),
+                    "question": nlp.Value("string"),
+                    "value": nlp.Value("int32"),
+                    "answer": nlp.Value("string"),
+                    "round": nlp.Value("string"),
+                    "category": nlp.Value("string"),
+                    "show_number": nlp.Value("int32"),
+                    # These are the features of your dataset like images, labels ...
+                }
+            ),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
@@ -73,10 +75,7 @@ class Jeopardy(nlp.GeneratorBasedBuilder):
         filepath = dl_manager.download_and_extract(_DATA_URL)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
-                gen_kwargs={"filepath": filepath}
-            ),
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": filepath}),
         ]
 
     def _generate_examples(self, filepath):

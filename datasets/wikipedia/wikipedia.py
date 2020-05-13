@@ -16,18 +16,18 @@
 # Lint as: python3
 """Wikipedia dataset containing cleaned articles of all languages."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import codecs
 import json
+import logging
 import re
 import xml.etree.cElementTree as etree
 
-import logging
 import six
+
 import nlp
+
 
 if six.PY3:
     import bz2  # pylint:disable=g-import-not-at-top

@@ -16,13 +16,13 @@
 # Lint as: python3
 """Movie reviews with human annotated rationales."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import json
 import os
+
 import nlp
+
 
 _CITATION = """
 @unpublished{eraser2019,

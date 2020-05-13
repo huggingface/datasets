@@ -1,14 +1,14 @@
 """TODO(boolq): Add a description here."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import json
+import os
 
 import tensorflow as tf
 
 import nlp
-import json
-import os
+
 
 # TODO(boolq): BibTeX citation
 _CITATION = """\
@@ -74,13 +74,8 @@ class Boolq(nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_custom(urls_to_download, tf.io.gfile.copy)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}
-            ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
-                gen_kwargs={"filepath": downloaded_files["dev"]},
-            ),
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]},),
         ]
 
     def _generate_examples(self, filepath):
