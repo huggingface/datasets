@@ -161,7 +161,9 @@ def get_imports(file_path: str):
     return imports
 
 
-def prepare_module(path: str, download_config=None, dataset=True, **download_kwargs,) -> DatasetBuilder:
+def prepare_module(
+    path: str, download_config=None, dataset=True, force_local_path=None, **download_kwargs,
+) -> DatasetBuilder:
     r"""
         Download/extract/cache a dataset (if dataset==True) or a metric (if dataset==False)
         to add to the lib from a path or url which can be:
@@ -257,8 +259,14 @@ def prepare_module(path: str, download_config=None, dataset=True, **download_kwa
     # path is: ./datasets|metrics/dataset|metric_name/hash_from_code/script.py
     # we use a hash to be able to have multiple versions of a dataset/metric processing file together
     hash = files_to_hash([local_path] + [loc[1] for loc in local_imports])
-    main_folder_path = os.path.join(DATASETS_PATH if dataset else METRICS_PATH, short_name)
-    hash_folder_path = os.path.join(main_folder_path, hash)
+
+    if force_local_path is None:
+        main_folder_path = os.path.join(DATASETS_PATH if dataset else METRICS_PATH, short_name)
+        hash_folder_path = os.path.join(main_folder_path, hash)
+    else:
+        main_folder_path = force_local_path
+        hash_folder_path = force_local_path
+
     local_file_path = os.path.join(hash_folder_path, name)
     urls_checksums_dir = os.path.join(hash_folder_path, URLS_CHECKSUMS_FOLDER_NAME)
     checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
@@ -330,7 +338,11 @@ def prepare_module(path: str, download_config=None, dataset=True, **download_kwa
             else:
                 logger.info("Found local import from %s at %s", import_path, full_path_local_import)
 
-    module_path = ".".join([DATASETS_MODULE if dataset else METRICS_MODULE, short_name, hash, short_name])
+    if force_local_path is None:
+        module_path = ".".join([DATASETS_MODULE if dataset else METRICS_MODULE, short_name, hash, short_name])
+    else:
+        module_path = local_file_path
+
     return module_path
 
 
