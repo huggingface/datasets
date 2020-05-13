@@ -355,26 +355,26 @@ class ReadInstruction(object):
 
     ```
     # The following lines are equivalent:
-    ds = nlp.load('mnist', split='test[:33%]')
-    ds = nlp.load('mnist', split=ReadInstruction.from_spec('test[:33%]'))
-    ds = nlp.load('mnist', split=ReadInstruction('test', to=33, unit='%'))
-    ds = nlp.load('mnist', split=ReadInstruction(
+    ds = nlp.load_dataset('mnist', split='test[:33%]')
+    ds = nlp.load_dataset('mnist', split=ReadInstruction.from_spec('test[:33%]'))
+    ds = nlp.load_dataset('mnist', split=ReadInstruction('test', to=33, unit='%'))
+    ds = nlp.load_dataset('mnist', split=ReadInstruction(
             'test', from_=0, to=33, unit='%'))
 
     # The following lines are equivalent:
-    ds = nlp.load('mnist', split='test[:33%]+train[1:-1]')
-    ds = nlp.load('mnist', split=ReadInstruction.from_spec(
+    ds = nlp.load_dataset('mnist', split='test[:33%]+train[1:-1]')
+    ds = nlp.load_dataset('mnist', split=ReadInstruction.from_spec(
             'test[:33%]+train[1:-1]'))
-    ds = nlp.load('mnist', split=(
+    ds = nlp.load_dataset('mnist', split=(
             ReadInstruction.('test', to=33, unit='%') +
             ReadInstruction.('train', from_=1, to=-1, unit='abs')))
 
     # 10-fold validation:
-    tests = nlp.load(
+    tests = nlp.load_dataset(
             'mnist',
             [ReadInstruction('train', from_=k, to=k+10, unit='%')
              for k in range(0, 100, 10)])
-    trains = nlp.load(
+    trains = nlp.load_dataset(
             'mnist',
             [RI('train', to=k, unit='%') + RI('train', from_=k+10, unit='%')
              for k in range(0, 100, 10)])

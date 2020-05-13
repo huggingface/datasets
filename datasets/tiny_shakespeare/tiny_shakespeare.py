@@ -41,7 +41,7 @@ http://karpathy.github.io/2015/05/21/rnn-effectiveness/.
 To use for e.g. character modelling:
 
 ```
-d = nlp.load(name='tiny_shakespeare')['train']
+d = nlp.load_dataset(name='tiny_shakespeare')['train']
 d = d.map(lambda x: nlp.Value('strings').unicode_split(x['text'], 'UTF-8'))
 # train split includes vocabulary for other splits
 vocabulary = sorted(set(next(iter(d)).numpy()))

@@ -47,7 +47,7 @@ class SubSplitInfo:
     """Wrapper around a sub split info.
     This class expose info on the subsplit:
     ```
-    ds, info = nlp.load(..., split='train[75%:]', with_info=True)
+    ds, info = nlp.load_dataset(..., split='train[75%:]', with_info=True)
     info.splits['train[75%:]'].num_examples
     ```
     """
