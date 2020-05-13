@@ -72,6 +72,7 @@ TESTS_REQUIRE = [
     'absl-py',
     'pytest',
     'pytest-xdist',
+    'tensorflow'
 ]
 
 
