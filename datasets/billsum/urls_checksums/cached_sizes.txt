@@ -1,0 +1,4 @@
+# Cached sizes: <full_config_name> <num_bytes> <num_examples>
+billsum/no-name/3.0.0/ca_test 14945923 1237
+billsum/no-name/3.0.0/test 37867905 3269
+billsum/no-name/3.0.0/train 219605578 18949

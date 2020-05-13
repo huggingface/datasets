@@ -1,0 +1,9 @@
+# Cached sizes: <full_config_name> <num_bytes> <num_examples>
+qangaroo/masked_medhop/1.0.0/train 95824392 1620
+qangaroo/masked_medhop/1.0.0/validation 16802570 342
+qangaroo/masked_wikihop/1.0.0/train 348301300 43738
+qangaroo/masked_wikihop/1.0.0/validation 43691094 5129
+qangaroo/medhop/1.0.0/train 93948131 1620
+qangaroo/medhop/1.0.0/validation 16463641 342
+qangaroo/wikihop/1.0.0/train 326004849 43738
+qangaroo/wikihop/1.0.0/validation 40870918 5129
