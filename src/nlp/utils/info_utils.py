@@ -1,7 +1,7 @@
 import logging
 import os
 from hashlib import sha256
-from typing import Optional, Tuple
+from typing import Optional
 
 
 logger = logging.getLogger(__name__)
