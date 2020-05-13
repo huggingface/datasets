@@ -111,10 +111,6 @@ class Flores(nlp.GeneratorBasedBuilder):
         citation=_CITATION,
     )
 
-#  def _vocab_text_gen(self, files, language):
-#    for _, ex in self._generate_examples(**files):
-#      yield ex[language]
-
   def _split_generators(self, dl_manager):
     dl_dir = dl_manager.download_and_extract(_DATA_URL)
 
@@ -127,16 +123,9 @@ class Flores(nlp.GeneratorBasedBuilder):
     files = {}
     for split in ("dev", "devtest"):
       files[split] = {
-          "source_file": path_tmpl.format(
-              dl_dir=dl_dir, split=split, non_en=non_en, lang=source),
-          "target_file": path_tmpl.format(
-              dl_dir=dl_dir, split=split, non_en=non_en, lang=target),
+          "source_file": path_tmpl.format(dl_dir=dl_dir, split=split, non_en=non_en, lang=source),
+          "target_file": path_tmpl.format(dl_dir=dl_dir, split=split, non_en=non_en, lang=target),
       }
-
-    # Generate vocabulary from dev data if text encoder configured.
-#    for language in self.config.language_pair:
-#      self.info.features[source].maybe_build_from_corpus(
-#          self._vocab_text_gen(files["dev"], language))
 
     return [
         nlp.SplitGenerator(
