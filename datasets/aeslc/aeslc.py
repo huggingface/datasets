@@ -16,14 +16,13 @@
 # Lint as: python3
 """Annotated Enron Subject Line Corpus Dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
+import glob
 import os
 
 import nlp
-import glob
+
 
 _CITATION = """
 @misc{zhang2019email,
@@ -51,67 +50,55 @@ _SUMMARY = "subject_line"
 
 
 class Aeslc(nlp.GeneratorBasedBuilder):
-  """Annotated Enron Subject Line Corpus Dataset."""
+    """Annotated Enron Subject Line Corpus Dataset."""
 
-  VERSION = nlp.Version("1.0.0")
+    VERSION = nlp.Version("1.0.0")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            _DOCUMENT: nlp.Value('string'),
-            _SUMMARY: nlp.Value('string')
-        }),
-        supervised_keys=(_DOCUMENT, _SUMMARY),
-        homepage="https://github.com/ryanzhumich/AESLC",
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string")}),
+            supervised_keys=(_DOCUMENT, _SUMMARY),
+            homepage="https://github.com/ryanzhumich/AESLC",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    dl_path = dl_manager.download_and_extract(_URL)
-    input_path = os.path.join(dl_path, "AESLC-master", "enron_subject_line")
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                "pattern": os.path.join(input_path, "train", "*.subject")
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={
-                "pattern": os.path.join(input_path, "dev", "*.subject")
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={
-                "pattern": os.path.join(input_path, "test", "*.subject")
-            },
-        ),
-    ]
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        dl_path = dl_manager.download_and_extract(_URL)
+        input_path = os.path.join(dl_path, "AESLC-master", "enron_subject_line")
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN, gen_kwargs={"pattern": os.path.join(input_path, "train", "*.subject")},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION, gen_kwargs={"pattern": os.path.join(input_path, "dev", "*.subject")},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST, gen_kwargs={"pattern": os.path.join(input_path, "test", "*.subject")},
+            ),
+        ]
 
-  def _generate_examples(self, pattern=None):
-    """Yields examples."""
-    for filename in glob.glob(pattern):
-      email_body, subject_line = _parse_email_file(filename)
-      key = os.path.basename(filename).rstrip(".subject")
-      yield key, {_DOCUMENT: email_body, _SUMMARY: subject_line}
+    def _generate_examples(self, pattern=None):
+        """Yields examples."""
+        for filename in glob.glob(pattern):
+            email_body, subject_line = _parse_email_file(filename)
+            key = os.path.basename(filename).rstrip(".subject")
+            yield key, {_DOCUMENT: email_body, _SUMMARY: subject_line}
 
 
 def _parse_email_file(filename):
-  """Parse email file text for email body and subject."""
-  with open(filename) as f:
-    email_body = ""
-    for line in f:
-      if line == "\n":
-        break
-      email_body += line
-    line = next(f)
-    subject = ""
-    for line in f:
-      if line == "\n":
-        break
-      subject += line
-  return email_body, subject
+    """Parse email file text for email body and subject."""
+    with open(filename) as f:
+        email_body = ""
+        for line in f:
+            if line == "\n":
+                break
+            email_body += line
+        line = next(f)
+        subject = ""
+        for line in f:
+            if line == "\n":
+                break
+            subject += line
+    return email_body, subject

@@ -1,12 +1,11 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import glob
+import logging
+import os
 
 import nlp
-import os
-import glob
 
-import logging
 
 _CITATION = """\
 @inproceedings{schler2006effects,
@@ -52,9 +51,7 @@ class BlogAuthorshipCorpusConfig(nlp.BuilderConfig):
           data_url: `string`, url to the dataset (word or raw level)
           **kwargs: keyword arguments forwarded to super.
         """
-        super(BlogAuthorshipCorpusConfig, self).__init__(
-            version=nlp.Version("1.0.0",), **kwargs
-        )
+        super(BlogAuthorshipCorpusConfig, self).__init__(version=nlp.Version("1.0.0",), **kwargs)
         self.data_url = data_url
 
 
@@ -77,12 +74,12 @@ class BlogAuthorshipCorpus(nlp.GeneratorBasedBuilder):
             # nlp.features.FeatureConnectors
             features=nlp.Features(
                 {
-                    "text": nlp.Value('string'),
-                    "date": nlp.Value('string'),
-                    "gender": nlp.Value('string'),
-                    "age": nlp.Value('int32'),
-                    "horoscope": nlp.Value('string'),
-                    "job": nlp.Value('string'),
+                    "text": nlp.Value("string"),
+                    "date": nlp.Value("string"),
+                    "gender": nlp.Value("string"),
+                    "age": nlp.Value("int32"),
+                    "horoscope": nlp.Value("string"),
+                    "job": nlp.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -111,13 +108,9 @@ class BlogAuthorshipCorpus(nlp.GeneratorBasedBuilder):
                     train_files.append(file_path)
 
             return [
+                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": train_files, "split": "train"},),
                 nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
-                    gen_kwargs={"files": train_files, "split": "train"},
-                ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
-                    gen_kwargs={"files": validation_files, "split": "validation"},
+                    name=nlp.Split.VALIDATION, gen_kwargs={"files": validation_files, "split": "validation"},
                 ),
             ]
         else:
@@ -149,12 +142,8 @@ class BlogAuthorshipCorpus(nlp.GeneratorBasedBuilder):
                             sub_id = counter
                             counter += 1
                             if date == "":
-                                logging.warning(
-                                    "Date missing for {} in {}".format(line, file_name)
-                                )
-                            assert date is not None, "Date is missing before {}".format(
-                                line
-                            )
+                                logging.warning("Date missing for {} in {}".format(line, file_name))
+                            assert date is not None, "Date is missing before {}".format(line)
                             blog = {
                                 "text": line,
                                 "date": date,
@@ -167,6 +156,4 @@ class BlogAuthorshipCorpus(nlp.GeneratorBasedBuilder):
                         else:
                             continue
                 except UnicodeDecodeError as e:
-                    logging.warning(
-                        "{} cannot be loaded. Error message: {}".format(file_path, e)
-                    )
+                    logging.warning("{} cannot be loaded. Error message: {}".format(file_path, e))

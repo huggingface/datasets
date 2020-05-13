@@ -1,12 +1,12 @@
 """TODO(wiki_split): Add a description here."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+import csv
+import os
 
 import nlp
-import os
-import csv
+
 
 # TODO(wiki_split): BibTeX citation
 _CITATION = """\
@@ -26,85 +26,80 @@ One million English sentences, each split into two sentences that together prese
 Google's WikiSplit dataset was constructed automatically from the publicly available Wikipedia revision history. Although 
 the dataset contains some inherent noise, it can serve as valuable training data for models that split or merge sentences.
 """
-_URL = 'https://github.com/google-research-datasets/wiki-split/raw/master'
-_TRAIN_FILE = 'train.tsv.zip'
-_TEST_FILE = 'test.tsv'
-_DEV_FILE = 'validation.tsv'
+_URL = "https://github.com/google-research-datasets/wiki-split/raw/master"
+_TRAIN_FILE = "train.tsv.zip"
+_TEST_FILE = "test.tsv"
+_DEV_FILE = "validation.tsv"
+
 
 class WikiSplit(nlp.GeneratorBasedBuilder):
-  """TODO(wiki_split): Short description of my dataset."""
+    """TODO(wiki_split): Short description of my dataset."""
 
-  # TODO(wiki_split): Set up version.
-  VERSION = nlp.Version('0.1.0')
+    # TODO(wiki_split): Set up version.
+    VERSION = nlp.Version("0.1.0")
 
-  def _info(self):
-    # TODO(wiki_split): Specifies the nlp.DatasetInfo object
-    return nlp.DatasetInfo(
-        # This is the description that will appear on the datasets page.
-        description=_DESCRIPTION,
-        # nlp.features.FeatureConnectors
-        features=nlp.Features({
-            'complex_sentence': nlp.Value('string'),
-            'simple_sentence_1': nlp.Value('string'),
-            'simple_sentence_2': nlp.Value('string'),
+    def _info(self):
+        # TODO(wiki_split): Specifies the nlp.DatasetInfo object
+        return nlp.DatasetInfo(
+            # This is the description that will appear on the datasets page.
+            description=_DESCRIPTION,
+            # nlp.features.FeatureConnectors
+            features=nlp.Features(
+                {
+                    "complex_sentence": nlp.Value("string"),
+                    "simple_sentence_1": nlp.Value("string"),
+                    "simple_sentence_2": nlp.Value("string"),
+                    # These are the features of your dataset like images, labels ...
+                }
+            ),
+            # If there's a common (input, target) tuple from the features,
+            # specify them here. They'll be used if as_supervised=True in
+            # builder.as_dataset.
+            supervised_keys=None,
+            # Homepage of the dataset for documentation
+            homepage="https://dataset-homepage/",
+            citation=_CITATION,
+        )
 
-            # These are the features of your dataset like images, labels ...
-        }),
-        # If there's a common (input, target) tuple from the features,
-        # specify them here. They'll be used if as_supervised=True in
-        # builder.as_dataset.
-        supervised_keys=None,
-        # Homepage of the dataset for documentation
-        homepage='https://dataset-homepage/',
-        citation=_CITATION,
-    )
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        # TODO(wiki_split): Downloads the data and defines the splits
+        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # download and extract URLs
+        urls_to_download = {
+            "train": os.path.join(_URL, _TRAIN_FILE),
+            "test": os.path.join(_URL, _TEST_FILE),
+            "dev": os.path.join(_URL, _DEV_FILE),
+        }
+        dl_dir = dl_manager.download_and_extract(urls_to_download)
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": os.path.join(dl_dir["train"], "train.tsv")},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": dl_dir["test"]},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"filepath": dl_dir["dev"]},
+            ),
+        ]
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    # TODO(wiki_split): Downloads the data and defines the splits
-    # dl_manager is a nlp.download.DownloadManager that can be used to
-    # download and extract URLs
-    urls_to_download = {
-        'train': os.path.join(_URL, _TRAIN_FILE),
-        'test': os.path.join(_URL, _TEST_FILE),
-        'dev': os.path.join(_URL, _DEV_FILE)
-    }
-    dl_dir = dl_manager.download_and_extract(urls_to_download)
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={
-                'filepath': os.path.join(dl_dir['train'], 'train.tsv')
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={
-                'filepath': dl_dir['test']
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={
-                'filepath': dl_dir['dev']
-            },
-        ),
-    ]
+    def _generate_examples(self, filepath):
+        """Yields examples."""
+        # TODO(wiki_split): Yields (key, example) tuples from the dataset
+        with open(filepath) as f:
+            data = csv.reader(f, delimiter="\t")
+            # data = csv.reader(f, delimiter='\t')
 
-  def _generate_examples(self, filepath):
-    """Yields examples."""
-    # TODO(wiki_split): Yields (key, example) tuples from the dataset
-    with open(filepath) as f:
-        data = csv.reader(f, delimiter='\t')
-        #data = csv.reader(f, delimiter='\t')
-
-        for id_, row in enumerate(data):
-            yield id_, {
-                'complex_sentence': row[0],
-                'simple_sentence_1': row[1].split('<::::>')[0],
-                'simple_sentence_2': row[1].split('<::::>')[1]
-            }
-
+            for id_, row in enumerate(data):
+                yield id_, {
+                    "complex_sentence": row[0],
+                    "simple_sentence_1": row[1].split("<::::>")[0],
+                    "simple_sentence_2": row[1].split("<::::>")[1],
+                }

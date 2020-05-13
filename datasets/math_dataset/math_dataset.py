@@ -16,13 +16,13 @@
 # Lint as: python3
 """Mathematics database."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
-import os
 import logging
+import os
+
 import nlp
+
 
 _CITATION = """
 @article{2019arXiv,
@@ -66,7 +66,6 @@ _INTERPOLATE_CATEGORY = [
 _MODULES = [
     # extrapolate
     "measurement__conversion",
-
     # interpolate
     "algebra__linear_1d",
     "algebra__linear_1d_composed",
@@ -124,7 +123,6 @@ _MODULES = [
     "polynomials__simplify_power",
     "probability__swr_p_level_set",
     "probability__swr_p_sequence",
-
     # train-easy train-medium train-hard
     "algebra__linear_1d",
     "algebra__linear_1d_composed",
@@ -191,88 +189,75 @@ _DATASET_VERSION = "mathematics_dataset-v1.0"
 
 
 def _generate_builder_configs():
-  """Generate configs with different subsets of mathematics dataset."""
-  configs = []
-  for module in sorted(set(_MODULES)):
-    configs.append(
-        nlp.BuilderConfig(
-            name=module,
-            version=nlp.Version("1.0.0"),
-            description=_DESCRIPTION,
-        ))
+    """Generate configs with different subsets of mathematics dataset."""
+    configs = []
+    for module in sorted(set(_MODULES)):
+        configs.append(nlp.BuilderConfig(name=module, version=nlp.Version("1.0.0"), description=_DESCRIPTION,))
 
-  return configs
+    return configs
 
 
 class MathDataset(nlp.GeneratorBasedBuilder):
-  """Math Dataset."""
+    """Math Dataset."""
 
-  BUILDER_CONFIGS = _generate_builder_configs()
+    BUILDER_CONFIGS = _generate_builder_configs()
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            _QUESTION: nlp.Value('string'),
-            _ANSWER: nlp.Value('string'),
-        }),
-        supervised_keys=(_QUESTION, _ANSWER),
-        homepage="https://github.com/deepmind/mathematics_dataset",
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({_QUESTION: nlp.Value("string"), _ANSWER: nlp.Value("string"),}),
+            supervised_keys=(_QUESTION, _ANSWER),
+            homepage="https://github.com/deepmind/mathematics_dataset",
+            citation=_CITATION,
+        )
 
-  def _read_data_from_all_categories(self, directory, config, categories):
-    lines = []
-    for category in categories:
-      data_file = os.path.join(directory, _DATASET_VERSION, category, config)
-      if os.path.exists(data_file):
-        with open(data_file) as f:
-          ls = f.read().split("\n")
+    def _read_data_from_all_categories(self, directory, config, categories):
+        lines = []
+        for category in categories:
+            data_file = os.path.join(directory, _DATASET_VERSION, category, config)
+            if os.path.exists(data_file):
+                with open(data_file) as f:
+                    ls = f.read().split("\n")
 
-          for l in ls[::-1]:
-            if not l:
-              ls.remove(l)
+                    for l in ls[::-1]:
+                        if not l:
+                            ls.remove(l)
 
-          lines.extend(ls)
+                    lines.extend(ls)
 
-    return lines
+        return lines
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
 
-    directory = dl_manager.download_and_extract(_DATA_URL)
-    config = self.config.name + ".txt"
+        directory = dl_manager.download_and_extract(_DATA_URL)
+        config = self.config.name + ".txt"
 
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                "directory": directory,
-                "config": config,
-                "categories": _TRAIN_CATEGORY,
-            }),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={
-                "directory": directory,
-                "config": config,
-                "categories": _INTERPOLATE_CATEGORY,
-            }),
-    ]
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"directory": directory, "config": config, "categories": _TRAIN_CATEGORY,},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"directory": directory, "config": config, "categories": _INTERPOLATE_CATEGORY,},
+            ),
+        ]
 
-  def _generate_examples(self, directory, config, categories):
-    """Yields examples based on directory, module file.."""
+    def _generate_examples(self, directory, config, categories):
+        """Yields examples based on directory, module file.."""
 
-    lines = self._read_data_from_all_categories(directory, config, categories)
-    logging.info("%s: %s contains total: %d", categories, config, len(lines))
-    questions = lines[::2]
-    answers = lines[1::2]
+        lines = self._read_data_from_all_categories(directory, config, categories)
+        logging.info("%s: %s contains total: %d", categories, config, len(lines))
+        questions = lines[::2]
+        answers = lines[1::2]
 
-    assert len(answers) == len(
-        questions), "answers: %d do not match questions: %d" % (len(answers),
-                                                                len(questions))
+        assert len(answers) == len(questions), "answers: %d do not match questions: %d" % (
+            len(answers),
+            len(questions),
+        )
 
-    for idx, (q, a) in enumerate(zip(questions, answers)):
-      result = {_QUESTION: q, _ANSWER: a}
-      if all(result.values()):
-        yield idx, result
+        for idx, (q, a) in enumerate(zip(questions, answers)):
+            result = {_QUESTION: q, _ANSWER: a}
+            if all(result.values()):
+                yield idx, result

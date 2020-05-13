@@ -16,13 +16,13 @@
 # Lint as: python3
 """Passage, query, answers and answer classification with explanations."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import json
 import os
+
 import nlp
+
 
 _CITATION = """
 @unpublished{eraser2019,
@@ -47,74 +47,73 @@ answers and a rationalte. Each example in this dataset has the following 5 parts
 5. An Explanation justifying the classification
 """
 
-_DOWNLOAD_URL = 'http://www.eraserbenchmark.com/zipped/multirc.tar.gz'
+_DOWNLOAD_URL = "http://www.eraserbenchmark.com/zipped/multirc.tar.gz"
 
 
 class EraserMultiRc(nlp.GeneratorBasedBuilder):
-  """Multi Sentence Reasoning with Explanations (Eraser Benchmark)."""
+    """Multi Sentence Reasoning with Explanations (Eraser Benchmark)."""
 
-  VERSION = nlp.Version('0.1.1')
+    VERSION = nlp.Version("0.1.1")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            'passage': nlp.Value('string'),
-            'query_and_answer': nlp.Value('string'),
-            'label': nlp.features.ClassLabel(names=['False', 'True']),
-            'evidences': nlp.features.Sequence(nlp.Value('string'))
-        }),
-        supervised_keys=None,
-        homepage='https://cogcomp.seas.upenn.edu/multirc/',
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features(
+                {
+                    "passage": nlp.Value("string"),
+                    "query_and_answer": nlp.Value("string"),
+                    "label": nlp.features.ClassLabel(names=["False", "True"]),
+                    "evidences": nlp.features.Sequence(nlp.Value("string")),
+                }
+            ),
+            supervised_keys=None,
+            homepage="https://cogcomp.seas.upenn.edu/multirc/",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
 
-    dl_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
-    data_dir = os.path.join(dl_dir, 'multirc')
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={'data_dir': data_dir,
-                        'filepath': os.path.join(data_dir, 'train.jsonl')},
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={'data_dir': data_dir,
-                        'filepath': os.path.join(data_dir, 'val.jsonl')},
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            # These kwargs will be passed to _generate_examples
-            gen_kwargs={'data_dir': data_dir,
-                        'filepath': os.path.join(data_dir, 'test.jsonl')},
-        ),
-    ]
+        dl_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
+        data_dir = os.path.join(dl_dir, "multirc")
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "train.jsonl")},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "val.jsonl")},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "test.jsonl")},
+            ),
+        ]
 
-  def _generate_examples(self, data_dir, filepath):
-    """Yields examples."""
+    def _generate_examples(self, data_dir, filepath):
+        """Yields examples."""
 
-    multirc_dir = os.path.join(data_dir, 'docs')
-    with open(filepath) as f:
-      for line in f:
-        row = json.loads(line)
-        evidences = []
+        multirc_dir = os.path.join(data_dir, "docs")
+        with open(filepath) as f:
+            for line in f:
+                row = json.loads(line)
+                evidences = []
 
-        for evidence in row['evidences'][0]:
-          docid = evidence['docid']
-          evidences.append(evidence['text'])
+                for evidence in row["evidences"][0]:
+                    docid = evidence["docid"]
+                    evidences.append(evidence["text"])
 
-        passage_file = os.path.join(multirc_dir, docid)
-        with open(passage_file) as f1:
-          passage_text = f1.read()
+                passage_file = os.path.join(multirc_dir, docid)
+                with open(passage_file) as f1:
+                    passage_text = f1.read()
 
-        yield row['annotation_id'], {
-            'passage': passage_text,
-            'query_and_answer': row['query'],
-            'label': row['classification'],
-            'evidences': evidences
-        }
+                yield row["annotation_id"], {
+                    "passage": passage_text,
+                    "query_and_answer": row["query"],
+                    "label": row["classification"],
+                    "evidences": evidences,
+                }

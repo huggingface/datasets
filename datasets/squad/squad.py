@@ -16,15 +16,14 @@
 # Lint as: python3
 """SQUAD: The Stanford Question Answering Dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import json
+import logging
 import os
 
-import logging
 import nlp
+
 
 _CITATION = """\
 @article{2016arXiv160605250R,

@@ -16,14 +16,13 @@
 # Lint as: python3
 """CivilComments from Jigsaw Unintended Bias Kaggle Competition."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import csv
 import os
 
 import nlp
+
 
 _CITATION = """
 @article{DBLP:journals/corr/abs-1903-04561,
@@ -61,11 +60,11 @@ Jigsaw Unintended Bias in Toxicity Classification Kaggle challenge.  This
 dataset is released under CC0, as is the underlying comment text.
 """
 
-_DOWNLOAD_URL = 'https://storage.googleapis.com/jigsaw-unintended-bias-in-toxicity-classification/civil_comments.zip'
+_DOWNLOAD_URL = "https://storage.googleapis.com/jigsaw-unintended-bias-in-toxicity-classification/civil_comments.zip"
 
 
 class CivilComments(nlp.GeneratorBasedBuilder):
-  """Classification and tagging of 2M comments on news sites.
+    """Classification and tagging of 2M comments on news sites.
 
   This version of the CivilComments Dataset provides access to the primary
   seven labels that were annotated by crowd workers, the toxicity and other
@@ -78,57 +77,56 @@ class CivilComments(nlp.GeneratorBasedBuilder):
   details about the available features.
   """
 
-  VERSION = nlp.Version('0.9.0')
+    VERSION = nlp.Version("0.9.0")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        # nlp.features.FeatureConnectors
-        features=nlp.Features({
-            'text': nlp.Value('string'),
-            'toxicity': nlp.Value('float32'),
-            'severe_toxicity': nlp.Value('float32'),
-            'obscene': nlp.Value('float32'),
-            'threat': nlp.Value('float32'),
-            'insult': nlp.Value('float32'),
-            'identity_attack': nlp.Value('float32'),
-            'sexual_explicit': nlp.Value('float32')
-        }),
-        # The supervised_keys version is very impoverished.
-        supervised_keys=('text', 'toxicity'),
-        homepage='https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data',
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            # nlp.features.FeatureConnectors
+            features=nlp.Features(
+                {
+                    "text": nlp.Value("string"),
+                    "toxicity": nlp.Value("float32"),
+                    "severe_toxicity": nlp.Value("float32"),
+                    "obscene": nlp.Value("float32"),
+                    "threat": nlp.Value("float32"),
+                    "insult": nlp.Value("float32"),
+                    "identity_attack": nlp.Value("float32"),
+                    "sexual_explicit": nlp.Value("float32"),
+                }
+            ),
+            # The supervised_keys version is very impoverished.
+            supervised_keys=("text", "toxicity"),
+            homepage="https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification/data",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    dl_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                'filename': os.path.join(dl_path, 'train.csv'),
-                'toxicity_label': 'target'
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={
-                'filename': os.path.join(dl_path, 'test_public_expanded.csv'),
-                'toxicity_label': 'toxicity'
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={
-                'filename': os.path.join(dl_path, 'test_private_expanded.csv'),
-                'toxicity_label': 'toxicity'
-            },
-        ),
-    ]
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        dl_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"filename": os.path.join(dl_path, "train.csv"), "toxicity_label": "target"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={
+                    "filename": os.path.join(dl_path, "test_public_expanded.csv"),
+                    "toxicity_label": "toxicity",
+                },
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={
+                    "filename": os.path.join(dl_path, "test_private_expanded.csv"),
+                    "toxicity_label": "toxicity",
+                },
+            ),
+        ]
 
-  def _generate_examples(self, filename, toxicity_label):
-    """Yields examples.
+    def _generate_examples(self, filename, toxicity_label):
+        """Yields examples.
 
     Each example contains a text input and then seven annotation labels.
 
@@ -140,15 +138,12 @@ class CivilComments(nlp.GeneratorBasedBuilder):
     Yields:
       A dictionary of features, all floating point except the input text.
     """
-    with open(filename) as f:
-      reader = csv.DictReader(f)
-      for row in reader:
-        example = {}
-        example['text'] = row['comment_text']
-        example['toxicity'] = float(row[toxicity_label])
-        for label in [
-            'severe_toxicity', 'obscene', 'threat', 'insult', 'identity_attack',
-            'sexual_explicit'
-        ]:
-          example[label] = float(row[label])
-        yield row['id'], example
+        with open(filename) as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                example = {}
+                example["text"] = row["comment_text"]
+                example["toxicity"] = float(row[toxicity_label])
+                for label in ["severe_toxicity", "obscene", "threat", "insult", "identity_attack", "sexual_explicit"]:
+                    example[label] = float(row[label])
+                yield row["id"], example

@@ -16,13 +16,12 @@
 # Lint as: python3
 """TED talk high/low-resource paired language data set from Qi, et al. 2018."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import os
 
 import nlp
+
 
 _DESCRIPTION = """\
 Data sets derived from TED talk transcripts for comparing similar language pairs
@@ -59,10 +58,10 @@ _VALID_LANGUAGE_PAIRS = (
 
 
 class TedHrlrConfig(nlp.BuilderConfig):
-  """BuilderConfig for TED talk data comparing high/low resource languages."""
+    """BuilderConfig for TED talk data comparing high/low resource languages."""
 
-  def __init__(self, language_pair=(None, None), **kwargs):
-    """BuilderConfig for TED talk data comparing high/low resource languages.
+    def __init__(self, language_pair=(None, None), **kwargs):
+        """BuilderConfig for TED talk data comparing high/low resource languages.
 
     The first language in `language_pair` should either be a 2-letter coded
     string or two such strings joined by an underscore (e.g., "az" or "az_tr").
@@ -82,93 +81,85 @@ class TedHrlrConfig(nlp.BuilderConfig):
         first will be used as source and second as target in supervised mode.
       **kwargs: keyword arguments forwarded to super.
     """
-    name = "%s_to_%s" % (language_pair[0].replace("_", ""), language_pair[1])
+        name = "%s_to_%s" % (language_pair[0].replace("_", ""), language_pair[1])
 
-    description = ("Translation dataset from %s to %s in plain text.") % (
-        language_pair[0], language_pair[1])
-    super(TedHrlrConfig, self).__init__(
-        name=name, description=description, **kwargs)
+        description = ("Translation dataset from %s to %s in plain text.") % (language_pair[0], language_pair[1])
+        super(TedHrlrConfig, self).__init__(name=name, description=description, **kwargs)
 
-    # Validate language pair.
-    assert language_pair in _VALID_LANGUAGE_PAIRS, (
-        "Config language pair (%s, "
-        "%s) not supported") % language_pair
+        # Validate language pair.
+        assert language_pair in _VALID_LANGUAGE_PAIRS, (
+            "Config language pair (%s, " "%s) not supported"
+        ) % language_pair
 
-    self.language_pair = language_pair
+        self.language_pair = language_pair
 
 
 class TedHrlr(nlp.GeneratorBasedBuilder):
-  """TED talk data set for comparing high and low resource languages."""
+    """TED talk data set for comparing high and low resource languages."""
 
-  BUILDER_CONFIGS = [
-      TedHrlrConfig(  # pylint: disable=g-complex-comprehension
-          language_pair=pair,
-          version=nlp.Version(
-              "1.0.0",
-              "New split API (https://tensorflow.org/datasets/splits)"),
-      ) for pair in _VALID_LANGUAGE_PAIRS
-  ]
-
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({"translation": nlp.features.Translation(languages=self.config.language_pair)}),
-        homepage="https://github.com/neulab/word-embeddings-for-nmt",
-        supervised_keys=self.config.language_pair,
-        citation=_CITATION,
-    )
-
-  def _split_generators(self, dl_manager):
-    dl_dir = dl_manager.download_and_extract(_DATA_URL)
-    source, target = self.config.language_pair
-
-    data_dir = os.path.join(dl_dir, "datasets", "%s_to_%s" % (source, target))
-
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                "source_file":
-                    os.path.join(data_dir, "{}.train".format(
-                        source.replace("_", "-"))),
-                "target_file":
-                    os.path.join(data_dir, "{}.train".format(target))
-            }),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={
-                "source_file":
-                    os.path.join(data_dir, "{}.dev".format(
-                        source.split("_")[0])),
-                "target_file":
-                    os.path.join(data_dir, "{}.dev".format(target))
-            }),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={
-                "source_file":
-                    os.path.join(data_dir, "{}.test".format(
-                        source.split("_")[0])),
-                "target_file":
-                    os.path.join(data_dir, "{}.test".format(target))
-            }),
+    BUILDER_CONFIGS = [
+        TedHrlrConfig(  # pylint: disable=g-complex-comprehension
+            language_pair=pair, version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+        )
+        for pair in _VALID_LANGUAGE_PAIRS
     ]
 
-  def _generate_examples(self, source_file, target_file):
-    """This function returns the examples in the raw (text) form."""
-    with open(source_file) as f:
-      source_sentences = f.read().split("\n")
-    with open(target_file) as f:
-      target_sentences = f.read().split("\n")
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({"translation": nlp.features.Translation(languages=self.config.language_pair)}),
+            homepage="https://github.com/neulab/word-embeddings-for-nmt",
+            supervised_keys=self.config.language_pair,
+            citation=_CITATION,
+        )
 
-    assert len(target_sentences) == len(
-        source_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (len(
-            source_sentences), len(target_sentences), source_file, target_file)
+    def _split_generators(self, dl_manager):
+        dl_dir = dl_manager.download_and_extract(_DATA_URL)
+        source, target = self.config.language_pair
 
-    source, target = self.config.language_pair
-    for idx, (l1, l2) in enumerate(
-        zip(source_sentences, target_sentences)):
-      result = {"translation": {source: l1, target: l2}}
-      # Make sure that both translations are non-empty.
-      if all(result.values()):
-        yield idx, result
+        data_dir = os.path.join(dl_dir, "datasets", "%s_to_%s" % (source, target))
+
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={
+                    "source_file": os.path.join(data_dir, "{}.train".format(source.replace("_", "-"))),
+                    "target_file": os.path.join(data_dir, "{}.train".format(target)),
+                },
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={
+                    "source_file": os.path.join(data_dir, "{}.dev".format(source.split("_")[0])),
+                    "target_file": os.path.join(data_dir, "{}.dev".format(target)),
+                },
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={
+                    "source_file": os.path.join(data_dir, "{}.test".format(source.split("_")[0])),
+                    "target_file": os.path.join(data_dir, "{}.test".format(target)),
+                },
+            ),
+        ]
+
+    def _generate_examples(self, source_file, target_file):
+        """This function returns the examples in the raw (text) form."""
+        with open(source_file) as f:
+            source_sentences = f.read().split("\n")
+        with open(target_file) as f:
+            target_sentences = f.read().split("\n")
+
+        assert len(target_sentences) == len(source_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (
+            len(source_sentences),
+            len(target_sentences),
+            source_file,
+            target_file,
+        )
+
+        source, target = self.config.language_pair
+        for idx, (l1, l2) in enumerate(zip(source_sentences, target_sentences)):
+            result = {"translation": {source: l1, target: l2}}
+            # Make sure that both translations are non-empty.
+            if all(result.values()):
+                yield idx, result
