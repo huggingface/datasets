@@ -16,7 +16,7 @@
 
 import io
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from os.path import expanduser
 from typing import Dict, List, Optional, Tuple
 
@@ -26,15 +26,18 @@ from tqdm import tqdm
 
 ENDPOINT = "https://huggingface.co"
 
+
 @dataclass
 class S3Obj:
     """
     Data structure that represents a file belonging to the current user.
     """
+
     filename: str
     LastModified: str
     ETag: str
     Size: int
+
 
 @dataclass
 class PresignedUrl:
@@ -42,11 +45,13 @@ class PresignedUrl:
     access: str
     type: str  # mime-type to send to S3.
 
+
 @dataclass
 class S3Object:
     """
     Data structure that represents a public file accessible on our S3.
     """
+
     key: str  # S3 object key
     etag: str
     lastModified: str
@@ -59,6 +64,7 @@ class ObjectInfo:
     """
     Info about a public dataset or Metric accessible from our S3.
     """
+
     id: str  # id of dataset
     key: str  # S3 object key of config.json
     lastModified: Optional[str] = None
