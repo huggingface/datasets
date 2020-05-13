@@ -1,0 +1,2 @@
+# Cached sizes: <full_config_name> <num_bytes> <num_examples>
+librispeech_lm/no-name/0.1.0/train 4408472563 40418260
