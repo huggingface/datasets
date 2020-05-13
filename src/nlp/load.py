@@ -309,12 +309,12 @@ def prepare_module(
         # Copy dataset infos file if needed
         if not os.path.exists(dataset_infos_path):
             if local_dataset_infos_path is not None:
-                logger.info("Copying checksums file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info("Copying dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
-                logger.info("Couldn't find checksums file at %s", dataset_infos)
+                logger.info("Couldn't find dataset infos file at %s", dataset_infos)
         else:
-            logger.info("Found checksums file from %s to %s", dataset_infos, dataset_infos_path)
+            logger.info("Found dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
 
         # Record metadata associating original dataset path with local unique folder
         meta_path = local_file_path.split(".py")[0] + ".json"
@@ -403,8 +403,8 @@ def load_dataset(
     dataset_config: Optional[BuilderConfig] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
-    ignore_checksums: bool = False,
-    save_checksums: bool = False,
+    ignore_verifications: bool = False,
+    save_infos: bool = False,
     **config_kwargs,
 ) -> Dataset:
     """ Load a dataset.
@@ -478,8 +478,8 @@ def load_dataset(
     builder_instance.download_and_prepare(
         download_config=download_config,
         download_mode=download_mode,
-        ignore_checksums=ignore_checksums,
-        save_checksums=save_checksums,
+        ignore_verifications=ignore_verifications,
+        save_infos=save_infos,
     )
 
     # Build dataset for splits
