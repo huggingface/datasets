@@ -71,6 +71,7 @@ TESTS_REQUIRE = [
     'jupyter',
     'pytest',
     'pytest-xdist',
+    'tensorflow'
 ]
 
 
