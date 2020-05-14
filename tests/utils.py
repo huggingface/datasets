@@ -92,9 +92,8 @@ class MockDataLoaderManager(object):
 
     @property
     def dummy_file(self):
-        assert (
-            self.complete_path_to_dummy_file is not None
-        ), "self.download_dummy_data() has to be run before being able to access this property"
+        if self.complete_path_to_dummy_file is None:
+            self.download_dummy_data()
         return self.complete_path_to_dummy_file
 
     @property
