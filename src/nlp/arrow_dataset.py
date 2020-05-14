@@ -176,7 +176,7 @@ class Dataset(object):
 
     def set_format(self, type: Optional[str] = None, columns: Optional[List] = None):
         """ Set __getitem__ return format (type and columns)
-        
+
             Args:
                 type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
                     None means __getitem__ returns python objects (default)
@@ -219,7 +219,7 @@ class Dataset(object):
 
     def reset_format(self):
         """ Reset __getitem__ return format to python objects and all columns.
-        
+
             Same as ``self.set_format()``
         """
         self.set_format()

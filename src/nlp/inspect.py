@@ -39,10 +39,10 @@ def list_metrics():
     return api.metric_list()
 
 
-def inspect_dataset(path:str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
+def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
     r"""
         Allow inspection/modification of a dataset script by copying on local drive at local_path.
-    
+
         Args:
             path (``str``): path to the dataset processing script with the dataset builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
@@ -63,10 +63,10 @@ def inspect_dataset(path:str, local_path: str, download_config: Optional[Downloa
     )
 
 
-def inspect_metric(path:str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
+def inspect_metric(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
     r"""
         Allow inspection/modification of a metric script by copying it on local drive at local_path.
-    
+
         Args:
             path (``str``): path to the dataset processing script with the dataset builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
