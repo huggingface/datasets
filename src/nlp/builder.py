@@ -556,6 +556,10 @@ class GeneratorBasedBuilder(DatasetBuilder):
     (`_split_generators`). See the method docstrings for details.
     """
 
+    def __init__(self, *args, **kwargs):
+        super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
+        self._writer_batch_size = kwargs.get("writer_batch_size")
+
     @abc.abstractmethod
     def _generate_examples(self, **kwargs):
         """Default function generating examples for each `SplitGenerator`.
@@ -592,7 +596,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._cache_dir, fname)
         examples_type = self.info.features.type
-        writer = ArrowWriter(data_type=examples_type, path=fpath)
+        writer = ArrowWriter(data_type=examples_type, path=fpath, writer_batch_size=self._writer_batch_size)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
         for key, record in utils.tqdm(generator, unit=" examples", total=split_info.num_examples, leave=False):
