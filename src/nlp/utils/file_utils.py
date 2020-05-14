@@ -222,14 +222,14 @@ def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Op
             os.path.isdir(output_path_extracted)
             and os.listdir(output_path_extracted)
             and not download_config.force_extract
-        ):
+        ) or (os.path.isfile(output_path_extracted) and not download_config.force_extract):
             return output_path_extracted
 
         # Prevent parallel extractions
         lock_path = output_path + ".lock"
         with FileLock(lock_path):
             shutil.rmtree(output_path_extracted, ignore_errors=True)
-            os.makedirs(output_path_extracted)
+            os.makedirs(output_path_extracted, exist_ok=True)
             if is_zipfile(output_path):
                 with ZipFile(output_path, "r") as zip_file:
                     zip_file.extractall(output_path_extracted)
@@ -314,6 +314,7 @@ def get_from_cache(
 
     os.makedirs(cache_dir, exist_ok=True)
 
+    original_url = url  # Some parameters may be added
     connected = False
     cookies = None
     etag = None
@@ -336,7 +337,7 @@ def get_from_cache(
             # not connected
             pass
 
-    filename = url_to_filename(url, etag)
+    filename = url_to_filename(original_url, etag)
 
     # get cache path to put the file
     cache_path = os.path.join(cache_dir, filename)
