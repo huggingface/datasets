@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 pathToFile=${1}
+manual_dir=${2}
+
 curPath=$(pwd)
 
 if [ ! -f "${pathToFile}" ]; then
@@ -48,7 +50,11 @@ if [ -f "${pathToFolder}/dataset_infos.json" ]; then
 	echo "### STEP 2 ### Dataset infos file is already created. To create it again remove ${pathToFolder}/dataset_infos.json ..."
 else
 	echo "### STEP 2 ### Create infos ..."
-	eval "python nlp-cli test ${pathToFolder} --save_infos --all_configs"
+	if [ -z "${manual_dir}" ]; then
+		eval "python nlp-cli test ${pathToFolder} --save_infos --all_configs"
+	else
+		eval "python nlp-cli test ${pathToFolder} --data_dir ${manual_dir} --save_infos --all_configs"
+	fi
 fi
 
 if [ -f "${pathToFolder}/dataset_infos.json" ]; then
