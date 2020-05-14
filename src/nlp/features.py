@@ -407,7 +407,7 @@ def encode_nested_example(schema, obj):
             list_dict = {}
             for k, dict_tuples in zipped_dict:
                 sub_schema = dict_tuples[0]
-                sub_objs = dict_tuples[1:] if len(dict_tuples) > 1 else dict_tuples[1]
+                sub_objs = dict_tuples[1:] if len(dict_tuples) > 2 else dict_tuples[1]
                 list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
             return list_dict
 
