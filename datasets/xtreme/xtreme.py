@@ -711,13 +711,14 @@ class Xtreme(nlp.GeneratorBasedBuilder):
 
         if self.config.name.startswith("PAN-X"):
             path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-            panx_path = os.path.join(path_to_manual_folder, _PAN_X_FOLDER)                
-           
+            panx_path = os.path.join(path_to_manual_folder, _PAN_X_FOLDER)
+
             if not os.path.exists(panx_path):
                 raise FileNotFoundError(
                     "{} does not exist. Make sure you insert a manual dir via `nlp.load('wikihow', data_dir=...)` that includes {}. Manual download instructions: {}".format(
                         panx_path, _PAN_X_FOLDER, self.MANUAL_DOWNLOAD_INSTRUCTIONS
-                    ))
+                    )
+                )
 
             panx_dl_dir = dl_manager.extract(panx_path)
             lang = self.config.name.split(".")[1]
