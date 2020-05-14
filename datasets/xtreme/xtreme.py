@@ -422,8 +422,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
     # TODO(xtreme): Set up version.
     VERSION = nlp.Version("0.1.0")
     MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-     Please manually download the AmazonPhotos.zip file on Amazon Cloud Drive
-     (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN) and place it in ~/AmazonPhotos.zip 
+     You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
+     (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN) and save the file under <path/to/folder>AmazonPhotos.zip 
     
     """
     BUILDER_CONFIGS = [
@@ -710,11 +710,14 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             ]
 
         if self.config.name.startswith("PAN-X"):
-            home = str(Path.home())
-
-            panx_path = os.path.join(home, _PAN_X_FOLDER)
+            path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+            panx_path = os.path.join(path_to_manual_folder, _PAN_X_FOLDER)                
+           
             if not os.path.exists(panx_path):
-                FileNotFoundError(self.MANUAL_DOWNLOAD_INSTRUCTIONS)
+                raise FileNotFoundError(
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load('wikihow', data_dir=...)` that includes {}. Manual download instructions: {}".format(
+                        panx_path, _PAN_X_FOLDER, self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                    ))
 
             panx_dl_dir = dl_manager.extract(panx_path)
             lang = self.config.name.split(".")[1]

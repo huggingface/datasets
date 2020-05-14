@@ -38,8 +38,7 @@ class Reclor(nlp.GeneratorBasedBuilder):
   VERSION = nlp.Version('0.1.0')
   MANUAL_DOWNLOAD_INSTRUCTIONS = """\
   to use ReClor you need to download it manually. Please go to its homepage (http://whyu.me/reclor/) fill the google 
-  form and you will recive a download link and a password to extract it. Please create a folder named reclor_data at ~/reclor_data 
-  and extract the downloaded data their.
+  form and you will recive a download link and a password to extract it.Please extract all files in one folder and use the path folder in nlp.load('reclor', data_dir='path/to/folder/folder_name')
   """
 
   def _info(self):
@@ -72,8 +71,13 @@ class Reclor(nlp.GeneratorBasedBuilder):
     # TODO(reclor): Downloads the data and defines the splits
     # dl_manager is a nlp.download.DownloadManager that can be used to
     # download and extract URLs
-    dl_dir = str(Path.home())
-    data_dir = os.path.join(dl_dir, 'reclor_data')
+    data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))                   
+           
+    if not os.path.exists(data_dir):
+        raise FileNotFoundError(
+            "{} does not exist. Make sure you insert a manual dir via `nlp.load('wikihow', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {}".format(
+                data_dir,  self.MANUAL_DOWNLOAD_INSTRUCTIONS
+            ))
     return [
         nlp.SplitGenerator(
             name=nlp.Split.TRAIN,
