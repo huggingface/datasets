@@ -144,9 +144,10 @@ class DatasetBuilder:
 
     def _create_builder_config(self, name=None, **config_kwargs):
         """ Create and validate BuilderConfig object.
-            Uses the first configuration in self.BUILDER_CONFIGS if builder_config is None
+            Uses the first configuration in self.BUILDER_CONFIGS if name is None
             config_kwargs override the defaults kwargs in config
         """
+        builder_config = None
         if name is None and self.BUILDER_CONFIGS:
             builder_config = self.BUILDER_CONFIGS[0]
             logger.info("No config specified, defaulting to first: %s/%s", self.name, builder_config.name)
