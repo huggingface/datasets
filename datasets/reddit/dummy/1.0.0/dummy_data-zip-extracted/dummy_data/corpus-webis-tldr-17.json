@@ -1,0 +1,3 @@
+{"author":"me", "body":"<>", "normalizedBody":"", "id":"1", "subreddit":"machinelearning", "subreddit_id":"2", "content": "input document.", "summary": "output summary."}
+{"content": "input document 2.", "summary": "output summary 2."}
+{"author":"me", "body":"<>", "normalizedBody":"", "id":"1", "subreddit":"machinelearning", "subreddit_id":"2", "content": "skipped because no summary."}
