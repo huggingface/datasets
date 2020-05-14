@@ -169,6 +169,12 @@ class MockDataLoaderManager(object):
             else:
                 value = os.path.join(path_to_dummy_data, abs_path.split("/")[-1])
             dummy_data_dict[key] = value
+
+        # make sure that values are unique
+        if len(set(dummy_data_dict.values())) < len(dummy_data_dict.values()):
+            # append key to value to make its name unique
+            dummy_data_dict = {key: value + key for key, value in dummy_data_dict.items()}
+
         return dummy_data_dict
 
     def check_or_save_checksums(self, *args):
