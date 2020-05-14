@@ -79,7 +79,7 @@ class MockDataLoaderManager(object):
         self.cache_dir = cache_dir
         self.verbose = verbose
         self.is_local = is_local
-        self.path_to_dummy_file = None
+        self.complete_path_to_dummy_file = None
 
         self.config_name = config.name if config is not None else ""
 
@@ -93,9 +93,9 @@ class MockDataLoaderManager(object):
     @property
     def dummy_file(self):
         assert (
-            self.path_to_dummy_file is not None
-        ), "selfdownload_dummy_data() has to be run before being able to access this property"
-        return self.path_to_dummy_file
+            self.complete_path_to_dummy_file is not None
+        ), "self.download_dummy_data() has to be run before being able to access this property"
+        return self.complete_path_to_dummy_file
 
     @property
     def manual_dir(self):
@@ -136,7 +136,7 @@ class MockDataLoaderManager(object):
         local_path = cached_path(
             path_to_dummy_data_dir, cache_dir=self.cache_dir, extract_compressed_file=True, force_extract=True
         )
-        self.path_to_dummy_file = os.path.join(local_path, self.dummy_data_extracted_folder_name)
+        self.complete_path_to_dummy_file = os.path.join(local_path, self.dummy_data_extracted_folder_name)
 
     def print_dummy_data_folder_structure(self, data_url):
         logging.info(str(20 * "*" + " EXPECTED STRUCTURE OF {} " + 20 * "*").format(self.dummy_data_folder_name))
