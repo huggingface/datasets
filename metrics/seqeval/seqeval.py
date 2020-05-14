@@ -145,8 +145,12 @@ class Seqeval(nlp.Metric):
             reference_urls=["https://github.com/chakki-works/seqeval"]
         )
 
-    def _compute(self, predictions, references, **metrics_kwargs):
-        suffix = metrics_kwargs.pop("suffix", False)
+    def _compute(self, predictions, references, suffix=False):
+        """
+         Args:
+           suffix: True if the types are not in IOBs format False otherwise.
+             default: False
+        """
         true_entities = set(get_entities(references, suffix))
         pred_entities = set(get_entities(predictions, suffix))
         d1 = defaultdict(set)
