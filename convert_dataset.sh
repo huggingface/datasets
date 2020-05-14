@@ -44,24 +44,24 @@ echo "Conversion succesful!"
 
 echo ""
 echo ""
-if [ -f "${pathToFolder}/urls_checksums/checksums.txt" ]; then
-	echo "### STEP 2 ### Checksums is already created. To create checksums again remove ${pathToFolder}/urls_checksums/checksums.txt ..."
+if [ -f "${pathToFolder}/dataset_infos.json" ]; then
+	echo "### STEP 2 ### Dataset infos file is already created. To create it again remove ${pathToFolder}/dataset_infos.json ..."
 else
-	echo "### STEP 2 ### Create checksums ..."
-	eval "python nlp-cli test ${pathToFolder} --save_checksums --all_configs"
+	echo "### STEP 2 ### Create infos ..."
+	eval "python nlp-cli test ${pathToFolder} --save_infos --all_configs"
 fi
 
-if [ -f "${pathToFolder}/urls_checksums/checksums.txt" ]; then
-	echo "checksums.txt found in ${pathToFolder}/urls_checksums."
+if [ -f "${pathToFolder}/dataset_infos.json" ]; then
+	echo "dataset_infos.json found in ${pathToFolder}."
 else
-	echo "checksums.txt not found in ${pathToFolder}/urls_checksums. Add checksums manually."
+	echo "dataset_infos.json not found in ${pathToFolder}. Add dataset infos manually."
 	exit
 fi
 
 # rm lock file
 rm ${pathToFolder}/*.lock
 
-echo "Checksums creation succesful!"
+echo "Dataset infos creation succesful!"
 
 echo ""
 echo ""

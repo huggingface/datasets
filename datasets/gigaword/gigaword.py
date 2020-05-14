@@ -16,13 +16,12 @@
 # Lint as: python3
 """Gigaword summarization dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import os
 
 import nlp
+
 
 _CITATION = """
 @article{graff2003english,
@@ -65,64 +64,61 @@ _SUMMARY = "summary"
 
 
 class Gigaword(nlp.GeneratorBasedBuilder):
-  """Gigaword summarization dataset."""
+    """Gigaword summarization dataset."""
 
-  # 1.0.0 contains a bug that uses validation data as training data.
-  # 1.1.0 Update to the correct train, validation and test data.
-  # 1.2.0 Replace <unk> with <UNK> in train/val to be consistent with test.
-  VERSION = nlp.Version("1.2.0")
+    # 1.0.0 contains a bug that uses validation data as training data.
+    # 1.1.0 Update to the correct train, validation and test data.
+    # 1.2.0 Replace <unk> with <UNK> in train/val to be consistent with test.
+    VERSION = nlp.Version("1.2.0")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            _DOCUMENT: nlp.Value('string'),
-            _SUMMARY: nlp.Value('string')
-        }),
-        supervised_keys=(_DOCUMENT, _SUMMARY),
-        homepage="https://github.com/harvardnlp/sent-summary",
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string")}),
+            supervised_keys=(_DOCUMENT, _SUMMARY),
+            homepage="https://github.com/harvardnlp/sent-summary",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    dl_path = dl_manager.download_and_extract(_URL)
-    pattern = os.path.join(dl_path, "org_data", "%s.%s.txt")
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                "src_path": pattern % ("train", "src"),
-                "tgt_path": pattern % ("train", "tgt"),
-                "replace_unk": True,
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={
-                "src_path": pattern % ("dev", "src"),
-                "tgt_path": pattern % ("dev", "tgt"),
-                "replace_unk": True,
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={
-                "src_path": pattern % ("test", "src"),
-                "tgt_path": pattern % ("test", "tgt"),
-                "replace_unk": False,
-            },
-        ),
-    ]
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        dl_path = dl_manager.download_and_extract(_URL)
+        pattern = os.path.join(dl_path, "org_data", "%s.%s.txt")
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={
+                    "src_path": pattern % ("train", "src"),
+                    "tgt_path": pattern % ("train", "tgt"),
+                    "replace_unk": True,
+                },
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={
+                    "src_path": pattern % ("dev", "src"),
+                    "tgt_path": pattern % ("dev", "tgt"),
+                    "replace_unk": True,
+                },
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={
+                    "src_path": pattern % ("test", "src"),
+                    "tgt_path": pattern % ("test", "tgt"),
+                    "replace_unk": False,
+                },
+            ),
+        ]
 
-  def _generate_examples(self, src_path=None, tgt_path=None, replace_unk=None):
-    """Yields examples."""
-    with open(src_path) as f_d, open(tgt_path) as f_s:
-      for i, (doc_text, sum_text) in enumerate(zip(f_d, f_s)):
-        if replace_unk:
-          yield i, {
-              _DOCUMENT: doc_text.strip().replace("<unk>", "UNK"),
-              _SUMMARY: sum_text.strip().replace("<unk>", "UNK")
-          }
-        else:
-          yield i, {_DOCUMENT: doc_text.strip(), _SUMMARY: sum_text.strip()}
+    def _generate_examples(self, src_path=None, tgt_path=None, replace_unk=None):
+        """Yields examples."""
+        with open(src_path) as f_d, open(tgt_path) as f_s:
+            for i, (doc_text, sum_text) in enumerate(zip(f_d, f_s)):
+                if replace_unk:
+                    yield i, {
+                        _DOCUMENT: doc_text.strip().replace("<unk>", "UNK"),
+                        _SUMMARY: sum_text.strip().replace("<unk>", "UNK"),
+                    }
+                else:
+                    yield i, {_DOCUMENT: doc_text.strip(), _SUMMARY: sum_text.strip()}

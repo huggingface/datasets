@@ -1,4 +1,0 @@
-http://www.isi.edu/natural-language/download/hansard/hansard.36.r2001-1a.house.debates.testing.tar 7014400 c33692dfac3c727a2fb0103487638ea7f2df16ff01b856e7b8ebff68dcc5904a
-http://www.isi.edu/natural-language/download/hansard/hansard.36.r2001-1a.house.debates.training.tar 60569600 8ea77a34538c7a5c942a44964dad5a56cfbac5605c0517196b7aece353ee3992
-http://www.isi.edu/natural-language/download/hansard/hansard.36.r2001-1a.senate.debates.testing.tar 1884160 86e76d003ee42458cb357b9227b147f63695195c69e89f43dcd84d7f66c819d2
-http://www.isi.edu/natural-language/download/hansard/hansard.36.r2001-1a.senate.debates.training.tar 13363200 f6e0b790133142244c3dffc8b72580bdee93958411c54b80e60febd53a22db53

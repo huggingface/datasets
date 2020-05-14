@@ -31,9 +31,9 @@ from filelock import FileLock
 
 from .arrow_dataset import Dataset
 from .builder import BuilderConfig, DatasetBuilder
+from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
-from .utils.checksums_utils import CHECKSUMS_FILE_NAME, URLS_CHECKSUMS_FOLDER_NAME
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import DownloadConfig, cached_path, hf_bucket_url
 
@@ -203,18 +203,18 @@ def prepare_module(
         file_path = hf_bucket_url(path, filename=name, dataset=dataset)
 
     base_path = os.path.dirname(file_path)  # remove the filename
-    checksums_file = os.path.join(base_path, URLS_CHECKSUMS_FOLDER_NAME, CHECKSUMS_FILE_NAME)
+    dataset_infos = os.path.join(base_path, DATASET_INFOS_DICT_FILE_NAME)
 
     # Load the module in two steps:
     # 1. get the processing file on the local filesystem if it's not there (download to cache dir)
     # 2. copy from the local file system inside the library to import it
     local_path = cached_path(file_path, download_config=download_config)
 
-    # Download the checksums file if available
+    # Download the dataset infos file if available
     try:
-        local_checksums_file_path = cached_path(checksums_file, download_config=download_config,)
+        local_dataset_infos_path = cached_path(dataset_infos, download_config=download_config,)
     except (FileNotFoundError, ConnectionError):
-        local_checksums_file_path = None
+        local_dataset_infos_path = None
 
     # Download external imports if needed
     imports = get_imports(local_path)
@@ -268,8 +268,7 @@ def prepare_module(
         hash_folder_path = force_local_path
 
     local_file_path = os.path.join(hash_folder_path, name)
-    urls_checksums_dir = os.path.join(hash_folder_path, URLS_CHECKSUMS_FOLDER_NAME)
-    checksums_file_path = os.path.join(urls_checksums_dir, CHECKSUMS_FILE_NAME)
+    dataset_infos_path = os.path.join(hash_folder_path, DATASET_INFOS_DICT_FILE_NAME)
 
     # Prevent parallel disk operations
     lock_path = local_path + ".lock"
@@ -307,16 +306,15 @@ def prepare_module(
         else:
             logger.info("Found script file from %s to %s", file_path, local_file_path)
 
-        # Copy checksums file if needed
-        os.makedirs(urls_checksums_dir, exist_ok=True)
-        if not os.path.exists(checksums_file_path):
-            if local_checksums_file_path is not None:
-                logger.info("Copying checksums file from %s to %s", checksums_file, checksums_file_path)
-                shutil.copyfile(local_checksums_file_path, checksums_file_path)
+        # Copy dataset infos file if needed
+        if not os.path.exists(dataset_infos_path):
+            if local_dataset_infos_path is not None:
+                logger.info("Copying dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
-                logger.info("Couldn't find checksums file at %s", checksums_file)
+                logger.info("Couldn't find dataset infos file at %s", dataset_infos)
         else:
-            logger.info("Found checksums file from %s to %s", checksums_file, checksums_file_path)
+            logger.info("Found dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
 
         # Record metadata associating original dataset path with local unique folder
         meta_path = local_file_path.split(".py")[0] + ".json"
@@ -405,8 +403,8 @@ def load_dataset(
     dataset_config: Optional[BuilderConfig] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
-    ignore_checksums: bool = False,
-    save_checksums: bool = False,
+    ignore_verifications: bool = False,
+    save_infos: bool = False,
     **config_kwargs,
 ) -> Dataset:
     """ Load a dataset.
@@ -480,8 +478,8 @@ def load_dataset(
     builder_instance.download_and_prepare(
         download_config=download_config,
         download_mode=download_mode,
-        ignore_checksums=ignore_checksums,
-        save_checksums=save_checksums,
+        ignore_verifications=ignore_verifications,
+        save_infos=save_infos,
     )
 
     # Build dataset for splits
