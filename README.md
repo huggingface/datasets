@@ -19,21 +19,22 @@
 </p>
 
 <h3 align="center">
-<p> Datasets and Metrics for Natural Language Processing in NumPy, Pandas, PyTorch and TensorFlow 2.0
+<p> Datasets and Metrics for Natural Language Processing
+<p> in PyTorch, TensorFlow 2.0, NumPy and Pandas,
 </h3>
 
 🤗 `nlp` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
 
-`nlp` has many interesting features (beside easy share and access to datasets/metrics):
+`nlp` has many interesting features (beside easy sharing and accessing datasets/metrics):
 
 - Build-in interoperability with Numpy, Pandas, PyTorch and Tensorflow 2
-- A small and fast library with a transparent and pythonic API
+- Lightweight and fast with a transparent and pythonic API
 - Strive on large datasets: `nlp` naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
-- Smart caching with an intelligent tf.data-like cache: never wait for your data to process several times
+- Smart caching: never wait for your data to process several times
 
-`nlp` currently provides access to ~100 NLP datasets and ~10 metrics and let the community very easily add new datasets and metrics.
+`nlp` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics.
 
-`nlp` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team behind this amazing library and user API.
+`nlp` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library and user API.
 
 # Installation
 
@@ -63,23 +64,23 @@ pip install --upgrade .
 
 ## Using with PyTorch/TensorFlow/pandas
 
-If you plan to use `nlp` with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install the relevant framework.
+If you plan to use `nlp` with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install PyTorch, Tensorflow or pandas.
 
 # Usage
 
-Using `nlp` is rather simple, the main methods are:
+Using `nlp` is made to be very simple to use, the main methods are:
 
-- `nlp.list_datasets()`
-- `nlp.load_dataset(dataset_name, **kwargs)`
-- `nlp.list_metrics()`
-- `nlp.load_metric(metric_name, **kwargs)`
+- `nlp.list_datasets()` to list the available datasets
+- `nlp.load_dataset(dataset_name, **kwargs)` to instantiate a dataset
+- `nlp.list_metrics()` to list the available metrics
+- `nlp.load_metric(metric_name, **kwargs)` to instantiate a metric
 
 Here is a quick example:
 
 ```python
 import nlp
 
-# List all the available datasets
+# Print all the available datasets
 print(dataset.id for dataset in nlp.list_datasets())
 
 # Load a dataset and print the first examples in the training set
@@ -95,3 +96,11 @@ squad_metric = nlp.load_metric('squad')
 
 Now the best introduction to `nlp` is to follow the tutorial in Google Colab which is here:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/nlp/blob/master/notebooks/Overview.ipynb)
+
+# Disclaimers
+
+Similarly to Tensorflow Dataset, `nlp` is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use the dataset. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
+
+If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a GitHub issue. Thanks for your contribution to the ML community!
+
+If you're interested in learning more about responsible AI practices, including fairness, please see Google AI's Responsible AI Practices.
