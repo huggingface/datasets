@@ -11,7 +11,13 @@ from nlp.load import import_main_class, prepare_module
 
 def test_command_factory(args):
     return TestCommand(
-        args.dataset, args.config, args.all_configs, args.save_infos, args.ignore_verifications, args.force_redownload
+        args.dataset,
+        args.config,
+        args.data_dir,
+        args.all_configs,
+        args.save_infos,
+        args.ignore_verifications,
+        args.force_redownload,
     )
 
 
@@ -20,6 +26,12 @@ class TestCommand(BaseTransformersCLICommand):
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test")
         test_parser.add_argument("--config", type=str, default=None, help="Dataset processing config")
+        test_parser.add_argument(
+            "--data_dir",
+            type=str,
+            default=None,
+            help="can be used to specify a manual directory to get the files from.",
+        )
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         test_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
         test_parser.add_argument(
@@ -33,6 +45,7 @@ class TestCommand(BaseTransformersCLICommand):
         self,
         dataset: str,
         config: str,
+        data_dir: str,
         all_configs: bool,
         save_infos: bool,
         ignore_verifications: bool,
@@ -40,6 +53,7 @@ class TestCommand(BaseTransformersCLICommand):
     ):
         self._dataset = dataset
         self._config = config
+        self._data_dir = data_dir
         self._all_configs = all_configs
         self._save_infos = save_infos
         self._ignore_verifications = ignore_verifications
@@ -55,9 +69,9 @@ class TestCommand(BaseTransformersCLICommand):
         builders: List[DatasetBuilder] = []
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
-                builders.append(builder_cls(config=config))
+                builders.append(builder_cls(config=config, data_dir=self._data_dir))
         else:
-            builders.append(builder_cls(config=config))
+            builders.append(builder_cls(config=config, data_dir=self._data_dir))
 
         for builder in builders:
             builder.download_and_prepare(
