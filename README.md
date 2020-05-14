@@ -67,21 +67,31 @@ If you plan to use `nlp` with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you s
 
 # Usage
 
-Using `nlp` is pretty simple:
+Using `nlp` is rather simple, the main methods are:
+
+- `nlp.list_datasets()`
+- `nlp.load_dataset(dataset_name, **kwargs)`
+- `nlp.list_metrics()`
+- `nlp.load_metric(metric_name, **kwargs)`
+
+Here is a quick example:
 
 ```python
 import nlp
 
 # List all the available datasets
-datasets = nlp.list_datasets()
-print(dataset.id for dataset in datasets)
+print(dataset.id for dataset in nlp.list_datasets())
 
-# Load a dataset
+# Load a dataset and print the first examples in the training set
 squad_dataset = nlp.load_dataset('squad')
+print(squad_dataset['train'][0])
 
-# Print the first examples in the training set of SQuAD
-squad_dataset['train'][0]
+# List all the available metrics
+print(metric.id for metric in nlp.list_metrics())
+
+# Load a metric
+squad_metric = nlp.load_metric('squad')
 ```
 
-The best way to get a sense of `nlp` is to follow the tutorial in Google Colab which is here:
+Now the best introduction to `nlp` is to follow the tutorial in Google Colab which is here:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/nlp/blob/master/notebooks/Overview.ipynb)

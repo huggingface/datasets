@@ -17,25 +17,42 @@
 """ List and inspect datasets and metrics."""
 
 import logging
+from typing import Optional
 
 from .hf_api import HfApi
 from .load import prepare_module
+from .utils import DownloadConfig
 
 
 logger = logging.getLogger(__name__)
 
 
 def list_datasets():
+    """ List all the datasets scripts available on HuggingFace AWS bucket """
     api = HfApi()
     return api.dataset_list()
 
 
 def list_metrics():
+    """ List all the metrics script available on HuggingFace AWS bucket """
     api = HfApi()
     return api.metric_list()
 
 
-def inspect_dataset(path, local_path, download_config=None, **download_kwargs):
+def inspect_dataset(path:str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
+    r"""
+        Allow inspection/modification of a dataset script by copying on local drive at local_path.
+    
+        Args:
+            path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+                - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+                    e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
+                - a datatset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
+                    e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+            local_path (``str``): path to the local folder to copy the datset script to.
+            download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
+            **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+    """
     module_path = prepare_module(
         path, download_config=download_config, dataset=True, force_local_path=local_path, **download_kwargs
     )
@@ -46,7 +63,20 @@ def inspect_dataset(path, local_path, download_config=None, **download_kwargs):
     )
 
 
-def inspect_metric(path, local_path, download_config=None, **download_kwargs):
+def inspect_metric(path:str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
+    r"""
+        Allow inspection/modification of a metric script by copying it on local drive at local_path.
+    
+        Args:
+            path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+                - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
+                    e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
+                - a datatset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
+                    e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
+            local_path (``str``): path to the local folder to copy the datset script to.
+            download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
+            **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+    """
     module_path = prepare_module(
         path, download_config=download_config, dataset=False, force_local_path=local_path, **download_kwargs
     )
