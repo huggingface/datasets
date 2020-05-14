@@ -20,9 +20,9 @@ from __future__ import absolute_import, division, print_function
 import logging
 import os
 
+import apache_beam as beam
 import tensorflow as tf
 
-import apache_beam as beam
 import nlp
 
 
