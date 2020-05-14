@@ -32,7 +32,7 @@ processed the dataset as well:
 import json
 import logging
 import os
-from dataclasses import _asdict_inner, asdict, dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import List, Optional, Union
 
 from nlp.utils.version import Version
