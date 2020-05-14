@@ -1,2 +1,0 @@
-# Cached sizes: <full_config_name> <num_bytes> <num_examples>
-coarse_discourse/no-name/0.1.0/train 45443464 116357

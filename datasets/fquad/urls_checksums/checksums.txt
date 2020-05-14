@@ -1,2 +1,0 @@
-https://storage.googleapis.com/illuin/fquad/train.json.zip 2813123 64f0aea68bacee6ffca7f2f7d56a97e504b2ad2abce057ab6c14768a72c09b47
-https://storage.googleapis.com/illuin/fquad/valid.json.zip 479113 53eb7f33573f619f6d56f9e656c6ea6030639ebd663bb445b86b999123be1ef3

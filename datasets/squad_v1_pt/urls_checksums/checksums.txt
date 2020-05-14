@@ -1,2 +1,0 @@
-https://github.com/nunorc/squad-v1.1-pt/raw/master/dev-v1.1-pt.json 5389305 cc27ce3bba8b06056bdd1c042944beb9cc926f21f53b47f21760989be9aa90cf
-https://github.com/nunorc/squad-v1.1-pt/raw/master/train-v1.1-pt.json 34143290 3ffd847d1a210836f5d3c5b6ee3d93dbc873eece463738820158dc721b67ed2f

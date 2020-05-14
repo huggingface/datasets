@@ -1,1 +1,0 @@
-https://s3-us-west-2.amazonaws.com/ai2-website/data/quarel-dataset-v1-nov2018.zip 631370 95437eb445467676a9b2fbda4b2021b88d788ff483ed31e63988c67ac4c6a27c

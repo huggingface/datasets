@@ -1,1 +1,0 @@
-https://s3-us-west-2.amazonaws.com/ai2-website/data/quartz-dataset-v1-aug2019.zip 497354 e86ed35153c6c3fb6dc5991b6a3b520a2c154c42266cb6b4edc7ed526fa4b5a8

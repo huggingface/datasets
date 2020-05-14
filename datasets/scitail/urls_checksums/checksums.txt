@@ -1,1 +1,0 @@
-http://data.allenai.org.s3.amazonaws.com/downloads/SciTailV1.1.zip 14174621 3fccd37350a94ca280b75998568df85fc2fc62843a3198d644fcbf858e6943d5

@@ -1,3 +1,0 @@
-https://qa.mpi-inf.mpg.de/comqa/comqa_dev.json 213246 937f898f996e9a7317d311553cf5b43c4a53e0bb841ae8eed4d8cf15936fbc84
-https://qa.mpi-inf.mpg.de/comqa/comqa_test.json 404104 b81e19c4108198781167ddb30d26172571e76cc8e684aabb181537a45e816867
-https://qa.mpi-inf.mpg.de/comqa/comqa_train.json 1054334 aa25b2747221a6147737066fa7f8509414a6333e6eebb20d7970fc50166eba9c

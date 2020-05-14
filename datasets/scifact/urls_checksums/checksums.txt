@@ -1,1 +1,0 @@
-https://ai2-s2-scifact.s3-us-west-2.amazonaws.com/release/2020-05-01/data.tar.gz 2848693 108c19d1a6e2522f20055fe503450c6af8c9c12a095fd727f21894cc44eb47aa

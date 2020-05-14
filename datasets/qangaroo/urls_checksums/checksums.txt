@@ -1,2 +1,0 @@
-# Checksums: <url> <num_bytes> <sha256>
-https://drive.google.com/uc?export=download&id=1ytVZ4AhubFDOEL7o7XrIRIyhU8g9wvKA 339843061 2f512869760cdad76a022a1465f025b486ae79dc5b8f0bf3ad901a4caf2d3050
