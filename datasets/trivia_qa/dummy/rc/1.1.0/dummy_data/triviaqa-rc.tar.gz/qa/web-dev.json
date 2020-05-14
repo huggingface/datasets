@@ -1,0 +1,39 @@
+{
+    "Data": [
+        {
+            "Answer": {
+                "Aliases": [
+                    "(Harry) Sinclair Lewis",
+                    "Grace Hegger",
+                    "Sinclair Lewis"
+                ],
+                "MatchedWikiEntityName": "Sinair Lewis",
+                "NormalizedAliases": [
+                    "grace hegger",
+                    "sinclair lewis"
+                ],
+                "NormalizedMatchedWikiEntityName": "sinclaewis",
+                "NormalizedValue": "sincla lewis",
+                "Type": "WikipediaEntity",
+                "Value": "Sinclair Lewis"
+            },
+            "EntityPages": [],
+            "Question": "Other question than train?",
+            "QuestionId": "tcasdasd_1",
+            "QuestionSource": "http://www.triviacountry.com/",
+            "SearchResults": [
+                {
+                    "Description": "The Nobel Prize in Lite nobelprize.org/nobel_prizes/literature/laureates/1930/>",
+                    "Filename": "157/157_2866330.txt",
+                    "Rank": 0,
+                    "Title": "The Nobel Prize in Literature 1930",
+                    "Url": "http://www.nobelprize.org/nobel_prizes/literature/laureates/1930/"
+                }
+            ]
+        }
+    ],
+    "Domain": "Web",
+    "Split": "dev",
+    "VerifiedEval": true,
+    "Version": 1.0
+}
