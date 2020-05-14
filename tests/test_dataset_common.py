@@ -94,7 +94,8 @@ class DatasetTester(object):
 
                 if dataset_builder.__class__.__name__ == "Csv":
                     # need slight adoption for csv dataset
-                    path_to_dummy_data = mock_dl_manager.download_dummy_data()
+                    mock_dl_manager.download_dummy_data()
+                    path_to_dummy_data = mock_dl_manager.dummy_file
                     dataset_builder.config.data_files = {
                         "train": os.path.join(path_to_dummy_data, "train.csv"),
                         "test": os.path.join(path_to_dummy_data, "test.csv"),
