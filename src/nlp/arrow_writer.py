@@ -40,7 +40,7 @@ class ArrowWriter(object):
         schema: Optional[pa.Schema] = None,
         path: Optional[str] = None,
         stream: Optional[pa.NativeFile] = None,
-        writer_batch_size: int = DEFAULT_MAX_BATCH_SIZE,
+        writer_batch_size: Optional[int] = None,
         disable_nullable: bool = True,
     ):
         if path is None and stream is None:
@@ -66,7 +66,7 @@ class ArrowWriter(object):
         else:
             self.stream = stream
 
-        self.writer_batch_size = writer_batch_size
+        self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
 
         self._num_examples = 0
         self._num_bytes = 0
