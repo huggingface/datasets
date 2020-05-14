@@ -11,7 +11,13 @@ from nlp.load import import_main_class, prepare_module
 
 def test_command_factory(args):
     return TestCommand(
-        args.dataset, args.config, args.data_dir, args.all_configs, args.save_infos, args.ignore_verifications, args.force_redownload
+        args.dataset,
+        args.config,
+        args.data_dir,
+        args.all_configs,
+        args.save_infos,
+        args.ignore_verifications,
+        args.force_redownload,
     )
 
 
@@ -20,7 +26,12 @@ class TestCommand(BaseTransformersCLICommand):
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test")
         test_parser.add_argument("--config", type=str, default=None, help="Dataset processing config")
-        test_parser.add_argument("--data_dir", type=str, default=None, help="can be used to specify a manual directory to get the files from.")
+        test_parser.add_argument(
+            "--data_dir",
+            type=str,
+            default=None,
+            help="can be used to specify a manual directory to get the files from.",
+        )
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         test_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
         test_parser.add_argument(
