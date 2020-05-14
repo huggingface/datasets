@@ -35,8 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 class Dataset(object):
-    """ A Dataset backed by an Arrow table or Record Batch
-        This allow us to do memory mapping to disk i.e. train on datasets larger than RAM
+    """ A Dataset backed by an Arrow table or Record Batch.
     """
 
     def __init__(
@@ -52,14 +51,16 @@ class Dataset(object):
         self._format_columns = None
 
     @classmethod
-    def from_file(cls, filename):
+    def from_file(cls, filename: str):
+        """ Instantiate a Dataset backed by an Arrow table at filename """
         mmap = pa.memory_map(filename)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
         return cls(arrow_table=pa_table, data_files=[{"filename": filename}])
 
     @classmethod
-    def from_buffer(cls, buffer):
+    def from_buffer(cls, buffer: pa.Buffer):
+        """ Instantiate a Dataset backed by an Arrow buffer """
         mmap = pa.BufferReader(buffer)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
@@ -160,7 +161,7 @@ class Dataset(object):
 
     def __iter__(self):
         for index in range(self._data.num_rows):
-            yield self.unnest(self._data.slice(index, 1).to_pydict())
+            yield self._unnest(self._data.slice(index, 1).to_pydict())
 
     def __repr__(self):
         schema_str = dict((a, str(b)) for a, b in zip(self._data.schema.names, self._data.schema.types))
@@ -174,6 +175,14 @@ class Dataset(object):
         }
 
     def set_format(self, type: Optional[str] = None, columns: Optional[List] = None):
+        """ Set __getitem__ return format (type and columns)
+
+            Args:
+                type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
+                    None means __getitem__ returns python objects (default)
+                columns (Optional ``List[str]``): columns to keep in the output
+                    None means __getitem__ returns all columns (default)
+        """
         # Check return type
         if type == "torch":
             try:
@@ -209,9 +218,13 @@ class Dataset(object):
         )
 
     def reset_format(self):
+        """ Reset __getitem__ return format to python objects and all columns.
+
+            Same as ``self.set_format()``
+        """
         self.set_format()
 
-    def convert_outputs(self, outputs, format_type=None, format_columns=None):
+    def _convert_outputs(self, outputs, format_type=None, format_columns=None):
         if format_type is None:
             if isinstance(outputs, dict) and format_columns is not None:
                 return {k: v for k, v in outputs.items() if k in format_columns}
@@ -251,11 +264,11 @@ class Dataset(object):
         return output_dict
 
     @staticmethod
-    def unnest(py_dict):
+    def _unnest(py_dict):
         return dict((key, array[0]) for key, array in py_dict.items())
 
     @staticmethod
-    def nest(py_dict):
+    def _nest(py_dict):
         return dict((key, [elem]) for key, elem in py_dict.items())
 
     def _getitem(self, key: Union[int, slice, str], format_type=None, format_columns=None) -> Union[Dict, List]:
@@ -269,7 +282,7 @@ class Dataset(object):
             if format_type is not None and format_type == "pandas":
                 outputs = self._data.slice(key, 1).to_pandas()
             else:
-                outputs = self.unnest(self._data.slice(key, 1).to_pydict())
+                outputs = self._unnest(self._data.slice(key, 1).to_pydict())
         elif isinstance(key, slice):
             key = key.indices(self._data.num_rows)
             if key[2] != 1 or key[1] < key[0]:
@@ -287,7 +300,7 @@ class Dataset(object):
                 elif format_type == "numpy":
                     outputs = self._data[key].to_numpy()
                 else:
-                    outputs = self.convert_outputs(self._data[key].to_pylist())
+                    outputs = self._convert_outputs(self._data[key].to_pylist())
             else:
                 outputs = self._data[key].to_pylist()
         else:
@@ -298,7 +311,7 @@ class Dataset(object):
             and not isinstance(key, str)
             and format_type != "pandas"
         ):
-            outputs = self.convert_outputs(outputs, format_type=format_type, format_columns=format_columns)
+            outputs = self._convert_outputs(outputs, format_type=format_type, format_columns=format_columns)
         return outputs
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
@@ -333,8 +346,7 @@ class Dataset(object):
         return len(files_to_remove)
 
     def _get_cache_file_path(self, function, cache_kwargs):
-        """ Find a unique name from the filenames, kwargs and the function
-        """
+        """ Find a unique name from the filenames, kwargs and the function """
         if not self._data_files or "filename" not in self._data_files[0]:
             return None
         previous_files_string = "-".join(
@@ -460,7 +472,7 @@ class Dataset(object):
         test_output = apply_function_on_filtered_inputs(test_inputs, test_indices)
         if arrow_schema is None and update_data:
             if not batched:
-                test_output = self.nest(test_output)
+                test_output = self._nest(test_output)
             test_output = convert_tuples_in_lists(test_output)
             arrow_schema = pa.Table.from_pydict(test_output).schema
             if disable_nullable:

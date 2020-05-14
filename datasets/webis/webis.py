@@ -58,15 +58,12 @@ _DOCUMENT = "content"
 _SUMMARY = "summary"
 _ADDITIONAL_FEATURES = ["author", "body", "normalizedBody", "subreddit", "subreddit_id", "id"]
 
+
 class WebisConfig(nlp.BuilderConfig):
     """BuilderConfig for Webis."""
 
     def __init__(
-        self,
-        text_features,
-        data_url,
-        citation,
-        **kwargs,
+        self, text_features, data_url, citation, **kwargs,
     ):
         """BuilderConfig for GLUE.
     Args:
@@ -82,16 +79,17 @@ class WebisConfig(nlp.BuilderConfig):
         self.data_url = data_url
         self.citation = citation
 
+
 class Webis(nlp.GeneratorBasedBuilder):
     """Webis TL;DR Dataset."""
 
     BUILDER_CONFIGS = [
         WebisConfig(
-          name="tl_dr",
-          description=_DESCRIPTION,
-          text_features=_ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY],
-          data_url=_URL,
-          citation=_CITATION,
+            name="tl_dr",
+            description=_DESCRIPTION,
+            text_features=_ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY],
+            data_url=_URL,
+            citation=_CITATION,
         )
     ]
 
