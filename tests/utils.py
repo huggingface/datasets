@@ -171,8 +171,5 @@ class MockDataLoaderManager(object):
             dummy_data_dict[key] = value
         return dummy_data_dict
 
-    def check_or_save_checksums(self, *args):
-        pass
-
     def get_recorded_sizes_checksums(self):
         return {}

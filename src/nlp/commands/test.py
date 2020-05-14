@@ -67,7 +67,7 @@ class TestCommand(BaseTransformersCLICommand):
             )
 
         print("Test successful.")
-        # If save_checksums=True, the dataset infos file is created next to the loaded module file.
+        # If save_infos=True, the dataset infos file is created next to the loaded module file.
         # Let's move it to the original directory of the dataset script, to allow the user to
         # upload them on S3 at the same time afterwards.
         if self._save_infos:
