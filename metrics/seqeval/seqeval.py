@@ -46,6 +46,7 @@ from a source against one or more references.
 Args:
     predictions: List of List of predicted labels (Estimated targets as returned by a tagger)
     references: List of List of reference labels (Ground truth (correct) target values)
+    suffix: True if the types are not in IOBs format False otherwise. default: False
 Returns:
     Overall:
         'accuracy': accuracy,
@@ -146,11 +147,6 @@ class Seqeval(nlp.Metric):
         )
 
     def _compute(self, predictions, references, suffix=False):
-        """
-         Args:
-           suffix: True if the types are not in IOBs format False otherwise.
-             default: False
-        """
         true_entities = set(get_entities(references, suffix))
         pred_entities = set(get_entities(predictions, suffix))
         d1 = defaultdict(set)
