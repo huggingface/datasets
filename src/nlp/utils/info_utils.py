@@ -34,7 +34,7 @@ def verify_checksums(expected_checksums: Optional[dict], recorded_checksums: dic
     bad_urls = [url for url in expected_checksums if expected_checksums[url] != recorded_checksums[url]]
     if len(bad_urls) > 0:
         raise NonMatchingChecksumError(str(bad_urls))
-    logger.info("Checksums verification: all the checksums matched.")
+    logger.info("All the checksums matched successfully.")
 
 
 class SplitsVerificationException(Exception):
@@ -68,7 +68,7 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
     ]
     if len(bad_splits) > 0:
         raise NonMatchingSplitsSizesError(str(bad_splits))
-    logger.info("Splits verification: all the splits matched.")
+    logger.info("All the splits matched successfully.")
 
 
 def get_size_checksum_dict(path: str) -> dict:
