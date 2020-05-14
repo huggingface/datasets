@@ -1,0 +1,78 @@
+{
+    "Data": [
+        {
+            "Answer": {
+                "Aliases": [
+                    "(Harry) Sinclair Lewis",
+                    "Harry Sinclair Lewis",
+                    "Lewis, (Harry) Sinclair",
+                    "Grace Hegger",
+                    "Sinclair Lewis"
+                ],
+                "MatchedWikiEntityName": "Sinclair Lewis",
+                "NormalizedAliases": [
+                    "grace hegger",
+                    "lewis harry sinclair",
+                    "harry sinclair lewis",
+                    "sinclair lewis"
+                ],
+                "NormalizedMatchedWikiEntityName": "sinclair lewis",
+                "NormalizedValue": "sinclair lewis",
+                "Type": "WikipediaEntity",
+                "Value": "Sinclair Lewis"
+            },
+            "EntityPages": [],
+            "Question": "Which American-born Sinclair won the Nobel Prize for Literature in 1930?",
+            "QuestionId": "tc_1",
+            "QuestionSource": "http://www.triviacountry.com/",
+            "SearchResults": [
+                {
+                    "Description": "The Nobel Prize in Literature 1930 Sinclair ... The Nobel Prize in Literature 1930 was awarded to ... nobelprize.org/nobel_prizes/literature/laureates/1930/>",
+                    "Filename": "157/157_2866330.txt",
+                    "Rank": 0,
+                    "Title": "The Nobel Prize in Literature 1930",
+                    "Url": "http://www.nobelprize.org/nobel_prizes/literature/laureates/1930/"
+                }
+            ]
+        },
+        {
+            "Answer": {
+                "Aliases": [
+                    "(Harry) Sinclair Lewis",
+                    "Harry Sinclair Lewis",
+                    "Lewis, (Harry) Sinclair",
+                    "Grace Hegger",
+                    "Sinclair Lewis"
+                ],
+                "MatchedWikiEntityName": "Sinclair Lewis",
+                "NormalizedAliases": [
+                    "grace hegger",
+                    "lewis harry sinclair",
+                    "harry sinclair lewis",
+                    "sinclair lewis"
+                ],
+                "NormalizedMatchedWikiEntityName": "sinclair lewis",
+                "NormalizedValue": "sinclair lewis",
+                "Type": "WikipediaEntity",
+                "Value": "Sinclair Lewis"
+            },
+            "EntityPages": [],
+            "Question": "Which American-born Sinclair won the Nobel Prize for Literature in 1930?",
+            "QuestionId": "tc_2",
+            "QuestionSource": "http://www.triviacountry.com/",
+            "SearchResults": [
+                {
+                    "Description": "The Nobel Prize in Literature 1930 Sinclair ... The Nobel Prize in Literature 1930 was awarded to ... nobelprize.org/nobel_prizes/literature/laureates/1930/>",
+                    "Filename": "157/157_2866330.txt",
+                    "Rank": 0,
+                    "Title": "The Nobel Prize in Literature 1930",
+                    "Url": "http://www.nobelprize.org/nobel_prizes/literature/laureates/1930/"
+                }
+            ]
+        }
+    ],
+    "Domain": "unfiltered-web",
+    "Split": "train",
+    "VerifiedEval": false,
+    "Version": 1.0
+}
