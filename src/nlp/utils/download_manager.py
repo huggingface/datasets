@@ -171,7 +171,7 @@ class DownloadManager(object):
                 path_or_paths.
         """
         return map_nested(
-            lambda path_or_paths: cached_path(path_or_paths, extract_compressed_file=True, force_extract=True),
+            lambda path_or_paths: cached_path(path_or_paths, extract_compressed_file=True, force_extract=False),
             path_or_paths,
         )
 

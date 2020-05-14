@@ -21,6 +21,7 @@ import os
 
 import nlp
 
+
 _CITATION = """
 @inproceedings{volske-etal-2017-tl,
     title = "{TL};{DR}: Mining {R}eddit to Learn Automatic Summarization",
@@ -53,58 +54,48 @@ _URL = "https://zenodo.org/record/1043504/files/corpus-webis-tldr-17.zip?downloa
 
 _DOCUMENT = "content"
 _SUMMARY = "summary"
-_ADDITIONAL_FEATURES = [
-    "author", "body", "normalizedBody", "subreddit", "subreddit_id", "id"
-]
+_ADDITIONAL_FEATURES = ["author", "body", "normalizedBody", "subreddit", "subreddit_id", "id"]
 
 
 class Reddit(nlp.GeneratorBasedBuilder):
-  """Reddit Dataset."""
+    """Reddit Dataset."""
 
-  VERSION = nlp.Version("1.0.0")
+    VERSION = nlp.Version("1.0.0")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            k: nlp.Value('string') for k in _ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY]
-        }),
-        supervised_keys=None,
-        homepage="https://github.com/webis-de/webis-tldr-17-corpus",
-        citation=_CITATION,
-    )
-
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    dl_path = dl_manager.download_and_extract(_URL)
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                "path": os.path.join(dl_path, "corpus-webis-tldr-17.json")
-            },
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({k: nlp.Value("string") for k in _ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY]}),
+            supervised_keys=None,
+            homepage="https://github.com/webis-de/webis-tldr-17-corpus",
+            citation=_CITATION,
         )
-    ]
 
-  def _generate_examples(self, path=None):
-    """Yields examples."""
-    with open(path, "rb") as f:
-      for i, line in enumerate(f):
-        # possible keys are:
-        #   author: string (nullable = true)
-        #   body: string (nullable = true)
-        #   normalizedBody: string (nullable = true)
-        #   content: string (nullable = true)
-        #   content_len: long (nullable = true)
-        #   summary: string (nullable = true)
-        #   summary_len: long (nullable = true)
-        #   id: string (nullable = true)
-        #   subreddit: string (nullable = true)
-        #   subreddit_id: string (nullable = true)
-        #   title: string (nullable = true)
-        d = json.loads(line)
-        if _SUMMARY in d and _DOCUMENT in d:
-          yield i, {
-              k: d.get(k, "")
-              for k in _ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY]
-          }
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        dl_path = dl_manager.download_and_extract(_URL)
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN, gen_kwargs={"path": os.path.join(dl_path, "corpus-webis-tldr-17.json")},
+            )
+        ]
+
+    def _generate_examples(self, path=None):
+        """Yields examples."""
+        with open(path, "rb") as f:
+            for i, line in enumerate(f):
+                # possible keys are:
+                #   author: string (nullable = true)
+                #   body: string (nullable = true)
+                #   normalizedBody: string (nullable = true)
+                #   content: string (nullable = true)
+                #   content_len: long (nullable = true)
+                #   summary: string (nullable = true)
+                #   summary_len: long (nullable = true)
+                #   id: string (nullable = true)
+                #   subreddit: string (nullable = true)
+                #   subreddit_id: string (nullable = true)
+                #   title: string (nullable = true)
+                d = json.loads(line)
+                if _SUMMARY in d and _DOCUMENT in d:
+                    yield i, {k: d.get(k, "") for k in _ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY]}
