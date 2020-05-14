@@ -1,6 +1,9 @@
 # Locked files
 *.lock
 
+# Extracted dummy data
+datasets/**/dummy_data-zip-extracted/
+
 # Compiled python modules.
 *.pyc
 
@@ -48,5 +51,3 @@ venv.bak/
 # playground
 /playground
 
-# Filelocks
-*.lock
