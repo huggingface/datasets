@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 100_000  # hopefully it doesn't write too much at once (max is 2GB)
+DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
 
 
 class ArrowWriter(object):
