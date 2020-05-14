@@ -16,14 +16,13 @@
 # Lint as: python3
 """Scientific Papers Dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import json
 import os
 
 import nlp
+
 
 _CITATION = """
 @article{Cohan_2018,
@@ -55,92 +54,73 @@ _DOCUMENT = "article"
 _SUMMARY = "abstract"
 
 _URLS = {
-    "arxiv":
-        "https://drive.google.com/uc?id=1b3rmCSIoh6VhD4HKWjI4HOW-cSwcwbeC&export=download",
-    "pubmed":
-        "https://drive.google.com/uc?id=1lvsqvsFi3W-pE1SqNZI0s8NR9rC1tsja&export=download",
+    "arxiv": "https://drive.google.com/uc?id=1b3rmCSIoh6VhD4HKWjI4HOW-cSwcwbeC&export=download",
+    "pubmed": "https://drive.google.com/uc?id=1lvsqvsFi3W-pE1SqNZI0s8NR9rC1tsja&export=download",
 }
 
 
 class ScientificPapersConfig(nlp.BuilderConfig):
-  """BuilderConfig for Scientific Papers."""
+    """BuilderConfig for Scientific Papers."""
 
-  def __init__(self, filename=None, **kwargs):
-    """BuilderConfig for Wikihow.
+    def __init__(self, filename=None, **kwargs):
+        """BuilderConfig for Wikihow.
 
     Args:
       filename: filename of different configs for the dataset.
       **kwargs: keyword arguments forwarded to super.
     """
-    # 1.1.0 remove sentence breaker <S> and </S> in summary.
-    super(ScientificPapersConfig, self).__init__(
-        version=nlp.Version("1.1.1"),
-        **kwargs)
-    self.filename = filename
+        # 1.1.0 remove sentence breaker <S> and </S> in summary.
+        super(ScientificPapersConfig, self).__init__(version=nlp.Version("1.1.1"), **kwargs)
+        self.filename = filename
 
 
 class ScientificPapers(nlp.GeneratorBasedBuilder):
-  """Scientific Papers."""
+    """Scientific Papers."""
 
-  BUILDER_CONFIGS = [
-      ScientificPapersConfig(
-          name="pubmed", description="Documents from PubMed repository."),
-      ScientificPapersConfig(
-          name="arxiv", description="Documents from ArXiv repository."),
-      
-  ]
-
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            _DOCUMENT: nlp.Value('string'),
-            _SUMMARY: nlp.Value('string'),
-            "section_names": nlp.Value('string'),
-        }),
-        supervised_keys=None,
-        homepage="https://github.com/armancohan/long-summarization",
-        citation=_CITATION,
-    )
-
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    dl_paths = dl_manager.download_and_extract(_URLS)
-    path = os.path.join(dl_paths[self.config.name],
-                        self.config.name + "-dataset")
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={"path": os.path.join(path, "train.txt")},
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={"path": os.path.join(path, "val.txt")},
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={"path": os.path.join(path, "test.txt")},
-        ),
+    BUILDER_CONFIGS = [
+        ScientificPapersConfig(name="pubmed", description="Documents from PubMed repository."),
+        ScientificPapersConfig(name="arxiv", description="Documents from ArXiv repository."),
     ]
 
-  def _generate_examples(self, path=None):
-    """Yields examples."""
-    with open(path) as f:
-      for line in f:
-        # Possible keys are:
-        # "article_id": str
-        # "article_text": list[str] article (list of paragraphs).
-        # "abstract_text": list[str], abstract (list of paragraphs).
-        # "section_names": list[str], list of section names.
-        # "sections": list[list[str]], list of sections (list of paragraphs)
-        d = json.loads(line)
-        summary = "\n".join(d["abstract_text"])
-        # In original paper, <S> and </S> are not used in vocab during training
-        # or during decoding.
-        # https://github.com/armancohan/long-summarization/blob/master/data.py#L27
-        summary = summary.replace("<S>", "").replace("</S>", "")
-        yield d["article_id"], {
-            _DOCUMENT: "\n".join(d["article_text"]),
-            _SUMMARY: summary,
-            "section_names": "\n".join(d["section_names"])
-        }
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features(
+                {_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string"), "section_names": nlp.Value("string"),}
+            ),
+            supervised_keys=None,
+            homepage="https://github.com/armancohan/long-summarization",
+            citation=_CITATION,
+        )
+
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        dl_paths = dl_manager.download_and_extract(_URLS)
+        path = os.path.join(dl_paths[self.config.name], self.config.name + "-dataset")
+        return [
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"path": os.path.join(path, "train.txt")},),
+            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"path": os.path.join(path, "val.txt")},),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"path": os.path.join(path, "test.txt")},),
+        ]
+
+    def _generate_examples(self, path=None):
+        """Yields examples."""
+        with open(path) as f:
+            for line in f:
+                # Possible keys are:
+                # "article_id": str
+                # "article_text": list[str] article (list of paragraphs).
+                # "abstract_text": list[str], abstract (list of paragraphs).
+                # "section_names": list[str], list of section names.
+                # "sections": list[list[str]], list of sections (list of paragraphs)
+                d = json.loads(line)
+                summary = "\n".join(d["abstract_text"])
+                # In original paper, <S> and </S> are not used in vocab during training
+                # or during decoding.
+                # https://github.com/armancohan/long-summarization/blob/master/data.py#L27
+                summary = summary.replace("<S>", "").replace("</S>", "")
+                yield d["article_id"], {
+                    _DOCUMENT: "\n".join(d["article_text"]),
+                    _SUMMARY: summary,
+                    "section_names": "\n".join(d["section_names"]),
+                }

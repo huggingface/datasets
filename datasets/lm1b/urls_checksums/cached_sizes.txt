@@ -1,0 +1,3 @@
+# Cached sizes: <full_config_name> <num_bytes> <num_examples>
+lm1b/plain_text/1.0.0/test 42941937 306688
+lm1b/plain_text/1.0.0/train 4238195608 30301028
