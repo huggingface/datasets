@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 
-import pyarrow as pa
 import pyarrow.csv as pac
 
 import nlp
@@ -11,10 +10,11 @@ import nlp
 @dataclass
 class CsvConfig(nlp.BuilderConfig):
     """BuilderConfig for CSV."""
+
     skip_rows: int = 0
     header_as_column_names: bool = True
     delimiter: str = ","
-    quote_char: str = "\""
+    quote_char: str = '"'
     read_options: pac.ReadOptions = None
     parse_options: pac.ParseOptions = None
     convert_options: pac.ConvertOptions = None
@@ -41,11 +41,7 @@ class CsvConfig(nlp.BuilderConfig):
 
 class Csv(nlp.ArrowBasedBuilder):
     BUILDER_CONFIGS = [
-        CsvConfig(
-            name="CSV",
-            version=nlp.Version("1.0.0"),
-            description="Csv dataloader",
-        ),
+        CsvConfig(name="CSV", version=nlp.Version("1.0.0"), description="Csv dataloader",),
     ]
 
     def _info(self):
@@ -58,19 +54,14 @@ class Csv(nlp.ArrowBasedBuilder):
             files = self.config.data_files
             if isinstance(files, str):
                 files = [files]
-            return [nlp.SplitGenerator(
-                        name=nlp.Split.TRAIN,
-                        gen_kwargs={"files": files})]
+            return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name in [nlp.Split.TRAIN, nlp.Split.VALIDATION, nlp.Split.TEST]:
             if split_name in self.config.data_files:
                 files = self.config.data_files[split_name]
                 if isinstance(files, str):
                     files = [files]
-                splits.append(
-                    nlp.SplitGenerator(
-                            name=split_name,
-                            gen_kwargs={"files": files}))
+                splits.append(nlp.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
     def _generate_tables(self, files):

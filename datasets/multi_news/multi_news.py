@@ -16,13 +16,12 @@
 # Lint as: python3
 """Multi-News dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import os
 
 import nlp
+
 
 _CITATION = """
 @misc{alex2019multinews,
@@ -53,52 +52,37 @@ _SUMMARY = "summary"
 
 
 class MultiNews(nlp.GeneratorBasedBuilder):
-  """Multi-News dataset."""
+    """Multi-News dataset."""
 
-  VERSION = nlp.Version("1.0.0")
+    VERSION = nlp.Version("1.0.0")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            _DOCUMENT: nlp.Value('string'),
-            _SUMMARY: nlp.Value('string')
-        }),
-        supervised_keys=(_DOCUMENT, _SUMMARY),
-        homepage="https://github.com/Alex-Fabbri/Multi-News",
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string")}),
+            supervised_keys=(_DOCUMENT, _SUMMARY),
+            homepage="https://github.com/Alex-Fabbri/Multi-News",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    extract_path = os.path.join(
-        dl_manager.download_and_extract(_URL), "multi-news-original")
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={"path": os.path.join(extract_path, "train")},
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={"path": os.path.join(extract_path, "val")},
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={"path": os.path.join(extract_path, "test")},
-        ),
-    ]
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        extract_path = os.path.join(dl_manager.download_and_extract(_URL), "multi-news-original")
+        return [
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"path": os.path.join(extract_path, "train")},),
+            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"path": os.path.join(extract_path, "val")},),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"path": os.path.join(extract_path, "test")},),
+        ]
 
-  def _generate_examples(self, path=None):
-    """Yields examples."""
-    with open(
-        os.path.join(path + ".src")) as src_f, open(
-            os.path.join(path + ".tgt")) as tgt_f:
-      for i, (src_line, tgt_line) in enumerate(zip(src_f, tgt_f)):
-        yield i, {
-            # In original file, each line has one example and natural newline
-            # tokens "\n" are being replaced with "NEWLINE_CHAR". Here restore
-            # the natural newline token to avoid special vocab "NEWLINE_CHAR".
-            _DOCUMENT: src_line.strip().replace("NEWLINE_CHAR", "\n"),
-            # Remove the starting token "- " for every target sequence.
-            _SUMMARY: tgt_line.strip().lstrip("- ")
-        }
+    def _generate_examples(self, path=None):
+        """Yields examples."""
+        with open(os.path.join(path + ".src")) as src_f, open(os.path.join(path + ".tgt")) as tgt_f:
+            for i, (src_line, tgt_line) in enumerate(zip(src_f, tgt_f)):
+                yield i, {
+                    # In original file, each line has one example and natural newline
+                    # tokens "\n" are being replaced with "NEWLINE_CHAR". Here restore
+                    # the natural newline token to avoid special vocab "NEWLINE_CHAR".
+                    _DOCUMENT: src_line.strip().replace("NEWLINE_CHAR", "\n"),
+                    # Remove the starting token "- " for every target sequence.
+                    _SUMMARY: tgt_line.strip().lstrip("- "),
+                }

@@ -15,15 +15,16 @@
 
 """Wiki40B: A clean Wikipedia dataset for 40+ languages."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import logging
-import nlp
-import apache_beam as beam
-import tensorflow as tf
 import os
+
+import tensorflow as tf
+
+import apache_beam as beam
+import nlp
+
 
 _CITATION = """
 """
@@ -104,9 +105,7 @@ class Wiki40bConfig(nlp.BuilderConfig):
       **kwargs: keyword arguments forwarded to super.
     """
         super(Wiki40bConfig, self).__init__(
-            name=str(language),
-            description="Wiki40B dataset for {0}.".format(language),
-            **kwargs
+            name=str(language), description="Wiki40B dataset for {0}.".format(language), **kwargs
         )
         self.language = language
 
@@ -118,9 +117,7 @@ class Wiki40b(nlp.BeamBasedBuilder):
     """Wiki40B: A Clean Wikipedia Dataset for Mutlilingual Language Modeling."""
 
     BUILDER_CONFIGS = [
-        Wiki40bConfig(  # pylint:disable=g-complex-comprehension
-            version=_VERSION, language=lang,
-        )
+        Wiki40bConfig(version=_VERSION, language=lang,)  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
 
@@ -128,11 +125,7 @@ class Wiki40b(nlp.BeamBasedBuilder):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(
-                {
-                    "wikidata_id": nlp.Value("string"),
-                    "text": nlp.Value("string"),
-                    "version_id": nlp.Value("string"),
-                }
+                {"wikidata_id": nlp.Value("string"), "text": nlp.Value("string"), "version_id": nlp.Value("string"),}
             ),
             supervised_keys=None,
             homepage=_URL,
@@ -147,21 +140,15 @@ class Wiki40b(nlp.BeamBasedBuilder):
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
-                gen_kwargs={
-                    "filepaths": os.path.join(
-                        _DATA_DIRECTORY, "train", "{}_examples-*".format(lang))},
+                gen_kwargs={"filepaths": os.path.join(_DATA_DIRECTORY, "train", "{}_examples-*".format(lang))},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
-                gen_kwargs={
-                    "filepaths": os.path.join(
-                        _DATA_DIRECTORY, "dev", "{}_examples-*".format(lang))}
+                gen_kwargs={"filepaths": os.path.join(_DATA_DIRECTORY, "dev", "{}_examples-*".format(lang))},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
-                gen_kwargs={
-                    "filepaths": os.path.join(
-                        _DATA_DIRECTORY, "test", "{}_examples-*".format(lang))}
+                gen_kwargs={"filepaths": os.path.join(_DATA_DIRECTORY, "test", "{}_examples-*".format(lang))},
             ),
         ]
 
@@ -171,17 +158,9 @@ class Wiki40b(nlp.BeamBasedBuilder):
 
         def _extract_content(example):
             """Extracts content from a TFExample."""
-            wikidata_id = (
-                example.features.feature["wikidata_id"]
-                .bytes_list.value[0]
-                .decode("utf-8")
-            )
+            wikidata_id = example.features.feature["wikidata_id"].bytes_list.value[0].decode("utf-8")
             text = example.features.feature["text"].bytes_list.value[0].decode("utf-8")
-            version_id = (
-                example.features.feature["version_id"]
-                .bytes_list.value[0]
-                .decode("utf-8")
-            )
+            version_id = example.features.feature["version_id"].bytes_list.value[0].decode("utf-8")
 
             # wikidata_id could be duplicated with different texts.
             yield wikidata_id + text, {
@@ -192,8 +171,6 @@ class Wiki40b(nlp.BeamBasedBuilder):
 
         return (
             pipeline
-            | beam.io.ReadFromTFRecord(
-                filepaths, coder=beam.coders.ProtoCoder(tf.train.Example)
-            )
+            | beam.io.ReadFromTFRecord(filepaths, coder=beam.coders.ProtoCoder(tf.train.Example))
             | beam.FlatMap(_extract_content)
         )
