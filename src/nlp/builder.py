@@ -146,6 +146,10 @@ class DatasetBuilder:
             logger.info("Overwrite dataset info from restored data version.")
             self.info = DatasetInfo.from_directory(self._cache_dir)
 
+    @property
+    def does_require_manual_download(self):
+        return hasattr(self, "MANUAL_DOWNLOAD_INSTRUCTIONS")
+
     @classmethod
     def get_all_exported_dataset_infos(cls) -> dict:
         """Empty dict if doesn't exist"""
@@ -344,7 +348,9 @@ class DatasetBuilder:
             download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
             download_config.force_download = download_mode == FORCE_REDOWNLOAD
 
-            dl_manager = DownloadManager(dataset_name=self.name, download_config=download_config,)
+            dl_manager = DownloadManager(
+                dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
+            )
 
         @contextlib.contextmanager
         def incomplete_dir(dirname):
