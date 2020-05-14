@@ -4,69 +4,6 @@ This file explains how to add a dataset.
 
 Cicle-ci should always be green so that we can be sure that newly added datasets are functional. 
 
-## Progress
-
-**For the following datasets the test commands**:
-```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_real_dataset_local_<your-dataset-name>
-```
-and 
-```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_dataset_all_configs_local_<your-dataset-name>
-```
-
-**passes**.
-
-- [x] Squad
-- [x] Sentiment140
-- [x] XNLI
-- [x] Crime_and_Punish
-- [x] movie_rationales
-- [x] ai2_arc
-- [x] anli
-- [x] event2Mind
-- [x] Fquad
-- [x] blimp
-- [x] empathetic_dialogues
-- [x] cosmos_qa
-- [x] xquad
-- [x] blog_authorship_corpus
-- [x] SNLI
-- [x] break_data
-- [x] SQuAD v2
-- [x] cfq
-- [x] eraser_multi_rc
-- [x] Glue
-- [x] Tydiqa
-- [x] wiki_qa
-- [x] wikitext
-- [x] winogrande
-- [x] wiqa
-- [x] esnli
-- [x] civil_comments
-- [x] commonsense_qa
-- [x] com_qa
-- [x] coqa
-- [x] wiki_split
-- [x] cos_e
-- [x] xcopa
-- [x] quarel
-- [x] quartz
-- [x] squad_it
-- [x] quoref 
-- [x] squad_pt
-- [x] cornell_movie_dialog
-- [x] SciQ
-- [x] Scifact
-- [x] hellaswag
-- [x] ted_multi (in translate)
-- [x] Aeslc (summarization)
-- [x] drop
-- [x] gap
-- [x] hansard
-- [x] opinosis
-- [x] math_dataset
-
 ## How-To-Add a dataset
 
 **Before adding a dataset make sure that your branch is up to date**:
