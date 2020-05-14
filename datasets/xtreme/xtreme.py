@@ -423,7 +423,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
     VERSION = nlp.Version("0.1.0")
     MANUAL_DOWNLOAD_INSTRUCTIONS = """\
      Please manually download the AmazonPhotos.zip file on Amazon Cloud Drive
-     (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN) and place it in ~/AmazonPhtos.zip 
+     (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN) and place it in ~/AmazonPhotos.zip 
     
     """
     BUILDER_CONFIGS = [
