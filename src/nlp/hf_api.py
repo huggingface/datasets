@@ -73,6 +73,7 @@ class ObjectInfo:
     size: Optional[int] = None
     etag: Optional[str] = None
     siblings: List[Dict] = None  # list of files that constitute the dataset
+    author: str = None
 
     def __post_init__(self):
         self.siblings = [S3Object(**x) for x in self.siblings]
