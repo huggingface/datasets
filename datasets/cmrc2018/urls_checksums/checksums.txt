@@ -1,3 +1,0 @@
-https://worksheets.codalab.org/rest/bundles/0x15022f0c4d3944a599ab27256686b9ac/contents/blob/ 7408757 5497aa2f81908e31d6b0e27d99b1f90ab63a8f58fa92fffe5d17cf62eba0c212
-https://worksheets.codalab.org/rest/bundles/0x182c2e71fac94fc2a45cc1a3376879f7/contents/blob/ 800221 f3fae95b57da8e03afb2b57467dd221417060ef4d82db13bf22fc88589f3a6f3
-https://worksheets.codalab.org/rest/bundles/0x72252619f67b4346a85e122049c3eabd/contents/blob/ 3299139 e9ff74231f05c230c6fa88b84441ee334d97234cbb610991cd94b82db00c7f1f

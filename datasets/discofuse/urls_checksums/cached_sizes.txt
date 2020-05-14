@@ -1,7 +1,0 @@
-# Cached sizes: <full_config_name> <num_bytes> <num_examples>
-discofuse/discofuse-sport/1.0.0/test 152156582 445521
-discofuse/discofuse-sport/1.0.0/train 14784888867 43291020
-discofuse/discofuse-sport/1.0.0/validation 150702794 440902
-discofuse/discofuse-wikipedia/1.0.0/test 64191920 163657
-discofuse/discofuse-wikipedia/1.0.0/train 6396238380 16310585
-discofuse/discofuse-wikipedia/1.0.0/validation 65870774 168081

@@ -1,2 +1,0 @@
-# Checksums: <url> <num_bytes> <sha256>
-https://github.com/google-research-datasets/coarse-discourse/archive/master.zip 4636201 8e1e685c5907a6d654be8b8ed307522fd91ca919f503713fd1627fbe3d43c3cd

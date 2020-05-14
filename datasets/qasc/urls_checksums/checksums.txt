@@ -1,1 +1,0 @@
-http://data.allenai.org/downloads/qasc/qasc_dataset.tar.gz 1616514 a7b3f2244f768974c609fd621346c931a72715609f171cb5544fc1da2a2ad55c

@@ -1,1 +1,0 @@
-http://www.cs.cmu.edu/~glai1/data/race/RACE.tar.gz 88627200 98b54b7e656bc9e2e434f99f07863a83f89647a1f4c9428a041c3a4c51db6787
