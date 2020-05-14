@@ -1,6 +1,6 @@
 <p align="center">
     <br>
-    <img src="https://raw.githubusercontent.com/huggingface/transformers/master/docs/source/imgs/nlp_logo_name.png" width="400"/>
+    <img src="https://raw.githubusercontent.com/huggingface/nlp/master/docs/source/imgs/nlp_logo_name.png" width="400"/>
     <br>
 <p>
 <p align="center">
