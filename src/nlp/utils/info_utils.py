@@ -64,7 +64,7 @@ def verify_splits(expected_splits: Optional[dict], recorded_splits: dict):
     bad_splits = [
         {"expected": expected_splits[name], "recorded": recorded_splits[name]}
         for name in expected_splits
-        if expected_splits[name] != recorded_splits[name]
+        if expected_splits[name].num_examples != recorded_splits[name].num_examples
     ]
     if len(bad_splits) > 0:
         raise NonMatchingSplitsSizesError(str(bad_splits))
