@@ -58,19 +58,50 @@ _DOCUMENT = "content"
 _SUMMARY = "summary"
 _ADDITIONAL_FEATURES = ["author", "body", "normalizedBody", "subreddit", "subreddit_id", "id"]
 
+class WebisConfig(nlp.BuilderConfig):
+    """BuilderConfig for Webis."""
 
-class WebisTlDr(nlp.GeneratorBasedBuilder):
+    def __init__(
+        self,
+        text_features,
+        data_url,
+        citation,
+        **kwargs,
+    ):
+        """BuilderConfig for GLUE.
+    Args:
+      text_features: `List[string]`, name of the features for each text field
+      data_url: `string`, url to download the zip file from
+      citation: `string`, citation for the data set
+      **kwargs: keyword arguments forwarded to super.
+    """
+        super(WebisConfig, self).__init__(
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+        )
+        self.text_features = text_features
+        self.data_url = data_url
+        self.citation = citation
+
+class Webis(nlp.GeneratorBasedBuilder):
     """Webis TL;DR Dataset."""
 
-    VERSION = nlp.Version("1.0.0")
+    BUILDER_CONFIGS = [
+        WebisConfig(
+          name="tl_dr",
+          description=_DESCRIPTION,
+          text_features=_ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY],
+          data_url=_URL,
+          citation=_CITATION,
+        )
+    ]
 
     def _info(self):
         return nlp.DatasetInfo(
-            description=_DESCRIPTION,
-            features=nlp.Features({k: nlp.Value("string") for k in _ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY]}),
+            description=self.config.description,
+            features=nlp.Features({k: nlp.Value("string") for k in self.config.text_features}),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/webis-de/webis-tldr-17-corpus",
-            citation=_CITATION,
+            citation=self.config.citation,
         )
 
     def _split_generators(self, dl_manager):
