@@ -1,0 +1,4 @@
+# Cached sizes: <full_config_name> <num_bytes> <num_examples>
+gigaword/no-name/1.2.0/test 451514 1951
+gigaword/no-name/1.2.0/train 916673137 3803957
+gigaword/no-name/1.2.0/validation 45838081 189651

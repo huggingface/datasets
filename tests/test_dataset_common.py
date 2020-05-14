@@ -15,6 +15,7 @@
 
 import glob
 import logging
+import os
 import tempfile
 
 import requests
@@ -67,6 +68,7 @@ class DatasetTester(object):
         # test only first config to speed up testing
         for config in configs:
             with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
+
                 # create config and dataset
                 dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
                 dataset_builder = dataset_builder_cls(config=config, cache_dir=processed_temp_dir)
@@ -76,13 +78,12 @@ class DatasetTester(object):
                     logging.info("Skip tests for Beam datasets for now")
                     return
 
-                # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
-
                 if config is not None:
                     version = config.version
                 else:
                     version = dataset_builder.VERSION
 
+                # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
                 mock_dl_manager = MockDataLoaderManager(
                     dataset_name=dataset_name,
                     config=config,
@@ -91,7 +92,16 @@ class DatasetTester(object):
                     is_local=is_local,
                 )
 
-                # build dataset from dummy data
+                if dataset_builder.__class__.__name__ == "Csv":
+                    # need slight adoption for csv dataset
+                    path_to_dummy_data = mock_dl_manager.download_dummy_data()
+                    dataset_builder.config.data_files = {
+                        "train": os.path.join(path_to_dummy_data, "train.csv"),
+                        "test": os.path.join(path_to_dummy_data, "test.csv"),
+                        "dev": os.path.join(path_to_dummy_data, "dev.csv"),
+                    }
+
+                # generate examples from dummy data
                 dataset_builder.download_and_prepare(
                     dl_manager=mock_dl_manager, download_mode=GenerateMode.FORCE_REDOWNLOAD, ignore_verifications=True
                 )

@@ -1,0 +1,2 @@
+# Cached sizes: <full_config_name> <num_bytes> <num_examples>
+reddit/no-name/1.0.0/train 18940531879 3848330
