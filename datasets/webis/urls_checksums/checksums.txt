@@ -1,0 +1,2 @@
+# Checksums: <url> <num_bytes> <sha256>
+https://zenodo.org/record/1043504/files/corpus-webis-tldr-17.zip?download=1 3141854161 c1a0f8c4374c7314d3c9ec50dd505303c536062d87037d4dca7035b89b36938a
