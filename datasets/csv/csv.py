@@ -40,9 +40,7 @@ class CsvConfig(nlp.BuilderConfig):
 
 
 class Csv(nlp.ArrowBasedBuilder):
-    BUILDER_CONFIGS = [
-        CsvConfig(name="CSV", version=nlp.Version("1.0.0"), description="Csv dataloader",),
-    ]
+    BUILDER_CONFIG_CLASS = CsvConfig
 
     def _info(self):
         return nlp.DatasetInfo()
