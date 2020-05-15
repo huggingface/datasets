@@ -98,7 +98,11 @@ class MockDataLoaderManager(object):
 
     @property
     def manual_dir(self):
-        return self.dummy_file
+        # return full path if its a dir
+        if os.path.isdir(self.dummy_file):
+            return self.dummy_file
+        # else cut off path to file -> example `xsum`.
+        return "/".join(self.dummy_file.split("/")[:-1])
 
     # this function has to be in the manager under this name so that testing works
     def download_and_extract(self, data_url, *args):
