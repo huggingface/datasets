@@ -386,7 +386,7 @@ _TRAIN_SUBSETS = [
         name="uncorpus_v1",
         target="en",
         sources={"ru", "zh"},
-        url="https://storage.googleapis.com/tfds-data/downloads/uncorpus/UNv1.0.en-{src}.tar.gz",
+        url="https://storage.googleapis.com/tfdataset-data/downloadataset/uncorpus/UNv1.0.en-{src}.tar.gz",
         path=("en-{src}/UNv1.0.en-{src}.{src}", "en-{src}/UNv1.0.en-{src}.en"),
     ),
     SubDataset(
@@ -616,7 +616,7 @@ _DEV_SUBSETS = [
     ),
 ]
 
-DATASET_MAP = {ds.name: ds for ds in _TRAIN_SUBSETS + _DEV_SUBSETS}
+DATASET_MAP = {dataset.name: dataset for dataset in _TRAIN_SUBSETS + _DEV_SUBSETS}
 
 _CZENG17_FILTER = SubDataset(
     name="czeng17_filter",
@@ -689,8 +689,8 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
         for split, ss_names in self._subsets.items():
             filtered_subsets[split] = []
             for ss_name in ss_names:
-                ds = DATASET_MAP[ss_name]
-                if ds.target != target or source not in ds.sources:
+                dataset = DATASET_MAP[ss_name]
+                if dataset.target != target or source not in dataset.sources:
                     logging.info("Skipping sub-dataset that does not include language pair: %s", ss_name)
                 else:
                     filtered_subsets[split].append(ss_name)
@@ -713,8 +713,7 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         source, _ = self.config.language_pair
-
-        manual_paths = {}
+        manual_paths_dict = {}
         urls_to_download = {}
         for ss_name in itertools.chain.from_iterable(self.subsets.values()):
             if ss_name == "czeng_17":
@@ -722,18 +721,36 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
                 # the filtering script so we can parse out which blocks need to be
                 # removed.
                 urls_to_download[_CZENG17_FILTER.name] = _CZENG17_FILTER.get_url(source)
-            ds = DATASET_MAP[ss_name]
-            urls_to_download[ss_name] = ds.get_url(source)
 
-        #            if ds.get_manual_dl_files(source):
-        #                raise NotImplementedError("TODO(PVP)")
-        #            else:
-        #                pass
+            # get dataset
+            dataset = DATASET_MAP[ss_name]
+            if dataset.get_manual_dl_files(source):
+                # TODO(PVP): following two lines skip configs that are incomplete for now
+                # +++++++++++++++++++++
+                logging.info("Skipping {} for now. Incomplete dataset for {}".format(dataset.name, self.config.name))
+                continue
+                # +++++++++++++++++++++
+
+                manual_dl_files = dataset.get_manual_dl_files(source)
+                manual_paths = [
+                    os.path.join(os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), fname)
+                    for fname in manual_dl_files
+                ]
+                assert all(
+                    os.path.exists(path) for path in manual_paths
+                ), "For {0}, you must manually download the following file(s) from {1} and place them in {2}: {3}".format(
+                    dataset.name, dataset.get_url(source), dl_manager.manual_dir, ", ".join(manual_dl_files)
+                )
+
+                # set manual path for correct subset
+                manual_paths_dict[ss_name] = manual_paths
+            else:
+                urls_to_download[ss_name] = dataset.get_url(source)
 
         # Download and extract files from URLs.
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
         # Extract manually downloaded files.
-        manual_files = dl_manager.extract(manual_paths)
+        manual_files = dl_manager.extract(manual_paths_dict)
         extraction_map = dict(downloaded_files, **manual_files)
 
         for language in self.config.language_pair:
@@ -750,8 +767,8 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
         """Returns the examples in the raw (text) form."""
         source, _ = self.config.language_pair
 
-        def _get_local_paths(ds, extract_dirs):
-            rel_paths = ds.get_path(source)
+        def _get_local_paths(dataset, extract_dirs):
+            rel_paths = dataset.get_path(source)
             if len(extract_dirs) == 1:
                 extract_dirs = extract_dirs * len(rel_paths)
             return [
@@ -760,10 +777,19 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
             ]
 
         for ss_name in split_subsets:
+            # TODO(PVP) remove following five lines when manual data works
+            # +++++++++++++++++++++
+            dataset = DATASET_MAP[ss_name]
+            source, _ = self.config.language_pair
+            if dataset.get_manual_dl_files(source):
+                logging.info("Skipping {} for now. Incomplete dataset for {}".format(dataset.name, self.config.name))
+                continue
+            # +++++++++++++++++++++
+
             logging.info("Generating examples from: %s", ss_name)
-            ds = DATASET_MAP[ss_name]
+            dataset = DATASET_MAP[ss_name]
             extract_dirs = extraction_map[ss_name]
-            files = _get_local_paths(ds, extract_dirs)
+            files = _get_local_paths(dataset, extract_dirs)
 
             if ss_name.startswith("czeng"):
                 if ss_name.endswith("16pre"):
