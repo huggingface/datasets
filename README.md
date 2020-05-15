@@ -81,7 +81,7 @@ Here is a quick example:
 import nlp
 
 # Print all the available datasets
-print(dataset.id for dataset in nlp.list_datasets())
+print(list(dataset.id for dataset in nlp.list_datasets()))
 
 # Load a dataset and print the first examples in the training set
 squad_dataset = nlp.load_dataset('squad')
