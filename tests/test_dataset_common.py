@@ -117,7 +117,7 @@ class DatasetTester(object):
 
 
 def get_dataset_names():
-    if is_local_mode() is True:
+    if is_local_mode() is True or isinstance(is_local_mode(), int) and is_local_mode() > 0:
         # fetch all dirs in "./datasets/"
         datasets = [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
     else:

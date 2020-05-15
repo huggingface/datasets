@@ -92,11 +92,11 @@ class Xsum(nlp.GeneratorBasedBuilder):
   def _split_generators(self, dl_manager):
     """Returns SplitGenerators."""
     dl_path = dl_manager.download_and_extract(_URL)
-    print(dl_path)
+    import ipdb
+    ipdb.set_trace()
     with open(dl_path, "r") as json_file:
       split_ids = json.load(json_file)
-    folder_name = "xsum-extracts-from-downloads"
-    downloaded_path = os.path.join(dl_manager.manual_dir, folder_name)
+    downloaded_path = os.path.join(dl_manager.manual_dir, "xsum-extracts-from-downloads")
     return [
         nlp.SplitGenerator(
             name=nlp.Split.TRAIN,
