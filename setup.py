@@ -85,8 +85,8 @@ QUALITY_REQUIRE = [
 
 EXTRAS_REQUIRE = {
     'apache-beam': ['apache-beam'],
-    'tensorflow': ['tensorflow>=1.15.0'],
-    'tensorflow_gpu': ['tensorflow-gpu>=1.15.0'],
+    'tensorflow': ['tensorflow>=2.2.0'],
+    'tensorflow_gpu': ['tensorflow-gpu>=2.2.0'],
     'torch': ['torch'],
     'tests': TESTS_REQUIRE,
     'quality': QUALITY_REQUIRE,
@@ -94,11 +94,11 @@ EXTRAS_REQUIRE = {
 
 setup(
     name='nlp',
-    version="0.0.3",
+    version="0.1.0",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',
-    author_email='thomas@huggingface.ce',
+    author_email='thomas@huggingface.co',
     url='https://github.com/huggingface/nlp',
     download_url='https://github.com/huggingface/nlp/tags',
     license='Apache 2.0',
