@@ -400,16 +400,15 @@ def encode_nested_example(schema, obj):
     elif isinstance(schema, Sequence):
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
         if isinstance(schema.feature, dict):
+            # dict of list to fill
+            list_dict = {}
             if isinstance(obj, (list, tuple)):
                 # obj is a list of dict
-                zipped_dict = utils.zip_dict(schema.feature, *obj)
-                list_dict = {}
-                for k, dict_tuples in zipped_dict:
+                for k, dict_tuples in utils.zip_dict(schema.feature, *obj):
                     list_dict[k] = [encode_nested_example(dict_tuples[0], o) for o in dict_tuples[1:]]
                 return list_dict
             else:
                 # obj is a single dict
-                list_dict = {}
                 for k, (sub_schema, sub_objs) in utils.zip_dict(schema.feature, obj):
                     list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
                 return list_dict
