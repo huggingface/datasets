@@ -420,7 +420,7 @@ class DatasetBuilder:
         if verify_infos:
             verify_splits(self.info.splits, split_dict)
         # Update the info object with the splits.
-        self.info.splits = split_dict.copy()
+        self.info.splits = split_dict
         self.info.download_size = dl_manager.downloaded_size
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -726,7 +726,7 @@ class BeamBasedBuilder(DatasetBuilder):
         )
         return ds
 
-    def _download_and_prepare(self, dl_manager):
+    def _download_and_prepare(self, dl_manager, verify_infos):
         # Create the Beam pipeline and forward it to _prepare_split
         import apache_beam as beam
 
@@ -750,9 +750,8 @@ class BeamBasedBuilder(DatasetBuilder):
         # Use a single pipeline for all splits
         with beam.Pipeline(runner=beam_runner, options=beam_options,) as pipeline:
             super(BeamBasedBuilder, self)._download_and_prepare(
-                dl_manager, pipeline=pipeline,
-            )
-
+                dl_manager, verify_infos=False, pipeline=pipeline,
+            )  # TODO handle verify_infos in beam datasets
         # Update `info.splits`.
         split_dict = self.info.splits
         for split_name, beam_writer in self._beam_writers.items():
