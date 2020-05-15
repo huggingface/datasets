@@ -217,7 +217,8 @@ class Dataset(object):
         self._format_columns = columns
         self._output_all_columns = output_all_columns
         logger.info(
-            "Set __getitem__(key) output type to %s for %s columns " " (when key is int or slice) and %s output other (un-formated) columns.",
+            "Set __getitem__(key) output type to %s for %s columns "
+            " (when key is int or slice) and %s output other (un-formated) columns.",
             "python objects" if type is None else type,
             "no" if columns is None else str(columns),
             "do" if output_all_columns else "don't",
@@ -277,7 +278,9 @@ class Dataset(object):
     def _nest(py_dict):
         return dict((key, [elem]) for key, elem in py_dict.items())
 
-    def _getitem(self, key: Union[int, slice, str], format_type=None, format_columns=None, output_all_columns=False) -> Union[Dict, List]:
+    def _getitem(
+        self, key: Union[int, slice, str], format_type=None, format_columns=None, output_all_columns=False
+    ) -> Union[Dict, List]:
         """ Can be used to index columns (by string names) or rows (by integer index or slices)
         """
         if isinstance(key, int):
@@ -320,13 +323,20 @@ class Dataset(object):
             and not isinstance(key, str)
             and format_type != "pandas"
         ):
-            outputs = self._convert_outputs(outputs, format_type=format_type, format_columns=format_columns, output_all_columns=output_all_columns)
+            outputs = self._convert_outputs(
+                outputs, format_type=format_type, format_columns=format_columns, output_all_columns=output_all_columns
+            )
         return outputs
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
         """ Can be used to index columns (by string names) or rows (by integer index)
         """
-        return self._getitem(key, format_type=self._format_type, format_columns=self._format_columns, output_all_columns=self._output_all_columns)
+        return self._getitem(
+            key,
+            format_type=self._format_type,
+            format_columns=self._format_columns,
+            output_all_columns=self._output_all_columns,
+        )
 
     def cleanup_cache_files(self):
         """ Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
