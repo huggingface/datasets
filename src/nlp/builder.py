@@ -76,6 +76,9 @@ class DatasetBuilder:
     pre-defined set of configurations in `nlp.DatasetBuilder.builder_configs`.
     """
 
+    # Default version.
+    VERSION = utils.Version("0.0.0")
+
     # Class for the builder config.
     BUILDER_CONFIG_CLASS = BuilderConfig
 
@@ -161,9 +164,11 @@ class DatasetBuilder:
                     "BuilderConfig %s not found. Available: %s" % (name, list(self.builder_configs.keys()))
                 )
         if not builder_config:
-            builder_config = self.BUILDER_CONFIG_CLASS(name=name, **config_kwargs)
-            if hasattr(self, "VERSION") and self.VERSION:
-                builder_config.version = self.VERSION
+            if name is not None:
+                config_kwargs['name'] = name
+            if "version" not in config_kwargs and hasattr(self, "VERSION") and self.VERSION:
+                config_kwargs['version'] = self.VERSION
+            builder_config = self.BUILDER_CONFIG_CLASS(**config_kwargs)
 
         for key, value in config_kwargs.items():
             if value is not None:
