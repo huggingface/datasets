@@ -165,9 +165,9 @@ class DatasetBuilder:
                 )
         if not builder_config:
             if name is not None:
-                config_kwargs['name'] = name
+                config_kwargs["name"] = name
             if "version" not in config_kwargs and hasattr(self, "VERSION") and self.VERSION:
-                config_kwargs['version'] = self.VERSION
+                config_kwargs["version"] = self.VERSION
             builder_config = self.BUILDER_CONFIG_CLASS(**config_kwargs)
 
         for key, value in config_kwargs.items():
