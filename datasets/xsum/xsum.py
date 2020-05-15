@@ -16,15 +16,14 @@
 # Lint as: python3
 """XSum dataset."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import json
+import logging
 import os
 
-import logging
 import nlp
+
 
 _CITATION = """
 @article{Narayan2018DontGM,
@@ -49,26 +48,38 @@ The folder 'xsum-extracts-from-downloads' need to be compressed as
 'xsum-extracts-from-downloads.tar.gz' and put in manually downloaded folder.
 """
 
-_URL = "https://raw.githubusercontent.com/EdinburghNLP/XSum/master/XSum-Dataset/XSum-TRAINING-DEV-TEST-SPLIT-90-5-5.json"
+_URL = (
+    "https://raw.githubusercontent.com/EdinburghNLP/XSum/master/XSum-Dataset/XSum-TRAINING-DEV-TEST-SPLIT-90-5-5.json"
+)
 
 _DOCUMENT = "document"
 _SUMMARY = "summary"
 
-_REMOVE_LINES = set([
-    "Share this with\n", "Email\n", "Facebook\n", "Messenger\n", "Twitter\n",
-    "Pinterest\n", "WhatsApp\n", "Linkedin\n", "LinkedIn\n", "Copy this link\n",
-    "These are external links and will open in a new window\n"
-])
+_REMOVE_LINES = set(
+    [
+        "Share this with\n",
+        "Email\n",
+        "Facebook\n",
+        "Messenger\n",
+        "Twitter\n",
+        "Pinterest\n",
+        "WhatsApp\n",
+        "Linkedin\n",
+        "LinkedIn\n",
+        "Copy this link\n",
+        "These are external links and will open in a new window\n",
+    ]
+)
 
 
 class Xsum(nlp.GeneratorBasedBuilder):
-  """Extreme Summarization (XSum) Dataset."""
+    """Extreme Summarization (XSum) Dataset."""
 
-  # Version 1.1.0 removes web contents.
-  VERSION = nlp.Version("1.1.0")
-  SUPPORTED_VERSIONS = [nlp.Version("1.0.0", "Dataset without cleaning.")]
+    # Version 1.1.0 removes web contents.
+    VERSION = nlp.Version("1.1.0")
+    SUPPORTED_VERSIONS = [nlp.Version("1.0.0", "Dataset without cleaning.")]
 
-  MANUAL_DOWNLOAD_INSTRUCTIONS = """\
+    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
   Detailed download instructions (which require running a custom script) are
   here:
   https://github.com/EdinburghNLP/XSum/blob/master/XSum-Dataset/README.md . Please make sure you run download-bbc-articles.py and parse-bbc-html-data.py scripts
@@ -76,82 +87,61 @@ class Xsum(nlp.GeneratorBasedBuilder):
 
   """
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            _DOCUMENT: nlp.Value('string'),
-            _SUMMARY: nlp.Value('string'),
-        }),
-        supervised_keys=(_DOCUMENT, _SUMMARY),
-        homepage=
-        "https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset",
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features({_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string"),}),
+            supervised_keys=(_DOCUMENT, _SUMMARY),
+            homepage="https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    dl_path = dl_manager.download_and_extract(_URL)
-    import ipdb
-    ipdb.set_trace()
-    with open(dl_path, "r") as json_file:
-      split_ids = json.load(json_file)
-    downloaded_path = os.path.join(dl_manager.manual_dir, "xsum-extracts-from-downloads")
-    return [
-        nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
-            gen_kwargs={
-                "split_ids": split_ids["train"],
-                "path": downloaded_path,
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.VALIDATION,
-            gen_kwargs={
-                "split_ids": split_ids["validation"],
-                "path": downloaded_path,
-            },
-        ),
-        nlp.SplitGenerator(
-            name=nlp.Split.TEST,
-            gen_kwargs={
-                "split_ids": split_ids["test"],
-                "path": downloaded_path,
-            },
-        ),
-    ]
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        dl_path = dl_manager.download_and_extract(_URL)
+        with open(dl_path, "r") as json_file:
+            split_ids = json.load(json_file)
+        downloaded_path = os.path.join(dl_manager.manual_dir, "xsum-extracts-from-downloads")
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN, gen_kwargs={"split_ids": split_ids["train"], "path": downloaded_path,},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION, gen_kwargs={"split_ids": split_ids["validation"], "path": downloaded_path,},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST, gen_kwargs={"split_ids": split_ids["test"], "path": downloaded_path,},
+            ),
+        ]
 
-  def _generate_examples(self, split_ids=None, path=None):
-    """Yields examples."""
-    missing = 0
-    total_num = len(split_ids)
-    for i in split_ids:
-      filename = os.path.join(path, i + ".data")
-      print(filename)
-      
-      if os.path.exists(filename):
-        with open(filename) as f:
-        
-          text = "".join([
-              line for line in f.readlines()
-              if line not in _REMOVE_LINES and line.strip()
-          ])
-          
-          # Each file follows below format:
-          # [XSUM]URL[XSUM]
-          # http://somelink
-          #
-          # [XSUM]INTRODUCTION[XSUM]
-          # some intro
-          #
-          # [XSUM]RESTBODY[XSUM]
-          # text line.
-          # another text line.
-          # "another text line."
-          segs = text.split("[XSUM]")
-          yield i, {_DOCUMENT: segs[6].strip(), _SUMMARY: segs[4].strip()}
-      else:
-        missing += 1
-        logging.info("id %s missing.", i)
-    if missing:
-      logging.warning("%d out of %d examples are missing.", missing, total_num)
+    def _generate_examples(self, split_ids=None, path=None):
+        """Yields examples."""
+        missing = 0
+        total_num = len(split_ids)
+        for i in split_ids:
+            filename = os.path.join(path, i + ".data")
+            print(filename)
+
+            if os.path.exists(filename):
+                with open(filename) as f:
+
+                    text = "".join([line for line in f.readlines() if line not in _REMOVE_LINES and line.strip()])
+
+                    # Each file follows below format:
+                    # [XSUM]URL[XSUM]
+                    # http://somelink
+                    #
+                    # [XSUM]INTRODUCTION[XSUM]
+                    # some intro
+                    #
+                    # [XSUM]RESTBODY[XSUM]
+                    # text line.
+                    # another text line.
+                    # "another text line."
+                    segs = text.split("[XSUM]")
+                    yield i, {_DOCUMENT: segs[6].strip(), _SUMMARY: segs[4].strip()}
+            else:
+                missing += 1
+                logging.info("id %s missing.", i)
+        if missing:
+            logging.warning("%d out of %d examples are missing.", missing, total_num)
