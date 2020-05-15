@@ -22,8 +22,8 @@ import os
 from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Union
 
-import pyarrow as pa
 import numpy as np
+import pyarrow as pa
 from tqdm import tqdm
 
 from nlp.utils.py_utils import dumps
