@@ -19,8 +19,8 @@
 </p>
 
 <h3 align="center">
-<p> Datasets and Metrics for Natural Language Processing
-<p> in PyTorch, TensorFlow 2.0, NumPy and Pandas,
+<p> Datasets and evaluation metrics for natural language processing
+<p> in NumPy, Pandas, PyTorch and TensorFlow
 </h3>
 
 🤗 `nlp` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
@@ -34,7 +34,7 @@
 
 `nlp` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics.
 
-`nlp` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library and user API.
+`nlp` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between `nlp` and `tfds` can be found in the section [Main differences between `nlp` and `tfds`](#main-differences-between-nlp-and-tfds).
 
 # Installation
 
@@ -96,6 +96,14 @@ squad_metric = nlp.load_metric('squad')
 
 Now the best introduction to `nlp` is to follow the tutorial in Google Colab which is here:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/nlp/blob/master/notebooks/Overview.ipynb)
+
+# Main differences between `nlp` and `tfds`
+
+If you are familiar with the great `Tensorflow Datasets`, here are the main differences between `nlp` and `tfds`:
+- the scripts in `nlp` are not provided within the library but are queried, downloaded/cached and dynamically loaded upon request
+- `nlp` also provides evaluation metrics in a similar fashion to the datasets, i.e. as dynamically installed scripts with a unified API. This gives access to the pair of a benchmark dataset and a benchmark metric for instance for benchmarks like SQuAD or GLUE.
+- the backend serialization of `nlp` is based on Apache Arrow/Parquet instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache)
+- the user-facing dataset object of `nlp` is not a `tf.data.Dataset` but a built-in framework-agnostic dataset class with methods inspired by what we like in tf.data (like a map() method). It basically wraps a memory-mapped Arrow table cache.
 
 # Disclaimers
 

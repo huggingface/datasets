@@ -94,7 +94,7 @@ class Metric(object):
         self.data = None
 
         # Check we can write on the cache file without competitors
-        self.cache_file_name = os.path.join(self.data_dir, self._get_file_name(self.process_id))
+        self.cache_file_name = self._get_cache_path(self.process_id)
         self.filelock = FileLock(self.cache_file_name + ".lock")
         try:
             self.filelock.acquire(timeout=1)
@@ -107,9 +107,6 @@ class Metric(object):
     def _relative_data_dir(self, with_version=True):
         """Relative path of this dataset in data_dir."""
         builder_data_dir = self.name
-        # builder_config = self._builder_config
-        # if builder_config:
-        #     builder_data_dir = os.path.join(builder_data_dir, builder_config.name)
         if not with_version:
             return builder_data_dir
 
@@ -157,8 +154,8 @@ class Metric(object):
         os.makedirs(version_data_dir, exist_ok=True)
         return version_data_dir
 
-    def _get_file_name(self, node_id):
-        return f"{self.experiment_id}-{self.name}-{node_id}.arrow"
+    def _get_cache_path(self, node_id):
+        return os.path.join(self.data_dir, f"{self.experiment_id}-{self.name}-{node_id}.arrow")
 
     def finalize(self, timeout=120):
         """ Close all the writing process and load/gather the data
@@ -174,7 +171,7 @@ class Metric(object):
             node_files = []
             locks = []
             for node_id in range(self.num_process):
-                node_file = self._get_file_name(node_id)
+                node_file = self._get_cache_path(node_id)
                 filelock = FileLock(node_file + ".lock")
                 filelock.acquire(timeout=timeout)
                 node_files.append({"filename": node_file})

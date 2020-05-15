@@ -22,6 +22,7 @@ import os
 from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Union
 
+import numpy as np
 import pyarrow as pa
 from tqdm import tqdm
 
@@ -298,7 +299,7 @@ class Dataset(object):
                 if format_type == "pandas":
                     outputs = self._data[key].to_pandas()
                 elif format_type == "numpy":
-                    outputs = self._data[key].to_numpy()
+                    outputs = np.concatenate([arr.to_numpy() for arr in self._data[key].chunks])
                 else:
                     outputs = self._convert_outputs(self._data[key].to_pylist())
             else:
