@@ -123,7 +123,7 @@ def get_dataset_names():
     else:
         # fetch all dataset names
         api = hf_api.HfApi()
-        datasets = [x.datasetId for x in api.dataset_list()]
+        datasets = [x.id for x in api.dataset_list()]
 
     dataset_names_parametrized = [{"testcase_name": x, "dataset_name": x} for x in datasets]
     return dataset_names_parametrized

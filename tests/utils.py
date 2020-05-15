@@ -23,8 +23,8 @@ def parse_flag_from_env(key, default=False):
 
 
 _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
-_run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
-_run_aws_tests = parse_flag_from_env("RUN_AWS", default=False)
+_run_local_tests = parse_flag_from_env("RUN_LOCAL", default=False)
+_run_aws_tests = parse_flag_from_env("RUN_AWS", default=True)
 
 
 def slow(test_case):
@@ -45,7 +45,7 @@ def local(test_case):
     Decorator marking a test as local
 
     Local tests are run by default. Set the RUN_LOCAL environment variable
-    to a falsy value to not run them.
+    to a truthy value to run them.
     """
     if not _run_local_tests:
         test_case = unittest.skip("test is local")(test_case)
@@ -61,7 +61,7 @@ def aws(test_case):
     Decorator marking a test as one that relies on AWS.
 
     AWS tests are skipped by default. Set the RUN_AWS environment variable
-    to a truthy value to run them.
+    to a falsy value to not run them.
     """
     if not _run_aws_tests:
         test_case = unittest.skip("test requires aws")(test_case)
