@@ -23,8 +23,8 @@ def parse_flag_from_env(key, default=False):
 
 
 _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
-_run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
-_run_aws_tests = parse_flag_from_env("RUN_AWS", default=False)
+_run_local_tests = parse_flag_from_env("RUN_LOCAL", default=False)
+_run_aws_tests = parse_flag_from_env("RUN_AWS", default=True)
 
 
 def slow(test_case):
