@@ -81,11 +81,5 @@ RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_dataset_a
 
 ## TODO-list
 
-Maybe we can add a TODO-list here for everybody that feels like adding new datasets so that we will not add the same datasets.
-
-Here a link to available datasets: https://docs.google.com/spreadsheets/d/1zOtEqOrnVQwdgkC4nJrTY6d-Av02u0XFzeKAtBM2fUI/edit#gid=0
-
-Patrick:
-
 - [ ] boolq - *weird download link*
 - [ ] c4 - *beam dataset*
