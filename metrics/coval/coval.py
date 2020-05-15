@@ -32,6 +32,54 @@ _CITATION = """\
     publisher = {Association for Computational Linguistics},
     address = {Florence, Italy},
 }
+
+@inproceedings{10.3115/1072399.1072405,
+author = {Vilain, Marc and Burger, John and Aberdeen, John and Connolly, Dennis and Hirschman, Lynette},
+title = {A Model-Theoretic Coreference Scoring Scheme},
+year = {1995},
+isbn = {1558604022},
+publisher = {Association for Computational Linguistics},
+address = {USA},
+url = {https://doi.org/10.3115/1072399.1072405},
+doi = {10.3115/1072399.1072405},
+booktitle = {Proceedings of the 6th Conference on Message Understanding},
+pages = {45–52},
+numpages = {8},
+location = {Columbia, Maryland},
+series = {MUC6 ’95}
+}
+
+@INPROCEEDINGS{Bagga98algorithmsfor,
+    author = {Amit Bagga and Breck Baldwin},
+    title = {Algorithms for Scoring Coreference Chains},
+    booktitle = {In The First International Conference on Language Resources and Evaluation Workshop on Linguistics Coreference},
+    year = {1998},
+    pages = {563--566}
+}
+
+@INPROCEEDINGS{Luo05oncoreference,
+    author = {Xiaoqiang Luo},
+    title = {On coreference resolution performance metrics},
+    booktitle = {In Proc. of HLT/EMNLP},
+    year = {2005},
+    pages = {25--32},
+    publisher = {URL}
+}
+
+@inproceedings{moosavi-strube-2016-coreference,
+    title = "Which Coreference Evaluation Metric Do You Trust? A Proposal for a Link-based Entity Aware Metric",
+    author = "Moosavi, Nafise Sadat  and
+      Strube, Michael",
+    booktitle = "Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = aug,
+    year = "2016",
+    address = "Berlin, Germany",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/P16-1060",
+    doi = "10.18653/v1/P16-1060",
+    pages = "632--642",
+}
+
 """
 
 _DESCRIPTION = """\
@@ -92,15 +140,12 @@ Args:
         Minimum spans are determined using the MINA algorithm.
 
 Returns:
-    rouge_1/f_score: rouge_1 f1,
-    rouge_1/r_score: rouge_1 recall,
-    rouge_1/p_score: rouge_1 precision,
-    rouge_2/f_score: rouge_2 f1,
-    rouge_2/r_score: rouge_2 recall,
-    rouge_2/p_score: rouge_2 precision,
-    rouge_l/f_score: rouge_l f1,
-    rouge_l/r_score: rouge_l recall,
-    rouge_l/p_score: rouge_l precision
+    'mentions': mentions
+    'muc': MUC metric [Vilain et al, 1995]
+    'bcub': B-cubed [Bagga and Baldwin, 1998]
+    'ceafe': CEAFe [Luo et al., 2005]
+    'lea': LEA [Moosavi and Strube, 2016]
+    'conll_score': averaged CoNLL score (the average of the F1 values of MUC, B-cubed and CEAFe)
 """
 
 def get_coref_infos(key_lines,
@@ -225,6 +270,9 @@ def check_gold_parse_annotation(key_lines):
 
 
 class Coval(nlp.Metric):
+    def __init__(self, **kwargs):
+        raise NotImplementedError("CoVal is currently under construction.")
+
     def _info(self):
         return nlp.MetricInfo(
             description=_DESCRIPTION,

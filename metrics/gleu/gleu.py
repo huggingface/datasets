@@ -78,8 +78,10 @@ def get_gleu_stats(scores) :
             'ci': ci}
 
 class Gleu(nlp.Metric):
+    def __init__(self, **kwargs):
+        raise NotImplementedError("Gleu is currently under construction.")
+
     def _info(self):
-        raise NotImplementedError
         return nlp.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,

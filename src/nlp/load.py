@@ -109,11 +109,19 @@ def convert_github_url(url_path: str):
     """ Convert a link to a file on a github repo in a link to the raw github object.
     """
     parsed = urlparse(url_path)
+    sub_directory = None
     if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
-        assert url_path.endswith(".py"), "External import from gitbhu should direcly point to a file ending with '.py'"
-        assert "blob" in url_path, "External import from gitbhu should direcly point to a file"
-        url_path = url_path.replace("blob", "raw")  # Point to the raw file
-    return url_path
+        if "blob" in url_path:
+            assert url_path.endswith(".py"), f"External import from github at {url_path} should point to a file ending with '.py'"
+            url_path = url_path.replace("blob", "raw")  # Point to the raw file
+        else:
+            # Parse github url to point to zip
+            github_path = parsed.path[1:]
+            repo_info, branch = github_path.split("/tree/") if "/tree/" in github_path else (github_path, "master")
+            repo_owner, repo_name = repo_info.split("/")
+            url_path = "https://github.com/{}/{}/archive/{}.zip".format(repo_owner, repo_name, branch)
+            sub_directory = f"{repo_name}-{branch}"
+    return url_path, sub_directory
 
 
 def get_imports(file_path: str):
@@ -155,16 +163,19 @@ def get_imports(file_path: str):
                 continue
         if match.group(1):
             # The import starts with a '.', we will download the relevant file
+            if any(imp[1] == match.group(2) for imp in imports):
+                # We already have this import
+                continue
             if match.group(3):
                 # The import has a comment with 'From:', we'll retreive it from the given url
                 url_path = match.group(3)
-                url_path = convert_github_url(url_path)
-                imports.append(("external", match.group(2), url_path))
+                url_path, sub_directory = convert_github_url(url_path)
+                imports.append(("external", match.group(2), url_path, sub_directory))
             elif match.group(2):
                 # The import should be at the same place as the file
-                imports.append(("internal", match.group(2), match.group(2)))
+                imports.append(("internal", match.group(2), match.group(2), None))
         else:
-            imports.append(("library", match.group(2), match.group(2)))
+            imports.append(("library", match.group(2), match.group(2), None))
 
     return imports
 
@@ -241,7 +252,7 @@ def prepare_module(
     imports = get_imports(local_path)
     local_imports = []
     library_imports = []
-    for import_type, import_name, import_path in imports:
+    for import_type, import_name, import_path, sub_directory in imports:
         if import_type == "library":
             library_imports.append(import_name)  # Import from a library
             continue
@@ -261,6 +272,8 @@ def prepare_module(
             raise ValueError("Wrong import_type")
 
         local_import_path = cached_path(url_or_filename, download_config=download_config,)
+        if sub_directory is not None:
+            local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
 
     # Check library imports
@@ -350,12 +363,22 @@ def prepare_module(
 
         # Copy all the additional imports
         for import_name, import_path in local_imports:
-            full_path_local_import = os.path.join(hash_folder_path, import_name + ".py")
-            if not os.path.exists(full_path_local_import):
-                logger.info("Copying local import from %s at %s", import_path, full_path_local_import)
-                shutil.copyfile(import_path, full_path_local_import)
+            if os.path.isfile(import_path):
+                full_path_local_import = os.path.join(hash_folder_path, import_name + ".py")
+                if not os.path.exists(full_path_local_import):
+                    logger.info("Copying local import file from %s at %s", import_path, full_path_local_import)
+                    shutil.copyfile(import_path, full_path_local_import)
+                else:
+                    logger.info("Found local import file from %s at %s", import_path, full_path_local_import)
+            elif os.path.isdir(import_path):
+                full_path_local_import = os.path.join(hash_folder_path, import_name)
+                if not os.path.exists(full_path_local_import):
+                    logger.info("Copying local import directory from %s at %s", import_path, full_path_local_import)
+                    shutil.copytree(import_path, full_path_local_import)
+                else:
+                    logger.info("Found local import directory from %s at %s", import_path, full_path_local_import)
             else:
-                logger.info("Found local import from %s at %s", import_path, full_path_local_import)
+                raise OSError(f"Error with local import at {import_path}")
 
     if force_local_path is None:
         module_path = ".".join([DATASETS_MODULE if dataset else METRICS_MODULE, short_name, hash, short_name])
