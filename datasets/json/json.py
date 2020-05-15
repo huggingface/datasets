@@ -24,13 +24,7 @@ class JsonConfig(nlp.BuilderConfig):
 
 
 class Json(nlp.ArrowBasedBuilder):
-    BUILDER_CONFIGS = [
-        JsonConfig(
-            name="JSON",
-            version=nlp.Version("1.0.0"),
-            description="JSON dataloader",
-        ),
-    ]
+    BUILDER_CONFIG_CLASS = JsonConfig
 
     def _info(self):
         return nlp.DatasetInfo()
