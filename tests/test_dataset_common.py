@@ -169,6 +169,10 @@ class DatasetTest(parameterized.TestCase):
 
     @aws
     def test_builder_configs(self, dataset_name):
+        if "/" not in dataset_name:
+            logging.info("Skip {} because it is a canonical dataset")
+            return
+
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
         self.assertTrue(len(builder_configs) > 0)
 
