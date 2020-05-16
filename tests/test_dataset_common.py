@@ -170,11 +170,16 @@ class DatasetTest(parameterized.TestCase):
     @aws
     def test_load_dataset(self, dataset_name):
         # test only first config
+        if "/" not in dataset_name:
+            logging.info("Skip {} because it is a canonical dataset")
+            return
+
         configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
         self.dataset_tester.check_load_dataset(dataset_name, configs)
 
     @local
     def test_load_dataset_local(self, dataset_name):
+        # test only first config
         if "/" in dataset_name:
             logging.info("Skip {} because it is not a canonical dataset")
             return
@@ -185,6 +190,10 @@ class DatasetTest(parameterized.TestCase):
     @slow
     @aws
     def test_load_dataset_all_configs(self, dataset_name):
+        if "/" not in dataset_name:
+            logging.info("Skip {} because it is a canonical dataset")
+            return
+
         configs = self.dataset_tester.load_all_configs(dataset_name)
         self.dataset_tester.check_load_dataset(dataset_name, configs)
 
@@ -201,6 +210,10 @@ class DatasetTest(parameterized.TestCase):
     @slow
     @aws
     def test_load_real_dataset(self, dataset_name):
+        if "/" not in dataset_name:
+            logging.info("Skip {} because it is a canonical dataset")
+            return
+
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
             download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
@@ -215,6 +228,10 @@ class DatasetTest(parameterized.TestCase):
     @slow
     @local
     def test_load_real_dataset_local(self, dataset_name):
+        if "/" in dataset_name:
+            logging.info("Skip {} because it is not a canonical dataset")
+            return
+
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
             download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
