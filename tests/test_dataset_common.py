@@ -175,6 +175,10 @@ class DatasetTest(parameterized.TestCase):
 
     @local
     def test_load_dataset_local(self, dataset_name):
+        if "/" in dataset_name:
+            logging.info("Skip {} because it is not a canonical dataset")
+            return
+
         configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)[:1]
         self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
 
@@ -187,6 +191,10 @@ class DatasetTest(parameterized.TestCase):
     @slow
     @local
     def test_load_dataset_all_configs_local(self, dataset_name):
+        if "/" in dataset_name:
+            logging.info("Skip {} because it is not a canonical dataset")
+            return
+
         configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
         self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
 
