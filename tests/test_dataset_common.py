@@ -34,7 +34,7 @@ from nlp import (
     prepare_module,
 )
 
-from .utils import MockDataLoaderManager, aws, is_local_mode, local, slow
+from .utils import MockDataLoaderManager, aws, is_aws_mode, is_local_mode, local, slow
 
 
 logging.basicConfig(level=logging.INFO)
@@ -117,15 +117,16 @@ class DatasetTester(object):
 
 
 def get_dataset_names():
+    datasets = []
     if is_local_mode() is True or isinstance(is_local_mode(), int) and is_local_mode() > 0:
         # fetch all dirs in "./datasets/"
-        datasets = [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
-    else:
-        # fetch all dataset names
+        datasets = datasets + [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
+    if is_aws_mode() is True or isinstance(is_aws_mode(), int) and is_aws_mode() > 0:
         api = hf_api.HfApi()
-        datasets = [x.id for x in api.dataset_list()]
+        # fetch all dataset names
+        datasets = datasets + [x.id for x in api.dataset_list()]
 
-    dataset_names_parametrized = [{"testcase_name": x, "dataset_name": x} for x in datasets]
+    dataset_names_parametrized = [{"testcase_name": x, "dataset_name": x} for x in set(datasets)]
     return dataset_names_parametrized
 
 
@@ -174,6 +175,10 @@ class DatasetTest(parameterized.TestCase):
 
     @local
     def test_load_dataset_local(self, dataset_name):
+        if "/" in dataset_name:
+            logging.info("Skip {} because it is not a canonical dataset")
+            return
+
         configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)[:1]
         self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
 
@@ -186,6 +191,10 @@ class DatasetTest(parameterized.TestCase):
     @slow
     @local
     def test_load_dataset_all_configs_local(self, dataset_name):
+        if "/" in dataset_name:
+            logging.info("Skip {} because it is not a canonical dataset")
+            return
+
         configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
         self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
 
