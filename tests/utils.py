@@ -23,7 +23,7 @@ def parse_flag_from_env(key, default=False):
 
 
 _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
-_run_local_tests = parse_flag_from_env("RUN_LOCAL", default=False)
+_run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 _run_aws_tests = parse_flag_from_env("RUN_AWS", default=True)
 
 
@@ -45,7 +45,7 @@ def local(test_case):
     Decorator marking a test as local
 
     Local tests are run by default. Set the RUN_LOCAL environment variable
-    to a truthy value to run them.
+    to a falsy value to not run them.
     """
     if not _run_local_tests:
         test_case = unittest.skip("test is local")(test_case)
@@ -54,6 +54,10 @@ def local(test_case):
 
 def is_local_mode():
     return _run_local_tests
+
+
+def is_aws_mode():
+    return _run_aws_tests
 
 
 def aws(test_case):
