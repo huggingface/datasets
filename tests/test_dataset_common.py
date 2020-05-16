@@ -140,6 +140,10 @@ class DatasetTest(parameterized.TestCase):
 
     @aws
     def test_dataset_has_valid_etag(self, dataset_name):
+        if "/" not in dataset_name:
+            logging.info("Skip {} because it is a canonical dataset")
+            return
+
         py_script_path = list(filter(lambda x: x, dataset_name.split("/")))[-1] + ".py"
         dataset_url = hf_bucket_url(dataset_name, filename=py_script_path, dataset=True)
         etag = None
@@ -155,6 +159,10 @@ class DatasetTest(parameterized.TestCase):
 
     @aws
     def test_builder_class(self, dataset_name):
+        if "/" not in dataset_name:
+            logging.info("Skip {} because it is a canonical dataset")
+            return
+
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
         builder = builder_cls()
         self.assertTrue(isinstance(builder, DatasetBuilder))
