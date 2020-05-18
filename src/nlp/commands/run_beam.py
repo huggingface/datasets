@@ -11,7 +11,7 @@ from nlp.load import import_main_class, prepare_module
 def run_beam_command_factory(args):
     return RunBeamCommand(
         args.dataset,
-        args.config,
+        args.name,
         args.cache_dir,
         args.beam_pipeline_options,
         args.data_dir,
@@ -26,7 +26,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         run_beam_parser = parser.add_parser("run_beam")
-        run_beam_parser.add_argument("--config", type=str, default=None, help="Dataset processing config")
+        run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         run_beam_parser.add_argument(
             "--cache_dir", type=str, default=None, help="Cache directory where the datasets are stored.",
         )
@@ -54,7 +54,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
     def __init__(
         self,
         dataset: str,
-        config: str,
+        name: str,
         cache_dir: str,
         beam_pipeline_options: str,
         data_dir: str,
@@ -64,7 +64,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
         force_redownload: bool,
     ):
         self._dataset = dataset
-        self._config = config
+        self._name = name
         self._cache_dir = cache_dir
         self._beam_pipeline_options = beam_pipeline_options
         self._data_dir = data_dir
@@ -74,10 +74,10 @@ class RunBeamCommand(BaseTransformersCLICommand):
         self._force_redownload = force_redownload
 
     def run(self):
-        if self._config is not None and self._all_configs:
-            print("Both parameters `config` and `all_configs` can't be used at once.")
+        if self._name is not None and self._all_configs:
+            print("Both parameters `name` and `all_configs` can't be used at once.")
             exit(1)
-        path, config = self._dataset, self._config
+        path, name = self._dataset, self._name
         module_path = prepare_module(path)
         builder_cls = import_main_class(module_path)
         builders: List[DatasetBuilder] = []
@@ -89,9 +89,9 @@ class RunBeamCommand(BaseTransformersCLICommand):
             beam_options = None
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
-                builders.append(builder_cls(config=config, data_dir=self._data_dir, beam_options=beam_options, cache_dir=self._cache_dir))
+                builders.append(builder_cls(name=config.name, data_dir=self._data_dir, beam_options=beam_options, cache_dir=self._cache_dir))
         else:
-            builders.append(builder_cls(config=config, data_dir=self._data_dir, beam_options=beam_options, cache_dir=self._cache_dir))
+            builders.append(builder_cls(name=name, data_dir=self._data_dir, beam_options=beam_options, cache_dir=self._cache_dir))
 
         for builder in builders:
             builder.download_and_prepare(
