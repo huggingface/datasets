@@ -19,6 +19,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+import json
 
 import datasets
 
@@ -42,11 +43,31 @@ There are two features:
 
 """
 
-
-_URL = "https://s3.amazonaws.com/datasets.huggingface.co/summarization/xsum.tar.gz"
+# From https://github.com/EdinburghNLP/XSum/issues/12
+_URL_DATA = "http://bollin.inf.ed.ac.uk/public/direct/XSUM-EMNLP18-Summary-Data-Original.tar.gz"
+_URL_SPLITS = (
+    "https://raw.githubusercontent.com/EdinburghNLP/XSum/master/XSum-Dataset/XSum-TRAINING-DEV-TEST-SPLIT-90-5-5.json"
+)
 
 _DOCUMENT = "document"
 _SUMMARY = "summary"
+_ID = "id"
+
+_REMOVE_LINES = set(
+    [
+        "Share this with\n",
+        "Email\n",
+        "Facebook\n",
+        "Messenger\n",
+        "Twitter\n",
+        "Pinterest\n",
+        "WhatsApp\n",
+        "Linkedin\n",
+        "LinkedIn\n",
+        "Copy this link\n",
+        "These are external links and will open in a new window\n",
+    ]
+)
 
 
 class Xsum(datasets.GeneratorBasedBuilder):
@@ -63,6 +84,7 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 {
                     _DOCUMENT: datasets.Value("string"),
                     _SUMMARY: datasets.Value("string"),
+                    _ID: datasets.Value("string"),
                 }
             ),
             supervised_keys=(_DOCUMENT, _SUMMARY),
@@ -73,39 +95,76 @@ class Xsum(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        dl_path = dl_manager.download_and_extract(_URL)
+        data_path = dl_manager.download_and_extract(_URL_DATA)
+        splits_path = dl_manager.download(_URL_SPLITS)
 
-        dl_path = os.path.join(dl_path, "xsum")
+        with open(splits_path, "r") as f:
+            split_ids = json.load(f)
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "source": os.path.join(dl_path, "train.source"),
-                    "target": os.path.join(dl_path, "train.target"),
+                    "split_ids": split_ids["train"],
+                    "data_dir": os.path.join(data_path, "bbc-summary-data"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "source": os.path.join(dl_path, "val.source"),
-                    "target": os.path.join(dl_path, "val.target"),
+                    "split_ids": split_ids["validation"],
+                    "data_dir": os.path.join(data_path, "bbc-summary-data"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "source": os.path.join(dl_path, "test.source"),
-                    "target": os.path.join(dl_path, "test.target"),
+                    "split_ids": split_ids["test"],
+                    "data_dir": os.path.join(data_path, "bbc-summary-data")
                 },
             ),
         ]
 
-    def _generate_examples(self, source, target):
-        """Yields examples."""
-        with open(source, encoding="utf-8") as f1:
-            source = f1.readlines()
-        with open(target, encoding="utf-8") as f2:
-            target = f2.readlines()
-        assert len(source) == len(target)
-        for i in range(len(target)):
-            yield i, {_DOCUMENT: source[i], _SUMMARY: target[i]}
+    def _generate_examples(self, split_ids=None, data_dir=None):
+        """Yields examples.
+
+        2020-05-17: Changed from the huggingface code to support the raw
+        published data mentioned in the following issue:
+        https://github.com/EdinburghNLP/XSum/issues/20
+
+        """
+        missing = 0
+        total_num = len(split_ids)
+        for i in split_ids:
+            filename = os.path.join(data_dir, i + ".summary")
+
+            if os.path.exists(filename):
+                with open(filename) as f:
+
+                    text = "".join([line for line in f.readlines() if line not in _REMOVE_LINES and line.strip()])
+
+                    # Each file follows below format:
+                    # [SN]URL[SN]
+                    # http://somelink
+                    #
+                    # [SN]TITLE[SN]
+                    # some intro
+                    #
+                    # [SN]FIRST-SENTENCE[SN]
+                    # some intro
+                    #
+                    # [SN]RESTBODY[SN]
+                    # text line.
+                    # another text line.
+                    # "another text line."
+
+                    # According to the following issue, FIRST-SENTENCE
+                    # is the reference summary and TITLE is unused:
+                    # https://github.com/EdinburghNLP/XSum/issues/22
+                    segs = text.split("[SN]")
+                    yield i, {_DOCUMENT: segs[8].strip(), _SUMMARY: segs[6].strip(), _ID: i}
+            else:
+                missing += 1
+                logging.info("id %s missing.", i)
+        if missing:
+            logging.warning("%d out of %d examples are missing.", missing, total_num)
