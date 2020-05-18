@@ -101,6 +101,15 @@ class DatasetTester(object):
                         "test": os.path.join(path_to_dummy_data, "test.csv"),
                         "dev": os.path.join(path_to_dummy_data, "dev.csv"),
                     }
+                elif dataset_builder.__class__.__name__ == "Json":
+                    # need slight adoption for json dataset
+                    mock_dl_manager.download_dummy_data()
+                    path_to_dummy_data = mock_dl_manager.dummy_file
+                    dataset_builder.config.data_files = {
+                        "train": os.path.join(path_to_dummy_data, "train.json"),
+                        "test": os.path.join(path_to_dummy_data, "test.json"),
+                        "dev": os.path.join(path_to_dummy_data, "dev.json"),
+                    }
 
                 # generate examples from dummy data
                 dataset_builder.download_and_prepare(
