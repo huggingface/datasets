@@ -124,6 +124,23 @@ class MockDataLoaderManager(object):
         return path_to_dummy_data
 
     # this function has to be in the manager under this name so that testing works
+    def download(self, url_or_urls):
+        self.download_dummy_data()
+        path_to_dummy_data = self.dummy_file
+        if isinstance(url_or_urls, list):
+            data_paths = []
+            for path in url_or_urls:
+                data_paths.append(os.path.join(path_to_dummy_data, os.path.basename(path)))
+            return data_paths
+        elif isinstance(url_or_urls, str):
+            path = os.path.join(path_to_dummy_data, os.path.basename(url_or_urls))
+            return path
+        elif isinstance(url_or_urls, dict):
+            raise NotImplementedError("Dicts are not implemented yet for download()")
+        else:
+            raise ValueError(f"Unexpected type: {type(url_or_urls)} for url_or_urls")
+
+    # this function has to be in the manager under this name so that testing works
     def download_custom(self, data_url, custom_download):
         return self.download_and_extract(data_url)
 
