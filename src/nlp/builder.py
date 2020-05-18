@@ -749,14 +749,19 @@ class BeamBasedBuilder(DatasetBuilder):
         # are better without it.
         beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
-        with beam.Pipeline(runner=beam_runner, options=beam_options,) as pipeline:
-            super(BeamBasedBuilder, self)._download_and_prepare(
-                dl_manager, verify_infos=False, pipeline=pipeline,
-            )  # TODO handle verify_infos in beam datasets
+        pipeline = beam.Pipeline(runner=beam_runner, options=beam_options,)
+        super(BeamBasedBuilder, self)._download_and_prepare(
+            dl_manager, verify_infos=False, pipeline=pipeline,
+        )  # TODO handle verify_infos in beam datasets
+        # Run pipeline
+        pipeline_results = pipeline.run()
+        pipeline_results.wait_until_finish()
+        metrics = pipeline_results.metrics()
         # Update `info.splits`.
         split_dict = self.info.splits
         for split_name, beam_writer in self._beam_writers.items():
-            num_examples, num_bytes = beam_writer.finalize()
+            m_filter = beam.metrics.MetricsFilter().with_namespace(namespace=split_name)
+            num_examples, num_bytes = beam_writer.finalize(metrics.query(m_filter))
             split_info = split_dict[split_name]
             split_info.num_examples = num_examples
             split_info.num_bytes = num_bytes
@@ -774,7 +779,7 @@ class BeamBasedBuilder(DatasetBuilder):
         fname = "{}-{}.parquet".format(self.name, split_name)
         fpath = os.path.join(self._cache_dir, fname)
         examples_type = self.info.features.type
-        beam_writer = BeamWriter(examples_type, path=fpath)
+        beam_writer = BeamWriter(examples_type, path=fpath, namespace=split_name)
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example

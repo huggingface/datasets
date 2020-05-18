@@ -15,9 +15,7 @@
 
 # Lint as: python3
 """To write records into Parquet files."""
-import json
 import logging
-import os
 from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
@@ -27,7 +25,9 @@ logger = logging.getLogger(__name__)
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
+DEFAULT_MAX_BATCH_SIZE = (
+    10_000  # hopefully it doesn't write too much at once (max is 2GB)
+)
 
 
 class ArrowWriter(object):
@@ -57,8 +57,12 @@ class ArrowWriter(object):
             self._type = None
 
         if disable_nullable and self._schema is not None:
-            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._type)
-            self._type = pa.struct(pa.field(field.name, field.type, nullable=False) for field in self._type)
+            self._schema = pa.schema(
+                pa.field(field.name, field.type, nullable=False) for field in self._type
+            )
+            self._type = pa.struct(
+                pa.field(field.name, field.type, nullable=False) for field in self._type
+            )
 
         self._path = path
         if stream is None:
@@ -107,7 +111,9 @@ class ArrowWriter(object):
                 # There was an Overflow in StructArray. Let's reduce the batch_size
                 while pa_array[0] != first_example:
                     new_batch_size = self.writer_batch_size // 2
-                    pa_array = pa.array(self.current_rows[:new_batch_size], type=self._type)
+                    pa_array = pa.array(
+                        self.current_rows[:new_batch_size], type=self._type
+                    )
                 logger.warning(
                     "Batch size is too big (>2GB). Reducing it from {} to {}".format(
                         self.writer_batch_size, new_batch_size
@@ -118,7 +124,10 @@ class ArrowWriter(object):
                 n_batches += int(len(self.current_rows) % new_batch_size != 0)
                 for i in range(n_batches):
                     pa_array = pa.array(
-                        self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=self._type
+                        self.current_rows[
+                            i * new_batch_size : (i + 1) * new_batch_size
+                        ],
+                        type=self._type,
                     )
                     self._write_array_on_file(pa_array)
             else:
@@ -136,10 +145,17 @@ class ArrowWriter(object):
         self._num_examples += 1
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
-        if writer_batch_size is not None and len(self.current_rows) >= writer_batch_size:
+        if (
+            writer_batch_size is not None
+            and len(self.current_rows) >= writer_batch_size
+        ):
             self.write_on_file()
 
-    def write_batch(self, batch_examples: Dict[str, List[Any]], writer_batch_size: Optional[int] = None):
+    def write_batch(
+        self,
+        batch_examples: Dict[str, List[Any]],
+        writer_batch_size: Optional[int] = None,
+    ):
         """ Write a batch of Example to file.
 
         Args:
@@ -148,7 +164,9 @@ class ArrowWriter(object):
         pa_table: pa.Table = pa.Table.from_pydict(batch_examples, schema=self._schema)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
-        batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
+        batches: List[pa.RecordBatch] = pa_table.to_batches(
+            max_chunksize=writer_batch_size
+        )
         self._num_bytes += sum(batch.nbytes for batch in batches)
         self._num_examples += pa_table.num_rows
         for batch in batches:
@@ -164,7 +182,9 @@ class ArrowWriter(object):
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(pa_table=pa_table)
-        batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
+        batches: List[pa.RecordBatch] = pa_table.to_batches(
+            max_chunksize=writer_batch_size
+        )
         self._num_bytes += sum(batch.nbytes for batch in batches)
         self._num_examples += pa_table.num_rows
         for batch in batches:
@@ -190,7 +210,11 @@ class BeamWriter(object):
     """
 
     def __init__(
-        self, data_type: Optional[pa.DataType] = None, schema: Optional[pa.Schema] = None, path: Optional[str] = None,
+        self,
+        data_type: Optional[pa.DataType] = None,
+        schema: Optional[pa.Schema] = None,
+        path: Optional[str] = None,
+        namespace: Optional[str] = None,
     ):
         if data_type is None and schema is None:
             raise ValueError("At least one of data_type and schema must be provided.")
@@ -205,49 +229,34 @@ class BeamWriter(object):
             self._type: pa.DataType = pa.struct(field for field in self._schema)
 
         self._path = path
+        self._namespace = namespace or "default"
         self._num_examples = None
         self._pcoll_outputs_metadata = []
 
     def write_from_pcollection(self, pcoll_examples):
         import apache_beam as beam
+        from .beam_parquet_writer import WriteToParquet
 
-        # create some metadata that will be used in .finalize()
-        num_examples = (
-            pcoll_examples
-            | "Add metadata key" >> beam.Map(lambda v: ("num_examples", v))
-            | "Count" >> beam.CombinePerKey(beam.transforms.combiners.CountCombineFn())
-        )
+        def inc_num_examples(example):
+            beam.metrics.Metrics.counter(self._namespace, "num_examples").inc()
 
-        def save_metatada(metadata_items):
-            with open(self._path + ".json", "w") as metadata_file:
-                json.dump(metadata_items, metadata_file)
-
-        # save metadata
-        _ = (
-            (num_examples,)
-            | "Merge pcollections" >> beam.Flatten()
-            | "Create Dict" >> beam.transforms.combiners.ToDict()
-            | "Save metadata" >> beam.ParDo(save_metatada)
-        )
+        # count examples
+        _ = pcoll_examples | "Count N. Examples" >> beam.Map(inc_num_examples)
 
         # save dataset
         return (
             pcoll_examples
             | "Get values" >> beam.Values()
             | "Save to parquet"
-            >> beam.io.parquetio.WriteToParquet(self._path, self._schema, num_shards=1, shard_name_template="")
+            >> WriteToParquet(
+                self._path, self._schema, num_shards=1, shard_name_template=""
+            )
         )
 
-    def finalize(self):
-        self._num_bytes = os.path.getsize(self._path)
-        with open(self._path + ".json", "r") as metadata_file:
-            metadata = json.load(metadata_file)
-        self._num_examples = metadata["num_examples"]
-        os.remove(self._path + ".json")
-        logger.info(
-            "Done writing %s examples in %s bytes %s.",
-            self._num_examples,
-            self._num_bytes,
-            self._path if self._path else "",
-        )
+    def finalize(self, metrics_query_result: dict):
+        import apache_beam as beam
+        counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
+        self._num_examples = counters_dict["num_examples"]
+        output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
+        self._num_bytes = output_file_metadata.size_in_bytes
         return self._num_examples, self._num_bytes
