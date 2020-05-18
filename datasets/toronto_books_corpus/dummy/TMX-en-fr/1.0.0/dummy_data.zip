@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<tmx version="1.4">
+<header creationdate="Sat Mar  3 21:07:44 2018"
+          srclang="en"
+          adminlang="en"
+          o-tmf="unknown"
+          segtype="sentence"
+          creationtool="Uplug"
+          creationtoolversion="unknown"
+          datatype="PlainText" />
+  <body>
+    <tu>
+      <tuv xml:lang="en"><seg>The Wanderer</seg></tuv>
+      <tuv xml:lang="fr"><seg>Le grand Meaulnes</seg></tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="en"><seg>Alain-Fournier</seg></tuv>
+      <tuv xml:lang="fr"><seg>Alain-Fournier</seg></tuv>
+    </tu>
+</body>
+</tmx>
