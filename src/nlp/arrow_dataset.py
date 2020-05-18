@@ -369,7 +369,7 @@ class Dataset(object):
         if not self._data_files or "filename" not in self._data_files[0]:
             return None
         previous_files_string = "-".join(
-            "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items()) for f in self._data_files
+            "-".join(str(k) + "-" + str(v) for k, v in f.items()) for f in self._data_files
         )
         cache_kwargs_string = "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items())
         function_bytes = dumps(function)
