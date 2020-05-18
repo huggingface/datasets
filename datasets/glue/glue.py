@@ -135,6 +135,9 @@ class GlueConfig(nlp.BuilderConfig):
 
 class Glue(nlp.GeneratorBasedBuilder):
     """The General Language Understanding Evaluation (GLUE) benchmark."""
+    def __init__(self, *args, **kwargs):
+        assert ('name' in kwargs and kwargs['name'] is not None), "Glue has to be called with a configuration name"
+        super(Glue, self).__init__(*args, **kwargs)
 
     BUILDER_CONFIGS = [
         GlueConfig(
