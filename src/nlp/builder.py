@@ -331,9 +331,10 @@ class DatasetBuilder:
         )
 
         if dl_manager is None:
-            download_config = DownloadConfig()
-            download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
-            download_config.force_download = download_mode == FORCE_REDOWNLOAD
+            if download_config is None:
+                download_config = DownloadConfig()
+                download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
+                download_config.force_download = download_mode == FORCE_REDOWNLOAD
 
             dl_manager = DownloadManager(
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
