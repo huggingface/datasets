@@ -180,10 +180,9 @@ def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Op
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    if download_config.cache_dir is None:
-        download_config.cache_dir = HF_DATASETS_CACHE
-    if isinstance(download_config.cache_dir, Path):
-        download_config.cache_dir = str(download_config.cache_dir)
+    cache_dir = download_config.cache_dir or HF_DATASETS_CACHE
+    if isinstance(cache_dir, Path):
+        cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
         url_or_filename = str(url_or_filename)
 
@@ -191,7 +190,7 @@ def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Op
         # URL, so get it from the cache (downloading if necessary)
         output_path = get_from_cache(
             url_or_filename,
-            cache_dir=download_config.cache_dir,
+            cache_dir=cache_dir,
             force_download=download_config.force_download,
             proxies=download_config.proxies,
             resume_download=download_config.resume_download,
