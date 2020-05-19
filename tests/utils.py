@@ -23,8 +23,8 @@ def parse_flag_from_env(key, default=False):
 
 
 _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
-_run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 _run_aws_tests = parse_flag_from_env("RUN_AWS", default=True)
+_run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 
 
 def slow(test_case):
@@ -35,7 +35,7 @@ def slow(test_case):
     to a truthy value to run them.
 
     """
-    if not _run_slow_tests:
+    if not _run_slow_tests or _run_slow_tests == 0:
         test_case = unittest.skip("test is slow")(test_case)
     return test_case
 
@@ -47,17 +47,9 @@ def local(test_case):
     Local tests are run by default. Set the RUN_LOCAL environment variable
     to a falsy value to not run them.
     """
-    if not _run_local_tests:
+    if not _run_local_tests or _run_local_tests == 0:
         test_case = unittest.skip("test is local")(test_case)
     return test_case
-
-
-def is_local_mode():
-    return _run_local_tests
-
-
-def is_aws_mode():
-    return _run_aws_tests
 
 
 def aws(test_case):
@@ -67,7 +59,7 @@ def aws(test_case):
     AWS tests are skipped by default. Set the RUN_AWS environment variable
     to a falsy value to not run them.
     """
-    if not _run_aws_tests:
+    if not _run_aws_tests or _run_aws_tests == 0:
         test_case = unittest.skip("test requires aws")(test_case)
     return test_case
 
