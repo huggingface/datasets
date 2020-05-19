@@ -60,10 +60,13 @@ class Squad(nlp.Metric):
                     "prediction_text": nlp.Value("string")
                 },
                 'references': {
-                    "id": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
-                    ),
+                    'answers': [
+                        {
+                            'answer_start': nlp.Value('int32'),
+                            'text': nlp.Value('string')
+                        }
+                    ],
+                    'id': nlp.Value('string')
                 },
             }),
             codebase_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
@@ -71,7 +74,7 @@ class Squad(nlp.Metric):
         )
 
     def _compute(self, predictions, references):
-        pred_dict = dict(predictions)
+        pred_dict = {prediction["id"]: prediction["prediction_text"] for prediction in predictions}
         dataset = [{'paragraphs': [{'qas': references}]}]
-        score = evaluate(dataset=dataset, predictions=predictions)
+        score = evaluate(dataset=dataset, predictions=pred_dict)
         return score
