@@ -22,9 +22,9 @@ def parse_flag_from_env(key, default=False):
     return _value
 
 
-_run_slow_tests = parse_flag_from_env("RUN_SLOW", default=True)
+_run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
+_run_aws_tests = parse_flag_from_env("RUN_AWS", default=True)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
-_run_aws_tests = parse_flag_from_env("RUN_AWS", default=False)
 
 
 def slow(test_case):
@@ -50,14 +50,6 @@ def local(test_case):
     if not _run_local_tests or _run_local_tests == 0:
         test_case = unittest.skip("test is local")(test_case)
     return test_case
-
-
-def is_local_mode():
-    return _run_local_tests
-
-
-def is_aws_mode():
-    return _run_aws_tests
 
 
 def aws(test_case):
