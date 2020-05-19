@@ -143,7 +143,8 @@ class LocalDatasetTest(parameterized.TestCase):
         self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
 
     def test_builder_class(self, dataset_name):
-        builder = self.dataset_tester.load_builder_class(dataset_name, is_local=True)
+        builder_cls = self.dataset_tester.load_builder_class(dataset_name, is_local=True)
+        builder = builder_cls()
         self.assertTrue(isinstance(builder, DatasetBuilder))
 
     def test_builder_configs(self, dataset_name):
@@ -204,7 +205,8 @@ class AWSDatasetTest(parameterized.TestCase):
         self.assertIsNotNone(etag)
 
     def test_builder_class(self, dataset_name):
-        builder = self.dataset_tester.load_builder_class(dataset_name)
+        builder_cls = self.dataset_tester.load_builder_class(dataset_name)
+        builder = builder_cls()
         self.assertTrue(isinstance(builder, DatasetBuilder))
 
     def test_builder_configs(self, dataset_name):
