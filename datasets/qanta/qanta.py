@@ -30,7 +30,8 @@ _FIRST = "first"
 _FULL = "full"
 _SENTENCES = "sentences"
 _RUNS = "runs"
-_MODES = [_FIRST, _FULL, _SENTENCES, _RUNS]
+# Order matters, the first one is default
+_MODES = [_FULL, _FIRST, _SENTENCES, _RUNS]
 _DEFAULT_CHAR_SKIP = 25
 
 
@@ -191,8 +192,8 @@ class Qanta(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        qanta_path = dl_manager.download(_QANTA_URL)
-        trick_path = dl_manager.download(_TRICK_URL)
+        qanta_path = dl_manager.download_and_extract(_QANTA_URL)
+        trick_path = dl_manager.download_and_extract(_TRICK_URL)
         return [
             nlp.SplitGenerator(
                 name=nlp.Split("guesstrain"),
