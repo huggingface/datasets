@@ -72,7 +72,7 @@ class MockDataLoaderManager(object):
         self.is_local = is_local
         self.config = config
 
-        # might need to make this more general
+        # TODO(PVP, QUENTIN) might need to make this more general
         self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
         # to be downloaded
         self._dummy_file = None
@@ -83,20 +83,20 @@ class MockDataLoaderManager(object):
             self._dummy_file = self.download_dummy_data()
         return self._dummy_file
 
-    def download_dummy_data(self):
+    @property
+    def dummy_zip_file(self):
         if self.config is not None:
             # structure is dummy / config_name / version_name / dummy_data.zip
-            path_to_dummy_file = os.path.join("dummy", self.config.name, self.version_name, "dummy_data.zip")
-        else:
-            # structure is dummy / version_name / dummy_data.zip
-            path_to_dummy_file = os.path.join("dummy", self.version_name, "dummy_data.zip")
+            return os.path.join("dummy", self.config.name, self.version_name, "dummy_data.zip")
+        return os.path.join("dummy", self.version_name, "dummy_data.zip")
 
+    def download_dummy_data(self):
         if self.is_local is True:
             # extract local data
-            path_to_dummy_data_dir = os.path.join("datasets", self.dataset_name, path_to_dummy_file)
+            path_to_dummy_data_dir = os.path.join("datasets", self.dataset_name, self.dummy_zip_file)
         else:
             # get url to dummy data on AWS S3 bucket
-            path_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=path_to_dummy_file)
+            path_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=self.dummy_zip_file)
 
             # this function will download the dummy data and return the path
         local_path = cached_path(
@@ -114,13 +114,10 @@ class MockDataLoaderManager(object):
 
     # this function has to be in the manager under this name so that testing works
     def download_and_extract(self, data_url, *args):
-        # download dummy data and save under dummy_file
-        path_to_dummy_data = self.dummy_file
-
         # special case when data_url is a dict
         if isinstance(data_url, dict):
-            return self.create_dummy_data_dict(path_to_dummy_data, data_url)
-        return path_to_dummy_data
+            return self.create_dummy_data_dict(self.dummy_file, data_url)
+        return self.dummy_file
 
     # this function has to be in the manager under this name so that testing works
     def download_custom(self, data_url, custom_download):
