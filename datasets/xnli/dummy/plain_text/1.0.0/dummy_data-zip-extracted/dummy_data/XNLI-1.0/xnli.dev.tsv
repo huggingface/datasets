@@ -1,3 +1,0 @@
-language	gold_label	sentence1_binary_parse	sentence2_binary_parse	sentence1_parse	sentence2_parse	sentence1	sentence2	promptID	pairID	genre	label1	label2	label3	label4	label5	sentence1_tokenized	sentence2_tokenized	match
-ar	neutral					وقال، ماما، لقد عدت للمنزل.	اتصل بأمه حالما أوصلته حافلة المدرسية.	1	1	facetoface	neutral	contradiction	neutral	neutral	neutral	وقال ، ماما ، لقد عدت للمنزل .	اتصل بأمه حالما أوصلته حافلة المدرسية .	True
-ar	contradiction					وقال، ماما، لقد عدت للمنزل.	لم ينطق ببنت شفة.	1	2	facetoface	contradiction	contradiction	contradiction	contradiction	contradiction	وقال ، ماما ، لقد عدت للمنزل .	لم ينطق ببنت شفة .	True
