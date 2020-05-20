@@ -2,6 +2,7 @@ import logging
 import os
 import unittest
 from distutils.util import strtobool
+import urllib.parse
 
 from nlp import cached_path, hf_bucket_url
 
@@ -175,10 +176,11 @@ class MockDataLoaderManager(object):
         dummy_data_dict = {}
         for key, abs_path in data_url.items():
             # we force the name of each key to be the last file / folder name of the url path
+            # if the url has arguments, we need to encode them with urllib.parse.quote_plus
             if isinstance(abs_path, list):
-                value = [os.path.join(path_to_dummy_data, x.split("/")[-1]) for x in abs_path]
+                value = [os.path.join(path_to_dummy_data, urllib.parse.quote_plus(x.split("/")[-1])) for x in abs_path]
             else:
-                value = os.path.join(path_to_dummy_data, abs_path.split("/")[-1])
+                value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(abs_path.split("/")[-1]))
             dummy_data_dict[key] = value
 
         # make sure that values are unique
