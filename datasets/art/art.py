@@ -1,4 +1,4 @@
-"""TODO(anli): Add a description here."""
+"""TODO(art): Add a description here."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -8,7 +8,7 @@ import os
 import nlp
 
 
-# TODO(anli): BibTeX citation
+# TODO(art): BibTeX citation
 _CITATION = """\
 @InProceedings{anli,
   author = "Chandra, Bhagavatula
@@ -24,21 +24,43 @@ _CITATION = """\
   year = "2020",
 }"""
 
-# TODO(anli):
+# TODO(art):
 _DESCRIPTION = """\
 the Abductive Natural Language Inference Dataset from AI2
 """
 _DATA_URL = "https://storage.googleapis.com/ai2-mosaic/public/alphanli/alphanli-train-dev.zip"
 
 
-class Anli(nlp.GeneratorBasedBuilder):
-    """TODO(anli): Short description of my dataset."""
+class ArtConfig(nlp.BuilderConfig):
+    """BuilderConfig for Art."""
 
-    # TODO(anli): Set up version.
+    def __init__(self, **kwargs):
+        """BuilderConfig for Art.
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
+        super(ArtConfig, self).__init__(
+            version=nlp.Version("0.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+        )
+
+
+
+class Art(nlp.GeneratorBasedBuilder):
+    """TODO(art): Short description of my dataset."""
+
+    # TODO(art): Set up version.
     VERSION = nlp.Version("0.1.0")
+    BUILDER_CONFIGS = [
+        ArtConfig(
+            name="anli",
+            description="""\
+          the Abductive Natural Language Inference Dataset from AI2.
+          """,
+        ),
+    ]
 
     def _info(self):
-        # TODO(anli): Specifies the nlp.DatasetInfo object
+        # TODO(art): Specifies the nlp.DatasetInfo object
         return nlp.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -64,7 +86,7 @@ class Anli(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO(anli): Downloads the data and defines the splits
+        # TODO(art): Downloads the data and defines the splits
         # dl_manager is a nlp.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
@@ -87,7 +109,7 @@ class Anli(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, labelpath):
         """Yields examples."""
-        # TODO(anli): Yields (key, example) tuples from the dataset
+        # TODO(art): Yields (key, example) tuples from the dataset
         data = []
         for line in open(filepath):
             data.append(json.loads(line))
