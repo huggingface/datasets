@@ -64,6 +64,7 @@ def aws(test_case):
 
 
 class MockDataLoaderManager(object):
+
     def __init__(self, dataset_name, config, version, cache_dir, is_local=False, verbose=True):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
@@ -82,6 +83,36 @@ class MockDataLoaderManager(object):
         if self._dummy_file is None:
             self._dummy_file = self.download_dummy_data()
         return self._dummy_file
+
+    @property
+    def manual_dir(self):
+        # return full path if its a dir
+        if os.path.isdir(self.dummy_file):
+            return self.dummy_file
+        # else cut off path to file -> example `xsum`.
+        return "/".join(self.dummy_file.split("/")[:-1])
+
+    # this function has to be in the manager under this name so that testing works
+    def download_and_extract(self, data_url, *args):
+        # download dummy data and save under dummy_file
+        path_to_dummy_data = self.dummy_file
+
+        # print expected dummy folder structure
+        if self.verbose is True:
+            self.print_dummy_data_folder_structure(data_url)
+
+        # special case when data_url is a dict
+        if isinstance(data_url, dict):
+            return self.create_dummy_data_dict(path_to_dummy_data, data_url)
+        return path_to_dummy_data
+
+    # this function has to be in the manager under this name so that testing works
+    def download_custom(self, data_url, custom_download):
+        return self.download_and_extract(data_url)
+
+    # this function has to be in the manager under this name so that testing works
+    def extract(self, path):
+        return path
 
     def download_dummy_data(self):
         if self.config is not None:
@@ -104,36 +135,6 @@ class MockDataLoaderManager(object):
         )
         return os.path.join(local_path, "dummy_data")
 
-    @property
-    def manual_dir(self):
-        # return full path if its a dir
-        if os.path.isdir(self.dummy_file):
-            return self.dummy_file
-        # else cut off path to file -> example `xsum`.
-        return "/".join(self.dummy_file.split("/")[:-1])
-
-    # this function has to be in the manager under this name so that testing works
-    def download_and_extract(self, data_url, *args):
-        # download dummy data and save under dummy_file
-        path_to_dummy_data = self.dummy_file
-
-        # special case when data_url is a dict
-        if isinstance(data_url, dict):
-            return self.create_dummy_data_dict(path_to_dummy_data, data_url)
-        return path_to_dummy_data
-
-    # this function has to be in the manager under this name so that testing works
-    def download_custom(self, data_url, custom_download):
-        return self.download_and_extract(data_url)
-
-    # this function has to be in the manager under this name so that testing works
-    def extract(self, path):
-        return path
-
-    # this function has to be in the manager under this name so that testing works
-    def get_recorded_sizes_checksums(self):
-        return {}
-
     def create_dummy_data_dict(self, path_to_dummy_data, data_url):
         dummy_data_dict = {}
         for key, abs_path in data_url.items():
@@ -151,3 +152,6 @@ class MockDataLoaderManager(object):
             dummy_data_dict = {key: value + key for key, value in dummy_data_dict.items()}
 
         return dummy_data_dict
+
+    def get_recorded_sizes_checksums(self):
+        return {}
