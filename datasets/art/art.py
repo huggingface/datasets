@@ -44,7 +44,6 @@ class ArtConfig(nlp.BuilderConfig):
         )
 
 
-
 class Art(nlp.GeneratorBasedBuilder):
     """TODO(art): Short description of my dataset."""
 

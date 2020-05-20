@@ -1,4 +1,3 @@
-import logging
 import os
 import unittest
 from distutils.util import strtobool
@@ -65,32 +64,23 @@ def aws(test_case):
 
 
 class MockDataLoaderManager(object):
-    dummy_data_folder_name = "dummy"
-    dummy_data_file_name = "dummy_data.zip"
-    dummy_data_extracted_folder_name = "dummy_data"
-
     def __init__(self, dataset_name, config, version, cache_dir, is_local=False, verbose=True):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
         self.cache_dir = cache_dir
         self.verbose = verbose
         self.is_local = is_local
-        self.complete_path_to_dummy_file = None
+        self._dummy_file = None
 
         self.config_name = config.name if config is not None else ""
 
         self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
 
-        # structure is dummy / config_name / version_name / dummy_data.zip
-        self.path_to_dummy_file = os.path.join(
-            self.dummy_data_folder_name, self.config_name, self.version_name, self.dummy_data_file_name
-        )
-
     @property
     def dummy_file(self):
-        if self.complete_path_to_dummy_file is None:
-            self.download_dummy_data()
-        return self.complete_path_to_dummy_file
+        if self._dummy_file is None:
+            self._dummy_file = self.download_dummy_data()
+        return self._dummy_file
 
     @property
     def manual_dir(self):
@@ -103,7 +93,6 @@ class MockDataLoaderManager(object):
     # this function has to be in the manager under this name so that testing works
     def download_and_extract(self, data_url, *args):
         # download dummy data and save under dummy_file
-        self.download_dummy_data()
         path_to_dummy_data = self.dummy_file
 
         # print expected dummy folder structure
@@ -124,52 +113,21 @@ class MockDataLoaderManager(object):
         return path
 
     def download_dummy_data(self):
+        # structure is dummy / config_name / version_name / dummy_data.zip
+        path_to_dummy_file = os.path.join("dummy", self.config_name, self.version_name, "dummy_data.zip")
+
         if self.is_local is True:
             # extract local data
-            path_to_dummy_data_dir = os.path.join("datasets", self.dataset_name, self.path_to_dummy_file)
+            path_to_dummy_data_dir = os.path.join("datasets", self.dataset_name, path_to_dummy_file)
         else:
             # get url to dummy data on AWS S3 bucket
-            path_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=self.path_to_dummy_file)
+            path_to_dummy_data_dir = hf_bucket_url(self.dataset_name, filename=path_to_dummy_file)
 
             # this function will download the dummy data and return the path
         local_path = cached_path(
             path_to_dummy_data_dir, cache_dir=self.cache_dir, extract_compressed_file=True, force_extract=True
         )
-        self.complete_path_to_dummy_file = os.path.join(local_path, self.dummy_data_extracted_folder_name)
-
-    def print_dummy_data_folder_structure(self, data_url):
-        logging.info(str(20 * "*" + " EXPECTED STRUCTURE OF {} " + 20 * "*").format(self.dummy_data_folder_name))
-        logging.info(self.path_to_dummy_file)
-
-        # special case when data_url is a dict
-        if isinstance(data_url, dict):
-            dummy_data_folder = self.create_dummy_data_dict(self.dummy_data_extracted_folder_name, data_url)
-            logging.info(str(20 * "-" + " EXPECTED STRUCTURE OF {} " + 10 * "-").format(self.dummy_data_file_name))
-            for key, value in dummy_data_folder.items():
-                logging.info(
-                    "{} contains folder or file, depending on the `_generate_splits` method called: {} .".format(
-                        self.dummy_data_file_name, value
-                    )
-                )
-                if ".zip" in value:
-                    logging.info(
-                        "data url in `_generate_split` expects a zipped folder. {} should be a directory and match the folder structure of the extracted content of {}".format(
-                            value, data_url[key]
-                        )
-                    )
-        else:
-            logging.info(
-                "{} contains folder a folder or file depending on the `_generate_splits` method that matches names as specified in `_generate_splits`".format(
-                    self.dummy_data_file_name,
-                )
-            )
-            if ".zip" in data_url:
-                logging.info(
-                    "data url in `_generate_split` expects a zipped folder. The dummy folder structure should match the extracted zip file folder structure of {}".format(
-                        data_url
-                    )
-                )
-        logging.info(68 * "*")
+        return os.path.join(local_path, "dummy_data")
 
     def create_dummy_data_dict(self, path_to_dummy_data, data_url):
         dummy_data_dict = {}
