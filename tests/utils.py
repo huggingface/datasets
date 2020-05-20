@@ -1,8 +1,8 @@
 import logging
 import os
 import unittest
-from distutils.util import strtobool
 import urllib.parse
+from distutils.util import strtobool
 
 from nlp import cached_path, hf_bucket_url
 
