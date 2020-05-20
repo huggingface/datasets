@@ -730,6 +730,7 @@ class BeamBasedBuilder(DatasetBuilder):
     def _download_and_prepare(self, dl_manager, verify_infos):
         # Create the Beam pipeline and forward it to _prepare_split
         import apache_beam as beam
+        import nlp.utils.beam_utils as beam_utils
 
         beam_runner = self._beam_runner
         beam_options = self._beam_options
@@ -749,7 +750,7 @@ class BeamBasedBuilder(DatasetBuilder):
         # are better without it.
         beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
-        pipeline = beam.Pipeline(runner=beam_runner, options=beam_options,)
+        pipeline = beam_utils.BeamPipeline(runner=beam_runner, options=beam_options,)
         super(BeamBasedBuilder, self)._download_and_prepare(
             dl_manager, verify_infos=False, pipeline=pipeline,
         )  # TODO handle verify_infos in beam datasets

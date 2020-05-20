@@ -2,9 +2,39 @@ from apache_beam.io.filesystem import CompressionTypes
 from apache_beam.io import filebasedsink
 from apache_beam.io.iobase import Write
 from apache_beam.transforms import PTransform
+from apache_beam.pipeline import Pipeline
+from apache_beam.io.filesystems import FileSystems
+import logging
 
 import pyarrow as pa
 import pyarrow.parquet as pq
+
+
+CHUNK_SIZE = 2 << 20  # 2mb
+logger = logging.getLogger(__name__)
+
+
+class BeamPipeline(Pipeline):
+
+    def is_local(self):
+        runner = self._options.get_all_options().get("runner")
+        return runner in [None, "DirectRunner", "PortableRunner"]
+
+
+def upload_local_to_remote(local_file_path, remote_file_path, force_upload=False):
+    fs = FileSystems
+    if fs.exists(remote_file_path):
+        if force_upload:
+            logger.info("Remote path already exist: {}. Overwriting it as force_upload=True.".format(remote_file_path))
+        else:
+            logger.info("Remote path already exist: {}. Skipping it as force_upload=False.".format(remote_file_path))
+            return
+    with fs.create(remote_file_path) as remote_file:
+        with open(local_file_path, "rb") as local_file:
+            chunk = local_file.read(CHUNK_SIZE)
+            while chunk:
+                remote_file.write(chunk)
+                chunk = local_file.read(CHUNK_SIZE)
 
 
 class WriteToParquet(PTransform):
@@ -28,6 +58,7 @@ class WriteToParquet(PTransform):
         mime_type="application/x-parquet",
     ):
         """Initialize a WriteToParquet transform.
+        (from apache_beam.io.parquetio, only ._flush_buffer() is different)
 
         Writes parquet files from a :class:`~apache_beam.pvalue.PCollection` of
         records. Each record is a dictionary with keys of a string type that
@@ -239,6 +270,6 @@ class _ParquetSink(filebasedsink.FileBasedSink):
         size = 0
         for x in arrays:
             for b in x.buffers():
-                if b is not None:
+                if b is not None:  # only this line is different
                     size = size + b.size
         self._record_batches_byte_size = self._record_batches_byte_size + size

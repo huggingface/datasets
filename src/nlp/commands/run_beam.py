@@ -1,9 +1,10 @@
 from argparse import ArgumentParser
 from typing import List
+import os
 
 import apache_beam as beam
 
-from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
+from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig, HF_DATASETS_CACHE
 from nlp.commands import BaseTransformersCLICommand
 from nlp.load import import_main_class, prepare_module
 
@@ -96,7 +97,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
         for builder in builders:
             builder.download_and_prepare(
                 download_mode=REUSE_CACHE_IF_EXISTS if not self._force_redownload else FORCE_REDOWNLOAD,
-                download_config=DownloadConfig(),
+                download_config=DownloadConfig(cache_dir=os.path.join(HF_DATASETS_CACHE, "downloads")),
                 save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,
             )

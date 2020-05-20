@@ -235,7 +235,7 @@ class BeamWriter(object):
 
     def write_from_pcollection(self, pcoll_examples):
         import apache_beam as beam
-        from .beam_parquet_writer import WriteToParquet
+        from .utils.beam_utils import WriteToParquet
 
         def inc_num_examples(example):
             beam.metrics.Metrics.counter(self._namespace, "num_examples").inc()

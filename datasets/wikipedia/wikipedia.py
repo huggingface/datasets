@@ -413,7 +413,7 @@ class Wikipedia(nlp.BeamBasedBuilder):
             citation=_CITATION,
         )
 
-    def _split_generators(self, dl_manager):
+    def _split_generators(self, dl_manager, pipeline):
         def _base_url(lang):
             return _BASE_URL_TMPL.format(lang=lang.replace("-", "_"), date=self.config.date)
 
@@ -441,6 +441,8 @@ class Wikipedia(nlp.BeamBasedBuilder):
 
             # Use dictionary since testing mock always returns the same result.
         downloaded_files = dl_manager.download({"xml": xml_urls})
+        if not pipeline.is_local():
+            downloaded_files = dl_manager.upload_to_remote_dir(downloaded_files, pipeline)
 
         return [
             nlp.SplitGenerator(  # pylint:disable=g-complex-comprehension
@@ -454,7 +456,7 @@ class Wikipedia(nlp.BeamBasedBuilder):
         def _extract_content(filepath):
             """Extracts article content from a single WikiMedia XML file."""
             logging.info("generating examples from = %s", filepath)
-            with open(filepath, "rb") as f:
+            with beam.io.filesystems.FileSystems.open(filepath) as f:
                 f = bz2.BZ2File(filename=f)
                 if six.PY3:
                     # Workaround due to:
