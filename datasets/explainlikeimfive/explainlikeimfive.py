@@ -163,7 +163,7 @@ def _post_process(reddit_dct, name=""):
     return reddit_dct
 
 
-def download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_year=2019, end_month=7):
+def _download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_year=2019, end_month=7):
     # collect submissions and comments monthly URLs
     date_to_url_submissions = _gather_dump_urls(_REDDIT_URL, "submissions")
     date_to_url_comments = _gather_dump_urls(_REDDIT_URL, "comments")
@@ -200,7 +200,6 @@ def download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_y
     # then post-process
     res = {}
     for name in _SUB_REDDITS:
-        print("post-processing", name)
         qa_dct_list = [(k, _post_process(rdct, name)) for k, rdct in qa_dict[name].items() if "comments" in rdct]
         qa_dct_list = [x for x in qa_dct_list if len(x[1]["comments"]) > 0 and name in x[1]["url"]]
         res[name] = dict(qa_dct_list[:])
@@ -255,6 +254,10 @@ class ExplainLikeImFiveConfig(nlp.BuilderConfig):
 class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
     """ELI5: Explain Like I'm Five long form question answering dataset."""
 
+    _DATA_SPLIT_URL = (
+        "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets/explainlikeimfive/reddit_data_split.json"
+    )
+
     name = "ELI5"
     BUILDER_CONFIGS = [
         ExplainLikeImFiveConfig(name="explainlikeimfive", version="1.0.0", description="explainlikeimfive subreddit"),
@@ -293,13 +296,14 @@ class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
             logging.info("loading pre-computed QA list")
             self.filtered_reddit = json.load(open(qa_data_file))
         else:
-            self.filtered_reddit = download_and_filter_reddit(
-                dl_manager, start_year=2012, start_month=12, end_year=2012, end_month=12
+            self.filtered_reddit = _download_and_filter_reddit(
+                dl_manager, start_year=2011, start_month=7, end_year=2019, end_month=7
             )
             logging.info("saving pre-computed QA list")
             json.dump(self.filtered_reddit, open(qa_data_file, "w"))
-        # TODO: download data splits from AWS
-        self.data_split = json.load(open("/home/yacine/Code/nlp/datasets/explainlikeimfive/reddit_split_2012_12.json"))
+        # download data splits from AWS
+        fpath_splits = dl_manager.download(self._DATA_SPLIT_URL)
+        self.data_split = json.load(open(fpath_splits))
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"split": "train"}),
             nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"split": "validation"}),
@@ -311,11 +315,13 @@ class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
         logging.info("generating examples from = {}, {} set".format(name, split))
         if split in self.data_split.get(name, []):
             id_list = self.data_split[name][split]
-            data = [self.filtered_reddit[name][q_id] for q_id in id_list]
-        elif split == 'train':
-            data = [self.filtered_reddit[name][q_id]
-                    for name in self.filtered_reddit
-                    for q_id in self.filtered_reddit[name]]
+            data = [self.filtered_reddit[name][q_id] for q_id in id_list if q_id in self.filtered_reddit[name]]
+        elif split == "train":
+            data = [
+                self.filtered_reddit[name][q_id]
+                for name in self.filtered_reddit
+                for q_id in self.filtered_reddit[name]
+            ]
         else:
             data = []
         for example in data:
