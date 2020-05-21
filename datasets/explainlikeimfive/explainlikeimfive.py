@@ -309,9 +309,15 @@ class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, split):
         name = _VERSION_MAP[self.config.version]
         logging.info("generating examples from = {}, {} set".format(name, split))
-        id_list = self.data_split[name][split]
-        data = [self.filtered_reddit[name][q_id] for q_id in id_list]
-        # data = [self.filtered_reddit[name][q_id] for name in self.filtered_reddit for q_id in self.filtered_reddit[name]]
+        if split in self.data_split.get(name, []):
+            id_list = self.data_split[name][split]
+            data = [self.filtered_reddit[name][q_id] for q_id in id_list]
+        elif split == 'train':
+            data = [self.filtered_reddit[name][q_id]
+                    for name in self.filtered_reddit
+                    for q_id in self.filtered_reddit[name]]
+        else:
+            data = []
         for example in data:
             id_ = example["id"]
             title = example["title"][0]
