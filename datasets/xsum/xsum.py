@@ -102,6 +102,12 @@ class Xsum(nlp.GeneratorBasedBuilder):
         with open(dl_path, "r") as json_file:
             split_ids = json.load(json_file)
         downloaded_path = os.path.join(dl_manager.manual_dir, "xsum-extracts-from-downloads")
+        if not os.path.exists(downloaded_path):
+            raise FileNotFoundError(
+                "{} does not exist. Make sure you indicate the data_dir as  `nlp.load('xsum', data_dir=...), which points to your downloded dataset'. Manual download instructions: {})".format(
+                    downloaded_path, self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                )
+            ) 
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN, gen_kwargs={"split_ids": split_ids["train"], "path": downloaded_path,},
