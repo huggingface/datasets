@@ -28,6 +28,7 @@ from .file_utils import (
     is_tf_available,
     is_torch_available,
 )
+from .mock_download_manager import MockDownloadManager
 from .py_utils import *
 from .tqdm_utils import *
 from .version import Version

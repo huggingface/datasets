@@ -27,6 +27,7 @@ from nlp import (
     DatasetBuilder,
     DownloadConfig,
     GenerateMode,
+    MockDownloadManager,
     hf_api,
     hf_bucket_url,
     import_main_class,
@@ -34,7 +35,7 @@ from nlp import (
     prepare_module,
 )
 
-from .utils import MockDataLoaderManager, aws, local, slow
+from .utils import aws, local, slow
 
 
 logging.basicConfig(level=logging.INFO)
@@ -84,7 +85,7 @@ class DatasetTester(object):
                     version = dataset_builder.VERSION
 
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
-                mock_dl_manager = MockDataLoaderManager(
+                mock_dl_manager = MockDownloadManager(
                     dataset_name=dataset_name,
                     config=config,
                     version=version,
