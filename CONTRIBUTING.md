@@ -33,10 +33,17 @@
 
    ```bash
    $ pip install -U git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort
+   ```
 
 5. Develop the features on your branch. If you want to add a dataset see more in-detail intsructions in the section *How to add a dataset*.
 
-6. Once you're happy with your dataset script file, add your changes and make a commit to record your changes locally:
+6. Format your code. Run black and isort so that your newly added files look nice with the following command:
+
+	```bash
+	make style
+	```
+
+7. Once you're happy with your dataset script file, add your changes and make a commit to record your changes locally:
 
 	```bash
 	git add datasets/<your_dataset_name>
@@ -57,7 +64,7 @@
    git push -u origin a-descriptive-name-for-my-changes
    ```
 
-7. Once you are satisfied, go the webpage of your fork on GitHub. Click on "Pull request" to send your to the project maintainers for review.
+8. Once you are satisfied, go the webpage of your fork on GitHub. Click on "Pull request" to send your to the project maintainers for review.
 
 ## How-To-Add a dataset
 
@@ -71,19 +78,13 @@
 	python nlp-cli test datasets/<your-dataset-folder> --save_checksums --all_configs
 	```
 
-4. Run black and isort on your newly added datascript files so that they look nice:
-
-	```bash
-	make style
-	```
-
-5. If the command was succesful, you should now create some dummy data. Use the following command to get in-detail instructions on how to create the dummy data:
+4. If the command was succesful, you should now create some dummy data. Use the following command to get in-detail instructions on how to create the dummy data:
 
 	```bash
 	python nlp-cli dummy_data datasets/<your-dataset-folder> 
 	```
 
-6. Now test that both the real data and the dummy data work correctly using the following commands:
+5. Now test that both the real data and the dummy data work correctly using the following commands:
 
 	*For the real data*:
 	```bash
@@ -96,7 +97,7 @@
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
 	```
 
-7. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6 and 7 of the section *How to contribute to nlp?*. If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
+6. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6, 7 and 8 of the section *How to contribute to nlp?*. If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
 
 
 ### Help for dummy data tests
