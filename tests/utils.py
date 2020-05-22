@@ -1,6 +1,5 @@
 import os
 import unittest
-import urllib.parse
 from distutils.util import strtobool
 
 
