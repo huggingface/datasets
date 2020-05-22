@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class MockDownloadManager(object):
-    dummy_file_name = "dummy"
+    dummy_file_name = "dummy_data"
 
     def __init__(self, dataset_name, config, version, cache_dir=None, is_local=False):
         self.downloaded_size = 0

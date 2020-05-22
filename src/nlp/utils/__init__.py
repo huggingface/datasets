@@ -18,6 +18,7 @@
 """Util import."""
 
 from .download_manager import DownloadManager, GenerateMode
+from .mock_download_manager import MockDownloadManager
 from .file_utils import (
     HF_DATASETS_CACHE,
     HF_METRICS_CACHE,
