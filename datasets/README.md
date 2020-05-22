@@ -49,4 +49,16 @@ RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_data
 
 7) push to this PR and rerun the circle ci workflow to check whether circle ci stays green.
 
-**NOTE**: In case the dummy data tests fail, some filenames might be spelled incorrectly. Make sure you follow the exact instructions provided by the command of step 5). If the dummy data tests still fail, your datascript might require a difficult dummy data structure. In this case make sure you fully understand the data folder logit created by the function `_split_generations(...)` and expected by the function `_generate_examples(...)` of your dataset script. If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
+### Help for dummy data tests
+
+Follow these steps in case the dummy data test keeps failing:
+
+- Verify that all filenames are spelled correctly. Rerun the command 
+	```bash
+	python nlp-cli dummy_data datasets/<your-dataset-folder> 
+	```
+	and make sure you follow the exact instructions provided by the command of step 5). 
+
+- Your datascript might require a difficult dummy data structure. In this case make sure you fully understand the data folder logit created by the function `_split_generations(...)` and expected by the function `_generate_examples(...)` of your dataset script. Also take a look at `tests/README.md` which lists different possible cases of how the dummy data should be created.
+
+- If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
