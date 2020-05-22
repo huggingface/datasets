@@ -110,7 +110,7 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     return "/".join((endpoint, identifier, filename))
 
 
-def url_to_filename(url, etag=None):
+def hash_url_to_filename(url, etag=None):
     """
     Convert `url` into a hashed filename in a repeatable way.
     If `etag` is specified, append its hash to the url's, delimited
@@ -212,10 +212,9 @@ def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Op
             return output_path
 
         # Path where we extract compressed archives
-        # We avoid '.' in dir name and add "-extracted" at the end: "./model.zip" => "./model-zip-extracted/"
-        output_dir, output_file = os.path.split(output_path)
-        output_extract_dir_name = output_file.replace(".", "-") + "-extracted"
-        output_path_extracted = os.path.join(cache_dir, output_extract_dir_name)
+        # We extract in the cache dir, and get the extracted path name by hashing the original path"
+        abs_output_path = os.path.abspath(output_path)
+        output_path_extracted = os.path.join(cache_dir, hash_url_to_filename(abs_output_path))
 
         if (
             os.path.isdir(output_path_extracted)
@@ -336,7 +335,7 @@ def get_from_cache(
             # not connected
             pass
 
-    filename = url_to_filename(original_url, etag)
+    filename = hash_url_to_filename(original_url, etag)
 
     # get cache path to put the file
     cache_path = os.path.join(cache_dir, filename)
