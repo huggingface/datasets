@@ -42,7 +42,7 @@ Args:
         - 'prediction_text': the text of the answer
     references: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair (see above),
-        - 'answers': a list of Dict {'text': text of the answer as a string}
+        - 'answers': a Dict {'text': list of possible texts for the answer, as a list of strings}
 Returns:
     'exact_match': Exact match (the normalized answer exactly match the gold answer)
     'f1': The F-score of predicted tokens versus the gold answer
@@ -60,10 +60,10 @@ class Squad(nlp.Metric):
                     "prediction_text": nlp.Value("string")
                 },
                 'references': {
-                    "id": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
+                    'id': nlp.Value('string'),
+                    'answers': nlp.features.Sequence(
                         {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
-                    ),
+                    )
                 },
             }),
             codebase_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
@@ -71,7 +71,9 @@ class Squad(nlp.Metric):
         )
 
     def _compute(self, predictions, references):
-        pred_dict = dict(predictions)
-        dataset = [{'paragraphs': [{'qas': references}]}]
-        score = evaluate(dataset=dataset, predictions=predictions)
+        pred_dict = {prediction["id"]: prediction["prediction_text"] for prediction in predictions}
+        dataset = [{'paragraphs': [{'qas': [
+            {"answers": [{"text": answer_text} for answer_text in ref["answers"]["text"]], "id": ref["id"]} for ref in references
+        ]}]}]
+        score = evaluate(dataset=dataset, predictions=pred_dict)
         return score
