@@ -104,7 +104,9 @@ class DummyDataCommand(BaseTransformersCLICommand):
             if len(files_to_create) == 1 and files_to_create[0] == dummy_file_name:
                 dummy_data_guidance_print += f"-After the dummy data file is created, it should be zipped to '{dummy_file_name}.zip' with the command `zip {dummy_file_name}.zip {dummy_file_name}` \n\n"
 
-                dummy_data_guidance_print += f"-You can now delete the file '{dummy_file_name}' with the command `rm {dummy_file_name}` \n\n"
+                dummy_data_guidance_print += (
+                    f"-You can now delete the file '{dummy_file_name}' with the command `rm {dummy_file_name}` \n\n"
+                )
 
                 dummy_data_guidance_print += f"- To get the file '{dummy_file_name}' back for further changes to the dummy data, simply unzip {dummy_file_name}.zip with the command `unzip {dummy_file_name}.zip` \n\n"
             else:
