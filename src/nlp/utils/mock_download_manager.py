@@ -95,10 +95,7 @@ class MockDownloadManager(object):
             dummy_file = self.dummy_file
         else:
             # dummy data cannot be downloaded and only the path to dummy file is returned
-            path_to_dummy_data_dir = (
-                self.local_path_to_dummy_data if self.is_local is True else self.aws_path_to_dummy_data
-            )
-            dummy_file = os.path.join(path_to_dummy_data_dir, self.dummy_file_name)
+            dummy_file = self.dummy_file_name
 
         # special case when data_url is a dict
         if isinstance(data_url, dict):

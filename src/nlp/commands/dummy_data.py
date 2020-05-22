@@ -91,10 +91,10 @@ class DummyDataCommand(BaseTransformersCLICommand):
             if len(files_to_create) > 0:
                 # no glob.glob(...) in `_generate_examples(...)`
                 if len(files_to_create) == 1 and files_to_create[0] == dummy_file_name:
-                    dummy_data_guidance_print += f"- Please create a single dummy data file called '{files_to_create[0]}'. Make sure that the dummy data file provides at least one example for the split '{split_names}' \n\n"
+                    dummy_data_guidance_print += f"- Please create a single dummy data file called '{files_to_create[0]}' from the folder '{dummy_data_folder}'. Make sure that the dummy data file provides at least one example for the split '{split_names}' \n\n"
                 else:
                     files_string = ", ".join(files_to_create)
-                    dummy_data_guidance_print += f"- Please create the following dummy data files '{files_string}'\n\n"
+                    dummy_data_guidance_print += f"- Please create the following dummy data files '{files_string}' from the folder '{dummy_data_folder}'\n\n"
 
                     dummy_data_guidance_print += f"- For each of the splits '{split_names}', make sure that one or more of the dummy data files provide at least one example \n\n"
 
@@ -102,8 +102,16 @@ class DummyDataCommand(BaseTransformersCLICommand):
 
             if len(files_to_create) == 1 and files_to_create[0] == dummy_file_name:
                 dummy_data_guidance_print += f"-After the dummy data file is created, it should be zipped to '{dummy_file_name}.zip' with the command `zip {dummy_file_name}.zip {dummy_file_name}` \n\n"
+
+                dummy_data_guidance_print += f"-You can now delete the file '{dummy_file_name}' with the command `rm {dummy_file_name}` \n\n"
+
+                dummy_data_guidance_print += f"- To get the file '{dummy_file_name}' back for further changes to the dummy data, simply unzip {dummy_file_name}.zip with the command `unzip {dummy_file_name}.zip` \n\n"
             else:
                 dummy_data_guidance_print += f"-After all dummy data files are created, they should be zipped recursively to '{dummy_file_name}.zip' with the command `zip -r {dummy_file_name}.zip {dummy_file_name}/` \n\n"
+
+                dummy_data_guidance_print += f"-You can now delete the folder '{dummy_file_name}' with the command `rm -r {dummy_file_name}` \n\n"
+
+                dummy_data_guidance_print += f"- To get the folder '{dummy_file_name}' back for further changes to the dummy data, simply unzip {dummy_file_name}.zip with the command `unzip {dummy_file_name}.zip` \n\n"
 
             dummy_data_guidance_print += (
                 f"- Make sure you have created the file '{dummy_file_name}.zip' in '{dummy_data_folder}' \n"
