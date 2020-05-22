@@ -75,7 +75,7 @@
 3. **Make sure you run all of the following commands from the root of your `nlp` git clone.**. To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
 
 	```bash
-	python nlp-cli test datasets/<your-dataset-folder> --save_checksums --all_configs
+	python nlp-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 	```
 
 4. If the command was succesful, you should now create some dummy data. Use the following command to get in-detail instructions on how to create the dummy data:
