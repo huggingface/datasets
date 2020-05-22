@@ -42,7 +42,7 @@ Args:
         - 'prediction_text': the text of the answer
     references: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair (see above),
-        - 'answers': a Dict {'text': list of possible texts for the answer as a string}
+        - 'answers': a Dict {'text': list of possible texts for the answer, as a list of strings}
 Returns:
     'exact_match': Exact match (the normalized answer exactly match the gold answer)
     'f1': The F-score of predicted tokens versus the gold answer
