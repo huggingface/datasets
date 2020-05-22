@@ -92,6 +92,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
                 # no glob.glob(...) in `_generate_examples(...)`
                 if len(files_to_create) == 1 and files_to_create[0] == dummy_file_name:
                     dummy_data_guidance_print += f"- Please create a single dummy data file called '{files_to_create[0]}' from the folder '{dummy_data_folder}'. Make sure that the dummy data file provides at least one example for the split '{split_names}' \n\n"
+                    files_string = dummy_file_name
                 else:
                     files_string = ", ".join(files_to_create)
                     dummy_data_guidance_print += f"- Please create the following dummy data files '{files_string}' from the folder '{dummy_data_folder}'\n\n"
