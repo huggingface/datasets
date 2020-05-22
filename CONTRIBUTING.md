@@ -36,7 +36,7 @@
 
 5. Develop the features on your branch. If you want to add a dataset see more in-detail intsructions in the section *How to add a dataset*.
 
-6. Once you're happy with your dataset script file, add you changes make a commit to record your changes locally:
+6. Once you're happy with your dataset script file, add your changes and make a commit to record your changes locally:
 
 	```bash
 	git add datasets/<your_dataset_name>
@@ -58,7 +58,6 @@
    ```
 
 7. Once you are satisfied, go the webpage of your fork on GitHub. Click on "Pull request" to send your to the project maintainers for review.
-   ```
 
 ## How-To-Add a dataset
 
