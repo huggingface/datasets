@@ -18,7 +18,6 @@
 """Util import."""
 
 from .download_manager import DownloadManager, GenerateMode
-from .mock_download_manager import MockDownloadManager
 from .file_utils import (
     HF_DATASETS_CACHE,
     HF_METRICS_CACHE,
@@ -29,6 +28,7 @@ from .file_utils import (
     is_tf_available,
     is_torch_available,
 )
+from .mock_download_manager import MockDownloadManager
 from .py_utils import *
 from .tqdm_utils import *
 from .version import Version
