@@ -10,82 +10,43 @@ Cicle-ci should always be green so that we can be sure that newly added datasets
 1. `git checkout add_datasets`
 2. `git pull`
 
-**Add a dataset via the `convert_dataset.sh` bash script:**  
-
-Running `bash convert_dataset.sh <file/to/tfds/datascript.py>` (*e.g.* `bash convert_dataset.sh ../tensorflow-datasets/tensorflow_datasets/text/movie_rationales.py`) will automatically run all the steps mentioned in **Add a dataset manually** below. 
-
-Make sure that you run `convert_dataset.sh` from the root folder of `nlp`.
-
-The conversion script should work almost always for step 1): "convert dataset script from tfds to nlp format" and 2) "create checksum file" and step 3) "make style".
-
-It can also sometimes automatically run step 4) "create the correct dummy data from tfds", but this will only work if a) there is either no config name or only one config name and b) the `tfds testing/test_data/fake_example` is in the correct form.
-
-Nevertheless, the script should always be run in the beginning until an error occurs to be more efficient. 
-
-If the conversion script does not work or fails at some step, then you can run the steps manually as follows:
-
-**Add a dataset manually** 
+**Add a dataset** 
 
 Make sure you run all of the following commands from the root of your `nlp` git clone.
-Also make sure that you changed to this branch:
-```
-git checkout add_datasets
-```
 
-1) the tfds datascript file should be converted to `nlp` style:
+1) Create your dataset folder under `datasets/<your_dataset_name>`
+2) Create your dataset script under `datasets/<your_dataset_name>/<your_dataset_name>.py`. You can check out other dataset scripts under `datasets` for some inspiration.
+3) Make sure that your dataset works correctly and create its `dataset_infos.json` file using the command:
 
-```
-python nlp-cli convert --tfds_path <path/to/tensorflow_datasets/text/your_dataset_name>.py --nlp_directory datasets
-```
-
-This will convert the tdfs script and create a folder with the correct name.
-
-2) the checksum file should be added. Use the command:
-```
+```bash
 python nlp-cli test datasets/<your-dataset-folder> --save_checksums --all_configs
 ```
 
-A checksums.txt file should be created in your folder and the structure should look as follows:
+4) Run black and isort on your newly added datascript files so that they look nice:
 
-squad/
-├── squad.py/
-└── urls_checksums/
-...........└── checksums.txt
-
-Delete the created `*.lock` file afterward - it should not be uploaded to AWS.
-
-3) run black and isort on your newly added datascript files so that they look nice:
-
-```
+```bash
 make style
 ```
 
-4) the dummy data should be added. For this it might be useful to take a look into the structure of other examples as shown in the PR here and at `<path/to/tensorflow_datasets/testing/test_data/test_data/fake_examples>` whether the same  data can be used.
+5) If the command was succesful, you should now create some dummy data. Use the following command to get in-detail instructions on how to create the dummy data:
 
-5) check whether all works as expected using: 
-
-**Important**
-You have to delete the local cache with `rm -r ~/.cache/huggingface/datasets/*` to not run into "file exists" errors. TODO (PATRICK) should fix this in code... 
-
+```bash
+python nlp-cli dummy_data datasets/<your-dataset-folder> 
 ```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_real_dataset_local_<your-dataset-name>
+
+6) Now test that both the real data and the dummy data work correctly using the following commands:
+
+*For the real data*:
+```bash
+RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your-dataset-name>
 ```
 and 
+
+*For the dummy data*:
+```bash
+RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
 ```
-RUN_SLOW=1 pytest tests/test_dataset_common.py::DatasetTest::test_load_dataset_all_configs_local_<your-dataset-name>
-```
 
-6) push to this PR and rerun the circle ci workflow to check whether circle ci stays green.
+7) push to this PR and rerun the circle ci workflow to check whether circle ci stays green.
 
-7) Edit this commend and tick off your newly added dataset :-) 
-
-## TODO-list
-
-Maybe we can add a TODO-list here for everybody that feels like adding new datasets so that we will not add the same datasets.
-
-Here a link to available datasets: https://docs.google.com/spreadsheets/d/1zOtEqOrnVQwdgkC4nJrTY6d-Av02u0XFzeKAtBM2fUI/edit#gid=0
-
-Patrick:
-
-- [ ] boolq - *weird download link*
-- [ ] c4 - *beam dataset*
+**NOTE**: In case the dummy data tests fail, some filenames might be spelled incorrectly. Make sure you follow the exact instructions provided by the command of step 5). If the dummy data tests still fail, your datascript might require a difficult dummy data structure. In this case make sure you fully understand the data folder logit created by the function `_split_generations(...)` and expected by the function `_generate_examples(...)` of your dataset script. If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
