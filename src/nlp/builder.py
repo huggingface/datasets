@@ -136,7 +136,7 @@ class DatasetBuilder:
 
     @property
     def does_require_manual_download(self):
-        return hasattr(self, "MANUAL_DOWNLOAD_INSTRUCTIONS")
+        return hasattr(self, "MANUAL_DOWNLOAD_INSTRUCTIONS") and (self.MANUAL_DOWNLOAD_INSTRUCTIONS is not None)
 
     @classmethod
     def get_all_exported_dataset_infos(cls) -> dict:
@@ -339,6 +339,13 @@ class DatasetBuilder:
 
             dl_manager = DownloadManager(
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
+            )
+
+        if self.does_require_manual_download:
+            assert (
+                dl_manager.manual_dir is not None
+            ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load({}, data_dir='<path/to/manual/data>')".format(
+                self.name, self.config.name, self.MANUAL_DOWNLOAD_INSTRUCTIONS, self.name
             )
 
         @contextlib.contextmanager
