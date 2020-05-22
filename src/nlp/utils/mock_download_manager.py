@@ -39,6 +39,7 @@ class MockDownloadManager(object):
         self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
         # to be downloaded
         self._dummy_file = None
+        self._bucket_url = None
 
     @property
     def dummy_file(self):
@@ -60,7 +61,7 @@ class MockDownloadManager(object):
 
     def download_dummy_data(self):
         path_to_dummy_data_dir = (
-            self.local_path_to_dummy_data() if self.is_local is True else self.aws_path_to_dummy_data()
+            self.local_path_to_dummy_data if self.is_local is True else self.aws_path_to_dummy_data
         )
 
         local_path = cached_path(
@@ -69,11 +70,15 @@ class MockDownloadManager(object):
 
         return os.path.join(local_path, self.dummy_file_name)
 
+    @property
     def local_path_to_dummy_data(self):
         return os.path.join("datasets", self.dataset_name, self.dummy_zip_file)
 
-    def aws_path_do_dummy_data(self):
-        return hf_bucket_url(self.dataset_name, filename=self.dummy_zip_file)
+    @property
+    def aws_path_to_dummy_data(self):
+        if self._bucket_url is None:
+            self._bucket_url = hf_bucket_url(self.dataset_name, filename=self.dummy_zip_file)
+        return self._bucket_url
 
     @property
     def manual_dir(self):
@@ -91,7 +96,7 @@ class MockDownloadManager(object):
         else:
             # dummy data cannot be downloaded and only the path to dummy file is returned
             path_to_dummy_data_dir = (
-                self.local_path_to_dummy_data() if self.is_local is True else self.aws_path_to_dummy_data()
+                self.local_path_to_dummy_data if self.is_local is True else self.aws_path_to_dummy_data
             )
             dummy_file = os.path.join(path_to_dummy_data_dir, self.dummy_file_name)
 
