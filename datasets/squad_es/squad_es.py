@@ -1,4 +1,4 @@
-"""TODO(squad_es_v1): Add a description here."""
+"""TODO(squad_es): Add a description here."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -7,8 +7,7 @@ from __future__ import print_function
 import nlp
 import os
 import json
-
-# TODO(squad_es_v1): BibTeX citation
+# TODO(squad_es): BibTeX citation
 _CITATION = """\
 @article{2016arXiv160605250R,
        author = {Casimiro Pio , Carrino and  Marta R. , Costa-jussa and  Jose A. R. , Fonollosa},
@@ -25,44 +24,48 @@ archivePrefix = {arXiv},
 
 # TODO(squad_es_v1):
 _DESCRIPTION = """\
-automatic translation of the Stanford Question Answering Dataset (SQuAD) v1 into Spanish
+automatic translation of the Stanford Question Answering Dataset (SQuAD) v2 into Spanish
 """
 
-_URL = "https://raw.githubusercontent.com/ccasimiro88/TranslateAlignRetrieve/master/SQuAD-es-v1.1/"
-_DEV_FILE = "dev-v1.1-es.json"
-_TRAINING_FILE = "train-v1.1-es.json"
+_URL = "https://raw.githubusercontent.com/ccasimiro88/TranslateAlignRetrieve/master/"
 
-
-class SquadEsV1Config(nlp.BuilderConfig):
-  """BuilderConfig for SQUADEsV1."""
+class SquadEsConfig(nlp.BuilderConfig):
+  """BuilderConfig for SQUADEsV2."""
 
   def __init__(self, **kwargs):
-    """BuilderConfig for SQUADEsV1.
+    """BuilderConfig for SQUADEsV2.
 
     Args:
       **kwargs: keyword arguments forwarded to super.
     """
-    super(SquadEsV1Config, self).__init__(**kwargs)
+    super(SquadEsConfig, self).__init__(**kwargs)
 
-class SquadEsV1(nlp.GeneratorBasedBuilder):
-  """TODO(squad_es_v1): Short description of my dataset."""
 
-  # TODO(squad_es_v1): Set up version.
-  VERSION = nlp.Version('1.0.0')
+class SquadEs(nlp.GeneratorBasedBuilder):
+  """TODO(squad_es): Short description of my dataset."""
 
+  # TODO(squad_es): Set up version.
+  VERSION = nlp.Version('0.1.0')
 
   BUILDER_CONFIGS = [
-      SquadEsV1Config(
-          name="plain_text",
+      SquadEsConfig(
+          name="v1.1.0",
           version=nlp.Version(
-              "1.0.0",
+              "1.1.0",
               "New split API (https://tensorflow.org/datasets/splits)"),
-          description="Plain text Spanish squad",
+          description="Plain text Spanish squad version 1",
+      ),
+      SquadEsConfig(
+          name="v2.0.0",
+          version=nlp.Version(
+              "2.0.0",
+              "New split API (https://tensorflow.org/datasets/splits)"),
+          description="Plain text Spanish squad version 2",
       ),
   ]
 
   def _info(self):
-    # TODO(squad_es_v1): Specifies the nlp.DatasetInfo object
+    # TODO(squad_es): Specifies the nlp.DatasetInfo object
     return nlp.DatasetInfo(
         # This is the description that will appear on the datasets page.
         description=_DESCRIPTION,
@@ -94,14 +97,24 @@ class SquadEsV1(nlp.GeneratorBasedBuilder):
 
   def _split_generators(self, dl_manager):
     """Returns SplitGenerators."""
-    # TODO(squad_es_v1): Downloads the data and defines the splits
+    # TODO(squad_es): Downloads the data and defines the splits
     # dl_manager is a nlp.download.DownloadManager that can be used to
+
     # download and extract URLs
-    urls_to_download = {
-        "train": os.path.join(_URL, _TRAINING_FILE),
-        "dev": os.path.join(_URL, _DEV_FILE)
+    v1_urls = {
+        "train": os.path.join(_URL, 'SQuAD-es-v1.1/dev-v1.1-es.json'),
+        "dev": os.path.join(_URL, 'SQuAD-es-v1.1/dev-v1.1-es.json')
     }
-    dl_dir = dl_manager.download_and_extract(urls_to_download)
+    v2_urls = {
+        "train": os.path.join(_URL, 'SQuAD-es-v2.0/dev-v2.0-es.json'),
+        "dev": os.path.join(_URL, 'SQuAD-es-v2.0/dev-v2.0-es.json')
+    }
+    if self.config.name == 'v1.1.0':
+        dl_dir = dl_manager.download_and_extract(v1_urls)
+    elif self.config.name == 'v2.0.0':
+        dl_dir = dl_manager.download_and_extract(v2_urls)
+    else:
+        raise Exception('version does not match any existing one')
     return [
         nlp.SplitGenerator(
             name=nlp.Split.TRAIN,
@@ -121,7 +134,7 @@ class SquadEsV1(nlp.GeneratorBasedBuilder):
 
   def _generate_examples(self, filepath):
     """Yields examples."""
-    # TODO(squad_es_v1): Yields (key, example) tuples from the dataset
+    # TODO(squad_es): Yields (key, example) tuples from the dataset
     with open(filepath) as f:
         data = json.load(f)
         for example in data["data"]:
@@ -145,4 +158,5 @@ class SquadEsV1(nlp.GeneratorBasedBuilder):
                             "text": answers,
                         },
                     }
+
 
