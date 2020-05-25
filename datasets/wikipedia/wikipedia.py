@@ -513,10 +513,10 @@ class Wikipedia(nlp.BeamBasedBuilder):
 
         return (
             pipeline
-            | beam.Create(filepaths)
-            | beam.FlatMap(_extract_content)
-            | beam.transforms.Reshuffle()
-            | beam.FlatMap(_clean_content)
+            | "Initialize" >> beam.Create(filepaths)
+            | "Extract content" >> beam.FlatMap(_extract_content)
+            | "Distribute" >> beam.transforms.Reshuffle()
+            | "Clean content" >> beam.FlatMap(_clean_content)
         )
 
 
