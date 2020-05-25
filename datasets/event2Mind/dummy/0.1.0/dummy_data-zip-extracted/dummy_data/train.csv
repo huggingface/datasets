@@ -1,7 +1,0 @@
-Source,Event,Xintent,Xemotion,Otheremotion,Xsent,Osent
-it_events,It is PersonY's favorite color,"[""none""]","[""none""]","[""happy""]",,4.0
-it_events,It is PersonY's favorite color,"[""none""]","[""none""]","[""pleased""]",,4.0
-it_events,It is PersonY's favorite color,"[""none""]","[""none""]","[""happy"", ""pleased""]",,5.0
-it_events,It is a good thing,"[""none""]","[""none""]","[""happy"", ""satisfied""]",,5.0
-it_events,It is a good thing,"[""none""]","[""none""]","[""happy"", ""thrilled""]",,5.0
-it_events,It takes days,"[""none""]","[""none""]","[""impatient""]",,2.0

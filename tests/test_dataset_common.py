@@ -27,6 +27,7 @@ from nlp import (
     DatasetBuilder,
     DownloadConfig,
     GenerateMode,
+    MockDownloadManager,
     hf_api,
     hf_bucket_url,
     import_main_class,
@@ -34,7 +35,7 @@ from nlp import (
     prepare_module,
 )
 
-from .utils import MockDataLoaderManager, aws, is_aws_mode, is_local_mode, local, slow
+from .utils import aws, local, slow
 
 
 logging.basicConfig(level=logging.INFO)
@@ -84,7 +85,7 @@ class DatasetTester(object):
                     version = dataset_builder.VERSION
 
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
-                mock_dl_manager = MockDataLoaderManager(
+                mock_dl_manager = MockDownloadManager(
                     dataset_name=dataset_name,
                     config=config,
                     version=version,
@@ -125,34 +126,72 @@ class DatasetTester(object):
                     self.parent.assertTrue(len(dataset[split]) > 0)
 
 
-def get_dataset_names():
-    datasets = []
-    if is_local_mode() is True or isinstance(is_local_mode(), int) and is_local_mode() > 0:
-        # fetch all dirs in "./datasets/"
-        datasets = datasets + [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
-    if is_aws_mode() is True or isinstance(is_aws_mode(), int) and is_aws_mode() > 0:
-        api = hf_api.HfApi()
-        # fetch all dataset names
-        datasets = datasets + [x.id for x in api.dataset_list()]
-
-    dataset_names_parametrized = [{"testcase_name": x, "dataset_name": x} for x in set(datasets)]
-    return dataset_names_parametrized
+def get_local_dataset_names():
+    datasets = [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
+    return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
-@parameterized.named_parameters(get_dataset_names())
-class DatasetTest(parameterized.TestCase):
-
+@parameterized.named_parameters(get_local_dataset_names())
+@local
+class LocalDatasetTest(parameterized.TestCase):
     dataset_name = None
 
     def setUp(self):
         self.dataset_tester = DatasetTester(self)
 
-    @aws
-    def test_dataset_has_valid_etag(self, dataset_name):
-        if "/" not in dataset_name:
-            logging.info("Skip {} because it is a canonical dataset")
-            return
+    def test_load_dataset(self, dataset_name):
+        configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)[:1]
+        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
 
+    def test_builder_class(self, dataset_name):
+        builder_cls = self.dataset_tester.load_builder_class(dataset_name, is_local=True)
+        builder = builder_cls()
+        self.assertTrue(isinstance(builder, DatasetBuilder))
+
+    def test_builder_configs(self, dataset_name):
+        builder_configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
+        self.assertTrue(len(builder_configs) > 0)
+
+        if builder_configs[0] is not None:
+            all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
+
+    @slow
+    def test_load_dataset_all_configs(self, dataset_name):
+        configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
+        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
+
+    @slow
+    def test_load_real_dataset(self, dataset_name):
+        with tempfile.TemporaryDirectory() as temp_data_dir:
+            download_config = DownloadConfig()
+            download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
+            download_and_prepare_kwargs = {"download_config": download_config}
+
+            dataset = load_dataset(
+                "./datasets/" + dataset_name,
+                data_dir=temp_data_dir,
+                download_and_prepare_kwargs=download_and_prepare_kwargs,
+            )
+            for split in dataset.keys():
+                self.assertTrue(len(dataset[split]) > 0)
+
+
+def get_aws_dataset_names():
+    api = hf_api.HfApi()
+    # fetch all dataset names
+    datasets = [x.id for x in api.dataset_list()]
+    return [{"testcase_name": x, "dataset_name": x} for x in datasets]
+
+
+@parameterized.named_parameters(get_aws_dataset_names())
+@aws
+class AWSDatasetTest(parameterized.TestCase):
+    dataset_name = None
+
+    def setUp(self):
+        self.dataset_tester = DatasetTester(self)
+
+    def test_dataset_has_valid_etag(self, dataset_name):
         py_script_path = list(filter(lambda x: x, dataset_name.split("/")))[-1] + ".py"
         dataset_url = hf_bucket_url(dataset_name, filename=py_script_path, dataset=True)
         etag = None
@@ -166,75 +205,29 @@ class DatasetTest(parameterized.TestCase):
 
         self.assertIsNotNone(etag)
 
-    @aws
     def test_builder_class(self, dataset_name):
-        if "/" not in dataset_name:
-            logging.info("Skip {} because it is a canonical dataset")
-            return
-
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
         builder = builder_cls()
         self.assertTrue(isinstance(builder, DatasetBuilder))
 
-    @aws
     def test_builder_configs(self, dataset_name):
-        if "/" not in dataset_name:
-            logging.info("Skip {} because it is a canonical dataset")
-            return
-
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)
         self.assertTrue(len(builder_configs) > 0)
 
         if builder_configs[0] is not None:
             all(self.assertTrue(isinstance(config, BuilderConfig)) for config in builder_configs)
 
-    @aws
     def test_load_dataset(self, dataset_name):
-        # test only first config
-        if "/" not in dataset_name:
-            logging.info("Skip {} because it is a canonical dataset")
-            return
-
         configs = self.dataset_tester.load_all_configs(dataset_name)[:1]
         self.dataset_tester.check_load_dataset(dataset_name, configs)
 
-    @local
-    def test_load_dataset_local(self, dataset_name):
-        # test only first config
-        if "/" in dataset_name:
-            logging.info("Skip {} because it is not a canonical dataset")
-            return
-
-        configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)[:1]
-        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
-
     @slow
-    @aws
     def test_load_dataset_all_configs(self, dataset_name):
-        if "/" not in dataset_name:
-            logging.info("Skip {} because it is a canonical dataset")
-            return
-
         configs = self.dataset_tester.load_all_configs(dataset_name)
         self.dataset_tester.check_load_dataset(dataset_name, configs)
 
     @slow
-    @local
-    def test_load_dataset_all_configs_local(self, dataset_name):
-        if "/" in dataset_name:
-            logging.info("Skip {} because it is not a canonical dataset")
-            return
-
-        configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
-        self.dataset_tester.check_load_dataset(dataset_name, configs, is_local=True)
-
-    @slow
-    @aws
     def test_load_real_dataset(self, dataset_name):
-        if "/" not in dataset_name:
-            logging.info("Skip {} because it is a canonical dataset")
-            return
-
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
             download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
@@ -242,26 +235,6 @@ class DatasetTest(parameterized.TestCase):
 
             dataset = load_dataset(
                 dataset_name, data_dir=temp_data_dir, download_and_prepare_kwargs=download_and_prepare_kwargs
-            )
-            for split in dataset.keys():
-                self.assertTrue(len(dataset[split]) > 0)
-
-    @slow
-    @local
-    def test_load_real_dataset_local(self, dataset_name):
-        if "/" in dataset_name:
-            logging.info("Skip {} because it is not a canonical dataset")
-            return
-
-        with tempfile.TemporaryDirectory() as temp_data_dir:
-            download_config = DownloadConfig()
-            download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
-            download_and_prepare_kwargs = {"download_config": download_config}
-
-            dataset = load_dataset(
-                "./datasets/" + dataset_name,
-                data_dir=temp_data_dir,
-                download_and_prepare_kwargs=download_and_prepare_kwargs,
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)

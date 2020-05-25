@@ -82,7 +82,7 @@ class Newsroom(nlp.GeneratorBasedBuilder):
 
     VERSION = nlp.Version("1.0.0")
     MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-  You should download the dataset from https://summari.es/download/
+  You should download the dataset from http://lil.nlp.cornell.edu/newsroom/
   The webpage requires registration.
   To unzip the .tar file run `tar -zxvf complete.tar`. To unzip the .gz files
   run `gunzip train.json.gz` , ...
@@ -100,7 +100,7 @@ class Newsroom(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(features),
             supervised_keys=(_DOCUMENT, _SUMMARY),
-            homepage="https://summari.es",
+            homepage="http://lil.nlp.cornell.edu/newsroom/",
             citation=_CITATION,
         )
 
