@@ -102,11 +102,11 @@ class SquadEs(nlp.GeneratorBasedBuilder):
 
     # download and extract URLs
     v1_urls = {
-        "train": os.path.join(_URL, 'SQuAD-es-v1.1/dev-v1.1-es.json'),
+        "train": os.path.join(_URL, 'SQuAD-es-v1.1/train-v1.1-es.json'),
         "dev": os.path.join(_URL, 'SQuAD-es-v1.1/dev-v1.1-es.json')
     }
     v2_urls = {
-        "train": os.path.join(_URL, 'SQuAD-es-v2.0/dev-v2.0-es.json'),
+        "train": os.path.join(_URL, 'SQuAD-es-v2.0/train-v2.0-es.json'),
         "dev": os.path.join(_URL, 'SQuAD-es-v2.0/dev-v2.0-es.json')
     }
     if self.config.name == 'v1.1.0':
