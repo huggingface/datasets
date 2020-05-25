@@ -22,16 +22,20 @@ import os
 import re
 from dataclasses import dataclass
 from typing import List, Optional
+import logging
 
 import pyarrow as pa
 import pyarrow.parquet
 
 from .arrow_dataset import Dataset
 from .naming import filename_for_dataset_split
-from .utils import py_utils
+from .utils import py_utils, cached_path
 
+
+logger = logging.getLogger(__name__)
 
 _BUFFER_SIZE = 8 << 20  # 8 MiB per file.
+HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/"
 
 _SUB_SPEC_RE = re.compile(
     r"""
@@ -50,6 +54,10 @@ $
 )
 
 _ADDITION_SEP_RE = re.compile(r"\s*\+\s*")
+
+
+class DatasetNotOnHfGcs(ConnectionError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -145,6 +153,14 @@ class BaseReader:
         ds = Dataset(arrow_table=pa_table, data_files=files, info=info)
         return ds
 
+    def get_file_instructions(self, name, instruction, split_infos):
+        """Return list of dict {'filename': str, 'skip': int, 'take': int}"""
+        file_instructions = make_file_instructions(
+            name, split_infos, instruction, filetype_suffix=self._filetype_suffix
+        )
+        files = file_instructions.file_instructions
+        return files
+
     def read(
         self, name, instructions, split_infos,
     ):
@@ -164,10 +180,7 @@ class BaseReader:
         """
 
         def _read_instruction_to_ds(instruction):
-            file_instructions = make_file_instructions(
-                name, split_infos, instruction, filetype_suffix=self._filetype_suffix
-            )
-            files = file_instructions.file_instructions
+            files = self.get_file_instructions(name, instruction, split_infos)
             if not files:
                 msg = 'Instruction "%s" corresponds to no data!' % instruction
                 raise AssertionError(msg)
@@ -194,6 +207,23 @@ class BaseReader:
             f.update(filename=os.path.join(self._path, f["filename"]))
         dataset = self._read_files(files=files, info=self._info,)
         return dataset
+
+    def download_from_hf_gcs(self, cache_dir):
+        remote_cache_dir = os.path.join(HF_GCP_BASE_URL, self._relative_data_dir(with_version=True))
+        try:
+            remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
+            downloaded_dataset_info = cached_path(remote_dataset_info)
+            os.rename(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
+        except ConnectionError:
+            raise DatasetNotOnHfGcs()
+        for split in self.info.splits:
+            file_instructions = self.get_file_instructions(
+                name=self.name, instruction=split, split_infos=self.info.splits.values(),
+            )
+            for file_instruction in file_instructions:
+                remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
+                downloaded_prepared_filename = cached_path(remote_prepared_filename)
+                os.rename(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
 
 
 class ArrowReader(BaseReader):
