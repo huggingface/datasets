@@ -282,6 +282,7 @@ class DatasetBuilder:
         download_mode: Optional[GenerateMode] = None,
         ignore_verifications: bool = False,
         save_infos: bool = False,
+        try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
         **download_and_prepare_kwargs,
     ):
@@ -312,30 +313,30 @@ class DatasetBuilder:
             )
 
         logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
-        os.makedirs(self._cache_dir, exist_ok=True)
-        if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
-            raise IOError(
-                "Not enough disk space. Needed: {} (download: {}, generated: {})".format(
-                    utils.size_str(self.info.size_in_bytes or 0),
-                    utils.size_str(self.info.download_size or 0),
-                    utils.size_str(self.info.dataset_size or 0),
+        if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
+            os.makedirs(self._cache_dir, exist_ok=True)
+            if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
+                raise IOError(
+                    "Not enough disk space. Needed: {} (download: {}, generated: {})".format(
+                        utils.size_str(self.info.size_in_bytes or 0),
+                        utils.size_str(self.info.download_size or 0),
+                        utils.size_str(self.info.dataset_size or 0),
+                    )
                 )
-            )
-        import pyarrow as pa
-        pa.parquet
 
         # Try to download the already prepared dataset files
-        try:
-            reader = ArrowReader(self._cache_dir, self.info)
-            reader.download_from_hf_gcs(self.cache_dir)
-            logger.info("Dataset downloaded from Hf google storage.")
-            print(
-                f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
-                f"Subsequent calls will reuse this data."
-            )
-            return
-        except DatasetNotOnHfGcs:
-            logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
+        if try_from_hf_gcs:
+            try:
+                reader = ArrowReader(self._cache_dir, self.info)
+                reader.download_from_hf_gcs(self.cache_dir)
+                logger.info("Dataset downloaded from Hf google storage.")
+                print(
+                    f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
+                    f"Subsequent calls will reuse this data."
+                )
+                return
+            except DatasetNotOnHfGcs:
+                logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
 
         # Print is intentional: we want this to always go to stdout so user has
         # information needed to cancel download/preparation if needed.
@@ -387,7 +388,7 @@ class DatasetBuilder:
                 self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
                 self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
                 # Save info
-                self._save_infos()
+                self._save_info()
 
         # Save to datasetinfos
         if save_infos:
@@ -444,7 +445,7 @@ class DatasetBuilder:
         self.info.splits = split_dict
         self.info.download_size = dl_manager.downloaded_size
 
-    def _save_infos(self):
+    def _save_info(self):
         self.info.write_to_directory(self._cache_dir)
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -788,7 +789,7 @@ class BeamBasedBuilder(DatasetBuilder):
             split_info.num_examples = num_examples
             split_info.num_bytes = num_bytes
 
-    def _save_infos(self):
+    def _save_info(self):
         import apache_beam as beam
         fs = beam.io.filesystems.FileSystems
         with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
@@ -798,8 +799,6 @@ class BeamBasedBuilder(DatasetBuilder):
 
     def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam
-
-        os.makedirs(self._cache_dir, exist_ok=True)
 
         split_name = split_generator.split_info.name
         output_prefix = filename_prefix_for_split(self.name, split_name)

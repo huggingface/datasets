@@ -100,6 +100,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
                 download_config=DownloadConfig(cache_dir=os.path.join(HF_DATASETS_CACHE, "downloads")),
                 save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,
+                try_from_hf_gcs=False,
             )
 
         print("Apache beam run successful.")

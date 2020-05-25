@@ -99,7 +99,7 @@ def is_tf_available():
 
 def is_remote_url(url_or_filename):
     parsed = urlparse(url_or_filename)
-    return parsed.scheme in ("http", "https", "s3")
+    return parsed.scheme in ("http", "https", "s3", "gs", "hdfs")
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
