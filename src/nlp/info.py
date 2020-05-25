@@ -124,10 +124,18 @@ class DatasetInfo:
             Also save the license separately in LICENCE.
         """
         with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "w") as f:
-            json.dump(asdict(self), f)
+            self._dump_info(f)
 
         with open(os.path.join(dataset_info_dir, LICENSE_FILENAME), "w") as f:
-            f.write(self.license)
+            self._dump_license(f)
+
+    def _dump_info(self, file):
+        """Dump info in `file` file-like object"""
+        json.dump(asdict(self), file)
+
+    def _dump_license(self, file):
+        """Dump license in `file` file-like object"""
+        file.write(self.license)
 
     @classmethod
     def from_directory(cls, dataset_info_dir):

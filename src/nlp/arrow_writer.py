@@ -17,6 +17,7 @@
 """To write records into Parquet files."""
 import logging
 from typing import Any, Dict, List, Optional
+from pathlib import Path
 
 import pyarrow as pa
 
@@ -204,6 +205,13 @@ class ArrowWriter(object):
         )
         return self._num_examples, self._num_bytes
 
+    def write_from_parquet(self, parquet_path):
+        """Write to Arrow file from Parquet file"""
+        pf = pa.parquet.ParquetFile(parquet_path, memory_map=True)
+        for i in range(pf.num_row_groups):
+            row_group_table = pf.read_row_group(i)
+            self.write_table(row_group_table)
+
 
 class BeamWriter(object):
     """Shuffles and writes Examples to Parquet files.
@@ -229,6 +237,7 @@ class BeamWriter(object):
             self._type: pa.DataType = pa.struct(field for field in self._schema)
 
         self._path = path
+        self._parquet_path = str(Path(path).with_suffix(".parquet"))
         self._namespace = namespace or "default"
         self._num_examples = None
         self._pcoll_outputs_metadata = []
@@ -255,8 +264,25 @@ class BeamWriter(object):
 
     def finalize(self, metrics_query_result: dict):
         import apache_beam as beam
+        # Convert to arrow
+        logger.info("Converting parquet file {} to arrow {}".format(self._parquet_path, self._path))
+        with beam.io.filesystems.FileSystems.open(self._parquet_path) as src:
+            with beam.io.filesystems.FileSystems.create(self._path) as dest:
+                parquet_to_arrow(src, dest)
+        # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
         self._num_examples = counters_dict["num_examples"]
         output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
         self._num_bytes = output_file_metadata.size_in_bytes
         return self._num_examples, self._num_bytes
+
+
+def parquet_to_arrow(source, destination):
+    """Convert parquet file to arrow file. Input can be str path or file-like object"""
+    pf = pa.parquet.ParquetFile(source)
+    stream = None if isinstance(destination, str) else destination
+    writer = ArrowWriter(path=destination, stream=stream)
+    for i in range(pf.num_row_groups):
+        row_group_table = pf.read_row_group(i)
+        writer.write_table(row_group_table)
+    return destination
