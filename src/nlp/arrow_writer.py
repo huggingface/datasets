@@ -18,6 +18,8 @@
 import logging
 import os
 from typing import Any, Dict, List, Optional
+import socket
+import errno
 
 import pyarrow as pa
 
@@ -274,7 +276,9 @@ class BeamWriter(object):
             with beam.io.filesystems.FileSystems.open(self._parquet_path) as src:
                 with beam.io.filesystems.FileSystems.create(self._path) as dest:
                     parquet_to_arrow(src, dest)
-        except:  # broken pipe can happen if the connection is unstable, do local convert instead
+        except socket.error as e:  # broken pipe can happen if the connection is unstable, do local convert instead
+            if e.errno != errno.EPIPE:  # not a broken pipe
+                raise e
             local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
             os.makedirs(local_convert_dir, exist_ok=True)
             local_parquet_path = os.path.join(local_convert_dir, url_to_filename(self._parquet_path) + ".parquet")
