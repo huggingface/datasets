@@ -17,19 +17,19 @@
 """ Arrow ArrowReader."""
 
 import copy
+import logging
 import math
 import os
 import re
 from dataclasses import dataclass
 from typing import List, Optional
-import logging
 
 import pyarrow as pa
 import pyarrow.parquet
 
 from .arrow_dataset import Dataset
 from .naming import filename_for_dataset_split
-from .utils import py_utils, cached_path
+from .utils import cached_path, py_utils
 
 
 logger = logging.getLogger(__name__)

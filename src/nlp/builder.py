@@ -26,10 +26,10 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 from . import utils
-from .arrow_reader import ArrowReader, ParquetReader, DatasetNotOnHfGcs
+from .arrow_reader import ArrowReader, DatasetNotOnHfGcs, ParquetReader
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
-from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo, DatasetInfosDict, DATASET_INFO_FILENAME, LICENSE_FILENAME
+from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict
 from .utils.download_manager import DownloadManager, GenerateMode

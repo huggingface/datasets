@@ -1,11 +1,11 @@
-from argparse import ArgumentParser
-from typing import List
 import os
+from argparse import ArgumentParser
 from shutil import copyfile
+from typing import List
 
 import apache_beam as beam
 
-from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig, HF_DATASETS_CACHE
+from nlp.builder import FORCE_REDOWNLOAD, HF_DATASETS_CACHE, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
 from nlp.commands import BaseTransformersCLICommand
 from nlp.load import import_main_class, prepare_module
 from nlp.utils.info_utils import DATASET_INFOS_DICT_FILE_NAME

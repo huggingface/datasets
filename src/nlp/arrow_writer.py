@@ -15,15 +15,16 @@
 
 # Lint as: python3
 """To write records into Parquet files."""
+import errno
 import logging
 import os
-from typing import Any, Dict, List, Optional
 import socket
-import errno
+from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
 
-from .utils.file_utils import url_to_filename, HF_DATASETS_CACHE
+from .utils.file_utils import HF_DATASETS_CACHE, url_to_filename
+
 
 logger = logging.getLogger(__name__)
 
