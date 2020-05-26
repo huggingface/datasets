@@ -328,7 +328,9 @@ class DatasetBuilder:
         if try_from_hf_gcs:
             try:
                 reader = ArrowReader(self._cache_dir, self.info)
-                reader.download_from_hf_gcs(self.cache_dir)
+                reader.download_from_hf_gcs(self.cache_dir, self._relative_data_dir(with_version=True))
+                downloaded_info = DatasetInfo.from_directory(self._cache_dir)
+                self.info.update(downloaded_info)
                 logger.info("Dataset downloaded from Hf google storage.")
                 print(
                     f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
