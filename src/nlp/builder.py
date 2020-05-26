@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 from . import utils
-from .arrow_reader import ArrowReader, DatasetNotOnHfGcs, ParquetReader
+from .arrow_reader import ArrowReader, DatasetNotOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
 from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
@@ -680,13 +680,17 @@ class ArrowBasedBuilder(DatasetBuilder):
         )
 
 
+class MissingBeamOptions(ValueError):
+    pass
+
+
 class BeamBasedBuilder(DatasetBuilder):
     """Beam based Builder."""
 
     def __init__(self, *args, **kwargs):
+        self._beam_runner = kwargs.pop("beam_runner", None)
+        self._beam_options = kwargs.pop("beam_options", None)
         super(BeamBasedBuilder, self).__init__(*args, **kwargs)
-        self._beam_runner = kwargs.get("beam_runner")
-        self._beam_options = kwargs.get("beam_options")
         self._beam_writers = {}  # {split: beam_writer} mapping.
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -743,7 +747,7 @@ class BeamBasedBuilder(DatasetBuilder):
         beam_options = self._beam_options
 
         if not beam_runner and not beam_options:
-            raise ValueError(
+            raise MissingBeamOptions(
                 "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
                 "or PipelineOptions() has been provided in `load_dataset` or in the "
                 "builder arguments. For big datasets it has to run on large-scale data "
@@ -795,7 +799,7 @@ class BeamBasedBuilder(DatasetBuilder):
         fname = "{}-{}.arrow".format(self.name, split_name)
         fpath = os.path.join(self._cache_dir, fname)
         examples_type = self.info.features.type
-        beam_writer = BeamWriter(examples_type, path=fpath, namespace=split_name)
+        beam_writer = BeamWriter(examples_type, path=fpath, namespace=split_name, cache_dir=self._cache_dir)
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example
