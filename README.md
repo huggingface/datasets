@@ -27,7 +27,7 @@
 
 `nlp` has many interesting features (beside easy sharing and accessing datasets/metrics):
 
-- Build-in interoperability with Numpy, Pandas, PyTorch and Tensorflow 2
+- Built-in interoperability with Numpy, Pandas, PyTorch and Tensorflow 2
 - Lightweight and fast with a transparent and pythonic API
 - Strive on large datasets: `nlp` naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
 - Smart caching: never wait for your data to process several times
