@@ -734,25 +734,6 @@ class BeamBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _as_dataset(self, split: Split = Split.TRAIN):
-        """Constructs a `Dataset`.
-
-        This is the internal implementation to overwrite called when user calls
-        `as_dataset`. It should read the pre-processed datasets files and generate
-        the `Dataset` object.
-
-        Args:
-            split: `nlp.Split` which subset of the data to read.
-
-        Returns:
-            `Dataset`
-        """
-
-        ds = ParquetReader(self._cache_dir, self.info).read(
-            name=self.name, instructions=split, split_infos=self.info.splits.values(),
-        )
-        return ds
-
     def _download_and_prepare(self, dl_manager, verify_infos):
         # Create the Beam pipeline and forward it to _prepare_split
         import apache_beam as beam
