@@ -208,17 +208,17 @@ class BaseReader:
         dataset = self._read_files(files=files, info=self._info,)
         return dataset
 
-    def download_from_hf_gcs(self, cache_dir):
-        remote_cache_dir = os.path.join(HF_GCP_BASE_URL, self._relative_data_dir(with_version=True))
+    def download_from_hf_gcs(self, cache_dir, relative_data_dir):
+        remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
         try:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
             downloaded_dataset_info = cached_path(remote_dataset_info)
             os.rename(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
         except ConnectionError:
             raise DatasetNotOnHfGcs()
-        for split in self.info.splits:
+        for split in self._info.splits:
             file_instructions = self.get_file_instructions(
-                name=self.name, instruction=split, split_infos=self.info.splits.values(),
+                name=self._info.builder_name, instruction=split, split_infos=self._info.splits.values(),
             )
             for file_instruction in file_instructions:
                 remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
