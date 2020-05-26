@@ -107,7 +107,7 @@ class Xsum(nlp.GeneratorBasedBuilder):
                 "{} does not exist. Make sure you indicate the data_dir as  `nlp.load('xsum', data_dir=...), which points to your downloded dataset'. Manual download instructions: {})".format(
                     downloaded_path, self.MANUAL_DOWNLOAD_INSTRUCTIONS
                 )
-            ) 
+            )
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN, gen_kwargs={"split_ids": split_ids["train"], "path": downloaded_path,},

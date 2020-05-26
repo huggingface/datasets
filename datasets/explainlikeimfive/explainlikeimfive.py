@@ -124,6 +124,8 @@ def _download_and_select_lines(dl_manager, f_url, mode, st_time):
     if f_url.split(".")[-1] == "zst":
         fh.close()
     os.remove(f_downloaded_path)
+    os.remove(f_downloaded_path + '.json')
+    os.remove(f_downloaded_path + '.lock')
     print("tokenizing and selecting {} {:.2f}".format(f_url, time() - st_time))
     processed_items = dict([(name, []) for name in _SUB_REDDITS])
     if mode == "submissions":
