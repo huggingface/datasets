@@ -1,12 +1,14 @@
 from argparse import ArgumentParser
 from typing import List
 import os
+from shutil import copyfile
 
 import apache_beam as beam
 
 from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig, HF_DATASETS_CACHE
 from nlp.commands import BaseTransformersCLICommand
 from nlp.load import import_main_class, prepare_module
+from nlp.utils.info_utils import DATASET_INFOS_DICT_FILE_NAME
 
 
 def run_beam_command_factory(args):
@@ -104,3 +106,25 @@ class RunBeamCommand(BaseTransformersCLICommand):
             )
 
         print("Apache beam run successful.")
+
+        # If save_infos=True, the dataset infos file is created next to the loaded module file.
+        # Let's move it to the original directory of the dataset script, to allow the user to
+        # upload them on S3 at the same time afterwards.
+        if self._save_infos:
+            dataset_infos_path = os.path.join(builder_cls.get_imported_module_dir(), DATASET_INFOS_DICT_FILE_NAME)
+
+            name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
+
+            combined_path = os.path.join(path, name)
+            if os.path.isfile(path):
+                dataset_dir = os.path.dirname(path)
+            elif os.path.isfile(combined_path):
+                dataset_dir = path
+            else:  # in case of a remote dataset
+                print("Dataset Infos file saved at {}".format(dataset_infos_path))
+                exit(1)
+
+            # Move datasetinfo back to the user
+            user_dataset_infos_path = os.path.join(dataset_dir, DATASET_INFOS_DICT_FILE_NAME)
+            copyfile(dataset_infos_path, user_dataset_infos_path)
+            print("Dataset Infos file saved at {}".format(user_dataset_infos_path))
