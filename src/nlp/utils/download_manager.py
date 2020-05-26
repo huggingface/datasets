@@ -82,19 +82,22 @@ class DownloadManager(object):
         Upload files using Beam FileSystems, as pipelines require downloaded files to in a remote dir
         """
         from nlp.utils.beam_utils import upload_local_to_remote
+
         remote_dir = pipeline._options.get_all_options().get("temp_location")
         if remote_dir is None:
             raise ValueError("You need to specify 'temp_location' in PipelineOptions to upload files")
 
         def upload(local_file_path):
             remote_file_path = os.path.join(remote_dir, "downloads", os.path.basename(local_file_path))
-            logger.info("Uploading {} ({}) to {}.".format(local_file_path, size_str(os.path.getsize(local_file_path)), remote_file_path))
+            logger.info(
+                "Uploading {} ({}) to {}.".format(
+                    local_file_path, size_str(os.path.getsize(local_file_path)), remote_file_path
+                )
+            )
             upload_local_to_remote(local_file_path, remote_file_path)
             return remote_file_path
 
-        uploaded_path_or_paths = map_nested(
-            lambda local_file_path: upload(local_file_path), downloaded_path_or_paths,
-        )
+        uploaded_path_or_paths = map_nested(lambda local_file_path: upload(local_file_path), downloaded_path_or_paths,)
         return uploaded_path_or_paths
 
     def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
@@ -191,8 +194,7 @@ class DownloadManager(object):
                 path_or_paths.
         """
         return map_nested(
-            lambda path: cached_path(path, extract_compressed_file=True, force_extract=False),
-            path_or_paths,
+            lambda path: cached_path(path, extract_compressed_file=True, force_extract=False), path_or_paths,
         )
 
     def download_and_extract(self, url_or_urls):

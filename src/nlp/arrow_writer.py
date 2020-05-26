@@ -29,9 +29,7 @@ logger = logging.getLogger(__name__)
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
-DEFAULT_MAX_BATCH_SIZE = (
-    10_000  # hopefully it doesn't write too much at once (max is 2GB)
-)
+DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
 
 
 class ArrowWriter(object):
@@ -61,12 +59,8 @@ class ArrowWriter(object):
             self._type = None
 
         if disable_nullable and self._schema is not None:
-            self._schema = pa.schema(
-                pa.field(field.name, field.type, nullable=False) for field in self._type
-            )
-            self._type = pa.struct(
-                pa.field(field.name, field.type, nullable=False) for field in self._type
-            )
+            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._type)
+            self._type = pa.struct(pa.field(field.name, field.type, nullable=False) for field in self._type)
 
         self._path = path
         if stream is None:
@@ -115,9 +109,7 @@ class ArrowWriter(object):
                 # There was an Overflow in StructArray. Let's reduce the batch_size
                 while pa_array[0] != first_example:
                     new_batch_size = self.writer_batch_size // 2
-                    pa_array = pa.array(
-                        self.current_rows[:new_batch_size], type=self._type
-                    )
+                    pa_array = pa.array(self.current_rows[:new_batch_size], type=self._type)
                 logger.warning(
                     "Batch size is too big (>2GB). Reducing it from {} to {}".format(
                         self.writer_batch_size, new_batch_size
@@ -128,10 +120,7 @@ class ArrowWriter(object):
                 n_batches += int(len(self.current_rows) % new_batch_size != 0)
                 for i in range(n_batches):
                     pa_array = pa.array(
-                        self.current_rows[
-                            i * new_batch_size : (i + 1) * new_batch_size
-                        ],
-                        type=self._type,
+                        self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=self._type,
                     )
                     self._write_array_on_file(pa_array)
             else:
@@ -149,16 +138,11 @@ class ArrowWriter(object):
         self._num_examples += 1
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
-        if (
-            writer_batch_size is not None
-            and len(self.current_rows) >= writer_batch_size
-        ):
+        if writer_batch_size is not None and len(self.current_rows) >= writer_batch_size:
             self.write_on_file()
 
     def write_batch(
-        self,
-        batch_examples: Dict[str, List[Any]],
-        writer_batch_size: Optional[int] = None,
+        self, batch_examples: Dict[str, List[Any]], writer_batch_size: Optional[int] = None,
     ):
         """ Write a batch of Example to file.
 
@@ -168,9 +152,7 @@ class ArrowWriter(object):
         pa_table: pa.Table = pa.Table.from_pydict(batch_examples, schema=self._schema)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
-        batches: List[pa.RecordBatch] = pa_table.to_batches(
-            max_chunksize=writer_batch_size
-        )
+        batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
         self._num_bytes += sum(batch.nbytes for batch in batches)
         self._num_examples += pa_table.num_rows
         for batch in batches:
@@ -186,9 +168,7 @@ class ArrowWriter(object):
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(pa_table=pa_table)
-        batches: List[pa.RecordBatch] = pa_table.to_batches(
-            max_chunksize=writer_batch_size
-        )
+        batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
         self._num_bytes += sum(batch.nbytes for batch in batches)
         self._num_examples += pa_table.num_rows
         for batch in batches:
@@ -241,7 +221,7 @@ class BeamWriter(object):
             self._type: pa.DataType = pa.struct(field for field in self._schema)
 
         self._path = path
-        self._parquet_path = os.path.splitext(path)[0] + '.parquet'
+        self._parquet_path = os.path.splitext(path)[0] + ".parquet"
         self._namespace = namespace or "default"
         self._num_examples = None
         self._cache_dir = cache_dir or HF_DATASETS_CACHE
@@ -261,15 +241,13 @@ class BeamWriter(object):
             pcoll_examples
             | "Get values" >> beam.Values()
             | "Save to parquet"
-            >> WriteToParquet(
-                self._parquet_path, self._schema, num_shards=1, shard_name_template=""
-            )
+            >> WriteToParquet(self._parquet_path, self._schema, num_shards=1, shard_name_template="")
         )
 
     def finalize(self, metrics_query_result: dict):
         import apache_beam as beam
         from .utils import beam_utils
-        
+
         # Convert to arrow
         logger.info("Converting parquet file {} to arrow {}".format(self._parquet_path, self._path))
         try:  # stream convert
@@ -282,7 +260,7 @@ class BeamWriter(object):
             local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
             os.makedirs(local_convert_dir, exist_ok=True)
             local_parquet_path = os.path.join(local_convert_dir, url_to_filename(self._parquet_path) + ".parquet")
-            local_arrow_path = os.path.splitext(local_parquet_path)[0] + '.arrow'
+            local_arrow_path = os.path.splitext(local_parquet_path)[0] + ".arrow"
             beam_utils.download_remote_to_local(self._parquet_path, local_parquet_path)
             parquet_to_arrow(local_parquet_path, local_arrow_path)
             beam_utils.upload_local_to_remote(local_arrow_path, self._path)

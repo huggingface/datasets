@@ -796,6 +796,7 @@ class BeamBasedBuilder(DatasetBuilder):
 
     def _save_info(self):
         import apache_beam as beam
+
         fs = beam.io.filesystems.FileSystems
         with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
             self.info._dump_info(f)
