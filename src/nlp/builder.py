@@ -763,7 +763,10 @@ class BeamBasedBuilder(DatasetBuilder):
             raise ValueError(
                 "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
                 "or PipelineOptions() has been provided in `load_dataset` or in the "
-                "builder arguments."
+                "builder arguments. For big datasets it has to run on large-scale data "
+                "processing tools like Dataflow, Spark, etc. More information about "
+                "Apache Beam runners at "
+                "https://beam.apache.org/documentation/runners/capability-matrix/"
             )
 
         beam_options = beam_options or beam.options.pipeline_options.PipelineOptions()
