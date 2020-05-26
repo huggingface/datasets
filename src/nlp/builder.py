@@ -70,9 +70,11 @@ class BuilderConfig:
         for invalid_char in invalid_windows_characters:
             if invalid_char in self.name:
                 raise InvalidConfigName(
-                    "Bad characters for directories on Windows '{}' found in '{}'".format(
-                        invalid_windows_characters, self.name
-                    )
+                    (
+                        "Bad characters from black list '{}' found in '{}'. "
+                        "They could create issues when creating a directory "
+                        "for this config on Windows filesystem."
+                    ).format(invalid_windows_characters, self.name)
                 )
 
 
