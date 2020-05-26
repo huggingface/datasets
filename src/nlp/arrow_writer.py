@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
 
-from .utils.file_utils import HF_DATASETS_CACHE, url_to_filename
+from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
 
 
 logger = logging.getLogger(__name__)
@@ -260,7 +260,7 @@ class BeamWriter(object):
                 raise e
             local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
             os.makedirs(local_convert_dir, exist_ok=True)
-            local_parquet_path = os.path.join(local_convert_dir, url_to_filename(self._parquet_path) + ".parquet")
+            local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".parquet")
             local_arrow_path = os.path.splitext(local_parquet_path)[0] + ".arrow"
             beam_utils.download_remote_to_local(self._parquet_path, local_parquet_path)
             parquet_to_arrow(local_parquet_path, local_arrow_path)
