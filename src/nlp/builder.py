@@ -46,6 +46,10 @@ REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
 REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
 
 
+class InvalidConfigName(ValueError):
+    pass
+
+
 @dataclass
 class BuilderConfig:
     """Base class for `DatasetBuilder` data configuration.
@@ -59,6 +63,17 @@ class BuilderConfig:
     data_dir: str = None
     data_files: Union[Dict, List] = None
     description: str = None
+
+    def __post_init__(self):
+        # The config name is used to name the cache directory.
+        invalid_windows_characters = "<>:/\|?*"
+        for invalid_char in invalid_windows_characters:
+            if invalid_char in self.name:
+                raise InvalidConfigName(
+                    "Bad characters for directories on Windows '{}' found in '{}'".format(
+                        invalid_windows_characters, self.name
+                    )
+                )
 
 
 class DatasetBuilder:
