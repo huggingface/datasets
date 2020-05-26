@@ -1,7 +1,0 @@
-Source,Event,Xintent,Xemotion,Otheremotion,Xsent,Osent
-it_events,It starts to rainy,"[""none""]","[""none""]","[""upset""]",,3
-it_events,It starts to rainy,"[""none""]","[""none""]","[""sad, gloomy""]",,1
-it_events,It starts to rainy,"[""none""]","[""none""]","[""wet"", ""gloomy""]",,1
-it_events,It is finally time,"[""none""]","[""none""]","[""excited""]",,5
-it_events,It is finally time,"[""none""]","[""none""]","[""relieved""]",,5
-it_events,It would be best,"[""none""]","[""none""]","[""rueful""]",,2

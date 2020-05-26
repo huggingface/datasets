@@ -25,6 +25,8 @@ import shutil
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
+import pyarrow as pa
+
 from . import utils
 from .arrow_reader import ArrowReader, DatasetNotOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
@@ -134,7 +136,7 @@ class DatasetBuilder:
 
     @property
     def does_require_manual_download(self):
-        return hasattr(self, "MANUAL_DOWNLOAD_INSTRUCTIONS")
+        return hasattr(self, "MANUAL_DOWNLOAD_INSTRUCTIONS") and (self.MANUAL_DOWNLOAD_INSTRUCTIONS is not None)
 
     @classmethod
     def get_all_exported_dataset_infos(cls) -> dict:
@@ -357,6 +359,13 @@ class DatasetBuilder:
 
             dl_manager = DownloadManager(
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
+            )
+
+        if self.does_require_manual_download:
+            assert (
+                dl_manager.manual_dir is not None
+            ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load({}, data_dir='<path/to/manual/data>')".format(
+                self.name, self.config.name, self.MANUAL_DOWNLOAD_INSTRUCTIONS, self.name
             )
 
         @contextlib.contextmanager
@@ -673,11 +682,21 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
-        self.info.features = Features(
-            {
-                field.name: Value(str(field.type)) for field in writer.schema
-            }  # TODO have nested conversion from Arrow to Python
-        )
+        features = {}
+
+        def parse_schema(schema, schema_dict):
+            for field in schema:
+                if pa.types.is_struct(field.type):
+                    schema_dict[field.name] = {}
+                    parse_schema(field.type, schema_dict[field.name])
+                elif pa.types.is_list(field.type) and pa.types.is_struct(field.type.value_type):
+                    schema_dict[field.name] = {}
+                    parse_schema(field.type.value_type, schema_dict[field.name])
+                else:
+                    schema_dict[field.name] = Value(str(field.type))
+
+        parse_schema(writer.schema, features)
+        self.info.features = Features(features)
 
 
 class MissingBeamOptions(ValueError):

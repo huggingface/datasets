@@ -17,6 +17,7 @@
 """Access datasets."""
 
 import importlib
+import inspect
 import json
 import logging
 import os
@@ -64,6 +65,8 @@ def import_main_class(module_path, dataset=True):
     module_main_cls = None
     for name, obj in module.__dict__.items():
         if isinstance(obj, type) and issubclass(obj, main_cls_type):
+            if inspect.isabstract(obj):
+                continue
             module_main_cls = obj
             break
 

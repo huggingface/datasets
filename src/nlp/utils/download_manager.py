@@ -20,7 +20,7 @@ import enum
 import logging
 import os
 
-from .file_utils import cached_path, get_from_cache, url_to_filename
+from .file_utils import cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
 from .py_utils import flatten_nested, map_nested, size_str
 
@@ -123,7 +123,7 @@ class DownloadManager(object):
         """
 
         def url_to_downloaded_path(url):
-            return os.path.join(self._download_config.cache_dir, url_to_filename(url))
+            return os.path.join(self._download_config.cache_dir, hash_url_to_filename(url))
 
         downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
         flattened_urls_or_urls = flatten_nested(url_or_urls)

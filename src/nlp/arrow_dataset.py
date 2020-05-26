@@ -50,6 +50,7 @@ class Dataset(object):
         self._data_files: List[dict] = data_files if data_files is not None else []
         self._format_type = None
         self._format_columns = None
+        self._output_all_columns = False
 
     @classmethod
     def from_file(cls, filename: str):
@@ -173,16 +174,18 @@ class Dataset(object):
         return {
             "type": "python" if self._format_type is None else self._format_type,
             "columns": self.column_names if self._format_columns is None else self._format_columns,
+            "output_all_columns": self._output_all_columns,
         }
 
-    def set_format(self, type: Optional[str] = None, columns: Optional[List] = None):
+    def set_format(self, type: Optional[str] = None, columns: Optional[List] = None, output_all_columns: bool = False):
         """ Set __getitem__ return format (type and columns)
 
             Args:
                 type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
                     None means __getitem__ returns python objects (default)
-                columns (Optional ``List[str]``): columns to keep in the output
+                columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
+                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
         """
         # Check return type
         if type == "torch":
@@ -212,10 +215,13 @@ class Dataset(object):
 
         self._format_type = type
         self._format_columns = columns
+        self._output_all_columns = output_all_columns
         logger.info(
-            "Set __getitem__(key) output type to %s and filter %s columns " " (when key is int or slice).",
+            "Set __getitem__(key) output type to %s for %s columns "
+            " (when key is int or slice) and %s output other (un-formated) columns.",
             "python objects" if type is None else type,
             "no" if columns is None else str(columns),
+            "do" if output_all_columns else "don't",
         )
 
     def reset_format(self):
@@ -225,8 +231,10 @@ class Dataset(object):
         """
         self.set_format()
 
-    def _convert_outputs(self, outputs, format_type=None, format_columns=None):
+    def _convert_outputs(self, outputs, format_type=None, format_columns=None, output_all_columns=False):
         if format_type is None:
+            if output_all_columns:
+                return outputs
             if isinstance(outputs, dict) and format_columns is not None:
                 return {k: v for k, v in outputs.items() if k in format_columns}
             return outputs
@@ -255,13 +263,11 @@ class Dataset(object):
         else:
             output_dict = {}
             for k, v in outputs.items():
-                if format_columns is not None and k not in format_columns:
+                if format_columns is not None and k not in format_columns and not output_all_columns:
                     continue
-                try:
-                    out_v = command(v)
-                except:  # noqa E722
-                    out_v = v
-                output_dict[k] = out_v
+                if format_columns is None or k in format_columns:
+                    v = command(v)
+                output_dict[k] = v
         return output_dict
 
     @staticmethod
@@ -272,7 +278,9 @@ class Dataset(object):
     def _nest(py_dict):
         return dict((key, [elem]) for key, elem in py_dict.items())
 
-    def _getitem(self, key: Union[int, slice, str], format_type=None, format_columns=None) -> Union[Dict, List]:
+    def _getitem(
+        self, key: Union[int, slice, str], format_type=None, format_columns=None, output_all_columns=False
+    ) -> Union[Dict, List]:
         """ Can be used to index columns (by string names) or rows (by integer index or slices)
         """
         if isinstance(key, int):
@@ -285,23 +293,26 @@ class Dataset(object):
             else:
                 outputs = self._unnest(self._data.slice(key, 1).to_pydict())
         elif isinstance(key, slice):
-            key = key.indices(self._data.num_rows)
-            if key[2] != 1 or key[1] < key[0]:
+            key_indices = key.indices(self._data.num_rows)
+            if key_indices[2] != 1 or key_indices[1] < key_indices[0]:
                 raise ValueError("Slicing can only take contiguous and ordered slices.")
             if format_type is not None and format_type == "pandas":
-                outputs = self._data.slice(key[0], key[1] - key[0]).to_pandas()
+                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas()
             else:
-                outputs = self._data.slice(key[0], key[1] - key[0]).to_pydict()
+                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pydict()
         elif isinstance(key, str):
             if key not in self._data.column_names:
                 raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
             if format_type is not None:
-                if format_type == "pandas":
-                    outputs = self._data[key].to_pandas()
-                elif format_type == "numpy":
-                    outputs = np.concatenate([arr.to_numpy() for arr in self._data[key].chunks])
+                if format_columns is None or key in format_columns:
+                    if format_type == "pandas":
+                        outputs = self._data[key].to_pandas()
+                    elif format_type == "numpy":
+                        outputs = np.concatenate([arr.to_numpy() for arr in self._data[key].chunks])
+                    else:
+                        outputs = self._convert_outputs(self._data[key].to_pylist(), format_type=format_type)
                 else:
-                    outputs = self._convert_outputs(self._data[key].to_pylist())
+                    outputs = self._data[key].to_pylist()
             else:
                 outputs = self._data[key].to_pylist()
         else:
@@ -312,13 +323,20 @@ class Dataset(object):
             and not isinstance(key, str)
             and format_type != "pandas"
         ):
-            outputs = self._convert_outputs(outputs, format_type=format_type, format_columns=format_columns)
+            outputs = self._convert_outputs(
+                outputs, format_type=format_type, format_columns=format_columns, output_all_columns=output_all_columns
+            )
         return outputs
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
         """ Can be used to index columns (by string names) or rows (by integer index)
         """
-        return self._getitem(key, format_type=self._format_type, format_columns=self._format_columns)
+        return self._getitem(
+            key,
+            format_type=self._format_type,
+            format_columns=self._format_columns,
+            output_all_columns=self._output_all_columns,
+        )
 
     def cleanup_cache_files(self):
         """ Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
@@ -351,7 +369,7 @@ class Dataset(object):
         if not self._data_files or "filename" not in self._data_files[0]:
             return None
         previous_files_string = "-".join(
-            "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items()) for f in self._data_files
+            "-".join(str(k) + "-" + str(v) for k, v in f.items()) for f in self._data_files
         )
         cache_kwargs_string = "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items())
         function_bytes = dumps(function)

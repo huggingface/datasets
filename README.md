@@ -36,6 +36,10 @@
 
 `nlp` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between `nlp` and `tfds` can be found in the section [Main differences between `nlp` and `tfds`](#main-differences-between-nlp-and-tfds).
 
+# Contributors
+
+[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/0)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/0)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/1)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/1)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/2)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/2)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/3)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/3)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/4)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/4)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/5)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/5)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/6)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/6)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/7)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/7)
+
 # Installation
 
 ## From PyPI
@@ -81,14 +85,14 @@ Here is a quick example:
 import nlp
 
 # Print all the available datasets
-print(dataset.id for dataset in nlp.list_datasets())
+print([dataset.id for dataset in nlp.list_datasets()])
 
 # Load a dataset and print the first examples in the training set
 squad_dataset = nlp.load_dataset('squad')
 print(squad_dataset['train'][0])
 
 # List all the available metrics
-print(metric.id for metric in nlp.list_metrics())
+print([metric.id for metric in nlp.list_metrics()])
 
 # Load a metric
 squad_metric = nlp.load_metric('squad')
@@ -112,3 +116,4 @@ Similarly to Tensorflow Dataset, `nlp` is a utility library that downloads and p
 If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a GitHub issue. Thanks for your contribution to the ML community!
 
 If you're interested in learning more about responsible AI practices, including fairness, please see Google AI's Responsible AI Practices.
+

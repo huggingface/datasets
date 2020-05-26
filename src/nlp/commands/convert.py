@@ -156,7 +156,7 @@ class ConvertCommand(BaseTransformersCLICommand):
                     is_builder = True
                 out_lines.append(out_line)
 
-            if is_builder:
+            if is_builder or "wmt" in f_name:
                 # We create a new directory for each dataset
                 dir_name = f_name.replace(".py", "")
                 output_dir = os.path.join(abs_nlp_path, dir_name)
