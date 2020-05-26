@@ -5,6 +5,7 @@ from apache_beam.transforms import PTransform
 from apache_beam.pipeline import Pipeline
 from apache_beam.io.filesystems import FileSystems
 import logging
+import os
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -35,6 +36,22 @@ def upload_local_to_remote(local_file_path, remote_file_path, force_upload=False
             while chunk:
                 remote_file.write(chunk)
                 chunk = local_file.read(CHUNK_SIZE)
+
+
+def download_remote_to_local(remote_file_path, local_file_path, force_download=False):
+    fs = FileSystems
+    if os.path.exists(local_file_path):
+        if force_download:
+            logger.info("Local path already exist: {}. Overwriting it as force_upload=True.".format(remote_file_path))
+        else:
+            logger.info("Local path already exist: {}. Skipping it as force_upload=False.".format(remote_file_path))
+            return
+    with fs.open(remote_file_path) as remote_file:
+        with open(local_file_path, "wb") as local_file:
+            chunk = remote_file.read(CHUNK_SIZE)
+            while chunk:
+                local_file.write(chunk)
+                chunk = remote_file.read(CHUNK_SIZE)
 
 
 class WriteToParquet(PTransform):

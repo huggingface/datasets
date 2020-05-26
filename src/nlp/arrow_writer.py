@@ -16,11 +16,12 @@
 # Lint as: python3
 """To write records into Parquet files."""
 import logging
+import os
 from typing import Any, Dict, List, Optional
-from pathlib import Path
 
 import pyarrow as pa
 
+from .utils.file_utils import url_to_filename, HF_DATASETS_CACHE
 
 logger = logging.getLogger(__name__)
 
@@ -223,6 +224,7 @@ class BeamWriter(object):
         schema: Optional[pa.Schema] = None,
         path: Optional[str] = None,
         namespace: Optional[str] = None,
+        cache_dir: Optional[str] = None,
     ):
         if data_type is None and schema is None:
             raise ValueError("At least one of data_type and schema must be provided.")
@@ -237,10 +239,10 @@ class BeamWriter(object):
             self._type: pa.DataType = pa.struct(field for field in self._schema)
 
         self._path = path
-        self._parquet_path = str(Path(path).with_suffix(".parquet"))
+        self._parquet_path = os.path.splitext(path)[0] + '.parquet'
         self._namespace = namespace or "default"
         self._num_examples = None
-        self._pcoll_outputs_metadata = []
+        self._cache_dir = cache_dir or HF_DATASETS_CACHE
 
     def write_from_pcollection(self, pcoll_examples):
         import apache_beam as beam
@@ -258,17 +260,29 @@ class BeamWriter(object):
             | "Get values" >> beam.Values()
             | "Save to parquet"
             >> WriteToParquet(
-                self._path, self._schema, num_shards=1, shard_name_template=""
+                self._parquet_path, self._schema, num_shards=1, shard_name_template=""
             )
         )
 
     def finalize(self, metrics_query_result: dict):
         import apache_beam as beam
+        from .utils import beam_utils
+        
         # Convert to arrow
         logger.info("Converting parquet file {} to arrow {}".format(self._parquet_path, self._path))
-        with beam.io.filesystems.FileSystems.open(self._parquet_path) as src:
-            with beam.io.filesystems.FileSystems.create(self._path) as dest:
-                parquet_to_arrow(src, dest)
+        try:  # stream convert
+            with beam.io.filesystems.FileSystems.open(self._parquet_path) as src:
+                with beam.io.filesystems.FileSystems.create(self._path) as dest:
+                    parquet_to_arrow(src, dest)
+        except:  # broken pipe can happen if the connection is unstable, do local convert instead
+            local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
+            os.makedirs(local_convert_dir, exist_ok=True)
+            local_parquet_path = os.path.join(local_convert_dir, url_to_filename(self._parquet_path) + ".parquet")
+            local_arrow_path = os.path.splitext(local_parquet_path)[0] + '.arrow'
+            beam_utils.download_remote_to_local(self._parquet_path, local_parquet_path)
+            parquet_to_arrow(local_parquet_path, local_arrow_path)
+            beam_utils.upload_local_to_remote(local_arrow_path, self._path)
+
         # Save metrics
         counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
         self._num_examples = counters_dict["num_examples"]
