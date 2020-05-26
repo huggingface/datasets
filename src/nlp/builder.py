@@ -66,7 +66,7 @@ class BuilderConfig:
 
     def __post_init__(self):
         # The config name is used to name the cache directory.
-        invalid_windows_characters = "<>:/\|?*"
+        invalid_windows_characters = r"<>:/\|?*"
         for invalid_char in invalid_windows_characters:
             if invalid_char in self.name:
                 raise InvalidConfigName(
