@@ -72,7 +72,8 @@ class DatasetTester(object):
 
                 # create config and dataset
                 dataset_builder_cls = self.load_builder_class(dataset_name, is_local=is_local)
-                dataset_builder = dataset_builder_cls(config=config, cache_dir=processed_temp_dir)
+                name = config.name if config is not None else None
+                dataset_builder = dataset_builder_cls(name=name, cache_dir=processed_temp_dir)
 
                 # TODO: skip Beam datasets for now
                 if isinstance(dataset_builder, BeamBasedBuilder):
@@ -145,8 +146,10 @@ class LocalDatasetTest(parameterized.TestCase):
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name, is_local=True)
-        builder = builder_cls()
-        self.assertTrue(isinstance(builder, DatasetBuilder))
+        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        with tempfile.TemporaryDirectory() as tmp_cache_dir:
+            builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
+            self.assertTrue(isinstance(builder, DatasetBuilder))
 
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name, is_local=True)
@@ -207,8 +210,10 @@ class AWSDatasetTest(parameterized.TestCase):
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
-        builder = builder_cls()
-        self.assertTrue(isinstance(builder, DatasetBuilder))
+        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
+        with tempfile.TemporaryDirectory() as tmp_cache_dir:
+            builder = builder_cls(name=name, cache_dir=tmp_cache_dir)
+            self.assertTrue(isinstance(builder, DatasetBuilder))
 
     def test_builder_configs(self, dataset_name):
         builder_configs = self.dataset_tester.load_all_configs(dataset_name)

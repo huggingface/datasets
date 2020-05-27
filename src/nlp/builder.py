@@ -46,6 +46,10 @@ REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
 REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
 
 
+class InvalidConfigName(ValueError):
+    pass
+
+
 @dataclass
 class BuilderConfig:
     """Base class for `DatasetBuilder` data configuration.
@@ -59,6 +63,19 @@ class BuilderConfig:
     data_dir: str = None
     data_files: Union[Dict, List] = None
     description: str = None
+
+    def __post_init__(self):
+        # The config name is used to name the cache directory.
+        invalid_windows_characters = r"<>:/\|?*"
+        for invalid_char in invalid_windows_characters:
+            if invalid_char in self.name:
+                raise InvalidConfigName(
+                    (
+                        "Bad characters from black list '{}' found in '{}'. "
+                        "They could create issues when creating a directory "
+                        "for this config on Windows filesystem."
+                    ).format(invalid_windows_characters, self.name)
+                )
 
 
 class DatasetBuilder:
@@ -156,7 +173,14 @@ class DatasetBuilder:
             config_kwargs override the defaults kwargs in config
         """
         builder_config = None
-        if name is None and self.BUILDER_CONFIGS:
+        if name is None and self.BUILDER_CONFIGS and not config_kwargs:
+            if len(self.BUILDER_CONFIGS) > 1:
+                example_of_usage = "load_dataset('{}', '{}')".format(self.name, self.BUILDER_CONFIGS[0].name)
+                raise ValueError(
+                    "Config name is missing."
+                    "\nPlease pick one among the available configs: %s" % list(self.builder_configs.keys())
+                    + "\nExample of usage:\n\t`{}`".format(example_of_usage)
+                )
             builder_config = self.BUILDER_CONFIGS[0]
             logger.info("No config specified, defaulting to first: %s/%s", self.name, builder_config.name)
         if isinstance(name, str):
