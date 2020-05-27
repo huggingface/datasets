@@ -139,6 +139,8 @@ class ArrowWriter(object):
         self._num_examples += 1
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
+        if self.pa_writer is None:
+            self._build_writer(pa_table=pa.Table.from_pydict(example))
         if writer_batch_size is not None and len(self.current_rows) >= writer_batch_size:
             self.write_on_file()
 
@@ -150,6 +152,8 @@ class ArrowWriter(object):
         Args:
             example: the Example to add.
         """
+        if self.pa_writer is None:
+            self._build_writer(pa_table=pa.Table.from_pydict(batch_examples))
         pa_table: pa.Table = pa.Table.from_pydict(batch_examples, schema=self._schema)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
