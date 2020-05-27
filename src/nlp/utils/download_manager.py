@@ -77,9 +77,9 @@ class DownloadManager(object):
         """Returns the total size of downloaded files."""
         return sum(checksums_dict["num_bytes"] for checksums_dict in self._recorded_sizes_checksums.values())
 
-    def upload_to_remote_dir(self, downloaded_path_or_paths, pipeline):
+    def ship_files_with_pipeline(self, downloaded_path_or_paths, pipeline):
         """
-        Upload files using Beam FileSystems, as pipelines require downloaded files to be in a remote dir
+        Ship the files using Beam FileSystems to the pipeline temp dir.
         """
         from nlp.utils.beam_utils import upload_local_to_remote
 

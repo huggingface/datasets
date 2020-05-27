@@ -442,7 +442,7 @@ class Wikipedia(nlp.BeamBasedBuilder):
             # Use dictionary since testing mock always returns the same result.
         downloaded_files = dl_manager.download({"xml": xml_urls})
         if not pipeline.is_local():
-            downloaded_files = dl_manager.upload_to_remote_dir(downloaded_files, pipeline)
+            downloaded_files = dl_manager.ship_files_with_pipeline(downloaded_files, pipeline)
 
         return [
             nlp.SplitGenerator(  # pylint:disable=g-complex-comprehension
