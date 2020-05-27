@@ -167,10 +167,7 @@ class Dataset(object):
         output_all_columns = self._output_all_columns
         for index in range(self._data.num_rows):
             yield self._getitem(
-                index,
-                format_type=format_type,
-                format_columns=format_columns,
-                output_all_columns=output_all_columns,
+                index, format_type=format_type, format_columns=format_columns, output_all_columns=output_all_columns,
             )
 
     def __repr__(self):
