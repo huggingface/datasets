@@ -2,7 +2,7 @@
 
 ## Intro
 
-Some datasets ar too big to be processed on a single machine, for example: wikipedia, wiki40b, etc.
+Some datasets are too big to be processed on a single machine, for example: wikipedia, wiki40b, etc.
 Instead, we allow to process them using [Apache Beam](https://beam.apache.org/).
 
 Beam processing pipelines can be executed on many execution engines like Dataflow, Spark, Flink, etc.
