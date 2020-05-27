@@ -28,8 +28,6 @@ import apache_beam as beam
 import mwparserfromhell
 import six
 
-import apache_beam as beam
-import mwparserfromhell
 import nlp
 
 
