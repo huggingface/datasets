@@ -162,8 +162,16 @@ class Dataset(object):
         return self._data.num_rows
 
     def __iter__(self):
+        format_type = self._format_type
+        format_columns = self._format_columns
+        output_all_columns = self._output_all_columns
         for index in range(self._data.num_rows):
-            yield self._unnest(self._data.slice(index, 1).to_pydict())
+            yield self._getitem(
+                index,
+                format_type=format_type,
+                format_columns=format_columns,
+                output_all_columns=output_all_columns,
+            )
 
     def __repr__(self):
         schema_str = dict((a, str(b)) for a, b in zip(self._data.schema.names, self._data.schema.types))
