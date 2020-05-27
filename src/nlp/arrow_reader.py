@@ -35,7 +35,7 @@ from .utils import cached_path, py_utils
 logger = logging.getLogger(__name__)
 
 _BUFFER_SIZE = 8 << 20  # 8 MiB per file.
-HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/"
+HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"
 
 _SUB_SPEC_RE = re.compile(
     r"""
