@@ -79,7 +79,7 @@ class DownloadManager(object):
 
     def upload_to_remote_dir(self, downloaded_path_or_paths, pipeline):
         """
-        Upload files using Beam FileSystems, as pipelines require downloaded files to in a remote dir
+        Upload files using Beam FileSystems, as pipelines require downloaded files to be in a remote dir
         """
         from nlp.utils.beam_utils import upload_local_to_remote
 

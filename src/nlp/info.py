@@ -130,11 +130,11 @@ class DatasetInfo:
             self._dump_license(f)
 
     def _dump_info(self, file):
-        """Dump info in `file` file-like object open in bytes mode"""
+        """Dump info in `file` file-like object open in bytes mode (to support remote files)"""
         file.write(json.dumps(asdict(self)).encode("utf-8"))
 
     def _dump_license(self, file):
-        """Dump license in `file` file-like object open in bytes mode"""
+        """Dump license in `file` file-like object open in bytes mode (to support remote files)"""
         file.write(self.license.encode("utf-8"))
 
     @classmethod

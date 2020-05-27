@@ -16,12 +16,14 @@ logger = logging.getLogger(__name__)
 
 
 class BeamPipeline(Pipeline):
+    """Wrapper over `apache_beam.pipeline.Pipeline` for convenience"""
     def is_local(self):
         runner = self._options.get_all_options().get("runner")
         return runner in [None, "DirectRunner", "PortableRunner"]
 
 
 def upload_local_to_remote(local_file_path, remote_file_path, force_upload=False):
+    """Use the Beam Filesystems to upload to a remote directory on gcs/s3/hdfs..."""
     fs = FileSystems
     if fs.exists(remote_file_path):
         if force_upload:
@@ -38,6 +40,7 @@ def upload_local_to_remote(local_file_path, remote_file_path, force_upload=False
 
 
 def download_remote_to_local(remote_file_path, local_file_path, force_download=False):
+    """Use the Beam Filesystems to download from a remote directory on gcs/s3/hdfs..."""
     fs = FileSystems
     if os.path.exists(local_file_path):
         if force_download:
@@ -54,7 +57,11 @@ def download_remote_to_local(remote_file_path, local_file_path, force_download=F
 
 
 class WriteToParquet(PTransform):
-    """A ``PTransform`` for writing parquet files.
+    """
+    From `apache_beam.io.parquetio.WriteToParquet`, but with a fix for the jira issue `BEAM-10022`.
+    Only the method `_flush_buffer` is different from the original implementation.
+
+        A ``PTransform`` for writing parquet files.
 
         This ``PTransform`` is currently experimental. No backward-compatibility
         guarantees.

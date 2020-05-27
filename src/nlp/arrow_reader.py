@@ -57,6 +57,7 @@ _ADDITION_SEP_RE = re.compile(r"\s*\+\s*")
 
 
 class DatasetNotOnHfGcs(ConnectionError):
+    """When you can't get the dataset from the Hf google cloud storage"""
     pass
 
 
@@ -209,6 +210,15 @@ class BaseReader:
         return dataset
 
     def download_from_hf_gcs(self, cache_dir, relative_data_dir):
+        """
+        Download the dataset files from the Hf GCS
+
+        Args:
+            cache_dir: `str`, the local cache directory where to save the dataset
+            relative_data_dir: `str`, the relative directory of the remote files from
+                the `datasets` directory on GCS.
+
+        """
         remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
         try:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")

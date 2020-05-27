@@ -193,16 +193,11 @@ class ArrowWriter(object):
         )
         return self._num_examples, self._num_bytes
 
-    def write_from_parquet(self, parquet_path):
-        """Write to Arrow file from Parquet file"""
-        pf = pa.parquet.ParquetFile(parquet_path, memory_map=True)
-        for i in range(pf.num_row_groups):
-            row_group_table = pf.read_row_group(i)
-            self.write_table(row_group_table)
-
 
 class BeamWriter(object):
-    """Shuffles and writes Examples to Parquet files.
+    """
+    Shuffles and writes Examples to Arrow files.
+    The Arrow files are converted from Parquet files that are the output of Apache Beam pipelines.
     """
 
     def __init__(
@@ -232,6 +227,7 @@ class BeamWriter(object):
         self._cache_dir = cache_dir or HF_DATASETS_CACHE
 
     def write_from_pcollection(self, pcoll_examples):
+        """Add the final steps of the beam pipeline: write to parquet files."""
         import apache_beam as beam
         from .utils.beam_utils import WriteToParquet
 
@@ -250,18 +246,27 @@ class BeamWriter(object):
         )
 
     def finalize(self, metrics_query_result: dict):
+        """
+        Run after the pipeline has finished.
+        It converts the resulting parquet files to arrow and it completes the info from the pipeline metrics.
+
+        Args:
+            metrics_query_result: `dict` obtained from pipeline_results.metrics().query(m_filter). Make sure
+                that the filter keeps only the metrics for the considered split, under the namespace `split_name`.
+        """
         import apache_beam as beam
         from .utils import beam_utils
 
         # Convert to arrow
         logger.info("Converting parquet file {} to arrow {}".format(self._parquet_path, self._path))
-        try:  # stream convert
+        try:  # stream conversion
             with beam.io.filesystems.FileSystems.open(self._parquet_path) as src:
                 with beam.io.filesystems.FileSystems.create(self._path) as dest:
                     parquet_to_arrow(src, dest)
-        except socket.error as e:  # broken pipe can happen if the connection is unstable, do local convert instead
+        except socket.error as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
             if e.errno != errno.EPIPE:  # not a broken pipe
                 raise e
+            logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
             local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
             os.makedirs(local_convert_dir, exist_ok=True)
             local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".parquet")
@@ -279,7 +284,7 @@ class BeamWriter(object):
 
 
 def parquet_to_arrow(source, destination):
-    """Convert parquet file to arrow file. Input can be str path or file-like object"""
+    """Convert parquet file to arrow file. Inputs can be str paths or file-like objects"""
     pf = pa.parquet.ParquetFile(source)
     stream = None if isinstance(destination, str) else destination
     writer = ArrowWriter(path=destination, stream=stream)
