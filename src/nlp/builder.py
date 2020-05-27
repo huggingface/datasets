@@ -173,7 +173,14 @@ class DatasetBuilder:
             config_kwargs override the defaults kwargs in config
         """
         builder_config = None
-        if name is None and self.BUILDER_CONFIGS:
+        if name is None and self.BUILDER_CONFIGS and not config_kwargs:
+            if len(self.BUILDER_CONFIGS) > 1:
+                example_of_usage = "load_dataset('{}', '{}')".format(self.name, self.BUILDER_CONFIGS[0].name)
+                raise ValueError(
+                    "Config name is missing."
+                    "\nPlease pick one among the available configs: %s" % list(self.builder_configs.keys())
+                    + "\nExample of usage:\n\t`{}`".format(example_of_usage)
+                )
             builder_config = self.BUILDER_CONFIGS[0]
             logger.info("No config specified, defaulting to first: %s/%s", self.name, builder_config.name)
         if isinstance(name, str):
