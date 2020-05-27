@@ -147,6 +147,8 @@ class ArrowWriter(object):
         Args:
             example: the Example to add.
         """
+        if self.pa_writer is None:
+            self._build_writer(pa_table=pa.Table.from_pydict(batch_examples))
         pa_table: pa.Table = pa.Table.from_pydict(batch_examples, schema=self._schema)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
