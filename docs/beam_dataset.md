@@ -14,7 +14,7 @@ At Hugging Face we have already run the Beam pipelines for datasets like wikiped
 
 ## How to generate a Beam dataset
 
-If you want to run the Beam pipeline of a dataset anyway, here are the different steps to run on Dataflow:
+If you want to run the Beam pipeline of a dataset anyway, here are the different steps to run on Dataflow: 
 
 - First define which dataset and config you want to process:
 
@@ -49,3 +49,5 @@ If you want to run the Beam pipeline of a dataset anyway, here are the different
     ```
 
 Tips: you can also use the flags `num_workers` or `machine_type` to fit your needs.
+
+Note that it also works if you change the runner to Spark, Flink, etc. instead of Dataflow or if you change the output location to S3 or HDFS instead of GCS.
