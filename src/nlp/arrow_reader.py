@@ -58,6 +58,7 @@ _ADDITION_SEP_RE = re.compile(r"\s*\+\s*")
 
 class DatasetNotOnHfGcs(ConnectionError):
     """When you can't get the dataset from the Hf google cloud storage"""
+
     pass
 
 

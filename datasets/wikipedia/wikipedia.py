@@ -406,7 +406,7 @@ class Wikipedia(nlp.BeamBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"title": nlp.Value("string"), "text": nlp.Value("string"),}),
+            features=nlp.Features({"title": nlp.Value("string"), "text": nlp.Value("string")}),
             # No default supervised_keys.
             supervised_keys=None,
             homepage="https://dumps.wikimedia.org",
