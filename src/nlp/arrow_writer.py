@@ -15,12 +15,15 @@
 
 # Lint as: python3
 """To write records into Parquet files."""
-import json
+import errno
 import logging
 import os
+import socket
 from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
+
+from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
 
 
 logger = logging.getLogger(__name__)
@@ -118,7 +121,7 @@ class ArrowWriter(object):
                 n_batches += int(len(self.current_rows) % new_batch_size != 0)
                 for i in range(n_batches):
                     pa_array = pa.array(
-                        self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=self._type
+                        self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=self._type,
                     )
                     self._write_array_on_file(pa_array)
             else:
@@ -141,7 +144,9 @@ class ArrowWriter(object):
         if writer_batch_size is not None and len(self.current_rows) >= writer_batch_size:
             self.write_on_file()
 
-    def write_batch(self, batch_examples: Dict[str, List[Any]], writer_batch_size: Optional[int] = None):
+    def write_batch(
+        self, batch_examples: Dict[str, List[Any]], writer_batch_size: Optional[int] = None,
+    ):
         """ Write a batch of Example to file.
 
         Args:
@@ -190,11 +195,18 @@ class ArrowWriter(object):
 
 
 class BeamWriter(object):
-    """Shuffles and writes Examples to Parquet files.
+    """
+    Shuffles and writes Examples to Arrow files.
+    The Arrow files are converted from Parquet files that are the output of Apache Beam pipelines.
     """
 
     def __init__(
-        self, data_type: Optional[pa.DataType] = None, schema: Optional[pa.Schema] = None, path: Optional[str] = None,
+        self,
+        data_type: Optional[pa.DataType] = None,
+        schema: Optional[pa.Schema] = None,
+        path: Optional[str] = None,
+        namespace: Optional[str] = None,
+        cache_dir: Optional[str] = None,
     ):
         if data_type is None and schema is None:
             raise ValueError("At least one of data_type and schema must be provided.")
@@ -209,49 +221,74 @@ class BeamWriter(object):
             self._type: pa.DataType = pa.struct(field for field in self._schema)
 
         self._path = path
+        self._parquet_path = os.path.splitext(path)[0] + ".parquet"
+        self._namespace = namespace or "default"
         self._num_examples = None
-        self._pcoll_outputs_metadata = []
+        self._cache_dir = cache_dir or HF_DATASETS_CACHE
 
     def write_from_pcollection(self, pcoll_examples):
+        """Add the final steps of the beam pipeline: write to parquet files."""
         import apache_beam as beam
+        from .utils.beam_utils import WriteToParquet
 
-        # create some metadata that will be used in .finalize()
-        num_examples = (
-            pcoll_examples
-            | "Add metadata key" >> beam.Map(lambda v: ("num_examples", v))
-            | "Count" >> beam.CombinePerKey(beam.transforms.combiners.CountCombineFn())
-        )
+        def inc_num_examples(example):
+            beam.metrics.Metrics.counter(self._namespace, "num_examples").inc()
 
-        def save_metatada(metadata_items):
-            with open(self._path + ".json", "w") as metadata_file:
-                json.dump(metadata_items, metadata_file)
-
-        # save metadata
-        _ = (
-            (num_examples,)
-            | "Merge pcollections" >> beam.Flatten()
-            | "Create Dict" >> beam.transforms.combiners.ToDict()
-            | "Save metadata" >> beam.ParDo(save_metatada)
-        )
+        # count examples
+        _ = pcoll_examples | "Count N. Examples" >> beam.Map(inc_num_examples)
 
         # save dataset
         return (
             pcoll_examples
             | "Get values" >> beam.Values()
             | "Save to parquet"
-            >> beam.io.parquetio.WriteToParquet(self._path, self._schema, num_shards=1, shard_name_template="")
+            >> WriteToParquet(self._parquet_path, self._schema, num_shards=1, shard_name_template="")
         )
 
-    def finalize(self):
-        self._num_bytes = os.path.getsize(self._path)
-        with open(self._path + ".json", "r") as metadata_file:
-            metadata = json.load(metadata_file)
-        self._num_examples = metadata["num_examples"]
-        os.remove(self._path + ".json")
-        logger.info(
-            "Done writing %s examples in %s bytes %s.",
-            self._num_examples,
-            self._num_bytes,
-            self._path if self._path else "",
-        )
+    def finalize(self, metrics_query_result: dict):
+        """
+        Run after the pipeline has finished.
+        It converts the resulting parquet files to arrow and it completes the info from the pipeline metrics.
+
+        Args:
+            metrics_query_result: `dict` obtained from pipeline_results.metrics().query(m_filter). Make sure
+                that the filter keeps only the metrics for the considered split, under the namespace `split_name`.
+        """
+        import apache_beam as beam
+        from .utils import beam_utils
+
+        # Convert to arrow
+        logger.info("Converting parquet file {} to arrow {}".format(self._parquet_path, self._path))
+        try:  # stream conversion
+            with beam.io.filesystems.FileSystems.open(self._parquet_path) as src:
+                with beam.io.filesystems.FileSystems.create(self._path) as dest:
+                    parquet_to_arrow(src, dest)
+        except socket.error as e:  # broken pipe can happen if the connection is unstable, do local conversion instead
+            if e.errno != errno.EPIPE:  # not a broken pipe
+                raise e
+            logger.warning("Broken Pipe during stream conversion from parquet to arrow. Using local convert instead")
+            local_convert_dir = os.path.join(self._cache_dir, "beam_convert")
+            os.makedirs(local_convert_dir, exist_ok=True)
+            local_parquet_path = os.path.join(local_convert_dir, hash_url_to_filename(self._parquet_path) + ".parquet")
+            local_arrow_path = os.path.splitext(local_parquet_path)[0] + ".arrow"
+            beam_utils.download_remote_to_local(self._parquet_path, local_parquet_path)
+            parquet_to_arrow(local_parquet_path, local_arrow_path)
+            beam_utils.upload_local_to_remote(local_arrow_path, self._path)
+
+        # Save metrics
+        counters_dict = {metric.key.metric.name: metric.result for metric in metrics_query_result["counters"]}
+        self._num_examples = counters_dict["num_examples"]
+        output_file_metadata = beam.io.filesystems.FileSystems.match([self._path], limits=[1])[0].metadata_list[0]
+        self._num_bytes = output_file_metadata.size_in_bytes
         return self._num_examples, self._num_bytes
+
+
+def parquet_to_arrow(source, destination):
+    """Convert parquet file to arrow file. Inputs can be str paths or file-like objects"""
+    pf = pa.parquet.ParquetFile(source)
+    stream = None if isinstance(destination, str) else destination
+    writer = ArrowWriter(path=destination, stream=stream)
+    for i in range(pf.num_row_groups):
+        row_group_table = pf.read_row_group(i)
+        writer.write_table(row_group_table)
+    return destination
