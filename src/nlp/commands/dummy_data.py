@@ -61,13 +61,13 @@ class DummyDataCommand(BaseTransformersCLICommand):
                     f"Dataset {self._dataset_name} with config {config} seems to already open files in the method `_split_generators(...)`. You might consider to instead only open files in the method `_generate_examples(...)` instead. If this is not possible the dummy data has to be created with less guidance. Make sure you create the file {e.filename}."
                 )
 
-            files_to_create = []
+            files_to_create = set()
             split_names = []
             dummy_file_name = mock_dl_manager.dummy_file_name
 
             for split in generator_splits:
                 logger.info(f"Collecting dummy data file paths to create for {split.name}")
-                split_names.append(split.name)
+                split_names.add(split.name)
                 gen_kwargs = split.gen_kwargs
                 generator = dataset_builder._generate_examples(**gen_kwargs)
 
@@ -92,8 +92,8 @@ class DummyDataCommand(BaseTransformersCLICommand):
             split_names = ", ".join(split_names)
             if len(files_to_create) > 0:
                 # no glob.glob(...) in `_generate_examples(...)`
-                if len(files_to_create) == 1 and files_to_create[0] == dummy_file_name:
-                    dummy_data_guidance_print += f"- Please create a single dummy data file called '{files_to_create[0]}' from the folder '{dummy_data_folder}'. Make sure that the dummy data file provides at least one example for the split '{split_names}' \n\n"
+                if len(files_to_create) == 1 and next(iter(files_to_create)) == dummy_file_name:
+                    dummy_data_guidance_print += f"- Please create a single dummy data file called '{next(iter(files_to_create))}' from the folder '{dummy_data_folder}'. Make sure that the dummy data file provides at least one example for the split(s) '{split_names}' \n\n"
                     files_string = dummy_file_name
                 else:
                     files_string = ", ".join(files_to_create)
@@ -103,7 +103,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
 
                 dummy_data_guidance_print += f"- If the method `_generate_examples(...)` includes multiple `open()` statements, you might have to create other files in addition to '{files_string}'. In this case please refer to the `_generate_examples(...)` method \n\n"
 
-            if len(files_to_create) == 1 and files_to_create[0] == dummy_file_name:
+            if len(files_to_create) == 1 and next(iter(files_to_create)) == dummy_file_name:
                 dummy_data_guidance_print += f"-After the dummy data file is created, it should be zipped to '{dummy_file_name}.zip' with the command `zip {dummy_file_name}.zip {dummy_file_name}` \n\n"
 
                 dummy_data_guidance_print += (
