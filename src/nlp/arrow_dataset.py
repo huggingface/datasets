@@ -292,7 +292,7 @@ class Dataset(object):
             if key < 0:
                 key = self._data.num_rows + key
             if key >= self._data.num_rows:
-                raise ValueError(f"Index ({key}) outside of table length ({self._data.num_rows}).")
+                raise IndexError(f"Index ({key}) outside of table length ({self._data.num_rows}).")
             if format_type is not None and format_type == "pandas":
                 outputs = self._data.slice(key, 1).to_pandas()
             else:

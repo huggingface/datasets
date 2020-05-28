@@ -45,19 +45,10 @@ labels).
 _KWARGS_DESCRIPTION = """
 Computes XNLI score which is just simple accuracy.
 Args:
-    predictions: list of translations to score.
-        Each translation should be tokenized into a list of tokens.
-    references: list of lists of references for each translation.
-        Each reference should be tokenized into a list of tokens.
-    max_order: Maximum n-gram order to use when computing BLEU score.
-    smooth: Whether or not to apply Lin et al. 2004 smoothing.
+    predictions: Predicted labels.
+    references: Ground truth labels.
 Returns:
-    'bleu': bleu score,
-    'precisions': geometric mean of n-gram precisions,
-    'brevity_penalty': brevity penalty,
-    'length_ratio': ratio of lengths,
-    'translation_length': translation_length,
-    'reference_length': reference_length
+    'accuracy': accuracy
 """
 
 def simple_accuracy(preds, labels):

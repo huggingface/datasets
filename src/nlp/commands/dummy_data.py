@@ -38,11 +38,13 @@ class DummyDataCommand(BaseTransformersCLICommand):
 
         for config in configs:
             if config is None:
+                name = None
                 version = builder_cls.VERSION
             else:
                 version = config.version
+                name = config.name
 
-            dataset_builder = builder_cls(config=config)
+            dataset_builder = builder_cls(name=name)
             mock_dl_manager = MockDownloadManager(
                 dataset_name=self._dataset_name, config=config, version=version, is_local=True
             )
