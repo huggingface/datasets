@@ -25,9 +25,9 @@ import re
 import xml.etree.cElementTree as etree
 
 import apache_beam as beam
-import mwparserfromhell
 import six
 
+import mwparserfromhell
 import nlp
 
 
