@@ -87,7 +87,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
                     dummy_data_guidance_print += f"- It appears that the function `_generate_examples(...)` expects one or more files in the folder {dummy_file_name} using the function `glob.glob(...)`. In this case, please refer to the `_generate_examples(...)` method to see under which filename the dummy data files should be created. \n\n"
 
                 except FileNotFoundError as e:
-                    files_to_create.append(e.filename)
+                    files_to_create.add(e.filename)
 
             split_names = ", ".join(split_names)
             if len(files_to_create) > 0:
