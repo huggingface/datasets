@@ -20,7 +20,7 @@
 
 <h3 align="center">
 <p> Datasets and evaluation metrics for natural language processing
-<p> in NumPy, Pandas, PyTorch and TensorFlow
+<p> Works with NumPy, Pandas, PyTorch and TensorFlow
 </h3>
 
 🤗 `nlp` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
@@ -105,15 +105,14 @@ Now the best introduction to `nlp` is to follow the tutorial in Google Colab whi
 
 If you are familiar with the great `Tensorflow Datasets`, here are the main differences between `nlp` and `tfds`:
 - the scripts in `nlp` are not provided within the library but are queried, downloaded/cached and dynamically loaded upon request
-- `nlp` also provides evaluation metrics in a similar fashion to the datasets, i.e. as dynamically installed scripts with a unified API. This gives access to the pair of a benchmark dataset and a benchmark metric for instance for benchmarks like SQuAD or GLUE.
-- the backend serialization of `nlp` is based on Apache Arrow/Parquet instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache)
-- the user-facing dataset object of `nlp` is not a `tf.data.Dataset` but a built-in framework-agnostic dataset class with methods inspired by what we like in tf.data (like a map() method). It basically wraps a memory-mapped Arrow table cache.
+- `nlp` also provides evaluation metrics in a similar fashion to the datasets, i.e. as dynamically installed scripts with a unified API. This gives access to the pair of a benchmark dataset and a benchmark metric for instance for benchmarks like [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/) or [GLUE](https://gluebenchmark.com/).
+- the backend serialization of `nlp` is based on [Apache Arrow](https://arrow.apache.org/) instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache)
+- the user-facing dataset object of `nlp` is not a `tf.data.Dataset` but a built-in framework-agnostic dataset class with methods inspired by what we like in `tf.data` (like a `map()` method). It basically wraps a memory-mapped Arrow table cache.
 
 # Disclaimers
 
 Similarly to Tensorflow Dataset, `nlp` is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use the dataset. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
 
-If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a GitHub issue. Thanks for your contribution to the ML community!
+If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/nlp/issues/new). Thanks for your contribution to the ML community!
 
-If you're interested in learning more about responsible AI practices, including fairness, please see Google AI's Responsible AI Practices.
-
+If you're interested in learning more about responsible AI practices, including fairness, please see [Google AI's Responsible AI Practices](https://ai.google/responsibilities/responsible-ai-practices/).
