@@ -22,6 +22,8 @@ import json
 import logging
 import os
 
+import apache_beam as beam
+
 import nlp
 
 from . import c4_utils
@@ -188,11 +190,10 @@ class C4(nlp.BeamBasedBuilder):
 
         if self.config.webtextlike:
             owt_path = os.path.join(dl_manager.manual_dir, _OPENWEBTEXT_URLS_ZIP)
-            if not nlp.Value("io").gfile.exists(owt_path):
-                raise AssertionError(
-                    "For the WebText-like config, you must manually download the "
-                    "following file from {0} and place it in {1}: {2}".format(
-                        _OPENWEBTEXT_URLS_URL, dl_manager.manual_dir, _OPENWEBTEXT_URLS_ZIP
+            if not beam.io.filesystems.FileSystems.exists(owt_path):
+                raise FileNotFoundError(
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load('c4', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
+                        owt_path, _OPENWEBTEXT_URLS_ZIP, self.MANUAL_DOWNLOAD_INSTRUCTIONS
                     )
                 )
             file_paths["openwebtext_urls_zip"] = dl_manager.extract(owt_path)
@@ -211,11 +212,12 @@ class C4(nlp.BeamBasedBuilder):
 
         for cc_version in manual_cc_versions:
             cc_dir = os.path.join(dl_manager.manual_dir, cc_version)
-            wet_files = nlp.Value("io").gfile.glob(os.path.join(cc_dir, "*.warc.wet.gz"))
-            if not nlp.Value("io").gfile.exists(cc_dir):
-                raise AssertionError(
-                    "For the non-default Common Crawl version {0}, you must manually "
-                    "download the WET files to the directory {1}.".format(cc_version, cc_dir)
+            wet_files = beam.io.filesystems.FileSystems.match(os.path.join(cc_dir, "*.warc.wet.gz"))
+            if not beam.io.filesystems.FileSystems.exists(cc_dir):
+                raise FileNotFoundError(
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load('c4', data_dir=...)` that includes the files {}. Manual download instructions: {})".format(
+                        cc_dir, "*.warc.wet.gz", self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                    )
                 )
             logging.info("Adding %d WET files for manually downloaded version %s.", len(wet_files), cc_version)
             file_paths["wet_files"].extend(wet_files)
