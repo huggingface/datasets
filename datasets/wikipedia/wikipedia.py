@@ -25,11 +25,6 @@ import re
 import xml.etree.cElementTree as etree
 
 import apache_beam as beam
-<<<<<<< HEAD
-import six
-
-=======
->>>>>>> a3fa5e2b1233d8fa073ef4915ec643e79b3f214c
 import mwparserfromhell
 import six
 

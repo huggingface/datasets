@@ -28,7 +28,6 @@ from os.path import isfile
 from os.path import join as pjoin
 from time import time
 
-import requests
 import zstandard as zstd
 from bs4 import BeautifulSoup
 
@@ -62,9 +61,12 @@ def _extract_urls_from_text(stp):
 
 
 # collects URLs for monthly dumps, has to be robust to file type changes
-def _gather_dump_urls(base_url, mode):
-    page = requests.get(base_url + mode)
-    soup = BeautifulSoup(page.content, "lxml")
+def _gather_dump_urls(base_url, mode, dl_manager):
+    page_path = dl_manager.download(_REDDIT_URL + mode)
+    page_f = open(page_path)
+    page_content = page_f.read()
+    page_f.close()
+    soup = BeautifulSoup(page_content, "lxml")
     files = [it for it in soup.find_all(attrs={"class": "file"})]
     f_urls = [
         tg.find_all(lambda x: x.has_attr("href"))[0]["href"]
@@ -167,8 +169,8 @@ def _post_process(reddit_dct, name=""):
 
 def _download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_year=2019, end_month=7):
     # collect submissions and comments monthly URLs
-    date_to_url_submissions = _gather_dump_urls(_REDDIT_URL, "submissions")
-    date_to_url_comments = _gather_dump_urls(_REDDIT_URL, "comments")
+    date_to_url_submissions = _gather_dump_urls(_REDDIT_URL, "submissions", dl_manager)
+    date_to_url_comments = _gather_dump_urls(_REDDIT_URL, "comments", dl_manager)
     # download, filter, process, remove
     st_time = time()
     qa_dict = dict([(name, {}) for name in _SUB_REDDITS])
@@ -178,27 +180,33 @@ def _download_and_filter_reddit(dl_manager, start_year=2011, start_month=7, end_
         end_mth = end_month if year == end_year else 12
         months = range(start_mth, end_mth + 1)
         for month in months:
-            f_url = date_to_url_submissions[(year, month)]
-            processed_submissions = _download_and_select_lines(dl_manager, f_url, "submissions", st_time)
-            for name in _SUB_REDDITS:
-                for dct in processed_submissions[name]:
-                    qa_dict[name][dct["id"]] = dct
+            if (year, month) in date_to_url_submissions:
+                f_url = date_to_url_submissions[(year, month)]
+                processed_submissions = _download_and_select_lines(dl_manager, f_url, "submissions", st_time)
+                for name in _SUB_REDDITS:
+                    for dct in processed_submissions[name]:
+                        qa_dict[name][dct["id"]] = dct
+            else:
+                print("Could not find submissions dump file for year {:4d} month {:2d}".format(year, month))
     # then all answers
     for year in range(start_year, end_year + 1):
         start_mth = start_month if year == start_year else 1
         end_mth = end_month if year == end_year else 12
         months = range(start_mth, end_mth + 1)
         for month in months:
-            f_url = date_to_url_comments[(year, month)]
-            processed_comments = _download_and_select_lines(dl_manager, f_url, "comments", st_time)
-            # merge submissions and comments
-            for name in _SUB_REDDITS:
-                merged_comments = 0
-                for dct in processed_comments[name]:
-                    did = dct["parent_id"].split("_")[-1]
-                    if did in qa_dict[name]:
-                        merged_comments += 1
-                        qa_dict[name][did]["comments"] = qa_dict[name][did].get("comments", []) + [dct]
+            if (year, month) in date_to_url_comments:
+                f_url = date_to_url_comments[(year, month)]
+                processed_comments = _download_and_select_lines(dl_manager, f_url, "comments", st_time)
+                # merge submissions and comments
+                for name in _SUB_REDDITS:
+                    merged_comments = 0
+                    for dct in processed_comments[name]:
+                        did = dct["parent_id"].split("_")[-1]
+                        if did in qa_dict[name]:
+                            merged_comments += 1
+                            qa_dict[name][did]["comments"] = qa_dict[name][did].get("comments", []) + [dct]
+            else:
+                print("Could not find comments dump file for year {:4d} month {:2d}".format(year, month))
     # then post-process
     res = {}
     for name in _SUB_REDDITS:
@@ -235,13 +243,6 @@ _CITATION = """\
 }
 """
 
-_VERSION_MAP = {
-    "1.0.0": "explainlikeimfive",
-    "2.0.0": "askscience",
-    "3.0.0": "AskHistorians",
-}
-
-
 class ExplainLikeImFiveConfig(nlp.BuilderConfig):
     """BuilderConfig for ExplainLikeImFive."""
 
@@ -260,11 +261,9 @@ class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
         "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets/explainlikeimfive/reddit_data_split.json"
     )
 
-    name = "ELI5"
+    name = "ELI5_LFQA"
     BUILDER_CONFIGS = [
-        ExplainLikeImFiveConfig(name="explainlikeimfive", version="1.0.0", description="explainlikeimfive subreddit"),
-        ExplainLikeImFiveConfig(name="askscience", version="2.0.0", description="askscience subreddit"),
-        ExplainLikeImFiveConfig(name="AskHistorians", version="3.0.0", description="AskHistorians subreddit"),
+        ExplainLikeImFiveConfig(name="LFQA_reddit", version=nlp.Version("1.0.0"), description="long from QA subreddits"),
     ]
 
     def _info(self):
@@ -307,22 +306,54 @@ class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
         fpath_splits = dl_manager.download(self._DATA_SPLIT_URL)
         self.data_split = json.load(open(fpath_splits))
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"split": "train"}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"split": "validation"}),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"split": "test"}),
+            nlp.SplitGenerator(
+                name=nlp.Split('train_eli5'),
+                gen_kwargs={"split": "train", "subreddit_name": "explainlikeimfive"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split('validation_eli5'),
+                gen_kwargs={"split": "validation", "subreddit_name": "explainlikeimfive"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split('test_eli5'),
+                gen_kwargs={"split": "test", "subreddit_name": "explainlikeimfive"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split('train_asks'),
+                gen_kwargs={"split": "train", "subreddit_name": "askscience"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split('validation_asks'),
+                gen_kwargs={"split": "validation", "subreddit_name": "askscience"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split('test_asks'),
+                gen_kwargs={"split": "test", "subreddit_name": "askscience"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split('train_askh'),
+                gen_kwargs={"split": "train", "subreddit_name": "AskHistorians"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split('validation_askh'),
+                gen_kwargs={"split": "validation", "subreddit_name": "AskHistorians"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split('test_askh'),
+                gen_kwargs={"split": "test", "subreddit_name": "AskHistorians"},
+            ),
         ]
 
-    def _generate_examples(self, split):
-        name = _VERSION_MAP[self.config.version]
-        logging.info("generating examples from = {}, {} set".format(name, split))
-        if split in self.data_split.get(name, []):
-            id_list = self.data_split[name][split]
-            data = [self.filtered_reddit[name][q_id] for q_id in id_list if q_id in self.filtered_reddit[name]]
+    def _generate_examples(self, split, subreddit_name):
+        logging.info("generating examples from = {}, {} set".format(subreddit_name, split))
+        if split in self.data_split.get(subreddit_name, []):
+            id_list = self.data_split[subreddit_name][split]
+            data = [self.filtered_reddit[subreddit_name][q_id] for q_id in id_list if q_id in self.filtered_reddit[subreddit_name]]
         elif split == "train":
             data = [
-                self.filtered_reddit[name][q_id]
-                for name in self.filtered_reddit
-                for q_id in self.filtered_reddit[name]
+                self.filtered_reddit[subreddit_name][q_id]
+                for subreddit_name in self.filtered_reddit
+                for q_id in self.filtered_reddit[subreddit_name]
             ]
         else:
             data = []
@@ -349,7 +380,7 @@ class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
                 "title": title,
                 "selftext": selftext,
                 "document": "",
-                "subreddit": example.get("subreddit", name),
+                "subreddit": example.get("subreddit", subreddit_name),
                 "answers": {"a_id": answer_ids, "text": answer_texts, "score": answer_scores},
                 "title_urls": {"url": title_urls},
                 "selftext_urls": {"url": selftext_urls},
