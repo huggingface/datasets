@@ -7,8 +7,8 @@ import apache_beam as beam
 
 from nlp.builder import FORCE_REDOWNLOAD, HF_DATASETS_CACHE, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
 from nlp.commands import BaseTransformersCLICommand
-from nlp.load import import_main_class, prepare_module
 from nlp.info import DATASET_INFOS_DICT_FILE_NAME
+from nlp.load import import_main_class, prepare_module
 
 
 def run_beam_command_factory(args):
