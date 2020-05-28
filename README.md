@@ -32,9 +32,13 @@
 - Strive on large datasets: `nlp` naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
 - Smart caching: never wait for your data to process several times
 
-`nlp` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics.
+`nlp` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the [live nlp viewer](https://huggingface.co/nlp/viewer).
 
 `nlp` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between `nlp` and `tfds` can be found in the section [Main differences between `nlp` and `tfds`](#main-differences-between-nlp-and-tfds).
+
+# Contributors
+
+[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/0)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/0)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/1)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/1)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/2)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/2)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/3)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/3)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/4)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/4)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/5)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/5)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/6)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/6)[![](https://sourcerer.io/fame/clmnt/huggingface/nlp/images/7)](https://sourcerer.io/fame/clmnt/huggingface/nlp/links/7)
 
 # Installation
 
@@ -102,7 +106,7 @@ Now the best introduction to `nlp` is to follow the tutorial in Google Colab whi
 If you are familiar with the great `Tensorflow Datasets`, here are the main differences between `nlp` and `tfds`:
 - the scripts in `nlp` are not provided within the library but are queried, downloaded/cached and dynamically loaded upon request
 - `nlp` also provides evaluation metrics in a similar fashion to the datasets, i.e. as dynamically installed scripts with a unified API. This gives access to the pair of a benchmark dataset and a benchmark metric for instance for benchmarks like [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/) or [GLUE](https://gluebenchmark.com/).
-- the backend serialization of `nlp` is based on [Apache Arrow](https://arrow.apache.org/)/[Parquet](https://parquet.apache.org/) instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache)
+- the backend serialization of `nlp` is based on [Apache Arrow](https://arrow.apache.org/) instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache)
 - the user-facing dataset object of `nlp` is not a `tf.data.Dataset` but a built-in framework-agnostic dataset class with methods inspired by what we like in `tf.data` (like a `map()` method). It basically wraps a memory-mapped Arrow table cache.
 
 # Disclaimers

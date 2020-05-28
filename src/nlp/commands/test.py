@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from shutil import copyfile
 from typing import List
 
-from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder
+from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
 from nlp.commands import BaseTransformersCLICommand
 from nlp.info import DATASET_INFOS_DICT_FILE_NAME
 from nlp.load import import_main_class, prepare_module
@@ -12,7 +12,8 @@ from nlp.load import import_main_class, prepare_module
 def test_command_factory(args):
     return TestCommand(
         args.dataset,
-        args.config,
+        args.name,
+        args.cache_dir,
         args.data_dir,
         args.all_configs,
         args.save_infos,
@@ -25,12 +26,15 @@ class TestCommand(BaseTransformersCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("test")
-        test_parser.add_argument("--config", type=str, default=None, help="Dataset processing config")
+        test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
+        test_parser.add_argument(
+            "--cache_dir", type=str, default=None, help="Cache directory where the datasets are stored.",
+        )
         test_parser.add_argument(
             "--data_dir",
             type=str,
             default=None,
-            help="can be used to specify a manual directory to get the files from.",
+            help="Can be used to specify a manual directory to get the files from.",
         )
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         test_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
@@ -44,7 +48,8 @@ class TestCommand(BaseTransformersCLICommand):
     def __init__(
         self,
         dataset: str,
-        config: str,
+        name: str,
+        cache_dir: str,
         data_dir: str,
         all_configs: bool,
         save_infos: bool,
@@ -52,7 +57,8 @@ class TestCommand(BaseTransformersCLICommand):
         force_redownload: bool,
     ):
         self._dataset = dataset
-        self._config = config
+        self._name = name
+        self._cache_dir = cache_dir
         self._data_dir = data_dir
         self._all_configs = all_configs
         self._save_infos = save_infos
@@ -60,21 +66,22 @@ class TestCommand(BaseTransformersCLICommand):
         self._force_redownload = force_redownload
 
     def run(self):
-        if self._config is not None and self._all_configs:
+        if self._name is not None and self._all_configs:
             print("Both parameters `config` and `all_configs` can't be used at once.")
             exit(1)
-        path, config = self._dataset, self._config
+        path, name = self._dataset, self._name
         module_path = prepare_module(path)
         builder_cls = import_main_class(module_path)
         builders: List[DatasetBuilder] = []
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
-                builders.append(builder_cls(config=config, data_dir=self._data_dir))
+                builders.append(builder_cls(name=config.name, data_dir=self._data_dir))
         else:
-            builders.append(builder_cls(config=config, data_dir=self._data_dir))
+            builders.append(builder_cls(name=name, data_dir=self._data_dir))
 
         for builder in builders:
             builder.download_and_prepare(
+                download_config=DownloadConfig(cache_dir=self._cache_dir),
                 download_mode=REUSE_CACHE_IF_EXISTS if not self._force_redownload else FORCE_REDOWNLOAD,
                 save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,

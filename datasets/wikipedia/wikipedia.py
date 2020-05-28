@@ -25,9 +25,9 @@ import re
 import xml.etree.cElementTree as etree
 
 import apache_beam as beam
+import mwparserfromhell
 import six
 
-import mwparserfromhell
 import nlp
 
 
@@ -406,14 +406,14 @@ class Wikipedia(nlp.BeamBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"title": nlp.Value("string"), "text": nlp.Value("string"),}),
+            features=nlp.Features({"title": nlp.Value("string"), "text": nlp.Value("string")}),
             # No default supervised_keys.
             supervised_keys=None,
             homepage="https://dumps.wikimedia.org",
             citation=_CITATION,
         )
 
-    def _split_generators(self, dl_manager):
+    def _split_generators(self, dl_manager, pipeline):
         def _base_url(lang):
             return _BASE_URL_TMPL.format(lang=lang.replace("-", "_"), date=self.config.date)
 
@@ -441,6 +441,8 @@ class Wikipedia(nlp.BeamBasedBuilder):
 
             # Use dictionary since testing mock always returns the same result.
         downloaded_files = dl_manager.download({"xml": xml_urls})
+        if not pipeline.is_local():
+            downloaded_files = dl_manager.ship_files_with_pipeline(downloaded_files, pipeline)
 
         return [
             nlp.SplitGenerator(  # pylint:disable=g-complex-comprehension
@@ -454,7 +456,7 @@ class Wikipedia(nlp.BeamBasedBuilder):
         def _extract_content(filepath):
             """Extracts article content from a single WikiMedia XML file."""
             logging.info("generating examples from = %s", filepath)
-            with open(filepath, "rb") as f:
+            with beam.io.filesystems.FileSystems.open(filepath) as f:
                 f = bz2.BZ2File(filename=f)
                 if six.PY3:
                     # Workaround due to:
@@ -511,10 +513,10 @@ class Wikipedia(nlp.BeamBasedBuilder):
 
         return (
             pipeline
-            | beam.Create(filepaths)
-            | beam.FlatMap(_extract_content)
-            | beam.transforms.Reshuffle()
-            | beam.FlatMap(_clean_content)
+            | "Initialize" >> beam.Create(filepaths)
+            | "Extract content" >> beam.FlatMap(_extract_content)
+            | "Distribute" >> beam.transforms.Reshuffle()
+            | "Clean content" >> beam.FlatMap(_clean_content)
         )
 
 

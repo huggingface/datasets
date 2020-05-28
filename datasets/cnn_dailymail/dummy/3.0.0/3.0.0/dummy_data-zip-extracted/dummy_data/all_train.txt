@@ -1,3 +1,0 @@
-train_url1
-train_url2
-train_url3

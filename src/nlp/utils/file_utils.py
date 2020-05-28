@@ -99,7 +99,7 @@ def is_tf_available():
 
 def is_remote_url(url_or_filename):
     parsed = urlparse(url_or_filename)
-    return parsed.scheme in ("http", "https", "s3")
+    return parsed.scheme in ("http", "https", "s3", "gs", "hdfs")
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
@@ -110,7 +110,7 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     return "/".join((endpoint, identifier, filename))
 
 
-def url_to_filename(url, etag=None):
+def hash_url_to_filename(url, etag=None):
     """
     Convert `url` into a hashed filename in a repeatable way.
     If `etag` is specified, append its hash to the url's, delimited
@@ -180,10 +180,9 @@ def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Op
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
 
-    if download_config.cache_dir is None:
-        download_config.cache_dir = HF_DATASETS_CACHE
-    if isinstance(download_config.cache_dir, Path):
-        download_config.cache_dir = str(download_config.cache_dir)
+    cache_dir = download_config.cache_dir or HF_DATASETS_CACHE
+    if isinstance(cache_dir, Path):
+        cache_dir = str(cache_dir)
     if isinstance(url_or_filename, Path):
         url_or_filename = str(url_or_filename)
 
@@ -191,7 +190,7 @@ def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Op
         # URL, so get it from the cache (downloading if necessary)
         output_path = get_from_cache(
             url_or_filename,
-            cache_dir=download_config.cache_dir,
+            cache_dir=cache_dir,
             force_download=download_config.force_download,
             proxies=download_config.proxies,
             resume_download=download_config.resume_download,
@@ -213,10 +212,9 @@ def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Op
             return output_path
 
         # Path where we extract compressed archives
-        # We avoid '.' in dir name and add "-extracted" at the end: "./model.zip" => "./model-zip-extracted/"
-        output_dir, output_file = os.path.split(output_path)
-        output_extract_dir_name = output_file.replace(".", "-") + "-extracted"
-        output_path_extracted = os.path.join(output_dir, output_extract_dir_name)
+        # We extract in the cache dir, and get the extracted path name by hashing the original path"
+        abs_output_path = os.path.abspath(output_path)
+        output_path_extracted = os.path.join(cache_dir, hash_url_to_filename(abs_output_path))
 
         if (
             os.path.isdir(output_path_extracted)
@@ -337,7 +335,7 @@ def get_from_cache(
             # not connected
             pass
 
-    filename = url_to_filename(original_url, etag)
+    filename = hash_url_to_filename(original_url, etag)
 
     # get cache path to put the file
     cache_path = os.path.join(cache_dir, filename)

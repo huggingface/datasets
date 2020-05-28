@@ -28,14 +28,14 @@ from typing import Dict, List, Optional, Union
 import pyarrow as pa
 
 from . import utils
-from .arrow_reader import ArrowReader, ParquetReader
+from .arrow_reader import ArrowReader, DatasetNotOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
-from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo, DatasetInfosDict
+from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict
 from .utils.download_manager import DownloadManager, GenerateMode
-from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig
+from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig, is_remote_url
 from .utils.info_utils import verify_checksums, verify_splits
 
 
@@ -44,6 +44,10 @@ logger = logging.getLogger(__name__)
 FORCE_REDOWNLOAD = GenerateMode.FORCE_REDOWNLOAD
 REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
 REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
+
+
+class InvalidConfigName(ValueError):
+    pass
 
 
 @dataclass
@@ -59,6 +63,19 @@ class BuilderConfig:
     data_dir: str = None
     data_files: Union[Dict, List] = None
     description: str = None
+
+    def __post_init__(self):
+        # The config name is used to name the cache directory.
+        invalid_windows_characters = r"<>:/\|?*"
+        for invalid_char in invalid_windows_characters:
+            if invalid_char in self.name:
+                raise InvalidConfigName(
+                    (
+                        "Bad characters from black list '{}' found in '{}'. "
+                        "They could create issues when creating a directory "
+                        "for this config on Windows filesystem."
+                    ).format(invalid_windows_characters, self.name)
+                )
 
 
 class DatasetBuilder:
@@ -136,7 +153,7 @@ class DatasetBuilder:
 
     @property
     def does_require_manual_download(self):
-        return hasattr(self, "MANUAL_DOWNLOAD_INSTRUCTIONS")
+        return hasattr(self, "MANUAL_DOWNLOAD_INSTRUCTIONS") and (self.MANUAL_DOWNLOAD_INSTRUCTIONS is not None)
 
     @classmethod
     def get_all_exported_dataset_infos(cls) -> dict:
@@ -156,7 +173,14 @@ class DatasetBuilder:
             config_kwargs override the defaults kwargs in config
         """
         builder_config = None
-        if name is None and self.BUILDER_CONFIGS:
+        if name is None and self.BUILDER_CONFIGS and not config_kwargs:
+            if len(self.BUILDER_CONFIGS) > 1:
+                example_of_usage = "load_dataset('{}', '{}')".format(self.name, self.BUILDER_CONFIGS[0].name)
+                raise ValueError(
+                    "Config name is missing."
+                    "\nPlease pick one among the available configs: %s" % list(self.builder_configs.keys())
+                    + "\nExample of usage:\n\t`{}`".format(example_of_usage)
+                )
             builder_config = self.BUILDER_CONFIGS[0]
             logger.info("No config specified, defaulting to first: %s/%s", self.name, builder_config.name)
         if isinstance(name, str):
@@ -284,6 +308,7 @@ class DatasetBuilder:
         download_mode: Optional[GenerateMode] = None,
         ignore_verifications: bool = False,
         save_infos: bool = False,
+        try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
         **download_and_prepare_kwargs,
     ):
@@ -294,6 +319,7 @@ class DatasetBuilder:
             download_mode (Optional `nlp.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
             ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
             save_infos (bool): Save the dataset information (checksums/size/splits/...)
+            try_from_hf_gcs (bool): If True, it will try to download the already prepared dataset from the Hf google cloud storage
             dl_manager (Optional ``nlp.DownloadManager``): specific Download Manger to use
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
@@ -314,14 +340,32 @@ class DatasetBuilder:
             )
 
         logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
-        if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
-            raise IOError(
-                "Not enough disk space. Needed: {} (download: {}, generated: {})".format(
-                    utils.size_str(self.info.size_in_bytes or 0),
-                    utils.size_str(self.info.download_size or 0),
-                    utils.size_str(self.info.dataset_size or 0),
+        if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
+            os.makedirs(self._cache_dir, exist_ok=True)
+            if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
+                raise IOError(
+                    "Not enough disk space. Needed: {} (download: {}, generated: {})".format(
+                        utils.size_str(self.info.size_in_bytes or 0),
+                        utils.size_str(self.info.download_size or 0),
+                        utils.size_str(self.info.dataset_size or 0),
+                    )
                 )
-            )
+
+        # Try to download the already prepared dataset files
+        if try_from_hf_gcs:
+            try:
+                reader = ArrowReader(self._cache_dir, self.info)
+                reader.download_from_hf_gcs(self.cache_dir, self._relative_data_dir(with_version=True))
+                downloaded_info = DatasetInfo.from_directory(self._cache_dir)
+                self.info.update(downloaded_info)
+                logger.info("Dataset downloaded from Hf google storage.")
+                print(
+                    f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
+                    f"Subsequent calls will reuse this data."
+                )
+                return
+            except DatasetNotOnHfGcs:
+                logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
 
         # Print is intentional: we want this to always go to stdout so user has
         # information needed to cancel download/preparation if needed.
@@ -333,27 +377,38 @@ class DatasetBuilder:
         )
 
         if dl_manager is None:
-            download_config = DownloadConfig()
-            download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
-            download_config.force_download = download_mode == FORCE_REDOWNLOAD
+            if download_config is None:
+                download_config = DownloadConfig()
+                download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
+                download_config.force_download = download_mode == FORCE_REDOWNLOAD
 
             dl_manager = DownloadManager(
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
             )
 
+        if self.does_require_manual_download:
+            assert (
+                dl_manager.manual_dir is not None
+            ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load({}, data_dir='<path/to/manual/data>')".format(
+                self.name, self.config.name, self.MANUAL_DOWNLOAD_INSTRUCTIONS, self.name
+            )
+
         @contextlib.contextmanager
         def incomplete_dir(dirname):
             """Create temporary dir for dirname and rename on exit."""
-            tmp_dir = dirname + ".incomplete"
-            os.makedirs(tmp_dir)
-            try:
-                yield tmp_dir
-                if os.path.isdir(dirname):
-                    shutil.rmtree(dirname)
-                os.rename(tmp_dir, dirname)
-            finally:
-                if os.path.exists(tmp_dir):
-                    shutil.rmtree(tmp_dir)
+            if is_remote_url(dirname):
+                yield dirname
+            else:
+                tmp_dir = dirname + ".incomplete"
+                os.makedirs(tmp_dir)
+                try:
+                    yield tmp_dir
+                    if os.path.isdir(dirname):
+                        shutil.rmtree(dirname)
+                    os.rename(tmp_dir, dirname)
+                finally:
+                    if os.path.exists(tmp_dir):
+                        shutil.rmtree(tmp_dir)
 
         # Create a tmp dir and rename to self._cache_dir on successful exit.
         with incomplete_dir(self._cache_dir) as tmp_data_dir:
@@ -369,7 +424,7 @@ class DatasetBuilder:
                 self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
                 self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
                 # Save info
-                self.info.write_to_directory(self._cache_dir)
+                self._save_info()
 
         # Save to datasetinfos
         if save_infos:
@@ -393,7 +448,8 @@ class DatasetBuilder:
             verify_infos: bool, if True, do not perform checksums and size tests.
             prepare_split_kwargs: Additional options.
         """
-        os.makedirs(self._cache_dir, exist_ok=True)
+        if not is_remote_url(self._cache_dir):
+            os.makedirs(self._cache_dir, exist_ok=True)
 
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
@@ -422,8 +478,11 @@ class DatasetBuilder:
         if verify_infos:
             verify_splits(self.info.splits, split_dict)
         # Update the info object with the splits.
-        self.info.splits = split_dict.copy()
+        self.info.splits = split_dict
         self.info.download_size = dl_manager.downloaded_size
+
+    def _save_info(self):
+        self.info.write_to_directory(self._cache_dir)
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
@@ -665,13 +724,17 @@ class ArrowBasedBuilder(DatasetBuilder):
         self.info.features = Features(features)
 
 
+class MissingBeamOptions(ValueError):
+    pass
+
+
 class BeamBasedBuilder(DatasetBuilder):
     """Beam based Builder."""
 
     def __init__(self, *args, **kwargs):
+        self._beam_runner = kwargs.pop("beam_runner", None)
+        self._beam_options = kwargs.pop("beam_options", None)
         super(BeamBasedBuilder, self).__init__(*args, **kwargs)
-        self._beam_runner = kwargs.get("beam_runner")
-        self._beam_options = kwargs.get("beam_options")
         self._beam_writers = {}  # {split: beam_writer} mapping.
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
@@ -719,39 +782,22 @@ class BeamBasedBuilder(DatasetBuilder):
         """
         raise NotImplementedError()
 
-    def _as_dataset(self, split: Split = Split.TRAIN):
-        """Constructs a `Dataset`.
-
-        This is the internal implementation to overwrite called when user calls
-        `as_dataset`. It should read the pre-processed datasets files and generate
-        the `Dataset` object.
-
-        Args:
-            split: `nlp.Split` which subset of the data to read.
-
-        Returns:
-            `Dataset`
-        """
-
-        ds = ParquetReader(self._cache_dir, self.info).read(
-            name=self.name, instructions=split, split_infos=self.info.splits.values(),
-        )
-        return ds
-
     def _download_and_prepare(self, dl_manager, verify_infos):
         # Create the Beam pipeline and forward it to _prepare_split
         import apache_beam as beam
+        import nlp.utils.beam_utils as beam_utils
 
         beam_runner = self._beam_runner
         beam_options = self._beam_options
 
         if not beam_runner and not beam_options:
-            logger.warning(
+            raise MissingBeamOptions(
                 "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
-                "or PipelineOptions() has been provided. Please pass a "
-                "nlp.DownloadConfig(beam_runner=...) object to the "
-                "builder.download_and_prepare(download_config=...) method. "
-                "Default values will be used."
+                "or PipelineOptions() has been provided in `load_dataset` or in the "
+                "builder arguments. For big datasets it has to run on large-scale data "
+                "processing tools like Dataflow, Spark, etc. More information about "
+                "Apache Beam runners at "
+                "https://beam.apache.org/documentation/runners/capability-matrix/"
             )
 
         beam_options = beam_options or beam.options.pipeline_options.PipelineOptions()
@@ -760,33 +806,44 @@ class BeamBasedBuilder(DatasetBuilder):
         # are better without it.
         beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
-        with beam.Pipeline(runner=beam_runner, options=beam_options,) as pipeline:
-            super(BeamBasedBuilder, self)._download_and_prepare(
-                dl_manager, pipeline=pipeline, verify_infos=False
-            )  # TODO{beam} verify infos
-
+        pipeline = beam_utils.BeamPipeline(runner=beam_runner, options=beam_options,)
+        super(BeamBasedBuilder, self)._download_and_prepare(
+            dl_manager, verify_infos=False, pipeline=pipeline,
+        )  # TODO handle verify_infos in beam datasets
+        # Run pipeline
+        pipeline_results = pipeline.run()
+        pipeline_results.wait_until_finish()
+        metrics = pipeline_results.metrics()
         # Update `info.splits`.
         split_dict = self.info.splits
         for split_name, beam_writer in self._beam_writers.items():
-            num_examples, num_bytes = beam_writer.finalize()
+            m_filter = beam.metrics.MetricsFilter().with_namespace(namespace=split_name)
+            num_examples, num_bytes = beam_writer.finalize(metrics.query(m_filter))
             split_info = split_dict[split_name]
             split_info.num_examples = num_examples
             split_info.num_bytes = num_bytes
 
-    def _prepare_split(self, split_generator, pipeline):
+    def _save_info(self):
         import apache_beam as beam
 
-        os.makedirs(self._cache_dir, exist_ok=True)
+        fs = beam.io.filesystems.FileSystems
+        with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
+            self.info._dump_info(f)
+        with fs.create(os.path.join(self._cache_dir, LICENSE_FILENAME)) as f:
+            self.info._dump_license(f)
+
+    def _prepare_split(self, split_generator, pipeline):
+        import apache_beam as beam
 
         split_name = split_generator.split_info.name
         output_prefix = filename_prefix_for_split(self.name, split_name)
         output_prefix = os.path.join(self._cache_dir, output_prefix)
 
         # To write examples to disk:
-        fname = "{}-{}.parquet".format(self.name, split_name)
+        fname = "{}-{}.arrow".format(self.name, split_name)
         fpath = os.path.join(self._cache_dir, fname)
         examples_type = self.info.features.type
-        beam_writer = BeamWriter(examples_type, path=fpath)
+        beam_writer = BeamWriter(examples_type, path=fpath, namespace=split_name, cache_dir=self._cache_dir)
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example

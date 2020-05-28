@@ -20,9 +20,9 @@ import enum
 import logging
 import os
 
-from .file_utils import cached_path, get_from_cache, url_to_filename
+from .file_utils import cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
-from .py_utils import flatten_nested, map_nested
+from .py_utils import flatten_nested, map_nested, size_str
 
 
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ class DownloadManager(object):
         self._dataset_name = dataset_name
         self._data_dir = data_dir
         self._download_config = download_config
-        # To record what is being used: {url: (size, checksum)}
+        # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums = {}
 
     @property
@@ -76,6 +76,29 @@ class DownloadManager(object):
     def downloaded_size(self):
         """Returns the total size of downloaded files."""
         return sum(checksums_dict["num_bytes"] for checksums_dict in self._recorded_sizes_checksums.values())
+
+    def ship_files_with_pipeline(self, downloaded_path_or_paths, pipeline):
+        """
+        Ship the files using Beam FileSystems to the pipeline temp dir.
+        """
+        from nlp.utils.beam_utils import upload_local_to_remote
+
+        remote_dir = pipeline._options.get_all_options().get("temp_location")
+        if remote_dir is None:
+            raise ValueError("You need to specify 'temp_location' in PipelineOptions to upload files")
+
+        def upload(local_file_path):
+            remote_file_path = os.path.join(remote_dir, "downloads", os.path.basename(local_file_path))
+            logger.info(
+                "Uploading {} ({}) to {}.".format(
+                    local_file_path, size_str(os.path.getsize(local_file_path)), remote_file_path
+                )
+            )
+            upload_local_to_remote(local_file_path, remote_file_path)
+            return remote_file_path
+
+        uploaded_path_or_paths = map_nested(lambda local_file_path: upload(local_file_path), downloaded_path_or_paths,)
+        return uploaded_path_or_paths
 
     def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
         """Record size/checksum of downloaded files."""
@@ -100,7 +123,7 @@ class DownloadManager(object):
         """
 
         def url_to_downloaded_path(url):
-            return os.path.join(self._download_config.cache_dir, url_to_filename(url))
+            return os.path.join(self._download_config.cache_dir, hash_url_to_filename(url))
 
         downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
         flattened_urls_or_urls = flatten_nested(url_or_urls)
@@ -129,7 +152,7 @@ class DownloadManager(object):
                 url_or_urls.
         """
         downloaded_path_or_paths = map_nested(
-            lambda url_or_urls: cached_path(url_or_urls, download_config=self._download_config,), url_or_urls,
+            lambda url: cached_path(url, download_config=self._download_config,), url_or_urls,
         )
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
@@ -171,8 +194,7 @@ class DownloadManager(object):
                 path_or_paths.
         """
         return map_nested(
-            lambda path_or_paths: cached_path(path_or_paths, extract_compressed_file=True, force_extract=False),
-            path_or_paths,
+            lambda path: cached_path(path, extract_compressed_file=True, force_extract=False), path_or_paths,
         )
 
     def download_and_extract(self, url_or_urls):
