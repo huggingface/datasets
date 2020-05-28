@@ -20,6 +20,7 @@ import hashlib
 import logging
 import os
 from collections.abc import Mapping
+from collections import defaultdict
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
@@ -29,7 +30,7 @@ from tqdm import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .utils import convert_tuples_in_lists
+from .utils import convert_tuples_in_lists, flatten_nested
 
 
 logger = logging.getLogger(__name__)
@@ -557,3 +558,43 @@ class Dataset(object):
                 return Dataset.from_buffer(buf_writer.getvalue())
         else:
             return self
+
+    def filter(
+        self,
+        function,
+        with_indices=False,
+        **kwargs
+    ):
+        def map_function(batch, *args):
+            # flatten dict to list
+            flattened_batch = flatten_nested(batch)
+            num_items = len(batch.keys())
+            num_examples = len(flattened_batch) // num_items
+            result = defaultdict(list)
+
+            # create single examples
+            for example_pos in range(num_examples):
+                example = {}
+                for i, key in enumerate(batch.keys()):
+                    example[key] = flattened_batch[i * num_examples + example_pos]
+
+                # check if example should be fildered or not
+                if with_indices:
+                    idx = args[0][example_pos]
+                    keep_example = function(example, idx)
+                else:
+                    keep_example = function(example)
+
+                # if example shall be kept add to result
+                if keep_example is True:
+                    for key in batch.keys():
+                        result[key].append(example[key])
+
+            # if no example shall be kept, init with empty list
+            if bool(result) is False:
+                for key in batch.keys():
+                    result[key] = []
+            return result
+
+        # return map function
+        return self.map(map_function, batched=True, with_indices=with_indices, **kwargs)
