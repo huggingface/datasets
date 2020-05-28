@@ -67,7 +67,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
 
             for split in generator_splits:
                 logger.info(f"Collecting dummy data file paths to create for {split.name}")
-                split_names.add(split.name)
+                split_names.append(split.name)
                 gen_kwargs = split.gen_kwargs
                 generator = dataset_builder._generate_examples(**gen_kwargs)
 
