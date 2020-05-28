@@ -328,7 +328,9 @@ def get_from_cache(
                         cookies = response.cookies
                 connected = True
             # In some edge cases, head request returns 400 but the connection is actually ok
-            elif (response.status_code == 400 and "firebasestorage.googleapis.com" in url) or (response.status_code == 405 and "drive.google.com" in url):
+            elif (response.status_code == 400 and "firebasestorage.googleapis.com" in url) or (
+                response.status_code == 405 and "drive.google.com" in url
+            ):
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))
         except (EnvironmentError, requests.exceptions.Timeout):
