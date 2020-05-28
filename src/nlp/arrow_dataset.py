@@ -30,7 +30,7 @@ from tqdm import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .utils import convert_tuples_in_lists, flatten_nested
+from .utils import convert_tuples_in_lists, map_nested
 
 
 logger = logging.getLogger(__name__)
@@ -559,34 +559,23 @@ class Dataset(object):
         else:
             return self
 
-    def filter(
-        self,
-        function,
-        with_indices=False,
-        **kwargs
-    ):
+    def filter(self, function, with_indices=False, **kwargs):
         def map_function(batch, *args):
-            # flatten dict to list
-            flattened_batch = flatten_nested(batch)
-            num_items = len(batch.keys())
-            num_examples = len(flattened_batch) // num_items
             result = defaultdict(list)
+            num_examples = len(batch[next(iter(batch.keys()))])
 
             # create single examples
-            for example_pos in range(num_examples):
-                example = {}
-                for i, key in enumerate(batch.keys()):
-                    example[key] = flattened_batch[i * num_examples + example_pos]
+            for i in range(num_examples):
+                example = map_nested(lambda x: x[i], batch, dict_only=True)
 
                 # check if example should be fildered or not
                 if with_indices:
-                    idx = args[0][example_pos]
-                    keep_example = function(example, idx)
+                    keep_example = function(example, args[0][i])
                 else:
                     keep_example = function(example)
 
                 # if example shall be kept add to result
-                if keep_example is True:
+                if keep_example:
                     for key in batch.keys():
                         result[key].append(example[key])
 
@@ -594,7 +583,14 @@ class Dataset(object):
             if bool(result) is False:
                 for key in batch.keys():
                     result[key] = []
+
             return result
 
+        # to avoid errors with the arrow_schema we define it here
+        test_inputs = self[:2]
+        if "remove_columns" in kwargs:
+            test_inputs = {key: test_inputs[key] for key in (test_inputs.keys() - kwargs["remove_columns"])}
+        arrow_schema = pa.Table.from_pydict(test_inputs).schema
+
         # return map function
-        return self.map(map_function, batched=True, with_indices=with_indices, **kwargs)
+        return self.map(map_function, batched=True, with_indices=with_indices, arrow_schema=arrow_schema, **kwargs)
