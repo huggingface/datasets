@@ -85,6 +85,7 @@ class Metric(object):
 
         # Update 'compute' and 'add' docstring
         self.compute.__func__.__doc__ += self.info.inputs_description
+        self.add_batch.__func__.__doc__ += self.info.inputs_description
         self.add.__func__.__doc__ += self.info.inputs_description
 
         self.arrow_schema = pa.schema(field for field in self.info.features.type)
@@ -189,7 +190,7 @@ class Metric(object):
         """ Compute the metrics.
         """
         if predictions is not None:
-            self.add(predictions=predictions, references=references)
+            self.add_batch(predictions=predictions, references=references)
         self.finalize(timeout=timeout)
 
         self.data.set_format(type=self.info.format)
@@ -199,26 +200,33 @@ class Metric(object):
         output = self._compute(predictions=predictions, references=references, **metrics_kwargs)
         return output
 
-    def add(self, predictions=None, references=None, **kwargs):
-        """ Add predictions and references for the metric's stack.
+    def add_batch(self, predictions=None, references=None, **kwargs):
+        """ Add a batch of predictions and references for the metric's stack.
         """
         batch = {"predictions": predictions, "references": references}
         if self.writer is None:
-            # if self.arrow_schema is None:
-            #     batch = convert_tuples_in_lists(batch)
-            #     self.arrow_schema = pa.Table.from_pydict(batch).schema
-            if self.in_memory:
-                self.buf_writer = pa.BufferOutputStream()
-                self.writer = ArrowWriter(
-                    schema=self.arrow_schema, stream=self.buf_writer, writer_batch_size=self.writer_batch_size
-                )
-            else:
-                self.buf_writer = None
-                self.writer = ArrowWriter(
-                    schema=self.arrow_schema, path=self.cache_file_name, writer_batch_size=self.writer_batch_size
-                )
-
+            self._init_writer()
         self.writer.write_batch(batch)
+
+    def add(self, prediction=None, reference=None, **kwargs):
+        """ Add one prediction and reference for the metric's stack.
+        """
+        example = {"predictions": prediction, "references": reference}
+        if self.writer is None:
+            self._init_writer()
+        self.writer.write(example)
+
+    def _init_writer(self):
+        if self.in_memory:
+            self.buf_writer = pa.BufferOutputStream()
+            self.writer = ArrowWriter(
+                schema=self.arrow_schema, stream=self.buf_writer, writer_batch_size=self.writer_batch_size
+            )
+        else:
+            self.buf_writer = None
+            self.writer = ArrowWriter(
+                schema=self.arrow_schema, path=self.cache_file_name, writer_batch_size=self.writer_batch_size
+            )
 
     def _info(self) -> MetricInfo:
         """Construct the MetricInfo object. See `MetricInfo` for details.
