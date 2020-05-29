@@ -26,7 +26,19 @@ import apache_beam as beam
 
 import nlp
 
-from . import c4_utils
+from .c4_utils import (
+    dedupe_urls,
+    filter_by_webtextlike,
+    get_clean_page_fn,
+    get_counter_inc_fn,
+    get_hashed_url_filter_fn,
+    is_language,
+    is_realnews_domain,
+    is_valid_length,
+    normalize_url,
+    remove_duplicate_text,
+    split_wet_file,
+)
 
 
 _DESCRIPTION = """\
@@ -49,11 +61,6 @@ _CITATION = """
 }
 """
 _VERSION = nlp.Version("2.3.0", "Deduplicate lines within a page.")
-
-_SUPPORTED_VERSIONS = [
-    nlp.Version("2.2.1", "Update dataset_info.json"),
-    nlp.Version("2.2.0"),
-]
 
 _DOWNLOAD_HOST = "https://commoncrawl.s3.amazonaws.com"
 _WET_PATH_URL = "https://commoncrawl.s3.amazonaws.com/crawl-data/CC-MAIN-{cc_version}/wet.paths.gz"
@@ -108,7 +115,7 @@ class C4Config(nlp.BuilderConfig):
         if webtextlike:
             name_parts.append("webtextlike")
         name = ".".join(name_parts)
-        super(C4Config, self).__init__(name=name, version=_VERSION, supported_versions=_SUPPORTED_VERSIONS, **kwargs)
+        super(C4Config, self).__init__(name=name, version=_VERSION, **kwargs)
         self.lang = language
         self.cc_versions = cc_versions or (_DEFAULT_WEBTEXTLIKE_CC_VERSIONS if webtextlike else _DEFAULT_CC_VERSIONS)
         self.clean = clean
@@ -153,15 +160,10 @@ class C4(nlp.BeamBasedBuilder):
         features = {
             "text": nlp.Value("string"),
             "url": nlp.Value("string"),
+            "content-type": nlp.Value("string"),
+            "content-length": nlp.Value("string"),
+            "timestamp": nlp.Value("string"),
         }
-        if self.version > "1.0.0":
-            features.update(
-                {
-                    "content-type": nlp.Value("string"),
-                    "content-length": nlp.Value("string"),
-                    "timestamp": nlp.Value("string"),
-                }
-            )
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(features),
@@ -258,22 +260,22 @@ class C4(nlp.BeamBasedBuilder):
 
         # Parse WET files and filter by length.
         # Output: url, text
-        page_content = wet_file_paths | beam.FlatMap(c4_utils.split_wet_file) | beam.Filter(c4_utils.is_valid_length)
+        page_content = wet_file_paths | beam.FlatMap(split_wet_file) | beam.Filter(is_valid_length)
 
         # Optionally filter for RealNews domains.
         # Output: url, text
         if self.config.realnewslike:
             with open(file_paths["realnews_domains"], "r") as f:
                 realnews_domains = json.load(f)
-            page_content = page_content | beam.Filter(c4_utils.is_realnews_domain, realnews_domains)
+            page_content = page_content | beam.Filter(is_realnews_domain, realnews_domains)
 
         # Normalize and deduplicate by URL.
         # Output: url, text
         page_content = (
             page_content
-            | "normalize_url" >> beam.Map(c4_utils.normalize_url)
+            | "normalize_url" >> beam.Map(normalize_url)
             | "group_url" >> beam.GroupByKey()
-            | beam.Map(c4_utils.dedupe_urls)
+            | beam.Map(dedupe_urls)
         )
 
         # Optionally filter for WebText-like URLs.
@@ -286,12 +288,12 @@ class C4(nlp.BeamBasedBuilder):
                     os.path.join(file_paths["openwebtext_urls_zip"], _OPENWEBTEXT_URLS_FILE_PATTERN)
                 )
                 | "add_dummy_page" >> beam.Map(lambda x: (x, ""))
-                | "normal_webtext_url" >> beam.Map(c4_utils.normalize_url)
+                | "normal_webtext_url" >> beam.Map(normalize_url)
             )
             page_content = (
                 {"text": page_content, "webtextlike_urls": webtextlike_urls}
                 | "group_webtextlike_urls" >> beam.CoGroupByKey()
-                | beam.FlatMap(c4_utils.filter_by_webtextlike)
+                | beam.FlatMap(filter_by_webtextlike)
             )
 
         # Optionally clean pages of badwords, boilerpolate text, and duplicate
@@ -300,19 +302,19 @@ class C4(nlp.BeamBasedBuilder):
         if self.config.clean:
             with open(file_paths["badwords"], "r") as f:
                 badwords = [l.strip() for l in f]
-            page_content = page_content | "clean_pages" >> beam.FlatMap(c4_utils.get_clean_page_fn(badwords))
-            page_content = c4_utils.remove_duplicate_text(page_content)
+            page_content = page_content | "clean_pages" >> beam.FlatMap(get_clean_page_fn(badwords))
+            page_content = remove_duplicate_text(page_content)
 
         # Optionally filter out non-`language` pages. We do this after cleaning
         # since it may change the predominate language.
         if self.config.lang != "all":
-            page_content |= beam.Filter(c4_utils.is_language, language=self.config.lang)
+            page_content |= beam.Filter(is_language, language=self.config.lang)
 
         return page_content
 
     def _build_pcollection(self, unused_pipeline, split, page_content, hashed_url_predicate):
         def _emit_examples(el):
-            c4_utils.get_counter_inc_fn(split)("examples")
+            get_counter_inc_fn(split)("examples")
             _, features = el
             return (
                 features["url"],
@@ -325,8 +327,4 @@ class C4(nlp.BeamBasedBuilder):
                 },
             )
 
-        return (
-            page_content
-            | beam.Filter(c4_utils.get_hashed_url_filter_fn(hashed_url_predicate))
-            | beam.Map(_emit_examples)
-        )
+        return page_content | beam.Filter(get_hashed_url_filter_fn(hashed_url_predicate)) | beam.Map(_emit_examples)
