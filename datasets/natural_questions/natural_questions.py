@@ -21,8 +21,8 @@ from __future__ import absolute_import, division, print_function
 import json
 import re
 
-import six
 import apache_beam as beam
+import six
 
 import nlp
 
