@@ -22,6 +22,7 @@ import json
 import re
 
 import six
+import apache_beam as beam
 
 import nlp
 
@@ -77,9 +78,9 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
                         "title": nlp.Value("string"),
                         "url": nlp.Value("string"),
                         "html": nlp.Value("string"),
-                        "tokens": nlp.features.Sequence({"token": nlp.Value("string"), "is_html": nlp.Value("bool"),}),
+                        "tokens": nlp.features.Sequence({"token": nlp.Value("string"), "is_html": nlp.Value("bool")}),
                     },
-                    "question": {"text": nlp.Value("string"), "tokens": nlp.features.Sequence(nlp.Value("string")),},
+                    "question": {"text": nlp.Value("string"), "tokens": nlp.features.Sequence(nlp.Value("string"))},
                     "annotations": nlp.features.Sequence(
                         {
                             "id": nlp.Value("string"),
@@ -108,10 +109,12 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
             citation=_CITATION,
         )
 
-    def _split_generators(self, dl_manager):
+    def _split_generators(self, dl_manager, pipeline):
         """Returns SplitGenerators."""
 
         files = dl_manager.download(_DOWNLOAD_URLS)
+        if not pipeline.is_local():
+            files = dl_manager.ship_files_with_pipeline(files, pipeline)
 
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepaths": files["train"]},),
@@ -120,7 +123,6 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
 
     def _build_pcollection(self, pipeline, filepaths):
         """Build PCollection of examples."""
-        beam = nlp.lazy_imports.apache_beam
 
         def _parse_example(line):
             """Parse a single json line and emit an example dict."""
@@ -173,7 +175,7 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
                             {"token": t["token"], "is_html": t["html_token"]} for t in ex_json["document_tokens"]
                         ],
                     },
-                    "question": {"text": ex_json["question_text"], "tokens": ex_json["question_tokens"],},
+                    "question": {"text": ex_json["question_text"], "tokens": ex_json["question_tokens"]},
                     "annotations": [_parse_annotation(an_json) for an_json in ex_json["annotations"]],
                 },
             )
