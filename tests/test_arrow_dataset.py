@@ -1,7 +1,9 @@
+import os
+import tempfile
 from unittest import TestCase
 
-import pyarrow as pa
 import numpy as np
+import pyarrow as pa
 
 from nlp.arrow_reader import BaseReader
 from nlp.info import DatasetInfo
@@ -43,10 +45,22 @@ class BaseDatasetTest(TestCase):
 
     def test_map(self):
         dset = self._create_dummy_dataset()
-        dset_test = dset.map(lambda x: {"name": x["filename"][:-2], "id": int(x["filename"][-1])})
-        self.assertEqual(len(dset_test), 30)
-        dset_test_with_indices = dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True)
-        self.assertEqual(len(dset_test_with_indices), 30)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test = dset.map(
+                lambda x: {"name": x["filename"][:-2], "id": int(x["filename"][-1])}, cache_file_name=tmp_file
+            )
+            self.assertEqual(len(dset_test), 30)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test = dset.map(
+                lambda x: {"name": x["filename"][:-2], "id": int(x["filename"][-1])}, cache_file_name=tmp_file
+            )
+            dset_test_with_indices = dset.map(
+                lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True, cache_file_name=tmp_file
+            )
+            self.assertEqual(len(dset_test_with_indices), 30)
 
     def test_map_batched(self):
         dset = self._create_dummy_dataset()
@@ -54,34 +68,47 @@ class BaseDatasetTest(TestCase):
         def map_batched(example):
             return {"filename_new": [x + "_extension" for x in example["filename"]]}
 
-        dset_test_batched = dset.map(map_batched, batched=True)
-        self.assertEqual(len(dset_test_batched), 30)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test_batched = dset.map(map_batched, batched=True, cache_file_name=tmp_file)
+            self.assertEqual(len(dset_test_batched), 30)
 
         def map_batched_with_indices(example, idx):
             return {"filename_new": [x + "_extension_" + str(idx) for x in example["filename"]]}
 
-        dset_test_with_indices_batched = dset.map(map_batched_with_indices, batched=True, with_indices=True)
-        self.assertEqual(len(dset_test_with_indices_batched), 30)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test_with_indices_batched = dset.map(
+                map_batched_with_indices, batched=True, with_indices=True, cache_file_name=tmp_file
+            )
+            self.assertEqual(len(dset_test_with_indices_batched), 30)
 
     def test_remove_colums(self):
         dset = self._create_dummy_dataset()
-        dset = dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True)
-        self.assertTrue("id" in dset[0])
-        dset = dset.map(lambda x: x, remove_columns=["id"])
-        self.assertTrue("id" not in dset[0])
 
-        def map_batched_with_indices(example, idx):
-            return {"filename_new": [x + "_extension_" + str(idx) for x in example["filename"]]}
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset = dset.map(
+                lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True, cache_file_name=tmp_file
+            )
+            self.assertTrue("id" in dset[0])
 
-        dset_test_with_indices_batched = dset.map(map_batched_with_indices, batched=True, with_indices=True)
-        self.assertEqual(len(dset_test_with_indices_batched), 30)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset = dset.map(lambda x: x, remove_columns=["id"], cache_file_name=tmp_file)
+            self.assertTrue("id" not in dset[0])
 
     def test_filter(self):
         dset = self._create_dummy_dataset()
         # keep only first five examples
-        dset_filter_first_five = dset.filter(lambda x, i: i < 5, with_indices=True)
-        self.assertEqual(len(dset_filter_first_five), 5)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_filter_first_five = dset.filter(lambda x, i: i < 5, with_indices=True, cache_file_name=tmp_file)
+            self.assertEqual(len(dset_filter_first_five), 5)
 
         # filter filenames with even id at the end
-        dset_filter_even_num = dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0))
-        self.assertEqual(len(dset_filter_even_num), 15)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_filter_even_num = dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0), cache_file_name=tmp_file)
+            self.assertEqual(len(dset_filter_even_num), 15)
