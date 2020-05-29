@@ -72,11 +72,12 @@ TESTS_REQUIRE = [
     'absl-py',
     'bs4',
     'langdetect',
-    'nltk',
     'mwparserfromhell',
+    'nltk',
     'pytest',
     'pytest-xdist',
     'tensorflow',
+    'tldextract',
     'zstandard'
 ]
 
