@@ -190,7 +190,7 @@ class C4(nlp.BeamBasedBuilder):
 
         if self.config.webtextlike:
             owt_path = os.path.join(dl_manager.manual_dir, _OPENWEBTEXT_URLS_ZIP)
-            if not beam.io.filesystems.FileSystems.exists(owt_path):
+            if not os.path.exists(owt_path):
                 raise FileNotFoundError(
                     "{} does not exist. Make sure you insert a manual dir via `nlp.load('c4', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
                         owt_path, _OPENWEBTEXT_URLS_ZIP, self.MANUAL_DOWNLOAD_INSTRUCTIONS
@@ -200,20 +200,15 @@ class C4(nlp.BeamBasedBuilder):
 
         wet_urls = []
         for wet_path_url in file_paths["wet_path_urls"]:
-            with open(wet_path_url) as f:
+            with open(wet_path_url, "r") as f:
                 wet_urls.extend(["%s/%s" % (_DOWNLOAD_HOST, l.strip()) for l in f])
-        if dl_manager.register_checksums:
-            # Download locally to register checksums.
-            file_paths.update(dl_manager.download({"wet_files": wet_urls}))
-        else:
-            # Download on the beam workers.
-            file_paths["wet_urls"] = wet_urls
-            file_paths["wet_files"] = []
+        file_paths["wet_urls"] = wet_urls
+        file_paths["wet_files"] = []
 
         for cc_version in manual_cc_versions:
             cc_dir = os.path.join(dl_manager.manual_dir, cc_version)
             wet_files = beam.io.filesystems.FileSystems.match(os.path.join(cc_dir, "*.warc.wet.gz"))
-            if not beam.io.filesystems.FileSystems.exists(cc_dir):
+            if not os.path.exists(cc_dir):
                 raise FileNotFoundError(
                     "{} does not exist. Make sure you insert a manual dir via `nlp.load('c4', data_dir=...)` that includes the files {}. Manual download instructions: {})".format(
                         cc_dir, "*.warc.wet.gz", self.MANUAL_DOWNLOAD_INSTRUCTIONS
@@ -244,18 +239,20 @@ class C4(nlp.BeamBasedBuilder):
 
     def _get_page_content(self, pipeline, file_paths, dl_manager):
         """Build PCollection of un-split page content."""
-        beam = nlp.lazy_imports.apache_beam
 
         wet_file_paths = pipeline | "create_wet_files" >> beam.Create(file_paths["wet_files"])
         if "wet_urls" in file_paths:
 
-            def download_url(url, downloader):
-                return downloader.download({url: url})[url]
+            def download_url(url, downloader, pipeline):
+                path = downloader.download(url)
+                if not pipeline.is_local():
+                    path = downloader.ship_files_with_pipeline(path, pipeline)
+                return path
 
             dl_wet_file_paths = (
                 pipeline
                 | "create_wet_urls" >> beam.Create(file_paths["wet_urls"])
-                | beam.Map(download_url, downloader=dl_manager)
+                | beam.Map(download_url, downloader=dl_manager, pipeline=pipeline)
             )
             wet_file_paths = (wet_file_paths, dl_wet_file_paths) | beam.Flatten()
 
@@ -266,7 +263,7 @@ class C4(nlp.BeamBasedBuilder):
         # Optionally filter for RealNews domains.
         # Output: url, text
         if self.config.realnewslike:
-            with open(file_paths["realnews_domains"]) as f:
+            with open(file_paths["realnews_domains"], "r") as f:
                 realnews_domains = json.load(f)
             page_content = page_content | beam.Filter(c4_utils.is_realnews_domain, realnews_domains)
 
@@ -301,7 +298,7 @@ class C4(nlp.BeamBasedBuilder):
         # spans of sentences.
         # Output: url, text
         if self.config.clean:
-            with open(file_paths["badwords"]) as f:
+            with open(file_paths["badwords"], "r") as f:
                 badwords = [l.strip() for l in f]
             page_content = page_content | "clean_pages" >> beam.FlatMap(c4_utils.get_clean_page_fn(badwords))
             page_content = c4_utils.remove_duplicate_text(page_content)
@@ -314,8 +311,6 @@ class C4(nlp.BeamBasedBuilder):
         return page_content
 
     def _build_pcollection(self, unused_pipeline, split, page_content, hashed_url_predicate):
-        beam = nlp.lazy_imports.apache_beam
-
         def _emit_examples(el):
             c4_utils.get_counter_inc_fn(split)("examples")
             _, features = el
