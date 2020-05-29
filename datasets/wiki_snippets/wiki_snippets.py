@@ -26,21 +26,26 @@ _LICENSE = (
 def kilt_article_snippets(article, passage_len=100, overlap=0):
     paragraphs = article['paragraphs']['paragraph']
     section_indices = [i for i, par in enumerate(paragraphs) if par.startswith('Section::::')]
-    par_tabs = [par.split(' ') for par in paragraphs]
-    word_map = [(i, len(' '.join(par[:j])), w)
-                for i, par in enumerate(par_tabs) for j, w in enumerate(par)]
+    word_map = []
+    for i, par in enumerate(paragraphs):
+        par_tab = par.split(' ')
+        if par.startswith('Section::::'):
+            word_map += [(i, len(' '.join(par[:j])), w.replace('Section::::', '').replace(':', ' '))
+                         for j, w in enumerate(par_tab)]
+        else:
+            word_map += [(i, len(' '.join(par[:j])), w.replace('BULLET::::', ''))
+                         for j, w in enumerate(par_tab)]
     step_size = passage_len - overlap
     passages = []
     for i in range(math.ceil(len(word_map) / step_size)):
         pre_toks = word_map[i * step_size: i * step_size + passage_len]
-        passage_text = ' '.join([w.replace('Section::::', '').replace(':', ' ') if w.startswith('Section::::') else w.replace('BULLET::::', '')
-                                 for p_id, s_id, w in pre_toks])
+        passage_text = ' '.join([w for p_id, s_id, w in pre_toks])
         start_section_id = max([0] + [j for j in section_indices if j <= pre_toks[0][0]])
         section_ids = [j for j in section_indices if j >= start_section_id and j <= pre_toks[-1][0]]
         section_ids = section_ids if len(section_ids) > 0 else [0]
         passages += [{
             'article_title': article['title'],
-            'section_title': ' & '.join([paragraphs[j].replace('Section::::', '').replace(':', ' -- ') for j in section_ids]),
+            'section_title': ' & '.join([paragraphs[j].replace('Section::::', '').replace(':', ' -- ').strip() for j in section_ids]),
             'wiki_id': article['kilt_id'],
             'start_paragraph': pre_toks[0][0],
             'start_character': pre_toks[0][1],
