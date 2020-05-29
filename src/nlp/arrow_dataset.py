@@ -19,6 +19,7 @@
 import hashlib
 import logging
 import os
+from collections import defaultdict
 from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Union
 
@@ -29,7 +30,7 @@ from tqdm import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .utils import convert_tuples_in_lists
+from .utils import convert_tuples_in_lists, map_nested
 
 
 logger = logging.getLogger(__name__)
@@ -409,7 +410,7 @@ class Dataset(object):
                     - `function(example: Dict, indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
                     - `function(batch: Dict[List]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
                     - `function(batch: Dict[List], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
-                `with_indices` (`bool`, default: `False`): Provide example indices to `function`
+                `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
                 `batched` (`bool`, default: `False`): Provide batch of examples to `function`
                 `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
@@ -557,3 +558,66 @@ class Dataset(object):
                 return Dataset.from_buffer(buf_writer.getvalue())
         else:
             return self
+
+    def filter(self, function, with_indices=False, **kwargs):
+        """ Apply a filter function to all the elements in the table in batches
+            and update the table so that the dataset only includes examples according to the filter function.
+
+            Args:
+                `function` (`callable`): with one of the following signature:
+                    - `function(example: Dict) -> bool` if `with_indices=False`
+                    - `function(example: Dict, indices: int) -> bool` if `with_indices=True`
+                `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+                `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
+                    `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
+                `remove_columns` (`Optional[List[str]]`, default: `None`): Remove a selection of columns while doing the mapping.
+                    Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
+                    columns with names in `remove_columns`, these columns will be kept.
+                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
+                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                    can be identified, use it instead of recomputing.
+                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                    results of the computation instead of the automatically generated cache file name.
+                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                    Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
+        """
+
+        # transforme the filter function into the map function
+        def map_function(batch, *args):
+            result = defaultdict(list)
+            num_examples = len(batch[next(iter(batch.keys()))])
+
+            # create single examples
+            for i in range(num_examples):
+                example = map_nested(lambda x: x[i], batch, dict_only=True)
+
+                # check if example should be fildered or not
+                if with_indices:
+                    keep_example = function(example, args[0][i])
+                else:
+                    keep_example = function(example)
+
+                assert isinstance(
+                    keep_example, bool
+                ), f"The filter function returns a variable of type {type(keep_example)}, but should return a variable of type `bool`."
+                # if example shall be kept add to result
+                if keep_example:
+                    for key in batch.keys():
+                        result[key].append(example[key])
+
+            # if no example shall be kept, init with empty list
+            if bool(result) is False:
+                for key in batch.keys():
+                    result[key] = []
+
+            return result
+
+        # to avoid errors with the arrow_schema we define it here
+        test_inputs = self[:2]
+        if "remove_columns" in kwargs:
+            test_inputs = {key: test_inputs[key] for key in (test_inputs.keys() - kwargs["remove_columns"])}
+        arrow_schema = pa.Table.from_pydict(test_inputs).schema
+
+        # return map function
+        return self.map(map_function, batched=True, with_indices=with_indices, arrow_schema=arrow_schema, **kwargs)
