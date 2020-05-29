@@ -168,12 +168,9 @@ class LocalDatasetTest(parameterized.TestCase):
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
             download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
-            download_and_prepare_kwargs = {"download_config": download_config}
 
             dataset = load_dataset(
-                "./datasets/" + dataset_name,
-                data_dir=temp_data_dir,
-                download_and_prepare_kwargs=download_and_prepare_kwargs,
+                "./datasets/" + dataset_name, data_dir=temp_data_dir, download_config=download_config
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
@@ -236,10 +233,7 @@ class AWSDatasetTest(parameterized.TestCase):
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
             download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
-            download_and_prepare_kwargs = {"download_config": download_config}
 
-            dataset = load_dataset(
-                dataset_name, data_dir=temp_data_dir, download_and_prepare_kwargs=download_and_prepare_kwargs
-            )
+            dataset = load_dataset(dataset_name, data_dir=temp_data_dir, download_config=download_config)
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
