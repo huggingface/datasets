@@ -71,6 +71,8 @@ TESTS_REQUIRE = [
     'apache-beam',
     'absl-py',
     'bs4',
+    'langdetect',
+    'nltk',
     'mwparserfromhell',
     'pytest',
     'pytest-xdist',
