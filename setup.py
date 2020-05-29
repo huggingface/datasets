@@ -71,10 +71,13 @@ TESTS_REQUIRE = [
     'apache-beam',
     'absl-py',
     'bs4',
+    'langdetect',
     'mwparserfromhell',
+    'nltk',
     'pytest',
     'pytest-xdist',
     'tensorflow',
+    'tldextract',
     'zstandard'
 ]
 

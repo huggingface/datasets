@@ -791,6 +791,7 @@ class BeamBasedBuilder(DatasetBuilder):
         beam_options = self._beam_options
 
         if not beam_runner and not beam_options:
+            usage_example = f"load_dataset('{self.name}', '{self.config.name}', beam_runner='DirectRunner')"
             raise MissingBeamOptions(
                 "Trying to generate a dataset using Apache Beam, yet no Beam Runner "
                 "or PipelineOptions() has been provided in `load_dataset` or in the "
@@ -798,6 +799,10 @@ class BeamBasedBuilder(DatasetBuilder):
                 "processing tools like Dataflow, Spark, etc. More information about "
                 "Apache Beam runners at "
                 "https://beam.apache.org/documentation/runners/capability-matrix/"
+                "\nIf you really want to run it locally because you feel like the "
+                "Dataset is small enough, you can use the local beam runner called "
+                "`DirectRunner` (you may run out of memory). \nExample of usage: "
+                "\n\t`{}`".format(usage_example)
             )
 
         beam_options = beam_options or beam.options.pipeline_options.PipelineOptions()
