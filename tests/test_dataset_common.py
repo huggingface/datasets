@@ -167,7 +167,7 @@ class LocalDatasetTest(parameterized.TestCase):
     def test_load_real_dataset(self, dataset_name):
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
-            download_config.download_mode = GenerateMode.FORCE_REDOWNLOA
+            download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
 
             dataset = load_dataset(
                 "./datasets/" + dataset_name,
