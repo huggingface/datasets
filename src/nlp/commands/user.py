@@ -22,26 +22,46 @@ class UserCommands(BaseTransformersCLICommand):
         whoami_parser.set_defaults(func=lambda args: WhoamiCommand(args))
         logout_parser = parser.add_parser("logout", help="Log out")
         logout_parser.set_defaults(func=lambda args: LogoutCommand(args))
-        # s3
-        s3_parser = parser.add_parser("s3", help="{ls, rm} Commands to interact with the files you upload on S3.")
+        # s3 dataset
+        s3_parser = parser.add_parser("s3_datasets", help="{ls, rm} Commands to interact with the files you upload on S3.")
         s3_subparsers = s3_parser.add_subparsers(help="s3 related commands")
         ls_parser = s3_subparsers.add_parser("ls")
         ls_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
-        ls_parser.set_defaults(func=lambda args: ListObjsCommand(args))
+        ls_parser.set_defaults(func=lambda args: ListObjsCommand(args, file_types="datasets"))
         rm_parser = s3_subparsers.add_parser("rm")
         rm_parser.add_argument("filename", type=str, help="individual object filename to delete from S3.")
         rm_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
-        rm_parser.set_defaults(func=lambda args: DeleteObjCommand(args))
-        # upload
-        upload_parser = parser.add_parser("upload", help="Upload a dataset to S3.")
-        upload_parser.add_argument(
+        rm_parser.set_defaults(func=lambda args: DeleteObjCommand(args, file_types="datasets"))
+        # s3 metrics
+        s3_parser = parser.add_parser("s3_metrics", help="{ls, rm} Commands to interact with the files you upload on S3.")
+        s3_subparsers = s3_parser.add_subparsers(help="s3 related commands")
+        ls_parser = s3_subparsers.add_parser("ls")
+        ls_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
+        ls_parser.set_defaults(func=lambda args: ListObjsCommand(args, file_types="metrics"))
+        rm_parser = s3_subparsers.add_parser("rm")
+        rm_parser.add_argument("filename", type=str, help="individual object filename to delete from S3.")
+        rm_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
+        rm_parser.set_defaults(func=lambda args: DeleteObjCommand(args, file_types="metrics"))
+        # upload dataset
+        upload_dataset_parser = parser.add_parser("upload_dataset", help="Upload a dataset to S3.")
+        upload_dataset_parser.add_argument(
             "path", type=str, help="Local path of the dataset folder or individual file to upload."
         )
-        upload_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
-        upload_parser.add_argument(
+        upload_dataset_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
+        upload_dataset_parser.add_argument(
             "--filename", type=str, default=None, help="Optional: override individual object filename on S3."
         )
-        upload_parser.set_defaults(func=lambda args: UploadCommand(args))
+        upload_dataset_parser.set_defaults(func=lambda args: UploadCommand(args, file_types="datasets"))
+        # upload metric
+        upload_metric_parser = parser.add_parser("upload_metric", help="Upload a metric to S3.")
+        upload_metric_parser.add_argument(
+            "path", type=str, help="Local path of the metric folder or individual file to upload."
+        )
+        upload_metric_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
+        upload_metric_parser.add_argument(
+            "--filename", type=str, default=None, help="Optional: override individual object filename on S3."
+        )
+        upload_metric_parser.set_defaults(func=lambda args: UploadCommand(args, file_types="metrics"))
 
 
 class ANSI:
@@ -124,6 +144,10 @@ class LogoutCommand(BaseUserCommand):
 
 
 class ListObjsCommand(BaseUserCommand):
+    def __init__(self, args, file_types):
+        super().__init__(args)
+        self.file_types = file_types
+        
     def tabulate(self, rows: List[List[Union[str, int]]], headers: List[str]) -> str:
         """
         Inspired by:
@@ -145,7 +169,7 @@ class ListObjsCommand(BaseUserCommand):
             print("Not logged in")
             exit(1)
         try:
-            objs = self._api.list_objs(token, organization=self.args.organization)
+            objs = self._api.list_objs(token, organization=self.args.organization, file_types=self.file_types)
         except HTTPError as e:
             print(e)
             print(ANSI.red(e.response.text))
@@ -158,13 +182,17 @@ class ListObjsCommand(BaseUserCommand):
 
 
 class DeleteObjCommand(BaseUserCommand):
+    def __init__(self, args, file_types):
+        super().__init__(args)
+        self.file_types = file_types
+
     def run(self):
         token = HfFolder.get_token()
         if token is None:
             print("Not logged in")
             exit(1)
         try:
-            self._api.delete_obj(token, filename=self.args.filename, organization=self.args.organization)
+            self._api.delete_obj(token, filename=self.args.filename, organization=self.args.organization, file_types=self.file_types)
         except HTTPError as e:
             print(e)
             print(ANSI.red(e.response.text))
@@ -173,6 +201,10 @@ class DeleteObjCommand(BaseUserCommand):
 
 
 class UploadCommand(BaseUserCommand):
+    def __init__(self, args, file_types):
+        super().__init__(args)
+        self.file_types = file_types
+
     def walk_dir(self, rel_path: str):
         """
         Recursively list all files in a folder.
@@ -231,7 +263,7 @@ class UploadCommand(BaseUserCommand):
         for filepath, filename in files:
             try:
                 access_url = self._api.presign_and_upload(
-                    token=token, filename=filename, filepath=filepath, organization=self.args.organization
+                    token=token, filename=filename, filepath=filepath, organization=self.args.organization, file_types=self.file_types
                 )
             except HTTPError as e:
                 print(e)
