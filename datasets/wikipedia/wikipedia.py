@@ -24,8 +24,6 @@ import logging
 import re
 import xml.etree.cElementTree as etree
 
-import apache_beam as beam
-import mwparserfromhell
 import six
 
 import nlp
@@ -452,6 +450,8 @@ class Wikipedia(nlp.BeamBasedBuilder):
 
     def _build_pcollection(self, pipeline, filepaths, language):
         """Build PCollection of examples in the raw (text) form."""
+        import apache_beam as beam
+        import mwparserfromhell
 
         def _extract_content(filepath):
             """Extracts article content from a single WikiMedia XML file."""
@@ -497,7 +497,7 @@ class Wikipedia(nlp.BeamBasedBuilder):
             """Cleans raw wikicode to extract text."""
             id_, title, raw_content = inputs
             try:
-                text = _parse_and_clean_wikicode(raw_content)
+                text = _parse_and_clean_wikicode(raw_content, parser=mwparserfromhell)
             except (mwparserfromhell.parser.ParserError) as e:
                 beam.metrics.Metrics.counter(language, "parser-error").inc()
                 logging.error("mwparserfromhell ParseError: %s", e)
@@ -520,9 +520,9 @@ class Wikipedia(nlp.BeamBasedBuilder):
         )
 
 
-def _parse_and_clean_wikicode(raw_content):
+def _parse_and_clean_wikicode(raw_content, parser):
     """Strips formatting and unwanted sections from raw page content."""
-    wikicode = mwparserfromhell.parse(raw_content)
+    wikicode = parser.parse(raw_content)
 
     # Filters for references, tables, and file/image links.
     re_rm_wikilink = re.compile("^(?:File|Image|Media):", flags=re.IGNORECASE | re.UNICODE)

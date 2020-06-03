@@ -20,9 +20,6 @@ from __future__ import absolute_import, division, print_function
 import logging
 import os
 
-import apache_beam as beam
-import tensorflow as tf
-
 import nlp
 
 
@@ -125,7 +122,7 @@ class Wiki40b(nlp.BeamBasedBuilder):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(
-                {"wikidata_id": nlp.Value("string"), "text": nlp.Value("string"), "version_id": nlp.Value("string"),}
+                {"wikidata_id": nlp.Value("string"), "text": nlp.Value("string"), "version_id": nlp.Value("string")}
             ),
             supervised_keys=None,
             homepage=_URL,
@@ -154,6 +151,9 @@ class Wiki40b(nlp.BeamBasedBuilder):
 
     def _build_pcollection(self, pipeline, filepaths):
         """Build PCollection of examples."""
+        import apache_beam as beam
+        import tensorflow as tf
+
         logging.info("generating examples from = %s", filepaths)
 
         def _extract_content(example):
