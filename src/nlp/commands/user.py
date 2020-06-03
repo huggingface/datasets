@@ -23,7 +23,9 @@ class UserCommands(BaseTransformersCLICommand):
         logout_parser = parser.add_parser("logout", help="Log out")
         logout_parser.set_defaults(func=lambda args: LogoutCommand(args))
         # s3 dataset
-        s3_parser = parser.add_parser("s3_datasets", help="{ls, rm} Commands to interact with the files you upload on S3.")
+        s3_parser = parser.add_parser(
+            "s3_datasets", help="{ls, rm} Commands to interact with the files you upload on S3."
+        )
         s3_subparsers = s3_parser.add_subparsers(help="s3 related commands")
         ls_parser = s3_subparsers.add_parser("ls")
         ls_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
@@ -33,7 +35,9 @@ class UserCommands(BaseTransformersCLICommand):
         rm_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
         rm_parser.set_defaults(func=lambda args: DeleteObjCommand(args, file_types="datasets"))
         # s3 metrics
-        s3_parser = parser.add_parser("s3_metrics", help="{ls, rm} Commands to interact with the files you upload on S3.")
+        s3_parser = parser.add_parser(
+            "s3_metrics", help="{ls, rm} Commands to interact with the files you upload on S3."
+        )
         s3_subparsers = s3_parser.add_subparsers(help="s3 related commands")
         ls_parser = s3_subparsers.add_parser("ls")
         ls_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
@@ -147,7 +151,7 @@ class ListObjsCommand(BaseUserCommand):
     def __init__(self, args, file_types):
         super().__init__(args)
         self.file_types = file_types
-        
+
     def tabulate(self, rows: List[List[Union[str, int]]], headers: List[str]) -> str:
         """
         Inspired by:
@@ -192,7 +196,9 @@ class DeleteObjCommand(BaseUserCommand):
             print("Not logged in")
             exit(1)
         try:
-            self._api.delete_obj(token, filename=self.args.filename, organization=self.args.organization, file_types=self.file_types)
+            self._api.delete_obj(
+                token, filename=self.args.filename, organization=self.args.organization, file_types=self.file_types
+            )
         except HTTPError as e:
             print(e)
             print(ANSI.red(e.response.text))
@@ -263,7 +269,11 @@ class UploadCommand(BaseUserCommand):
         for filepath, filename in files:
             try:
                 access_url = self._api.presign_and_upload(
-                    token=token, filename=filename, filepath=filepath, organization=self.args.organization, file_types=self.file_types
+                    token=token,
+                    filename=filename,
+                    filepath=filepath,
+                    organization=self.args.organization,
+                    file_types=self.file_types,
                 )
             except HTTPError as e:
                 print(e)

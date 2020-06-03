@@ -141,11 +141,15 @@ class HfApi:
         r = requests.post(path, headers={"authorization": "Bearer {}".format(token)})
         r.raise_for_status()
 
-    def presign(self, token: str, filename: str, organization: Optional[str] = None, file_types: Optional[str] = None) -> PresignedUrl:
+    def presign(
+        self, token: str, filename: str, organization: Optional[str] = None, file_types: Optional[str] = None
+    ) -> PresignedUrl:
         """
         Call HF API to get a presigned url to upload `filename` to S3.
         """
-        assert file_types in self.ALLOWED_FILE_TYPES, "Please specify file types from {}".format(self.ALLOWED_FILE_TYPES)
+        assert file_types in self.ALLOWED_FILE_TYPES, "Please specify file types from {}".format(
+            self.ALLOWED_FILE_TYPES
+        )
         path = "{}/api/{}/presign".format(self.endpoint, file_types)
         r = requests.post(
             path,
@@ -156,7 +160,14 @@ class HfApi:
         d = r.json()
         return PresignedUrl(**d)
 
-    def presign_and_upload(self, token: str, filename: str, filepath: str, organization: Optional[str] = None, file_types: Optional[str] = None) -> str:
+    def presign_and_upload(
+        self,
+        token: str,
+        filename: str,
+        filepath: str,
+        organization: Optional[str] = None,
+        file_types: Optional[str] = None,
+    ) -> str:
         """
         Get a presigned url, then upload file to S3.
 
@@ -178,11 +189,15 @@ class HfApi:
             pf.close()
         return urls.access
 
-    def list_objs(self, token: str, organization: Optional[str] = None, file_types: Optional[str] = None) -> List[S3Obj]:
+    def list_objs(
+        self, token: str, organization: Optional[str] = None, file_types: Optional[str] = None
+    ) -> List[S3Obj]:
         """
         Call HF API to list all stored files for user (or one of their organizations).
         """
-        assert file_types in self.ALLOWED_FILE_TYPES, "Please specify file types from {}".format(self.ALLOWED_FILE_TYPES)
+        assert file_types in self.ALLOWED_FILE_TYPES, "Please specify file types from {}".format(
+            self.ALLOWED_FILE_TYPES
+        )
         path = "{}/api/{}/listObjs".format(self.endpoint, file_types)
         params = {"organization": organization} if organization is not None else None
         r = requests.get(path, params=params, headers={"authorization": "Bearer {}".format(token)})
@@ -190,11 +205,15 @@ class HfApi:
         d = r.json()
         return [S3Obj(**x) for x in d]
 
-    def delete_obj(self, token: str, filename: str, organization: Optional[str] = None, file_types: Optional[str] = None):
+    def delete_obj(
+        self, token: str, filename: str, organization: Optional[str] = None, file_types: Optional[str] = None
+    ):
         """
         Call HF API to delete a file stored by user
         """
-        assert file_types in self.ALLOWED_FILE_TYPES, "Please specify file types from {}".format(self.ALLOWED_FILE_TYPES)
+        assert file_types in self.ALLOWED_FILE_TYPES, "Please specify file types from {}".format(
+            self.ALLOWED_FILE_TYPES
+        )
         path = "{}/api/{}/deleteObj".format(self.endpoint, file_types)
         r = requests.delete(
             path,
