@@ -104,6 +104,10 @@ class MockDownloadManager(object):
         return dummy_file
 
     # this function has to be in the manager under this name so that testing works
+    def download(self, data_url, *args):
+        return self.download_and_extract(data_url)
+
+    # this function has to be in the manager under this name so that testing works
     def download_custom(self, data_url, custom_download):
         return self.download_and_extract(data_url)
 
