@@ -102,11 +102,14 @@ def is_remote_url(url_or_filename):
     return parsed.scheme in ("http", "https", "s3", "gs", "hdfs")
 
 
-def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
+def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True, experimental=False) -> str:
     if dataset:
         endpoint = CLOUDFRONT_DATASETS_DISTRIB_PREFIX if use_cdn else S3_DATASETS_BUCKET_PREFIX
     else:
         endpoint = CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else S3_METRICS_BUCKET_PREFIX
+    if experimental:
+        assert not use_cdn, "experimental datasets are only available on the S3 bucket"
+        endpoint = endpoint + "_experimental"
     return "/".join((endpoint, identifier, filename))
 
 
