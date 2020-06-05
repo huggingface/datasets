@@ -8,13 +8,14 @@ import nlp
 
 
 class CompguesswhatConfig(nlp.BuilderConfig):
-    """ BuilderConfig for Discofuse"""
+    """ BuilderConfig for CompGuessWhat?!"""
 
     def __init__(self, data_url, splits, gameplay_scenario, **kwargs):
         """
 
         Args:
-            balanced: to specify if we want to load the balanced file or the full file
+            gameplay_scenario: to specify if we want to load original CompGuessWhat?! split ('original') or
+            the zero-shot reference games based on NOCAPS images ('zero_shot')
             **kwargs: keyword arguments forwarded to super.
         """
         super(CompguesswhatConfig, self).__init__(
