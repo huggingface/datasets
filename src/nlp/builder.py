@@ -147,9 +147,17 @@ class DatasetBuilder:
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
         self._cache_dir = self._build_cache_dir()
-        if os.path.exists(self._cache_dir):
-            logger.info("Overwrite dataset info from restored data version.")
-            self.info = DatasetInfo.from_directory(self._cache_dir)
+        if os.path.exists(self._cache_dir):  # check if data exist
+            if len(os.listdir(self._cache_dir)) > 0:
+                logger.info("Overwrite dataset info from restored data version.")
+                self.info = DatasetInfo.from_directory(self._cache_dir)
+            else:  # dir exists but no data, remove the empty dir as data aren't available anymore
+                logger.warning(
+                    "Old caching folder {} for dataset {} exists but not data were found. Removing it. ".format(
+                        self._cache_dir, self.name
+                    )
+                )
+                os.rmdir(self._cache_dir)
 
     @property
     def does_require_manual_download(self):
@@ -341,7 +349,7 @@ class DatasetBuilder:
 
         logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
         if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
-            os.makedirs(self._cache_dir, exist_ok=True)
+            os.makedirs(self._cache_dir_root, exist_ok=True)
             if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
                 raise IOError(
                     "Not enough disk space. Needed: {} (download: {}, generated: {})".format(
@@ -351,13 +359,35 @@ class DatasetBuilder:
                     )
                 )
 
+        @contextlib.contextmanager
+        def incomplete_dir(dirname):
+            """Create temporary dir for dirname and rename on exit."""
+            if is_remote_url(dirname):
+                yield dirname
+            else:
+                tmp_dir = dirname + ".incomplete"
+                os.makedirs(tmp_dir)
+                try:
+                    yield tmp_dir
+                    if os.path.isdir(dirname):
+                        shutil.rmtree(dirname)
+                    os.rename(tmp_dir, dirname)
+                finally:
+                    if os.path.exists(tmp_dir):
+                        shutil.rmtree(tmp_dir)
+
         # Try to download the already prepared dataset files
         if try_from_hf_gcs:
             try:
-                reader = ArrowReader(self._cache_dir, self.info)
-                reader.download_from_hf_gcs(self.cache_dir, self._relative_data_dir(with_version=True))
-                downloaded_info = DatasetInfo.from_directory(self._cache_dir)
-                self.info.update(downloaded_info)
+                # Create a tmp dir and rename to self._cache_dir on successful exit.
+                with incomplete_dir(self._cache_dir) as tmp_data_dir:
+                    # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
+                    # it to every sub function.
+                    with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
+                        reader = ArrowReader(self._cache_dir, self.info)
+                        reader.download_from_hf_gcs(self._cache_dir, self._relative_data_dir(with_version=True))
+                        downloaded_info = DatasetInfo.from_directory(self._cache_dir)
+                        self.info.update(downloaded_info)
                 logger.info("Dataset downloaded from Hf google storage.")
                 print(
                     f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
@@ -392,23 +422,6 @@ class DatasetBuilder:
             ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load({}, data_dir='<path/to/manual/data>')".format(
                 self.name, self.config.name, self.MANUAL_DOWNLOAD_INSTRUCTIONS, self.name
             )
-
-        @contextlib.contextmanager
-        def incomplete_dir(dirname):
-            """Create temporary dir for dirname and rename on exit."""
-            if is_remote_url(dirname):
-                yield dirname
-            else:
-                tmp_dir = dirname + ".incomplete"
-                os.makedirs(tmp_dir)
-                try:
-                    yield tmp_dir
-                    if os.path.isdir(dirname):
-                        shutil.rmtree(dirname)
-                    os.rename(tmp_dir, dirname)
-                finally:
-                    if os.path.exists(tmp_dir):
-                        shutil.rmtree(tmp_dir)
 
         # Create a tmp dir and rename to self._cache_dir on successful exit.
         with incomplete_dir(self._cache_dir) as tmp_data_dir:
@@ -448,9 +461,6 @@ class DatasetBuilder:
             verify_infos: bool, if True, do not perform checksums and size tests.
             prepare_split_kwargs: Additional options.
         """
-        if not is_remote_url(self._cache_dir):
-            os.makedirs(self._cache_dir, exist_ok=True)
-
         # Generating data for all splits
         split_dict = SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
