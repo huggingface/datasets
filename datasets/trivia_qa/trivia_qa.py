@@ -71,11 +71,11 @@ _CONTEXT_ADDENDUM = "Includes context from Wikipedia and search results."
 
 
 def _web_evidence_dir(tmp_dir):
-    return glob.glob(os.path.join(tmp_dir, _WEB_EVIDENCE_DIR))
+    return sorted(glob.glob(os.path.join(tmp_dir, _WEB_EVIDENCE_DIR)))
 
 
 def _wiki_evidence_dir(tmp_dir):
-    return glob.glob(os.path.join(tmp_dir, _WIKI_EVIDENCE_DIR))
+    return sorted(glob.glob(os.path.join(tmp_dir, _WIKI_EVIDENCE_DIR)))
 
 
 class TriviaQaConfig(nlp.BuilderConfig):
@@ -177,9 +177,9 @@ class TriviaQa(nlp.GeneratorBasedBuilder):
             if cfg.unfiltered
             else os.path.join(file_paths["rc"], "qa")
         )
-        train_files = glob.glob(os.path.join(qa_dir, _TRAIN_FILE_FORMAT))
-        valid_files = glob.glob(os.path.join(qa_dir, _VALIDATION_FILE_FORMAT))
-        test_files = glob.glob(os.path.join(qa_dir, _TEST_FILE_FORMAT))
+        train_files = sorted(glob.glob(os.path.join(qa_dir, _TRAIN_FILE_FORMAT)))
+        valid_files = sorted(glob.glob(os.path.join(qa_dir, _VALIDATION_FILE_FORMAT)))
+        test_files = sorted(glob.glob(os.path.join(qa_dir, _TEST_FILE_FORMAT)))
 
         if cfg.exclude_context:
             web_evidence_dir = None

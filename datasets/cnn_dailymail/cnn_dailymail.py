@@ -125,7 +125,7 @@ def _find_files(dl_paths, publisher, url_dict):
         top_dir = os.path.join(dl_paths["dm_stories"], "dailymail", "stories")
     else:
         logging.fatal("Unsupported publisher: %s", publisher)
-    files = os.listdir(top_dir)
+    files = sorted(os.listdir(top_dir))
 
     ret_files = []
     for p in files:
@@ -228,7 +228,7 @@ class CnnDailymail(nlp.GeneratorBasedBuilder):
         # Should return a nlp.DatasetInfo object
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({_ARTICLE: nlp.Value("string"), _HIGHLIGHTS: nlp.Value("string"),}),
+            features=nlp.Features({_ARTICLE: nlp.Value("string"), _HIGHLIGHTS: nlp.Value("string")}),
             supervised_keys=None,
             homepage="https://github.com/abisee/cnn-dailymail",
             citation=_CITATION,

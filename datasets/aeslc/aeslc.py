@@ -81,7 +81,7 @@ class Aeslc(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, pattern=None):
         """Yields examples."""
-        for filename in glob.glob(pattern):
+        for filename in sorted(glob.glob(pattern)):
             email_body, subject_line = _parse_email_file(filename)
             key = os.path.basename(filename).rstrip(".subject")
             yield key, {_DOCUMENT: email_body, _SUMMARY: subject_line}
