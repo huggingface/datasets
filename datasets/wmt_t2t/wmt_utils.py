@@ -656,6 +656,14 @@ class WmtConfig(nlp.BuilderConfig):
         self.language_pair = language_pair
         self.subsets = subsets
 
+        # TODO(PVP): remove when manual dir works
+        # +++++++++++++++++++++
+        if language_pair[1] in ["cs", "hi", "ru"]:
+            assert NotImplementedError(
+                "The dataset for {}-en is currently not fully supported.".format(language_pair[1])
+            )
+        # +++++++++++++++++++++
+
 
 class Wmt(ABC, nlp.GeneratorBasedBuilder):
     """WMT translation dataset."""
@@ -878,8 +886,8 @@ def _parse_parallel_sentences(f1, f2):
 
     # Some datasets (e.g., CWMT) contain multiple parallel files specified with
     # a wildcard. We sort both sets to align them and parse them one by one.
-    f1_files = glob.glob(f1)
-    f2_files = glob.glob(f2)
+    f1_files = sorted(glob.glob(f1))
+    f2_files = sorted(glob.glob(f2))
 
     assert f1_files and f2_files, "No matching files found: %s, %s." % (f1, f2)
     assert len(f1_files) == len(f2_files), "Number of files do not match: %d vs %d for %s vs %s." % (
@@ -985,7 +993,7 @@ def _parse_czeng(*paths, **kwargs):
         logging.info("Loaded %d bad blocks to filter from CzEng v1.6 to make v1.7.", len(bad_blocks))
 
     for path in paths:
-        for gz_path in glob.glob(path):
+        for gz_path in sorted(glob.glob(path)):
             with open(gz_path, "rb") as g, gzip.GzipFile(fileobj=g) as f:
                 filename = os.path.basename(gz_path)
                 for line_id, line in enumerate(f):
