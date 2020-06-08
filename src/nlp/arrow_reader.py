@@ -138,13 +138,14 @@ class BaseReader:
         """Returns a Dataset instance from given (filename, skip, take)."""
         raise NotImplementedError
 
-    def _read_files(self, files, info) -> Dataset:
+    def _read_files(self, files, info, original_instructions) -> Dataset:
         """Returns Dataset for given file instructions.
 
         Args:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contain the absolute path, not relative.
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
+            original_instructions: store the original instructions used to build the dataset split in the dataset
         """
         pa_batches = []
         for f_dict in files:
@@ -152,7 +153,7 @@ class BaseReader:
             pa_batches.extend(pa_table.to_batches())
         if pa_batches:
             pa_table = pa.Table.from_batches(pa_batches)
-        ds = Dataset(arrow_table=pa_table, data_files=files, info=info)
+        ds = Dataset(arrow_table=pa_table, data_files=files, info=info, split=original_instructions)
         return ds
 
     def get_file_instructions(self, name, instruction, split_infos):
@@ -186,12 +187,12 @@ class BaseReader:
             if not files:
                 msg = 'Instruction "%s" corresponds to no data!' % instruction
                 raise AssertionError(msg)
-            return self.read_files(files=tuple(files),)
+            return self.read_files(files=tuple(files), original_instructions=instruction)
 
         return py_utils.map_nested(_read_instruction_to_ds, instructions)
 
     def read_files(
-        self, files,
+        self, files, original_instructions,
     ):
         """Returns single Dataset instance for the set of file instructions.
 
@@ -199,6 +200,7 @@ class BaseReader:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contains the relative path, not absolute.
                 skip/take indicates which example read in the file: `ds.skip().take()`
+            original_instructions: store the original instructions used to build the dataset split in the dataset
 
         Returns:
              a Dataset instance.
@@ -207,7 +209,7 @@ class BaseReader:
         files = copy.deepcopy(files)
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
-        dataset = self._read_files(files=files, info=self._info,)
+        dataset = self._read_files(files=files, info=self._info, original_instructions=original_instructions)
         return dataset
 
     def download_from_hf_gcs(self, cache_dir, relative_data_dir):

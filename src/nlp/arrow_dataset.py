@@ -36,7 +36,73 @@ from .utils import convert_tuples_in_lists, map_nested
 logger = logging.getLogger(__name__)
 
 
-class Dataset(object):
+class DatasetInfoMixin(object):
+    def __init__(self, info, split):
+        self._info = info
+        self._split = split
+
+    @property
+    def info(self):
+        return self._info
+
+    @property
+    def split(self):
+        return self._split
+
+    @property
+    def builder_name(self) -> str:
+        return self._info.builder_name
+
+    @property
+    def citation(self) -> str:
+        return self._info.citation
+
+    @property
+    def config_name(self) -> str:
+        return self._info.config_name
+
+    @property
+    def dataset_size(self) -> Optional[int]:
+        return self._info.dataset_size
+
+    @property
+    def description(self) -> str:
+        return self._info.description
+
+    @property
+    def download_checksums(self) -> Optional[dict]:
+        return self._info.download_checksums
+
+    @property
+    def download_size(self) -> Optional[int]:
+        return self._info.download_size
+
+    @property
+    def features(self):
+        return self._info.features
+
+    @property
+    def homepage(self) -> Optional[str]:
+        return self._info.homepage
+
+    @property
+    def license(self) -> Optional[str]:
+        return self._info.license
+
+    @property
+    def size_in_bytes(self) -> Optional[int]:
+        return self._info.size_in_bytes
+
+    @property
+    def supervised_keys(self):
+        return self._info.supervised_keys
+
+    @property
+    def version(self):
+        return self._info.version
+
+
+class Dataset(DatasetInfoMixin):
     """ A Dataset backed by an Arrow table or Record Batch.
     """
 
@@ -45,8 +111,9 @@ class Dataset(object):
         arrow_table: Union[pa.Table, pa.RecordBatch],
         data_files: Optional[List[dict]] = None,
         info: Optional[Any] = None,
+        split: Optional[Any] = None,
     ):
-        self._info = info
+        super().__init__(info=info, split=split)
         self._data: pa.Table = arrow_table
         self._data_files: List[dict] = data_files if data_files is not None else []
         self._format_type = None
@@ -68,10 +135,6 @@ class Dataset(object):
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
         return cls(pa_table)
-
-    @property
-    def info(self):
-        return self._info
 
     @property
     def data(self):
