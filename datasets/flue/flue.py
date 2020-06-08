@@ -316,7 +316,6 @@ class Flue(nlp.GeneratorBasedBuilder):
     if self.config.name in ['nsd_semcor', 'nsd_wgc']:
         urls_to_download = {
             'train': generate_url(_RES_ID[self.config.name]),
-
         }
         dl_files = dl_manager.download_and_extract(urls_to_download)
         return [
@@ -349,8 +348,6 @@ class Flue(nlp.GeneratorBasedBuilder):
   def _generate_examples(self, filepath):
     """Yields examples."""
     # TODO(flue): Yields (key, example) tuples from the dataset
-    print(filepath)
-    print('=='*100)
     with open(filepath) as f:
         data = csv.DictReader(f)
         for _id, row in enumerate(data):
