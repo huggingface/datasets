@@ -16,6 +16,9 @@
     <a href="https://github.com/huggingface/nlp/releases">
         <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/nlp.svg">
     </a>
+    <a href="https://huggingface.co/nlp/viewer/">
+        <img alt="Number of datasets" src="https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen">
+    </a>
 </p>
 
 <h3 align="center">
