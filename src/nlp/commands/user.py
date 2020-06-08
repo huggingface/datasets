@@ -148,7 +148,7 @@ class LogoutCommand(BaseUserCommand):
 
 
 class ListObjsCommand(BaseUserCommand):
-    def __init__(self, args, file_types):
+    def __init__(self, args, file_types: str):
         super().__init__(args)
         self.file_types = file_types
 
