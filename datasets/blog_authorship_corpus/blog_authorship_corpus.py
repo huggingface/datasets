@@ -96,7 +96,7 @@ class BlogAuthorshipCorpus(nlp.GeneratorBasedBuilder):
         if self.config.name == "blog-authorship-corpus":
             data = dl_manager.download_and_extract(self.config.data_url)
             data_dir = os.path.join(data, "blogs")
-            files = glob.glob(os.path.join(data_dir, "*.xml"))
+            files = sorted(glob.glob(os.path.join(data_dir, "*.xml")))
             train_files = []
             validation_files = []
 

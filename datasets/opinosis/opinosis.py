@@ -71,7 +71,7 @@ class Opinosis(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, path=None):
         """Yields examples."""
         topics_path = os.path.join(path, "topics")
-        filenames = os.listdir(topics_path)
+        filenames = sorted(os.listdir(topics_path))
         for filename in filenames:
             file_path = os.path.join(topics_path, filename)
             topic_name = filename.split(".txt")[0]
@@ -79,7 +79,7 @@ class Opinosis(nlp.GeneratorBasedBuilder):
                 input_data = src_f.read().decode("latin-1")
             summaries_path = os.path.join(path, "summaries-gold", topic_name)
             summary_lst = []
-            for summ_filename in os.listdir(summaries_path):
+            for summ_filename in sorted(os.listdir(summaries_path)):
                 file_path = os.path.join(summaries_path, summ_filename)
                 with open(file_path, "rb") as tgt_f:
                     data = tgt_f.read().strip().decode("latin-1")

@@ -13,7 +13,7 @@ _CITATION = """\
 @article{lai2017large,
     title={RACE: Large-scale ReAding Comprehension Dataset From Examinations},
     author={Lai, Guokun and Xie, Qizhe and Liu, Hanxiao and Yang, Yiming and Hovy, Eduard},
-    journal={arXiv preprint arXiv:1704.04683},  
+    journal={arXiv preprint arXiv:1704.04683},
     year={2017}
 }
 """
@@ -70,7 +70,7 @@ class Race(nlp.GeneratorBasedBuilder):
                 name=nlp.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "files": os.listdir(os.path.join(dl_dir, "RACE/test/high")),
+                    "files": sorted(os.listdir(os.path.join(dl_dir, "RACE/test/high"))),
                     "filespath": os.path.join(dl_dir, "RACE/test/high"),
                 },
             ),
@@ -78,7 +78,7 @@ class Race(nlp.GeneratorBasedBuilder):
                 name=nlp.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "files": os.listdir(os.path.join(dl_dir, "RACE/train/high")),
+                    "files": sorted(os.listdir(os.path.join(dl_dir, "RACE/train/high"))),
                     "filespath": os.path.join(dl_dir, "RACE/train/high"),
                 },
             ),
@@ -86,7 +86,7 @@ class Race(nlp.GeneratorBasedBuilder):
                 name=nlp.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "files": os.listdir(os.path.join(dl_dir, "RACE/dev/high")),
+                    "files": sorted(os.listdir(os.path.join(dl_dir, "RACE/dev/high"))),
                     "filespath": os.path.join(dl_dir, "RACE/dev/high"),
                 },
             ),
