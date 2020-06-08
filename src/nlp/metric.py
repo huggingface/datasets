@@ -36,10 +36,10 @@ class Metric(object):
     def __init__(
         self,
         name: str = None,
+        experiment_id: Optional[str] = None,
         process_id: int = 0,
         num_process: int = 1,
         data_dir: Optional[str] = None,
-        experiment_id: Optional[str] = None,
         in_memory: bool = False,
         **kwargs,
     ):

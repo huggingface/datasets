@@ -451,7 +451,7 @@ def load_dataset(
     ignore_verifications: bool = False,
     save_infos: bool = False,
     **config_kwargs,
-) -> Dataset:
+) -> Union[Dict[Split, Dataset], Dataset]:
     r"""Load a dataset
 
         This method does the following under the hood:
