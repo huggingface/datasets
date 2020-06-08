@@ -1,188 +1,4 @@
 {
-  "default": {
-    "description": "\n    ",
-    "citation": "\n    ",
-    "homepage": "https://compguesswhat.github.io/",
-    "license": "",
-    "features": {
-      "id": {
-        "dtype": "int32",
-        "id": null,
-        "_type": "Value"
-      },
-      "target_id": {
-        "dtype": "int32",
-        "id": null,
-        "_type": "Value"
-      },
-      "timestamp": {
-        "dtype": "string",
-        "id": null,
-        "_type": "Value"
-      },
-      "status": {
-        "dtype": "string",
-        "id": null,
-        "_type": "Value"
-      },
-      "image": {
-        "id": {
-          "dtype": "int32",
-          "id": null,
-          "_type": "Value"
-        },
-        "file_name": {
-          "dtype": "string",
-          "id": null,
-          "_type": "Value"
-        },
-        "flickr_url": {
-          "dtype": "string",
-          "id": null,
-          "_type": "Value"
-        },
-        "coco_url": {
-          "dtype": "string",
-          "id": null,
-          "_type": "Value"
-        },
-        "height": {
-          "dtype": "int32",
-          "id": null,
-          "_type": "Value"
-        },
-        "width": {
-          "dtype": "int32",
-          "id": null,
-          "_type": "Value"
-        },
-        "vg_id": {
-          "dtype": "int32",
-          "id": null,
-          "_type": "Value"
-        },
-        "vg_url": {
-          "dtype": "string",
-          "id": null,
-          "_type": "Value"
-        }
-      },
-      "qas": {
-        "feature": {
-          "question": {
-            "dtype": "string",
-            "id": null,
-            "_type": "Value"
-          },
-          "answer": {
-            "dtype": "string",
-            "id": null,
-            "_type": "Value"
-          },
-          "id": {
-            "dtype": "int32",
-            "id": null,
-            "_type": "Value"
-          }
-        },
-        "length": -1,
-        "id": null,
-        "_type": "Sequence"
-      },
-      "objects": {
-        "feature": {
-          "id": {
-            "dtype": "int32",
-            "id": null,
-            "_type": "Value"
-          },
-          "bbox": {
-            "feature": {
-              "dtype": "float32",
-              "id": null,
-              "_type": "Value"
-            },
-            "length": 4,
-            "id": null,
-            "_type": "Sequence"
-          },
-          "category": {
-            "dtype": "string",
-            "id": null,
-            "_type": "Value"
-          },
-          "area": {
-            "dtype": "float32",
-            "id": null,
-            "_type": "Value"
-          },
-          "category_id": {
-            "dtype": "int32",
-            "id": null,
-            "_type": "Value"
-          },
-          "segment": {
-            "feature": {
-              "feature": {
-                "dtype": "float32",
-                "id": null,
-                "_type": "Value"
-              },
-              "length": -1,
-              "id": null,
-              "_type": "Sequence"
-            },
-            "length": -1,
-            "id": null,
-            "_type": "Sequence"
-          }
-        },
-        "length": -1,
-        "id": null,
-        "_type": "Sequence"
-      }
-    },
-    "supervised_keys": null,
-    "builder_name": "compguesswhat",
-    "config_name": "default",
-    "version": {
-      "version_str": "0.1.0",
-      "description": null,
-      "nlp_version_to_prepare": null,
-      "major": 0,
-      "minor": 1,
-      "patch": 0
-    },
-    "splits": {
-      "train": {
-        "name": "train",
-        "num_bytes": 125184123,
-        "num_examples": 46277,
-        "dataset_name": "compguesswhat"
-      },
-      "test": {
-        "name": "test",
-        "num_bytes": 25729944,
-        "num_examples": 9619,
-        "dataset_name": "compguesswhat"
-      },
-      "validation": {
-        "name": "validation",
-        "num_bytes": 25732027,
-        "num_examples": 9716,
-        "dataset_name": "compguesswhat"
-      }
-    },
-    "download_checksums": {
-      "https://www.dropbox.com/s/gawk420r77huc01/compguesswhat_games.zip?dl=1": {
-        "num_bytes": 106007842,
-        "checksum": "8ee244654ff6c9968d0bcccc903e5fd81b90ad7a6dae0f47f0f99861f84a088f"
-      }
-    },
-    "download_size": 106007842,
-    "dataset_size": 176646094,
-    "size_in_bytes": 282653936
-  },
   "compguesswhat-original": {
     "description": "\n        CompGuessWhat?! is an instance of a multi-task framework for evaluating the quality of learned neural representations,\n        in particular concerning attribute grounding. Use this dataset if you want to use the set of games whose reference\n        scene is an image in VisualGenome. Visit the website for more details: https://compguesswhat.github.io\n    ",
     "citation": "        @inproceedings{suglia2020compguesswhat,\n          title={CompGuessWhat?!: a Multi-task Evaluation Framework for Grounded Language Learning},\n          author={Suglia, Alessandro, Konstas, Ioannis, Vanzo, Andrea, Bastianelli, Emanuele, Desmond Elliott, Stella Frank and Oliver Lemon},\n          booktitle={Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics},\n          year={2020}\n        }\n    ",
@@ -367,7 +183,7 @@
     "dataset_size": 176646094,
     "size_in_bytes": 282654470
   },
-  "compguesswhat-zeroshot": {
+  "compguesswhat-zero_shot": {
     "description": "\n        CompGuessWhat?! is an instance of a multi-task framework for evaluating the quality of learned neural representations,\n        in particular concerning attribute grounding. Use this dataset if you want to use the set of games whose reference\n        scene is an image in VisualGenome. Visit the website for more details: https://compguesswhat.github.io\n    ",
     "citation": "        @inproceedings{suglia2020compguesswhat,\n          title={CompGuessWhat?!: a Multi-task Evaluation Framework for Grounded Language Learning},\n          author={Suglia, Alessandro, Konstas, Ioannis, Vanzo, Andrea, Bastianelli, Emanuele, Desmond Elliott, Stella Frank and Oliver Lemon},\n          booktitle={Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics},\n          year={2020}\n        }\n    ",
     "homepage": "https://compguesswhat.github.io/",
@@ -532,7 +348,7 @@
     },
     "supervised_keys": null,
     "builder_name": "compguesswhat",
-    "config_name": "compguesswhat-zeroshot",
+    "config_name": "compguesswhat-zero_shot",
     "version": {
       "version_str": "0.1.0",
       "description": "First CompGuessWhat?! release",
