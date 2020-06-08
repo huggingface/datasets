@@ -81,9 +81,8 @@ class AllocineDataset(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate Allocine examples."""
         with open(filepath) as f:
-            for row in f:
+            for id_, row in enumerate(f):
                 data = json.loads(row)
-                id_ = data["film-url"]
                 review = data["review"]
                 label = "neg" if data["polarity"] == 0 else "pos"
                 yield id_, {"review": review, "label": label}
