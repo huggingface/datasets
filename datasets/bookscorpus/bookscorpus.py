@@ -47,7 +47,7 @@ _CITATION = """\
 }
 """
 
-_GDRIVE_FILE_ID = "16KCjV9z_FHm8LgZw05RSuk4EsAWPOP_z"
+URL = "https://drive.google.com/uc?export=download&id=16KCjV9z_FHm8LgZw05RSuk4EsAWPOP_z"
 
 class BookscorpusConfig(nlp.BuilderConfig):
     """BuilderConfig for BooksCorpus."""
@@ -82,8 +82,7 @@ class Bookscorpus(nlp.GeneratorBasedBuilder):
             yield ex["text"]
 
     def _split_generators(self, dl_manager):
-        downloaded_path_or_paths = dl_manager.download_custom(_GDRIVE_FILE_ID, download_file_from_google_drive)
-        arch_path = dl_manager.extract(downloaded_path_or_paths)
+        arch_path = dl_manager.download_and_extract(URL)
         
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"directory": arch_path}),
