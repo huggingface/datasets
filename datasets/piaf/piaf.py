@@ -42,8 +42,8 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Piaf Question Answering Dataset (SQuAD) is a reading comprehension \
-dataset. This version, published in February 2020, contains 3835 questions on French Wiipedia.
+Piaf is a reading comprehension \
+dataset. This version, published in February 2020, contains 3835 questions on French Wikipedia.
 """
 
 
@@ -60,7 +60,7 @@ class PiafConfig(nlp.BuilderConfig):
 
 
 class Piaf(nlp.GeneratorBasedBuilder):
-  """SQUAD: The Piaf Question Answering Dataset. Version 1.1."""
+  """SQUAD: The Piaf Question Answering Dataset. Version 1.0."""
   _URL = "https://github.com/etalab-ia/piaf-code/raw/master/"
   _TRAINING_FILE = "piaf-v1.0.json"
 
