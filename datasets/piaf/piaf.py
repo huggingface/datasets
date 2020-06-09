@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""SQUAD: The Stanford Question Answering Dataset."""
+"""PIAF Question Answering Dataset"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -60,7 +60,7 @@ class PiafConfig(nlp.BuilderConfig):
 
 
 class Piaf(nlp.GeneratorBasedBuilder):
-  """SQUAD: The Piaf Question Answering Dataset. Version 1.0."""
+  """The Piaf Question Answering Dataset. Version 1.0."""
   _URL = "https://github.com/etalab-ia/piaf-code/raw/master/"
   _TRAINING_FILE = "piaf-v1.0.json"
 
@@ -115,8 +115,8 @@ class Piaf(nlp.GeneratorBasedBuilder):
     """This function returns the examples in the raw (text) form."""
     logging.info("generating examples from = %s", filepath)
     with open(filepath) as f:
-      squad = json.load(f)
-      for article in squad["data"]:
+      dataset = json.load(f)
+      for article in dataset["data"]:
         title = article.get("title", "").strip()
         for paragraph in article["paragraphs"]:
           context = paragraph["context"].strip()
