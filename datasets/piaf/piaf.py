@@ -28,7 +28,7 @@ import nlp
 
 _CITATION = """\
 @InProceedings{keraron-EtAl:2020:LREC,
-  author    = {Keraron, Rachel  and  Lancrenon, Guillaume  and  Bras, Mathilde  and  Allary, FrÃ©dÃ©ric  and  Moyse, Gilles  and  Scialom, Thomas  and  Soriano-Morales, Edmundo-Pavel  and  Staiano, Jacopo},
+  author    = {Keraron, Rachel  and  Lancrenon, Guillaume  and  Bras, Mathilde  and  Allary, Frédéric  and  Moyse, Gilles  and  Scialom, Thomas  and  Soriano-Morales, Edmundo-Pavel  and  Staiano, Jacopo},
   title     = {Project PIAF: Building a Native French Question-Answering Dataset},
   booktitle      = {Proceedings of The 12th Language Resources and Evaluation Conference},
   month          = {May},
