@@ -38,8 +38,9 @@ logger = logging.getLogger(__name__)
 
 class DatasetInfoMixin(object):
     """ This base class exposes some attributes of DatasetInfo
-        at the base level of the Dataset for easy access. 
+        at the base level of the Dataset for easy access.
     """
+
     def __init__(self, info, split):
         self._info = info
         self._split = split
