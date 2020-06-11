@@ -258,9 +258,7 @@ class ExplainLikeImFiveConfig(nlp.BuilderConfig):
 class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
     """ELI5: Explain Like I'm Five long form question answering dataset."""
 
-    _DATA_SPLIT_URL = (
-        "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets_experimental/explainlikeimfive/reddit_data_split.json"
-    )
+    _DATA_SPLIT_URL = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets_experimental/explainlikeimfive/reddit_data_split.json"
 
     name = "ELI5_LFQA"
     BUILDER_CONFIGS = [
@@ -268,7 +266,7 @@ class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
             name="LFQA_reddit", version=nlp.Version("1.0.0"), description="long from QA subreddits"
         ),
     ]
-    
+
     test_dummy_data = False
 
     def _info(self):
