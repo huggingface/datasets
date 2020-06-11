@@ -156,6 +156,8 @@ class WikiSnippets(nlp.GeneratorBasedBuilder):
         ),
     ]
 
+    test_dummy_data = False
+
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,

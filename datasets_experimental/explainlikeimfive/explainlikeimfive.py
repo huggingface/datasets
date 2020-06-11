@@ -268,6 +268,8 @@ class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
             name="LFQA_reddit", version=nlp.Version("1.0.0"), description="long from QA subreddits"
         ),
     ]
+    
+    test_dummy_data = False
 
     def _info(self):
         return nlp.DatasetInfo(

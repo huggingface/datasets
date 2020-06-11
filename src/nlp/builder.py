@@ -616,6 +616,9 @@ class GeneratorBasedBuilder(DatasetBuilder):
     (`_split_generators`). See the method docstrings for details.
     """
 
+    # GeneratorBasedBulder should have dummy data for tests by default
+    test_dummy_data = True
+
     def __init__(self, *args, **kwargs):
         super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
         self._writer_batch_size = kwargs.get("writer_batch_size")
@@ -673,6 +676,9 @@ class ArrowBasedBuilder(DatasetBuilder):
     """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet).
 
     """
+
+    # ArrowBasedBuilder should have dummy data for tests by default
+    test_dummy_data = True
 
     @abc.abstractmethod
     def _generate_examples(self, **kwargs):
@@ -740,6 +746,9 @@ class MissingBeamOptions(ValueError):
 
 class BeamBasedBuilder(DatasetBuilder):
     """Beam based Builder."""
+
+    # BeamBasedBuilder does not have dummy data for tests yet
+    test_dummy_data = False
 
     def __init__(self, *args, **kwargs):
         self._beam_runner = kwargs.pop("beam_runner", None)

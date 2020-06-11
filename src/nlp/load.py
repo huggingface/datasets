@@ -190,7 +190,6 @@ def prepare_module(
     download_config: Optional[DownloadConfig] = None,
     dataset: bool = True,
     force_local_path: Optional[str] = None,
-    experimental: bool = False,
     **download_kwargs,
 ) -> DatasetBuilder:
     r"""
@@ -208,7 +207,6 @@ def prepare_module(
             dataset (bool): True if the script to load is a dataset, False if the script is a metric.
             force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
                 Used to inspect or modify the script folder.
-            experimental (bool): True if the script is in the datasets_experimental folder. Careful, these datasets are not tested yet!
             **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
         Return: ``str`` with
@@ -239,7 +237,7 @@ def prepare_module(
     elif os.path.isfile(path):
         file_path = path
     else:
-        file_path = hf_bucket_url(path, filename=name, dataset=dataset, experimental=experimental)
+        file_path = hf_bucket_url(path, filename=name, dataset=dataset)
 
     base_path = os.path.dirname(file_path)  # remove the filename
     dataset_infos = os.path.join(base_path, DATASET_INFOS_DICT_FILE_NAME)
@@ -452,7 +450,6 @@ def load_dataset(
     download_mode: Optional[GenerateMode] = None,
     ignore_verifications: bool = False,
     save_infos: bool = False,
-    experimental: bool = False,
     **config_kwargs,
 ) -> Dataset:
     r"""Load a dataset
@@ -497,7 +494,6 @@ def load_dataset(
             download_mode (Optional `nlp.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
             ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
             save_infos (bool): Save the dataset information (checksums/size/splits/...)
-            experimental (bool): True if the script is in the datasets_experimental folder. Careful, these datasets are not tested yet!
             **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``nlp.BuilderConfig`` and used in the ``nlp.DatasetBuilder``.
 
         Returns: ``nlp.Dataset`` or ``Dict[nlp.Split, nlp.Dataset]``
@@ -506,7 +502,7 @@ def load_dataset(
             if `split` is None, a `dict<key: nlp.Split, value: nlp.Dataset>` with each split.
     """
     # Download/copy dataset processing script
-    module_path = prepare_module(path, download_config=download_config, dataset=True, experimental=experimental)
+    module_path = prepare_module(path, download_config=download_config, dataset=True)
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)

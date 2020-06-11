@@ -75,9 +75,9 @@ class DatasetTester(object):
                 name = config.name if config is not None else None
                 dataset_builder = dataset_builder_cls(name=name, cache_dir=processed_temp_dir)
 
-                # TODO: skip Beam datasets for now
-                if isinstance(dataset_builder, BeamBasedBuilder):
-                    logging.info("Skip tests for Beam datasets for now")
+                # TODO: skip Beam datasets and datasets that lack dummy data for now
+                if not dataset_builder.test_dummy_data:
+                    logging.info("Skip tests for this dataset for now")
                     return
 
                 if config is not None:
