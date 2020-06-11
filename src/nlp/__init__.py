@@ -20,6 +20,7 @@
 
 __version__ = "0.2.0"
 
+import pyarrow
 from pyarrow import total_allocated_bytes
 
 from . import datasets
@@ -34,3 +35,10 @@ from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar
+
+
+if int(pyarrow.__version__.split(".")[1]) < 16 or int(pyarrow.__version__.split(".")[0]) > 0:
+    raise ImportWarning(
+        "To use `nlp`, the module `pyarrow>=0.16.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
+        "If you are running this in a Google Colab, you should probably juste restart the runtime to use the right version of `pyarrow`."
+    )
