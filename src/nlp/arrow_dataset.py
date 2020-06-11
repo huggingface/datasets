@@ -688,3 +688,101 @@ class Dataset(DatasetInfoMixin):
 
         # return map function
         return self.map(map_function, batched=True, with_indices=with_indices, arrow_schema=arrow_schema, **kwargs)
+
+    def sort(self,
+        column: Optional[str] = None,
+        indices: Optional[List[int]] = None,
+        kind: str = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+    ):
+        """ Sort the table according to a column or a list of indices
+
+            Currently sorting according to a column name uses numpy sorting algorithm under the hood.
+            The column should thus be a numpy compatible type (in particular not a nested type).
+            This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
+
+            Args:
+                `column` (Optional `str`): column name to sort by. At least one of `column` and `indices`must be provided.
+                `indices` (Optional `Lits[int]`): List of indices for the sort. At least one of `column` and `indices`must be provided.
+                `kind` (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
+                    The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
+                    the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
+                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
+                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                    can be identified, use it instead of recomputing.
+                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                    results of the computation instead of the automatically generated cache file name.
+                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                    Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+        """
+        # If the array is empty we do nothing
+        if len(self) == 0:
+            return self
+
+        assert (column is not None and isinstance(column, str)) or \
+            (indices is not None and isinstance(column, list)), "You must provide a column name or a list of indices"
+        assert column is None or indices is None, "You must provide either a column name or a list of indices but not both."
+
+        # Check the column name
+        if column is not None and column not in self._data.column_names:
+            raise ValueError(
+                "Column name {} not in the dataset. Current columns in the dataset: {}".format(
+                    column,
+                    self._data.column_names,
+                )
+            )
+
+        # Check if we've already cached this computation (indexed by a hash)
+        if self._data_files:
+            if cache_file_name is None:
+                # we create a unique hash from the function, current dataset file and the mapping args
+                cache_kwargs = {
+                    "column": column,
+                    "indices": indices,
+                    "keep_in_memory": keep_in_memory,
+                    "load_from_cache_file": load_from_cache_file,
+                    "cache_file_name": cache_file_name,
+                    "writer_batch_size": writer_batch_size,
+                }
+                cache_file_name = self._get_cache_file_path(self.sort, cache_kwargs)
+            if os.path.exists(cache_file_name) and load_from_cache_file:
+                logger.info("Loading cached sorted dataset at %s", cache_file_name)
+                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+
+        # Prepare output buffer and batched writer in memory or on file if we update the table
+        if keep_in_memory or not self._data_files:
+            buf_writer = pa.BufferOutputStream()
+            writer = ArrowWriter(schema=self.schema, stream=buf_writer, writer_batch_size=writer_batch_size)
+        else:
+            buf_writer = None
+            logger.info("Caching processed dataset at %s", cache_file_name)
+            writer = ArrowWriter(schema=self.schema, path=cache_file_name, writer_batch_size=writer_batch_size)
+
+        if indices is None:
+            indices = self._getitem(
+                column,
+                format_type='numpy',
+                format_columns=None,
+                output_all_columns=False,
+            )
+            indices = np.argsort(indices, kind=kind)
+
+        # Loop over single examples or batches and write to buffer/file if examples are to be updated
+        for i in tqdm(indices):
+            example = self._getitem(
+                key=i,
+                format_type=None,
+                format_columns=None,
+            )
+            writer.write(example)
+
+        writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
+
+        # Create new Dataset from buffer or file
+        if buf_writer is None:
+            return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+        else:
+            return Dataset.from_buffer(buf_writer.getvalue(), info=self.info, split=self.split)
