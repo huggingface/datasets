@@ -22,7 +22,6 @@ import requests
 from absl.testing import parameterized
 
 from nlp import (
-    BeamBasedBuilder,
     BuilderConfig,
     DatasetBuilder,
     DownloadConfig,
