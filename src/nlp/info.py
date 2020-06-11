@@ -205,7 +205,7 @@ class MetricInfo:
     features: Features
     inputs_description: str = field(default_factory=str)
     homepage: str = field(default_factory=str)
-    licence: str = field(default_factory=str)
+    license: str = field(default_factory=str)
     codebase_urls: List[str] = field(default_factory=list)
     reference_urls: List[str] = field(default_factory=list)
     streamable: bool = False
@@ -230,7 +230,7 @@ class MetricInfo:
         """ Write `MetricInfo` as JSON to `metric_info_dir`.
             Also save the license separately in LICENCE.
         """
-        with open(os.path.join(metric_info_dir, DATASET_INFO_FILENAME), "w") as f:
+        with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "w") as f:
             json.dump(asdict(self), f)
 
         with open(os.path.join(metric_info_dir, LICENSE_FILENAME), "w") as f:
