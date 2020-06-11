@@ -40,5 +40,5 @@ from .utils.tqdm_utils import disable_progress_bar
 if int(pyarrow.__version__.split(".")[1]) < 16 or int(pyarrow.__version__.split(".")[0]) > 0:
     raise ImportWarning(
         "To use `nlp`, the module `pyarrow>=0.16.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
-        "If you are running this in a Google Colab, you should probably juste restart the runtime to use the right version of `pyarrow`."
+        "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
     )
