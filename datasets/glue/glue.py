@@ -522,7 +522,7 @@ class Glue(nlp.GeneratorBasedBuilder):
             # header.
             is_cola_non_test = self.config.name == "cola" and split != "test"
 
-            with open(data_file, encoding='utf8') as f:
+            with open(data_file, encoding="utf8") as f:
                 reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                 if is_cola_non_test:
                     reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)

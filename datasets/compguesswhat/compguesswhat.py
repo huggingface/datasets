@@ -21,8 +21,10 @@ class CompguesswhatConfig(nlp.BuilderConfig):
         super(CompguesswhatConfig, self).__init__(
             version=nlp.Version("0.1.0", "First CompGuessWhat?! release"), **kwargs
         )
-        assert gameplay_scenario in ("original", "zero_shot"), \
-            "Invalid choice for parameter 'gameplay_scenario': {gameplay_scenario}. Valid values are ('original', 'zero_shot')."
+        assert gameplay_scenario in (
+            "original",
+            "zero_shot",
+        ), "Invalid choice for parameter 'gameplay_scenario': {gameplay_scenario}. Valid values are ('original', 'zero_shot')."
 
         self.gameplay_scenario = gameplay_scenario
         self.splits = splits
@@ -54,9 +56,8 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
             splits={
                 "train": "compguesswhat.train.jsonl.gz",
                 "valid": "compguesswhat.valid.jsonl.gz",
-                "test": "compguesswhat.test.jsonl.gz"
-            }
-
+                "test": "compguesswhat.test.jsonl.gz",
+            },
         ),
         CompguesswhatConfig(
             name="compguesswhat-zero_shot",
@@ -67,8 +68,8 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
                 "nd_valid": "compguesswhat.nd_valid.jsonl.gz",
                 "nd_test": "compguesswhat.nd_test.jsonl.gz",
                 "od_valid": "compguesswhat.od_valid.jsonl.gz",
-                "od_test": "compguesswhat.od_test.jsonl.gz"
-            }
+                "od_test": "compguesswhat.od_test.jsonl.gz",
+            },
         ),
     ]
 
@@ -94,21 +95,21 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
                             "height": nlp.Value("int32"),
                             "width": nlp.Value("int32"),
                             "vg_id": nlp.Value("int32"),
-                            "vg_url": nlp.Value("string")
+                            "vg_url": nlp.Value("string"),
                         },
-                        "qas": nlp.features.Sequence({
-                            "question": nlp.Value("string"),
-                            "answer": nlp.Value("string"),
-                            "id": nlp.Value("int32")
-                        }),
-                        "objects": nlp.features.Sequence({
-                            "id": nlp.Value("int32"),
-                            "bbox": nlp.Sequence(nlp.Value("float32"), length=4),
-                            "category": nlp.Value("string"),
-                            "area": nlp.Value("float32"),
-                            "category_id": nlp.Value("int32"),
-                            "segment": nlp.features.Sequence(nlp.features.Sequence(nlp.Value("float32")))
-                        })
+                        "qas": nlp.features.Sequence(
+                            {"question": nlp.Value("string"), "answer": nlp.Value("string"), "id": nlp.Value("int32")}
+                        ),
+                        "objects": nlp.features.Sequence(
+                            {
+                                "id": nlp.Value("int32"),
+                                "bbox": nlp.Sequence(nlp.Value("float32"), length=4),
+                                "category": nlp.Value("string"),
+                                "area": nlp.Value("float32"),
+                                "category_id": nlp.Value("int32"),
+                                "segment": nlp.features.Sequence(nlp.features.Sequence(nlp.Value("float32"))),
+                            }
+                        ),
                     }
                 ),
                 # If there's a common (input, target) tuple from the features,
@@ -137,29 +138,32 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
                             "width": nlp.Value("int32"),
                             "license": nlp.Value("int32"),
                             "open_images_id": nlp.Value("string"),
-                            "date_captured": nlp.Value("string")
+                            "date_captured": nlp.Value("string"),
                         },
-                        "objects": nlp.features.Sequence({
-                            "id": nlp.Value("string"),
-                            "bbox": nlp.Sequence(nlp.Value("float32"), length=4),
-                            "category": nlp.Value("string"),
-                            "area": nlp.Value("float32"),
-                            "category_id": nlp.Value("int32"),
-                            "IsOccluded": nlp.Value("int32"),
-                            "IsTruncated": nlp.Value("int32"),
-                            "segment": nlp.features.Sequence({
-                                "MaskPath": nlp.Value("string"),
-                                "LabelName": nlp.Value("string"),
-                                "BoxID": nlp.Value("string"),
-                                "BoxXMin": nlp.Value("string"),
-                                "BoxXMax": nlp.Value("string"),
-                                "BoxYMin": nlp.Value("string"),
-                                "BoxYMax": nlp.Value("string"),
-                                "PredictedIoU": nlp.Value("string"),
-                                "Clicks": nlp.Value("string")
-
-                            })
-                        })
+                        "objects": nlp.features.Sequence(
+                            {
+                                "id": nlp.Value("string"),
+                                "bbox": nlp.Sequence(nlp.Value("float32"), length=4),
+                                "category": nlp.Value("string"),
+                                "area": nlp.Value("float32"),
+                                "category_id": nlp.Value("int32"),
+                                "IsOccluded": nlp.Value("int32"),
+                                "IsTruncated": nlp.Value("int32"),
+                                "segment": nlp.features.Sequence(
+                                    {
+                                        "MaskPath": nlp.Value("string"),
+                                        "LabelName": nlp.Value("string"),
+                                        "BoxID": nlp.Value("string"),
+                                        "BoxXMin": nlp.Value("string"),
+                                        "BoxXMax": nlp.Value("string"),
+                                        "BoxYMin": nlp.Value("string"),
+                                        "BoxYMax": nlp.Value("string"),
+                                        "PredictedIoU": nlp.Value("string"),
+                                        "Clicks": nlp.Value("string"),
+                                    }
+                                ),
+                            }
+                        ),
                     }
                 ),
                 # If there's a common (input, target) tuple from the features,
@@ -192,12 +196,9 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
             splits_gen.append(
                 nlp.SplitGenerator(
                     name=split_name,
-                    gen_kwargs={"filepath": os.path.join(
-                        dl_dir,
-                        full_split_name,
-                        self.VERSION.version_str,
-                        split_filename
-                    )},
+                    gen_kwargs={
+                        "filepath": os.path.join(dl_dir, full_split_name, self.VERSION.version_str, split_filename)
+                    },
                 )
             )
 
