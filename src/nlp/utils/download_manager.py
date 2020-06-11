@@ -20,7 +20,7 @@ import enum
 import logging
 import os
 
-from .file_utils import cached_path, get_from_cache, hash_url_to_filename, HF_DATASETS_CACHE
+from .file_utils import HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
 from .py_utils import flatten_nested, map_nested, size_str
 

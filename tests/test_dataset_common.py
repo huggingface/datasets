@@ -112,7 +112,7 @@ class DatasetTester(object):
                         "test": os.path.join(path_to_dummy_data, "test.json"),
                         "dev": os.path.join(path_to_dummy_data, "dev.json"),
                     }
-                
+
                 # mock size needed for dummy data instead of actual dataset
                 if dataset_builder.info is not None:
                     # approximate upper bound of order of magnitude of dummy data files

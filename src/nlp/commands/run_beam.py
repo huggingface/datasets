@@ -76,6 +76,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
 
     def run(self):
         import apache_beam as beam
+
         if self._name is not None and self._all_configs:
             print("Both parameters `name` and `all_configs` can't be used at once.")
             exit(1)
