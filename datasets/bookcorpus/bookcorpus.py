@@ -14,17 +14,13 @@
 # limitations under the License.
 
 # Lint as: python3
-"""Toronto BooksCorpus dataset."""
+"""The BookCorpus dataset."""
 
 from __future__ import absolute_import, division, print_function
 
 import glob
 import os
 import re
-
-import requests
-
-from tqdm import tqdm
 
 import nlp
 
@@ -47,24 +43,24 @@ _CITATION = """\
 }
 """
 
-URL = "https://drive.google.com/uc?export=download&id=16KCjV9z_FHm8LgZw05RSuk4EsAWPOP_z"
+URL = "https://storage.googleapis.com/huggingface-nlp/datasets/bookcorpus/bookcorpus.tar.bz2"
 
-class BookscorpusConfig(nlp.BuilderConfig):
-    """BuilderConfig for BooksCorpus."""
+class BookcorpusConfig(nlp.BuilderConfig):
+    """BuilderConfig for BookCorpus."""
 
     def __init__(self, **kwargs):
-        """BuilderConfig for BooksCorpus.
+        """BuilderConfig for BookCorpus.
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super(BookscorpusConfig, self).__init__(
+        super(BookcorpusConfig, self).__init__(
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
 
-class Bookscorpus(nlp.GeneratorBasedBuilder):
-    """BooksCorpus dataset."""
+class Bookcorpus(nlp.GeneratorBasedBuilder):
+    """BookCorpus dataset."""
 
-    BUILDER_CONFIGS = [BookscorpusConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [BookcorpusConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return nlp.DatasetInfo(
@@ -97,34 +93,3 @@ class Bookscorpus(nlp.GeneratorBasedBuilder):
                 for line in f:
                     yield _id, {'text': line.strip()}
                     _id += 1
-
-def download_file_from_google_drive(id, destination):
-    def get_confirm_token(response):
-        for key, value in response.cookies.items():
-            if key.startswith('download_warning'):
-                return value
-
-        return None
-
-    def save_response_content(response, destination):
-        CHUNK_SIZE = 32768
-
-        with open(destination, "wb") as f:
-            with tqdm(unit='B', unit_scale=True, unit_divisor=1024, leave=False) as bar:
-                for chunk in response.iter_content(CHUNK_SIZE):
-                    if chunk:  # filter out keep-alive new chunks
-                        f.write(chunk)
-                        bar.update(CHUNK_SIZE)
-
-    URL = "https://docs.google.com/uc?export=download"
-
-    session = requests.Session()
-
-    response = session.get(URL, params = { 'id' : id }, stream = True)
-    token = get_confirm_token(response)
-
-    if token:
-        params = { 'id' : id, 'confirm' : token }
-        response = session.get(URL, params = params, stream = True)
-
-    save_response_content(response, destination)
