@@ -90,8 +90,10 @@ def temporary_assignment(obj, attr, value):
     """Temporarily assign obj.attr to value."""
     original = getattr(obj, attr, None)
     setattr(obj, attr, value)
-    yield
-    setattr(obj, attr, original)
+    try:
+        yield
+    finally:
+        setattr(obj, attr, original)
 
 
 def zip_dict(*dicts):

@@ -84,8 +84,8 @@ class Glue(nlp.Metric):
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
             features=nlp.Features({
-                'predictions': nlp.Value('int64' if self.config_name != 'sts-b' else 'float32'),
-                'references': nlp.Value('int64' if self.config_name != 'sts-b' else 'float32'),
+                'predictions': nlp.Value('int64' if self.config_name != 'stsb' else 'float32'),
+                'references': nlp.Value('int64' if self.config_name != 'stsb' else 'float32'),
             }),
             codebase_urls=[],
             reference_urls=[],

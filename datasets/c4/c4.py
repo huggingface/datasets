@@ -172,7 +172,6 @@ class C4(nlp.BeamBasedBuilder):
         )
 
     def _split_generators(self, dl_manager, pipeline):
-        dl_manager.download_checksums(_CHECKSUMS_URL)
 
         # We will automatically down the default CC version(s), but others need to
         # be manually downloaded.

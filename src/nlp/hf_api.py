@@ -16,7 +16,6 @@
 
 import io
 import os
-from dataclasses import dataclass
 from os.path import expanduser
 from typing import Dict, List, Optional, Tuple
 
@@ -27,60 +26,85 @@ from tqdm import tqdm
 ENDPOINT = "https://huggingface.co"
 
 
-@dataclass
 class S3Obj:
     """
     Data structure that represents a file belonging to the current user.
     """
 
-    filename: str
-    LastModified: str
-    ETag: str
-    Size: int
+    def __init__(self, filename: str, LastModified: str, ETag: str, Size: int, **kwargs):
+        self.filename = filename
+        self.LastModified = LastModified
+        self.ETag = ETag
+        self.Size = Size
 
 
-@dataclass
 class PresignedUrl:
-    write: str
-    access: str
-    type: str  # mime-type to send to S3.
+    def __init__(self, write: str, access: str, type: str, **kwargs):
+        self.write = write
+        self.access = access
+        self.type = type  # mime-type to send to S3.
 
 
-@dataclass
 class S3Object:
     """
     Data structure that represents a public file accessible on our S3.
     """
 
-    key: str  # S3 object key
-    etag: str
-    lastModified: str
-    size: int
-    rfilename: str  # filename relative to config.json
+    def __init__(
+        self,
+        key: str,  # S3 object key
+        etag: str,
+        lastModified: str,
+        size: int,
+        rfilename: str,  # filename relative to config.json
+        **kwargs,
+    ):
+        self.key = key
+        self.etag = etag
+        self.lastModified = lastModified
+        self.size = size
+        self.rfilename = rfilename
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
 
-@dataclass
 class ObjectInfo:
     """
     Info about a public dataset or Metric accessible from our S3.
     """
 
-    id: str  # id of dataset
-    key: str  # S3 object key of config.json
-    lastModified: Optional[str] = None
-    description: Optional[str] = None
-    citation: Optional[str] = None
-    size: Optional[int] = None
-    etag: Optional[str] = None
-    siblings: List[Dict] = None  # list of files that constitute the dataset
-    author: str = None
-
-    def __post_init__(self):
-        self.siblings = [S3Object(**x) for x in self.siblings]
+    def __init__(
+        self,
+        id: str,
+        key: str,
+        lastModified: Optional[str] = None,
+        description: Optional[str] = None,
+        citation: Optional[str] = None,
+        size: Optional[int] = None,
+        etag: Optional[str] = None,
+        siblings: List[Dict] = None,
+        author: str = None,
+        **kwargs,
+    ):
+        self.id = id  # id of dataset
+        self.key = key  # S3 object key of config.json
+        self.lastModified = lastModified
+        self.description = description
+        self.citation = citation
+        self.size = size
+        self.etag = etag
+        self.siblings = siblings  # list of files that constitute the dataset
+        self.author = author
+        self.siblings = [S3Object(**x) for x in self.siblings] if self.siblings else None
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
 
 class HfApi:
+    ALLOWED_FILE_TYPES = ["datasets", "metrics"]
+
     def __init__(self, endpoint=None):
+        """Create Api using a specific endpoint and also the file types ('datasets' or 'metrics')"""
         self.endpoint = endpoint if endpoint is not None else ENDPOINT
 
     def login(self, username: str, password: str) -> str:
@@ -117,11 +141,16 @@ class HfApi:
         r = requests.post(path, headers={"authorization": "Bearer {}".format(token)})
         r.raise_for_status()
 
-    def presign(self, token: str, filename: str, organization: Optional[str] = None) -> PresignedUrl:
+    def presign(
+        self, token: str, filename: str, organization: Optional[str] = None, file_types: Optional[str] = None
+    ) -> PresignedUrl:
         """
         Call HF API to get a presigned url to upload `filename` to S3.
         """
-        path = "{}/api/presign".format(self.endpoint)
+        assert file_types in self.ALLOWED_FILE_TYPES, "Please specify file types from {}".format(
+            self.ALLOWED_FILE_TYPES
+        )
+        path = "{}/api/{}/presign".format(self.endpoint, file_types)
         r = requests.post(
             path,
             headers={"authorization": "Bearer {}".format(token)},
@@ -131,14 +160,21 @@ class HfApi:
         d = r.json()
         return PresignedUrl(**d)
 
-    def presign_and_upload(self, token: str, filename: str, filepath: str, organization: Optional[str] = None) -> str:
+    def presign_and_upload(
+        self,
+        token: str,
+        filename: str,
+        filepath: str,
+        organization: Optional[str] = None,
+        file_types: Optional[str] = None,
+    ) -> str:
         """
         Get a presigned url, then upload file to S3.
 
         Outputs:
             url: Read-only url for the stored file on S3.
         """
-        urls = self.presign(token, filename=filename, organization=organization)
+        urls = self.presign(token, filename=filename, organization=organization, file_types=file_types)
         # streaming upload:
         # https://2.python-requests.org/en/master/user/advanced/#streaming-uploads
         #
@@ -153,22 +189,32 @@ class HfApi:
             pf.close()
         return urls.access
 
-    def list_objs(self, token: str, organization: Optional[str] = None) -> List[S3Obj]:
+    def list_objs(
+        self, token: str, organization: Optional[str] = None, file_types: Optional[str] = None
+    ) -> List[S3Obj]:
         """
         Call HF API to list all stored files for user (or one of their organizations).
         """
-        path = "{}/api/listObjs".format(self.endpoint)
+        assert file_types in self.ALLOWED_FILE_TYPES, "Please specify file types from {}".format(
+            self.ALLOWED_FILE_TYPES
+        )
+        path = "{}/api/{}/listObjs".format(self.endpoint, file_types)
         params = {"organization": organization} if organization is not None else None
         r = requests.get(path, params=params, headers={"authorization": "Bearer {}".format(token)})
         r.raise_for_status()
         d = r.json()
         return [S3Obj(**x) for x in d]
 
-    def delete_obj(self, token: str, filename: str, organization: Optional[str] = None):
+    def delete_obj(
+        self, token: str, filename: str, organization: Optional[str] = None, file_types: Optional[str] = None
+    ):
         """
         Call HF API to delete a file stored by user
         """
-        path = "{}/api/deleteObj".format(self.endpoint)
+        assert file_types in self.ALLOWED_FILE_TYPES, "Please specify file types from {}".format(
+            self.ALLOWED_FILE_TYPES
+        )
+        path = "{}/api/{}/deleteObj".format(self.endpoint, file_types)
         r = requests.delete(
             path,
             headers={"authorization": "Bearer {}".format(token)},

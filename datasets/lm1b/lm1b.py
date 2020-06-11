@@ -73,11 +73,11 @@ class Lm1bConfig(nlp.BuilderConfig):
 
 
 def _train_data_filenames(tmp_dir):
-    return glob.glob(os.path.join(tmp_dir, _TRAIN_FILE_FORMAT))
+    return sorted(glob.glob(os.path.join(tmp_dir, _TRAIN_FILE_FORMAT)))
 
 
 def _test_data_filenames(tmp_dir):
-    return glob.glob(os.path.join(tmp_dir, _HELDOUT_FILE_FORMAT))
+    return sorted(glob.glob(os.path.join(tmp_dir, _HELDOUT_FILE_FORMAT)))
 
 
 class Lm1b(nlp.GeneratorBasedBuilder):
@@ -90,7 +90,7 @@ class Lm1b(nlp.GeneratorBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"text": nlp.Value("string"),}),
+            features=nlp.Features({"text": nlp.Value("string")}),
             supervised_keys=("text", "text"),
             homepage="http://www.statmt.org/lm-benchmark/",
             citation=_CITATION,
