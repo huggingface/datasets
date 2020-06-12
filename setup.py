@@ -101,7 +101,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name='nlp',
-    version="0.2.0",
+    version="0.2.1",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',
