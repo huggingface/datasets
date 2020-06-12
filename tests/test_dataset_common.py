@@ -112,6 +112,14 @@ class DatasetTester(object):
                         "dev": os.path.join(path_to_dummy_data, "dev.json"),
                     }
 
+                # mock size needed for dummy data instead of actual dataset
+                if dataset_builder.info is not None:
+                    # approximate upper bound of order of magnitude of dummy data files
+                    one_mega_byte = 2 << 19
+                    dataset_builder.info.size_in_bytes = 2 * one_mega_byte
+                    dataset_builder.info.download_size = one_mega_byte
+                    dataset_builder.info.dataset_size = one_mega_byte
+
                 # generate examples from dummy data
                 dataset_builder.download_and_prepare(
                     dl_manager=mock_dl_manager, download_mode=GenerateMode.FORCE_REDOWNLOAD, ignore_verifications=True

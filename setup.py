@@ -94,6 +94,7 @@ EXTRAS_REQUIRE = {
     'tensorflow': ['tensorflow>=2.2.0'],
     'tensorflow_gpu': ['tensorflow-gpu>=2.2.0'],
     'torch': ['torch'],
+    'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE,
     'quality': QUALITY_REQUIRE,
 }

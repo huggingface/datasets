@@ -121,6 +121,8 @@ class ClassLabel:
     names_file: str = None
     id: Optional[str] = None
     # Automatically constructed
+    dtype: ClassVar[str] = "int64"
+    pa_type: ClassVar[Any] = pa.int64()
     _str2int: ClassVar[Dict[str, int]] = None
     _int2str: ClassVar[Dict[int, int]] = None
     _type: str = "ClassLabel"
@@ -162,7 +164,7 @@ class ClassLabel:
             )
 
     def __call__(self):
-        return pa.int64()
+        return self.pa_type
 
     def str2int(self, str_value):
         """Conversion class name string => integer."""
@@ -264,6 +266,8 @@ class Translation:
     languages: List[str]
     id: Optional[str] = None
     # Automatically constructed
+    dtype: ClassVar[str] = "dict"
+    pa_type: ClassVar[Any] = None
     _type: str = "Translation"
 
     def __call__(self):
@@ -316,6 +320,8 @@ class TranslationVariableLanguages:
     num_languages: int = None
     id: Optional[str] = None
     # Automatically constructed
+    dtype: ClassVar[str] = "dict"
+    pa_type: ClassVar[Any] = None
     _type: str = "TranslationVariableLanguages"
 
     def __post_init__(self):
@@ -359,6 +365,8 @@ class Sequence:
     length: int = -1
     id: Optional[str] = None
     # Automatically constructed
+    dtype: ClassVar[str] = "list"
+    pa_type: ClassVar[Any] = None
     _type: str = "Sequence"
 
 

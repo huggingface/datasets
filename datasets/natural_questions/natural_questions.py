@@ -180,4 +180,9 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
                 },
             )
 
-        return pipeline | beam.Create(filepaths) | beam.io.ReadAllFromText() | beam.Map(_parse_example)
+        return (
+            pipeline
+            | beam.Create(filepaths)
+            | beam.io.ReadAllFromText(compression_type=beam.io.textio.CompressionTypes.GZIP)
+            | beam.Map(_parse_example)
+        )
