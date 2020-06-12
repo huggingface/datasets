@@ -36,7 +36,77 @@ from .utils import convert_tuples_in_lists, map_nested
 logger = logging.getLogger(__name__)
 
 
-class Dataset(object):
+class DatasetInfoMixin(object):
+    """ This base class exposes some attributes of DatasetInfo
+        at the base level of the Dataset for easy access.
+    """
+
+    def __init__(self, info, split):
+        self._info = info
+        self._split = split
+
+    @property
+    def info(self):
+        return self._info
+
+    @property
+    def split(self):
+        return self._split
+
+    @property
+    def builder_name(self) -> str:
+        return self._info.builder_name
+
+    @property
+    def citation(self) -> str:
+        return self._info.citation
+
+    @property
+    def config_name(self) -> str:
+        return self._info.config_name
+
+    @property
+    def dataset_size(self) -> Optional[int]:
+        return self._info.dataset_size
+
+    @property
+    def description(self) -> str:
+        return self._info.description
+
+    @property
+    def download_checksums(self) -> Optional[dict]:
+        return self._info.download_checksums
+
+    @property
+    def download_size(self) -> Optional[int]:
+        return self._info.download_size
+
+    @property
+    def features(self):
+        return self._info.features
+
+    @property
+    def homepage(self) -> Optional[str]:
+        return self._info.homepage
+
+    @property
+    def license(self) -> Optional[str]:
+        return self._info.license
+
+    @property
+    def size_in_bytes(self) -> Optional[int]:
+        return self._info.size_in_bytes
+
+    @property
+    def supervised_keys(self):
+        return self._info.supervised_keys
+
+    @property
+    def version(self):
+        return self._info.version
+
+
+class Dataset(DatasetInfoMixin):
     """ A Dataset backed by an Arrow table or Record Batch.
     """
 
@@ -45,8 +115,9 @@ class Dataset(object):
         arrow_table: Union[pa.Table, pa.RecordBatch],
         data_files: Optional[List[dict]] = None,
         info: Optional[Any] = None,
+        split: Optional[Any] = None,
     ):
-        self._info = info
+        super().__init__(info=info, split=split)
         self._data: pa.Table = arrow_table
         self._data_files: List[dict] = data_files if data_files is not None else []
         self._format_type = None
@@ -54,24 +125,20 @@ class Dataset(object):
         self._output_all_columns = False
 
     @classmethod
-    def from_file(cls, filename: str):
+    def from_file(cls, filename: str, info: Optional[Any] = None, split: Optional[Any] = None):
         """ Instantiate a Dataset backed by an Arrow table at filename """
         mmap = pa.memory_map(filename)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
-        return cls(arrow_table=pa_table, data_files=[{"filename": filename}])
+        return cls(arrow_table=pa_table, data_files=[{"filename": filename}], info=info, split=split)
 
     @classmethod
-    def from_buffer(cls, buffer: pa.Buffer):
+    def from_buffer(cls, buffer: pa.Buffer, info: Optional[Any] = None, split: Optional[Any] = None):
         """ Instantiate a Dataset backed by an Arrow buffer """
         mmap = pa.BufferReader(buffer)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
-        return cls(pa_table)
-
-    @property
-    def info(self):
-        return self._info
+        return cls(pa_table, info=info, split=split)
 
     @property
     def data(self):
@@ -522,7 +589,7 @@ class Dataset(object):
                 cache_file_name = self._get_cache_file_path(function, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
                 logger.info("Loading cached processed dataset at %s", cache_file_name)
-                return Dataset.from_file(cache_file_name)
+                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
         if update_data:
@@ -553,9 +620,9 @@ class Dataset(object):
 
             # Create new Dataset from buffer or file
             if buf_writer is None:
-                return Dataset.from_file(cache_file_name)
+                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
             else:
-                return Dataset.from_buffer(buf_writer.getvalue())
+                return Dataset.from_buffer(buf_writer.getvalue(), info=self.info, split=self.split)
         else:
             return self
 
