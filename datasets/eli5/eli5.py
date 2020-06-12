@@ -257,14 +257,13 @@ class Eli5Config(nlp.BuilderConfig):
 
 class Eli5(nlp.GeneratorBasedBuilder):
     """ELI5: Explain Like I'm Five long form question answering dataset."""
+
     BUILDER_CONFIG_CLASS = Eli5Config
     _DATA_SPLIT_URL = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets/eli5/reddit_data_split.json"
 
     name = "ELI5_LFQA"
     BUILDER_CONFIGS = [
-        Eli5Config(
-            name="LFQA_reddit", version=nlp.Version("1.0.0"), description="long from QA subreddits"
-        ),
+        Eli5Config(name="LFQA_reddit", version=nlp.Version("1.0.0"), description="long from QA subreddits"),
     ]
 
     test_dummy_data = False
