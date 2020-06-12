@@ -137,7 +137,6 @@ class WikiSnippetsConfig(nlp.BuilderConfig):
 
 class WikiSnippets(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = WikiSnippetsConfig
-    name = "wiki_snippets"
     BUILDER_CONFIGS = [
         WikiSnippetsConfig(
             name="wiki40b_en_100_0",
