@@ -136,6 +136,7 @@ class WikiSnippetsConfig(nlp.BuilderConfig):
 
 
 class WikiSnippets(nlp.GeneratorBasedBuilder):
+    BUILDER_CONFIG_CLASS = WikiSnippetsConfig
     name = "wiki_snippets"
     BUILDER_CONFIGS = [
         WikiSnippetsConfig(
@@ -181,12 +182,6 @@ class WikiSnippets(nlp.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        # default configuration downloads Wiki40b
-        if not hasattr(self.config, "wikipedia_name"):
-            self.config.wikipedia_name = "wiki40b"
-            self.config.wikipedia_version_name = "en"
-            self.config.snippets_length = 100
-            self.config.snippets_overlap = 0
 
         wikipedia = nlp.load_dataset(path=self.config.wikipedia_name, name=self.config.wikipedia_version_name,)
 
