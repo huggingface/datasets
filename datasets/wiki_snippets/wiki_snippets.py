@@ -1,7 +1,9 @@
 import json
 import logging
 import math
+
 import nlp
+
 
 _CITATION = """\
 @ONLINE {wikidump,

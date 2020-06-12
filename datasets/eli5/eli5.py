@@ -28,9 +28,6 @@ from os.path import isfile
 from os.path import join as pjoin
 from time import time
 
-import zstandard as zstd
-from bs4 import BeautifulSoup
-
 import nlp
 
 
@@ -62,6 +59,8 @@ def _extract_urls_from_text(stp):
 
 # collects URLs for monthly dumps, has to be robust to file type changes
 def _gather_dump_urls(base_url, mode, dl_manager):
+    from bs4 import BeautifulSoup
+
     page_path = dl_manager.download(_REDDIT_URL + mode)
     page_f = open(page_path)
     page_content = page_f.read()
@@ -95,6 +94,8 @@ def _valid_line(dct, mode):
 
 
 def _open_compressed_file(f_name, f_type):
+    import zstandard as zstd
+
     fh = None
     if f_type == "xz":
         f = lzma.open(f_name, "rt")

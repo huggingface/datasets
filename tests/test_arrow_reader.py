@@ -63,7 +63,7 @@ class BaseReaderTest(TestCase):
         reader = ReaderTest("", info)
 
         files = [{"filename": "train"}, {"filename": "test", "skip": 10, "take": 10}]
-        dset = reader.read_files(files)
+        dset = reader.read_files(files, original_instructions="")
         self.assertEqual(dset.num_rows, 110)
         self.assertEqual(dset.num_columns, 1)
         self.assertEqual(dset._data_files, files)

@@ -24,6 +24,7 @@ import re
 
 import nlp
 
+
 _DESCRIPTION = """\
 Books are a rich source of both fine-grained information, how a character, \
 an object or a scene looks like, as well as high-level semantics, what \
@@ -45,6 +46,7 @@ _CITATION = """\
 
 URL = "https://storage.googleapis.com/huggingface-nlp/datasets/bookcorpus/bookcorpus.tar.bz2"
 
+
 class BookcorpusConfig(nlp.BuilderConfig):
     """BuilderConfig for BookCorpus."""
 
@@ -57,6 +59,7 @@ class BookcorpusConfig(nlp.BuilderConfig):
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
 
+
 class Bookcorpus(nlp.GeneratorBasedBuilder):
     """BookCorpus dataset."""
 
@@ -65,9 +68,7 @@ class Bookcorpus(nlp.GeneratorBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {"text": nlp.Value("string"),}
-            ),
+            features=nlp.Features({"text": nlp.Value("string"),}),
             supervised_keys=None,
             homepage="https://yknzhu.wixsite.com/mbweb",
             citation=_CITATION,
@@ -79,17 +80,19 @@ class Bookcorpus(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         arch_path = dl_manager.download_and_extract(URL)
-        
+
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"directory": arch_path}),
         ]
 
     def _generate_examples(self, directory):
-        files = [os.path.join(directory, 'books_large_p1.txt'),
-                 os.path.join(directory, 'books_large_p2.txt'),]
+        files = [
+            os.path.join(directory, "books_large_p1.txt"),
+            os.path.join(directory, "books_large_p2.txt"),
+        ]
         _id = 0
         for txt_file in files:
             with open(txt_file, mode="r") as f:
                 for line in f:
-                    yield _id, {'text': line.strip()}
+                    yield _id, {"text": line.strip()}
                     _id += 1
