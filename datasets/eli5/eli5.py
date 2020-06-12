@@ -244,7 +244,7 @@ _CITATION = """\
 """
 
 
-class ExplainLikeImFiveConfig(nlp.BuilderConfig):
+class Eli5Config(nlp.BuilderConfig):
     """BuilderConfig for ExplainLikeImFive."""
 
     def __init__(self, **kwargs):
@@ -252,17 +252,17 @@ class ExplainLikeImFiveConfig(nlp.BuilderConfig):
     Args:
       **kwargs: keyword arguments forwarded to super.
     """
-        super(ExplainLikeImFiveConfig, self).__init__(**kwargs)
+        super(Eli5Config, self).__init__(**kwargs)
 
 
-class ExplainLikeImFive(nlp.GeneratorBasedBuilder):
+class Eli5(nlp.GeneratorBasedBuilder):
     """ELI5: Explain Like I'm Five long form question answering dataset."""
 
     _DATA_SPLIT_URL = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets_experimental/explainlikeimfive/reddit_data_split.json"
 
     name = "ELI5_LFQA"
     BUILDER_CONFIGS = [
-        ExplainLikeImFiveConfig(
+        Eli5Config(
             name="LFQA_reddit", version=nlp.Version("1.0.0"), description="long from QA subreddits"
         ),
     ]
