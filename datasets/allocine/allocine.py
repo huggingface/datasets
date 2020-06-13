@@ -26,33 +26,13 @@ _DESCRIPTION = """\
 """
 
 
-class AllocineConfig(nlp.BuilderConfig):
-    """BuilderConfig for Allocine."""
-
-    def __init__(self, **kwargs):
-        """BuilderConfig for Allocine.
-
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
-        super(AllocineConfig, self).__init__(**kwargs)
-
-
 class AllocineDataset(nlp.GeneratorBasedBuilder):
     """Allocine Dataset: A Large-Scale French Movie Reviews Dataset."""
 
-    _DOWNLOAD_URL = "https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/raw/master/allocine_dataset/data.tar.bz2"
-    _TRAIN_FILE = "train.jsonl"
-    _VAL_FILE = "val.jsonl"
-    _TEST_FILE = "test.jsonl"
+    _URL = "https://github.com/TheophileBlard/french-sentiment-analysis-with-bert"
+    _DATA_URL = os.path.join(_URL, "raw/master/allocine_dataset/data.tar.bz2")
 
-    BUILDER_CONFIGS = [
-        AllocineConfig(
-            name="allocine",
-            version=nlp.Version("1.0.0"),
-            description="Allocine Dataset: A Large-Scale French Movie Reviews Dataset",
-        ),
-    ]
+    VERSION = nlp.Version("1.0.0")
 
     def _info(self):
         return nlp.DatasetInfo(
@@ -61,21 +41,19 @@ class AllocineDataset(nlp.GeneratorBasedBuilder):
                 {"review": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["neg", "pos"]),}
             ),
             supervised_keys=None,
-            homepage="https://github.com/TheophileBlard/french-sentiment-analysis-with-bert",
+            homepage=self._URL,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        arch_path = dl_manager.download_and_extract(self._DOWNLOAD_URL)
-        data_dir = os.path.join(arch_path, "data")
+        dl_dir = dl_manager.download_and_extract(self._DATA_URL)
+        data_dir = os.path.join(dl_dir, "data")
         return [
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "train.jsonl")}),
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)}
+                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "val.jsonl")}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, self._VAL_FILE)}
-            ),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FILE)}),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl")}),
         ]
 
     def _generate_examples(self, filepath):
