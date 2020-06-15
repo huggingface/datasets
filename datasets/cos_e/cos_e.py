@@ -46,16 +46,24 @@ inference in a novel Commonsense Auto-Generated Explanation (CAGE) framework.
 _COS_E_URL = "https://raw.githubusercontent.com/salesforce/cos-e/master/data/"
 
 # COS E has explanations for the CQA dataset, which is joined by ID.
-_CQA_URL_TRAIN = "https://s3.amazonaws.com/commensenseqa/train_rand_split.jsonl"
-_CQA_URL_DEV = "https://s3.amazonaws.com/commensenseqa/dev_rand_split.jsonl"
-_CQA_URL_TEST = "https://s3.amazonaws.com/commensenseqa/test_rand_split_no_answers.jsonl"
+_CQA_V1_11_URL_TRAIN = "https://s3.amazonaws.com/commensenseqa/train_rand_split.jsonl"
+_CQA_V1_11_URL_DEV = "https://s3.amazonaws.com/commensenseqa/dev_rand_split.jsonl"
+_CQA_V1_11_URL_TEST = "https://s3.amazonaws.com/commensenseqa/test_rand_split_no_answers.jsonl"
+
+_CQA_V1_0_URL_TRAIN = os.path.join(_COS_E_URL, "v1.0/train_rand_split.jsonl")
+_CQA_V1_0_URL_DEV = os.path.join(_COS_E_URL,"v1.0/dev_rand_split.jsonl")
+_CQA_V1_0_URL_TEST = os.path.join(_COS_E_URL, "v1.0/test_rand_split_no_answers.jsonl")
 
 
-def _download_and_index_cqa(dl_manager):
+
+def _download_and_index_cqa(dl_manager, name):
     """Downloads CQA and returns it, indexed by id, for joining with Cos-E."""
 
     downloaded_files = dl_manager.download_and_extract(
-        {"cqa_train": _CQA_URL_TRAIN, "cqa_dev": _CQA_URL_DEV, "cqa_test": _CQA_URL_TEST}
+        {"cqa_train": _CQA_V1_11_URL_TRAIN if name == 'v1.11' else _CQA_V1_0_URL_TRAIN,
+          "cqa_dev": _CQA_V1_11_URL_DEV if name == 'v1.11' else _CQA_V1_0_URL_DEV,
+          "cqa_test": _CQA_V1_11_URL_TEST if name == 'v1.11' else _CQA_V1_0_URL_TEST
+         }
     )
 
     # NB: "cqa_test" is included in the files, but not in any of the CoS-E splits.
@@ -86,10 +94,33 @@ def _get_choices_and_answer(cqa):
     return choices, answer
 
 
+class CosEConfig(nlp.BuilderConfig):
+
+    """ BuilderConfig for Discofuse"""
+
+    def __init__(self, **kwargs):
+        """
+
+        Args:
+            balanced: to specify if we want to load the balanced file or the full file
+            **kwargs: keyword arguments forwarded to super.
+        """
+        super(CosEConfig, self).__init__(**kwargs)
+
+
 class CosE(nlp.GeneratorBasedBuilder):
     """CoS-E: Common Sense Explanations corpus."""
 
-    VERSION = nlp.Version("0.0.1")
+    BUILDER_CONFIGS = [
+        CosEConfig(
+            name="v1.0", description="cos-e version 1.0",
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)")
+        ),
+        CosEConfig(
+            name="v1.11", description="cos-e version 1.11",
+            version=nlp.Version("1.11.0", "New split API (https://tensorflow.org/datasets/splits)")
+        ),
+    ]
 
     def _info(self):
         return nlp.DatasetInfo(
@@ -114,23 +145,33 @@ class CosE(nlp.GeneratorBasedBuilder):
 
         # NB: The CQA Dataset should be read only once, and only by callers who
         # want to _create_ the Cos-E dataset from scratch.
-        cqa_indexed = _download_and_index_cqa(dl_manager)
-
-        files = dl_manager.download_and_extract(
-            {
-                "dev": [os.path.join(_COS_E_URL, "v1.11/dev/cose_dev_v1.11_processed.jsonl")],
-                "train": [os.path.join(_COS_E_URL, "v1.11/train/cose_train_v1.11_processed.jsonl")],
-            }
-        )
+        cqa_indexed = _download_and_index_cqa(dl_manager, self.config.name)
+        if self.config.name == 'v1.11':
+            files = dl_manager.download_and_extract(
+                {
+                    "dev": [os.path.join(_COS_E_URL, "v1.11/cose_dev_v1.11_processed.jsonl")],
+                    "train": [os.path.join(_COS_E_URL, "v1.11/cose_train_v1.11_processed.jsonl")],
+                }
+            )
+        elif self.config.name == 'v1.0':
+            files = dl_manager.download_and_extract(
+                {
+                    "dev": [os.path.join(_COS_E_URL, "v1.0/cose_dev_v1.0_processed.jsonl")],
+                    "train": [os.path.join(_COS_E_URL, "v1.0/cose_train_v1.0_processed.jsonl")],
+                }
+            )
+        else:
+            raise ValueError('Unknown config name')
 
         # We use the CoS-E/CQA dev set as our validation set.
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"files": files["dev"], "cqa_indexed": cqa_indexed},
-            ),
-            nlp.SplitGenerator(
                 name=nlp.Split.TRAIN, gen_kwargs={"files": files["train"], "cqa_indexed": cqa_indexed},
             ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION, gen_kwargs={"files": files["dev"], "cqa_indexed": cqa_indexed},
+            ),
+
         ]
 
     def _generate_examples(self, files, **kwargs):
