@@ -689,7 +689,8 @@ class Dataset(DatasetInfoMixin):
         # return map function
         return self.map(map_function, batched=True, with_indices=with_indices, arrow_schema=arrow_schema, **kwargs)
 
-    def sort(self,
+    def sort(
+        self,
         column: Optional[str] = None,
         indices: Optional[List[int]] = None,
         kind: str = None,
@@ -722,16 +723,18 @@ class Dataset(DatasetInfoMixin):
         if len(self) == 0:
             return self
 
-        assert (column is not None and isinstance(column, str)) or \
-            (indices is not None and isinstance(column, list)), "You must provide a column name or a list of indices"
-        assert column is None or indices is None, "You must provide either a column name or a list of indices but not both."
+        assert (column is not None and isinstance(column, str)) or (
+            indices is not None and isinstance(column, list)
+        ), "You must provide a column name or a list of indices"
+        assert (
+            column is None or indices is None
+        ), "You must provide either a column name or a list of indices but not both."
 
         # Check the column name
         if column is not None and column not in self._data.column_names:
             raise ValueError(
                 "Column name {} not in the dataset. Current columns in the dataset: {}".format(
-                    column,
-                    self._data.column_names,
+                    column, self._data.column_names,
                 )
             )
 
@@ -762,21 +765,12 @@ class Dataset(DatasetInfoMixin):
             writer = ArrowWriter(schema=self.schema, path=cache_file_name, writer_batch_size=writer_batch_size)
 
         if indices is None:
-            indices = self._getitem(
-                column,
-                format_type='numpy',
-                format_columns=None,
-                output_all_columns=False,
-            )
+            indices = self._getitem(column, format_type="numpy", format_columns=None, output_all_columns=False,)
             indices = np.argsort(indices, kind=kind)
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
         for i in tqdm(indices):
-            example = self._getitem(
-                key=i,
-                format_type=None,
-                format_columns=None,
-            )
+            example = self._getitem(key=i.item(), format_type=None, format_columns=None,)
             writer.write(example)
 
         writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
