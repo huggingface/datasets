@@ -689,17 +689,80 @@ class Dataset(DatasetInfoMixin):
         # return map function
         return self.map(map_function, batched=True, with_indices=with_indices, arrow_schema=arrow_schema, **kwargs)
 
+
+    def index(
+        self,
+        indices: Optional[Union[List[int], np.ndarray]] = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+    ):
+        """ Index the table according to a list of indices, i.e. create a new table with rows selected following the list/array of indices.
+
+            Args:
+                `indices` (Optional `Union[List[int], np.ndarray]`): List or 1D-NumPy array of integer indices for indexing.
+                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
+                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                    can be identified, use it instead of recomputing.
+                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                    results of the computation instead of the automatically generated cache file name.
+                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                    Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+        """
+        # If the array is empty we do nothing
+        if len(self) == 0:
+            return self
+
+        # Check if we've already cached this computation (indexed by a hash)
+        if self._data_files:
+            if cache_file_name is None:
+                # we create a unique hash from the function, current dataset file and the mapping args
+                cache_kwargs = {
+                    "indices": indices,
+                    "keep_in_memory": keep_in_memory,
+                    "load_from_cache_file": load_from_cache_file,
+                    "cache_file_name": cache_file_name,
+                    "writer_batch_size": writer_batch_size,
+                }
+                cache_file_name = self._get_cache_file_path(self.index, cache_kwargs)
+            if os.path.exists(cache_file_name) and load_from_cache_file:
+                logger.info("Loading cached sorted dataset at %s", cache_file_name)
+                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+
+        # Prepare output buffer and batched writer in memory or on file if we update the table
+        if keep_in_memory or not self._data_files:
+            buf_writer = pa.BufferOutputStream()
+            writer = ArrowWriter(schema=self.schema, stream=buf_writer, writer_batch_size=writer_batch_size)
+        else:
+            buf_writer = None
+            logger.info("Caching processed dataset at %s", cache_file_name)
+            writer = ArrowWriter(schema=self.schema, path=cache_file_name, writer_batch_size=writer_batch_size)
+
+        # Loop over single examples or batches and write to buffer/file if examples are to be updated
+        for i in tqdm(indices):
+            example = self._getitem(key=int(i), format_type=None, format_columns=None,)
+            writer.write(example)
+
+        writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
+
+        # Create new Dataset from buffer or file
+        if buf_writer is None:
+            return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+        else:
+            return Dataset.from_buffer(buf_writer.getvalue(), info=self.info, split=self.split)
+
+
     def sort(
         self,
         column: Optional[str] = None,
-        indices: Optional[List[int]] = None,
         kind: str = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
     ):
-        """ Sort the table according to a column or a list of indices
+        """ Sort the table according to a column.
 
             Currently sorting according to a column name uses numpy sorting algorithm under the hood.
             The column should thus be a numpy compatible type (in particular not a nested type).
@@ -707,7 +770,6 @@ class Dataset(DatasetInfoMixin):
 
             Args:
                 `column` (Optional `str`): column name to sort by. At least one of `column` and `indices`must be provided.
-                `indices` (Optional `Lits[int]`): List of indices for the sort. At least one of `column` and `indices`must be provided.
                 `kind` (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                     The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                     the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
@@ -744,7 +806,7 @@ class Dataset(DatasetInfoMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 cache_kwargs = {
                     "column": column,
-                    "indices": indices,
+                    "kind": kind,
                     "keep_in_memory": keep_in_memory,
                     "load_from_cache_file": load_from_cache_file,
                     "cache_file_name": cache_file_name,
@@ -755,28 +817,119 @@ class Dataset(DatasetInfoMixin):
                 logger.info("Loading cached sorted dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
-        # Prepare output buffer and batched writer in memory or on file if we update the table
-        if keep_in_memory or not self._data_files:
-            buf_writer = pa.BufferOutputStream()
-            writer = ArrowWriter(schema=self.schema, stream=buf_writer, writer_batch_size=writer_batch_size)
-        else:
-            buf_writer = None
-            logger.info("Caching processed dataset at %s", cache_file_name)
-            writer = ArrowWriter(schema=self.schema, path=cache_file_name, writer_batch_size=writer_batch_size)
-
         if indices is None:
             indices = self._getitem(column, format_type="numpy", format_columns=None, output_all_columns=False,)
             indices = np.argsort(indices, kind=kind)
 
-        # Loop over single examples or batches and write to buffer/file if examples are to be updated
-        for i in tqdm(indices):
-            example = self._getitem(key=i.item(), format_type=None, format_columns=None,)
-            writer.write(example)
+        return self.index(
+            indices=indices,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size)
 
-        writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
 
-        # Create new Dataset from buffer or file
-        if buf_writer is None:
-            return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
-        else:
-            return Dataset.from_buffer(buf_writer.getvalue(), info=self.info, split=self.split)
+    def shuffle(self,
+        generator: Optional[np.random.Generator] = None,
+        seed: Optional[int] = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+    ):
+        """ Shuffle the dataset rows.
+
+            Currently shuffling uses numpy random generators.
+            You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
+
+            Args:
+                `generator` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
+                `seed` (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``.
+                    If None, then fresh, unpredictable entropy will be pulled from the OS.
+                    If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
+                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
+                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                    can be identified, use it instead of recomputing.
+                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                    results of the computation instead of the automatically generated cache file name.
+                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                    Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+        """
+        # If the array is empty we do nothing
+        if len(self) == 0:
+            return self
+
+        assert (generator is None or isinstance(generator, np.random.Generator)), "The provided generator must be an instance of numpy.random.Generator"
+
+        # Check if we've already cached this computation (indexed by a hash)
+        if self._data_files:
+            if cache_file_name is None:
+                # we create a unique hash from the function, current dataset file and the mapping args
+                cache_kwargs = {
+                    "generator": generator,
+                    "seed": seed,
+                    "keep_in_memory": keep_in_memory,
+                    "load_from_cache_file": load_from_cache_file,
+                    "cache_file_name": cache_file_name,
+                    "writer_batch_size": writer_batch_size,
+                }
+                cache_file_name = self._get_cache_file_path(self.shuffle, cache_kwargs)
+            if os.path.exists(cache_file_name) and load_from_cache_file:
+                logger.info("Loading cached sorted dataset at %s", cache_file_name)
+                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+
+        if generator is None:
+            generator = np.random.default_rng(seed)
+
+        permutation = generator.permutation(len(self))
+
+        return self.index(indices=permutation,
+                          keep_in_memory=keep_in_memory,
+                          load_from_cache_file=load_from_cache_file,
+                          cache_file_name=cache_file_name,
+                          writer_batch_size=writer_batch_size)
+
+    def train_test_split(self,
+        test_size: Union[float, int, None] = None,
+        train_size: Union[float, int, None] = None,
+        shuffle: bool = True,
+        generator: Optional[np.random.Generator] = None,
+        seed: Optional[int] = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+    ):
+        """ Shuffle the dataset rows.
+
+            Args:
+                `test_size` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
+                `train_size` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
+                `shuffle` (Optional `bool`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
+                `generator` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
+                `seed` (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``.
+                    If None, then fresh, unpredictable entropy will be pulled from the OS.
+                    If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
+                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
+                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                    can be identified, use it instead of recomputing.
+                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                    results of the computation instead of the automatically generated cache file name.
+                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                    Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+        """
+        if generator is None:
+            generator = np.random.default_rng(seed)
+
+        permutation = generator.permutation(len(self))
+
+        return self.sort(indices=permutation,
+                         keep_in_memory=keep_in_memory,
+                         load_from_cache_file=load_from_cache_file,
+                         cache_file_name=cache_file_name,
+                         writer_batch_size=writer_batch_size)
