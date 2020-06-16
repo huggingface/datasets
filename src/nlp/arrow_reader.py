@@ -22,7 +22,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Any
 
 import pyarrow as pa
 import pyarrow.parquet
@@ -192,7 +192,7 @@ class BaseReader:
         return py_utils.map_nested(_read_instruction_to_ds, instructions)
 
     def read_files(
-        self, files, original_instructions,
+        self, files, original_instructions=None,
     ):
         """Returns single Dataset instance for the set of file instructions.
 
