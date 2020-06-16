@@ -96,13 +96,12 @@ def _get_choices_and_answer(cqa):
 
 class CosEConfig(nlp.BuilderConfig):
 
-    """ BuilderConfig for Discofuse"""
+    """ BuilderConfig for CosE"""
 
     def __init__(self, **kwargs):
         """
 
         Args:
-            balanced: to specify if we want to load the balanced file or the full file
             **kwargs: keyword arguments forwarded to super.
         """
         super(CosEConfig, self).__init__(**kwargs)
