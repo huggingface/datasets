@@ -22,7 +22,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
-from typing import List, Optional, Any
+from typing import List, Optional
 
 import pyarrow as pa
 import pyarrow.parquet
