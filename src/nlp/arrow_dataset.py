@@ -16,6 +16,7 @@
 # Lint as: python3
 """ Simple Dataset wrapping an Arrow Table."""
 
+import contextlib
 import hashlib
 import logging
 import os
@@ -24,12 +25,14 @@ from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 from tqdm import tqdm
 
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
+from .search import FaissGpuOptions, SearchableMixin
 from .utils import convert_tuples_in_lists, map_nested
 
 
@@ -106,7 +109,7 @@ class DatasetInfoMixin(object):
         return self._info.version
 
 
-class Dataset(DatasetInfoMixin):
+class Dataset(DatasetInfoMixin, SearchableMixin):
     """ A Dataset backed by an Arrow table or Record Batch.
     """
 
@@ -250,6 +253,28 @@ class Dataset(DatasetInfoMixin):
             "output_all_columns": self._output_all_columns,
         }
 
+    @contextlib.contextmanager
+    def formated_as(
+        self, type: Optional[str] = None, columns: Optional[List] = None, output_all_columns: bool = False
+    ):
+        """ To be used in a `with` statement. Set __getitem__ return format (type and columns)
+
+            Args:
+                type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
+                    None means __getitem__ returns python objects (default)
+                columns (Optional ``List[str]``): columns to format in the output
+                    None means __getitem__ returns all columns (default)
+                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+        """
+        old_format_type = self._format_type
+        old_format_columns = self._format_columns
+        old_output_all_columns = self._output_all_columns
+        try:
+            self.set_format(type, columns, output_all_columns)
+            yield
+        finally:
+            self.set_format(old_format_type, old_format_columns, old_output_all_columns)
+
     def set_format(self, type: Optional[str] = None, columns: Optional[List] = None, output_all_columns: bool = False):
         """ Set __getitem__ return format (type and columns)
 
@@ -313,9 +338,9 @@ class Dataset(DatasetInfoMixin):
             return outputs
 
         if format_type == "numpy":
-            import numpy
+            import numpy as np
 
-            command = numpy.array
+            command = np.array
         elif format_type == "torch":
             import torch
 
@@ -356,6 +381,9 @@ class Dataset(DatasetInfoMixin):
     ) -> Union[Dict, List]:
         """ Can be used to index columns (by string names) or rows (by integer index or slices)
         """
+        # In the following, to convert data from the arrow table to dicts or lists,
+        # we use .to_pandas().to_dict() or .to_pandas().to_list() as they are
+        # significantly faster than .to_pydict() thanks to zero-copy
         if isinstance(key, int):
             if key < 0:
                 key = self._data.num_rows + key
@@ -364,30 +392,34 @@ class Dataset(DatasetInfoMixin):
             if format_type is not None and format_type == "pandas":
                 outputs = self._data.slice(key, 1).to_pandas()
             else:
-                outputs = self._unnest(self._data.slice(key, 1).to_pydict())
+                outputs = self._unnest(self._data.slice(key, 1).to_pandas().to_dict("list"))
         elif isinstance(key, slice):
             key_indices = key.indices(self._data.num_rows)
             if key_indices[2] != 1 or key_indices[1] < key_indices[0]:
                 raise ValueError("Slicing can only take contiguous and ordered slices.")
             if format_type is not None and format_type == "pandas":
-                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas()
+                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas(
+                    split_blocks=True
+                )
             else:
-                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pydict()
+                outputs = (
+                    self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
+                    .to_pandas(split_blocks=True)
+                    .to_dict("list")
+                )
         elif isinstance(key, str):
             if key not in self._data.column_names:
                 raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
             if format_type is not None:
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
-                        outputs = self._data[key].to_pandas()
-                    elif format_type == "numpy":
-                        outputs = np.concatenate([arr.to_numpy() for arr in self._data[key].chunks])
+                        outputs = self._data[key].to_pandas(split_blocks=True)
                     else:
-                        outputs = self._convert_outputs(self._data[key].to_pylist(), format_type=format_type)
+                        outputs = self._data[key].to_pandas(split_blocks=True).to_list()
                 else:
-                    outputs = self._data[key].to_pylist()
+                    outputs = self._data[key].to_pandas(split_blocks=True).to_list()
             else:
-                outputs = self._data[key].to_pylist()
+                outputs = self._data[key].to_pandas(split_blocks=True).to_list()
         else:
             raise ValueError("Can only get row(s) (int or slice) or columns (string).")
 
@@ -688,3 +720,17 @@ class Dataset(DatasetInfoMixin):
 
         # return map function
         return self.map(map_function, batched=True, with_indices=with_indices, arrow_schema=arrow_schema, **kwargs)
+
+    def init_vector_search_engine(
+        self,
+        column: str,
+        device: Optional[int],
+        string_factory: Optional[str] = None,
+        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+    ):
+        with self.formated_as(type="numpy", columns=[column]):
+            super(Dataset, self).init_vector_search_engine(self, device, string_factory, faiss_gpu_options, column)
+
+    def init_text_search_engine(self, column: str, es_client, index_name):
+        with self.formated_as(type=None, columns=[column]):
+            super(Dataset, self).init_text_search_engine(self, es_client, index_name, column)

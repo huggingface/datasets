@@ -57,6 +57,8 @@ REQUIRED_PKGS = [
     'pyarrow>=0.16.0',
     # For smart caching dataset processing
     'dill',
+    # For performance gains with apache arrow
+    'pandas'
     # for downloading datasets over HTTPS
     'requests>=2.19.0',
     # progress bars in download and scripts
