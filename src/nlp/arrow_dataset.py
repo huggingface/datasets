@@ -380,9 +380,9 @@ class Dataset(DatasetInfoMixin):
             if format_type is not None:
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
-                        outputs = self._data[key].to_pandas()
+                        outputs = self._data[key].to_pandas(zero_copy_only=False)
                     elif format_type == "numpy":
-                        outputs = np.concatenate([arr.to_numpy() for arr in self._data[key].chunks])
+                        outputs = np.concatenate([arr.to_numpy(zero_copy_only=False) for arr in self._data[key].chunks])
                     else:
                         outputs = self._convert_outputs(self._data[key].to_pylist(), format_type=format_type)
                 else:
@@ -698,7 +698,7 @@ class Dataset(DatasetInfoMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
     ):
-        """ Index the table according to a list of indices, i.e. create a new table with rows selected following the list/array of indices.
+        """ Create a new dataset with rows selected following the list/array of indices.
 
             Args:
                 `indices` (`Union[List[int], np.ndarray]`): List or 1D-NumPy array of integer indices for indexing.
@@ -727,7 +727,7 @@ class Dataset(DatasetInfoMixin):
                 }
                 cache_file_name = self._get_cache_file_path(self.select, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached sorted dataset at %s", cache_file_name)
+                logger.info("Loading cached selected dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
@@ -870,7 +870,7 @@ class Dataset(DatasetInfoMixin):
                 }
                 cache_file_name = self._get_cache_file_path(self.shuffle, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached sorted dataset at %s", cache_file_name)
+                logger.info("Loading cached shuffled dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         if generator is None:
@@ -896,7 +896,8 @@ class Dataset(DatasetInfoMixin):
         default_test_size: Optional[int] = 0.25,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_name: Optional[str] = None,
+        train_cache_file_name: Optional[str] = None,
+        test_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
     ):
         """ Return a dictionary with two random train and test subsets (`train` and `test` ``Dataset`` splits).
@@ -923,8 +924,10 @@ class Dataset(DatasetInfoMixin):
                 `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
                 `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
-                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
-                    results of the computation instead of the automatically generated cache file name.
+                `train_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                    train split calche file instead of the automatically generated cache file name.
+                `test_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                    test split calche file instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
@@ -962,7 +965,7 @@ class Dataset(DatasetInfoMixin):
 
         if train_size is not None and not isinstance(train_size, (int, float)):
             raise ValueError(f"Invalid value for train_size: {train_size} of type {type(train_size)}")
-        if test_size is not None and isinstance(test_size, (int, float)):
+        if test_size is not None and not isinstance(test_size, (int, float)):
             raise ValueError(f"Invalid value for test_size: {test_size} of type {type(test_size)}")
 
         if isinstance(train_size, float) and isinstance(test_size, float) and train_size + test_size > 1:
@@ -1005,7 +1008,7 @@ class Dataset(DatasetInfoMixin):
 
         # Check if we've already cached this computation (indexed by a hash)
         if self._data_files:
-            if cache_file_name is None:
+            if train_cache_file_name is None or test_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 cache_kwargs = {
                     "test_size": test_size,
@@ -1015,16 +1018,26 @@ class Dataset(DatasetInfoMixin):
                     "seed": seed,
                     "keep_in_memory": keep_in_memory,
                     "load_from_cache_file": load_from_cache_file,
-                    "cache_file_name": cache_file_name,
+                    "train_cache_file_name": train_cache_file_name,
+                    "test_cache_file_name": test_cache_file_name,
                     "writer_batch_size": writer_batch_size,
                 }
-                cache_file_name = self._get_cache_file_path(self.train_test_split, cache_kwargs)
-            if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached sorted dataset at %s", cache_file_name)
-                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+                train_kwargs = cache_kwargs.deepcopy()
+                train_kwargs["split"] = "train"
+                test_kwargs = cache_kwargs.deepcopy()
+                test_kwargs["split"] = "test"
+
+                if train_cache_file_name is None:
+                    train_cache_file_name = self._get_cache_file_path(self.train_test_split, train_kwargs)
+                if test_cache_file_name is None:
+                    test_cache_file_name = self._get_cache_file_path(self.train_test_split, test_kwargs)
+            if os.path.exists(train_cache_file_name) and os.path.exists(test_cache_file_name) and load_from_cache_file:
+                logger.info("Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name)
+                return {'train': Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
+                        'test': Dataset.from_file(test_cache_file_name, info=self.info, split=self.split)}
 
         if not shuffle:
-            train_indices = np.arrange(n_train)
+            train_indices = np.arange(n_train)
             test_indices = np.arange(n_train, n_train + n_test)
         else:
             if generator is None:
@@ -1039,14 +1052,14 @@ class Dataset(DatasetInfoMixin):
             indices=train_indices,
             keep_in_memory=keep_in_memory,
             load_from_cache_file=load_from_cache_file,
-            cache_file_name=cache_file_name,
+            cache_file_name=train_cache_file_name,
             writer_batch_size=writer_batch_size,
         )
         test_split = self.select(
             indices=test_indices,
             keep_in_memory=keep_in_memory,
             load_from_cache_file=load_from_cache_file,
-            cache_file_name=cache_file_name,
+            cache_file_name=test_cache_file_name,
             writer_batch_size=writer_batch_size,
         )
 
