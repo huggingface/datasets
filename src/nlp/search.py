@@ -137,7 +137,7 @@ class DenseSearchEngine(BaseSearchEngine):
         search_engine = faiss.index_factory(size, self.string_factory)
         if self.device > -1:
             self.faiss_res = faiss.StandardGpuResources()
-            self.faiss_search_engine = faiss.search_engine_cpu_to_gpu(self.faiss_res, self.device, search_engine)
+            self.faiss_search_engine = faiss.index_cpu_to_gpu(self.faiss_res, self.device, search_engine)
         elif self.faiss_gpu_options is not None:
             self.faiss_search_engine = faiss.index_cpu_to_gpu_multiple(
                 self.faiss_gpu_options.resource_vec,
