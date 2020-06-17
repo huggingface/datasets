@@ -67,16 +67,16 @@ class SparseSearchEngine(BaseSearchEngine):
             },
         }
         self.es_client.indices.create(search_engine=index_name, body=search_engine_config)
-        number_of_docs = len(examples)
+        number_of_docs = len(texts)
         progress = tqdm(unit="docs", total=number_of_docs)
         successes = 0
 
         def passage_generator():
             if column is not None:
-                for example in examples:
+                for example in texts:
                     yield example[column]
             else:
-                for example in examples:
+                for example in texts:
                     yield example
 
         # create the ES search_engine
@@ -149,7 +149,7 @@ class DenseSearchEngine(BaseSearchEngine):
             self.faiss_search_engine = search_engine
         for i in range(0, len(embeddings), batch_size):
             vecs = embeddings[i : i + batch_size] if column is None else embeddings[i : i + batch_size]["column"]
-            elf.faiss_search_engine.add(vecs)
+            self.faiss_search_engine.add(vecs)
 
     def search(self, query: np.array, k=10):
         assert len(query.shape) < 3
