@@ -22,6 +22,7 @@ import logging
 import os
 from collections import defaultdict
 from collections.abc import Mapping
+from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
 import pyarrow as pa
@@ -338,7 +339,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         if format_type == "numpy":
             import numpy as np
 
-            command = np.array
+            command = partial(np.array, copy=False)
         elif format_type == "torch":
             import torch
 
