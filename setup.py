@@ -58,7 +58,7 @@ REQUIRED_PKGS = [
     # For smart caching dataset processing
     'dill',
     # For performance gains with apache arrow
-    'pandas'
+    'pandas',
     # for downloading datasets over HTTPS
     'requests>=2.19.0',
     # progress bars in download and scripts
