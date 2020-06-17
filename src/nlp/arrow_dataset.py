@@ -24,8 +24,6 @@ from collections import defaultdict
 from collections.abc import Mapping
 from typing import Any, Dict, List, Optional, Union
 
-import numpy as np
-import pandas as pd
 import pyarrow as pa
 from tqdm import tqdm
 
