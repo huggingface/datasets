@@ -21,6 +21,7 @@ import logging
 import os
 from collections import defaultdict
 from collections.abc import Mapping
+from math import ceil, floor
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
@@ -689,10 +690,9 @@ class Dataset(DatasetInfoMixin):
         # return map function
         return self.map(map_function, batched=True, with_indices=with_indices, arrow_schema=arrow_schema, **kwargs)
 
-
-    def index(
+    def select(
         self,
-        indices: Optional[Union[List[int], np.ndarray]] = None,
+        indices: Union[List[int], np.ndarray],
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
@@ -701,7 +701,7 @@ class Dataset(DatasetInfoMixin):
         """ Index the table according to a list of indices, i.e. create a new table with rows selected following the list/array of indices.
 
             Args:
-                `indices` (Optional `Union[List[int], np.ndarray]`): List or 1D-NumPy array of integer indices for indexing.
+                `indices` (`Union[List[int], np.ndarray]`): List or 1D-NumPy array of integer indices for indexing.
                 `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
                 `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
@@ -725,7 +725,7 @@ class Dataset(DatasetInfoMixin):
                     "cache_file_name": cache_file_name,
                     "writer_batch_size": writer_batch_size,
                 }
-                cache_file_name = self._get_cache_file_path(self.index, cache_kwargs)
+                cache_file_name = self._get_cache_file_path(self.select, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
                 logger.info("Loading cached sorted dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
@@ -752,10 +752,9 @@ class Dataset(DatasetInfoMixin):
         else:
             return Dataset.from_buffer(buf_writer.getvalue(), info=self.info, split=self.split)
 
-
     def sort(
         self,
-        column: Optional[str] = None,
+        column: str,
         kind: str = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
@@ -769,7 +768,7 @@ class Dataset(DatasetInfoMixin):
             This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
             Args:
-                `column` (Optional `str`): column name to sort by. At least one of `column` and `indices`must be provided.
+                `column` (`str`): column name to sort by.
                 `kind` (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                     The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                     the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
@@ -785,17 +784,10 @@ class Dataset(DatasetInfoMixin):
         if len(self) == 0:
             return self
 
-        assert (column is not None and isinstance(column, str)) or (
-            indices is not None and isinstance(column, list)
-        ), "You must provide a column name or a list of indices"
-        assert (
-            column is None or indices is None
-        ), "You must provide either a column name or a list of indices but not both."
-
         # Check the column name
-        if column is not None and column not in self._data.column_names:
+        if not isinstance(column, str) or column not in self._data.column_names:
             raise ValueError(
-                "Column name {} not in the dataset. Current columns in the dataset: {}".format(
+                "Column '{}' not found in the dataset. Please provide a column selected in: {}".format(
                     column, self._data.column_names,
                 )
             )
@@ -817,21 +809,21 @@ class Dataset(DatasetInfoMixin):
                 logger.info("Loading cached sorted dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
-        if indices is None:
-            indices = self._getitem(column, format_type="numpy", format_columns=None, output_all_columns=False,)
-            indices = np.argsort(indices, kind=kind)
+        indices = self._getitem(column, format_type="numpy", format_columns=None, output_all_columns=False,)
+        indices = np.argsort(indices, kind=kind)
 
-        return self.index(
+        return self.select(
             indices=indices,
             keep_in_memory=keep_in_memory,
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
-            writer_batch_size=writer_batch_size)
+            writer_batch_size=writer_batch_size,
+        )
 
-
-    def shuffle(self,
-        generator: Optional[np.random.Generator] = None,
+    def shuffle(
+        self,
         seed: Optional[int] = None,
+        generator: Optional[np.random.Generator] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
@@ -843,11 +835,11 @@ class Dataset(DatasetInfoMixin):
             You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
             Args:
-                `generator` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
-                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
                 `seed` (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``.
                     If None, then fresh, unpredictable entropy will be pulled from the OS.
                     If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
+                `generator` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
                 `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
                 `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
@@ -860,7 +852,9 @@ class Dataset(DatasetInfoMixin):
         if len(self) == 0:
             return self
 
-        assert (generator is None or isinstance(generator, np.random.Generator)), "The provided generator must be an instance of numpy.random.Generator"
+        assert generator is None or isinstance(
+            generator, np.random.Generator
+        ), "The provided generator must be an instance of numpy.random.Generator"
 
         # Check if we've already cached this computation (indexed by a hash)
         if self._data_files:
@@ -884,37 +878,48 @@ class Dataset(DatasetInfoMixin):
 
         permutation = generator.permutation(len(self))
 
-        return self.index(indices=permutation,
-                          keep_in_memory=keep_in_memory,
-                          load_from_cache_file=load_from_cache_file,
-                          cache_file_name=cache_file_name,
-                          writer_batch_size=writer_batch_size)
+        return self.select(
+            indices=permutation,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+        )
 
-    def train_test_split(self,
+    def train_test_split(
+        self,
         test_size: Union[float, int, None] = None,
         train_size: Union[float, int, None] = None,
         shuffle: bool = True,
-        generator: Optional[np.random.Generator] = None,
         seed: Optional[int] = None,
+        generator: Optional[np.random.Generator] = None,
+        default_test_size: Optional[int] = 0.25,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
     ):
-        """ Shuffle the dataset rows.
+        """ Return a dictionary with two random train and test subsets (`train` and `test` ``Dataset`` splits).
+            Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
+
+            This method is similar to scikit-learn `train_test_split` with the omission of the stratified options.
 
             Args:
-                `test_size` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
-                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-                `train_size` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
-                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-                `shuffle` (Optional `bool`): Numpy random Generator to use to compute the permutation of the dataset rows.
-                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-                `generator` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
-                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
+                `test_size` (Optional `np.random.Generator`): Size of the test split
+                    If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the test split.
+                    If int, represents the absolute number of test samples.
+                    If None, the value is set to the complement of the train size.
+                    If train_size is also None, raise an error.
+                `train_size` (Optional `np.random.Generator`): Size of the train split
+                    If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
+                    If int, represents the absolute number of train samples.
+                    If None, the value is automatically set to the complement of the test size.
+                `shuffle` (Optional `bool`, default: `True`): Whether or not to shuffle the data before splitting.
                 `seed` (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``.
                     If None, then fresh, unpredictable entropy will be pulled from the OS.
                     If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
+                `generator` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                    If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
                 `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
                 `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
@@ -923,13 +928,126 @@ class Dataset(DatasetInfoMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
-        if generator is None:
-            generator = np.random.default_rng(seed)
+        # If the array is empty we do nothing
+        if len(self) == 0:
+            return self
 
-        permutation = generator.permutation(len(self))
+        if test_size is None and train_size is None:
+            raise ValueError("At least one of test_size and train_size must be provided.")
 
-        return self.sort(indices=permutation,
-                         keep_in_memory=keep_in_memory,
-                         load_from_cache_file=load_from_cache_file,
-                         cache_file_name=cache_file_name,
-                         writer_batch_size=writer_batch_size)
+        # Safety checks similar to scikit-learn's ones.
+        # (adapted from https://github.com/scikit-learn/scikit-learn/blob/fd237278e895b42abe8d8d09105cbb82dc2cbba7/sklearn/model_selection/_split.py#L1750)
+        n_samples = len(self)
+        if (
+            isinstance(test_size, int)
+            and (test_size >= n_samples or test_size <= 0)
+            or isinstance(test_size, float)
+            and (test_size <= 0 or test_size >= 1)
+        ):
+            raise ValueError(
+                f"test_size={test_size} should be either positive and smaller "
+                f"than the number of samples {n_samples} or a float in the (0, 1) range"
+            )
+
+        if (
+            isinstance(train_size, int)
+            and (train_size >= n_samples or train_size <= 0)
+            or isinstance(train_size, float)
+            and (train_size <= 0 or train_size >= 1)
+        ):
+            raise ValueError(
+                f"train_size={train_size} should be either positive and smaller "
+                f"than the number of samples {n_samples} or a float in the (0, 1) range"
+            )
+
+        if train_size is not None and not isinstance(train_size, (int, float)):
+            raise ValueError(f"Invalid value for train_size: {train_size} of type {type(train_size)}")
+        if test_size is not None and isinstance(test_size, (int, float)):
+            raise ValueError(f"Invalid value for test_size: {test_size} of type {type(test_size)}")
+
+        if isinstance(train_size, float) and isinstance(test_size, float) and train_size + test_size > 1:
+            raise ValueError(
+                f"The sum of test_size and train_size = {train_size + test_size}, should be in the (0, 1)"
+                " range. Reduce test_size and/or train_size."
+            )
+
+        if isinstance(test_size, float):
+            n_test = ceil(test_size * n_samples)
+        elif isinstance(test_size, int):
+            n_test = float(test_size)
+
+        if isinstance(train_size, float):
+            n_train = floor(train_size * n_samples)
+        elif isinstance(train_size, int):
+            n_train = float(train_size)
+
+        if train_size is None:
+            n_train = n_samples - n_test
+        elif test_size is None:
+            n_test = n_samples - n_train
+
+        if n_train + n_test > n_samples:
+            raise ValueError(
+                f"The sum of train_size and test_size = {n_train + n_test}, "
+                "should be smaller than the number of "
+                f"samples {n_samples}. Reduce test_size and/or "
+                "train_size."
+            )
+
+        n_train, n_test = int(n_train), int(n_test)
+
+        if n_train == 0:
+            raise ValueError(
+                f"With n_samples={n_samples}, test_size={test_size} and train_size={train_size}, the "
+                "resulting train set will be empty. Adjust any of the "
+                "aforementioned parameters."
+            )
+
+        # Check if we've already cached this computation (indexed by a hash)
+        if self._data_files:
+            if cache_file_name is None:
+                # we create a unique hash from the function, current dataset file and the mapping args
+                cache_kwargs = {
+                    "test_size": test_size,
+                    "train_size": train_size,
+                    "shuffle": shuffle,
+                    "generator": generator,
+                    "seed": seed,
+                    "keep_in_memory": keep_in_memory,
+                    "load_from_cache_file": load_from_cache_file,
+                    "cache_file_name": cache_file_name,
+                    "writer_batch_size": writer_batch_size,
+                }
+                cache_file_name = self._get_cache_file_path(self.train_test_split, cache_kwargs)
+            if os.path.exists(cache_file_name) and load_from_cache_file:
+                logger.info("Loading cached sorted dataset at %s", cache_file_name)
+                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+
+        if not shuffle:
+            train_indices = np.arrange(n_train)
+            test_indices = np.arange(n_train, n_train + n_test)
+        else:
+            if generator is None:
+                generator = np.random.default_rng(seed)
+
+            # random partition
+            permutation = generator.permutation(len(self))
+            test_indices = permutation[:n_test]
+            train_indices = permutation[n_test : (n_test + n_train)]
+
+        train_split = self.select(
+            indices=train_indices,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+        )
+        test_split = self.select(
+            indices=test_indices,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+        )
+
+        return {"train": train_split, "test": test_split}
