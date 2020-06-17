@@ -26,7 +26,7 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
 import pyarrow as pa
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from nlp.utils.py_utils import dumps
 
@@ -634,7 +634,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
         if not batched:
-            for i, example in tqdm(enumerate(self)):
+            for i, example in enumerate(tqdm(self)):
                 example = apply_function_on_filtered_inputs(example, i)
                 if update_data:
                     writer.write(example)
