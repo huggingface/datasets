@@ -382,7 +382,9 @@ class Dataset(DatasetInfoMixin):
                     if format_type == "pandas":
                         outputs = self._data[key].to_pandas(zero_copy_only=False)
                     elif format_type == "numpy":
-                        outputs = np.concatenate([arr.to_numpy(zero_copy_only=False) for arr in self._data[key].chunks])
+                        outputs = np.concatenate(
+                            [arr.to_numpy(zero_copy_only=False) for arr in self._data[key].chunks]
+                        )
                     else:
                         outputs = self._convert_outputs(self._data[key].to_pylist(), format_type=format_type)
                 else:
@@ -1033,8 +1035,10 @@ class Dataset(DatasetInfoMixin):
                     test_cache_file_name = self._get_cache_file_path(self.train_test_split, test_kwargs)
             if os.path.exists(train_cache_file_name) and os.path.exists(test_cache_file_name) and load_from_cache_file:
                 logger.info("Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name)
-                return {'train': Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
-                        'test': Dataset.from_file(test_cache_file_name, info=self.info, split=self.split)}
+                return {
+                    "train": Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
+                    "test": Dataset.from_file(test_cache_file_name, info=self.info, split=self.split),
+                }
 
         if not shuffle:
             train_indices = np.arange(n_train)
