@@ -113,7 +113,6 @@ class FaissGpuOptions:
 
 
 class DenseSearchEngine(BaseSearchEngine):
-    DEFAULT_STRING_FACTORY = "L2norm,Flat"  # faiss.IndexFlatIP
 
     def __init__(
         self,
@@ -125,7 +124,7 @@ class DenseSearchEngine(BaseSearchEngine):
             device is not None and faiss_gpu_options is not None
         ), "Please specify either `device` or `faiss_gpu_options` but not both."
         self.device: int = device if device is not None else -1
-        self.string_factory: str = string_factory if string_factory is not None else self.DEFAULT_STRING_FACTORY
+        self.string_factory: Optional[str] = string_factory
         self.faiss_gpu_options: Optional[FaissGpuOptions] = faiss_gpu_options
         self.faiss_search_engine = None
         assert (
@@ -134,7 +133,10 @@ class DenseSearchEngine(BaseSearchEngine):
 
     def add_embeddings(self, embeddings: np.array, column: Optional[str] = None, batch_size=1000):
         size = len(embeddings[0]) if column is None else len(embeddings[0][column])
-        search_engine = faiss.index_factory(size, self.string_factory)
+        if self.string_factory is not None:
+            search_engine = faiss.index_factory(size, self.string_factory)
+        else:
+            search_engine = faiss.IndexFlatIP(size)
         if self.device > -1:
             self.faiss_res = faiss.StandardGpuResources()
             self.faiss_search_engine = faiss.index_cpu_to_gpu(self.faiss_res, self.device, search_engine)
