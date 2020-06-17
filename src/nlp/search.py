@@ -200,11 +200,11 @@ class SearchableMixin:
 
     def search(self, query, k: int = 10) -> Tuple[List[float], List[int]]:
         self._check_search_engine_is_initialized()
-        return self._search_engine.query(query, k)
+        return self._search_engine.search(query, k)
 
     def search_batch(self, queries, k: int = 10) -> Tuple[List[List[float]], List[List[int]]]:
         self._check_search_engine_is_initialized()
-        return self._search_engine.query_batch(queries, k)
+        return self._search_engine.search_batch(queries, k)
 
     def get_nearest(self, query, k: int = 10) -> Tuple[List[float], List[dict]]:
         self._check_search_engine_is_initialized()
