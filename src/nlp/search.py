@@ -113,7 +113,6 @@ class FaissGpuOptions:
 
 
 class DenseSearchEngine(BaseSearchEngine):
-
     def __init__(
         self,
         device: Optional[int] = None,
@@ -150,7 +149,7 @@ class DenseSearchEngine(BaseSearchEngine):
         else:
             self.faiss_search_engine = search_engine
         for i in range(0, len(embeddings), batch_size):
-            vecs = embeddings[i : i + batch_size] if column is None else embeddings[i : i + batch_size]["column"]
+            vecs = embeddings[i : i + batch_size] if column is None else embeddings[i : i + batch_size][column]
             self.faiss_search_engine.add(vecs)
 
     def search(self, query: np.array, k=10):
