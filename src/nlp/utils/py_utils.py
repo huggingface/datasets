@@ -45,6 +45,7 @@ def convert_sequences_in_lists(data_struct):
             return list(seq)
         else:
             return seq
+
     return map_nested(sequences_to_list, data_struct)
 
 
