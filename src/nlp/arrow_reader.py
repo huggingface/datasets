@@ -22,7 +22,7 @@ import math
 import os
 import re
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 import pyarrow as pa
 import pyarrow.parquet
@@ -30,6 +30,10 @@ import pyarrow.parquet
 from .arrow_dataset import Dataset
 from .naming import filename_for_dataset_split
 from .utils import cached_path, py_utils
+
+
+if TYPE_CHECKING:
+    from .info import DatasetInfo  # noqa: F401
 
 
 logger = logging.getLogger(__name__)
@@ -123,16 +127,16 @@ class BaseReader:
     Build a Dataset object out of Instruction instance(s).
     """
 
-    def __init__(self, path, info):
+    def __init__(self, path: str, info: Optional["DatasetInfo"]):
         """Initializes ArrowReader.
 
         Args:
             path (str): path where tfrecords are stored.
             info (DatasetInfo): info about the dataset.
         """
-        self._path = path
-        self._info = info
-        self._filetype_suffix = None
+        self._path: str = path
+        self._info: Optional["DatasetInfo"] = info
+        self._filetype_suffix: Optional[str] = None
 
     def _get_dataset_from_filename(self, filename_skip_take):
         """Returns a Dataset instance from given (filename, skip, take)."""
@@ -227,6 +231,8 @@ class BaseReader:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
             downloaded_dataset_info = cached_path(remote_dataset_info)
             os.rename(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
+            if self._info is not None:
+                self._info.update(self._info.from_directory(cache_dir))
         except ConnectionError:
             raise DatasetNotOnHfGcs()
         for split in self._info.splits:
@@ -245,7 +251,7 @@ class ArrowReader(BaseReader):
     This Reader uses memory mapping on arrow files.
     """
 
-    def __init__(self, path, info):
+    def __init__(self, path: str, info: Optional["DatasetInfo"]):
         """Initializes ArrowReader.
 
         Args:
@@ -276,7 +282,7 @@ class ParquetReader(BaseReader):
     This Reader uses memory mapping on parquet files.
     """
 
-    def __init__(self, path, info):
+    def __init__(self, path: str, info: Optional["DatasetInfo"]):
         """Initializes ParquetReader.
 
         Args:

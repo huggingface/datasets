@@ -353,7 +353,11 @@ def prepare_module(
             else:
                 logger.info("Couldn't find dataset infos file at %s", dataset_infos)
         else:
-            logger.info("Found dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+            if local_dataset_infos_path is not None:
+                logger.info("Updating dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
+            else:
+                logger.info("Found dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
 
         # Record metadata associating original dataset path with local unique folder
         meta_path = local_file_path.split(".py")[0] + ".json"
