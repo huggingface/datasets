@@ -919,7 +919,7 @@ class Dataset(DatasetInfoMixin):
                     If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the test split.
                     If int, represents the absolute number of test samples.
                     If None, the value is set to the complement of the train size.
-                    If train_size is also None, raise an error.
+                    If train_size is also None, it will be set to 0.25.
                 `train_size` (Optional `np.random.Generator`): Size of the train split
                     If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
                     If int, represents the absolute number of train samples.
@@ -945,7 +945,7 @@ class Dataset(DatasetInfoMixin):
             return self
 
         if test_size is None and train_size is None:
-            raise ValueError("At least one of test_size and train_size must be provided.")
+            test_size = 0.25
 
         # Safety checks similar to scikit-learn's ones.
         # (adapted from https://github.com/scikit-learn/scikit-learn/blob/fd237278e895b42abe8d8d09105cbb82dc2cbba7/sklearn/model_selection/_split.py#L1750)
