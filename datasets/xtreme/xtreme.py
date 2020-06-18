@@ -433,11 +433,12 @@ class Xtreme(nlp.GeneratorBasedBuilder):
 
     @property
     def manual_download_instructions(self):
-        return """\
-     You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
-     (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN) and save the file under <path/to/folder>AmazonPhotos.zip
-
-    """
+        if self.config.name.startswith("PAN-X"):
+            return """\
+             You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
+             (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN) and save the file under <path/to/folder>AmazonPhotos.zip
+            """
+        return None
 
     def _info(self):
         # TODO(xtreme): Specifies the nlp.DatasetInfo object
