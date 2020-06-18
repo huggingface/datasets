@@ -152,11 +152,16 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset), 10)
             self.assertEqual(dset[0]["filename"], "my_name-train_8")
             self.assertEqual(dset[1]["filename"], "my_name-train_9")
-
+            # Sort
             tmp_file = os.path.join(tmp_dir, "test_3.arrow")
             dset_sorted = dset.sort("filename", cache_file_name=tmp_file)
             for i, row in enumerate(dset_sorted):
                 self.assertEqual(int(row["filename"][-1]), i)
+            # Sort reversed
+            tmp_file = os.path.join(tmp_dir, "test_4.arrow")
+            dset_sorted = dset.sort("filename", cache_file_name=tmp_file, reverse=True)
+            for i, row in enumerate(dset_sorted):
+                self.assertEqual(int(row["filename"][-1]), len(dset_sorted) - 1 - i)
 
     def test_train_test_split(self):
         dset = self._create_dummy_dataset()

@@ -757,13 +757,14 @@ class Dataset(DatasetInfoMixin):
     def sort(
         self,
         column: str,
+        reverse: bool = False,
         kind: str = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
     ):
-        """ Sort the table according to a column.
+        """ Create a new dataset sorted according to a column.
 
             Currently sorting according to a column name uses numpy sorting algorithm under the hood.
             The column should thus be a numpy compatible type (in particular not a nested type).
@@ -771,6 +772,7 @@ class Dataset(DatasetInfoMixin):
 
             Args:
                 `column` (`str`): column name to sort by.
+                `reverse`: (`bool`, default: `False`): If True, sort by descending order rather then ascending.
                 `kind` (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                     The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                     the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
@@ -800,6 +802,7 @@ class Dataset(DatasetInfoMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 cache_kwargs = {
                     "column": column,
+                    "reverse": reverse,
                     "kind": kind,
                     "keep_in_memory": keep_in_memory,
                     "load_from_cache_file": load_from_cache_file,
@@ -813,6 +816,8 @@ class Dataset(DatasetInfoMixin):
 
         indices = self._getitem(column, format_type="numpy", format_columns=None, output_all_columns=False,)
         indices = np.argsort(indices, kind=kind)
+        if reverse:
+            indices = indices[::-1]
 
         return self.select(
             indices=indices,
@@ -831,7 +836,7 @@ class Dataset(DatasetInfoMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
     ):
-        """ Shuffle the dataset rows.
+        """ Create a new Dataset where rows the rows are shuffled.
 
             Currently shuffling uses numpy random generators.
             You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
@@ -853,6 +858,9 @@ class Dataset(DatasetInfoMixin):
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
+
+        if seed is not None and generator is not None:
+            raise ValueError("Both `seed` and `generator` were provided. Please specify just one of them.")
 
         assert generator is None or isinstance(
             generator, np.random.Generator
@@ -895,7 +903,6 @@ class Dataset(DatasetInfoMixin):
         shuffle: bool = True,
         seed: Optional[int] = None,
         generator: Optional[np.random.Generator] = None,
-        default_test_size: Optional[int] = 0.25,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
         train_cache_file_name: Optional[str] = None,
