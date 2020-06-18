@@ -25,6 +25,7 @@ from collections.abc import Mapping
 from functools import partial
 from typing import Any, Dict, List, Optional, Union
 
+import numpy as np
 import pyarrow as pa
 from tqdm.auto import tqdm
 
@@ -32,7 +33,7 @@ from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
 from .search import FaissGpuOptions, SearchableMixin
-from .utils import convert_tuples_in_lists, map_nested
+from .utils import convert_sequences_in_lists, map_nested
 
 
 logger = logging.getLogger(__name__)
@@ -556,11 +557,14 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                     )
                 )
             elif isinstance(test_indices, list) and does_return_dict is True:
-                all_dict_values_are_lists = all(isinstance(value, list) for value in processed_inputs.values())
+                allowed_batch_return_types = (list, np.ndarray)
+                all_dict_values_are_lists = all(
+                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
+                )
                 if all_dict_values_are_lists is False:
                     raise TypeError(
-                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types `list`.".format(
-                            [type(x) for x in processed_inputs.values()]
+                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
+                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
                         )
                     )
 
@@ -596,7 +600,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         if arrow_schema is None and update_data:
             if not batched:
                 test_output = self._nest(test_output)
-            test_output = convert_tuples_in_lists(test_output)
+            test_output = convert_sequences_in_lists(test_output)
             arrow_schema = pa.Table.from_pydict(test_output).schema
             if disable_nullable:
                 arrow_schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in arrow_schema)
@@ -715,6 +719,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         test_inputs = self[:2]
         if "remove_columns" in kwargs:
             test_inputs = {key: test_inputs[key] for key in (test_inputs.keys() - kwargs["remove_columns"])}
+        test_inputs = convert_sequences_in_lists(test_inputs)
         arrow_schema = pa.Table.from_pydict(test_inputs).schema
 
         # return map function
