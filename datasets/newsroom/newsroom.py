@@ -93,7 +93,7 @@ class Newsroom(nlp.GeneratorBasedBuilder):
   dev.jsonl, test.jsonl and train.jsonl in a dir of your choice,
   which will be used as a manual_dir, e.g. `~/.manual_dirs/newsroom`
   Newsroom can then be loaded via:
-  `nlp.load("newsroom", data_dir="~/.manual_dirs/newsroom")`.
+  `nlp.load_dataset("newsroom", data_dir="~/.manual_dirs/newsroom")`.
   """
 
     def _info(self):
@@ -112,7 +112,7 @@ class Newsroom(nlp.GeneratorBasedBuilder):
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `nlp.load('newsroom', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {}".format(
+                "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('newsroom', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {}".format(
                     data_dir, self.manual_download_instructions
                 )
             )

@@ -418,7 +418,7 @@ class DatasetBuilder:
         if self.manual_download_instructions is not None:
             assert (
                 dl_manager.manual_dir is not None
-            ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load({}, data_dir='<path/to/manual/data>')".format(
+            ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load_dataset({}, data_dir='<path/to/manual/data>')".format(
                 self.name, self.config.name, self.manual_download_instructions, self.name
             )
 

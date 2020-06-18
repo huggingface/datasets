@@ -104,7 +104,7 @@ class Xsum(nlp.GeneratorBasedBuilder):
         downloaded_path = os.path.join(dl_manager.manual_dir, "xsum-extracts-from-downloads")
         if not os.path.exists(downloaded_path):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you indicate the data_dir as  `nlp.load('xsum', data_dir=...), which points to your downloded dataset'. Manual download instructions: {})".format(
+                "{} does not exist. Make sure you indicate the data_dir as  `nlp.load_dataset('xsum', data_dir=...), which points to your downloded dataset'. Manual download instructions: {})".format(
                     downloaded_path, self.manual_download_instructions
                 )
             )

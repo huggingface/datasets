@@ -106,7 +106,7 @@ class Wikihow(nlp.GeneratorBasedBuilder):
 
   The <path/to/folder> can e.g. be "~/manual_wikihow_data".
 
-  Wikihow can then be loaded using the following command `nlp.load("wikihow", data_dir="<path/to/folder>")`.
+  Wikihow can then be loaded using the following command `nlp.load_dataset("wikihow", data_dir="<path/to/folder>")`.
   """
 
     def _info(self):
@@ -136,7 +136,7 @@ class Wikihow(nlp.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `nlp.load('wikihow', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
+                "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('wikihow', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
                     path_to_manual_file, self.config.filename, self.manual_download_instructions
                 )
             )

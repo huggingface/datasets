@@ -40,7 +40,7 @@ class Reclor(nlp.GeneratorBasedBuilder):
     def manual_download_instructions(self):
         return """\
   to use ReClor you need to download it manually. Please go to its homepage (http://whyu.me/reclor/) fill the google 
-  form and you will recive a download link and a password to extract it.Please extract all files in one folder and use the path folder in nlp.load('reclor', data_dir='path/to/folder/folder_name')
+  form and you will recive a download link and a password to extract it.Please extract all files in one folder and use the path folder in nlp.load_dataset('reclor', data_dir='path/to/folder/folder_name')
   """
 
     def _info(self):
@@ -77,7 +77,7 @@ class Reclor(nlp.GeneratorBasedBuilder):
 
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `nlp.load('wikihow', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {}".format(
+                "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('wikihow', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {}".format(
                     data_dir, self.manual_download_instructions
                 )
             )

@@ -153,7 +153,7 @@ class C4(nlp.BeamBasedBuilder):
     (from https://mega.nz/#F!EZZD0YwJ!9_PlEQzdMVLaNdKv_ICNVQ) and the Common Crawl
     WET files from August 2018 to July 2019
     (https://commoncrawl.org/the-data/get-started/) and place them in the
-    `manual_dir`.
+    `data_dir`.
         """
 
     def _info(self):
@@ -193,7 +193,7 @@ class C4(nlp.BeamBasedBuilder):
             owt_path = os.path.join(dl_manager.manual_dir, _OPENWEBTEXT_URLS_ZIP)
             if not os.path.exists(owt_path):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load('c4', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('c4', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
                         owt_path, _OPENWEBTEXT_URLS_ZIP, self.manual_download_instructions
                     )
                 )
@@ -211,7 +211,7 @@ class C4(nlp.BeamBasedBuilder):
             wet_files = beam.io.filesystems.FileSystems.match(os.path.join(cc_dir, "*.warc.wet.gz"))
             if not os.path.exists(cc_dir):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load('c4', data_dir=...)` that includes the files {}. Manual download instructions: {})".format(
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('c4', data_dir=...)` that includes the files {}. Manual download instructions: {})".format(
                         cc_dir, "*.warc.wet.gz", self.manual_download_instructions
                     )
                 )
