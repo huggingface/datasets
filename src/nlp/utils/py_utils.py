@@ -41,9 +41,10 @@ memoize = functools.lru_cache
 def convert_sequences_in_lists(data_struct):
     # Could add support for more exotic data_struct, like OrderedDict
     def sequences_to_list(seq):
-        if isinstance(data_struct, (tuple, np.ndarray)):
-            return list(data_struct)
-
+        if isinstance(seq, (tuple, np.ndarray)):
+            return list(seq)
+        else:
+            return seq
     return map_nested(sequences_to_list, data_struct)
 
 
