@@ -106,7 +106,7 @@ class Wikihow(nlp.GeneratorBasedBuilder):
 
   The <path/to/folder> can e.g. be "~/manual_wikihow_data".
 
-  Wikihow can then be loaded using the following command `nlp.load("wikihow", data_file="<path/to/folder>")`.
+  Wikihow can then be loaded using the following command `nlp.load("wikihow", data_dir="<path/to/folder>")`.
   """
 
     def _info(self):
