@@ -33,7 +33,7 @@ from .utils import cached_path, py_utils
 
 
 if TYPE_CHECKING:
-    from .info import DatasetInfo
+    from .info import DatasetInfo  # noqa: F401
 
 
 logger = logging.getLogger(__name__)
