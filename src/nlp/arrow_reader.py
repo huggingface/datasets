@@ -192,7 +192,7 @@ class BaseReader:
         return py_utils.map_nested(_read_instruction_to_ds, instructions)
 
     def read_files(
-        self, files, original_instructions,
+        self, files, original_instructions=None,
     ):
         """Returns single Dataset instance for the set of file instructions.
 
