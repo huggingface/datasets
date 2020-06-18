@@ -26,11 +26,12 @@ import re
 import threading
 
 import apache_beam as beam
-import langdetect
 import nltk
 import tensorflow.compat.v2 as tf
-import tldextract
 from absl import logging
+
+import langdetect
+import tldextract
 
 
 # WET file constants

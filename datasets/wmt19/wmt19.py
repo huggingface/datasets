@@ -51,6 +51,11 @@ class Wmt19(Wmt):
     ]
 
     @property
+    def manual_download_instructions(self):
+        if self.language_pair[1] in ["cs", "hi", "ru"]:
+            return "Please download the data manually as explained. TODO(PVP)"
+
+    @property
     def _subsets(self):
         return {
             nlp.Split.TRAIN: [

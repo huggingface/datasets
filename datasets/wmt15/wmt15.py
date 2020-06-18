@@ -54,6 +54,11 @@ class Wmt15(Wmt):
     ]
 
     @property
+    def manual_download_instructions(self):
+        if self.language_pair[1] in ["cs", "hi", "ru"]:
+            return "Please download the data manually as explained. TODO(PVP)"
+
+    @property
     def _subsets(self):
         return {
             nlp.Split.TRAIN: [
@@ -69,5 +74,5 @@ class Wmt15(Wmt):
                 "wikiheadlines_ru",
             ],
             nlp.Split.VALIDATION: ["newsdev2015", "newsdiscussdev2015", "newstest2014"],
-            nlp.Split.TEST: ["newstest2015", "newsdiscusstest2015",],
+            nlp.Split.TEST: ["newstest2015", "newsdiscusstest2015"],
         }

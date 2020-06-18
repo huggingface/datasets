@@ -65,7 +65,10 @@ class UbuntuDialogsCorpus(nlp.GeneratorBasedBuilder):
             description="test and dev features",
         ),
     ]
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
+
+    @property
+    def manual_download_instructions(self):
+        return """\
   Please download the Ubuntu Dialog Corpus from https://github.com/rkadlec/ubuntu-ranking-dataset-creator. Run ./generate.sh -t -s -l to download the
    data. Others arguments are left to their default values here. Please save train.csv, test.csv and valid.csv in the same path"""
 

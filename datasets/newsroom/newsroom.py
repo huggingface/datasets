@@ -81,7 +81,10 @@ class Newsroom(nlp.GeneratorBasedBuilder):
     """NEWSROOM Dataset."""
 
     VERSION = nlp.Version("1.0.0")
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
+
+    @property
+    def manual_download_instructions(self):
+        return """\
   You should download the dataset from http://lil.nlp.cornell.edu/newsroom/
   The webpage requires registration.
   To unzip the .tar file run `tar -zxvf complete.tar`. To unzip the .gz files
@@ -110,7 +113,7 @@ class Newsroom(nlp.GeneratorBasedBuilder):
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
                 "{} does not exist. Make sure you insert a manual dir via `nlp.load('newsroom', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {}".format(
-                    data_dir, self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                    data_dir, self.manual_download_instructions
                 )
             )
         return [
