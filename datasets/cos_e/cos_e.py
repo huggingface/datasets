@@ -26,14 +26,14 @@ import nlp
 
 _CITATION = """
 @inproceedings{rajani2019explain,
-     title = "Explain Yourself! Leveraging Language models for Commonsense Reasoning",
-    author = "Rajani, Nazneen Fatema  and
+     title = {Explain Yourself! Leveraging Language models for Commonsense Reasoning},
+    author = {Rajani, Nazneen Fatema  and
       McCann, Bryan  and
       Xiong, Caiming  and
-      Socher, Richard",
-      year="2019",
-    booktitle = "Proceedings of the 2019 Conference of the Association for Computational Linguistics (ACL2019)",
-    url ="https://arxiv.org/abs/1906.02361"
+      Socher, Richard}
+      year={2019}
+    booktitle = {Proceedings of the 2019 Conference of the Association for Computational Linguistics (ACL2019)}
+    url ={https://arxiv.org/abs/1906.02361}
 }
 """
 

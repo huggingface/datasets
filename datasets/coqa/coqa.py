@@ -13,9 +13,9 @@ import nlp
 _CITATION = """\
 @InProceedings{SivaAndAl:Coca,
        author = {Siva, Reddy and Danqi, Chen and  Christopher D., Manning},
-        title = "{WikiQA: A Challenge Dataset for Open-Domain Question Answering}",
+        title = {WikiQA: A Challenge Dataset for Open-Domain Question Answering},
       journal = { arXiv},
-         year = 2018,
+         year = {2018},
 
 }
 """

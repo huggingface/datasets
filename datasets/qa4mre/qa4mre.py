@@ -28,25 +28,18 @@ import nlp
 # pylint: disable=anomalous-backslash-in-string
 _CITATION = r"""
 @InProceedings{10.1007/978-3-642-40802-1_29,
-author="Pe{\~{n}}as, Anselmo
-and Hovy, Eduard
-and Forner, Pamela
-and Rodrigo, {\'A}lvaro
-and Sutcliffe, Richard
-and Morante, Roser",
-editor="Forner, Pamela
-and M{\"u}ller, Henning
-and Paredes, Roberto
-and Rosso, Paolo
-and Stein, Benno",
-title="QA4MRE 2011-2013: Overview of Question Answering for Machine Reading Evaluation",
-booktitle="Information Access Evaluation. Multilinguality, Multimodality, and Visualization",
-year="2013",
-publisher="Springer Berlin Heidelberg",
-address="Berlin, Heidelberg",
-pages="303--320",
-abstract="This paper describes the methodology for testing the performance of Machine Reading systems through Question Answering and Reading Comprehension Tests. This was the attempt of the QA4MRE challenge which was run as a Lab at CLEF 2011--2013. The traditional QA task was replaced by a new Machine Reading task, whose intention was to ask questions that required a deep knowledge of individual short texts and in which systems were required to choose one answer, by analysing the corresponding test document in conjunction with background text collections provided by the organization. Four different tasks have been organized during these years: Main Task, Processing Modality and Negation for Machine Reading, Machine Reading of Biomedical Texts about Alzheimer's disease, and Entrance Exams. This paper describes their motivation, their goals, their methodology for preparing the data sets, their background collections, their metrics used for the evaluation, and the lessons learned along these three years.",
-isbn="978-3-642-40802-1"
+    author={Pe{\~{n}}as, Anselmoband Hovy, Eduardband Forner, Pamela and Rodrigo, {\'A}lvaro and Sutcliffe, Richard
+    and Morante, Roser},
+    editor={Forner, Pamela and M{\"u}ller, Henning and Paredes, Roberto and Rosso, Paolo
+    and Stein, Benno},
+    title={QA4MRE 2011-2013: Overview of Question Answering for Machine Reading Evaluation},
+    booktitle={Information Access Evaluation. Multilinguality, Multimodality, and Visualization},
+    year={2013},
+    publisher={Springer Berlin Heidelberg},
+    address={Berlin, Heidelberg},
+    pages={303--320},
+    abstract={This paper describes the methodology for testing the performance of Machine Reading systems through Question Answering and Reading Comprehension Tests. This was the attempt of the QA4MRE challenge which was run as a Lab at CLEF 2011--2013. The traditional QA task was replaced by a new Machine Reading task, whose intention was to ask questions that required a deep knowledge of individual short texts and in which systems were required to choose one answer, by analysing the corresponding test document in conjunction with background text collections provided by the organization. Four different tasks have been organized during these years: Main Task, Processing Modality and Negation for Machine Reading, Machine Reading of Biomedical Texts about Alzheimer's disease, and Entrance Exams. This paper describes their motivation, their goals, their methodology for preparing the data sets, their background collections, their metrics used for the evaluation, and the lessons learned along these three years.},
+    isbn={978-3-642-40802-1}
 }
 """
 

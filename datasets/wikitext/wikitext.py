@@ -11,7 +11,7 @@ import nlp
 _CITATION = """\
 @InProceedings{wikitext,
     author={Stephen, Merity and Caiming ,Xiong and James, Bradbury and Richard Socher}
-    year=2016
+    year={2016}
 }
 """
 

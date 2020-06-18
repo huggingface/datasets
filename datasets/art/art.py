@@ -11,17 +11,10 @@ import nlp
 # TODO(art): BibTeX citation
 _CITATION = """\
 @InProceedings{anli,
-  author = "Chandra, Bhagavatula
-    and Ronan, Le Bras
-    and Chaitanya, Malaviya
-    and Keisuke, Sakaguchi
-    and Ari, Holtzman
-    and Hannah, Rashkin
-    and Doug, Downey
-    and Scott, Wen-tau Yih
-    and Yejin, Choi",
-  title = "Abductive Commonsense Reasoning",
-  year = "2020",
+  author = {Chandra, Bhagavatula and Ronan, Le Bras and Chaitanya, Malaviya and Keisuke, Sakaguchi and Ari, Holtzman
+    and Hannah, Rashkin and Doug, Downey and Scott, Wen-tau Yih and Yejin, Choi},
+  title = {Abductive Commonsense Reasoning},
+  year = {2020}
 }"""
 
 # TODO(art):
