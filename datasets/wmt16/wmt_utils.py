@@ -820,14 +820,14 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
                     or ss_name.startswith("wikititles_v1")
                 ):
                     sub_generator = functools.partial(_parse_tsv, language_pair=self.config.language_pair)
-                elif "tmx" in fname or ss_name.startswith("paracrawl_v3"):
+                elif "tmx" in fname or ss_name.startswith("paracrawl_v3") or ss_name.startswith("setimes_2"):
                     sub_generator = _parse_tmx
                 elif ss_name.startswith("wikiheadlines"):
                     sub_generator = _parse_wikiheadlines
                 else:
-                    raise ValueError("Unsupported file format: %s" % fname)
+                    raise ValueError(f"Unsupported file format: {fname} for {ss_name}")
             else:
-                raise ValueError("Invalid number of files: %d" % len(files))
+                raise ValueError(f"Invalid number of files: {len(files)}")
 
             for sub_key, ex in sub_generator(*files):
                 if not all(ex.values()):
