@@ -48,9 +48,9 @@ The folder 'xsum-extracts-from-downloads' need to be compressed as
 'xsum-extracts-from-downloads.tar.gz' and put in manually downloaded folder.
 """
 
-_URL = (
-    "https://raw.githubusercontent.com/EdinburghNLP/XSum/master/XSum-Dataset/XSum-TRAINING-DEV-TEST-SPLIT-90-5-5.json"
-)
+_SPLITS_URL =  "https://raw.githubusercontent.com/EdinburghNLP/XSum/master/XSum-Dataset/XSum-TRAINING-DEV-TEST-SPLIT-90-5-5.json"
+
+_URL = 'http://bollin.inf.ed.ac.uk/public/direct/XSUM-EMNLP18-Summary-Data-Original.tar.gz'
 
 _DOCUMENT = "document"
 _SUMMARY = "summary"
@@ -79,13 +79,6 @@ class Xsum(nlp.GeneratorBasedBuilder):
     VERSION = nlp.Version("1.1.0")
     SUPPORTED_VERSIONS = [nlp.Version("1.0.0", "Dataset without cleaning.")]
 
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-  Detailed download instructions (which require running a custom script) are
-  here:
-  https://github.com/EdinburghNLP/XSum/blob/master/XSum-Dataset/README.md . Please make sure you run download-bbc-articles.py and parse-bbc-html-data.py scripts
- 
-
-  """
 
     def _info(self):
         return nlp.DatasetInfo(
@@ -98,16 +91,11 @@ class Xsum(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_path = dl_manager.download_and_extract(_URL)
+        dl_path = dl_manager.download_and_extract(_SPLITS_URL)
         with open(dl_path, "r") as json_file:
             split_ids = json.load(json_file)
-        downloaded_path = os.path.join(dl_manager.manual_dir, "xsum-extracts-from-downloads")
-        if not os.path.exists(downloaded_path):
-            raise FileNotFoundError(
-                "{} does not exist. Make sure you indicate the data_dir as  `nlp.load('xsum', data_dir=...), which points to your downloded dataset'. Manual download instructions: {})".format(
-                    downloaded_path, self.MANUAL_DOWNLOAD_INSTRUCTIONS
-                )
-            )
+        files_path = dl_manager.download_and_extract(_URL)
+        downloaded_path = os.path.join(files_path, 'bbc-summary-data')
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN, gen_kwargs={"split_ids": split_ids["train"], "path": downloaded_path,},
@@ -125,8 +113,7 @@ class Xsum(nlp.GeneratorBasedBuilder):
         missing = 0
         total_num = len(split_ids)
         for i in split_ids:
-            filename = os.path.join(path, i + ".data")
-            print(filename)
+            filename = os.path.join(path, i + ".summary")
 
             if os.path.exists(filename):
                 with open(filename) as f:
@@ -134,18 +121,21 @@ class Xsum(nlp.GeneratorBasedBuilder):
                     text = "".join([line for line in f.readlines() if line not in _REMOVE_LINES and line.strip()])
 
                     # Each file follows below format:
-                    # [XSUM]URL[XSUM]
+                    # [SN]URL[SN]
                     # http://somelink
                     #
-                    # [XSUM]INTRODUCTION[XSUM]
-                    # some intro
+                    # [SN]TITLE[SN]
+                    # title
                     #
-                    # [XSUM]RESTBODY[XSUM]
+                    # [SN]FIRST-SENTENCE[SN]
+                    # sentence
+                    #
+                    # [SN]RESTBODY[SN]
                     # text line.
                     # another text line.
                     # "another text line."
-                    segs = text.split("[XSUM]")
-                    yield i, {_DOCUMENT: segs[6].strip(), _SUMMARY: segs[4].strip()}
+                    segs = text.split("[SN]")
+                    yield i, {_DOCUMENT: segs[8].strip(), _SUMMARY: segs[6].strip()}
             else:
                 missing += 1
                 logging.info("id %s missing.", i)
