@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -169,49 +169,53 @@ class SearchableMixin:
     """Add search_engineing features to classes"""
 
     def __init__(self):
-        self._search_engine: Optional[BaseSearchEngine] = None
+        self._search_engines: Dict[str, BaseSearchEngine] = {}
 
     def __getitem__(self, key):
         raise NotImplementedError
 
-    def is_search_engine_initialized(self):
-        return self._search_engine is not None
+    def is_search_engine_initialized(self, name: str) -> bool:
+        return name in self._search_engines
 
-    def _check_search_engine_is_initialized(self):
-        if not self.is_search_engine_initialized():
+    def _check_search_engine_is_initialized(self, name: str):
+        if not self.is_search_engine_initialized(name):
             raise MissingSearchEngine(
-                "SearchEngine not initialized yet. Please make sure that you call `init_vector_search_engine` or `init_text_search_engine` first."
+                f"SearchEngine with name '{name}' not initialized yet. Please make sure that you call `init_vector_search_engine` or `init_text_search_engine` first."
             )
 
-    def init_vector_search_engine(
+    def list_search_engines(self) -> List[str]:
+        return list(self._search_engines)
+
+    def add_vector_search_engine(
         self,
+        name: str,
         vectors,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
         column: Optional[str] = None,
     ):
-        self._search_engine = DenseSearchEngine(device, string_factory, faiss_gpu_options)
-        self._search_engine.add_embeddings(vectors, column=column)
+        self._search_engines[name] = DenseSearchEngine(device, string_factory, faiss_gpu_options)
+        self._search_engines[name].add_embeddings(vectors, column=column)
 
-    def init_text_search_engine(self, texts, es_client, index_name, column: Optional[str] = None):
-        self._search_engine = SparseSearchEngine(es_client, index_name)
-        self._search_engine.add_texts(texts, column=column)
+    def add_text_search_engine(self, name: str, texts, es_client, index_name, column: Optional[str] = None):
+        self._search_engines[name] = SparseSearchEngine(es_client, index_name)
+        self._search_engines[name].add_texts(texts, column=column)
 
-    def search(self, query, k: int = 10) -> Tuple[List[float], List[int]]:
-        self._check_search_engine_is_initialized()
-        return self._search_engine.search(query, k)
+    def search(self, name: str, query, k: int = 10) -> Tuple[List[float], List[int]]:
+        self._check_search_engine_is_initialized(name)
+        return self._search_engines[name].search(query, k)
 
-    def search_batch(self, queries, k: int = 10) -> Tuple[List[List[float]], List[List[int]]]:
-        self._check_search_engine_is_initialized()
-        return self._search_engine.search_batch(queries, k)
+    def search_batch(self, name: str, queries, k: int = 10) -> Tuple[List[List[float]], List[List[int]]]:
+        self._check_search_engine_is_initialized(name)
+        return self._search_engines[name].search_batch(queries, k)
 
-    def get_nearest(self, query, k: int = 10) -> Tuple[List[float], List[dict]]:
-        self._check_search_engine_is_initialized()
-        scores, indices = self.search(query, k)
+    def get_nearest(self, name: str, query, k: int = 10) -> Tuple[List[float], List[dict]]:
+        self._check_search_engine_is_initialized(name)
+        scores, indices = self.search(name, query, k)
         return scores, [self[int(i)] for i in indices]
 
-    def get_nearest_batch(self, queries, k: int = 10) -> Tuple[List[List[float]], List[List[dict]]]:
-        self._check_search_engine_is_initialized()
-        total_scores, total_indices = self.search_batch(queries, k)
+    def get_nearest_batch(self, name: str, queries, k: int = 10) -> Tuple[List[List[float]], List[List[dict]]]:
+        self._check_search_engine_is_initialized(name)
+        total_scores, total_indices = self.search_batch(name, queries, k)
         return total_scores, [[self[int(i)] for i in indices] for indices in total_indices]

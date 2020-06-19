@@ -121,12 +121,14 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         info: Optional[Any] = None,
         split: Optional[Any] = None,
     ):
-        super().__init__(info=info, split=split)
+        DatasetInfoMixin.__init__(self, info=info, split=split)
+        SearchableMixin.__init__(self)
         self._data: pa.Table = arrow_table
         self._data_files: List[dict] = data_files if data_files is not None else []
-        self._format_type = None
-        self._format_columns = None
-        self._output_all_columns = False
+        self._format_type: Optional[str] = None
+        self._format_kwargs: dict = {}
+        self._format_columns: Optional[list] = None
+        self._output_all_columns: bool = False
 
     @classmethod
     def from_file(cls, filename: str, info: Optional[Any] = None, split: Optional[Any] = None):
@@ -235,11 +237,16 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
 
     def __iter__(self):
         format_type = self._format_type
+        format_kwargs = self._format_kwargs
         format_columns = self._format_columns
         output_all_columns = self._output_all_columns
         for index in range(self._data.num_rows):
             yield self._getitem(
-                index, format_type=format_type, format_columns=format_columns, output_all_columns=output_all_columns,
+                index,
+                format_type=format_type,
+                format_columns=format_columns,
+                output_all_columns=output_all_columns,
+                format_kwargs=format_kwargs,
             )
 
     def __repr__(self):
@@ -250,13 +257,18 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
     def format(self):
         return {
             "type": "python" if self._format_type is None else self._format_type,
+            "format_kwargs": self._format_kwargs,
             "columns": self.column_names if self._format_columns is None else self._format_columns,
             "output_all_columns": self._output_all_columns,
         }
 
     @contextlib.contextmanager
     def formated_as(
-        self, type: Optional[str] = None, columns: Optional[List] = None, output_all_columns: bool = False
+        self,
+        type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
     ):
         """ To be used in a `with` statement. Set __getitem__ return format (type and columns)
 
@@ -266,17 +278,25 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
                 output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                format_kwargs ()
         """
         old_format_type = self._format_type
+        old_format_kwargs = self._format_kwargs
         old_format_columns = self._format_columns
         old_output_all_columns = self._output_all_columns
         try:
-            self.set_format(type, columns, output_all_columns)
+            self.set_format(type, columns, output_all_columns, **format_kwargs)
             yield
         finally:
-            self.set_format(old_format_type, old_format_columns, old_output_all_columns)
+            self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
 
-    def set_format(self, type: Optional[str] = None, columns: Optional[List] = None, output_all_columns: bool = False):
+    def set_format(
+        self,
+        type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
+    ):
         """ Set __getitem__ return format (type and columns)
 
             Args:
@@ -298,6 +318,9 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
             except ImportError:
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
         else:
+            assert not (
+                type == "pandas" and format_kwargs is not None
+            ), "Format type 'pandas' doesn't have any `**format_kwargs`."
             assert (
                 type is None or type == "numpy" or type == "pandas"
             ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas']."
@@ -313,6 +336,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
             )
 
         self._format_type = type
+        self._format_kwargs = format_kwargs
         self._format_columns = columns
         self._output_all_columns = output_all_columns
         logger.info(
@@ -330,7 +354,10 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         """
         self.set_format()
 
-    def _convert_outputs(self, outputs, format_type=None, format_columns=None, output_all_columns=False):
+    def _convert_outputs(
+        self, outputs, format_type=None, format_columns=None, output_all_columns=False, format_kwargs=None
+    ):
+        format_kwargs = format_kwargs if format_kwargs is not None else {}
         if format_type is None:
             if output_all_columns:
                 return outputs
@@ -341,15 +368,17 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         if format_type == "numpy":
             import numpy as np
 
-            command = partial(np.array, copy=False)
+            if "copy" not in format_kwargs:
+                format_kwargs["copy"] = False
+            command = partial(np.array, **format_kwargs)
         elif format_type == "torch":
             import torch
 
-            command = torch.tensor
+            command = partial(torch.tensor, **format_kwargs)
         elif format_type == "tensorflow":
             import tensorflow
 
-            command = tensorflow.ragged.constant
+            command = partial(tensorflow.ragged.constant, **format_kwargs)
         else:
 
             def identity(x):
@@ -378,7 +407,12 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         return dict((key, [elem]) for key, elem in py_dict.items())
 
     def _getitem(
-        self, key: Union[int, slice, str], format_type=None, format_columns=None, output_all_columns=False
+        self,
+        key: Union[int, slice, str],
+        format_type=None,
+        format_columns=None,
+        output_all_columns=False,
+        format_kwargs=None,
     ) -> Union[Dict, List]:
         """ Can be used to index columns (by string names) or rows (by integer index or slices)
         """
@@ -430,7 +464,11 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
             and format_type != "pandas"
         ):
             outputs = self._convert_outputs(
-                outputs, format_type=format_type, format_columns=format_columns, output_all_columns=output_all_columns
+                outputs,
+                format_type=format_type,
+                format_columns=format_columns,
+                output_all_columns=output_all_columns,
+                format_kwargs=format_kwargs,
             )
         return outputs
 
@@ -442,6 +480,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
             format_type=self._format_type,
             format_columns=self._format_columns,
             output_all_columns=self._output_all_columns,
+            format_kwargs=self._format_kwargs,
         )
 
     def cleanup_cache_files(self):
@@ -590,6 +629,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1])),
                     format_type=None,
                     format_columns=None,
+                    format_kwargs=None,
                 )
             inputs.update(processed_inputs)
             return inputs
@@ -726,20 +766,6 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         # return map function
         return self.map(map_function, batched=True, with_indices=with_indices, arrow_schema=arrow_schema, **kwargs)
 
-    def init_vector_search_engine(
-        self,
-        column: str,
-        device: Optional[int],
-        string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
-    ):
-        with self.formated_as(type="numpy", columns=[column]):
-            super(Dataset, self).init_vector_search_engine(self, device, string_factory, faiss_gpu_options, column)
-
-    def init_text_search_engine(self, column: str, es_client, index_name):
-        with self.formated_as(type=None, columns=[column]):
-            super(Dataset, self).init_text_search_engine(self, es_client, index_name, column)
-
     def select(
         self,
         indices: Union[List[int], np.ndarray],
@@ -791,7 +817,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
         for i in tqdm(indices):
-            example = self._getitem(key=int(i), format_type=None, format_columns=None,)
+            example = self._getitem(key=int(i), format_type=None, format_columns=None, format_kwargs=None)
             writer.write(example)
 
         writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
@@ -862,7 +888,9 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                 logger.info("Loading cached sorted dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
-        indices = self._getitem(column, format_type="numpy", format_columns=None, output_all_columns=False,)
+        indices = self._getitem(
+            column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
+        )
         indices = np.argsort(indices, kind=kind)
         if reverse:
             indices = indices[::-1]
@@ -1123,3 +1151,18 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         )
 
         return {"train": train_split, "test": test_split}
+
+    def add_vector_search_engine(
+        self,
+        column: str,
+        device: Optional[int] = None,
+        string_factory: Optional[str] = None,
+        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        dtype=np.float32,
+    ):
+        with self.formated_as(type="numpy", columns=[column], dtype=dtype):
+            super().add_vector_search_engine(column, self, device, string_factory, faiss_gpu_options, column)
+
+    def add_text_search_engine(self, column: str, es_client, index_name):
+        with self.formated_as(type=None, columns=[column]):
+            super().add_text_search_engine(column, self, es_client, index_name, column)
