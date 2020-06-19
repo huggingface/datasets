@@ -42,34 +42,15 @@ There are two features:
   - document: Input news article.
   - summary: One sentence summary of the article.
 
-This data need to manaully downloaded and extracted as described in
-https://github.com/EdinburghNLP/XSum/blob/master/XSum-Dataset/README.md.
-The folder 'xsum-extracts-from-downloads' need to be compressed as
-'xsum-extracts-from-downloads.tar.gz' and put in manually downloaded folder.
 """
 
-_SPLITS_URL =  "https://raw.githubusercontent.com/EdinburghNLP/XSum/master/XSum-Dataset/XSum-TRAINING-DEV-TEST-SPLIT-90-5-5.json"
 
-_URL = 'http://bollin.inf.ed.ac.uk/public/direct/XSUM-EMNLP18-Summary-Data-Original.tar.gz'
+_URL = 'https://s3.amazonaws.com/datasets.huggingface.co/summarization/xsum.tar.gz'
 
 _DOCUMENT = "document"
 _SUMMARY = "summary"
 
-_REMOVE_LINES = set(
-    [
-        "Share this with\n",
-        "Email\n",
-        "Facebook\n",
-        "Messenger\n",
-        "Twitter\n",
-        "Pinterest\n",
-        "WhatsApp\n",
-        "Linkedin\n",
-        "LinkedIn\n",
-        "Copy this link\n",
-        "These are external links and will open in a new window\n",
-    ]
-)
+
 
 
 class Xsum(nlp.GeneratorBasedBuilder):
@@ -91,53 +72,28 @@ class Xsum(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_path = dl_manager.download_and_extract(_SPLITS_URL)
-        with open(dl_path, "r") as json_file:
-            split_ids = json.load(json_file)
-        files_path = dl_manager.download_and_extract(_URL)
-        downloaded_path = os.path.join(files_path, 'bbc-summary-data')
+        
+        dl_path = dl_manager.download_and_extract(_URL)
+        dl_path = os.path.join(dl_path, 'xsum')
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"split_ids": split_ids["train"], "path": downloaded_path,},
+                name=nlp.Split.TRAIN, gen_kwargs={"source": os.path.join(dl_path, 'train.source'), "target": os.path.join(dl_path, 'train.target')},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"split_ids": split_ids["validation"], "path": downloaded_path,},
+                name=nlp.Split.VALIDATION, gen_kwargs={"source": os.path.join(dl_path, 'val.source'), "target": os.path.join(dl_path, 'val.target')},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"split_ids": split_ids["test"], "path": downloaded_path,},
+                name=nlp.Split.TEST, gen_kwargs={"source": os.path.join(dl_path, 'test.source'), "target": os.path.join(dl_path, 'test.target')},
             ),
         ]
 
-    def _generate_examples(self, split_ids=None, path=None):
+    def _generate_examples(self, source, target):
         """Yields examples."""
-        missing = 0
-        total_num = len(split_ids)
-        for i in split_ids:
-            filename = os.path.join(path, i + ".summary")
-
-            if os.path.exists(filename):
-                with open(filename) as f:
-
-                    text = "".join([line for line in f.readlines() if line not in _REMOVE_LINES and line.strip()])
-
-                    # Each file follows below format:
-                    # [SN]URL[SN]
-                    # http://somelink
-                    #
-                    # [SN]TITLE[SN]
-                    # title
-                    #
-                    # [SN]FIRST-SENTENCE[SN]
-                    # sentence
-                    #
-                    # [SN]RESTBODY[SN]
-                    # text line.
-                    # another text line.
-                    # "another text line."
-                    segs = text.split("[SN]")
-                    yield i, {_DOCUMENT: segs[8].strip(), _SUMMARY: segs[6].strip()}
-            else:
-                missing += 1
-                logging.info("id %s missing.", i)
-        if missing:
-            logging.warning("%d out of %d examples are missing.", missing, total_num)
+        with open(source) as f1:
+            source = f1.readlines()
+        with open(target) as f2:
+            target = f2.readlines()
+        assert (len(source) == len(target))
+        for i in range(len(target)):    
+            yield i, {_DOCUMENT: source[i], _SUMMARY: target[i]}
+           
