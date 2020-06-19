@@ -1199,9 +1199,43 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
         dtype=np.float32,
     ):
+        """ Add a dense index using Faiss for fast retrieval.
+
+            Examples of usage:
+
+            ```
+            ds = nlp.load_dataset('crime_and_punish', split='train')
+            ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
+            ds_with_embeddings.add_text_index(column='embeddings')
+            scores, retrieved_examples = ds_with_embeddings.get_nearest('embeddings', 'embed('my new query'), k=10)
+            ```
+
+            Args:
+                `column` (`str`): The column of vectors to index.
+                `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+                `string_factory` (Optional `str`): This is passed to the index factory Faiss to create the index. Default index class is IndexFlatIP.
+                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
+        """
         with self.formated_as(type="numpy", columns=[column], dtype=dtype):
             super().add_vector_index(column, self, device, string_factory, faiss_gpu_options, column)
 
     def add_text_index(self, column: str, es_client, index_name):
+        """ Add a text index using ElasticSearch for fast retrieval.
+
+            Examples of usage:
+
+            ```
+            es_client = elasticsearch.Elasticsearch()
+            ds = nlp.load_dataset('crime_and_punish', split='train')
+            ds.add_text_index(column='line', es_client=es_client, index_name="my_es_index")
+            scores, retrieved_examples = ds.get_nearest('line', 'my new query', k=10)
+            ```
+
+            Args:
+                `column` (`str`): The column of texts to index.
+                `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
+                `index_name` (Optional `str`): The elasticsearch index name used to create the index.
+        """
         with self.formated_as(type=None, columns=[column]):
             super().add_text_index(column, self, es_client, index_name, column)
