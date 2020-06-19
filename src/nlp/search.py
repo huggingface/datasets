@@ -91,7 +91,7 @@ class SparseSearchEngine(BaseSearchEngine):
     def search(self, query, k=10):
         response = self.es_client.search(
             index=self.index_name,
-            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields",}}, "size": k,},
+            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
         )
         hits = response["hits"]["hits"]
         return [hit["_score"] for hit in hits], [hit["_id"] for hit in hits]
