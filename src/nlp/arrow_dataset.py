@@ -33,7 +33,7 @@ from tqdm.auto import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .search import FaissGpuOptions, SearchableMixin
+from .search import FaissGpuOptions, IndexableMixin
 from .utils import convert_sequences_in_lists, map_nested
 
 
@@ -110,7 +110,11 @@ class DatasetInfoMixin(object):
         return self._info.version
 
 
-class Dataset(DatasetInfoMixin, SearchableMixin):
+class DatasetTransformationNotAllowedError(Exception):
+    pass
+
+
+class Dataset(DatasetInfoMixin, IndexableMixin):
     """ A Dataset backed by an Arrow table or Record Batch.
     """
 
@@ -122,7 +126,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         split: Optional[Any] = None,
     ):
         DatasetInfoMixin.__init__(self, info=info, split=split)
-        SearchableMixin.__init__(self)
+        IndexableMixin.__init__(self)
         self._data: pa.Table = arrow_table
         self._data_files: List[dict] = data_files if data_files is not None else []
         self._format_type: Optional[str] = None
@@ -616,7 +620,10 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         test_indices = [0, 1] if batched else 0
         update_data = does_function_return_dict(test_inputs, test_indices)
 
-        def apply_function_on_filtered_inputs(inputs, indices):
+        class NumExamplesMismatch(Exception):
+            pass
+
+        def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False):
             """ Utility to apply the function on a selection of columns. """
             processed_inputs = function(inputs, indices) if with_indices else function(inputs)
             if not update_data:
@@ -631,6 +638,11 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                     format_columns=None,
                     format_kwargs=None,
                 )
+            if check_same_num_examples:
+                input_num_examples = len(inputs[next(iter(inputs.keys()))])
+                processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
+                if input_num_examples != processed_inputs_num_examples:
+                    raise NumExamplesMismatch()
             inputs.update(processed_inputs)
             return inputs
 
@@ -687,7 +699,14 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
             for i in tqdm(range(0, len(self), batch_size)):
                 batch = self[i : i + batch_size]
                 indices = list(range(*(slice(i, i + batch_size).indices(self._data.num_rows))))  # Something simpler?
-                batch = apply_function_on_filtered_inputs(batch, indices)
+                try:
+                    batch = apply_function_on_filtered_inputs(
+                        batch, indices, check_same_num_examples=len(self.list_indexes()) > 0
+                    )
+                except NumExamplesMismatch:
+                    raise DatasetTransformationNotAllowedError(
+                        "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples."
+                    )
                 if update_data:
                     writer.write_batch(batch)
 
@@ -725,6 +744,10 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.filter` on a dataset with attached indexes is not allowed."
+            )
 
         # transforme the filter function into the map function
         def map_function(batch, *args):
@@ -786,6 +809,10 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.select` on a dataset with attached indexes is not allowed."
+            )
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
@@ -858,6 +885,10 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.sort` on a dataset with attached indexes is not allowed."
+            )
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
@@ -931,6 +962,10 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.shuffle` on a dataset with attached indexes is not allowed."
+            )
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
@@ -1016,6 +1051,10 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.train_test_split` on a dataset with attached indexes is not allowed."
+            )
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
@@ -1152,7 +1191,7 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
 
         return {"train": train_split, "test": test_split}
 
-    def add_vector_search_engine(
+    def add_vector_index(
         self,
         column: str,
         device: Optional[int] = None,
@@ -1161,8 +1200,8 @@ class Dataset(DatasetInfoMixin, SearchableMixin):
         dtype=np.float32,
     ):
         with self.formated_as(type="numpy", columns=[column], dtype=dtype):
-            super().add_vector_search_engine(column, self, device, string_factory, faiss_gpu_options, column)
+            super().add_vector_index(column, self, device, string_factory, faiss_gpu_options, column)
 
-    def add_text_search_engine(self, column: str, es_client, index_name):
+    def add_text_index(self, column: str, es_client, index_name):
         with self.formated_as(type=None, columns=[column]):
-            super().add_text_search_engine(column, self, es_client, index_name, column)
+            super().add_text_index(column, self, es_client, index_name, column)
