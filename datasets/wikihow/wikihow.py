@@ -86,17 +86,6 @@ class WikihowConfig(nlp.BuilderConfig):
 class Wikihow(nlp.GeneratorBasedBuilder):
     """WikiHow: A Large Scale Text Summarization Dataset."""
 
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-  You need to manually download two wikihow files. An overview of which files to download can be seen at https://github.com/mahnazkoupaee/WikiHow-Dataset.
-  You need to download the following two files manually:
-    1) https://ucsb.app.box.com/s/ap23l8gafpezf4tq3wapr6u8241zz358 and save the file under <path/to/folder>/wikihowAll.csv
-    2) https://ucsb.app.box.com/s/7yq601ijl1lzvlfu4rjdbbxforzd2oag and save the file under <path/to/folder>/wikihowSep.csv
-
-  The <path/to/folder> can e.g. be "~/manual_wikihow_data".
-
-  Wikihow can then be loaded using the following command `nlp.load("wikihow", data_file="<path/to/folder>")`.
-  """
-
     BUILDER_CONFIGS = [
         WikihowConfig(
             name="all",
@@ -106,6 +95,19 @@ class Wikihow(nlp.GeneratorBasedBuilder):
         ),
         WikihowConfig(name="sep", filename="wikihowSep.csv", description="use each paragraph and its summary."),
     ]
+
+    @property
+    def manual_download_instructions(self):
+        return """\
+  You need to manually download two wikihow files. An overview of which files to download can be seen at https://github.com/mahnazkoupaee/WikiHow-Dataset.
+  You need to download the following two files manually:
+    1) https://ucsb.app.box.com/s/ap23l8gafpezf4tq3wapr6u8241zz358 and save the file under <path/to/folder>/wikihowAll.csv
+    2) https://ucsb.app.box.com/s/7yq601ijl1lzvlfu4rjdbbxforzd2oag and save the file under <path/to/folder>/wikihowSep.csv
+
+  The <path/to/folder> can e.g. be "~/manual_wikihow_data".
+
+  Wikihow can then be loaded using the following command `nlp.load_dataset("wikihow", data_dir="<path/to/folder>")`.
+  """
 
     def _info(self):
         feature_names = [_DOCUMENT, _SUMMARY, "title"]
@@ -134,8 +136,8 @@ class Wikihow(nlp.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `nlp.load('wikihow', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                    path_to_manual_file, self.config.filename, self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('wikihow', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
+                    path_to_manual_file, self.config.filename, self.manual_download_instructions
                 )
             )
         return [

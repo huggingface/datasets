@@ -79,12 +79,12 @@ class Xsum(nlp.GeneratorBasedBuilder):
     VERSION = nlp.Version("1.1.0")
     SUPPORTED_VERSIONS = [nlp.Version("1.0.0", "Dataset without cleaning.")]
 
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
+    @property
+    def manual_download_instructions(self):
+        return """\
   Detailed download instructions (which require running a custom script) are
   here:
   https://github.com/EdinburghNLP/XSum/blob/master/XSum-Dataset/README.md . Please make sure you run download-bbc-articles.py and parse-bbc-html-data.py scripts
- 
-
   """
 
     def _info(self):
@@ -104,8 +104,8 @@ class Xsum(nlp.GeneratorBasedBuilder):
         downloaded_path = os.path.join(dl_manager.manual_dir, "xsum-extracts-from-downloads")
         if not os.path.exists(downloaded_path):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you indicate the data_dir as  `nlp.load('xsum', data_dir=...), which points to your downloded dataset'. Manual download instructions: {})".format(
-                    downloaded_path, self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                "{} does not exist. Make sure you indicate the data_dir as  `nlp.load_dataset('xsum', data_dir=...), which points to your downloded dataset'. Manual download instructions: {})".format(
+                    downloaded_path, self.manual_download_instructions
                 )
             )
         return [

@@ -668,12 +668,6 @@ class WmtConfig(nlp.BuilderConfig):
 class Wmt(ABC, nlp.GeneratorBasedBuilder):
     """WMT translation dataset."""
 
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-  Some of the wmt configs here, require a manual download.
-  Please look into wmt.py to see the exact path (and file name) that has to
-  be downloaded.
-  """
-
     def __init__(self, *args, **kwargs):
         if type(self) == Wmt and "config" not in kwargs:  # pylint: disable=unidiomatic-typecheck
             raise ValueError(
@@ -826,14 +820,14 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
                     or ss_name.startswith("wikititles_v1")
                 ):
                     sub_generator = functools.partial(_parse_tsv, language_pair=self.config.language_pair)
-                elif "tmx" in fname or ss_name.startswith("paracrawl_v3"):
+                elif "tmx" in fname or ss_name.startswith("paracrawl_v3") or ss_name.startswith("setimes_2"):
                     sub_generator = _parse_tmx
                 elif ss_name.startswith("wikiheadlines"):
                     sub_generator = _parse_wikiheadlines
                 else:
-                    raise ValueError("Unsupported file format: %s" % fname)
+                    raise ValueError(f"Unsupported file format: {fname} for {ss_name}")
             else:
-                raise ValueError("Invalid number of files: %d" % len(files))
+                raise ValueError(f"Invalid number of files: {len(files)}")
 
             for sub_key, ex in sub_generator(*files):
                 if not all(ex.values()):

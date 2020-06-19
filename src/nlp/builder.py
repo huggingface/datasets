@@ -111,7 +111,6 @@ class DatasetBuilder:
     # This field should contain a string with user instructions, including
     # the list of files that should be present. It will be
     # displayed in the dataset documentation.
-    MANUAL_DOWNLOAD_INSTRUCTIONS = None
 
     def __init__(
         self, cache_dir=None, name=None, **config_kwargs,
@@ -160,8 +159,8 @@ class DatasetBuilder:
                 os.rmdir(self._cache_dir)
 
     @property
-    def does_require_manual_download(self):
-        return hasattr(self, "MANUAL_DOWNLOAD_INSTRUCTIONS") and (self.MANUAL_DOWNLOAD_INSTRUCTIONS is not None)
+    def manual_download_instructions(self) -> Optional[str]:
+        return None
 
     @classmethod
     def get_all_exported_dataset_infos(cls) -> dict:
@@ -416,11 +415,11 @@ class DatasetBuilder:
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
             )
 
-        if self.does_require_manual_download:
+        if self.manual_download_instructions is not None:
             assert (
                 dl_manager.manual_dir is not None
-            ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load({}, data_dir='<path/to/manual/data>')".format(
-                self.name, self.config.name, self.MANUAL_DOWNLOAD_INSTRUCTIONS, self.name
+            ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load_dataset({}, data_dir='<path/to/manual/data>')".format(
+                self.name, self.config.name, self.manual_download_instructions, self.name
             )
 
         # Create a tmp dir and rename to self._cache_dir on successful exit.
@@ -483,7 +482,7 @@ class DatasetBuilder:
                 # Prepare split will record examples associated to the split
                 self._prepare_split(split_generator, **prepare_split_kwargs)
             except OSError:
-                raise OSError("Cannot find data file. " + (self.MANUAL_DOWNLOAD_INSTRUCTIONS or ""))
+                raise OSError("Cannot find data file. " + (self.manual_download_instructions or ""))
 
         if verify_infos:
             verify_splits(self.info.splits, split_dict)

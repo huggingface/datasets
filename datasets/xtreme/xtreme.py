@@ -419,11 +419,6 @@ class Xtreme(nlp.GeneratorBasedBuilder):
 
     # TODO(xtreme): Set up version.
     VERSION = nlp.Version("0.1.0")
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-     You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
-     (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN) and save the file under <path/to/folder>AmazonPhotos.zip
-
-    """
     BUILDER_CONFIGS = [
         XtremeConfig(
             name=name,
@@ -435,6 +430,16 @@ class Xtreme(nlp.GeneratorBasedBuilder):
         )
         for name in _NAMES
     ]
+
+    @property
+    def manual_download_instructions(self):
+        if self.config.name.startswith("PAN-X"):
+            return """\
+             You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
+             (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN). The folder containing the saved file
+             can be used to load the dataset via `nlp.load_dataset("xtreme", data_dir="<path/to/folder>").
+            """
+        return None
 
     def _info(self):
         # TODO(xtreme): Specifies the nlp.DatasetInfo object
@@ -713,8 +718,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
 
             if not os.path.exists(panx_path):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load('wikihow', data_dir=...)` that includes {}. Manual download instructions: {}".format(
-                        panx_path, _PAN_X_FOLDER, self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('wikihow', data_dir=...)` that includes {}. Manual download instructions: {}".format(
+                        panx_path, _PAN_X_FOLDER, self.manual_download_instructions
                     )
                 )
 
