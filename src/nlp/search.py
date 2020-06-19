@@ -7,6 +7,7 @@ from tqdm.auto import tqdm
 
 try:
     import elasticsearch as es
+    import elasticsearch.helpers
 
     _has_elasticsearch = True
 except ImportError:
@@ -66,22 +67,22 @@ class SparseSearchEngine(BaseSearchEngine):
                 }
             },
         }
-        self.es_client.indices.create(search_engine=index_name, body=search_engine_config)
+        self.es_client.indices.create(index=index_name, body=search_engine_config)
         number_of_docs = len(texts)
         progress = tqdm(unit="docs", total=number_of_docs)
         successes = 0
 
         def passage_generator():
             if column is not None:
-                for example in texts:
-                    yield example[column]
+                for i, example in enumerate(texts):
+                    yield {"text": example[column], "_id": i}
             else:
-                for example in texts:
-                    yield example
+                for i, example in enumerate(texts):
+                    yield {"text": example, "_id": i}
 
         # create the ES search_engine
         for ok, action in es.helpers.streaming_bulk(
-            client=self.es_client, search_engine=index_name, actions=passage_generator(),
+            client=self.es_client, index=index_name, actions=passage_generator(),
         ):
             progress.update(1)
             successes += ok
@@ -89,17 +90,8 @@ class SparseSearchEngine(BaseSearchEngine):
 
     def search(self, query, k=10):
         response = self.es_client.search(
-            search_engine=self.index_name,
-            body={
-                "query": {
-                    "multi_match": {
-                        "query": query,
-                        "fields": ["article_title", "section_title", "passage_text^2"],
-                        "type": "cross_fields",
-                    }
-                },
-                "size": k,
-            },
+            index=self.index_name,
+            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields",}}, "size": k,},
         )
         hits = response["hits"]["hits"]
         return [hit["_score"] for hit in hits], [hit["_id"] for hit in hits]
