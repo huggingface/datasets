@@ -73,6 +73,8 @@ TESTS_REQUIRE = [
     'apache-beam',
     'absl-py',
     'bs4',
+    'elasticsearch',
+    'faiss-cpu',
     'langdetect',
     'mwparserfromhell',
     'nltk',

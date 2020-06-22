@@ -10,7 +10,7 @@ jobs:
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
-            - run: python -m pytest -sv ./tests/test_dataset_common.py
+            - run: python -m pytest -sv ./tests/
 
     check_code_quality:
         working_directory: ~/nlp
