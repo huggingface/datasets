@@ -230,7 +230,7 @@ class Glue(nlp.GeneratorBasedBuilder):
           @online{WinNT,
             author = {Iyer, Shankar and Dandekar, Nikhil and Csernai, Kornel},
             title = {First Quora Dataset Release: Question Pairs},
-            year = 2017,
+            year = {2017},
             url = {https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs},
             urldate = {2019-04-03}
           }"""

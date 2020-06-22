@@ -28,8 +28,8 @@ _CITATION = """
 @InProceedings{Cohan2019Structural,
   author={Arman Cohan and Waleed Ammar and Madeleine Van Zuylen and Field Cady},
   title={Structural Scaffolds for Citation Intent Classification in Scientific Publications},
-  booktitle="NAACL",
-  year="2019"
+  booktitle={NAACL},
+  year={2019}
 }
 """
 

@@ -29,17 +29,17 @@ import nlp
 
 _CITATION = """\
 @inproceedings{benikova-etal-2014-nosta,
-    title = "{N}o{S}ta-D Named Entity Annotation for {G}erman: Guidelines and Dataset",
-    author = "Benikova, Darina  and
+    title = {NoSta-D Named Entity Annotation for German: Guidelines and Dataset},
+    author = {Benikova, Darina  and
       Biemann, Chris  and
-      Reznicek, Marc",
-    booktitle = "Proceedings of the Ninth International Conference on Language Resources and Evaluation ({LREC}'14)",
-    month = may,
-    year = "2014",
-    address = "Reykjavik, Iceland",
-    publisher = "European Language Resources Association (ELRA)",
-    url = "http://www.lrec-conf.org/proceedings/lrec2014/pdf/276_Paper.pdf",
-    pages = "2524--2531",
+      Reznicek, Marc},
+    booktitle = {Proceedings of the Ninth International Conference on Language Resources and Evaluation ({LREC}'14)},
+    month = {may},
+    year = {2014},
+    address = {Reykjavik, Iceland},
+    publisher = {European Language Resources Association (ELRA)},
+    url = {http://www.lrec-conf.org/proceedings/lrec2014/pdf/276_Paper.pdf},
+    pages = {2524--2531},
 }
 """
 
