@@ -5,7 +5,7 @@ import numpy as np
 from tqdm.auto import tqdm
 
 if TYPE_CHECKING:
-    from .arrow_dataset import Dataset
+    from .arrow_dataset import Dataset  # noqa: F401
 
 
 try:
@@ -75,7 +75,7 @@ class SparseIndex(BaseIndex):
             _has_elasticsearch
         ), "You must install ElasticSearch to use SparseIndex. To do so you can run `pip install elasticsearch`"
 
-    def add_texts(self, texts: Union[List[str], Dataset], column: Optional[str] = None):
+    def add_texts(self, texts: Union[List[str], "Dataset"], column: Optional[str] = None):
         """
         Add texts to the index.
         If the texts are inside a certain column, you can specify it using the `column` argument.
@@ -170,7 +170,7 @@ class DenseIndex(BaseIndex):
             _has_faiss
         ), "You must install Faiss to use DenseIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
 
-    def add_vectors(self, vectors: Union[np.array, Dataset], column: Optional[str] = None, batch_size=1000):
+    def add_vectors(self, vectors: Union[np.array, "Dataset"], column: Optional[str] = None, batch_size=1000):
         """
         Add vectors to the index.
         If the arrays are inside a certain column, you can specify it using the `column` argument.
