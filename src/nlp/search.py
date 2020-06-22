@@ -1,8 +1,9 @@
 import logging
-from typing import Dict, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from tqdm.auto import tqdm
+
 
 if TYPE_CHECKING:
     from .arrow_dataset import Dataset  # noqa: F401
@@ -33,6 +34,7 @@ class MissingIndex(Exception):
 
 class BaseIndex:
     """Base class for indexing"""
+
     def search(self, query, k: int = 10) -> Tuple[List[float], List[int]]:
         """
         To implement.
@@ -68,6 +70,7 @@ class SparseIndex(BaseIndex):
     ```
     for example.
     """
+
     def __init__(self, es_client, index_name: str):
         self.es_client = es_client
         self.index_name = index_name
@@ -141,6 +144,7 @@ class FaissGpuOptions:
     You can use them for multi-GPU settings for example.
     More info at https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
     """
+
     def __init__(self, resource_vec, device_vec, cloner_options):
         self.resource_vec = resource_vec
         self.device_vec = device_vec
@@ -153,6 +157,7 @@ class DenseIndex(BaseIndex):
     Faiss is a library for efficient similarity search and clustering of dense vectors.
     It contains algorithms that search in sets of vectors of any size, up to ones that possibly do not fit in RAM.
     """
+
     def __init__(
         self,
         device: Optional[int] = None,
