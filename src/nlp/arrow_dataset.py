@@ -1218,7 +1218,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
         with self.formated_as(type="numpy", columns=[column], dtype=dtype):
-            super().add_vector_index(column, self, device, string_factory, faiss_gpu_options, column)
+            super().add_vector_index(column, self, device, string_factory, faiss_gpu_options)
 
     def add_text_index(self, column: str, es_client, index_name):
         """ Add a text index using ElasticSearch for fast retrieval.
@@ -1238,4 +1238,4 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `index_name` (Optional `str`): The elasticsearch index name used to create the index.
         """
         with self.formated_as(type=None, columns=[column]):
-            super().add_text_index(column, self, es_client, index_name, column)
+            super().add_text_index(column, self, es_client, index_name)

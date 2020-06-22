@@ -157,7 +157,7 @@ class DenseIndex(BaseIndex):
 
 
 class IndexableMixin:
-    """Add indexing features to classes"""
+    """Add indexing features to `nlp.Dataset`"""
 
     def __init__(self):
         self._indexes: Dict[str, BaseIndex] = {}
@@ -165,32 +165,31 @@ class IndexableMixin:
     def __getitem__(self, key):
         raise NotImplementedError
 
-    def is_index_initialized(self, name: str) -> bool:
-        return name in self._indexes
+    def is_index_initialized(self, column: str) -> bool:
+        return column in self._indexes
 
-    def _check_index_is_initialized(self, name: str):
-        if not self.is_index_initialized(name):
+    def _check_index_is_initialized(self, column: str):
+        if not self.is_index_initialized(column):
             raise MissingIndex(
-                f"Index with name '{name}' not initialized yet. Please make sure that you call `add_vector_index` or `add_text_index` first."
+                f"Index with column '{column}' not initialized yet. Please make sure that you call `add_vector_index` or `add_text_index` first."
             )
 
     def list_indexes(self) -> List[str]:
-        """List the names/identifiers of all the attached indexes."""
+        """List the columns/identifiers of all the attached indexes."""
         return list(self._indexes)
 
     def add_vector_index(
         self,
-        name: str,
+        column: str,
         vectors,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
-        column: Optional[str] = None,
     ):
         """ Add a dense index using Faiss for fast retrieval.
 
             Args:
-                `name` (`str`): The name/identifier of the index. This is the name that is used to call `.get_nearest` or `.search`.
+                `column` (`str`): The column/identifier of the index. This is the column that is used to call `.get_nearest` or `.search`.
                 `vectors` (`Union[np.ndarray, nlp.Dataset]`): The vectors to index. It can be a `nlp.Dataset` if the `dataset` is well formated
                     using `dataset.set_format("numpy")` for example.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
@@ -198,88 +197,88 @@ class IndexableMixin:
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
                 `column` (Optional `str`): In the case of a `nlp.Dataset` input, which column to index.
         """
-        self._indexes[name] = DenseIndex(device, string_factory, faiss_gpu_options)
-        self._indexes[name].add_vectors(vectors, column=column)
+        self._indexes[column] = DenseIndex(device, string_factory, faiss_gpu_options)
+        self._indexes[column].add_vectors(vectors, column=column)
 
-    def add_text_index(self, name: str, texts, es_client, index_name, column: Optional[str] = None):
+    def add_text_index(self, column: str, texts, es_client, index_name):
         """ Add a text index using ElasticSearch for fast retrieval.
 
             Args:
-                `name` (`str`): The name/identifier of the index. This is the name that is used to call `.get_nearest` or `.search`.
+                `column` (`str`): The column/identifier of the index. This is the column that is used to call `.get_nearest` or `.search`.
                 `texts` (`Union[List[str], nlp.Dataset]`): The texts to index. It can be a `nlp.Dataset`.
                 `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
                 `index_name` (Optional `str`): The elasticsearch index name used to create the index.
                 `column` (Optional `str`): In the case of a `nlp.Dataset` input, which column to index.
         """
-        self._indexes[name] = SparseIndex(es_client, index_name)
-        self._indexes[name].add_texts(texts, column=column)
+        self._indexes[column] = SparseIndex(es_client, index_name)
+        self._indexes[column].add_texts(texts, column=column)
 
-    def drop_index(self, name: str):
-        """ Drop the index with the specified name.
+    def drop_index(self, column: str):
+        """ Drop the index with the specified column.
 
             Args:
-                `name` (`str`): The name/identifier of the index.
+                `column` (`str`): The column/identifier of the index.
         """
-        del self._indexes[name]
+        del self._indexes[column]
 
-    def search(self, name: str, query, k: int = 10) -> Tuple[List[float], List[int]]:
+    def search(self, column: str, query, k: int = 10) -> Tuple[List[float], List[int]]:
         """ Find the nearest examples indices in the dataset to the query.
 
             Args:
-                `name` (`str`): The name/identifier of the index (for `nlp.Dataset` it corresponds to the column name).
-                `query` (`Union[str, np.ndarray]`): The query as a string if `name` is a text index or as a numpy array if `name` is a vector index.
+                `column` (`str`): The name/identifier of the index.
+                `query` (`Union[str, np.ndarray]`): The query as a string if `column` is a text index or as a numpy array if `column` is a vector index.
                 `k` (`int`): The number of examples to retrieve.
 
             Ouput:
                 `scores` (`List[List[float]`): The retrieval scores of the retrieved examples.
                 `indices` (`List[List[int]]`): The indices of the retrieved examples.
         """
-        self._check_index_is_initialized(name)
-        return self._indexes[name].search(query, k)
+        self._check_index_is_initialized(column)
+        return self._indexes[column].search(query, k)
 
-    def search_batch(self, name: str, queries, k: int = 10) -> Tuple[List[List[float]], List[List[int]]]:
+    def search_batch(self, column: str, queries, k: int = 10) -> Tuple[List[List[float]], List[List[int]]]:
         """ Find the nearest examples indices in the dataset to the query.
 
             Args:
-                `name` (`str`): The name/identifier of the index (for `nlp.Dataset` it corresponds to the column name).
-                `queries` (`Union[List[str], np.ndarray]`): The queries as a list of strings if `name` is a text index or as a numpy array if `name` is a vector index.
+                `column` (`str`): The column/identifier of the index.
+                `queries` (`Union[List[str], np.ndarray]`): The queries as a list of strings if `column` is a text index or as a numpy array if `column` is a vector index.
                 `k` (`int`): The number of examples to retrieve per query.
 
             Ouput:
                 `scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
                 `indices` (`List[List[int]]`): The indices of the retrieved examples per query.
         """
-        self._check_index_is_initialized(name)
-        return self._indexes[name].search_batch(queries, k)
+        self._check_index_is_initialized(column)
+        return self._indexes[column].search_batch(queries, k)
 
-    def get_nearest(self, name: str, query, k: int = 10) -> Tuple[List[float], List[dict]]:
+    def get_nearest(self, column: str, query, k: int = 10) -> Tuple[List[float], List[dict]]:
         """ Find the nearest examples in the dataset to the query.
 
             Args:
-                `name` (`str`): The name/identifier of the index (for `nlp.Dataset` it corresponds to the column name).
-                `query` (`Union[str, np.ndarray]`): The query as a string if `name` is a text index or as a numpy array if `name` is a vector index.
+                `column` (`str`): The column/identifier of the index.
+                `query` (`Union[str, np.ndarray]`): The query as a string if `column` is a text index or as a numpy array if `column` is a vector index.
                 `k` (`int`): The number of examples to retrieve.
 
             Ouput:
                 `scores` (`List[List[float]`): The retrieval scores of the retrieved examples.
                 `examples` (`List[List[dict]]`): The retrieved examples.
         """
-        self._check_index_is_initialized(name)
-        scores, indices = self.search(name, query, k)
+        self._check_index_is_initialized(column)
+        scores, indices = self.search(column, query, k)
         return scores, [self[int(i)] for i in indices]
 
-    def get_nearest_batch(self, name: str, queries, k: int = 10) -> Tuple[List[List[float]], List[List[dict]]]:
+    def get_nearest_batch(self, column: str, queries, k: int = 10) -> Tuple[List[List[float]], List[List[dict]]]:
         """ Find the nearest examples in the dataset to the query.
 
             Args:
-                `name` (`str`): The name/identifier of the index (for `nlp.Dataset` it corresponds to the column name).
-                `queries` (`Union[List[str], np.ndarray]`): The queries as a list of strings if `name` is a text index or as a numpy array if `name` is a vector index.
+                `column` (`str`): The column/identifier of the index.
+                `queries` (`Union[List[str], np.ndarray]`): The queries as a list of strings if `column` is a text index or as a numpy array if `column` is a vector index.
                 `k` (`int`): The number of examples to retrieve per query.
 
             Ouput:
                 `scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
                 `examples` (`List[List[dict]]`): The retrieved examples per query.
         """
-        self._check_index_is_initialized(name)
-        total_scores, total_indices = self.search_batch(name, queries, k)
+        self._check_index_is_initialized(column)
+        total_scores, total_indices = self.search_batch(column, queries, k)
         return total_scores, [[self[int(i)] for i in indices] for indices in total_indices]
