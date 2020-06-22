@@ -23,8 +23,12 @@
 
 <h3 align="center">
 <p> Datasets and evaluation metrics for natural language processing
-<p> Works with NumPy, Pandas, PyTorch and TensorFlow
+<p> Compatible with NumPy, Pandas, PyTorch and TensorFlow
 </h3>
+
+🎓 **Colab tutorial**: https://colab.research.google.com/github/huggingface/nlp/blob/master/notebooks/Overview.ipynb
+
+🔎 **Online dataset explorer**: https://huggingface.co/nlp/viewer
 
 🤗 `nlp` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
 

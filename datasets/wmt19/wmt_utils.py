@@ -668,12 +668,6 @@ class WmtConfig(nlp.BuilderConfig):
 class Wmt(ABC, nlp.GeneratorBasedBuilder):
     """WMT translation dataset."""
 
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-  Some of the wmt configs here, require a manual download.
-  Please look into wmt.py to see the exact path (and file name) that has to
-  be downloaded.
-  """
-
     def __init__(self, *args, **kwargs):
         if type(self) == Wmt and "config" not in kwargs:  # pylint: disable=unidiomatic-typecheck
             raise ValueError(
