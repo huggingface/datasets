@@ -12,7 +12,7 @@ import nlp
 _CITATION = """\
 @inproceedings{Dua2019DROP,
   author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
-  title={  {DROP}: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs},
+  title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs},
   booktitle={Proc. of NAACL},
   year={2019}
 }
