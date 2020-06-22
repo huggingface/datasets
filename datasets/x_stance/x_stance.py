@@ -13,7 +13,7 @@ _CITATION = """\
 @inproceedings{vamvas2020xstance,
     author    = "Vamvas, Jannis and Sennrich, Rico",
     title     = "{X-Stance}: A Multilingual Multi-Target Dataset for Stance Detection",
-    booktitle = "Proceedings of the 5th Swiss Text Analytics Conference (SwissText) \& 16th Conference on Natural Language Processing (KONVENS)",
+    booktitle = "Proceedings of the 5th Swiss Text Analytics Conference (SwissText) \\& 16th Conference on Natural Language Processing (KONVENS)",
     address   = "Zurich, Switzerland",
     year      = "2020",
     month     = "jun",
