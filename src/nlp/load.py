@@ -68,9 +68,7 @@ def import_main_class(module_path, dataset=True):
             if inspect.isabstract(obj):
                 continue
             module_main_cls = obj
-            break
-
-    return module_main_cls
+            return module_main_cls
 
 
 def files_to_hash(file_paths: List[str]):
