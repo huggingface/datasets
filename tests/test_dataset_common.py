@@ -186,7 +186,7 @@ class LocalDatasetTest(parameterized.TestCase):
 def get_aws_dataset_names():
     api = hf_api.HfApi()
     # fetch all dataset names
-    datasets = [x.id for x in api.dataset_list()]
+    datasets = [x.id for x in api.dataset_list(with_community_datasets=False)]
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 

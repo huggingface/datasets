@@ -25,9 +25,9 @@ _URL = "http://www.statmt.org/wmt19/translation-task.html"
 # TODO(adarob): Update with citation of overview paper once it is published.
 _CITATION = """
 @ONLINE {wmt19translate,
-    author = "Wikimedia Foundation",
-    title  = "ACL 2019 Fourth Conference on Machine Translation (WMT19), Shared Task: Machine Translation of News",
-    url    = "http://www.statmt.org/wmt19/translation-task.html"
+    author = {Wikimedia Foundation},
+    title  = {ACL 2019 Fourth Conference on Machine Translation (WMT19), Shared Task: Machine Translation of News},
+    url    = {http://www.statmt.org/wmt19/translation-task.html}
 }
 """
 
