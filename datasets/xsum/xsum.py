@@ -60,7 +60,6 @@ class Xsum(nlp.GeneratorBasedBuilder):
     VERSION = nlp.Version("1.1.0")
     SUPPORTED_VERSIONS = [nlp.Version("1.0.0", "Dataset without cleaning.")]
 
-
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
@@ -74,6 +73,7 @@ class Xsum(nlp.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         
         dl_path = dl_manager.download_and_extract(_URL)
+
         dl_path = os.path.join(dl_path, 'xsum')
         return [
             nlp.SplitGenerator(
