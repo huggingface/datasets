@@ -1199,7 +1199,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
         dtype=np.float32,
     ):
-        """ Add a dense index using Faiss for fast retrieval.
+        """ Add a dense index using Faiss for fast retrieval. This is done in-place.
 
             Examples of usage:
 
@@ -1219,9 +1219,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         with self.formated_as(type="numpy", columns=[column], dtype=dtype):
             super().add_vector_index(column, self, device, string_factory, faiss_gpu_options)
+        return self
 
     def add_text_index(self, column: str, es_client, index_name):
-        """ Add a text index using ElasticSearch for fast retrieval.
+        """ Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
             Examples of usage:
 
@@ -1239,3 +1240,4 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         with self.formated_as(type=None, columns=[column]):
             super().add_text_index(column, self, es_client, index_name)
+        return self

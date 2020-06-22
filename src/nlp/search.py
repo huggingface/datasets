@@ -123,23 +123,24 @@ class DenseIndex(BaseIndex):
         ), "You must install Faiss to use DenseIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
 
     def add_vectors(self, vectors: np.array, column: Optional[str] = None, batch_size=1000):
-        size = len(vectors[0]) if column is None else len(vectors[0][column])
-        if self.string_factory is not None:
-            index = faiss.index_factory(size, self.string_factory)
-        else:
-            index = faiss.IndexFlatIP(size)
-        if self.device > -1:
-            self.faiss_res = faiss.StandardGpuResources()
-            self.faiss_index = faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
-        elif self.faiss_gpu_options is not None:
-            self.faiss_index = faiss.index_cpu_to_gpu_multiple(
-                self.faiss_gpu_options.resource_vec,
-                self.faiss_gpu_options.device_vec,
-                index,
-                self.faiss_gpu_options.cloner_options,
-            )
-        else:
-            self.faiss_index = index
+        if self.faiss_index is None:
+            size = len(vectors[0]) if column is None else len(vectors[0][column])
+            if self.string_factory is not None:
+                index = faiss.index_factory(size, self.string_factory)
+            else:
+                index = faiss.IndexFlatIP(size)
+            if self.device > -1:
+                self.faiss_res = faiss.StandardGpuResources()
+                self.faiss_index = faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
+            elif self.faiss_gpu_options is not None:
+                self.faiss_index = faiss.index_cpu_to_gpu_multiple(
+                    self.faiss_gpu_options.resource_vec,
+                    self.faiss_gpu_options.device_vec,
+                    index,
+                    self.faiss_gpu_options.cloner_options,
+                )
+            else:
+                self.faiss_index = index
         for i in range(0, len(vectors), batch_size):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
@@ -147,11 +148,15 @@ class DenseIndex(BaseIndex):
     def search(self, query: np.array, k=10):
         assert len(query.shape) == 1 or (len(query.shape) == 2 and query.shape[0] == 1)
         queries = query.reshape(1, -1)
+        if not queries.flags.c_contiguous:
+            queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k)
         return scores[0], indices[0].astype(int)
 
     def search_batch(self, queries: np.array, k=10):
         assert len(queries.shape) == 2
+        if not queries.flags.c_contiguous:
+            queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k)
         return scores, indices.astype(int)
 
