@@ -1207,7 +1207,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             ds = nlp.load_dataset('crime_and_punish', split='train')
             ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
             ds_with_embeddings.add_text_index(column='embeddings')
-            scores, retrieved_examples = ds_with_embeddings.get_nearest('embeddings', 'embed('my new query'), k=10)
+            scores, retrieved_examples = ds_with_embeddings.get_nearest('embeddings', embed('my new query'), k=10)
             ```
 
             Args:

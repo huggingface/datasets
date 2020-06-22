@@ -1,8 +1,11 @@
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 from tqdm.auto import tqdm
+
+if TYPE_CHECKING:
+    from .arrow_dataset import Dataset
 
 
 try:
@@ -29,10 +32,25 @@ class MissingIndex(Exception):
 
 
 class BaseIndex:
+    """Base class for indexing"""
     def search(self, query, k: int = 10) -> Tuple[List[float], List[int]]:
+        """
+        To implement.
+        This method has to return the scores and the indices of the retrieved examples given a certain query.
+        """
         raise NotImplementedError
 
     def search_batch(self, queries, k: int = 10) -> Tuple[List[List[float]], List[List[int]]]:
+        """ Find the nearest examples indices to the query.
+
+            Args:
+                `queries` (`Union[List[str], np.ndarray]`): The queries as a list of strings if `column` is a text index or as a numpy array if `column` is a vector index.
+                `k` (`int`): The number of examples to retrieve per query.
+
+            Ouput:
+                `scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+                `indices` (`List[List[int]]`): The indices of the retrieved examples per query.
+        """
         total_scores, total_indices = [], []
         for query in queries:
             scores, indices = self.search(query, k)
@@ -42,16 +60,26 @@ class BaseIndex:
 
 
 class SparseIndex(BaseIndex):
+    """
+    Sparse index using Elasticsearch. It is used to index text and run queries based on BM25 similarity.
+    An Elasticsearch server needs to be accessible, and a python client is declared with
+    ```
+    es_client = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
+    ```
+    for example.
+    """
     def __init__(self, es_client, index_name: str):
-        # Elasticsearch needs to be launched in another window, and a python client is declared with
-        # > es_client = Elasticsearch([{'host': 'localhost', 'port': '9200'}])
         self.es_client = es_client
         self.index_name = index_name
         assert (
             _has_elasticsearch
         ), "You must install ElasticSearch to use SparseIndex. To do so you can run `pip install elasticsearch`"
 
-    def add_texts(self, texts, column: Optional[str] = None):
+    def add_texts(self, texts: Union[List[str], Dataset], column: Optional[str] = None):
+        """
+        Add texts to the index.
+        If the texts are inside a certain column, you can specify it using the `column` argument.
+        """
         # TODO: don't rebuild if it already exists
         index_name = self.index_name
         index_config = {
@@ -88,7 +116,17 @@ class SparseIndex(BaseIndex):
             successes += ok
         logger.info("Indexed %d documents" % (successes,))
 
-    def search(self, query, k=10):
+    def search(self, query: str, k=10):
+        """ Find the nearest examples indices to the query.
+
+            Args:
+                `query` (`str`): The query as a string.
+                `k` (`int`): The number of examples to retrieve.
+
+            Ouput:
+                `scores` (`List[List[float]`): The retrieval scores of the retrieved examples.
+                `indices` (`List[List[int]]`): The indices of the retrieved examples.
+        """
         response = self.es_client.search(
             index=self.index_name,
             body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
@@ -98,6 +136,11 @@ class SparseIndex(BaseIndex):
 
 
 class FaissGpuOptions:
+    """
+    Options to specify the GPU resources for Faiss.
+    You can use them for multi-GPU settings for example.
+    More info at https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
+    """
     def __init__(self, resource_vec, device_vec, cloner_options):
         self.resource_vec = resource_vec
         self.device_vec = device_vec
@@ -105,6 +148,11 @@ class FaissGpuOptions:
 
 
 class DenseIndex(BaseIndex):
+    """
+    Dense index using Faiss. It is used to index vectors.
+    Faiss is a library for efficient similarity search and clustering of dense vectors.
+    It contains algorithms that search in sets of vectors of any size, up to ones that possibly do not fit in RAM.
+    """
     def __init__(
         self,
         device: Optional[int] = None,
@@ -122,7 +170,11 @@ class DenseIndex(BaseIndex):
             _has_faiss
         ), "You must install Faiss to use DenseIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
 
-    def add_vectors(self, vectors: np.array, column: Optional[str] = None, batch_size=1000):
+    def add_vectors(self, vectors: Union[np.array, Dataset], column: Optional[str] = None, batch_size=1000):
+        """
+        Add vectors to the index.
+        If the arrays are inside a certain column, you can specify it using the `column` argument.
+        """
         if self.faiss_index is None:
             size = len(vectors[0]) if column is None else len(vectors[0][column])
             if self.string_factory is not None:
@@ -146,6 +198,16 @@ class DenseIndex(BaseIndex):
             self.faiss_index.add(vecs)
 
     def search(self, query: np.array, k=10):
+        """ Find the nearest examples indices to the query.
+
+            Args:
+                `query` (`np.array`): The query as a numpy array.
+                `k` (`int`): The number of examples to retrieve.
+
+            Ouput:
+                `scores` (`List[List[float]`): The retrieval scores of the retrieved examples.
+                `indices` (`List[List[int]]`): The indices of the retrieved examples.
+        """
         assert len(query.shape) == 1 or (len(query.shape) == 2 and query.shape[0] == 1)
         queries = query.reshape(1, -1)
         if not queries.flags.c_contiguous:
@@ -154,6 +216,16 @@ class DenseIndex(BaseIndex):
         return scores[0], indices[0].astype(int)
 
     def search_batch(self, queries: np.array, k=10):
+        """ Find the nearest examples indices to the queries.
+
+            Args:
+                `queries` (`np.array`): The queries as a numpy array.
+                `k` (`int`): The number of examples to retrieve.
+
+            Ouput:
+                `scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+                `indices` (`List[List[int]]`): The indices of the retrieved examples per query.
+        """
         assert len(queries.shape) == 2
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
