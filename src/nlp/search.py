@@ -116,7 +116,7 @@ class ElasticSearchIndex(BaseIndex):
                     "number_of_shards": 1,
                     "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
                 },
-                "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},}},
+                "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
             }
         )
 
