@@ -12,7 +12,7 @@ import nlp
 _CITATION = """\
 @inproceedings{Dua2019DROP,
   author={Dheeru Dua and Yizhong Wang and Pradeep Dasigi and Gabriel Stanovsky and Sameer Singh and Matt Gardner},
-  title={  {DROP}: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs},
+  title={DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs},
   booktitle={Proc. of NAACL},
   year={2019}
 }
@@ -83,10 +83,8 @@ class Drop(nlp.GeneratorBasedBuilder):
         # TODO(drop): Yields (key, example) tuples from the dataset
         with open(filepath) as f:
             data = json.load(f)
-            # print(data.keys())
             for i, key in enumerate(data):
                 example = data[key]
-                # print(example['passage'])
                 qa_pairs = example["qa_pairs"]
                 for j, qa in enumerate(qa_pairs):
                     question = qa["question"]

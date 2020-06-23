@@ -84,7 +84,6 @@ class WikiQa(nlp.GeneratorBasedBuilder):
         # TODO(wiki_qa): Yields (key, example) tuples from the dataset
 
         with open(filepath) as f:
-            print("==" * 100, filepath)
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for idx, row in enumerate(reader):
                 yield idx, {

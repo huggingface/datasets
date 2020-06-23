@@ -11,8 +11,8 @@ import nlp
 # TODO(fquad): BibTeX citation
 _CITATION = """\
 @ARTICLE{2020arXiv200206071
-       author = {{Martin}, d'Hoffschmidt and {Maxime}, Vidal and
-         {Wacim}, Belblidia and {Tom}, Brendlé},
+       author = {Martin, d'Hoffschmidt and Maxime, Vidal and
+         Wacim, Belblidia and Tom, Brendlé},
         title = "{FQuAD: French Question Answering Dataset}",
       journal = {arXiv e-prints},
      keywords = {Computer Science - Computation and Language},

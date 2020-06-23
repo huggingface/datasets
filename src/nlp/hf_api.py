@@ -222,7 +222,7 @@ class HfApi:
         )
         r.raise_for_status()
 
-    def dataset_list(self) -> List[ObjectInfo]:
+    def dataset_list(self, with_community_datasets=True) -> List[ObjectInfo]:
         """
         Get the public list of all the datasets on huggingface, including the community datasets
         """
@@ -230,9 +230,12 @@ class HfApi:
         r = requests.get(path)
         r.raise_for_status()
         d = r.json()
-        return [ObjectInfo(**x) for x in d]
+        datasets = [ObjectInfo(**x) for x in d]
+        if not with_community_datasets:
+            datasets = [d for d in datasets if "/" not in d.id]
+        return datasets
 
-    def metric_list(self) -> List[ObjectInfo]:
+    def metric_list(self, with_community_metrics=True) -> List[ObjectInfo]:
         """
         Get the public list of all the metrics on huggingface, including the community metrics
         """
@@ -240,7 +243,10 @@ class HfApi:
         r = requests.get(path)
         r.raise_for_status()
         d = r.json()
-        return [ObjectInfo(**x) for x in d]
+        metrics = [ObjectInfo(**x) for x in d]
+        if not with_community_metrics:
+            metrics = [m for m in metrics if "/" not in m.id]
+        return metrics
 
 
 class TqdmProgressFileReader:
