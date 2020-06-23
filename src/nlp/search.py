@@ -414,7 +414,9 @@ class IndexableMixin:
         scores, indices = self.search(column, query, k)
         return NearestExamplesResults(scores, [self[int(i)] for i in indices])
 
-    def get_nearest_examples_batch(self, column: str, queries: Union[List[str], np.array], k: int = 10) -> BatchedNearestExamplesResults:
+    def get_nearest_examples_batch(
+        self, column: str, queries: Union[List[str], np.array], k: int = 10
+    ) -> BatchedNearestExamplesResults:
         """ Find the nearest examples in the dataset to the query.
 
             Args:
