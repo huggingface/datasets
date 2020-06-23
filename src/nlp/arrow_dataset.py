@@ -282,7 +282,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
                 output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
-                format_kwargs ()
+                format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         old_format_type = self._format_type
         old_format_kwargs = self._format_kwargs
@@ -309,6 +309,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
                 output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         # Check return type
         if type == "torch":
@@ -705,7 +706,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
                 except NumExamplesMismatch:
                     raise DatasetTransformationNotAllowedError(
-                        "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples."
+                        "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
                     )
                 if update_data:
                     writer.write_batch(batch)
@@ -746,7 +747,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
-                "Using `.filter` on a dataset with attached indexes is not allowed."
+                "Using `.filter` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it.`"
             )
 
         # transforme the filter function into the map function
@@ -811,7 +812,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
-                "Using `.select` on a dataset with attached indexes is not allowed."
+                "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
         # If the array is empty we do nothing
         if len(self) == 0:
@@ -887,7 +888,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
-                "Using `.sort` on a dataset with attached indexes is not allowed."
+                "Using `.sort` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
         # If the array is empty we do nothing
         if len(self) == 0:
@@ -964,7 +965,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
-                "Using `.shuffle` on a dataset with attached indexes is not allowed."
+                "Using `.shuffle` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
         # If the array is empty we do nothing
         if len(self) == 0:
@@ -1053,7 +1054,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
-                "Using `.train_test_split` on a dataset with attached indexes is not allowed."
+                "Using `.train_test_split` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
         # If the array is empty we do nothing
         if len(self) == 0:
