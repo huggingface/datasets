@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union, NamedTuple
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -32,17 +32,24 @@ class MissingIndex(Exception):
     pass
 
 
+SearchResults = NamedTuple("SearchResults", [("scores", List[float]), ("indices", List[int])])
+BatchedSearchResults = NamedTuple("SearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])])
+
+NearestExamplesResults = NamedTuple("SearchResults", [("scores", List[float]), ("examples", List[dict])])
+BatchedNearestExamplesResults = NamedTuple("SearchResults", [("total_scores", List[List[float]]), ("total_examples", List[List[dict]])])
+
+
 class BaseIndex:
     """Base class for indexing"""
 
-    def search(self, query, k: int = 10) -> Tuple[List[float], List[int]]:
+    def search(self, query, k: int = 10) -> SearchResults:
         """
         To implement.
         This method has to return the scores and the indices of the retrieved examples given a certain query.
         """
         raise NotImplementedError
 
-    def search_batch(self, queries, k: int = 10) -> Tuple[List[List[float]], List[List[int]]]:
+    def search_batch(self, queries, k: int = 10) -> BatchedSearchResults:
         """ Find the nearest examples indices to the query.
 
             Args:
@@ -50,15 +57,15 @@ class BaseIndex:
                 `k` (`int`): The number of examples to retrieve per query.
 
             Ouput:
-                `scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-                `indices` (`List[List[int]]`): The indices of the retrieved examples per query.
+                `total_scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+                `total_indices` (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         total_scores, total_indices = [], []
         for query in queries:
             scores, indices = self.search(query, k)
             total_scores.append(scores)
             total_indices.append(indices)
-        return total_scores, total_indices
+        return BatchedSearchResults(total_scores, total_indices)
 
 
 class SparseIndex(BaseIndex):
@@ -119,7 +126,7 @@ class SparseIndex(BaseIndex):
             successes += ok
         logger.info("Indexed %d documents" % (successes,))
 
-    def search(self, query: str, k=10):
+    def search(self, query: str, k=10) -> SearchResults:
         """ Find the nearest examples indices to the query.
 
             Args:
@@ -135,7 +142,7 @@ class SparseIndex(BaseIndex):
             body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
         )
         hits = response["hits"]["hits"]
-        return [hit["_score"] for hit in hits], [hit["_id"] for hit in hits]
+        return SearchResults([hit["_score"] for hit in hits], [hit["_id"] for hit in hits])
 
 
 class FaissGpuOptions:
@@ -202,7 +209,7 @@ class DenseIndex(BaseIndex):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
 
-    def search(self, query: np.array, k=10):
+    def search(self, query: np.array, k=10) -> SearchResults:
         """ Find the nearest examples indices to the query.
 
             Args:
@@ -218,9 +225,9 @@ class DenseIndex(BaseIndex):
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k)
-        return scores[0], indices[0].astype(int)
+        return SearchResults(scores[0], indices[0].astype(int))
 
-    def search_batch(self, queries: np.array, k=10):
+    def search_batch(self, queries: np.array, k=10) -> BatchedSearchResults:
         """ Find the nearest examples indices to the queries.
 
             Args:
@@ -228,14 +235,14 @@ class DenseIndex(BaseIndex):
                 `k` (`int`): The number of examples to retrieve.
 
             Ouput:
-                `scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-                `indices` (`List[List[int]]`): The indices of the retrieved examples per query.
+                `total_scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+                `total_indices` (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         assert len(queries.shape) == 2
         if not queries.flags.c_contiguous:
             queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k)
-        return scores, indices.astype(int)
+        return BatchedSearchResults(scores, indices.astype(int))
 
 
 class IndexableMixin:
@@ -303,7 +310,7 @@ class IndexableMixin:
         """
         del self._indexes[column]
 
-    def search(self, column: str, query, k: int = 10) -> Tuple[List[float], List[int]]:
+    def search(self, column: str, query, k: int = 10) -> SearchResults:
         """ Find the nearest examples indices in the dataset to the query.
 
             Args:
@@ -318,7 +325,7 @@ class IndexableMixin:
         self._check_index_is_initialized(column)
         return self._indexes[column].search(query, k)
 
-    def search_batch(self, column: str, queries, k: int = 10) -> Tuple[List[List[float]], List[List[int]]]:
+    def search_batch(self, column: str, queries, k: int = 10) -> BatchedSearchResults:
         """ Find the nearest examples indices in the dataset to the query.
 
             Args:
@@ -327,13 +334,13 @@ class IndexableMixin:
                 `k` (`int`): The number of examples to retrieve per query.
 
             Ouput:
-                `scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-                `indices` (`List[List[int]]`): The indices of the retrieved examples per query.
+                `total_scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+                `total_indices` (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         self._check_index_is_initialized(column)
         return self._indexes[column].search_batch(queries, k)
 
-    def get_nearest(self, column: str, query, k: int = 10) -> Tuple[List[float], List[dict]]:
+    def get_nearest(self, column: str, query, k: int = 10) -> NearestExamplesResults:
         """ Find the nearest examples in the dataset to the query.
 
             Args:
@@ -347,9 +354,9 @@ class IndexableMixin:
         """
         self._check_index_is_initialized(column)
         scores, indices = self.search(column, query, k)
-        return scores, [self[int(i)] for i in indices]
+        return NearestExamplesResults(scores, [self[int(i)] for i in indices])
 
-    def get_nearest_batch(self, column: str, queries, k: int = 10) -> Tuple[List[List[float]], List[List[dict]]]:
+    def get_nearest_batch(self, column: str, queries, k: int = 10) -> BatchedNearestExamplesResults:
         """ Find the nearest examples in the dataset to the query.
 
             Args:
@@ -358,9 +365,9 @@ class IndexableMixin:
                 `k` (`int`): The number of examples to retrieve per query.
 
             Ouput:
-                `scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-                `examples` (`List[List[dict]]`): The retrieved examples per query.
+                `total_scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+                `total_examples` (`List[List[dict]]`): The retrieved examples per query.
         """
         self._check_index_is_initialized(column)
         total_scores, total_indices = self.search_batch(column, queries, k)
-        return total_scores, [[self[int(i)] for i in indices] for indices in total_indices]
+        return BatchedNearestExamplesResults(total_scores, [[self[int(i)] for i in indices] for indices in total_indices])
