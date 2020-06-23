@@ -170,6 +170,9 @@ class FaissIndex(BaseIndex):
     Dense index using Faiss. It is used to index vectors.
     Faiss is a library for efficient similarity search and clustering of dense vectors.
     It contains algorithms that search in sets of vectors of any size, up to ones that possibly do not fit in RAM.
+    You can find more information about Faiss here:
+    - For index types and the string factory: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+    - For GPU settings: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
     """
 
     def __init__(
@@ -178,6 +181,12 @@ class FaissIndex(BaseIndex):
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
     ):
+        """
+        Create a Dense index using Faiss. You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+        You can find more information about Faiss here:
+        - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+        - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
+        """
         assert not (
             device is not None and faiss_gpu_options is not None
         ), "Please specify either `device` or `faiss_gpu_options` but not both."
