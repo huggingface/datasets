@@ -89,8 +89,6 @@ class Snli(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        print(filepath)
-        print("==" * 100)
         with open(filepath) as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for idx, row in enumerate(reader):

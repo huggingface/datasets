@@ -51,18 +51,19 @@ _CQA_V1_11_URL_DEV = "https://s3.amazonaws.com/commensenseqa/dev_rand_split.json
 _CQA_V1_11_URL_TEST = "https://s3.amazonaws.com/commensenseqa/test_rand_split_no_answers.jsonl"
 
 _CQA_V1_0_URL_TRAIN = os.path.join(_COS_E_URL, "v1.0/train_rand_split.jsonl")
-_CQA_V1_0_URL_DEV = os.path.join(_COS_E_URL,"v1.0/dev_rand_split.jsonl")
+_CQA_V1_0_URL_DEV = os.path.join(_COS_E_URL, "v1.0/dev_rand_split.jsonl")
 _CQA_V1_0_URL_TEST = os.path.join(_COS_E_URL, "v1.0/test_rand_split_no_answers.jsonl")
+
 
 def _download_and_index_cqa(dl_manager, name):
     """Downloads CQA and returns it, indexed by id, for joining with Cos-E."""
 
     downloaded_files = dl_manager.download_and_extract(
-
-        {"cqa_train": _CQA_V1_11_URL_TRAIN if name == 'v1.11' else _CQA_V1_0_URL_TRAIN,
-          "cqa_dev": _CQA_V1_11_URL_DEV if name == 'v1.11' else _CQA_V1_0_URL_DEV,
-          "cqa_test": _CQA_V1_11_URL_TEST if name == 'v1.11' else _CQA_V1_0_URL_TEST
-         }
+        {
+            "cqa_train": _CQA_V1_11_URL_TRAIN if name == "v1.11" else _CQA_V1_0_URL_TRAIN,
+            "cqa_dev": _CQA_V1_11_URL_DEV if name == "v1.11" else _CQA_V1_0_URL_DEV,
+            "cqa_test": _CQA_V1_11_URL_TEST if name == "v1.11" else _CQA_V1_0_URL_TEST,
+        }
     )
 
     # NB: "cqa_test" is included in the files, but not in any of the CoS-E splits.
@@ -172,7 +173,6 @@ class CosE(nlp.GeneratorBasedBuilder):
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION, gen_kwargs={"files": files["dev"], "cqa_indexed": cqa_indexed},
             ),
-
         ]
 
     def _generate_examples(self, files, **kwargs):

@@ -10,12 +10,14 @@ import nlp
 
 # TODO(x_stance): BibTeX citation
 _CITATION = """\
-@article{vamvas2020xstance,
-  title={X-Stance: A Multilingual Multi-Target Dataset for Stance Detection},
-  author={Vamvas, Jannis and Sennrich, Rico},
-  journal={arXiv preprint arXiv:2003.08385},
-  url = "https://arxiv.org/abs/2003.08385",
-  year={2020}
+@inproceedings{vamvas2020xstance,
+    author    = "Vamvas, Jannis and Sennrich, Rico",
+    title     = "{X-Stance}: A Multilingual Multi-Target Dataset for Stance Detection",
+    booktitle = "Proceedings of the 5th Swiss Text Analytics Conference (SwissText) \\& 16th Conference on Natural Language Processing (KONVENS)",
+    address   = "Zurich, Switzerland",
+    year      = "2020",
+    month     = "jun",
+    url       = "http://ceur-ws.org/Vol-2624/paper9.pdf"
 }
 """
 
@@ -27,7 +29,7 @@ It can be used to train and evaluate stance detection systems.
 
 """
 
-_URL = "http://tiny.uzh.ch/12p"
+_URL = "https://github.com/ZurichNLP/xstance/raw/v1.0.0/data/xstance-data-v1.0.zip"
 
 
 class XStance(nlp.GeneratorBasedBuilder):
