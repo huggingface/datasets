@@ -95,7 +95,6 @@ class BERTScore(nlp.Metric):
         all_layers=False,
         rescale_with_baseline=False,
     ):
-        print(">>>", predictions, references)
         if model_type is None:
             assert lang is not None, "either lang or model_type should be specified"
             model_type = bert_score.utils.lang2model[lang.lower()]
