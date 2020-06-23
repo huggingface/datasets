@@ -45,12 +45,10 @@ There are two features:
 """
 
 
-_URL = 'https://s3.amazonaws.com/datasets.huggingface.co/summarization/xsum.tar.gz'
+_URL = "https://s3.amazonaws.com/datasets.huggingface.co/summarization/xsum.tar.gz"
 
 _DOCUMENT = "document"
 _SUMMARY = "summary"
-
-
 
 
 class Xsum(nlp.GeneratorBasedBuilder):
@@ -71,19 +69,31 @@ class Xsum(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        
+
         dl_path = dl_manager.download_and_extract(_URL)
 
-        dl_path = os.path.join(dl_path, 'xsum')
+        dl_path = os.path.join(dl_path, "xsum")
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"source": os.path.join(dl_path, 'train.source'), "target": os.path.join(dl_path, 'train.target')},
+                name=nlp.Split.TRAIN,
+                gen_kwargs={
+                    "source": os.path.join(dl_path, "train.source"),
+                    "target": os.path.join(dl_path, "train.target"),
+                },
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"source": os.path.join(dl_path, 'val.source'), "target": os.path.join(dl_path, 'val.target')},
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={
+                    "source": os.path.join(dl_path, "val.source"),
+                    "target": os.path.join(dl_path, "val.target"),
+                },
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"source": os.path.join(dl_path, 'test.source'), "target": os.path.join(dl_path, 'test.target')},
+                name=nlp.Split.TEST,
+                gen_kwargs={
+                    "source": os.path.join(dl_path, "test.source"),
+                    "target": os.path.join(dl_path, "test.target"),
+                },
             ),
         ]
 
@@ -93,7 +103,6 @@ class Xsum(nlp.GeneratorBasedBuilder):
             source = f1.readlines()
         with open(target) as f2:
             target = f2.readlines()
-        assert (len(source) == len(target))
-        for i in range(len(target)):    
+        assert len(source) == len(target)
+        for i in range(len(target)):
             yield i, {_DOCUMENT: source[i], _SUMMARY: target[i]}
-           

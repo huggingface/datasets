@@ -18,8 +18,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import json
+import os
 
 import nlp
 
@@ -47,10 +47,11 @@ It contains three rounds. Each round has train/dev/test splits.
 """
 
 stdnli_label = {
-    'e': "entailment",
-    'n': "neutral",
-    'c': "contradiction",
+    "e": "entailment",
+    "n": "neutral",
+    "c": "contradiction",
 }
+
 
 class ANLIConfig(nlp.BuilderConfig):
     """BuilderConfig for ANLI."""
@@ -83,7 +84,7 @@ class ANLI(nlp.GeneratorBasedBuilder):
                     "premise": nlp.Value("string"),
                     "hypothesis": nlp.Value("string"),
                     "label": nlp.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
-                    "reason": nlp.Value("string")
+                    "reason": nlp.Value("string"),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -99,9 +100,7 @@ class ANLI(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        downloaded_dir = dl_manager.download_and_extract(
-            "https://dl.fbaipublicfiles.com/anli/anli_v0.1.zip"
-        )
+        downloaded_dir = dl_manager.download_and_extract("https://dl.fbaipublicfiles.com/anli/anli_v0.1.zip")
 
         anli_path = os.path.join(downloaded_dir, "anli_v0.1")
 
@@ -113,19 +112,17 @@ class ANLI(nlp.GeneratorBasedBuilder):
 
         return [
             # Round 1
-            nlp.SplitGenerator(name='train_r1', gen_kwargs={"filepath": path_dict["R1"]["train"]}),
-            nlp.SplitGenerator(name='dev_r1', gen_kwargs={"filepath": path_dict["R1"]["dev"]}),
-            nlp.SplitGenerator(name='test_r1', gen_kwargs={"filepath": path_dict["R1"]["test"]}),
-
+            nlp.SplitGenerator(name="train_r1", gen_kwargs={"filepath": path_dict["R1"]["train"]}),
+            nlp.SplitGenerator(name="dev_r1", gen_kwargs={"filepath": path_dict["R1"]["dev"]}),
+            nlp.SplitGenerator(name="test_r1", gen_kwargs={"filepath": path_dict["R1"]["test"]}),
             # Round 2
-            nlp.SplitGenerator(name='train_r2', gen_kwargs={"filepath": path_dict["R2"]["train"]}),
-            nlp.SplitGenerator(name='dev_r2', gen_kwargs={"filepath": path_dict["R2"]["dev"]}),
-            nlp.SplitGenerator(name='test_r2', gen_kwargs={"filepath": path_dict["R2"]["test"]}),
-
+            nlp.SplitGenerator(name="train_r2", gen_kwargs={"filepath": path_dict["R2"]["train"]}),
+            nlp.SplitGenerator(name="dev_r2", gen_kwargs={"filepath": path_dict["R2"]["dev"]}),
+            nlp.SplitGenerator(name="test_r2", gen_kwargs={"filepath": path_dict["R2"]["test"]}),
             # Round 3
-            nlp.SplitGenerator(name='train_r3', gen_kwargs={"filepath": path_dict["R3"]["train"]}),
-            nlp.SplitGenerator(name='dev_r3', gen_kwargs={"filepath": path_dict["R3"]["dev"]}),
-            nlp.SplitGenerator(name='test_r3', gen_kwargs={"filepath": path_dict["R3"]["test"]}),
+            nlp.SplitGenerator(name="train_r3", gen_kwargs={"filepath": path_dict["R3"]["train"]}),
+            nlp.SplitGenerator(name="dev_r3", gen_kwargs={"filepath": path_dict["R3"]["dev"]}),
+            nlp.SplitGenerator(name="test_r3", gen_kwargs={"filepath": path_dict["R3"]["test"]}),
         ]
 
     def _generate_examples(self, filepath):
@@ -142,14 +139,14 @@ class ANLI(nlp.GeneratorBasedBuilder):
                 line = line.strip().decode("utf-8")
                 item = json.loads(line)
 
-                reason_text = ''
-                if 'reason' in item:
-                    reason_text = item['reason']
+                reason_text = ""
+                if "reason" in item:
+                    reason_text = item["reason"]
 
-                yield item['uid'], {
-                    "uid": item['uid'],
-                    "premise": item['context'],
-                    "hypothesis": item['hypothesis'],
-                    "label": stdnli_label[item['label']],
+                yield item["uid"], {
+                    "uid": item["uid"],
+                    "premise": item["context"],
+                    "hypothesis": item["hypothesis"],
+                    "label": stdnli_label[item["label"]],
                     "reason": reason_text,
                 }
