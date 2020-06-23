@@ -129,6 +129,8 @@ class ElasticSearchIndex(BaseIndex):
         ):
             progress.update(1)
             successes += ok
+        if successes != len(documents):
+            logging.warning(f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}")
         logger.info("Indexed %d documents" % (successes,))
 
     def search(self, query: str, k=10) -> SearchResults:
