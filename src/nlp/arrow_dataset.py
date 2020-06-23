@@ -1191,7 +1191,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return {"train": train_split, "test": test_split}
 
-    def add_vector_index(
+    def add_faiss_index(
         self,
         column: str,
         device: Optional[int] = None,
@@ -1218,10 +1218,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
         with self.formated_as(type="numpy", columns=[column], dtype=dtype):
-            super().add_vector_index(column, self, device, string_factory, faiss_gpu_options)
+            super().add_faiss_index(column, self, device, string_factory, faiss_gpu_options)
         return self
 
-    def add_text_index(self, column: str, es_client, index_name):
+    def add_elasticsearch_index(self, column: str, es_client, index_name):
         """ Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
             Examples of usage:
@@ -1239,5 +1239,5 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `index_name` (Optional `str`): The elasticsearch index name used to create the index.
         """
         with self.formated_as(type=None, columns=[column]):
-            super().add_text_index(column, self, es_client, index_name)
+            super().add_elasticsearch_index(column, self, es_client, index_name)
         return self

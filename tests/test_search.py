@@ -9,7 +9,7 @@ from elasticsearch import Elasticsearch
 from nlp.arrow_dataset import Dataset
 from nlp.arrow_reader import BaseReader
 from nlp.info import DatasetInfo
-from nlp.search import DenseIndex, SparseIndex
+from nlp.search import FaissIndex, ElasticSearchIndex
 from nlp.splits import SplitDict, SplitInfo
 
 
@@ -51,7 +51,7 @@ class IndexableDatasetTest(TestCase):
         dset = dset.map(
             lambda ex, i: {"vecs": i * np.ones(5, dtype=np.float32)}, with_indices=True, keep_in_memory=True
         )
-        dset = dset.add_vector_index("vecs")
+        dset = dset.add_faiss_index("vecs")
         scores, examples = dset.get_nearest("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples[0]["filename"], "my_name-train_29")
 
@@ -65,14 +65,14 @@ class IndexableDatasetTest(TestCase):
             mocked_search.return_value = {"hits": {"hits": [{"_score": 1, "_id": 29}]}}
             es_client = Elasticsearch()
 
-            dset.add_text_index("filename", es_client, "my_index_name")
+            dset.add_elasticsearch_index("filename", es_client, "my_index_name")
             scores, examples = dset.get_nearest("filename", "my_name-train_29")
             self.assertEqual(examples[0]["filename"], "my_name-train_29")
 
 
-class DenseIndexTest(TestCase):
+class FaissIndexTest(TestCase):
     def test_flat_ip(self):
-        index = DenseIndex()
+        index = FaissIndex()
 
         # add vectors
         index.add_vectors(np.eye(5, dtype=np.float32))
@@ -97,22 +97,22 @@ class DenseIndexTest(TestCase):
         self.assertListEqual([4, 3, 2, 1, 0], best_indices)
 
     def test_factory(self):
-        index = DenseIndex(string_factory="Flat")
+        index = FaissIndex(string_factory="Flat")
         index.add_vectors(np.eye(5, dtype=np.float32))
         self.assertIsInstance(index.faiss_index, faiss.IndexFlat)
-        index = DenseIndex(string_factory="LSH")
+        index = FaissIndex(string_factory="LSH")
         index.add_vectors(np.eye(5, dtype=np.float32))
         self.assertIsInstance(index.faiss_index, faiss.IndexLSH)
 
 
-class SparseIndexTest(TestCase):
+class ElasticSearchIndexTest(TestCase):
     def test_flat_ip(self):
         with patch("elasticsearch.Elasticsearch.search") as mocked_search, patch(
             "elasticsearch.client.IndicesClient.create"
         ) as mocked_index_create, patch("elasticsearch.helpers.streaming_bulk") as mocked_bulk:
             es_client = Elasticsearch()
             mocked_index_create.return_value = {"acknowledged": True}
-            index = SparseIndex(es_client, "my_index_name")
+            index = ElasticSearchIndex(es_client, "my_index_name")
             mocked_bulk.return_value([(True, None)] * 3)
             index.add_texts(["foo", "bar", "foobar"])
 

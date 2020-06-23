@@ -68,7 +68,7 @@ class BaseIndex:
         return BatchedSearchResults(total_scores, total_indices)
 
 
-class SparseIndex(BaseIndex):
+class ElasticSearchIndex(BaseIndex):
     """
     Sparse index using Elasticsearch. It is used to index text and run queries based on BM25 similarity.
     An Elasticsearch server needs to be accessible, and a python client is declared with
@@ -83,7 +83,7 @@ class SparseIndex(BaseIndex):
         self.index_name = index_name
         assert (
             _has_elasticsearch
-        ), "You must install ElasticSearch to use SparseIndex. To do so you can run `pip install elasticsearch`"
+        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch`"
 
     def add_texts(self, texts: Union[List[str], "Dataset"], column: Optional[str] = None):
         """
@@ -158,7 +158,7 @@ class FaissGpuOptions:
         self.cloner_options = cloner_options
 
 
-class DenseIndex(BaseIndex):
+class FaissIndex(BaseIndex):
     """
     Dense index using Faiss. It is used to index vectors.
     Faiss is a library for efficient similarity search and clustering of dense vectors.
@@ -180,7 +180,7 @@ class DenseIndex(BaseIndex):
         self.faiss_index = None
         assert (
             _has_faiss
-        ), "You must install Faiss to use DenseIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
+        ), "You must install Faiss to use FaissIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
 
     def add_vectors(self, vectors: Union[np.array, "Dataset"], column: Optional[str] = None, batch_size=1000):
         """
@@ -267,7 +267,7 @@ class IndexableMixin:
         """List the columns/identifiers of all the attached indexes."""
         return list(self._indexes)
 
-    def add_vector_index(
+    def add_faiss_index(
         self,
         column: str,
         vectors,
@@ -286,10 +286,10 @@ class IndexableMixin:
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
                 `column` (Optional `str`): In the case of a `nlp.Dataset` input, which column to index.
         """
-        self._indexes[column] = DenseIndex(device, string_factory, faiss_gpu_options)
+        self._indexes[column] = FaissIndex(device, string_factory, faiss_gpu_options)
         self._indexes[column].add_vectors(vectors, column=column)
 
-    def add_text_index(self, column: str, texts, es_client, index_name):
+    def add_elasticsearch_index(self, column: str, texts, es_client, index_name):
         """ Add a text index using ElasticSearch for fast retrieval.
 
             Args:
@@ -299,7 +299,7 @@ class IndexableMixin:
                 `index_name` (Optional `str`): The elasticsearch index name used to create the index.
                 `column` (Optional `str`): In the case of a `nlp.Dataset` input, which column to index.
         """
-        self._indexes[column] = SparseIndex(es_client, index_name)
+        self._indexes[column] = ElasticSearchIndex(es_client, index_name)
         self._indexes[column].add_texts(texts, column=column)
 
     def drop_index(self, column: str):
