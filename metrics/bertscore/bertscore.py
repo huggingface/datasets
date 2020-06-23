@@ -63,6 +63,7 @@ Returns:
     'hashcode': Hashcode of the library,
 """
 
+
 class BERTScore(nlp.Metric):
     def _info(self):
         return nlp.MetricInfo(
@@ -94,6 +95,7 @@ class BERTScore(nlp.Metric):
         all_layers=False,
         rescale_with_baseline=False,
     ):
+        print(">>>", predictions, references)
         if model_type is None:
             assert lang is not None, "either lang or model_type should be specified"
             model_type = bert_score.utils.lang2model[lang.lower()]
@@ -125,3 +127,21 @@ class BERTScore(nlp.Metric):
             'hashcode': hashcode,
         }
         return output_dict
+
+    def add_batch(self, predictions=None, references=None, **kwargs):
+        """ Add a batch of predictions and references for the metric's stack.
+        """
+        # Refefences can be strings or lists of strings
+        # Let's change strings to lists of strings with one element
+        if references is not None:
+            references = [[ref] if isinstance(ref, str) else ref for ref in references]
+        super().add_batch(predictions=predictions, references=references, **kwargs)
+
+    def add(self, prediction=None, reference=None, **kwargs):
+        """ Add one prediction and reference for the metric's stack.
+        """
+        # Refefences can be strings or lists of strings
+        # Let's change strings to lists of strings with one element
+        if isinstance(reference, str):
+            reference = [reference]
+        super().add(prediction=prediction, reference=reference, **kwargs)
