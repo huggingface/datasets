@@ -1226,7 +1226,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             super().add_faiss_index(column=column, external_arrays=external_arrays.astype(dtype), device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options)
         return self
 
-    def add_elasticsearch_index(self, column: str, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional["Elasticsearch"] = None, index_name: Optional[str] = None):
+    def add_elasticsearch_index(self, column: str, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional["Elasticsearch"] = None, index_name: Optional[str] = None, index_config: Optional[dict] = None):
         """ Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
             Examples of usage:
@@ -1244,6 +1244,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `port` (Optional `str`): Port of the elasticsearch server. Default is `9200`.
                 `es_client` (`Optional elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
                 `index_name` (Optional `str`): The elasticsearch index name used to create the index.
+                `index_config` (Optional `dict`): The configuration of the elasticsearch index.
+                    Default config is
+                    {
+                        "settings": {
+                            "number_of_shards": 1,
+                            "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                        },
+                        "mappings": {
+                            "properties": {
+                                "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
+                            }
+                        },
+                    }
         """
         with self.formated_as(type=None, columns=[column]):
             super().add_elasticsearch_index(column=column, host=host, port=port, es_client=es_client, index_name=index_name)

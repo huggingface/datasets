@@ -81,7 +81,7 @@ class ElasticSearchIndex(BaseIndex):
     for example.
     """
 
-    def __init__(self, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional[Elasticsearch] = None, index_name: Optional[str] = None):
+    def __init__(self, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional[Elasticsearch] = None, index_name: Optional[str] = None, index_config: Optional[dict] = None):
         assert (
             _has_elasticsearch
         ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch`"
@@ -90,6 +90,17 @@ class ElasticSearchIndex(BaseIndex):
         port = port or 9200
         self.es_client = es_client if es_client is not None else Elasticsearch([{'host': host, 'port': str(port)}])
         self.index_name = index_name if index_name is not None else "huggingface_nlp_" + os.path.basename(tempfile.NamedTemporaryFile().name)
+        self.index_config = index_config if index_config is not None else {
+            "settings": {
+                "number_of_shards": 1,
+                "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+            },
+            "mappings": {
+                "properties": {
+                    "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
+                }
+            },
+        }
 
     def add_documents(self, documents: Union[List[str], "Dataset"], column: Optional[str] = None):
         """
@@ -98,19 +109,7 @@ class ElasticSearchIndex(BaseIndex):
         """
         # TODO: don't rebuild if it already exists
         index_name = self.index_name
-        index_config = {
-            "settings": {
-                "number_of_shards": 1,
-                "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
-            },
-            "mappings": {
-                "properties": {
-                    "article_title": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
-                    "section_title": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
-                    "passage_text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
-                }
-            },
-        }
+        index_config = self.index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
         progress = tqdm(unit="docs", total=number_of_docs)
@@ -297,7 +296,7 @@ class IndexableMixin:
         else:
             self._indexes[column].add_vectors(external_arrays, column=None)
 
-    def add_elasticsearch_index(self, column: str, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional[Elasticsearch] = None, index_name: Optional[str] = None):
+    def add_elasticsearch_index(self, column: str, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional[Elasticsearch] = None, index_name: Optional[str] = None, index_config: Optional[dict] = None):
         """ Add a text index using ElasticSearch for fast retrieval.
 
             Args:
@@ -305,8 +304,21 @@ class IndexableMixin:
                 `documents` (`Union[List[str], nlp.Dataset]`): The documents to index. It can be a `nlp.Dataset`.
                 `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
                 `index_name` (Optional `str`): The elasticsearch index name used to create the index.
+                `index_config` (Optional `dict`): The configuration of the elasticsearch index.
+                    Default config is
+                    {
+                        "settings": {
+                            "number_of_shards": 1,
+                            "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                        },
+                        "mappings": {
+                            "properties": {
+                                "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
+                            }
+                        },
+                    }
         """
-        self._indexes[column] = ElasticSearchIndex(host, port, es_client, index_name)
+        self._indexes[column] = ElasticSearchIndex(host, port, es_client, index_name, index_config)
         self._indexes[column].add_documents(self, column=column)
 
     def drop_index(self, column: str):
