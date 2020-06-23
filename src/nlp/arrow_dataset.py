@@ -34,7 +34,7 @@ from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
 from .search import FaissGpuOptions, IndexableMixin
-from .utils import convert_sequences_in_lists, map_nested
+from .utils import map_all_sequences_to_lists, map_nested
 
 
 logger = logging.getLogger(__name__)
@@ -654,7 +654,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if arrow_schema is None and update_data:
             if not batched:
                 test_output = self._nest(test_output)
-            test_output = convert_sequences_in_lists(test_output)
+            test_output = map_all_sequences_to_lists(test_output)
             arrow_schema = pa.Table.from_pydict(test_output).schema
             if disable_nullable:
                 arrow_schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in arrow_schema)
@@ -784,7 +784,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         test_inputs = self[:2]
         if "remove_columns" in kwargs:
             test_inputs = {key: test_inputs[key] for key in (test_inputs.keys() - kwargs["remove_columns"])}
-        test_inputs = convert_sequences_in_lists(test_inputs)
+        test_inputs = map_all_sequences_to_lists(test_inputs)
         arrow_schema = pa.Table.from_pydict(test_inputs).schema
 
         # return map function
