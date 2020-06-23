@@ -108,7 +108,7 @@ class MockDownloadManager(object):
         return self.download_and_extract(data_url)
 
     # this function has to be in the manager under this name so that testing works
-    def download_custom(self, data_url, custom_download):
+    def download_custom(self, data_url, custom_download, show_progress=False):
         return self.download_and_extract(data_url)
 
     # this function has to be in the manager under this name so that testing works
