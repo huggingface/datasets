@@ -1222,12 +1222,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if external_arrays is None:
             with self.formated_as(type="numpy", columns=[column], dtype=dtype):
-                super().add_faiss_index(column=column, device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options)
+                super().add_faiss_index(
+                    column=column, device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options
+                )
         else:
-            super().add_faiss_index(column=column, external_arrays=external_arrays.astype(dtype), device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options)
+            super().add_faiss_index(
+                column=column,
+                external_arrays=external_arrays.astype(dtype),
+                device=device,
+                string_factory=string_factory,
+                faiss_gpu_options=faiss_gpu_options,
+            )
         return self
 
-    def add_elasticsearch_index(self, column: str, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional["Elasticsearch"] = None, index_name: Optional[str] = None, index_config: Optional[dict] = None):
+    def add_elasticsearch_index(
+        self,
+        column: str,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        es_client: Optional["Elasticsearch"] = None,
+        index_name: Optional[str] = None,
+        index_config: Optional[dict] = None,
+    ):
         """ Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
             Examples of usage:
@@ -1260,5 +1276,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     }
         """
         with self.formated_as(type=None, columns=[column]):
-            super().add_elasticsearch_index(column=column, host=host, port=port, es_client=es_client, index_name=index_name)
+            super().add_elasticsearch_index(
+                column=column, host=host, port=port, es_client=es_client, index_name=index_name
+            )
         return self

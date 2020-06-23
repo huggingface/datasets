@@ -1,8 +1,8 @@
 import logging
 import os
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, NamedTuple, Any
 import tempfile
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -37,10 +37,14 @@ class MissingIndex(Exception):
 
 
 SearchResults = NamedTuple("SearchResults", [("scores", List[float]), ("indices", List[int])])
-BatchedSearchResults = NamedTuple("SearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])])
+BatchedSearchResults = NamedTuple(
+    "SearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])]
+)
 
 NearestExamplesResults = NamedTuple("SearchResults", [("scores", List[float]), ("examples", List[dict])])
-BatchedNearestExamplesResults = NamedTuple("SearchResults", [("total_scores", List[List[float]]), ("total_examples", List[List[dict]])])
+BatchedNearestExamplesResults = NamedTuple(
+    "SearchResults", [("total_scores", List[List[float]]), ("total_examples", List[List[dict]])]
+)
 
 
 class BaseIndex:
@@ -82,26 +86,39 @@ class ElasticSearchIndex(BaseIndex):
     for example.
     """
 
-    def __init__(self, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional[Elasticsearch] = None, index_name: Optional[str] = None, index_config: Optional[dict] = None):
+    def __init__(
+        self,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        es_client: Optional[Elasticsearch] = None,
+        index_name: Optional[str] = None,
+        index_config: Optional[dict] = None,
+    ):
         assert (
             _has_elasticsearch
         ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch`"
-        assert es_client is None or (host is None and port is None), "Please specify either `es_client` or `(host, port)`, but not both."
+        assert es_client is None or (
+            host is None and port is None
+        ), "Please specify either `es_client` or `(host, port)`, but not both."
         host = host or "localhost"
         port = port or 9200
-        self.es_client = es_client if es_client is not None else Elasticsearch([{'host': host, 'port': str(port)}])
-        self.index_name = index_name if index_name is not None else "huggingface_nlp_" + os.path.basename(tempfile.NamedTemporaryFile().name)
-        self.index_config = index_config if index_config is not None else {
-            "settings": {
-                "number_of_shards": 1,
-                "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
-            },
-            "mappings": {
-                "properties": {
-                    "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
-                }
-            },
-        }
+        self.es_client = es_client if es_client is not None else Elasticsearch([{"host": host, "port": str(port)}])
+        self.index_name = (
+            index_name
+            if index_name is not None
+            else "huggingface_nlp_" + os.path.basename(tempfile.NamedTemporaryFile().name)
+        )
+        self.index_config = (
+            index_config
+            if index_config is not None
+            else {
+                "settings": {
+                    "number_of_shards": 1,
+                    "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                },
+                "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},}},
+            }
+        )
 
     def add_documents(self, documents: Union[List[str], "Dataset"], column: Optional[str] = None):
         """
@@ -131,7 +148,9 @@ class ElasticSearchIndex(BaseIndex):
             progress.update(1)
             successes += ok
         if successes != len(documents):
-            logging.warning(f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}")
+            logging.warning(
+                f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}"
+            )
         logger.info("Indexed %d documents" % (successes,))
 
     def search(self, query: str, k=10) -> SearchResults:
@@ -160,6 +179,7 @@ class FaissGpuOptions:
     You can use them for multi-GPU settings for example.
     More info at https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
     """
+
     resource_vec: Any
     device_vec: Any
     cloner_options: Any
@@ -307,7 +327,15 @@ class IndexableMixin:
         else:
             self._indexes[column].add_vectors(external_arrays, column=None)
 
-    def add_elasticsearch_index(self, column: str, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional[Elasticsearch] = None, index_name: Optional[str] = None, index_config: Optional[dict] = None):
+    def add_elasticsearch_index(
+        self,
+        column: str,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        es_client: Optional[Elasticsearch] = None,
+        index_name: Optional[str] = None,
+        index_config: Optional[dict] = None,
+    ):
         """ Add a text index using ElasticSearch for fast retrieval.
 
             Args:
@@ -400,4 +428,6 @@ class IndexableMixin:
         """
         self._check_index_is_initialized(column)
         total_scores, total_indices = self.search_batch(column, queries, k)
-        return BatchedNearestExamplesResults(total_scores, [[self[int(i)] for i in indices] for indices in total_indices])
+        return BatchedNearestExamplesResults(
+            total_scores, [[self[int(i)] for i in indices] for indices in total_indices]
+        )

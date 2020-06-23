@@ -9,7 +9,7 @@ from elasticsearch import Elasticsearch
 from nlp.arrow_dataset import Dataset
 from nlp.arrow_reader import BaseReader
 from nlp.info import DatasetInfo
-from nlp.search import FaissIndex, ElasticSearchIndex
+from nlp.search import ElasticSearchIndex, FaissIndex
 from nlp.splits import SplitDict, SplitInfo
 
 
