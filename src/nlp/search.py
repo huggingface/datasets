@@ -1,6 +1,7 @@
 import logging
 import os
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, NamedTuple
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Dict, List, Optional, Union, NamedTuple, Any
 import tempfile
 
 import numpy as np
@@ -152,17 +153,16 @@ class ElasticSearchIndex(BaseIndex):
         return SearchResults([hit["_score"] for hit in hits], [hit["_id"] for hit in hits])
 
 
+@dataclass
 class FaissGpuOptions:
     """
     Options to specify the GPU resources for Faiss.
     You can use them for multi-GPU settings for example.
     More info at https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
     """
-
-    def __init__(self, resource_vec, device_vec, cloner_options):
-        self.resource_vec = resource_vec
-        self.device_vec = device_vec
-        self.cloner_options = cloner_options
+    resource_vec: Any
+    device_vec: Any
+    cloner_options: Any
 
 
 class FaissIndex(BaseIndex):
