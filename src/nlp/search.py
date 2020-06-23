@@ -370,7 +370,7 @@ class IndexableMixin:
         self._check_index_is_initialized(column)
         return self._indexes[column].search_batch(queries, k)
 
-    def get_nearest(self, column: str, query, k: int = 10) -> NearestExamplesResults:
+    def get_nearest_examples(self, column: str, query, k: int = 10) -> NearestExamplesResults:
         """ Find the nearest examples in the dataset to the query.
 
             Args:
@@ -386,7 +386,7 @@ class IndexableMixin:
         scores, indices = self.search(column, query, k)
         return NearestExamplesResults(scores, [self[int(i)] for i in indices])
 
-    def get_nearest_batch(self, column: str, queries, k: int = 10) -> BatchedNearestExamplesResults:
+    def get_nearest_examples_batch(self, column: str, queries, k: int = 10) -> BatchedNearestExamplesResults:
         """ Find the nearest examples in the dataset to the query.
 
             Args:
