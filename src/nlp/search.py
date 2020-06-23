@@ -85,10 +85,10 @@ class ElasticSearchIndex(BaseIndex):
             _has_elasticsearch
         ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch`"
 
-    def add_texts(self, texts: Union[List[str], "Dataset"], column: Optional[str] = None):
+    def add_documents(self, documents: Union[List[str], "Dataset"], column: Optional[str] = None):
         """
-        Add texts to the index.
-        If the texts are inside a certain column, you can specify it using the `column` argument.
+        Add documents to the index.
+        If the documents are inside a certain column, you can specify it using the `column` argument.
         """
         # TODO: don't rebuild if it already exists
         index_name = self.index_name
@@ -106,16 +106,16 @@ class ElasticSearchIndex(BaseIndex):
             },
         }
         self.es_client.indices.create(index=index_name, body=index_config)
-        number_of_docs = len(texts)
+        number_of_docs = len(documents)
         progress = tqdm(unit="docs", total=number_of_docs)
         successes = 0
 
         def passage_generator():
             if column is not None:
-                for i, example in enumerate(texts):
+                for i, example in enumerate(documents):
                     yield {"text": example[column], "_id": i}
             else:
-                for i, example in enumerate(texts):
+                for i, example in enumerate(documents):
                     yield {"text": example, "_id": i}
 
         # create the ES index
@@ -260,7 +260,7 @@ class IndexableMixin:
     def _check_index_is_initialized(self, column: str):
         if not self.is_index_initialized(column):
             raise MissingIndex(
-                f"Index with column '{column}' not initialized yet. Please make sure that you call `add_vector_index` or `add_text_index` first."
+                f"Index with column '{column}' not initialized yet. Please make sure that you call `add_faiss_index` or `add_elasticsearch_index` first."
             )
 
     def list_indexes(self) -> List[str]:
@@ -289,18 +289,18 @@ class IndexableMixin:
         self._indexes[column] = FaissIndex(device, string_factory, faiss_gpu_options)
         self._indexes[column].add_vectors(vectors, column=column)
 
-    def add_elasticsearch_index(self, column: str, texts, es_client, index_name):
+    def add_elasticsearch_index(self, column: str, documents, es_client, index_name):
         """ Add a text index using ElasticSearch for fast retrieval.
 
             Args:
                 `column` (`str`): The column/identifier of the index. This is the column that is used to call `.get_nearest` or `.search`.
-                `texts` (`Union[List[str], nlp.Dataset]`): The texts to index. It can be a `nlp.Dataset`.
+                `documents` (`Union[List[str], nlp.Dataset]`): The documents to index. It can be a `nlp.Dataset`.
                 `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
                 `index_name` (Optional `str`): The elasticsearch index name used to create the index.
                 `column` (Optional `str`): In the case of a `nlp.Dataset` input, which column to index.
         """
         self._indexes[column] = ElasticSearchIndex(es_client, index_name)
-        self._indexes[column].add_texts(texts, column=column)
+        self._indexes[column].add_documents(documents, column=column)
 
     def drop_index(self, column: str):
         """ Drop the index with the specified column.
