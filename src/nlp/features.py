@@ -421,6 +421,8 @@ def encode_nested_example(schema, obj):
                     list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
                 return list_dict
         # schema.feature is not a dict
+        if isinstance(obj, str):  # don't interpret a string as a list
+            raise ValueError("Got a string but expected a list instead: '{}'".format(obj))
         return [encode_nested_example(schema.feature, o) for o in obj]
 
     # Object with special encoding:
