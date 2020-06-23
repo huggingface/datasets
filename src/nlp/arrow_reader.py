@@ -21,6 +21,7 @@ import logging
 import math
 import os
 import re
+import shutil
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional
 
@@ -230,7 +231,7 @@ class BaseReader:
         try:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
             downloaded_dataset_info = cached_path(remote_dataset_info)
-            os.rename(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
+            shutil.move(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
             if self._info is not None:
                 self._info.update(self._info.from_directory(cache_dir))
         except ConnectionError:
@@ -242,7 +243,7 @@ class BaseReader:
             for file_instruction in file_instructions:
                 remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
                 downloaded_prepared_filename = cached_path(remote_prepared_filename)
-                os.rename(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
+                shutil.move(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
 
 
 class ArrowReader(BaseReader):
