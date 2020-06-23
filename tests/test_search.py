@@ -52,7 +52,7 @@ class IndexableDatasetTest(TestCase):
             lambda ex, i: {"vecs": i * np.ones(5, dtype=np.float32)}, with_indices=True, keep_in_memory=True
         )
         dset = dset.add_faiss_index("vecs")
-        scores, examples = dset.get_nearest("vecs", np.ones(5, dtype=np.float32))
+        scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples[0]["filename"], "my_name-train_29")
 
     def test_add_elasticsearch_index(self):
@@ -66,7 +66,7 @@ class IndexableDatasetTest(TestCase):
             es_client = Elasticsearch()
 
             dset.add_elasticsearch_index("filename", es_client=es_client, index_name="my_index_name")
-            scores, examples = dset.get_nearest("filename", "my_name-train_29")
+            scores, examples = dset.get_nearest_examples("filename", "my_name-train_29")
             self.assertEqual(examples[0]["filename"], "my_name-train_29")
 
 
