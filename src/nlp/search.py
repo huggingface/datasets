@@ -1,5 +1,7 @@
 import logging
+import os
 from typing import TYPE_CHECKING, Dict, List, Optional, Union, NamedTuple
+import tempfile
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -11,6 +13,7 @@ if TYPE_CHECKING:
 
 try:
     import elasticsearch as es
+    from elasticsearch import Elasticsearch
     import elasticsearch.helpers
 
     _has_elasticsearch = True
@@ -78,12 +81,15 @@ class ElasticSearchIndex(BaseIndex):
     for example.
     """
 
-    def __init__(self, es_client, index_name: str):
-        self.es_client = es_client
-        self.index_name = index_name
+    def __init__(self, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional[Elasticsearch] = None, index_name: Optional[str] = None):
         assert (
             _has_elasticsearch
         ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch`"
+        assert es_client is None or (host is None and port is None), "Please specify either `es_client` or `(host, port)`, but not both."
+        host = host or "localhost"
+        port = port or 9200
+        self.es_client = es_client if es_client is not None else Elasticsearch([{'host': host, 'port': str(port)}])
+        self.index_name = index_name if index_name is not None else "huggingface_nlp_" + os.path.basename(tempfile.NamedTemporaryFile().name)
 
     def add_documents(self, documents: Union[List[str], "Dataset"], column: Optional[str] = None):
         """
@@ -270,7 +276,7 @@ class IndexableMixin:
     def add_faiss_index(
         self,
         column: str,
-        vectors,
+        external_arrays: Optional[np.array] = None,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
@@ -284,12 +290,14 @@ class IndexableMixin:
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory Faiss to create the index. Default index class is IndexFlatIP.
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
-                `column` (Optional `str`): In the case of a `nlp.Dataset` input, which column to index.
         """
         self._indexes[column] = FaissIndex(device, string_factory, faiss_gpu_options)
-        self._indexes[column].add_vectors(vectors, column=column)
+        if external_arrays is None:
+            self._indexes[column].add_vectors(self, column=column)
+        else:
+            self._indexes[column].add_vectors(external_arrays, column=None)
 
-    def add_elasticsearch_index(self, column: str, documents, es_client, index_name):
+    def add_elasticsearch_index(self, column: str, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional[Elasticsearch] = None, index_name: Optional[str] = None):
         """ Add a text index using ElasticSearch for fast retrieval.
 
             Args:
@@ -297,10 +305,9 @@ class IndexableMixin:
                 `documents` (`Union[List[str], nlp.Dataset]`): The documents to index. It can be a `nlp.Dataset`.
                 `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
                 `index_name` (Optional `str`): The elasticsearch index name used to create the index.
-                `column` (Optional `str`): In the case of a `nlp.Dataset` input, which column to index.
         """
-        self._indexes[column] = ElasticSearchIndex(es_client, index_name)
-        self._indexes[column].add_documents(documents, column=column)
+        self._indexes[column] = ElasticSearchIndex(host, port, es_client, index_name)
+        self._indexes[column].add_documents(self, column=column)
 
     def drop_index(self, column: str):
         """ Drop the index with the specified column.

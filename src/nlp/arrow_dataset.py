@@ -1194,6 +1194,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def add_faiss_index(
         self,
         column: str,
+        external_arrays: Optional[np.array] = None,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
@@ -1212,16 +1213,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
             Args:
                 `column` (`str`): The column of vectors to index.
+                `external_arrays` (`Optional np.array`): If you want to use custom arrays from outside the `nlp` lib.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory Faiss to create the index. Default index class is IndexFlatIP.
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
-        with self.formated_as(type="numpy", columns=[column], dtype=dtype):
-            super().add_faiss_index(column, self, device, string_factory, faiss_gpu_options)
+        if external_arrays is None:
+            with self.formated_as(type="numpy", columns=[column], dtype=dtype):
+                super().add_faiss_index(column=column, device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options)
+        else:
+            super().add_faiss_index(column=column, external_arrays=external_arrays.astype(dtype), device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options)
         return self
 
-    def add_elasticsearch_index(self, column: str, es_client, index_name):
+    def add_elasticsearch_index(self, column: str, host: Optional[str] = None, port: Optional[int] = None, es_client: Optional["Elasticsearch"] = None, index_name: Optional[str] = None):
         """ Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
             Examples of usage:
@@ -1235,9 +1240,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
             Args:
                 `column` (`str`): The column of texts to index.
-                `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
+                `host` (Optional `str`): Host of the elasticsearch server. Default is `localhost`.
+                `port` (Optional `str`): Port of the elasticsearch server. Default is `9200`.
+                `es_client` (`Optional elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
                 `index_name` (Optional `str`): The elasticsearch index name used to create the index.
         """
         with self.formated_as(type=None, columns=[column]):
-            super().add_elasticsearch_index(column, self, es_client, index_name)
+            super().add_elasticsearch_index(column=column, host=host, port=port, es_client=es_client, index_name=index_name)
         return self

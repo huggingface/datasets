@@ -46,7 +46,7 @@ class IndexableDatasetTest(TestCase):
         dset = reader.read(name, "train", split_infos)
         return dset
 
-    def test_dense(self):
+    def test_add_faiss_index(self):
         dset: Dataset = self._create_dummy_dataset()
         dset = dset.map(
             lambda ex, i: {"vecs": i * np.ones(5, dtype=np.float32)}, with_indices=True, keep_in_memory=True
@@ -55,7 +55,7 @@ class IndexableDatasetTest(TestCase):
         scores, examples = dset.get_nearest("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples[0]["filename"], "my_name-train_29")
 
-    def test_sparse(self):
+    def test_add_elasticsearch_index(self):
         dset: Dataset = self._create_dummy_dataset()
         with patch("elasticsearch.Elasticsearch.search") as mocked_search, patch(
             "elasticsearch.client.IndicesClient.create"
@@ -65,7 +65,7 @@ class IndexableDatasetTest(TestCase):
             mocked_search.return_value = {"hits": {"hits": [{"_score": 1, "_id": 29}]}}
             es_client = Elasticsearch()
 
-            dset.add_elasticsearch_index("filename", es_client, "my_index_name")
+            dset.add_elasticsearch_index("filename", es_client=es_client, index_name="my_index_name")
             scores, examples = dset.get_nearest("filename", "my_name-train_29")
             self.assertEqual(examples[0]["filename"], "my_name-train_29")
 
@@ -106,15 +106,15 @@ class FaissIndexTest(TestCase):
 
 
 class ElasticSearchIndexTest(TestCase):
-    def test_flat_ip(self):
+    def test_elasticsearch(self):
         with patch("elasticsearch.Elasticsearch.search") as mocked_search, patch(
             "elasticsearch.client.IndicesClient.create"
         ) as mocked_index_create, patch("elasticsearch.helpers.streaming_bulk") as mocked_bulk:
             es_client = Elasticsearch()
             mocked_index_create.return_value = {"acknowledged": True}
-            index = ElasticSearchIndex(es_client, "my_index_name")
+            index = ElasticSearchIndex(es_client=es_client, index_name="my_index_name")
             mocked_bulk.return_value([(True, None)] * 3)
-            index.add_texts(["foo", "bar", "foobar"])
+            index.add_documents(["foo", "bar", "foobar"])
 
             # single query
             query = "foo"
