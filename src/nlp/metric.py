@@ -212,6 +212,7 @@ class Metric(object):
         """ Add one prediction and reference for the metric's stack.
         """
         example = {"predictions": prediction, "references": reference}
+        example = self.info.features.encode_example(example)
         if self.writer is None:
             self._init_writer()
         self.writer.write(example)
