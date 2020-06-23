@@ -22,8 +22,6 @@ import json
 import logging
 import os
 
-import apache_beam as beam
-
 import nlp
 
 from .c4_utils import (
@@ -172,6 +170,7 @@ class C4(nlp.BeamBasedBuilder):
         )
 
     def _split_generators(self, dl_manager, pipeline):
+        import apache_beam as beam
 
         # We will automatically down the default CC version(s), but others need to
         # be manually downloaded.
@@ -240,6 +239,7 @@ class C4(nlp.BeamBasedBuilder):
 
     def _get_page_content(self, pipeline, file_paths, dl_manager):
         """Build PCollection of un-split page content."""
+        import apache_beam as beam
 
         wet_file_paths = pipeline | "create_wet_files" >> beam.Create(file_paths["wet_files"])
         if "wet_urls" in file_paths:
@@ -312,6 +312,8 @@ class C4(nlp.BeamBasedBuilder):
         return page_content
 
     def _build_pcollection(self, unused_pipeline, split, page_content, hashed_url_predicate):
+        import apache_beam as beam
+
         def _emit_examples(el):
             get_counter_inc_fn(split)("examples")
             _, features = el

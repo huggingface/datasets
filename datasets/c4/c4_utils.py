@@ -25,13 +25,6 @@ import io
 import re
 import threading
 
-import apache_beam as beam
-import langdetect
-import nltk
-import tensorflow.compat.v2 as tf
-import tldextract
-from absl import logging
-
 
 # WET file constants
 _PAGE_DELIMITER = "WARC/1.0"
@@ -61,6 +54,8 @@ _SENTENCE_TOKENIZER = None
 
 
 def get_counter_inc_fn(namespace):
+    import apache_beam as beam
+
     def counter_inc_fn(counter, amt=1):
         beam.metrics.Metrics.counter(namespace, counter).inc(amt)
 
@@ -68,6 +63,8 @@ def get_counter_inc_fn(namespace):
 
 
 def get_hashed_url_filter_fn(predicate_fn):
+    import tensorflow.compat.v2 as tf
+
     def filter_fn(el):
         url, _ = el
         val = int(hashlib.md5(tf.compat.as_text(url).encode("utf-8")).hexdigest(), 16)
@@ -80,11 +77,15 @@ def _load_sentence_tokenizer():
     """Returns a sentence tokenization function."""
     # Lock to avoid a race-condition in the creation of the download directory.
     with threading.Lock():
+        import nltk
+
         nltk.download("punkt")
         return nltk.data.load("nltk:tokenizers/punkt/english.pickle")
 
 
 def _get_sentences(text):
+    import tensorflow.compat.v2 as tf
+
     global _SENTENCE_TOKENIZER
     if not _SENTENCE_TOKENIZER:
         _SENTENCE_TOKENIZER = _load_sentence_tokenizer()
@@ -106,6 +107,8 @@ def is_language(page, language, min_probability=0.99):
     counter_inc_fn = get_counter_inc_fn("detected-lang")
 
     # Make langdetect predictions deterministic.
+    import langdetect
+
     langdetect.DetectorFactory.seed = 0
     try:
         predictions = langdetect.detect_langs(text)
@@ -233,6 +236,8 @@ def clean_page(
 
 
 def _hash_line(line):
+    import tensorflow.compat.v2 as tf
+
     m = hashlib.md5()
     m.update(tf.compat.as_text(line).encode("utf-8").strip().lower())
     return m.hexdigest()
@@ -248,6 +253,8 @@ def _emit_url_to_lines(page):
 
 def _emit_line_to_urls(el, counter_inc_fn):
     """Emits (hashed) line to all but one url."""
+    import tensorflow.compat.v2 as tf
+
     line, urls = el
     # Materialize urls as a list.
     urls = list(urls)
@@ -311,6 +318,8 @@ def _remove_lines_from_text(el, counter_inc_fn, min_num_sentences=_MIN_NUM_SENTE
 def remove_duplicate_text(pages):
     """Utility to remove duplicate lines across text documents."""
     # Output: url, lines
+    import apache_beam as beam
+
     counter_inc_fn = get_counter_inc_fn("dedupe-lines")
     lines_to_remove = (
         pages
@@ -331,10 +340,14 @@ def remove_duplicate_text(pages):
 
 def split_wet_file(wet_file_path, counter_inc_fn=None):
     """Split a WET file into separate pages."""
+    from absl import logging
+
     logging.info("Splitting file: %s", wet_file_path)
     if not counter_inc_fn:
         counter_inc_fn = get_counter_inc_fn("split-wet-file")
     counter_inc_fn("wet-file")
+
+    import apache_beam as beam
 
     with beam.io.filesystems.FileSystems.open(wet_file_path) as f, gzip.GzipFile(fileobj=f) as g:
         url = None
@@ -431,6 +444,8 @@ def is_valid_length(el, max_length=1.9e5):
 
 def is_realnews_domain(el, realnews_domains):
     """Returns False iff page's (sub)domain is not allowed."""
+    import tldextract
+
     counter_inc_fn = get_counter_inc_fn("is-realnews-domain")
     url, _ = el
     ext = tldextract.extract(url)
@@ -464,6 +479,8 @@ def filter_by_webtextlike(el):
 
 
 def normalize_url(el):
+    import tensorflow.compat.v2 as tf
+
     url, val = el
     url = tf.compat.as_text(url)
     url = re.sub(r"https?:\/\/(www\.)?", "", url)
