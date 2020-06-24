@@ -27,25 +27,8 @@ A large crowd-sourced dataset for developing natural language interfaces for rel
 
 _DATA_URL = "https://github.com/salesforce/WikiSQL/raw/master/data.tar.bz2"
 
-
-AGG_OPS = ["", "MAX", "MIN", "COUNT", "SUM", "AVG"]
-COND_OPS = ["=", ">", "<", "OP"]
-SYMS = [
-    "SELECT",
-    "WHERE",
-    "AND",
-    "COL",
-    "TABLE",
-    "CAPTION",
-    "PAGE",
-    "SECTION",
-    "OP",
-    "COND",
-    "QUESTION",
-    "AGG",
-    "AGGOPS",
-    "CONDOPS",
-]
+_AGG_OPS = ["", "MAX", "MIN", "COUNT", "SUM", "AVG"]
+_COND_OPS = ["=", ">", "<", "OP"]
 
 
 class WikiSQL(nlp.GeneratorBasedBuilder):
@@ -127,11 +110,11 @@ class WikiSQL(nlp.GeneratorBasedBuilder):
         """Make SQL query string. Based on https://github.com/salesforce/WikiSQL/blob/c2ed4f9b22db1cc2721805d53e6e76e07e2ccbdc/lib/query.py#L10"""
 
         rep = "SELECT {agg} {sel} FROM table".format(
-            agg=AGG_OPS[agg], sel=columns[sel] if columns is not None else "col{}".format(sel)
+            agg=_AGG_OPS[agg], sel=columns[sel] if columns is not None else "col{}".format(sel)
         )
 
         if conditions:
-            rep += " WHERE " + " AND ".join(["{} {} {}".format(columns[i], COND_OPS[o], v) for i, o, v in conditions])
+            rep += " WHERE " + " AND ".join(["{} {} {}".format(columns[i], _COND_OPS[o], v) for i, o, v in conditions])
         return " ".join(rep.split())
 
     def _generate_examples(self, main_filepath, tables_filepath):
