@@ -238,18 +238,9 @@ class FaissIndex(BaseIndex):
                 index = faiss.index_factory(size, self.string_factory)
             else:
                 index = faiss.IndexFlatIP(size)
-            if self.device > -1:
-                self.faiss_res = faiss.StandardGpuResources()
-                self.faiss_index = faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
-            elif self.faiss_gpu_options is not None:
-                self.faiss_index = faiss.index_cpu_to_gpu_multiple(
-                    self.faiss_gpu_options.resource_vec,
-                    self.faiss_gpu_options.device_vec,
-                    index,
-                    self.faiss_gpu_options.cloner_options,
-                )
-            else:
-                self.faiss_index = index
+            if self.is_on_gpu():
+                index = self._to_gpu(index)
+            self.faiss_index = index
         for i in range(0, len(vectors), batch_size):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
@@ -288,16 +279,40 @@ class FaissIndex(BaseIndex):
             queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k)
         return BatchedSearchResults(scores, indices.astype(int))
+    
+    def _to_gpu(self, index):
+            if self.device > -1:
+                self.faiss_res = faiss.StandardGpuResources()
+                return faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
+            elif self.faiss_gpu_options is not None:
+                return faiss.index_cpu_to_gpu_multiple(
+                    self.faiss_gpu_options.resource_vec,
+                    self.faiss_gpu_options.device_vec,
+                    index,
+                    self.faiss_gpu_options.cloner_options,
+                )
+            else:
+                return index
+
+    def is_on_gpu(self):
+        return self.device > -1 or self.faiss_gpu_options is not None
 
     def save(self, file: str):
         """Serialize the FaissIndex on disk"""
-        faiss.write_index(self.faiss_index, file)
+        if self.is_on_gpu():
+            index = faiss.index_gpu_to_cpu(self.faiss_index)
+        else:
+            index = self.faiss_index
+        faiss.write_index(index, file)
 
     @classmethod
-    def load(cls, file: str) -> "FaissIndex":
+    def load(cls, file: str, *args, **kwargs) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
-        faiss_index = cls()
-        faiss_index.faiss_index = faiss.read_index(file)
+        faiss_index = cls(*args, **kwargs)
+        index = faiss.read_index(file)
+        if faiss_index.is_on_gpu():
+            index = faiss_index._to_gpu(index)
+        faiss_index.faiss_index = index
         return faiss_index
 
 
