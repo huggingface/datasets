@@ -99,7 +99,7 @@ class ElasticSearchIndex(BaseIndex):
         self,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        es_client: Optional[Elasticsearch] = None,
+        es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
     ):
@@ -419,7 +419,7 @@ class IndexableMixin:
         index_name: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        es_client: Optional[Elasticsearch] = None,
+        es_client: Optional["Elasticsearch"] = None,
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
     ):
