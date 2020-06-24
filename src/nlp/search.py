@@ -96,7 +96,7 @@ class ElasticSearchIndex(BaseIndex):
     ):
         assert (
             _has_elasticsearch
-        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch`"
+        ), "You must install ElasticSearch to use ElasticSearchIndex. To do so you can run `pip install elasticsearch==7.7.1 for example`"
         assert es_client is None or (
             host is None and port is None
         ), "Please specify either `es_client` or `(host, port)`, but not both."
