@@ -405,10 +405,10 @@ class IndexableMixin:
                 `file` (`str`): The path to the serialized faiss index on disk.
         """
         index = FaissIndex.load(file)
-        assert index.ntotal == len(
+        assert index.faiss_index.ntotal == len(
             self
         ), "Index size should match Dataset size, but Index '{}' at {} has {} elements while the dataset has {} examples.".format(
-            index_name, file, index.ntotal, len(self)
+            index_name, file, index.faiss_index.ntotal, len(self)
         )
         self._indexes[index_name] = index
         logger.info("Loaded FaissIndex {} from {}".format(index_name, file))
