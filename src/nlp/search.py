@@ -279,20 +279,20 @@ class FaissIndex(BaseIndex):
             queries = np.asarray(queries, order="C")
         scores, indices = self.faiss_index.search(queries, k)
         return BatchedSearchResults(scores, indices.astype(int))
-    
+
     def _to_gpu(self, index):
-            if self.device > -1:
-                self.faiss_res = faiss.StandardGpuResources()
-                return faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
-            elif self.faiss_gpu_options is not None:
-                return faiss.index_cpu_to_gpu_multiple(
-                    self.faiss_gpu_options.resource_vec,
-                    self.faiss_gpu_options.device_vec,
-                    index,
-                    self.faiss_gpu_options.cloner_options,
-                )
-            else:
-                return index
+        if self.device > -1:
+            self.faiss_res = faiss.StandardGpuResources()
+            return faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
+        elif self.faiss_gpu_options is not None:
+            return faiss.index_cpu_to_gpu_multiple(
+                self.faiss_gpu_options.resource_vec,
+                self.faiss_gpu_options.device_vec,
+                index,
+                self.faiss_gpu_options.cloner_options,
+            )
+        else:
+            return index
 
     def is_on_gpu(self):
         return self.device > -1 or self.faiss_gpu_options is not None
