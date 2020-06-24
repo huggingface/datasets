@@ -1224,7 +1224,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             faiss_index = nlp.search.FaissIndex.load('my_index.faiss')
             ds.add_faiss_index('embeddings', faiss_index=faiss_index)
             # query
-            scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
+            scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
             ```
 
             Args:
