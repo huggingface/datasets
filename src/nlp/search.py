@@ -306,9 +306,15 @@ class FaissIndex(BaseIndex):
         faiss.write_index(index, file)
 
     @classmethod
-    def load(cls, file: str, *args, **kwargs) -> "FaissIndex":
+    def load(
+        cls,
+        file: str,
+        device: Optional[int] = None,
+        string_factory: Optional[str] = None,
+        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+    ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
-        faiss_index = cls(*args, **kwargs)
+        faiss_index = cls(device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options)
         index = faiss.read_index(file)
         if faiss_index.is_on_gpu():
             index = faiss_index._to_gpu(index)
@@ -412,12 +418,22 @@ class IndexableMixin:
         index.save(file)
         logger.info("Saved FaissIndex {} at {}".format(index_name, file))
 
-    def load_faiss_index(self, index_name: str, file: str):
+    def load_faiss_index(
+        self,
+        index_name: str,
+        file: str,
+        device: Optional[int] = None,
+        string_factory: Optional[str] = None,
+        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+    ):
         """Load a FaissIndex from disk
 
             Args:
                 `index_name` (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
                 `file` (`str`): The path to the serialized faiss index on disk.
+                `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
+                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
         """
         index = FaissIndex.load(file)
         assert index.faiss_index.ntotal == len(
