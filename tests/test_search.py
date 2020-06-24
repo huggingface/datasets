@@ -1,4 +1,5 @@
 import tempfile
+from functools import partial
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -10,7 +11,7 @@ from elasticsearch import Elasticsearch
 from nlp.arrow_dataset import Dataset
 from nlp.arrow_reader import BaseReader
 from nlp.info import DatasetInfo
-from nlp.search import ElasticSearchIndex, FaissIndex
+from nlp.search import ElasticSearchIndex, FaissIndex, MissingIndex
 from nlp.splits import SplitDict, SplitInfo
 
 
@@ -56,9 +57,33 @@ class IndexableDatasetTest(TestCase):
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples[0]["filename"], "my_name-train_29")
         dset.drop_index("vecs")
-        dset.add_faiss_index("vecs", external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1))
+
+    def test_add_faiss_index_from_external_arrays(self):
+        dset: Dataset = self._create_dummy_dataset()
+        dset.add_faiss_index_from_external_arrays(
+            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs"
+        )
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples[0]["filename"], "my_name-train_29")
+
+    def test_serialization(self):
+        dset: Dataset = self._create_dummy_dataset()
+        dset.add_faiss_index_from_external_arrays(
+            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs"
+        )
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            dset.save_faiss_index("vecs", tmp_file.name)
+            dset.load_faiss_index("vecs2", tmp_file.name)
+        scores, examples = dset.get_nearest_examples("vecs2", np.ones(5, dtype=np.float32))
+        self.assertEqual(examples[0]["filename"], "my_name-train_29")
+
+    def test_drop_index(self):
+        dset: Dataset = self._create_dummy_dataset()
+        dset.add_faiss_index_from_external_arrays(
+            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs"
+        )
+        dset.drop_index("vecs")
+        self.assertRaises(MissingIndex, partial(dset.get_nearest_examples, "vecs2", np.ones(5, dtype=np.float32)))
 
     def test_add_elasticsearch_index(self):
         dset: Dataset = self._create_dummy_dataset()
@@ -70,7 +95,7 @@ class IndexableDatasetTest(TestCase):
             mocked_search.return_value = {"hits": {"hits": [{"_score": 1, "_id": 29}]}}
             es_client = Elasticsearch()
 
-            dset.add_elasticsearch_index("filename", es_client=es_client, index_name="my_index_name")
+            dset.add_elasticsearch_index("filename", es_client=es_client)
             scores, examples = dset.get_nearest_examples("filename", "my_name-train_29")
             self.assertEqual(examples[0]["filename"], "my_name-train_29")
 
@@ -129,7 +154,7 @@ class ElasticSearchIndexTest(TestCase):
         ) as mocked_index_create, patch("elasticsearch.helpers.streaming_bulk") as mocked_bulk:
             es_client = Elasticsearch()
             mocked_index_create.return_value = {"acknowledged": True}
-            index = ElasticSearchIndex(es_client=es_client, index_name="my_index_name")
+            index = ElasticSearchIndex(es_client=es_client)
             mocked_bulk.return_value([(True, None)] * 3)
             index.add_documents(["foo", "bar", "foobar"])
 

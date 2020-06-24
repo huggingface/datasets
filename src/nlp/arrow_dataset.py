@@ -33,7 +33,7 @@ from tqdm.auto import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .search import FaissGpuOptions, FaissIndex, IndexableMixin
+from .search import FaissGpuOptions, IndexableMixin
 from .utils import map_all_sequences_to_lists, map_nested
 
 
@@ -1195,8 +1195,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def add_faiss_index(
         self,
         column: str,
-        external_arrays: Optional[np.array] = None,
-        faiss_index: Optional[FaissIndex] = None,
+        index_name: Optional[str] = None,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
@@ -1204,7 +1203,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     ):
         """ Add a dense index using Faiss for fast retrieval.
             By default the index is done over the vectors of the specified column.
-            For flexibility we allow to specify instead `external_arrays` or directly a `faiss_index`.
+            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+            You can find more information about Faiss here:
+            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
 
             Examples of usage:
 
@@ -1215,58 +1217,78 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # query
             scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
             # save index
-            ds_with_embeddings.get_index('embeddings').save('my_index.faiss')
+            ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
             ```
 
             ```
             ds = nlp.load_dataset('crime_and_punish', split='train')
             # load index
-            faiss_index = nlp.search.FaissIndex.load('my_index.faiss')
-            ds.add_faiss_index('embeddings', faiss_index=faiss_index)
+            ds.load_faiss_index('embeddings', 'my_index.faiss')
             # query
             scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
             ```
 
             Args:
-                `column` (`str`): The column of vectors to index.
-                `external_arrays` (Optional `np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
-                    It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
-                `faiss_index` (Optional `nlp.search.FaissIndex`):  If you want to use your own faiss index (deserialized from disk for example), you can set `faiss_index`.
-                    It will use `faiss_index` instead of creating the Faiss index with arrays in the given `column`.
-                    This can be helpful if you use serialized indexes.
+                `column` (`str`): The column of the vectors to add to the index.
+                `index_name` (Optional `str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
+                    By defaul it corresponds to `column`.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
-                `string_factory` (Optional `str`): This is passed to the index factory Faiss to create the index. Default index class is IndexFlatIP.
+                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
-        assert (
-            external_arrays is None or faiss_index is None
-        ), "Please specify either `external_arrays` or `faiss_index`, but not both."
-        if faiss_index is not None:
-            super().add_faiss_index(column=column, faiss_index=faiss_index)
-        elif external_arrays is not None:
+        with self.formated_as(type="numpy", columns=[column], dtype=dtype):
             super().add_faiss_index(
                 column=column,
-                external_arrays=external_arrays.astype(dtype),
+                index_name=index_name,
                 device=device,
                 string_factory=string_factory,
                 faiss_gpu_options=faiss_gpu_options,
             )
-        else:
-            with self.formated_as(type="numpy", columns=[column], dtype=dtype):
-                super().add_faiss_index(
-                    column=column, device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options
-                )
         return self
+
+    def add_faiss_index_from_external_arrays(
+        self,
+        external_arrays: np.array,
+        index_name: str,
+        device: Optional[int] = None,
+        string_factory: Optional[str] = None,
+        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        dtype=np.float32,
+    ):
+        """ Add a dense index using Faiss for fast retrieval.
+            The index is created using the vectors of `external_arrays`.
+            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+            You can find more information about Faiss here:
+            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
+
+            Args:
+                `external_arrays` (`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
+                    It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
+                `index_name` (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
+                `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
+                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
+        """
+        super().add_faiss_index_from_external_arrays(
+            external_arrays=external_arrays.astype(dtype),
+            index_name=index_name,
+            device=device,
+            string_factory=string_factory,
+            faiss_gpu_options=faiss_gpu_options,
+        )
 
     def add_elasticsearch_index(
         self,
         column: str,
+        index_name: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        es_client: Optional["Elasticsearch"] = None,
-        index_name: Optional[str] = None,
-        index_config: Optional[dict] = None,
+        es_client: Optional["elasticsearch.Elasticsearch"] = None,
+        es_index_name: Optional[str] = None,
+        es_index_config: Optional[dict] = None,
     ):
         """ Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
@@ -1275,17 +1297,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             ```
             es_client = elasticsearch.Elasticsearch()
             ds = nlp.load_dataset('crime_and_punish', split='train')
-            ds.add_text_index(column='line', es_client=es_client, index_name="my_es_index")
+            ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
             scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
             ```
 
             Args:
-                `column` (`str`): The column of texts to index.
-                `host` (Optional `str`): Host of the elasticsearch server. Default is `localhost`.
-                `port` (Optional `str`): Port of the elasticsearch server. Default is `9200`.
-                `es_client` (`Optional elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
-                `index_name` (Optional `str`): The elasticsearch index name used to create the index.
-                `index_config` (Optional `dict`): The configuration of the elasticsearch index.
+                `column` (`str`): The column of the documents to add to the index.
+                `index_name` (Optional `str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
+                    By defaul it corresponds to `column`.
+                `documents` (`Union[List[str], nlp.Dataset]`): The documents to index. It can be a `nlp.Dataset`.
+                `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
+                `es_index_name` (Optional `str`): The elasticsearch index name used to create the index.
+                `es_index_config` (Optional `dict`): The configuration of the elasticsearch index.
                     Default config is
                     {
                         "settings": {
