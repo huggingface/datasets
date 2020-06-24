@@ -1,3 +1,4 @@
+import tempfile
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -54,6 +55,10 @@ class IndexableDatasetTest(TestCase):
         dset = dset.add_faiss_index("vecs")
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples[0]["filename"], "my_name-train_29")
+        dset.drop_index("vecs")
+        dset.add_faiss_index("vecs", external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1))
+        scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
+        self.assertEqual(examples[0]["filename"], "my_name-train_29")
 
     def test_add_elasticsearch_index(self):
         dset: Dataset = self._create_dummy_dataset()
@@ -103,6 +108,18 @@ class FaissIndexTest(TestCase):
         index = FaissIndex(string_factory="LSH")
         index.add_vectors(np.eye(5, dtype=np.float32))
         self.assertIsInstance(index.faiss_index, faiss.IndexLSH)
+
+    def test_serialization(self):
+        index = FaissIndex()
+        index.add_vectors(np.eye(5, dtype=np.float32))
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            index.save(tmp_file.name)
+            index = FaissIndex.load(tmp_file.name)
+        query = np.zeros(5, dtype=np.float32)
+        query[1] = 1
+        scores, indices = index.search(query)
+        self.assertGreater(scores[0], 0)
+        self.assertEqual(indices[0], 1)
 
 
 class ElasticSearchIndexTest(TestCase):

@@ -280,6 +280,17 @@ class FaissIndex(BaseIndex):
         scores, indices = self.faiss_index.search(queries, k)
         return BatchedSearchResults(scores, indices.astype(int))
 
+    def save(self, file: str):
+        """Serialize the FaissIndex on disk"""
+        faiss.write_index(self.faiss_index, file)
+
+    @classmethod
+    def load(cls, file: str) -> "FaissIndex":
+        """Deserialize the FaissIndex from disk"""
+        faiss_index = cls()
+        faiss_index.faiss_index = faiss.read_index(file)
+        return faiss_index
+
 
 class IndexableMixin:
     """Add indexing features to `nlp.Dataset`"""
@@ -303,29 +314,46 @@ class IndexableMixin:
         """List the columns/identifiers of all the attached indexes."""
         return list(self._indexes)
 
+    def get_index(self, column: str) -> BaseIndex:
+        """List the columns/identifiers of all the attached indexes."""
+        self._check_index_is_initialized(column)
+        return self._indexes[column]
+
     def add_faiss_index(
         self,
         column: str,
         external_arrays: Optional[np.array] = None,
+        faiss_index: Optional[FaissIndex] = None,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
     ):
         """ Add a dense index using Faiss for fast retrieval.
+            By default the index is done over the vectors of the specified column.
+            For flexibility we allow to specify instead `external_arrays` or directly a `faiss_index`.
 
             Args:
                 `column` (`str`): The column/identifier of the index. This is the column that is used to call `.get_nearest` or `.search`.
-                `vectors` (`Union[np.ndarray, nlp.Dataset]`): The vectors to index. It can be a `nlp.Dataset` if the `dataset` is well formated
-                    using `dataset.set_format("numpy")` for example.
+                `external_arrays` (Optional `np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
+                    It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
+                `faiss_index` (Optional `nlp.search.FaissIndex`):  If you want to use your own faiss index (deserialized from disk for example), you can set `faiss_index`.
+                    It will use `faiss_index` instead of creating the Faiss index with arrays in the given `column`.
+                    This can be helpful it you use serialized indexes.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory Faiss to create the index. Default index class is IndexFlatIP.
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
         """
-        self._indexes[column] = FaissIndex(device, string_factory, faiss_gpu_options)
-        if external_arrays is None:
-            self._indexes[column].add_vectors(self, column=column)
+        assert (
+            external_arrays is None or faiss_index is None
+        ), "Please specify either `external_arrays` or `faiss_index`, but not both."
+        if faiss_index is not None:
+            self._indexes[column] = faiss_index
         else:
-            self._indexes[column].add_vectors(external_arrays, column=None)
+            self._indexes[column] = FaissIndex(device, string_factory, faiss_gpu_options)
+            if external_arrays is None:
+                self._indexes[column].add_vectors(self, column=column)
+            else:
+                self._indexes[column].add_vectors(external_arrays, column=None)
 
     def add_elasticsearch_index(
         self,

@@ -33,7 +33,7 @@ from tqdm.auto import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .search import FaissGpuOptions, IndexableMixin
+from .search import FaissGpuOptions, FaissIndex, IndexableMixin
 from .utils import map_all_sequences_to_lists, map_nested
 
 
@@ -1196,36 +1196,55 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self,
         column: str,
         external_arrays: Optional[np.array] = None,
+        faiss_index: Optional[FaissIndex] = None,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
         dtype=np.float32,
     ):
-        """ Add a dense index using Faiss for fast retrieval. This is done in-place.
+        """ Add a dense index using Faiss for fast retrieval.
+            By default the index is done over the vectors of the specified column.
+            For flexibility we allow to specify instead `external_arrays` or directly a `faiss_index`.
 
             Examples of usage:
 
             ```
             ds = nlp.load_dataset('crime_and_punish', split='train')
             ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
-            ds_with_embeddings.add_vector_index(column='embeddings')
+            ds_with_embeddings.add_faiss_index(column='embeddings')
+            # query
+            scores, retrieved_examples = ds_with_embeddings.get_nearest('embeddings', embed('my new query'), k=10)
+            # save index
+            ds_with_embeddings.get_index('embeddings').save('my_index.faiss')
+            ```
+
+            ```
+            ds = nlp.load_dataset('crime_and_punish', split='train')
+            # load index
+            faiss_index = nlp.search.FaissIndex.load('my_index.faiss')
+            ds.add_faiss_index('embeddings', faiss_index=faiss_index)
+            # query
             scores, retrieved_examples = ds_with_embeddings.get_nearest('embeddings', embed('my new query'), k=10)
             ```
 
             Args:
                 `column` (`str`): The column of vectors to index.
-                `external_arrays` (`Optional np.array`): If you want to use custom arrays from outside the `nlp` lib.
+                `external_arrays` (Optional `np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
+                    It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
+                `faiss_index` (Optional `nlp.search.FaissIndex`):  If you want to use your own faiss index (deserialized from disk for example), you can set `faiss_index`.
+                    It will use `faiss_index` instead of creating the Faiss index with arrays in the given `column`.
+                    This can be helpful if you use serialized indexes.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory Faiss to create the index. Default index class is IndexFlatIP.
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
-        if external_arrays is None:
-            with self.formated_as(type="numpy", columns=[column], dtype=dtype):
-                super().add_faiss_index(
-                    column=column, device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options
-                )
-        else:
+        assert (
+            external_arrays is None or faiss_index is None
+        ), "Please specify either `external_arrays` or `faiss_index`, but not both."
+        if faiss_index is not None:
+            super().add_faiss_index(column=column, faiss_index=faiss_index)
+        elif external_arrays is not None:
             super().add_faiss_index(
                 column=column,
                 external_arrays=external_arrays.astype(dtype),
@@ -1233,6 +1252,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 string_factory=string_factory,
                 faiss_gpu_options=faiss_gpu_options,
             )
+        else:
+            with self.formated_as(type="numpy", columns=[column], dtype=dtype):
+                super().add_faiss_index(
+                    column=column, device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options
+                )
         return self
 
     def add_elasticsearch_index(
