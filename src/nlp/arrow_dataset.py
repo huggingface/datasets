@@ -1276,7 +1276,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             es_client = elasticsearch.Elasticsearch()
             ds = nlp.load_dataset('crime_and_punish', split='train')
             ds.add_text_index(column='line', es_client=es_client, index_name="my_es_index")
-            scores, retrieved_examples = ds.get_nearest('line', 'my new query', k=10)
+            scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
             ```
 
             Args:
