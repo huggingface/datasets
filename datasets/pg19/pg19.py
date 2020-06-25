@@ -75,7 +75,8 @@ class Pg19(nlp.GeneratorBasedBuilder):
             return os.path.splitext(os.path.basename(path))[0]
 
         def download_listdir(url, local_filepath):
-            results = tf.io.gfile.listdir(url)
+            # make returned array of files deterministic
+            results = sorted(tf.io.gfile.listdir(url))
             with open(local_filepath, "w") as f:
                 f.write(json.dumps(results))
             return local_filepath
