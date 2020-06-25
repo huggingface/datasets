@@ -20,7 +20,7 @@ import enum
 import logging
 import os
 
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from .file_utils import HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
