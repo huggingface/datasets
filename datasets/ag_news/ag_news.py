@@ -53,20 +53,6 @@ _TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/mhjabreel/CharCnn_Keras
 _TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/mhjabreel/CharCnn_Keras/master/data/ag_news_csv/test.csv"
 
 
-class AGNewsConfig(nlp.BuilderConfig):
-    """BuilderConfig for AGNewsTopics."""
-
-    def __init__(self, **kwargs):
-        """BuilderConfig for AGNewsTopics.
-    
-        Args:
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(AGNewsConfig, self).__init__(
-            version=nlp.Version("3"), **kwargs
-        )
-
-
 class AGNews(nlp.GeneratorBasedBuilder):
     """AG News topic classification dataset."""
 
@@ -79,10 +65,6 @@ class AGNews(nlp.GeneratorBasedBuilder):
             homepage="http://groups.di.unipi.it/~gulli/AG_corpus_of_news_articles.html",
             citation=_CITATION,
         )
-
-    def _vocab_text_gen(self, train_file):
-        for _, ex in self._generate_examples(train_file):
-            yield ex["text"]
 
     def _split_generators(self, dl_manager):
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
