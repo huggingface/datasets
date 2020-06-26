@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Optional
 import pyarrow as pa
 
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
+from .utils.py_utils import map_all_sequences_to_lists
 
 
 logger = logging.getLogger(__name__)
@@ -135,6 +136,7 @@ class ArrowWriter(object):
         Args:
             example: the Example to add.
         """
+        example = map_all_sequences_to_lists(example)
         self.current_rows.append(example)
         self._num_examples += 1
         if writer_batch_size is None:
@@ -152,6 +154,7 @@ class ArrowWriter(object):
         Args:
             example: the Example to add.
         """
+        batch_examples = map_all_sequences_to_lists(batch_examples)
         if self.pa_writer is None:
             self._build_writer(pa_table=pa.Table.from_pydict(batch_examples))
         pa_table: pa.Table = pa.Table.from_pydict(batch_examples, schema=self._schema)
