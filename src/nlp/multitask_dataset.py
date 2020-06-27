@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
@@ -158,9 +158,6 @@ class MultiDataset:
         raise NotImplementedError()
 
     def filter(self, function, with_indices=False, **kwargs):
-        for task in self.tasks:
-            result = task.filter(function, with_indices=False, **kwargs)
-            breakpoint()
         raise NotImplementedError()
 
     def select(
@@ -234,7 +231,7 @@ def build_multitask(*tasks):
             """Finds the common splits present in all self.datasets"""
             min_set = None
             for task in tasks:
-                if min_set != None:
+                if min_set is not None:
                     min_set.intersection(set(task.keys()))
                 else:
                     min_set = set(task.keys())
