@@ -1,10 +1,13 @@
-import pyarrow as pa
-import numpy as np
-from .arrow_reader import Dataset
 from typing import Any, Dict, List, Optional, Union
 
+import numpy as np
+import pyarrow as pa
+
+from .arrow_reader import Dataset
+
+
 class MultiDataset:
-    def __init__(self,tasks):
+    def __init__(self, tasks):
         self.tasks = tasks
 
         # Check matching columns
@@ -25,8 +28,8 @@ class MultiDataset:
         counters = {}
         self.task_choice_list = []
         for i in range(len(task_choice_list)):
-            idx = counters.get(task_choice_list[i],0)
-            self.task_choice_list.append((task_choice_list[i],idx))
+            idx = counters.get(task_choice_list[i], 0)
+            self.task_choice_list.append((task_choice_list[i], idx))
             counters[task_choice_list[i]] = idx + 1
 
     @property
@@ -38,7 +41,7 @@ class MultiDataset:
         return [j for t in self.tasks for j in t.cache_files]
 
     def columns(self):
-        return np.concatenate([d.columns for d in self.tasks],axis=1)
+        return np.concatenate([d.columns for d in self.tasks], axis=1)
 
     @property
     def nbytes(self):
@@ -73,7 +76,7 @@ class MultiDataset:
         for task in self.tasks:
             task.drop(columns)
 
-    def unique(self,column: str):
+    def unique(self, column: str):
         """ Return a list of the unique elements in a column.
 
         Args:
@@ -122,7 +125,7 @@ class MultiDataset:
     def reset_format(self):
         raise NotImplementedError()
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         if isinstance(key, int):
             task_idx, example_idx = self.task_choice_list[key]
             task = self.tasks[task_idx]
@@ -156,7 +159,7 @@ class MultiDataset:
 
     def filter(self, function, with_indices=False, **kwargs):
         for task in self.tasks:
-            result = task.filter(function, with_indices=False,**kwargs)
+            result = task.filter(function, with_indices=False, **kwargs)
             breakpoint()
         raise NotImplementedError()
 
@@ -209,27 +212,26 @@ class MultiDataset:
         raise NotImplementedError()
 
 
-
 def build_multitask(*tasks):
     r"""Create a multitask dataset
 
         This method creates a ``MultiDataset`` wrapper when given a ``Dataset`` object or a dictionary of splits
     """
 
-    if isinstance(tasks[0],Dataset):
+    if isinstance(tasks[0], Dataset):
         for task in tasks:
-            if not isinstance(task,Dataset):
+            if not isinstance(task, Dataset):
                 raise Exception("Mismatched dataset types")
 
             return MultiDataset(tasks)
 
-    elif isinstance(tasks[0],dict):
+    elif isinstance(tasks[0], dict):
         for task in tasks:
-            if not isinstance(task,dict):
+            if not isinstance(task, dict):
                 raise Exception("Mismatched dataset types")
 
         def _get_common_splits(tasks):
-            '''Finds the common splits present in all self.datasets'''
+            """Finds the common splits present in all self.datasets"""
             min_set = None
             for task in tasks:
                 if min_set != None:

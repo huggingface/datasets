@@ -32,10 +32,10 @@ from .info import DatasetInfo, MetricInfo
 from .inspect import inspect_dataset, inspect_metric, list_datasets, list_metrics
 from .load import import_main_class, load_dataset, load_metric, prepare_module
 from .metric import Metric
+from .multitask_dataset import MultiDataset, build_multitask
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar
-from .multitask_dataset import MultiDataset,build_multitask
 
 
 if int(pyarrow.__version__.split(".")[1]) < 16 or int(pyarrow.__version__.split(".")[0]) > 0:
