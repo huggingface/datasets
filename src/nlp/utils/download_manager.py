@@ -20,8 +20,6 @@ import enum
 import logging
 import os
 
-from tqdm.auto import tqdm
-
 from .file_utils import HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
 from .py_utils import flatten_nested, map_nested, size_str
@@ -109,7 +107,7 @@ class DownloadManager(object):
         for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             self._recorded_sizes_checksums[url] = get_size_checksum_dict(path)
 
-    def download_custom(self, url_or_urls, custom_download, show_progress=False):
+    def download_custom(self, url_or_urls, custom_download):
         """
         Download given urls(s) by calling `custom_download`.
 
@@ -118,8 +116,6 @@ class DownloadManager(object):
                 url is a `str`.
             custom_download: Callable with signature (src_url: str, dst_path: str) -> Any
                 as for example `tf.io.gfile.copy`, that lets you download from google storage
-            show_progress: boolean indicating whether to show a progress bar, in the case
-                that there are a lot of urls to download
 
         Returns:
             downloaded_path(s): `str`, The downloaded paths matching the given input
@@ -133,12 +129,7 @@ class DownloadManager(object):
         downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
         flattened_urls_or_urls = flatten_nested(url_or_urls)
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
-        url_and_paths = list(zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths))
-
-        if show_progress:
-            url_and_paths = tqdm(url_and_paths)
-
-        for url, path in url_and_paths:
+        for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             try:
                 get_from_cache(url, cache_dir=cache_dir, local_files_only=True)
                 cached = True

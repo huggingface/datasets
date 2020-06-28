@@ -147,6 +147,7 @@ class CosE(nlp.GeneratorBasedBuilder):
         # NB: The CQA Dataset should be read only once, and only by callers who
         # want to _create_ the Cos-E dataset from scratch.
         cqa_indexed = _download_and_index_cqa(dl_manager, self.config.name)
+
         if self.config.name == "v1.11":
             files = dl_manager.download_and_extract(
                 {
@@ -154,6 +155,7 @@ class CosE(nlp.GeneratorBasedBuilder):
                     "train": [os.path.join(_COS_E_URL, "v1.11/cose_train_v1.11_processed.jsonl")],
                 }
             )
+
         elif self.config.name == "v1.0":
             files = dl_manager.download_and_extract(
                 {

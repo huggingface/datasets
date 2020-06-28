@@ -5,8 +5,9 @@ from __future__ import absolute_import, division, print_function
 import csv
 import json
 import os
+from operator import itemgetter
 
-import tensorflow as tf
+import requests
 
 import nlp
 
@@ -31,8 +32,12 @@ It includes a set of books extracted from the Project Gutenberg books library, t
 It also contains metadata of book titles and publication dates.
 """
 
-_ROOT_URL = "gs://deepmind-gutenberg/"
-_METADATA_URL = os.path.join(_ROOT_URL, "metadata.csv")
+_ASSET_ROOT_URL = "https://storage.googleapis.com/deepmind-gutenberg/"
+_STORAGE_API_ROOT_URL = "https://storage.googleapis.com/storage/v1/b/deepmind-gutenberg/o"
+
+_METADATA_URL = os.path.join(_ASSET_ROOT_URL, "metadata.csv")
+
+flat_map = lambda fn, arr: [el for sub_arr in map(fn, arr) for el in sub_arr]
 
 
 class Pg19(nlp.GeneratorBasedBuilder):
@@ -71,32 +76,50 @@ class Pg19(nlp.GeneratorBasedBuilder):
         # dl_manager is a nlp.download.DownloadManager that can be used to
         # download and extract URLs
 
+        def fetch_all_pages(url, prefix):
+            pageToken = None
+            payload = {"prefix": prefix}
+
+            while True:
+                resp = requests.get(url, params={"pageToken": pageToken, **payload})
+                json = resp.json()
+                yield json
+
+                pageToken = json.pop("nextPageToken", None)
+                if pageToken is None:
+                    break
+
         def get_filename(path):
             return os.path.splitext(os.path.basename(path))[0]
 
         def download_listdir(url, local_filepath):
-            # make returned array of files deterministic
-            results = sorted(tf.io.gfile.listdir(url))
+            root_url, prefix = url.rsplit("/", 1)
+            pages = fetch_all_pages(root_url, prefix + "/")
+            items = flat_map(itemgetter("items"), pages)
+            names = sorted(map(itemgetter("name"), items))
+
             with open(local_filepath, "w") as f:
-                f.write(json.dumps(results))
+                f.write(json.dumps(names))
             return local_filepath
 
         def filepath_to_json(path):
             with open(path, "r") as f:
                 return json.load(f)
 
-        split_paths = ["train", "validation", "test"]
-        full_urls = list(map(lambda url: os.path.join(_ROOT_URL, url), split_paths))
-        split_paths = dl_manager.download_custom(dict(zip(split_paths, full_urls)), download_listdir)
+        splits = ["train", "validation", "test"]
+        split_paths = map(lambda path: os.path.join(_STORAGE_API_ROOT_URL, path), splits)
+        split_paths = dl_manager.download_custom(dict(zip(splits, split_paths)), download_listdir)
+
         file_urls = list(map(filepath_to_json, split_paths.values()))
+
         complete_file_urls = [
-            list(map(lambda url: os.path.join(_ROOT_URL, split_path, url), urls))
+            list(map(lambda url: os.path.join(_ASSET_ROOT_URL, url), urls))
             for (split_path, urls) in zip(split_paths, file_urls)
         ]
         urls_to_download = {(get_filename(url)): url for urls in complete_file_urls for url in urls}
 
-        metadata = dl_manager.download_custom({"metadata": _METADATA_URL}, tf.io.gfile.copy)
-        downloaded_files = dl_manager.download_custom(urls_to_download, tf.io.gfile.copy, show_progress=True)
+        metadata = dl_manager.download({"metadata": _METADATA_URL})
+        downloaded_files = dl_manager.download(urls_to_download)
 
         ids_in_split = list(map(lambda urls: list(map(get_filename, urls)), file_urls))
         split_ids_index = dict(zip(split_paths, ids_in_split))
