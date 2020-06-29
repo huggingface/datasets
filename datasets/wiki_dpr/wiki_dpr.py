@@ -3,11 +3,24 @@ import numpy as np
 import nlp
 
 
-_CITATION = """"""
+_CITATION = """
+@misc{karpukhin2020dense,
+    title={Dense Passage Retrieval for Open-Domain Question Answering},
+    author={Vladimir Karpukhin and Barlas Oğuz and Sewon Min and Patrick Lewis and Ledell Wu and Sergey Edunov and Danqi Chen and Wen-tau Yih},
+    year={2020},
+    eprint={2004.04906},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
+}
+"""
 
-_DESCRIPTION = """"""
+_DESCRIPTION = """
+This is the wikipedia split used to evaluate the Dense Passage Retrieval (DPR) model.
+It contains 21M passages from wikipedia along with their DPR embeddings.
+The wikipedia articles were split into multiple, disjoint text blocks of 100 words as passages.
+"""
 
-_LICENSE = """"""
+_LICENSE = """DPR is CC-BY-NC 4.0 licensed."""
 
 _DATA_URL = "https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz"
 
@@ -43,9 +56,9 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
                 }
             )
             if self.config.with_embeddings
-            else nlp.Features({"id": nlp.Value("string"), "text": nlp.Value("string"), "title": nlp.Value("string"),}),
+            else nlp.Features({"id": nlp.Value("string"), "text": nlp.Value("string"), "title": nlp.Value("string")}),
             supervised_keys=None,
-            homepage="https://dumps.wikimedia.org",
+            homepage="https://github.com/facebookresearch/DPR",
             citation=_CITATION,
         )
 
