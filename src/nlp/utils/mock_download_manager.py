@@ -101,6 +101,8 @@ class MockDownloadManager(object):
         # special case when data_url is a dict
         if isinstance(data_url, dict):
             return self.create_dummy_data_dict(dummy_file, data_url)
+        elif isinstance(data_url, (list, tuple)):
+            return self.create_dummy_data_list(dummy_file, data_url)
         return dummy_file
 
     # this function has to be in the manager under this name so that testing works
@@ -137,3 +139,12 @@ class MockDownloadManager(object):
             dummy_data_dict = {key: value + key for key, value in dummy_data_dict.items()}
 
         return dummy_data_dict
+
+    def create_dummy_data_list(self, path_to_dummy_data, data_url):
+        dummy_data_list = []
+        for abs_path in data_url:
+            # we force the name of each key to be the last file / folder name of the url path
+            # if the url has arguments, we need to encode them with urllib.parse.quote_plus
+            value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(abs_path.split("/")[-1]))
+            dummy_data_list.append(value)
+        return dummy_data_list
