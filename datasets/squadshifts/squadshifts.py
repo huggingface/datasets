@@ -61,7 +61,7 @@ class SquadShiftsConfig(nlp.BuilderConfig):
 
 class SquadShifts(nlp.GeneratorBasedBuilder):
     """SquadShifts consists of four new test sets for the SQUAD dataset."""
-    
+
     _URL = "https://raw.githubusercontent.com/modestyachts/squadshifts-website/master/datasets"
     _NEW_WIKI_FILE = "new_wiki_v1.0.json"
     _NYT_FILE = "nyt_v1.0.json"
@@ -121,7 +121,7 @@ class SquadShifts(nlp.GeneratorBasedBuilder):
         }
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
-        if self.config.name == "new_wiki":
+        if self.config.name == "new_wiki" or self.config.name == "default":
             return [
                 nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["new_wiki"]}),
             ]
@@ -138,8 +138,7 @@ class SquadShifts(nlp.GeneratorBasedBuilder):
                 nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["amazon"]}),
             ]
         else:
-            raise ValueError("blurbadour, Dataset name {} not found.".format(self.config.name))
-
+            raise ValueError("SQuADShifts dataset name {} not found!".format(self.config.name))
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
