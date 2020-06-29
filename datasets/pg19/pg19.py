@@ -1,4 +1,4 @@
-"""TODO(pg19): Add a description here."""
+"""PG-19 language modeling benchmark - a set of books extracted from the Project Gutenberg books library"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -30,6 +30,13 @@ _DESCRIPTION = """\
 This repository contains the PG-19 language modeling benchmark.
 It includes a set of books extracted from the Project Gutenberg books library, that were published before 1919.
 It also contains metadata of book titles and publication dates.
+
+PG-19 is over double the size of the Billion Word benchmark and contains documents that are 20X longer, on average, than the WikiText long-range language modelling benchmark.
+Books are partitioned into a train, validation, and test set. Book metadata is stored in metadata.csv which contains (book_id, short_book_title, publication_date).
+
+Unlike prior benchmarks, we do not constrain the vocabulary size --- i.e. mapping rare words to an UNK token --- but instead release the data as an open-vocabulary benchmark. The only processing of the text that has been applied is the removal of boilerplate license text, and the mapping of offensive discriminatory words as specified by Ofcom to placeholder tokens. Users are free to model the data at the character-level, subword-level, or via any mechanism that can model an arbitrary string of text.
+To compare models we propose to continue measuring the word-level perplexity, by calculating the total likelihood of the dataset (via any chosen subword vocabulary or character-based scheme) divided by the number of tokens --- specified below in the dataset statistics table.
+One could use this dataset for benchmarking long-range language models, or use it to pre-train for other natural language processing tasks which require long-range reasoning, such as LAMBADA or NarrativeQA. We would not recommend using this dataset to train a general-purpose language model, e.g. for applications to a production-system dialogue agent, due to the dated linguistic style of old texts and the inherent biases present in historical writing.
 """
 
 _ASSET_ROOT_URL = "https://storage.googleapis.com/deepmind-gutenberg/"
@@ -41,7 +48,7 @@ flat_map = lambda fn, arr: [el for sub_arr in map(fn, arr) for el in sub_arr]
 
 
 class Pg19(nlp.GeneratorBasedBuilder):
-    """TODO(pg19): Short description of my dataset."""
+    """PG-19 dataset - books as plain text extracted from the Project Gutenberg library"""
 
     # TODO(pg19): Set up version.
     VERSION = nlp.Version("0.1.0")
