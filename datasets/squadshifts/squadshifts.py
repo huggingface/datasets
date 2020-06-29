@@ -35,15 +35,15 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-SquadShifts consists of four new test sets for the Stanford Question Answering\
-Dataset (SQuAD) from four different domains: Wikipedia articles, New York Times\
-articles, Reddit comments, and Amazon product reviews. Each dataset was generated\
-using the same data generating pipeline, Amazon Mechanical Turk interface, and\
-data cleaning code as the original SQuAD v1.1 dataset. The "new-wikipedia"\
-dataset measures overfitting on the original SQuAD v1.1 dataset. The\
-"new-york-times", "reddit", and "amazon" datasets measure robustness to natural\
-distribution shifts. We encourage SQuAD model developers to also evaluate their\
-methods on these new datasets!
+SquadShifts consists of four new test sets for the Stanford Question Answering \
+Dataset (SQuAD) from four different domains: Wikipedia articles, New York \ 
+Times articles, Reddit comments, and Amazon product reviews. Each dataset \
+was generated using the same data generating pipeline, Amazon Mechanical \
+Turk interface, and data cleaning code as the original SQuAD v1.1 dataset. \
+The "new-wikipedia" dataset measures overfitting on the original SQuAD v1.1 \
+dataset.  The "new-york-times", "reddit", and "amazon" datasets measure \
+robustness to natural distribution shifts. We encourage SQuAD model developers \
+to also evaluate their methods on these new datasets! \
 """
 
 
