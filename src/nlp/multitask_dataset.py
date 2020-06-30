@@ -13,14 +13,15 @@ class MultiDataset:
 
         # Check matching columns
         for task in self.tasks[1:]:
-            if task.column_names != self.tasks[0].column_names:
-                raise Exception("Tasks must have matching columns")
+            if task.schema != self.tasks[0].schema:
+                raise Exception("Tasks must have matching schemas")
 
         # Create random order of tasks
         # Using size-proportional sampling
         task_choice_list = []
         for i, task in enumerate(self.tasks):
             task_choice_list += [i] * len(task)
+
         task_choice_list = np.array(task_choice_list)
         np.random.seed(self.seed)
         np.random.shuffle(task_choice_list)
