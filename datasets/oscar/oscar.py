@@ -85,9 +85,7 @@ _CITATION = """\
 }
 """
 
-_BASE_DATA_URL_FORMAT_STR = (
-    "https://oscar-public.huma-num.fr/" "{shuffled}/{language}{deduplicated}." "txt.gz"
-)
+_BASE_DATA_URL_FORMAT_STR = "https://oscar-public.huma-num.fr/" "{shuffled}/{language}{deduplicated}." "txt.gz"
 
 
 def _languages():
@@ -275,8 +273,7 @@ class OscarConfig(nlp.BuilderConfig):
 
     Args:
         for the `nlp.features.text.TextEncoder` used for the features feature.
-      target_language: Target language that will be used to translate to from
-        English which is always the source language. It has to contain 2-letter
+        It has to contain 2-letter
         or 3-letter coded strings. For example: "se", "hu", "eml".
       **kwargs: Keyword arguments forwarded to super.
     """
@@ -285,20 +282,28 @@ class OscarConfig(nlp.BuilderConfig):
             raise ValueError("Invalid language: %s " % language)
 
         # Initialize the base class.
-        name = "%s" % (language)
+        name = "{}_{}_{}".format(
+            "shuffled" if shuffled else "unshuffled", "deduplicated" if deduplicated else "original", language
+        )
 
         # TODO(oscar): Implement unshuffled OSCAR
         # shuf = "shuffled" if shuffled else "unshuffled"
         dedup = "_dedup" if deduplicated else ""
 
-        description = "{} and {}, {} OSCAR dataset".format("Shuffled" if shuffled else "Unshuffled", 
-        "deduplicated" if deduplicated else "original", _languages()[language])
+        description = "{} and {}, {} OSCAR dataset".format(
+            "Shuffled" if shuffled else "Unshuffled",
+            "deduplicated" if deduplicated else "original",
+            _languages()[language],
+        )
 
         super(OscarConfig, self).__init__(name=name, description=description, **kwargs)
 
         # Store the attributes.
 
         self.language = language
+
+        # Always returns the shuffled dataset for the moment
+
         self.shuffled = "shuffled"
         self.deduplicated = deduplicated
         self.data_url = _BASE_DATA_URL_FORMAT_STR.format(shuffled="shuffled", language=language, deduplicated=dedup)
@@ -311,10 +316,13 @@ class Oscar(nlp.GeneratorBasedBuilder):
     # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
     # 0.1.0: Initial version.
     BUILDER_CONFIGS = [
-        # The version below does not refer to the version of the released
-        # database. It only indicates the version of the TFDS integration.
         OscarConfig(  # pylint: disable=g-complex-comprehension
             language=language, shuffled=True, deduplicated=True, version=nlp.Version("1.0.0"),
+        )
+        for language in _languages()
+    ] + [
+        OscarConfig(  # pylint: disable=g-complex-comprehension
+            language=language, shuffled=True, deduplicated=False, version=nlp.Version("1.0.0"),
         )
         for language in _languages()
     ]
@@ -322,16 +330,11 @@ class Oscar(nlp.GeneratorBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {
-                    "id": nlp.Value("string"),
-                    "text": nlp.Value("string"),
-                }
-            ),
+            features=nlp.Features({"id": nlp.Value("string"), "text": nlp.Value("string"),}),
             supervised_keys=None,
             homepage=_URL,
             citation=_CITATION,
-            license = _LICENSE,
+            license=_LICENSE,
         )
 
     def _split_generators(self, dl_manager):
@@ -342,6 +345,7 @@ class Oscar(nlp.GeneratorBasedBuilder):
         return [
             nlp.SplitGenerator(name=self.config.name, gen_kwargs={"filepath": downloaded_files[self.config.name]}),
         ]
+
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
         logging.info("generating examples from = %s", filepath)
