@@ -73,6 +73,9 @@ class DocRed(nlp.GeneratorBasedBuilder):
         downloads = {}
         for key in _URLS.keys():
             downloads[key] = dl_manager.download_and_extract(_URLS[key])
+            #  Fix for dummy data
+            if os.path.isdir(downloads[key]):
+                downloads[key] = os.path.join(downloads[key],key+".json")
 
         return [
             nlp.SplitGenerator(
