@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 
 import nlp
@@ -81,10 +83,12 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
         for i, line in enumerate(lines):
             id, text, title = line.strip().split("\t")
             text = text[1:-1]  # remove " symbol at the beginning and the end
-            text = text.replace('""', '"')
+            text = text.replace('""', '"')  # replace double quotes by simple quotes
             if self.config.with_embeddings:
                 if vec_idx >= len(vecs):
-                    assert len(vectors_files) > 0, "Couldn't find vector for index {}".format(i)
+                    if len(vectors_files) == 0:
+                        logging.warning("Ran out of vector files at index {}".format(i))
+                        break
                     vecs = np.load(open(vectors_files.pop(0), "rb"), allow_pickle=True)
                     vec_idx = 0
                 vec_id, vec = vecs[vec_idx]
