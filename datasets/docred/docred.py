@@ -47,12 +47,12 @@ class DocRed(nlp.GeneratorBasedBuilder):
                 {
                     "title": nlp.Value("string"),
                     "sents": nlp.features.Sequence(nlp.features.Sequence(nlp.Value("string"))),
-                    "vertexSet": nlp.features.Sequence(nlp.features.Sequence({
+                    "vertexSet": [[{
                          "name": nlp.Value("string"),
                           "sent_id": nlp.Value("int32"),
                           "pos": nlp.features.Sequence(nlp.Value("int32")),
                          "type": nlp.Value("string"),
-                     })),
+                     }]],
                     "labels": nlp.features.Sequence(
                         {
                             "head": nlp.Value("int32"),
