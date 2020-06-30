@@ -218,7 +218,7 @@ class BaseDatasetTest(TestCase):
             tmp_file = os.path.join(tmp_dir, "test_7.arrow")
             tmp_file_2 = os.path.join(tmp_dir, "test_8.arrow")
             dset_dict = dset.train_test_split(
-                train_size=10, train_cache_file_name=tmp_file, test_cache_file_name=tmp_file_2
+                train_size=10, train_cache_file_name=tmp_file, test_cache_file_name=tmp_file_2, seed=42
             )
             self.assertListEqual(list(dset_dict.keys()), ["train", "test"])
             dset_train = dset_dict["train"]
