@@ -7,7 +7,7 @@ from .arrow_reader import Dataset
 
 
 class MultiDataset:
-    def __init__(self, tasks, seed):
+    def __init__(self, tasks, seed=None):
         self.tasks = tasks
         self.seed = seed
 
