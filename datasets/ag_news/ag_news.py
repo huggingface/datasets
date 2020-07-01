@@ -20,6 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import os
+
 import nlp
 
 
@@ -60,7 +61,10 @@ class AGNews(nlp.GeneratorBasedBuilder):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(
-                {"text": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["World", "Sports", "Business", "Sci/Tech"])}
+                {
+                    "text": nlp.Value("string"),
+                    "label": nlp.features.ClassLabel(names=["World", "Sports", "Business", "Sci/Tech"]),
+                }
             ),
             homepage="http://groups.di.unipi.it/~gulli/AG_corpus_of_news_articles.html",
             citation=_CITATION,
@@ -70,20 +74,21 @@ class AGNews(nlp.GeneratorBasedBuilder):
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
         test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_path }),
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_path}),
             nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
     def _generate_examples(self, filepath):
         """Generate AG News examples."""
         with open(filepath) as csv_file:
-            csv_reader = csv.reader(csv_file, quotechar='"', delimiter=',',
-                     quoting=csv.QUOTE_ALL, skipinitialspace=True)
+            csv_reader = csv.reader(
+                csv_file, quotechar='"', delimiter=",", quoting=csv.QUOTE_ALL, skipinitialspace=True
+            )
             for id_, row in enumerate(csv_reader):
                 label, title, description = row
-                # Original labels are [1, 2, 3, 4] -> 
+                # Original labels are [1, 2, 3, 4] ->
                 #                   ['World', 'Sports', 'Business', 'Sci/Tech']
                 # Re-map to [0, 1, 2, 3].
                 label = int(label) - 1
-                text = ' '.join((title, description))
+                text = " ".join((title, description))
                 yield id_, {"text": text, "label": label}
