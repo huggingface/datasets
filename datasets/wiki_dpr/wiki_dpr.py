@@ -45,7 +45,8 @@ class WikiDprConfig(nlp.BuilderConfig):
 class WikiDpr(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = WikiDprConfig
     BUILDER_CONFIGS = [
-        WikiDprConfig(name="psgs_w100_with_nq_embeddings", version=nlp.Version("1.0.0"), with_embeddings=True)
+        WikiDprConfig(name="psgs_w100_with_nq_embeddings", version=nlp.Version("1.0.0"), with_embeddings=True),
+        WikiDprConfig(name="psgs_w100_no_embeddings", version=nlp.Version("1.0.0"), with_embeddings=False),
     ]
 
     def _info(self):
