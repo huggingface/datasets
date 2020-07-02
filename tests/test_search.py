@@ -61,7 +61,9 @@ class IndexableDatasetTest(TestCase):
     def test_add_faiss_index_from_external_arrays(self):
         dset: Dataset = self._create_dummy_dataset()
         dset.add_faiss_index_from_external_arrays(
-            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs", metric_type=faiss.METRIC_INNER_PRODUCT
+            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1),
+            index_name="vecs",
+            metric_type=faiss.METRIC_INNER_PRODUCT,
         )
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples["filename"][0], "my_name-train_29")
@@ -69,7 +71,9 @@ class IndexableDatasetTest(TestCase):
     def test_serialization(self):
         dset: Dataset = self._create_dummy_dataset()
         dset.add_faiss_index_from_external_arrays(
-            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs", metric_type=faiss.METRIC_INNER_PRODUCT
+            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1),
+            index_name="vecs",
+            metric_type=faiss.METRIC_INNER_PRODUCT,
         )
         with tempfile.NamedTemporaryFile() as tmp_file:
             dset.save_faiss_index("vecs", tmp_file.name)

@@ -304,18 +304,18 @@ class FaissIndex(BaseIndex):
 
     def save(self, file: str):
         """Serialize the FaissIndex on disk"""
-        if hasattr(self.faiss_index, "device") and self.faiss_index.device is not None and self.faiss_index.device > -1:
+        if (
+            hasattr(self.faiss_index, "device")
+            and self.faiss_index.device is not None
+            and self.faiss_index.device > -1
+        ):
             index = faiss.index_gpu_to_cpu(self.faiss_index)
         else:
             index = self.faiss_index
         faiss.write_index(index, file)
 
     @classmethod
-    def load(
-        cls,
-        file: str,
-        device: Optional[int] = None,
-    ) -> "FaissIndex":
+    def load(cls, file: str, device: Optional[int] = None,) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         faiss_index = cls(device=device)
         index = faiss.read_index(file)
@@ -385,7 +385,9 @@ class IndexableMixin:
                 `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         index_name = index_name if index_name is not None else column
-        self._indexes[index_name] = FaissIndex(device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index)
+        self._indexes[index_name] = FaissIndex(
+            device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
+        )
         self._indexes[index_name].add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
 
     def add_faiss_index_from_external_arrays(
@@ -416,7 +418,9 @@ class IndexableMixin:
                 `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
                 `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
-        self._indexes[index_name] = FaissIndex(device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index)
+        self._indexes[index_name] = FaissIndex(
+            device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
+        )
         self._indexes[index_name].add_vectors(
             external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose
         )
@@ -435,10 +439,7 @@ class IndexableMixin:
         logger.info("Saved FaissIndex {} at {}".format(index_name, file))
 
     def load_faiss_index(
-        self,
-        index_name: str,
-        file: str,
-        device: Optional[int] = None,
+        self, index_name: str, file: str, device: Optional[int] = None,
     ):
         """Load a FaissIndex from disk.
             If you want to do additional configurations, you can have access to the faiss index object by doing `.get_index(index_name).faiss_index` to make it fit your needs
