@@ -55,7 +55,7 @@ class IndexableDatasetTest(TestCase):
         )
         dset = dset.add_faiss_index("vecs")
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
-        self.assertEqual(examples[0]["filename"], "my_name-train_29")
+        self.assertEqual(examples["filename"][0], "my_name-train_29")
         dset.drop_index("vecs")
 
     def test_add_faiss_index_from_external_arrays(self):
@@ -64,7 +64,7 @@ class IndexableDatasetTest(TestCase):
             external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs"
         )
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
-        self.assertEqual(examples[0]["filename"], "my_name-train_29")
+        self.assertEqual(examples["filename"][0], "my_name-train_29")
 
     def test_serialization(self):
         dset: Dataset = self._create_dummy_dataset()
@@ -75,7 +75,7 @@ class IndexableDatasetTest(TestCase):
             dset.save_faiss_index("vecs", tmp_file.name)
             dset.load_faiss_index("vecs2", tmp_file.name)
         scores, examples = dset.get_nearest_examples("vecs2", np.ones(5, dtype=np.float32))
-        self.assertEqual(examples[0]["filename"], "my_name-train_29")
+        self.assertEqual(examples["filename"][0], "my_name-train_29")
 
     def test_drop_index(self):
         dset: Dataset = self._create_dummy_dataset()
@@ -97,7 +97,7 @@ class IndexableDatasetTest(TestCase):
 
             dset.add_elasticsearch_index("filename", es_client=es_client)
             scores, examples = dset.get_nearest_examples("filename", "my_name-train_29")
-            self.assertEqual(examples[0]["filename"], "my_name-train_29")
+            self.assertEqual(examples["filename"][0], "my_name-train_29")
 
 
 class FaissIndexTest(TestCase):
