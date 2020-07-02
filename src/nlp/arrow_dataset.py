@@ -16,22 +16,25 @@
 # Lint as: python3
 """ Simple Dataset wrapping an Arrow Table."""
 
+import contextlib
 import hashlib
 import logging
 import os
 from collections import defaultdict
 from collections.abc import Mapping
+from functools import partial
 from math import ceil, floor
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pyarrow as pa
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .utils import convert_tuples_in_lists, map_nested
+from .search import FaissGpuOptions, IndexableMixin
+from .utils import map_all_sequences_to_lists, map_nested
 
 
 logger = logging.getLogger(__name__)
@@ -107,7 +110,11 @@ class DatasetInfoMixin(object):
         return self._info.version
 
 
-class Dataset(DatasetInfoMixin):
+class DatasetTransformationNotAllowedError(Exception):
+    pass
+
+
+class Dataset(DatasetInfoMixin, IndexableMixin):
     """ A Dataset backed by an Arrow table or Record Batch.
     """
 
@@ -118,12 +125,14 @@ class Dataset(DatasetInfoMixin):
         info: Optional[Any] = None,
         split: Optional[Any] = None,
     ):
-        super().__init__(info=info, split=split)
+        DatasetInfoMixin.__init__(self, info=info, split=split)
+        IndexableMixin.__init__(self)
         self._data: pa.Table = arrow_table
         self._data_files: List[dict] = data_files if data_files is not None else []
-        self._format_type = None
-        self._format_columns = None
-        self._output_all_columns = False
+        self._format_type: Optional[str] = None
+        self._format_kwargs: dict = {}
+        self._format_columns: Optional[list] = None
+        self._output_all_columns: bool = False
 
     @classmethod
     def from_file(cls, filename: str, info: Optional[Any] = None, split: Optional[Any] = None):
@@ -232,11 +241,16 @@ class Dataset(DatasetInfoMixin):
 
     def __iter__(self):
         format_type = self._format_type
+        format_kwargs = self._format_kwargs
         format_columns = self._format_columns
         output_all_columns = self._output_all_columns
         for index in range(self._data.num_rows):
             yield self._getitem(
-                index, format_type=format_type, format_columns=format_columns, output_all_columns=output_all_columns,
+                index,
+                format_type=format_type,
+                format_columns=format_columns,
+                output_all_columns=output_all_columns,
+                format_kwargs=format_kwargs,
             )
 
     def __repr__(self):
@@ -247,11 +261,46 @@ class Dataset(DatasetInfoMixin):
     def format(self):
         return {
             "type": "python" if self._format_type is None else self._format_type,
+            "format_kwargs": self._format_kwargs,
             "columns": self.column_names if self._format_columns is None else self._format_columns,
             "output_all_columns": self._output_all_columns,
         }
 
-    def set_format(self, type: Optional[str] = None, columns: Optional[List] = None, output_all_columns: bool = False):
+    @contextlib.contextmanager
+    def formated_as(
+        self,
+        type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
+    ):
+        """ To be used in a `with` statement. Set __getitem__ return format (type and columns)
+
+            Args:
+                type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
+                    None means __getitem__ returns python objects (default)
+                columns (Optional ``List[str]``): columns to format in the output
+                    None means __getitem__ returns all columns (default)
+                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+        """
+        old_format_type = self._format_type
+        old_format_kwargs = self._format_kwargs
+        old_format_columns = self._format_columns
+        old_output_all_columns = self._output_all_columns
+        try:
+            self.set_format(type, columns, output_all_columns, **format_kwargs)
+            yield
+        finally:
+            self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
+
+    def set_format(
+        self,
+        type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
+    ):
         """ Set __getitem__ return format (type and columns)
 
             Args:
@@ -260,6 +309,7 @@ class Dataset(DatasetInfoMixin):
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
                 output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         # Check return type
         if type == "torch":
@@ -273,6 +323,9 @@ class Dataset(DatasetInfoMixin):
             except ImportError:
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
         else:
+            assert not (
+                type == "pandas" and format_kwargs is not None
+            ), "Format type 'pandas' doesn't have any `**format_kwargs`."
             assert (
                 type is None or type == "numpy" or type == "pandas"
             ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas']."
@@ -288,6 +341,7 @@ class Dataset(DatasetInfoMixin):
             )
 
         self._format_type = type
+        self._format_kwargs = format_kwargs
         self._format_columns = columns
         self._output_all_columns = output_all_columns
         logger.info(
@@ -305,7 +359,10 @@ class Dataset(DatasetInfoMixin):
         """
         self.set_format()
 
-    def _convert_outputs(self, outputs, format_type=None, format_columns=None, output_all_columns=False):
+    def _convert_outputs(
+        self, outputs, format_type=None, format_columns=None, output_all_columns=False, format_kwargs=None
+    ):
+        format_kwargs = format_kwargs if format_kwargs is not None else {}
         if format_type is None:
             if output_all_columns:
                 return outputs
@@ -314,17 +371,19 @@ class Dataset(DatasetInfoMixin):
             return outputs
 
         if format_type == "numpy":
-            import numpy
+            import numpy as np
 
-            command = numpy.array
+            if "copy" not in format_kwargs:
+                format_kwargs["copy"] = False
+            command = partial(np.array, **format_kwargs)
         elif format_type == "torch":
             import torch
 
-            command = torch.tensor
+            command = partial(torch.tensor, **format_kwargs)
         elif format_type == "tensorflow":
             import tensorflow
 
-            command = tensorflow.ragged.constant
+            command = partial(tensorflow.ragged.constant, **format_kwargs)
         else:
 
             def identity(x):
@@ -353,10 +412,18 @@ class Dataset(DatasetInfoMixin):
         return dict((key, [elem]) for key, elem in py_dict.items())
 
     def _getitem(
-        self, key: Union[int, slice, str], format_type=None, format_columns=None, output_all_columns=False
+        self,
+        key: Union[int, slice, str],
+        format_type=None,
+        format_columns=None,
+        output_all_columns=False,
+        format_kwargs=None,
     ) -> Union[Dict, List]:
         """ Can be used to index columns (by string names) or rows (by integer index or slices)
         """
+        # In the following, to convert data from the arrow table to dicts or lists,
+        # we use .to_pandas().to_dict() or .to_pandas().to_list() as they are
+        # significantly faster than .to_pydict() thanks to zero-copy
         if isinstance(key, int):
             if key < 0:
                 key = self._data.num_rows + key
@@ -365,32 +432,34 @@ class Dataset(DatasetInfoMixin):
             if format_type is not None and format_type == "pandas":
                 outputs = self._data.slice(key, 1).to_pandas()
             else:
-                outputs = self._unnest(self._data.slice(key, 1).to_pydict())
+                outputs = self._unnest(self._data.slice(key, 1).to_pandas().to_dict("list"))
         elif isinstance(key, slice):
             key_indices = key.indices(self._data.num_rows)
             if key_indices[2] != 1 or key_indices[1] < key_indices[0]:
                 raise ValueError("Slicing can only take contiguous and ordered slices.")
             if format_type is not None and format_type == "pandas":
-                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas()
+                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas(
+                    split_blocks=True
+                )
             else:
-                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pydict()
+                outputs = (
+                    self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
+                    .to_pandas(split_blocks=True)
+                    .to_dict("list")
+                )
         elif isinstance(key, str):
             if key not in self._data.column_names:
                 raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
             if format_type is not None:
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
-                        outputs = self._data[key].to_pandas(zero_copy_only=False)
-                    elif format_type == "numpy":
-                        outputs = np.concatenate(
-                            [arr.to_numpy(zero_copy_only=False) for arr in self._data[key].chunks]
-                        )
+                        outputs = self._data[key].to_pandas(split_blocks=True)
                     else:
-                        outputs = self._convert_outputs(self._data[key].to_pylist(), format_type=format_type)
+                        outputs = self._data[key].to_pandas(split_blocks=True).to_list()
                 else:
-                    outputs = self._data[key].to_pylist()
+                    outputs = self._data[key].to_pandas(split_blocks=True).to_list()
             else:
-                outputs = self._data[key].to_pylist()
+                outputs = self._data[key].to_pandas(split_blocks=True).to_list()
         else:
             raise ValueError("Can only get row(s) (int or slice) or columns (string).")
 
@@ -400,7 +469,11 @@ class Dataset(DatasetInfoMixin):
             and format_type != "pandas"
         ):
             outputs = self._convert_outputs(
-                outputs, format_type=format_type, format_columns=format_columns, output_all_columns=output_all_columns
+                outputs,
+                format_type=format_type,
+                format_columns=format_columns,
+                output_all_columns=output_all_columns,
+                format_kwargs=format_kwargs,
             )
         return outputs
 
@@ -412,6 +485,7 @@ class Dataset(DatasetInfoMixin):
             format_type=self._format_type,
             format_columns=self._format_columns,
             output_all_columns=self._output_all_columns,
+            format_kwargs=self._format_kwargs,
         )
 
     def cleanup_cache_files(self):
@@ -528,11 +602,14 @@ class Dataset(DatasetInfoMixin):
                     )
                 )
             elif isinstance(test_indices, list) and does_return_dict is True:
-                all_dict_values_are_lists = all(isinstance(value, list) for value in processed_inputs.values())
+                allowed_batch_return_types = (list, np.ndarray)
+                all_dict_values_are_lists = all(
+                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
+                )
                 if all_dict_values_are_lists is False:
                     raise TypeError(
-                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types `list`.".format(
-                            [type(x) for x in processed_inputs.values()]
+                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
+                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
                         )
                     )
 
@@ -544,7 +621,10 @@ class Dataset(DatasetInfoMixin):
         test_indices = [0, 1] if batched else 0
         update_data = does_function_return_dict(test_inputs, test_indices)
 
-        def apply_function_on_filtered_inputs(inputs, indices):
+        class NumExamplesMismatch(Exception):
+            pass
+
+        def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False):
             """ Utility to apply the function on a selection of columns. """
             processed_inputs = function(inputs, indices) if with_indices else function(inputs)
             if not update_data:
@@ -557,7 +637,13 @@ class Dataset(DatasetInfoMixin):
                     key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1])),
                     format_type=None,
                     format_columns=None,
+                    format_kwargs=None,
                 )
+            if check_same_num_examples:
+                input_num_examples = len(inputs[next(iter(inputs.keys()))])
+                processed_inputs_num_examples = len(processed_inputs[next(iter(processed_inputs.keys()))])
+                if input_num_examples != processed_inputs_num_examples:
+                    raise NumExamplesMismatch()
             inputs.update(processed_inputs)
             return inputs
 
@@ -568,7 +654,7 @@ class Dataset(DatasetInfoMixin):
         if arrow_schema is None and update_data:
             if not batched:
                 test_output = self._nest(test_output)
-            test_output = convert_tuples_in_lists(test_output)
+            test_output = map_all_sequences_to_lists(test_output)
             arrow_schema = pa.Table.from_pydict(test_output).schema
             if disable_nullable:
                 arrow_schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in arrow_schema)
@@ -606,7 +692,7 @@ class Dataset(DatasetInfoMixin):
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
         if not batched:
-            for i, example in tqdm(enumerate(self)):
+            for i, example in enumerate(tqdm(self)):
                 example = apply_function_on_filtered_inputs(example, i)
                 if update_data:
                     writer.write(example)
@@ -614,7 +700,14 @@ class Dataset(DatasetInfoMixin):
             for i in tqdm(range(0, len(self), batch_size)):
                 batch = self[i : i + batch_size]
                 indices = list(range(*(slice(i, i + batch_size).indices(self._data.num_rows))))  # Something simpler?
-                batch = apply_function_on_filtered_inputs(batch, indices)
+                try:
+                    batch = apply_function_on_filtered_inputs(
+                        batch, indices, check_same_num_examples=len(self.list_indexes()) > 0
+                    )
+                except NumExamplesMismatch:
+                    raise DatasetTransformationNotAllowedError(
+                        "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
+                    )
                 if update_data:
                     writer.write_batch(batch)
 
@@ -652,6 +745,10 @@ class Dataset(DatasetInfoMixin):
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.filter` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it.`"
+            )
 
         # transforme the filter function into the map function
         def map_function(batch, *args):
@@ -687,6 +784,7 @@ class Dataset(DatasetInfoMixin):
         test_inputs = self[:2]
         if "remove_columns" in kwargs:
             test_inputs = {key: test_inputs[key] for key in (test_inputs.keys() - kwargs["remove_columns"])}
+        test_inputs = map_all_sequences_to_lists(test_inputs)
         arrow_schema = pa.Table.from_pydict(test_inputs).schema
 
         # return map function
@@ -712,6 +810,10 @@ class Dataset(DatasetInfoMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
+            )
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
@@ -743,7 +845,7 @@ class Dataset(DatasetInfoMixin):
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
         for i in tqdm(indices):
-            example = self._getitem(key=int(i), format_type=None, format_columns=None,)
+            example = self._getitem(key=int(i), format_type=None, format_columns=None, format_kwargs=None)
             writer.write(example)
 
         writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
@@ -784,6 +886,10 @@ class Dataset(DatasetInfoMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.sort` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
+            )
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
@@ -814,7 +920,9 @@ class Dataset(DatasetInfoMixin):
                 logger.info("Loading cached sorted dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
-        indices = self._getitem(column, format_type="numpy", format_columns=None, output_all_columns=False,)
+        indices = self._getitem(
+            column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
+        )
         indices = np.argsort(indices, kind=kind)
         if reverse:
             indices = indices[::-1]
@@ -855,6 +963,10 @@ class Dataset(DatasetInfoMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.shuffle` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
+            )
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
@@ -940,6 +1052,10 @@ class Dataset(DatasetInfoMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
         """
+        if len(self.list_indexes()) > 0:
+            raise DatasetTransformationNotAllowedError(
+                "Using `.train_test_split` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
+            )
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
@@ -1110,3 +1226,139 @@ class Dataset(DatasetInfoMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
         )
+
+    def add_faiss_index(
+        self,
+        column: str,
+        index_name: Optional[str] = None,
+        device: Optional[int] = None,
+        string_factory: Optional[str] = None,
+        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        dtype=np.float32,
+    ):
+        """ Add a dense index using Faiss for fast retrieval.
+            By default the index is done over the vectors of the specified column.
+            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+            You can find more information about Faiss here:
+            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
+
+            Examples of usage:
+
+            ```
+            ds = nlp.load_dataset('crime_and_punish', split='train')
+            ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
+            ds_with_embeddings.add_faiss_index(column='embeddings')
+            # query
+            scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
+            # save index
+            ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
+            ```
+
+            ```
+            ds = nlp.load_dataset('crime_and_punish', split='train')
+            # load index
+            ds.load_faiss_index('embeddings', 'my_index.faiss')
+            # query
+            scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
+            ```
+
+            Args:
+                `column` (`str`): The column of the vectors to add to the index.
+                `index_name` (Optional `str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
+                    By defaul it corresponds to `column`.
+                `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
+                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
+        """
+        with self.formated_as(type="numpy", columns=[column], dtype=dtype):
+            super().add_faiss_index(
+                column=column,
+                index_name=index_name,
+                device=device,
+                string_factory=string_factory,
+                faiss_gpu_options=faiss_gpu_options,
+            )
+        return self
+
+    def add_faiss_index_from_external_arrays(
+        self,
+        external_arrays: np.array,
+        index_name: str,
+        device: Optional[int] = None,
+        string_factory: Optional[str] = None,
+        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        dtype=np.float32,
+    ):
+        """ Add a dense index using Faiss for fast retrieval.
+            The index is created using the vectors of `external_arrays`.
+            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+            You can find more information about Faiss here:
+            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
+
+            Args:
+                `external_arrays` (`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
+                    It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
+                `index_name` (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
+                `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
+                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
+        """
+        super().add_faiss_index_from_external_arrays(
+            external_arrays=external_arrays.astype(dtype),
+            index_name=index_name,
+            device=device,
+            string_factory=string_factory,
+            faiss_gpu_options=faiss_gpu_options,
+        )
+
+    def add_elasticsearch_index(
+        self,
+        column: str,
+        index_name: Optional[str] = None,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        es_client: Optional["elasticsearch.Elasticsearch"] = None,
+        es_index_name: Optional[str] = None,
+        es_index_config: Optional[dict] = None,
+    ):
+        """ Add a text index using ElasticSearch for fast retrieval. This is done in-place.
+
+            Examples of usage:
+
+            ```
+            es_client = elasticsearch.Elasticsearch()
+            ds = nlp.load_dataset('crime_and_punish', split='train')
+            ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
+            scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
+            ```
+
+            Args:
+                `column` (`str`): The column of the documents to add to the index.
+                `index_name` (Optional `str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
+                    By defaul it corresponds to `column`.
+                `documents` (`Union[List[str], nlp.Dataset]`): The documents to index. It can be a `nlp.Dataset`.
+                `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
+                `es_index_name` (Optional `str`): The elasticsearch index name used to create the index.
+                `es_index_config` (Optional `dict`): The configuration of the elasticsearch index.
+                    Default config is
+                    {
+                        "settings": {
+                            "number_of_shards": 1,
+                            "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                        },
+                        "mappings": {
+                            "properties": {
+                                "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
+                            }
+                        },
+                    }
+        """
+        with self.formated_as(type=None, columns=[column]):
+            super().add_elasticsearch_index(
+                column=column, host=host, port=port, es_client=es_client, index_name=index_name
+            )
+        return self

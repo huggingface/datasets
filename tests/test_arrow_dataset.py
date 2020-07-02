@@ -23,7 +23,7 @@ class ReaderTester(BaseReader):
             filename_skip_take["skip"] if "skip" in filename_skip_take else None,
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
-        pa_table = pa.Table.from_pydict({"filename": [filename + "_" + str(x) for x in np.arange(100).tolist()]})
+        pa_table = pa.Table.from_pydict({"filename": [filename + "_" + str(x) for x in np.arange(30).tolist()]})
         if skip is not None and take is not None:
             pa_table = pa_table.slice(skip, take)
         return pa_table
