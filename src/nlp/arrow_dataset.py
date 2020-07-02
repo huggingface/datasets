@@ -1009,9 +1009,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     def export(
-        self,
-        filename: str,
-        format: str = "tfrecord",
+        self, filename: str, format: str = "tfrecord",
     ):
         """ Writes the Arrow dataset to a TFRecord file.
 
@@ -1033,7 +1031,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         def _bytes_feature(value):
             """Returns a bytes_list from a string / byte."""
             if isinstance(value, type(tf.constant(0))):
-                value = value.numpy() # BytesList won't unpack a string from an EagerTensor.
+                value = value.numpy()  # BytesList won't unpack a string from an EagerTensor.
             return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
         def _float_feature(value):
@@ -1056,7 +1054,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 assert False, f"value.dtype not in [string, float, int]; is {value}"
 
         def serialize_example(ex):
-            feature = { col_name: _feature(ex[col_name]) for col_name in self._format_columns }
+            feature = {col_name: _feature(ex[col_name]) for col_name in self._format_columns}
             example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
             return example_proto.SerializeToString()
 
@@ -1075,7 +1073,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(f"Writing TFRecord to {filename}")
         writer.write(tf_dataset)
         logger.info(f"Finished writing TFRecord to {filename}")
-
 
     def train_test_split(
         self,

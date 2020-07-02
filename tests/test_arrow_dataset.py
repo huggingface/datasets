@@ -175,6 +175,7 @@ class BaseDatasetTest(TestCase):
 
             # Import the data
             import tensorflow as tf
+
             tf_dset = tf.data.TFRecordDataset([tfrecord_path])
             feature_description = {"filename": tf.io.FixedLenFeature([], tf.string)}
             tf_parsed_dset = tf_dset.map(
