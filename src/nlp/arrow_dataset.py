@@ -1075,3 +1075,38 @@ class Dataset(DatasetInfoMixin):
         )
 
         return {"train": train_split, "test": test_split}
+
+    def shard(
+        self,
+        size: int,
+        rank: int,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+    ):
+        """ Return the `rank`-nth shard from dataset split into `size` pieces.
+
+            This shards consecutively, so rank 0 will receive the first 1/size items, rank 1 will
+            receive the next 1/size items, and so on. Shuffling should be done with the shuffle()
+            function.
+
+            Args:
+                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
+                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                    can be identified, use it instead of recomputing.
+                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                    results of the computation instead of the automatically generated cache file name.
+                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                    Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+        """
+        start_idx = int(len(self) * rank / size)
+        end_idx = int(len(self) * (rank + 1) / size)
+        indices = np.arange(start_idx, end_idx)
+        return self.select(
+            indices=indices,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+        )
