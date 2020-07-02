@@ -56,26 +56,24 @@ class BiomrcConfig(nlp.BuilderConfig):
 
     global _SETTING, _VERSION
 
-    def __init__(self, **kwargs):
+    def __init__(self, biomrc_setting="A", biomrc_version="large", **kwargs):
         """BuilderConfig for BioMRC.
     Args:
       **kwargs: keyword arguments forwarded to super.
     """
-        if "biomrc_setting" in kwargs:
-            if kwargs["biomrc_setting"] in ["B", "b"]:
-                _SETTING = "B"
-            else:
-                if kwargs["biomrc_setting"] not in ["A", "a"]:
-                    print("Wrong Setting for BioMRC, using Setting A instead.")
+        if biomrc_setting.lower() == "b":
+            _SETTING = "B"
+        else:
+            if biomrc_setting.lower() != "a":
+                logging.warning("Wrong Setting for BioMRC, using Setting A instead.")
 
-        if "biomrc_version" in kwargs:
-            if kwargs["biomrc_version"] in ["small", "SMALL", "Small"]:
-                _VERSION = "small"
-            elif kwargs["biomrc_version"] in ["tiny", "TINY", "Tiny"]:
-                _VERSION = "tiny"
-            else:
-                if kwargs["biomrc_version"] not in ["large", "LARGE", "Large"]:
-                    print("Wrong version for BioMRC, using BioMRC Large instead.")
+        if biomrc_version.lower() == "small":
+            _VERSION = "small"
+        elif biomrc_version.lower() == "tiny":
+            _VERSION = "tiny"
+        else:
+            if biomrc_version.lower() != "large":
+                logging.warning("Wrong version for BioMRC, using BioMRC Large instead.")
 
         super(BiomrcConfig, self).__init__(**kwargs)
 
