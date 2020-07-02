@@ -227,7 +227,14 @@ class FaissIndex(BaseIndex):
             _has_faiss
         ), "You must install Faiss to use FaissIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
 
-    def add_vectors(self, vectors: Union[np.array, "Dataset"], column: Optional[str] = None, batch_size=1000):
+    def add_vectors(
+        self,
+        vectors: Union[np.array, "Dataset"],
+        column: Optional[str] = None,
+        batch_size: int = 1000,
+        train_size: Optional[int] = None,
+        faiss_verbose: bool = False,
+    ):
         """
         Add vectors to the index.
         If the arrays are inside a certain column, you can specify it using the `column` argument.
@@ -238,10 +245,19 @@ class FaissIndex(BaseIndex):
                 index = faiss.index_factory(size, self.string_factory)
             else:
                 index = faiss.IndexFlatIP(size)
+            index.verbose = faiss_verbose
             if self.is_on_gpu():
                 index = self._to_gpu(index)
             self.faiss_index = index
-        for i in range(0, len(vectors), batch_size):
+        logger.info("Created faiss index of type {}".format(type(self.faiss_index)))
+        if train_size is not None:
+            logger.info("Training the index with the first {} vectors".format(train_size))
+            train_vecs = vectors[:train_size] if column is None else vectors[:train_size][column]
+            self.faiss_index.train(train_vecs)
+        else:
+            logger.info("Ignored the training step of the faiss index as `train_size` is None.")
+        logger.info("Adding {} vectors to the faiss index".format(len(vectors)))
+        for i in tqdm(range(0, len(vectors), batch_size)):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
 
@@ -359,6 +375,8 @@ class IndexableMixin:
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        train_size: Optional[int] = None,
+        faiss_verbose: bool = False,
     ):
         """ Add a dense index using Faiss for fast retrieval.
             The index is created using the vectors of the specified column.
@@ -374,10 +392,12 @@ class IndexableMixin:
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
+                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         index_name = index_name if index_name is not None else column
         self._indexes[index_name] = FaissIndex(device, string_factory, faiss_gpu_options)
-        self._indexes[index_name].add_vectors(self, column=column)
+        self._indexes[index_name].add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
 
     def add_faiss_index_from_external_arrays(
         self,
@@ -386,6 +406,8 @@ class IndexableMixin:
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        train_size: Optional[int] = None,
+        faiss_verbose: bool = False,
     ):
         """ Add a dense index using Faiss for fast retrieval.
             The index is created using the vectors of `external_arrays`.
@@ -401,9 +423,13 @@ class IndexableMixin:
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
+                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         self._indexes[index_name] = FaissIndex(device, string_factory, faiss_gpu_options)
-        self._indexes[index_name].add_vectors(external_arrays, column=None)
+        self._indexes[index_name].add_vectors(
+            external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose
+        )
 
     def save_faiss_index(self, index_name: str, file: str):
         """Save a FaissIndex on disk

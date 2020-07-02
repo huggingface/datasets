@@ -1304,6 +1304,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        train_size: Optional[int] = None,
+        faiss_verbose: bool = False,
         dtype=np.float32,
     ):
         """ Add a dense index using Faiss for fast retrieval.
@@ -1340,6 +1342,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
+                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
         with self.formated_as(type="numpy", columns=[column], dtype=dtype):
@@ -1349,6 +1353,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 device=device,
                 string_factory=string_factory,
                 faiss_gpu_options=faiss_gpu_options,
+                train_size=train_size,
+                faiss_verbose=faiss_verbose,
             )
         return self
 
@@ -1359,6 +1365,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        train_size: Optional[int] = None,
+        faiss_verbose: bool = False,
         dtype=np.float32,
     ):
         """ Add a dense index using Faiss for fast retrieval.
@@ -1375,6 +1383,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
                 `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
+                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
         super().add_faiss_index_from_external_arrays(
@@ -1383,6 +1393,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             device=device,
             string_factory=string_factory,
             faiss_gpu_options=faiss_gpu_options,
+            train_size=train_size,
+            faiss_verbose=faiss_verbose,
         )
 
     def add_elasticsearch_index(
