@@ -579,4 +579,6 @@ class IndexableMixin:
         """
         self._check_index_is_initialized(index_name)
         total_scores, total_indices = self.search_batch(index_name, queries, k)
-        return BatchedNearestExamplesResults(total_scores, [self[[i for i in indices if i >= 0]] for indices in total_indices])
+        return BatchedNearestExamplesResults(
+            total_scores, [self[[i for i in indices if i >= 0]] for indices in total_indices]
+        )
