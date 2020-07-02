@@ -246,6 +246,10 @@ class FaissIndex(BaseIndex):
             else:
                 index = faiss.IndexFlatIP(size)
             index.verbose = faiss_verbose
+            if hasattr(index, "quantizer") and index.quantizer is not None:
+                index.quantizer.verbose = faiss_verbose
+            if hasattr(index, "clustering_index") and index.clustering_index is not None:
+                index.clustering_index.verbose = faiss_verbose
             if self.is_on_gpu():
                 index = self._to_gpu(index)
             self.faiss_index = index
