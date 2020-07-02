@@ -460,8 +460,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     outputs = self._data[key].to_pandas(split_blocks=True).to_list()
             else:
                 outputs = self._data[key].to_pandas(split_blocks=True).to_list()
+        elif isinstance(key, list):
+            data_subset = pa.concat_tables(self._data.slice(i, 1) for i in key)
+            if format_type is not None and format_type == "pandas":
+                outputs = data_subset.to_pandas(split_blocks=True)
+            else:
+                outputs = data_subset.to_pandas(split_blocks=True).to_dict("list")
+
         else:
-            raise ValueError("Can only get row(s) (int or slice) or columns (string).")
+            raise ValueError("Can only get row(s) (int or slice or list[int]) or columns (string).")
 
         if (
             (format_type is not None or format_columns is not None)

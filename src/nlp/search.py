@@ -41,9 +41,9 @@ BatchedSearchResults = NamedTuple(
     "BatchedSearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])]
 )
 
-NearestExamplesResults = NamedTuple("NearestExamplesResults", [("scores", List[float]), ("examples", List[dict])])
+NearestExamplesResults = NamedTuple("NearestExamplesResults", [("scores", List[float]), ("examples", dict)])
 BatchedNearestExamplesResults = NamedTuple(
-    "BatchedNearestExamplesResults", [("total_scores", List[List[float]]), ("total_examples", List[List[dict]])]
+    "BatchedNearestExamplesResults", [("total_scores", List[List[float]]), ("total_examples", List[dict])]
 )
 
 
@@ -530,12 +530,12 @@ class IndexableMixin:
                 `k` (`int`): The number of examples to retrieve.
 
             Ouput:
-                `scores` (`List[List[float]`): The retrieval scores of the retrieved examples.
-                `examples` (`List[List[dict]]`): The retrieved examples.
+                `scores` (`List[float]`): The retrieval scores of the retrieved examples.
+                `examples` (`dict`): The retrieved examples.
         """
         self._check_index_is_initialized(index_name)
         scores, indices = self.search(index_name, query, k)
-        return NearestExamplesResults(scores, [self[int(i)] for i in indices])
+        return NearestExamplesResults(scores, self[list(indices)])
 
     def get_nearest_examples_batch(
         self, index_name: str, queries: Union[List[str], np.array], k: int = 10
@@ -549,10 +549,8 @@ class IndexableMixin:
 
             Ouput:
                 `total_scores` (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-                `total_examples` (`List[List[dict]]`): The retrieved examples per query.
+                `total_examples` (`List[dict]`): The retrieved examples per query.
         """
         self._check_index_is_initialized(index_name)
         total_scores, total_indices = self.search_batch(index_name, queries, k)
-        return BatchedNearestExamplesResults(
-            total_scores, [[self[int(i)] for i in indices] for indices in total_indices]
-        )
+        return BatchedNearestExamplesResults(total_scores, [self[list(indices)] for indices in total_indices])
