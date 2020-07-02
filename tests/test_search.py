@@ -53,7 +53,7 @@ class IndexableDatasetTest(TestCase):
         dset = dset.map(
             lambda ex, i: {"vecs": i * np.ones(5, dtype=np.float32)}, with_indices=True, keep_in_memory=True
         )
-        dset = dset.add_faiss_index("vecs")
+        dset = dset.add_faiss_index("vecs", metric_type=faiss.METRIC_INNER_PRODUCT)
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples["filename"][0], "my_name-train_29")
         dset.drop_index("vecs")
@@ -61,7 +61,7 @@ class IndexableDatasetTest(TestCase):
     def test_add_faiss_index_from_external_arrays(self):
         dset: Dataset = self._create_dummy_dataset()
         dset.add_faiss_index_from_external_arrays(
-            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs"
+            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs", metric_type=faiss.METRIC_INNER_PRODUCT
         )
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
         self.assertEqual(examples["filename"][0], "my_name-train_29")
@@ -69,7 +69,7 @@ class IndexableDatasetTest(TestCase):
     def test_serialization(self):
         dset: Dataset = self._create_dummy_dataset()
         dset.add_faiss_index_from_external_arrays(
-            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs"
+            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs", metric_type=faiss.METRIC_INNER_PRODUCT
         )
         with tempfile.NamedTemporaryFile() as tmp_file:
             dset.save_faiss_index("vecs", tmp_file.name)
@@ -102,7 +102,7 @@ class IndexableDatasetTest(TestCase):
 
 class FaissIndexTest(TestCase):
     def test_flat_ip(self):
-        index = FaissIndex()
+        index = FaissIndex(metric_type=faiss.METRIC_INNER_PRODUCT)
 
         # add vectors
         index.add_vectors(np.eye(5, dtype=np.float32))
@@ -134,8 +134,14 @@ class FaissIndexTest(TestCase):
         index.add_vectors(np.eye(5, dtype=np.float32))
         self.assertIsInstance(index.faiss_index, faiss.IndexLSH)
 
+    def test_custom(self):
+        custom_index = faiss.IndexFlat(5)
+        index = FaissIndex(custom_index=custom_index)
+        index.add_vectors(np.eye(5, dtype=np.float32))
+        self.assertIsInstance(index.faiss_index, faiss.IndexFlat)
+
     def test_serialization(self):
-        index = FaissIndex()
+        index = FaissIndex(metric_type=faiss.METRIC_INNER_PRODUCT)
         index.add_vectors(np.eye(5, dtype=np.float32))
         with tempfile.NamedTemporaryFile() as tmp_file:
             index.save(tmp_file.name)

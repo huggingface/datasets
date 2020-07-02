@@ -35,7 +35,7 @@ from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
 from .features import Features
-from .search import FaissGpuOptions, IndexableMixin
+from .search import IndexableMixin
 from .utils import map_all_sequences_to_lists, map_nested
 
 
@@ -1303,7 +1303,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         index_name: Optional[str] = None,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        metric_type: Optional[int] = None,
+        custom_index: Optional["faiss.Index"] = None,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
         dtype=np.float32,
@@ -1313,7 +1314,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
             You can find more information about Faiss here:
             - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
-            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
 
             Examples of usage:
 
@@ -1341,7 +1341,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     By defaul it corresponds to `column`.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
                 `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
                 `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
@@ -1352,7 +1353,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 index_name=index_name,
                 device=device,
                 string_factory=string_factory,
-                faiss_gpu_options=faiss_gpu_options,
+                metric_type=metric_type,
+                custom_index=custom_index,
                 train_size=train_size,
                 faiss_verbose=faiss_verbose,
             )
@@ -1364,7 +1366,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         index_name: str,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        metric_type: Optional[int] = None,
+        custom_index: Optional["faiss.Index"] = None,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
         dtype=np.float32,
@@ -1374,7 +1377,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
             You can find more information about Faiss here:
             - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
-            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
 
             Args:
                 `external_arrays` (`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
@@ -1382,7 +1384,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `index_name` (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
                 `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
                 `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
@@ -1392,7 +1395,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             index_name=index_name,
             device=device,
             string_factory=string_factory,
-            faiss_gpu_options=faiss_gpu_options,
+            metric_type=metric_type,
+            custom_index=custom_index,
             train_size=train_size,
             faiss_verbose=faiss_verbose,
         )

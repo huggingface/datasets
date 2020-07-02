@@ -1,8 +1,7 @@
 import logging
 import os
 import tempfile
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
 from tqdm.auto import tqdm
@@ -181,19 +180,6 @@ class ElasticSearchIndex(BaseIndex):
         return SearchResults([hit["_score"] for hit in hits], [hit["_id"] for hit in hits])
 
 
-@dataclass
-class FaissGpuOptions:
-    """
-    Options to specify the GPU resources for Faiss.
-    You can use them for multi-GPU settings for example.
-    More info at https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
-    """
-
-    resource_vec: Any
-    device_vec: Any
-    cloner_options: Any
-
-
 class FaissIndex(BaseIndex):
     """
     Dense index using Faiss. It is used to index vectors.
@@ -208,21 +194,21 @@ class FaissIndex(BaseIndex):
         self,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        metric_type: Optional[int] = None,
+        custom_index: Optional[faiss.Index] = None,
     ):
         """
         Create a Dense index using Faiss. You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
         You can find more information about Faiss here:
         - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
-        - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
         """
         assert not (
-            device is not None and faiss_gpu_options is not None
-        ), "Please specify either `device` or `faiss_gpu_options` but not both."
-        self.device: int = device if device is not None else -1
-        self.string_factory: Optional[str] = string_factory
-        self.faiss_gpu_options: Optional[FaissGpuOptions] = faiss_gpu_options
-        self.faiss_index = None
+            string_factory is not None and custom_index is not None
+        ), "Please specify either `string_factory` or `custom_index` but not both."
+        self.device = device
+        self.string_factory = string_factory
+        self.metric_type = metric_type
+        self.faiss_index = custom_index
         assert (
             _has_faiss
         ), "You must install Faiss to use FaissIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
@@ -233,33 +219,49 @@ class FaissIndex(BaseIndex):
         column: Optional[str] = None,
         batch_size: int = 1000,
         train_size: Optional[int] = None,
-        faiss_verbose: bool = False,
+        faiss_verbose: Optional[bool] = None,
     ):
         """
         Add vectors to the index.
         If the arrays are inside a certain column, you can specify it using the `column` argument.
         """
+
+        # Create index
         if self.faiss_index is None:
             size = len(vectors[0]) if column is None else len(vectors[0][column])
             if self.string_factory is not None:
-                index = faiss.index_factory(size, self.string_factory)
+                if self.metric_type is None:
+                    index = faiss.index_factory(size, self.string_factory)
+                else:
+                    index = faiss.index_factory(size, self.string_factory, self.metric_type)
             else:
-                index = faiss.IndexFlatIP(size)
-            index.verbose = faiss_verbose
-            if hasattr(index, "quantizer") and index.quantizer is not None:
-                index.quantizer.verbose = faiss_verbose
-            if hasattr(index, "clustering_index") and index.clustering_index is not None:
-                index.clustering_index.verbose = faiss_verbose
-            if self.is_on_gpu():
-                index = self._to_gpu(index)
+                if self.metric_type is None:
+                    index = faiss.IndexFlat(size)
+                else:
+                    index = faiss.IndexFlat(size, self.metric_type)
+            if self.device is not None and self.device > -1:
+                self.faiss_res = faiss.StandardGpuResources()
+                index = faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
             self.faiss_index = index
-        logger.info("Created faiss index of type {}".format(type(self.faiss_index)))
+            logger.info("Created faiss index of type {}".format(type(self.faiss_index)))
+
+        # Set verbosity level
+        if faiss_verbose is not None:
+            self.faiss_index.verbose = faiss_verbose
+            if hasattr(self.faiss_index, "quantizer") and self.faiss_index.quantizer is not None:
+                self.faiss_index.quantizer.verbose = faiss_verbose
+            if hasattr(self.faiss_index, "clustering_index") and self.faiss_index.clustering_index is not None:
+                self.faiss_index.clustering_index.verbose = faiss_verbose
+
+        # Train
         if train_size is not None:
             logger.info("Training the index with the first {} vectors".format(train_size))
             train_vecs = vectors[:train_size] if column is None else vectors[:train_size][column]
             self.faiss_index.train(train_vecs)
         else:
             logger.info("Ignored the training step of the faiss index as `train_size` is None.")
+
+        # Add vectors
         logger.info("Adding {} vectors to the faiss index".format(len(vectors)))
         for i in tqdm(range(0, len(vectors), batch_size)):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
@@ -300,26 +302,9 @@ class FaissIndex(BaseIndex):
         scores, indices = self.faiss_index.search(queries, k)
         return BatchedSearchResults(scores, indices.astype(int))
 
-    def _to_gpu(self, index):
-        if self.device > -1:
-            self.faiss_res = faiss.StandardGpuResources()
-            return faiss.index_cpu_to_gpu(self.faiss_res, self.device, index)
-        elif self.faiss_gpu_options is not None:
-            return faiss.index_cpu_to_gpu_multiple(
-                self.faiss_gpu_options.resource_vec,
-                self.faiss_gpu_options.device_vec,
-                index,
-                self.faiss_gpu_options.cloner_options,
-            )
-        else:
-            return index
-
-    def is_on_gpu(self):
-        return self.device > -1 or self.faiss_gpu_options is not None
-
     def save(self, file: str):
         """Serialize the FaissIndex on disk"""
-        if self.is_on_gpu():
+        if hasattr(self.faiss_index, "device") and self.faiss_index.device is not None and self.faiss_index.device > -1:
             index = faiss.index_gpu_to_cpu(self.faiss_index)
         else:
             index = self.faiss_index
@@ -330,14 +315,13 @@ class FaissIndex(BaseIndex):
         cls,
         file: str,
         device: Optional[int] = None,
-        string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
     ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
-        faiss_index = cls(device=device, string_factory=string_factory, faiss_gpu_options=faiss_gpu_options)
+        faiss_index = cls(device=device)
         index = faiss.read_index(file)
-        if faiss_index.is_on_gpu():
-            index = faiss_index._to_gpu(index)
+        if faiss_index.device is not None and faiss_index.device > -1:
+            faiss_index.faiss_res = faiss.StandardGpuResources()
+            index = faiss.index_cpu_to_gpu(faiss_index.faiss_res, faiss_index.device, index)
         faiss_index.faiss_index = index
         return faiss_index
 
@@ -378,7 +362,8 @@ class IndexableMixin:
         index_name: Optional[str] = None,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        metric_type: Optional[int] = None,
+        custom_index: Optional[faiss.Index] = None,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
     ):
@@ -387,7 +372,6 @@ class IndexableMixin:
             You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
             You can find more information about Faiss here:
             - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
-            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
 
             Args:
                 `column` (`str`): The column of the vectors to add to the index.
@@ -395,12 +379,13 @@ class IndexableMixin:
                     By defaul it corresponds to `column`.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
                 `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
                 `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         index_name = index_name if index_name is not None else column
-        self._indexes[index_name] = FaissIndex(device, string_factory, faiss_gpu_options)
+        self._indexes[index_name] = FaissIndex(device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index)
         self._indexes[index_name].add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
 
     def add_faiss_index_from_external_arrays(
@@ -409,7 +394,8 @@ class IndexableMixin:
         index_name: str,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        metric_type: Optional[int] = None,
+        custom_index: Optional[faiss.Index] = None,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
     ):
@@ -418,7 +404,6 @@ class IndexableMixin:
             You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
             You can find more information about Faiss here:
             - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
-            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
 
             Args:
                 `external_arrays` (`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
@@ -426,11 +411,12 @@ class IndexableMixin:
                 `index_name` (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
                 `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
                 `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
-        self._indexes[index_name] = FaissIndex(device, string_factory, faiss_gpu_options)
+        self._indexes[index_name] = FaissIndex(device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index)
         self._indexes[index_name].add_vectors(
             external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose
         )
@@ -453,19 +439,16 @@ class IndexableMixin:
         index_name: str,
         file: str,
         device: Optional[int] = None,
-        string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
     ):
-        """Load a FaissIndex from disk
+        """Load a FaissIndex from disk.
+            If you want to do additional configurations, you can have access to the faiss index object by doing `.get_index(index_name).faiss_index` to make it fit your needs
 
             Args:
                 `index_name` (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
                 `file` (`str`): The path to the serialized faiss index on disk.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
-                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
         """
-        index = FaissIndex.load(file)
+        index = FaissIndex.load(file, device=device)
         assert index.faiss_index.ntotal == len(
             self
         ), "Index size should match Dataset size, but Index '{}' at {} has {} elements while the dataset has {} examples.".format(
