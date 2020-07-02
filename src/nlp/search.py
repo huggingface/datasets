@@ -561,7 +561,7 @@ class IndexableMixin:
         """
         self._check_index_is_initialized(index_name)
         scores, indices = self.search(index_name, query, k)
-        return NearestExamplesResults(scores, self[list(indices)])
+        return NearestExamplesResults(scores, self[[i for i in indices if i >= 0]])
 
     def get_nearest_examples_batch(
         self, index_name: str, queries: Union[List[str], np.array], k: int = 10
@@ -579,4 +579,4 @@ class IndexableMixin:
         """
         self._check_index_is_initialized(index_name)
         total_scores, total_indices = self.search_batch(index_name, queries, k)
-        return BatchedNearestExamplesResults(total_scores, [self[list(indices)] for indices in total_indices])
+        return BatchedNearestExamplesResults(total_scores, [self[[i for i in indices if i >= 0]] for indices in total_indices])
