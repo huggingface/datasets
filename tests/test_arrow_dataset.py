@@ -168,7 +168,6 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             # Export the data
-            tmp_file = os.path.join(tmp_dir, "test.arrow")
             tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
             dset.set_format("tensorflow", columns=["filename"])
             dset.export(filename=tfrecord_path, format="tfrecord")
