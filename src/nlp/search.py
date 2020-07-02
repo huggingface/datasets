@@ -195,7 +195,7 @@ class FaissIndex(BaseIndex):
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
-        custom_index: Optional[faiss.Index] = None,
+        custom_index: Optional["faiss.Index"] = None,
     ):
         """
         Create a Dense index using Faiss. You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
@@ -363,7 +363,7 @@ class IndexableMixin:
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
-        custom_index: Optional[faiss.Index] = None,
+        custom_index: Optional["faiss.Index"] = None,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
     ):
@@ -395,7 +395,7 @@ class IndexableMixin:
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
-        custom_index: Optional[faiss.Index] = None,
+        custom_index: Optional["faiss.Index"] = None,
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
     ):
