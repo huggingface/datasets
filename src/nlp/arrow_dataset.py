@@ -1008,6 +1008,75 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer_batch_size=writer_batch_size,
         )
 
+    def export(
+        self,
+        filename: str,
+        format: str = "tfrecord",
+    ):
+        """ Writes the Arrow dataset to a TFRecord file.
+
+            The dataset must already be in tensorflow format. The records will be written with
+            keys from `dataset._format_columns`.
+
+            Args:
+                `filename` (`str`): The filename, including the .tfrecord extension, to write to.
+                `format` (`Optional[str]`): The type of output file. Currently this is a no-op, as
+                    TFRecords are the only option. This enables a more flexible function signature
+                    later.
+        """
+        try:
+            import tensorflow as tf  # noqa: F401
+        except ImportError:
+            logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
+
+        # From https://www.tensorflow.org/tutorials/load_data/tfrecord
+        def _bytes_feature(value):
+            """Returns a bytes_list from a string / byte."""
+            if isinstance(value, type(tf.constant(0))):
+                value = value.numpy() # BytesList won't unpack a string from an EagerTensor.
+            return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+        def _float_feature(value):
+            """Returns a float_list from a float / double."""
+            return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+
+        def _int64_feature(value):
+            """Returns an int64_list from a bool / enum / int / uint."""
+            return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+        def _feature(value):
+            """Typechecks `value` and returns the corresponding tf.train.Feature."""
+            if value.dtype == tf.string:
+                return _bytes_feature(value)
+            elif value.dtype in [tf.float32, tf.float64]:
+                return _float_feature(value)
+            elif value.dtype == tf.int64:
+                return _int64_feature(value)
+            else:
+                assert False, f"value.dtype not in [string, float, int]; is {value}"
+
+        def serialize_example(ex):
+            feature = { col_name: _feature(ex[col_name]) for col_name in self._format_columns }
+            example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+            return example_proto.SerializeToString()
+
+        def tf_serialize_example(ex):
+            tf_string = tf.py_function(serialize_example, (ex,), tf.string)
+            return tf.reshape(tf_string, ())
+
+        def generator():
+            for ex in self:
+                yield serialize_example(ex)
+
+        assert self._format_type == "tensorflow", "Call dataset.set_format('tensorflow') first"
+        assert filename.endswith(".tfrecord")
+        tf_dataset = tf.data.Dataset.from_generator(generator, output_types=tf.string, output_shapes=())
+        writer = tf.data.experimental.TFRecordWriter(filename)
+        logger.info(f"Writing TFRecord to {filename}")
+        writer.write(tf_dataset)
+        logger.info(f"Finished writing TFRecord to {filename}")
+
+
     def train_test_split(
         self,
         test_size: Union[float, int, None] = None,

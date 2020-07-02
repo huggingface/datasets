@@ -163,6 +163,29 @@ class BaseDatasetTest(TestCase):
             for i, row in enumerate(dset_sorted):
                 self.assertEqual(int(row["filename"][-1]), len(dset_sorted) - 1 - i)
 
+    def test_export(self):
+        dset = self._create_dummy_dataset()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Export the data
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
+            dset.set_format("tensorflow", columns=["filename"])
+            dset.export(filename=tfrecord_path, format="tfrecord")
+
+            # Import the data
+            import tensorflow as tf
+            tf_dset = tf.data.TFRecordDataset([tfrecord_path])
+            feature_description = {"filename": tf.io.FixedLenFeature([], tf.string)}
+            tf_parsed_dset = tf_dset.map(
+                lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
+            )
+            # Test that keys match original dataset
+            for i, ex in enumerate(tf_parsed_dset):
+                self.assertEqual(ex.keys(), dset[i].keys())
+            # Test for equal number of elements
+            self.assertEqual(i, len(dset) - 1)
+
     def test_train_test_split(self):
         dset = self._create_dummy_dataset()
 
