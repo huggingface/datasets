@@ -24,6 +24,7 @@ This modified Winograd Schema Challenge (MWSC) ensures that scores are neither i
 _DATA_URL = "https://raw.githubusercontent.com/salesforce/decaNLP/1e9605f246b9e05199b28bde2a2093bc49feeeaa/local_data/schema.txt"
 # Alternate: https://s3.amazonaws.com/research.metamind.io/decaNLP/data/schema.txt
 
+
 class MWSC(nlp.GeneratorBasedBuilder):
     """MWSC: modified Winograd Schema Challenge"""
 
@@ -55,50 +56,32 @@ class MWSC(nlp.GeneratorBasedBuilder):
 
         if os.path.isdir(schemas_file):
             # During testing the download manager mock gives us a directory
-            schemas_file = os.path.join(schemas_file,"schema.txt")
+            schemas_file = os.path.join(schemas_file, "schema.txt")
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": schemas_file,
-                    "split":"train"
-                },
-            ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
-                gen_kwargs={
-                    "filepath": schemas_file,
-                    "split":"test"
-                },
-            ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": schemas_file,
-                    "split":"dev"
-                },
-            )
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": schemas_file, "split": "train"},),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": schemas_file, "split": "test"},),
+            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": schemas_file, "split": "dev"},),
         ]
 
-    def _get_both_schema(self,context):
-        '''Split [option1/option2] into 2 sentences.
-        From https://github.com/salesforce/decaNLP/blob/1e9605f246b9e05199b28bde2a2093bc49feeeaa/text/torchtext/datasets/generic.py#L815-L827'''
-        pattern = '\[.*\]'
-        variations = [x[1:-1].split('/') for x in re.findall(pattern, context)]
+    def _get_both_schema(self, context):
+        """Split [option1/option2] into 2 sentences.
+        From https://github.com/salesforce/decaNLP/blob/1e9605f246b9e05199b28bde2a2093bc49feeeaa/text/torchtext/datasets/generic.py#L815-L827"""
+        pattern = "\[.*\]"
+        variations = [x[1:-1].split("/") for x in re.findall(pattern, context)]
         splits = re.split(pattern, context)
         results = []
         for which_schema in range(2):
-         vs = [v[which_schema] for v in variations]
-         context = ''
-         for idx in range(len(splits)):
-             context += splits[idx]
-             if idx < len(vs):
-                 context += vs[idx]
-         results.append(context)
+            vs = [v[which_schema] for v in variations]
+            context = ""
+            for idx in range(len(splits)):
+                context += splits[idx]
+                if idx < len(vs):
+                    context += vs[idx]
+            results.append(context)
         return results
 
-    def _generate_examples(self, filepath,split):
+    def _generate_examples(self, filepath, split):
         """Yields examples."""
 
         schemas = []
@@ -126,10 +109,5 @@ class MWSC(nlp.GeneratorBasedBuilder):
             question = self._get_both_schema(question)
             answers = answers.split("/")
             for i in range(2):
-                yield idx, {
-                    "sentence": sentence[i],
-                    "question": question[i],
-                    "options": answers,
-                    "answer": answers[i]
-                }
+                yield idx, {"sentence": sentence[i], "question": question[i], "options": answers, "answer": answers[i]}
                 idx += 1

@@ -31,6 +31,7 @@ A dataset reducing relation extraction to simple reading comprehension questions
 
 _DATA_URL = "http://nlp.cs.washington.edu/zeroshot/relation_splits.tar.bz2"
 
+
 class QaZre(nlp.GeneratorBasedBuilder):
     """QA-ZRE: Reducing relation extraction to simple reading comprehension questions"""
 
@@ -45,7 +46,7 @@ class QaZre(nlp.GeneratorBasedBuilder):
                     "question": nlp.Value("string"),
                     "subject": nlp.Value("string"),
                     "context": nlp.Value("string"),
-                    "answers":  nlp.features.Sequence(nlp.Value("string"))
+                    "answers": nlp.features.Sequence(nlp.Value("string")),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -65,21 +66,15 @@ class QaZre(nlp.GeneratorBasedBuilder):
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
-                gen_kwargs={
-                    "filepaths": [os.path.join(dl_dir, "test."+str(i)) for i in range(10)],
-                },
+                gen_kwargs={"filepaths": [os.path.join(dl_dir, "test." + str(i)) for i in range(10)],},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
-                gen_kwargs={
-                    "filepaths": [os.path.join(dl_dir, "dev."+str(i)) for i in range(10)],
-                },
+                gen_kwargs={"filepaths": [os.path.join(dl_dir, "dev." + str(i)) for i in range(10)],},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
-                gen_kwargs={
-                    "filepaths": [os.path.join(dl_dir, "train."+str(i)) for i in range(10)],
-                },
+                gen_kwargs={"filepaths": [os.path.join(dl_dir, "train." + str(i)) for i in range(10)],},
             ),
         ]
 
@@ -93,7 +88,7 @@ class QaZre(nlp.GeneratorBasedBuilder):
                     yield idx, {
                         "relation": row[0],
                         "question": row[1],
-                        "subject":  row[2],
-                        "context":  row[3],
-                        "answers":  row[4:]
+                        "subject": row[2],
+                        "context": row[3],
+                        "answers": row[4:],
                     }
