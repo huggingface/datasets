@@ -230,3 +230,15 @@ class BaseDatasetTest(TestCase):
             self.assertNotEqual(dset_train[-1]["filename"], "my_name-train_9")
             self.assertNotEqual(dset_test[0]["filename"], "my_name-train_10")
             self.assertNotEqual(dset_test[-1]["filename"], "my_name-train_29")
+
+    def test_shard(self):
+        dset = self._create_dummy_dataset()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset = dset.select(range(10), cache_file_name=tmp_file)
+            self.assertEqual(len(dset), 10)
+            # Shard
+            dset_sharded = dset.shard(num_shards=8, index=1)
+            self.assertEqual(2, len(dset_sharded))
+            self.assertEqual(["my_name-train_1", "my_name-train_9"], dset_sharded["filename"])
