@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""SEMPRE dataset."""
+"""FEVER dataset."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -52,7 +52,7 @@ class FeverConfig(nlp.BuilderConfig):
         super(FeverConfig, self).__init__(**kwargs)
         
 class Fever(nlp.GeneratorBasedBuilder):
-    """Semantic Parsing with Execution (SEMPRE) Dataset."""
+    """Fact Extraction and VERification Dataset."""
 
     # Version 1.1.0 removes web contents.
     
