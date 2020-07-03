@@ -212,7 +212,7 @@ class MultiDataset:
         raise NotImplementedError()
 
 
-def build_multitask(*tasks):
+def build_multitask(*tasks, seed=None):
     r"""Create a multitask dataset
 
         This method creates a ``MultiDataset`` wrapper when given a ``Dataset`` object or a dictionary of splits
@@ -223,7 +223,7 @@ def build_multitask(*tasks):
             if not isinstance(task, Dataset):
                 raise Exception("Mismatched dataset types")
 
-            return MultiDataset(tasks)
+            return MultiDataset(tasks, seed=seed)
 
     elif isinstance(tasks[0], dict):
         for task in tasks:
@@ -243,5 +243,5 @@ def build_multitask(*tasks):
         common_splits = _get_common_splits(tasks)
         out = {}
         for split in common_splits:
-            out[split] = MultiDataset([t[split] for t in tasks])
+            out[split] = MultiDataset([t[split] for t in tasks], seed=seed)
         return out
