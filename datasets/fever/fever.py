@@ -46,9 +46,6 @@ _URLS = {
     "free917.test":  "https://nlp.stanford.edu/static/software/sempre/release-emnlp2013/data/free917.test.examples.canonicalized.json.bz2"
 }
 
-_TEXT_FEATURES = [
-    "utterance"
-]
 
 class FeverConfig(nlp.BuilderConfig):
     """BuilderConfig for BlogAuthorship."""
