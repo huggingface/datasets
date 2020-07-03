@@ -9,7 +9,7 @@ from .arrow_reader import Dataset
 class MultiDataset:
     def __init__(self, tasks, seed=None):
         self.tasks = tasks
-        self.seed = seed
+        self.rng = np.random.RandomState(seed)
 
         # Check matching columns
         for task in self.tasks[1:]:
@@ -23,8 +23,7 @@ class MultiDataset:
             task_choice_list += [i] * len(task)
 
         task_choice_list = np.array(task_choice_list)
-        np.random.seed(self.seed)
-        np.random.shuffle(task_choice_list)
+        self.rng.shuffle(task_choice_list)
 
         # Add index into each dataset
         # - We don't want to shuffle within each task
