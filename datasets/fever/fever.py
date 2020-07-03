@@ -48,13 +48,12 @@ _URLS = {
 
 
 class FeverConfig(nlp.BuilderConfig):
-    """BuilderConfig for BlogAuthorship."""
+    """BuilderConfig for FEVER."""
 
     def __init__(self, **kwargs):
-        """BuilderConfig for SEMPRE
+        """BuilderConfig for FEVER
 
         Args:
-          data_urls: `dict`, urls to the train and test dataset 
           **kwargs: keyword arguments forwarded to super.
         """
         super(FeverConfig, self).__init__(**kwargs)
