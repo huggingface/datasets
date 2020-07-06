@@ -1037,33 +1037,65 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
 
         # From https://www.tensorflow.org/tutorials/load_data/tfrecord
-        def _bytes_feature(value):
-            """Returns a bytes_list from a string / byte."""
-            if isinstance(value, type(tf.constant(0))):
-                value = value.numpy()  # BytesList won't unpack a string from an EagerTensor.
-            return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+        def _bytes_feature(values):
+            """Returns a bytes_list from a list of string / byte."""
+            # if isinstance(value, type(tf.constant(0))):
+            #     value = value.numpy()  # BytesList won't unpack a string from an EagerTensor.
+            return tf.train.Feature(bytes_list=tf.train.BytesList(value=values))
 
-        def _float_feature(value):
-            """Returns a float_list from a float / double."""
-            return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+        def _float_feature(values):
+            """Returns a float_list from a list of float / double."""
+            return tf.train.Feature(float_list=tf.train.FloatList(value=values))
 
-        def _int64_feature(value):
-            """Returns an int64_list from a bool / enum / int / uint."""
-            return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+        def _int64_feature(values):
+            """Returns an int64_list from a list of bool / enum / int / uint."""
+            return tf.train.Feature(int64_list=tf.train.Int64List(value=values))
 
-        def _feature(value):
-            """Typechecks `value` and returns the corresponding tf.train.Feature."""
-            if value.dtype == tf.string:
-                return _bytes_feature(value)
-            elif value.dtype in [tf.float32, tf.float64]:
-                return _float_feature(value)
-            elif value.dtype == tf.int64:
-                return _int64_feature(value)
+        def _feature(values: np.ndarray) -> "tf.train.Feature":
+            """Typechecks `values` and returns the corresponding tf.train.Feature."""
+            if isinstance(values, np.ndarray):
+                if values.dtype == np.dtype(float):
+                    return _float_feature(values)
+                elif values.dtype == np.dtype(int):
+                    return _int64_feature(values)
+                elif values.dtype == np.dtype(str):
+                    pass  # TODO
+                else:
+                    assert False
+            elif isinstance(values, float):
+                return _float_feature([values])
+            elif isinstance(values, int):
+                return _int64_feature([values])
+            elif isinstance(values, str):
+                return _bytes_feature([values.encode()])
             else:
-                assert False, f"value.dtype not in [string, float, int]; is {value}"
+                assert False
+
+        def flatten_dict(dct):
+            """Iterates through a nested dict and returns a flat dict.
+
+            For example, {"column1": {"subfeature": ...}} -> {"column1/subfeature": ...}.
+            For example, {"col1": [[1], [2,3,]]} -> {"col1": tf.RaggedTensor([[1],[2,3,]])}
+            Lists of Tensors are converted to RaggedTensors.
+            Lists of other objects are not supported.
+
+            This supports nested dicts and lists of Tensors.
+            It does not support a list of dicts, such as {"col1": [{"feat1": ...}, {"feat2": ...}]}.
+            """
+            flat_dct = {}
+            for key, value in dct.items():
+                if isinstance(value, dict):
+                    for flat_key, flat_value in flatten_dict(value).items():
+                        flat_dct[f"{key}/{flat_key}"] = flat_value
+                elif isinstance(value, list):
+                    flat_dct[key] = tf.ragged.constant(value)
+                else:
+                    flat_dct[key] = _feature(value)
+
+            return flat_dct
 
         def serialize_example(ex):
-            feature = {col_name: _feature(ex[col_name]) for col_name in self._format_columns}
+            feature = flatten_dict(ex)
             example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
             return example_proto.SerializeToString()
 
@@ -1075,7 +1107,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             for ex in self:
                 yield serialize_example(ex)
 
-        assert self._format_type == "tensorflow", "Call dataset.set_format('tensorflow') first"
+        # assert self._format_type == "tensorflow", "Call dataset.set_format('tensorflow') first"
         assert filename.endswith(".tfrecord")
         tf_dataset = tf.data.Dataset.from_generator(generator, output_types=tf.string, output_shapes=())
         writer = tf.data.experimental.TFRecordWriter(filename)

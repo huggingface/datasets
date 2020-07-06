@@ -167,16 +167,24 @@ class BaseDatasetTest(TestCase):
         dset = self._create_dummy_dataset()
 
         with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
             # Export the data
             tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
-            dset.set_format("tensorflow", columns=["filename"])
+            dset = dset.map(
+                lambda ex, i: {"vec": np.ones(np.random.randint(1, 4), dtype=float) * i},
+                with_indices=True,
+                cache_file_name=tmp_file,
+            )
             dset.export(filename=tfrecord_path, format="tfrecord")
 
             # Import the data
             import tensorflow as tf
 
             tf_dset = tf.data.TFRecordDataset([tfrecord_path])
-            feature_description = {"filename": tf.io.FixedLenFeature([], tf.string)}
+            feature_description = {
+                "filename": tf.io.FixedLenFeature([], tf.string),
+                "vec": tf.io.RaggedFeature(tf.float32, partitions=[]),
+            }
             tf_parsed_dset = tf_dset.map(
                 lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
             )
