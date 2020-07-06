@@ -159,7 +159,7 @@ def map_nested(function, data_struct, dict_only=False, map_list=True, map_tuple=
 
     # Could add support for more exotic data_struct, like OrderedDict
     if isinstance(data_struct, dict):
-        return {k: map_nested(function, v, dict_only, map_tuple, map_numpy) for k, v in data_struct.items()}
+        return {k: map_nested(function, v, dict_only=dict_only, map_list=map_list, map_tuple=map_tuple, map_numpy=map_numpy) for k, v in data_struct.items()}
     elif not dict_only:
         types = []
         if map_list:
@@ -169,7 +169,7 @@ def map_nested(function, data_struct, dict_only=False, map_list=True, map_tuple=
         if map_numpy:
             types.append(np.ndarray)
         if isinstance(data_struct, tuple(types)):
-            mapped = [map_nested(function, v, dict_only, map_tuple, map_numpy) for v in data_struct]
+            mapped = [map_nested(function, v, dict_only=dict_only, map_list=map_list, map_tuple=map_tuple, map_numpy=map_numpy) for v in data_struct]
             if isinstance(data_struct, list):
                 return mapped
             else:
