@@ -1071,31 +1071,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             else:
                 assert False
 
-        def flatten_dict(dct):
-            """Iterates through a nested dict and returns a flat dict.
-
-            For example, {"column1": {"subfeature": ...}} -> {"column1/subfeature": ...}.
-            For example, {"col1": [[1], [2,3,]]} -> {"col1": tf.RaggedTensor([[1],[2,3,]])}
-            Lists of Tensors are converted to RaggedTensors.
-            Lists of other objects are not supported.
-
-            This supports nested dicts and lists of Tensors.
-            It does not support a list of dicts, such as {"col1": [{"feat1": ...}, {"feat2": ...}]}.
-            """
-            flat_dct = {}
-            for key, value in dct.items():
-                if isinstance(value, dict):
-                    for flat_key, flat_value in flatten_dict(value).items():
-                        flat_dct[f"{key}/{flat_key}"] = flat_value
-                elif isinstance(value, list):
-                    flat_dct[key] = tf.ragged.constant(value)
-                else:
-                    flat_dct[key] = _feature(value)
-
-            return flat_dct
-
         def serialize_example(ex):
-            feature = flatten_dict(ex)
+            feature = {key: _feature(value) for key, value in ex.items()}
             example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
             return example_proto.SerializeToString()
 

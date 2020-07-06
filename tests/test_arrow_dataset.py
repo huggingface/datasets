@@ -171,10 +171,11 @@ class BaseDatasetTest(TestCase):
             # Export the data
             tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
             dset = dset.map(
-                lambda ex, i: {"vec": np.ones(np.random.randint(1, 4), dtype=float) * i},
+                lambda ex, i: {"vec1": {"vec2": np.ones(np.random.randint(1, 4), dtype=float) * i}},
                 with_indices=True,
                 cache_file_name=tmp_file,
             )
+            dset.flatten()
             dset.export(filename=tfrecord_path, format="tfrecord")
 
             # Import the data
@@ -183,7 +184,7 @@ class BaseDatasetTest(TestCase):
             tf_dset = tf.data.TFRecordDataset([tfrecord_path])
             feature_description = {
                 "filename": tf.io.FixedLenFeature([], tf.string),
-                "vec": tf.io.RaggedFeature(tf.float32, partitions=[]),
+                "vec1.vec2": tf.io.RaggedFeature(tf.float32, partitions=[]),
             }
             tf_parsed_dset = tf_dset.map(
                 lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
