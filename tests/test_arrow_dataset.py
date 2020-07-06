@@ -281,7 +281,11 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
-            dset = dset.map(lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])}, cache_file_name=tmp_file, batched=True)
+            dset = dset.map(
+                lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])},
+                cache_file_name=tmp_file,
+                batched=True,
+            )
 
             dset.set_format("tensorflow")
             self.assertIsNotNone(dset[0])
