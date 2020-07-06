@@ -53,8 +53,6 @@ class FeverConfig(nlp.BuilderConfig):
         
 class Fever(nlp.GeneratorBasedBuilder):
     """Fact Extraction and VERification Dataset."""
-
-    # Version 1.1.0 removes web contents.
     
     BUILDER_CONFIGS = [
         FeverConfig(
