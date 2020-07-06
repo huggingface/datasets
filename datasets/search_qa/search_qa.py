@@ -61,7 +61,6 @@ Following this approach, we built SearchQA, which consists of more than 140k que
 _DL_URLS = {
     
     "raw_jeopardy": "https://drive.google.com/uc?export=download&id=1U7WdBpd9kJ85S7BbBhWUSiy9NnXrKdO6",
-   # "processed": "https://drive.google.com/uc?export=download&id=1OxRhw81g7amW3aBd_iu2By5THysgr2uv", 
     "train_test_val": "https://drive.google.com/uc?export=download&id=1aHPVfC5TrlnUjehtagVZoDfq4VccgaNT",
     # pylint: enable=line-too-long
 }
@@ -137,7 +136,7 @@ class SearchQa(nlp.GeneratorBasedBuilder):
                     file_path = os.path.join(file_path, zip_folder)
                     
                 else:
-                    #in some cases the subfolder name contains sapces
+                    #in some cases the subfolder name contains sapces as 050000 - 059999   and 050000-059999
                     parts = zip_folder.split('-')
                     zip_folder =parts[0]+' - '+parts[1]
                     if os.path.isdir(os.path.join(file_path, zip_folder)):
@@ -146,7 +145,7 @@ class SearchQa(nlp.GeneratorBasedBuilder):
                 files = sorted(os.listdir(file_path))
                 
                 files_paths = [os.path.join(file_path, file) for file in files if '__MACOSX' not in file]
-                all_files.extend(files_paths) #050000 - 059999    050000-059999 180000-216929 180000 - 216929
+                all_files.extend(files_paths) 
             
             return [
                 nlp.SplitGenerator(
