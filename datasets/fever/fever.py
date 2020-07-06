@@ -39,31 +39,21 @@ With billions of individual pages on the web providing information on almost eve
 
 The FEVER workshops are a venue for work in verifiable knowledge extraction and to stimulate progress in this direction.
 """
-_URLS = {
-    'webquestions.train': "https://nlp.stanford.edu/static/software/sempre/release-emnlp2013/lib/data/webquestions/dataset_11/webquestions.examples.train.json.bz2",
-    'webquestions.test': "https://nlp.stanford.edu/static/software/sempre/release-emnlp2013/lib/data/webquestions/dataset_11/webquestions.examples.test.json.bz2",
-    "free917.train":  "https://nlp.stanford.edu/static/software/sempre/release-emnlp2013/data/free917.train.examples.canonicalized.json.bz2",
-    "free917.test":  "https://nlp.stanford.edu/static/software/sempre/release-emnlp2013/data/free917.test.examples.canonicalized.json.bz2"
-}
 
-_TEXT_FEATURES = [
-    "utterance"
-]
 
 class FeverConfig(nlp.BuilderConfig):
-    """BuilderConfig for BlogAuthorship."""
+    """BuilderConfig for FEVER."""
 
     def __init__(self, **kwargs):
-        """BuilderConfig for SEMPRE
+        """BuilderConfig for FEVER
 
         Args:
-          data_urls: `dict`, urls to the train and test dataset 
           **kwargs: keyword arguments forwarded to super.
         """
         super(FeverConfig, self).__init__(**kwargs)
         
 class Fever(nlp.GeneratorBasedBuilder):
-    """Semantic Parsing with Execution (SEMPRE) Dataset."""
+    """Fact Extraction and VERification Dataset."""
 
     # Version 1.1.0 removes web contents.
     
