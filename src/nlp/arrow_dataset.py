@@ -370,12 +370,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return {k: v for k, v in outputs.items() if k in format_columns}
             return outputs
 
+        map_nested_kwargs = {}
         if format_type == "numpy":
             import numpy as np
 
             if "copy" not in format_kwargs:
                 format_kwargs["copy"] = False
             command = partial(np.array, **format_kwargs)
+            map_nested_kwargs["map_list"] = False  # convert lists to array
         elif format_type == "torch":
             import torch
 
@@ -399,7 +401,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if format_columns is not None and k not in format_columns and not output_all_columns:
                     continue
                 if format_columns is None or k in format_columns:
-                    v = command(v)
+                    v = map_nested(command, v, **map_nested_kwargs)
                 output_dict[k] = v
         return output_dict
 
