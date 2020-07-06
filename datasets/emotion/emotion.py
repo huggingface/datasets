@@ -27,7 +27,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Emotions is a dataset of English Twitter messages with eight basic emotions: anger, anticipation,
+Emotion is a dataset of English Twitter messages with eight basic emotions: anger, anticipation,
 disgust, fear, joy, sadness, surprise, and trust. For more detailed information please refer to the
 paper.
 """
@@ -35,7 +35,7 @@ _URL = "https://github.com/dair-ai/emotion_dataset"
 _DATA_URL = "https://www.dropbox.com/s/607ptdakxuh5i4s/merged_training.pkl"
 
 
-class EmotionsConfig(nlp.BuilderConfig):
+class EmotionConfig(nlp.BuilderConfig):
 
     """BuilderConfig for Break"""
 
@@ -46,20 +46,20 @@ class EmotionsConfig(nlp.BuilderConfig):
           data_url: `string`, url to the dataset (word or raw level)
           **kwargs: keyword arguments forwarded to super.
         """
-        super(EmotionsConfig, self).__init__(
+        super(EmotionConfig, self).__init__(
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
         self.data_url = data_url
 
 
-class Emotions(nlp.GeneratorBasedBuilder):
+class Emotion(nlp.GeneratorBasedBuilder):
 
     VERSION = nlp.Version("0.3.0")
     BUILDER_CONFIGS = [
-        EmotionsConfig(
-            name="emotions",
+        EmotionConfig(
+            name="emotion",
             data_url=_DATA_URL,
-            description="Emotions classification dataset. Twitter messages are classified as either anger, anticipation, disgust, fear, joy, sadness, surprise, or trust",
+            description="Emotion classification dataset. Twitter messages are classified as either anger, anticipation, disgust, fear, joy, sadness, surprise, or trust",
         )
     ]
 
@@ -79,17 +79,17 @@ class Emotions(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        arch_path = dl_manager.download_and_extract(_DATA_URL)
-        data_dir = os.path.join(arch_path, "emotions_data")
+        data_path = dl_manager.download_and_extract(_DATA_URL)
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"file_path": os.path.join(data_dir, "train")}),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"file_path": os.path.join(data_dir, "test")})
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"file_path": data_path}),
+            # nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"file_path": os.path.join(data_dir, "test")})
         ]
 
     def _generate_examples(self, file_path):
         """Yields examples."""
-
-        with open(file_path, 'rb') as f:
+        emotion_file = os.path.join(file_path, "merged_training.pkl")
+        print("FILE PATH", emotion_file)
+        with open(emotion_file, 'rb') as f:
             data = pickle.load(f)
             for row_id, row in enumerate(data):
                 text, emotion = row
