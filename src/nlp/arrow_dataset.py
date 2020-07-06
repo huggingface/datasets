@@ -370,12 +370,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return {k: v for k, v in outputs.items() if k in format_columns}
             return outputs
 
+        map_nested_kwargs = {}
         if format_type == "numpy":
             import numpy as np
 
             if "copy" not in format_kwargs:
                 format_kwargs["copy"] = False
             command = partial(np.array, **format_kwargs)
+            map_nested_kwargs["map_list"] = False  # convert lists to array
         elif format_type == "torch":
             import torch
 
@@ -399,7 +401,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if format_columns is not None and k not in format_columns and not output_all_columns:
                     continue
                 if format_columns is None or k in format_columns:
-                    v = command(v)
+                    v = map_nested(command, v, **map_nested_kwargs)
                 output_dict[k] = v
         return output_dict
 
@@ -1264,6 +1266,41 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
         return {"train": train_split, "test": test_split}
+
+    def shard(
+        self,
+        num_shards: int,
+        index: int,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+    ):
+        """ Return the `index`-nth shard from dataset split into `num_shards` pieces.
+
+            This shards deterministically, so ds.shard(n, i) will contain all elements of ds whose
+            index mod n = i. Be sure to shard before using any randomizing operator (such as shuffle).
+            It is best if the shard operator is used early in the dataset pipeline.
+
+            Args:
+                `num_shards` (`int`): How many shards to split the dataset into.
+                `index` (`int`): Which shard to select and return.
+                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
+                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                    can be identified, use it instead of recomputing.
+                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                    results of the computation instead of the automatically generated cache file name.
+                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                    Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+        """
+        indices = np.arange(index, len(self), num_shards)
+        return self.select(
+            indices=indices,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+        )
 
     def add_faiss_index(
         self,

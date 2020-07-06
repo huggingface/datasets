@@ -81,6 +81,7 @@ TESTS_REQUIRE = [
     'pytest',
     'pytest-xdist',
     'tensorflow',
+    'torch',
     'tldextract',
     'zstandard'
 ]
