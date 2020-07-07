@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
-import pickle
 import os
+import pickle
 
 import nlp
 
@@ -66,12 +66,7 @@ class Emotion(nlp.GeneratorBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {
-                    "text": nlp.Value("string"),
-                    "emotions": nlp.Value("string")
-                }
-            ),
+            features=nlp.Features({"text": nlp.Value("string"), "emotions": nlp.Value("string")}),
             supervised_keys=None,
             homepage=_URL,
             citation=_CITATION,
@@ -89,11 +84,8 @@ class Emotion(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         emotion_file = os.path.join(file_path, "merged_training.pkl")
         print("FILE PATH", emotion_file)
-        with open(emotion_file, 'rb') as f:
+        with open(emotion_file, "rb") as f:
             data = pickle.load(f)
             for row_id, row in enumerate(data):
                 text, emotion = row
-                yield "{}".format(row_id), {
-                    "text": text,
-                    "emotion": emotion
-                }
+                yield "{}".format(row_id), {"text": text, "emotion": emotion}
