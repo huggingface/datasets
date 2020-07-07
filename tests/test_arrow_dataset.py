@@ -3,9 +3,12 @@ import tempfile
 from unittest import TestCase
 
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 
+from nlp.arrow_dataset import Dataset
 from nlp.arrow_reader import BaseReader
+from nlp.features import Features, Value
 from nlp.info import DatasetInfo
 from nlp.splits import SplitDict, SplitInfo
 
@@ -42,6 +45,35 @@ class BaseDatasetTest(TestCase):
         reader = ReaderTester("", info)
         dset = reader.read(name, "train", split_infos)
         return dset
+
+    def test_from_pandas(self):
+        data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+        df = pd.DataFrame.from_dict(data)
+        dset = Dataset.from_pandas(df)
+        self.assertListEqual(dset["col_1"], data["col_1"])
+        self.assertListEqual(dset["col_2"], data["col_2"])
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("string")})
+        dset = Dataset.from_pandas(df, features=features)
+        self.assertListEqual(dset["col_1"], data["col_1"])
+        self.assertListEqual(dset["col_2"], data["col_2"])
+
+        features = Features({"col_1": Value("string"), "col_2": Value("string")})
+        self.assertRaises(pa.ArrowTypeError, Dataset.from_pandas, df, features=features)
+
+    def test_from_dict(self):
+        data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+        dset = Dataset.from_dict(data)
+        self.assertListEqual(dset["col_1"], data["col_1"])
+        self.assertListEqual(dset["col_2"], data["col_2"])
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("string")})
+        dset = Dataset.from_dict(data, features=features)
+        self.assertListEqual(dset["col_1"], data["col_1"])
+        self.assertListEqual(dset["col_2"], data["col_2"])
+
+        features = Features({"col_1": Value("string"), "col_2": Value("string")})
+        self.assertRaises(pa.ArrowTypeError, Dataset.from_dict, data, features=features)
 
     def test_map(self):
         dset = self._create_dummy_dataset()
