@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os
-import pickle
+import csv
 
 import nlp
 
@@ -32,59 +32,55 @@ disgust, fear, joy, sadness, surprise, and trust. For more detailed information 
 paper.
 """
 _URL = "https://github.com/dair-ai/emotion_dataset"
-_DATA_URL = "https://www.dropbox.com/s/607ptdakxuh5i4s/merged_training.pkl"
-
+# use dl=1 to force browser to download data instead of displaying it
+_TRAIN_DOWNLOAD_URL = "https://www.dropbox.com/s/1pzkadrvffbqw6o/train.txt?dl=1"
+_VALIDATION_DOWNLOAD_URL = "https://www.dropbox.com/s/2mzialpsgf9k5l3/val.txt?dl=1"
+_TEST_DOWNLOAD_URL = "https://www.dropbox.com/s/ikkqxfdbdec3fuj/test.txt?dl=1"
 
 class EmotionConfig(nlp.BuilderConfig):
+    """BuilderConfig for Emotion dataset."""
 
-    """BuilderConfig for Break"""
+    def __init__(self, **kwargs):
+        """BuilderConfig for Emotion dataset.
 
-    def __init__(self, data_url, **kwargs):
-        """BuilderConfig for BlogAuthorship
-
-        Args:
-          data_url: `string`, url to the dataset (word or raw level)
-          **kwargs: keyword arguments forwarded to super.
-        """
+    Args:
+      **kwargs: keyword arguments forwarded to super.
+    """
         super(EmotionConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+            version=nlp.Version("0.1.0", "First Emotion release"), **kwargs
         )
-        self.data_url = data_url
 
 
 class Emotion(nlp.GeneratorBasedBuilder):
 
-    VERSION = nlp.Version("0.3.0")
-    BUILDER_CONFIGS = [
-        EmotionConfig(
-            name="emotion",
-            data_url=_DATA_URL,
-            description="Emotion classification dataset. Twitter messages are classified as either anger, anticipation, disgust, fear, joy, sadness, surprise, or trust",
-        )
-    ]
+    BUILDER_CONFIGS = [EmotionConfig(name="emotion", description="Emotion classification dataset. Twitter messages are classifier as either anger, anticipation, disgust, fear, joy, sadness, surprise, or trust",)]
 
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"text": nlp.Value("string"), "emotions": nlp.Value("string")}),
-            supervised_keys=None,
+            features=nlp.Features({"text": nlp.Value("string"), "label": nlp.Value("string")}),
             homepage=_URL,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_path = dl_manager.download_and_extract(_DATA_URL)
+        train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
+        valid_path = dl_manager.download_and_extract(_VALIDATION_DOWNLOAD_URL)
+        test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"file_path": data_path}),
-            # nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"file_path": os.path.join(data_dir, "test")})
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_path}),
+            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
-    def _generate_examples(self, file_path):
-        """Yields examples."""
-        print("FILE PATH", file_path)
-        with open(file_path, "rb") as f:
-            data = pickle.load(f)
-            for row_id, row in enumerate(data):
-                text, emotion = row
-                yield "{}".format(row_id), {"text": text, "emotion": emotion}
+    def _generate_examples(self, filepath):
+        """Generate examples."""
+        with open(filepath) as csv_file:
+            csv_reader = csv.reader(
+                csv_file, delimiter=";"
+            )
+            for id_, row in enumerate(csv_reader):
+                text, label = row
+                yield id_, {"text": text, "label": label}
+
