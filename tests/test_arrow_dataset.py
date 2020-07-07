@@ -230,3 +230,71 @@ class BaseDatasetTest(TestCase):
             self.assertNotEqual(dset_train[-1]["filename"], "my_name-train_9")
             self.assertNotEqual(dset_test[0]["filename"], "my_name-train_10")
             self.assertNotEqual(dset_test[-1]["filename"], "my_name-train_29")
+
+    def test_shard(self):
+        dset = self._create_dummy_dataset()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset = dset.select(range(10), cache_file_name=tmp_file)
+            self.assertEqual(len(dset), 10)
+            # Shard
+            dset_sharded = dset.shard(num_shards=8, index=1)
+            self.assertEqual(2, len(dset_sharded))
+            self.assertEqual(["my_name-train_1", "my_name-train_9"], dset_sharded["filename"])
+
+    def test_format_vectors(self):
+        dset = self._create_dummy_dataset()
+        import numpy as np
+        import tensorflow as tf
+        import torch
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset = dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True, cache_file_name=tmp_file)
+            columns = dset.column_names
+
+            dset.set_format("tensorflow")
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+            for col in columns:
+                self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
+                self.assertIsInstance(dset[:2][col][0], (tf.Tensor, tf.RaggedTensor))  # not stacked
+
+            dset.set_format("numpy")
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+            for col in columns:
+                self.assertIsInstance(dset[0][col], np.ndarray)
+                self.assertIsInstance(dset[:2][col], np.ndarray)  # stacked
+
+            dset.set_format("torch", columns=["vec"])
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+            # torch.Tensor is only for numerical columns
+            self.assertIsInstance(dset[0]["vec"], torch.Tensor)
+            self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)  # not stacked
+
+    def test_format_nested(self):
+        dset = self._create_dummy_dataset()
+        import numpy as np
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset = dset.map(
+                lambda ex: {"nested": [{"foo": np.ones(3)}] * len(ex["filename"])},
+                cache_file_name=tmp_file,
+                batched=True,
+            )
+
+            dset.set_format("tensorflow")
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+
+            dset.set_format("numpy")
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+
+            dset.set_format("torch", columns="nested")
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])

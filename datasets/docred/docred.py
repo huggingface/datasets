@@ -47,12 +47,16 @@ class DocRed(nlp.GeneratorBasedBuilder):
                 {
                     "title": nlp.Value("string"),
                     "sents": nlp.features.Sequence(nlp.features.Sequence(nlp.Value("string"))),
-                    "vertexSet": [[{
-                         "name": nlp.Value("string"),
-                          "sent_id": nlp.Value("int32"),
-                          "pos": nlp.features.Sequence(nlp.Value("int32")),
-                         "type": nlp.Value("string"),
-                     }]],
+                    "vertexSet": [
+                        [
+                            {
+                                "name": nlp.Value("string"),
+                                "sent_id": nlp.Value("int32"),
+                                "pos": nlp.features.Sequence(nlp.Value("int32")),
+                                "type": nlp.Value("string"),
+                            }
+                        ]
+                    ],
                     "labels": nlp.features.Sequence(
                         {
                             "head": nlp.Value("int32"),
@@ -75,7 +79,7 @@ class DocRed(nlp.GeneratorBasedBuilder):
             downloads[key] = dl_manager.download_and_extract(_URLS[key])
             #  Fix for dummy data
             if os.path.isdir(downloads[key]):
-                downloads[key] = os.path.join(downloads[key],key+".json")
+                downloads[key] = os.path.join(downloads[key], key + ".json")
 
         return [
             nlp.SplitGenerator(
@@ -116,4 +120,3 @@ class DocRed(nlp.GeneratorBasedBuilder):
                 del label["t"]
 
             yield idx, example
-
