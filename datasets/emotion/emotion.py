@@ -82,9 +82,8 @@ class Emotion(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, file_path):
         """Yields examples."""
-        emotion_file = os.path.join(file_path, "merged_training.pkl")
-        print("FILE PATH", emotion_file)
-        with open(emotion_file, "rb") as f:
+        print("FILE PATH", file_path)
+        with open(file_path, "rb") as f:
             data = pickle.load(f)
             for row_id, row in enumerate(data):
                 text, emotion = row
