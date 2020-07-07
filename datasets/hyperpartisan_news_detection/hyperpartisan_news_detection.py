@@ -91,18 +91,21 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
   """
 
     def _info(self):
+        features = {
+            "text": nlp.Value("string"),
+            "title": nlp.Value("string"),
+            "hyperpartisan": nlp.Value("bool"),
+            "url": nlp.Value("string"),
+            "published_at": nlp.Value("string"),
+        }
+
+        if self.config.name == "bypublisher":
+            # Bias is only included in the bypublisher config
+            features["bias"] = nlp.ClassLabel(names=["right", "right-center", "least", "left-center", "left"])
+
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {
-                    "text": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "hyperpartisan": nlp.Value("bool"),
-                    "bias": nlp.ClassLabel(names=["", "right", "right-center", "least", "left-center", "left"]),
-                    "url": nlp.Value("string"),
-                    "published_at": nlp.Value("string"),
-                }
-            ),
+            features=nlp.Features(features),
             supervised_keys=("text", "label"),
             homepage="https://pan.webis.de/semeval19/semeval19-web/",
             citation=_CITATION,
@@ -162,7 +165,6 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
                 example["id"] = article.attrib["id"]
                 example = {**example, **labels[example["id"]]}
                 example["hyperpartisan"] = example["hyperpartisan"] == "true"
-                example["bias"] = example.get("bias", "")
 
                 example["text"] = ""
                 for child in article.getchildren():
