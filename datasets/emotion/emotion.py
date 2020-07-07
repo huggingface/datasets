@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
-import os
 import csv
+import os
 
 import nlp
 
@@ -37,6 +37,7 @@ _TRAIN_DOWNLOAD_URL = "https://www.dropbox.com/s/1pzkadrvffbqw6o/train.txt?dl=1"
 _VALIDATION_DOWNLOAD_URL = "https://www.dropbox.com/s/2mzialpsgf9k5l3/val.txt?dl=1"
 _TEST_DOWNLOAD_URL = "https://www.dropbox.com/s/ikkqxfdbdec3fuj/test.txt?dl=1"
 
+
 class EmotionConfig(nlp.BuilderConfig):
     """BuilderConfig for Emotion dataset."""
 
@@ -46,14 +47,17 @@ class EmotionConfig(nlp.BuilderConfig):
     Args:
       **kwargs: keyword arguments forwarded to super.
     """
-        super(EmotionConfig, self).__init__(
-            version=nlp.Version("0.1.0", "First Emotion release"), **kwargs
-        )
+        super(EmotionConfig, self).__init__(version=nlp.Version("0.1.0", "First Emotion release"), **kwargs)
 
 
 class Emotion(nlp.GeneratorBasedBuilder):
 
-    BUILDER_CONFIGS = [EmotionConfig(name="emotion", description="Emotion classification dataset. Twitter messages are classifier as either anger, anticipation, disgust, fear, joy, sadness, surprise, or trust",)]
+    BUILDER_CONFIGS = [
+        EmotionConfig(
+            name="emotion",
+            description="Emotion classification dataset. Twitter messages are classifier as either anger, anticipation, disgust, fear, joy, sadness, surprise, or trust",
+        )
+    ]
 
     def _info(self):
         return nlp.DatasetInfo(
@@ -77,10 +81,7 @@ class Emotion(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate examples."""
         with open(filepath) as csv_file:
-            csv_reader = csv.reader(
-                csv_file, delimiter=";"
-            )
+            csv_reader = csv.reader(csv_file, delimiter=";")
             for id_, row in enumerate(csv_reader):
                 text, label = row
                 yield id_, {"text": text, "label": label}
-
