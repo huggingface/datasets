@@ -38,26 +38,7 @@ _VALIDATION_DOWNLOAD_URL = "https://www.dropbox.com/s/2mzialpsgf9k5l3/val.txt?dl
 _TEST_DOWNLOAD_URL = "https://www.dropbox.com/s/ikkqxfdbdec3fuj/test.txt?dl=1"
 
 
-class EmotionConfig(nlp.BuilderConfig):
-    """BuilderConfig for Emotion dataset."""
-
-    def __init__(self, **kwargs):
-        """BuilderConfig for Emotion dataset.
-
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
-        super(EmotionConfig, self).__init__(version=nlp.Version("0.1.0", "First Emotion release"), **kwargs)
-
-
 class Emotion(nlp.GeneratorBasedBuilder):
-
-    BUILDER_CONFIGS = [
-        EmotionConfig(
-            name="emotion",
-            description="Emotion classification dataset. Twitter messages are classifier as either anger, anticipation, disgust, fear, joy, sadness, surprise, or trust",
-        )
-    ]
 
     def _info(self):
         return nlp.DatasetInfo(
