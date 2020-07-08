@@ -117,10 +117,10 @@ def get_entities(seq, suffix=False):
     for i, chunk in enumerate(seq + ['O']):
         if suffix:
             tag = chunk[-1]
-            type_ = chunk[:-1].split('-', maxsplit=1)[0] or '_'
+            type_ = chunk[:-1].rsplit('-', maxsplit=1)[0] or '_'
         else:
             tag = chunk[0]
-            type_ = chunk[1:].rsplit('-', maxsplit=1)[-1] or '_'
+            type_ = chunk[1:].split('-', maxsplit=1)[-1] or '_'
 
         if end_of_chunk(prev_tag, tag, prev_type, type_):
             chunks.append((prev_type, begin_offset, i-1))
