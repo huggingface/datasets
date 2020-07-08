@@ -24,17 +24,24 @@ from collections import defaultdict
 from collections.abc import Mapping
 from functools import partial
 from math import ceil, floor
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 from tqdm.auto import tqdm
 
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
+from .features import Features
 from .search import FaissGpuOptions, IndexableMixin
 from .utils import map_all_sequences_to_lists, map_nested
+
+
+if TYPE_CHECKING:
+    from .info import DatasetInfo  # noqa: F401
+    from .splits import NamedSplit  # noqa: F401
 
 
 logger = logging.getLogger(__name__)
@@ -135,7 +142,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._output_all_columns: bool = False
 
     @classmethod
-    def from_file(cls, filename: str, info: Optional[Any] = None, split: Optional[Any] = None):
+    def from_file(cls, filename: str, info: Optional["DatasetInfo"] = None, split: Optional["NamedSplit"] = None):
         """ Instantiate a Dataset backed by an Arrow table at filename """
         mmap = pa.memory_map(filename)
         f = pa.ipc.open_stream(mmap)
@@ -143,11 +150,65 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return cls(arrow_table=pa_table, data_files=[{"filename": filename}], info=info, split=split)
 
     @classmethod
-    def from_buffer(cls, buffer: pa.Buffer, info: Optional[Any] = None, split: Optional[Any] = None):
+    def from_buffer(
+        cls, buffer: pa.Buffer, info: Optional["DatasetInfo"] = None, split: Optional["NamedSplit"] = None
+    ):
         """ Instantiate a Dataset backed by an Arrow buffer """
         mmap = pa.BufferReader(buffer)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
+        return cls(pa_table, info=info, split=split)
+
+    @classmethod
+    def from_pandas(
+        cls,
+        df: pd.DataFrame,
+        features: Optional[Features] = None,
+        info: Optional["DatasetInfo"] = None,
+        split: Optional["NamedSplit"] = None,
+    ):
+        """
+        Convert :obj:``pandas.DataFrame`` to a "obj"``pyarrow.Table`` to create a :obj:``nlp.Dataset``.
+
+        The column types in the resulting Arrow Table are inferred from the dtypes of the pandas.Series in the DataFrame. In the case of non-object
+        Series, the NumPy dtype is translated to its Arrow equivalent. In the case of `object`, we need to guess the datatype by looking at the
+        Python objects in this Series.
+
+        Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow type. In the case that
+        we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to
+        null. This behavior can be avoided by constructing an explicit schema and passing it to this function.
+
+        Args:
+            df (:obj:``pandas.DataFrame``): the dataframe that contains the dataset.
+            features (:obj:``nlp.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
+            info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
+                description, citation, etc.
+            split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+        """
+        pa_table = pa.Table.from_pandas(df=df, schema=pa.schema(features.type) if features is not None else None)
+        return cls(pa_table, info=info, split=split)
+
+    @classmethod
+    def from_dict(
+        cls,
+        mapping: dict,
+        features: Optional[Features] = None,
+        info: Optional[Any] = None,
+        split: Optional[Any] = None,
+    ):
+        """
+        Convert :obj:``dict`` to a "obj"``pyarrow.Table`` to create a :obj:``nlp.Dataset``.
+
+        Args:
+            mapping (:obj:``mapping``): A mapping of strings to Arrays or Python lists.
+            features (:obj:``nlp.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
+            info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
+                description, citation, etc.
+            split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+        """
+        pa_table = pa.Table.from_pydict(
+            mapping=mapping, schema=pa.schema(features.type) if features is not None else None
+        )
         return cls(pa_table, info=info, split=split)
 
     @property
