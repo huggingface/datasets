@@ -34,6 +34,5 @@ class Text(nlp.GeneratorBasedBuilder):
         for filename in files:
             with open(filename) as file:
                 for line in file:
-                    print(line)
                     yield idx, {"text": line}
                     idx += 1
