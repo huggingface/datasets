@@ -51,3 +51,5 @@ venv.bak/
 # playground
 /playground
 
+# Sphinx documentation
+docs/_build/

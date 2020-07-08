@@ -58,10 +58,12 @@ class DatasetInfoMixin(object):
 
     @property
     def info(self):
+        """ :class:`nlp.DatasetInfo` object containing all the metadata in the dataset."""
         return self._info
 
     @property
     def split(self):
+        """ :class:`nlp.DatasetInfo` object containing all the metadata in the dataset."""
         return self._split
 
     @property
@@ -212,46 +214,63 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return cls(pa_table, info=info, split=split)
 
     @property
-    def data(self):
+    def data(self) -> pa.Table:
+        """The Apache Arrow table backing the dataset."""
         return self._data
 
     @property
     def cache_files(self):
+        """The cache file containing the Apache Arrow table backing the dataset."""
         return self._data_files
 
     @property
     def columns(self):
+        """The Arrow columns of the Apache Arrow table backing the dataset.
+        You probably don't need to access directly these and can rather use
+        :func:`nlp.Dataset.column_names` or :func:`nlp.Dataset.__getitem__`
+        to access them as python or numpy objects.  
+        """
         return self._data.columns
 
     @property
-    def nbytes(self):
+    def nbytes(self) -> int:
+        """Number of columns in the dataset."""
         return self._data.nbytes
 
     @property
-    def num_columns(self):
+    def num_columns(self) -> int:
+        """Number of columns in the dataset."""
         return self._data.num_columns
 
     @property
-    def num_rows(self):
+    def num_rows(self) -> int:
+        """Number of rows in the dataset (same as :func:`nlp.Dataset.__len__`)."""
         return self._data.num_rows
 
     @property
-    def column_names(self):
+    def column_names(self) -> List[str]:
+        """Names of the columns in the dataset. """
         return self._data.column_names
 
     @property
     def schema(self) -> pa.Schema:
+        """The Arrow schema of the Apache Arrow table backing the dataset.
+        You probably don't need to access directly this and can rather use
+        :func:`nlp.Dataset.features` to inspect the dataset features.  
+        """
         return self._data.schema
 
     @property
     def shape(self):
+        """Shape of the dataset (number of columns, number of rows)."""
         return self._data.shape
 
     def drop(self, columns: Union[str, List[str]]):
         """ Drop one or more columns.
 
         Args:
-            columns: list of str
+            columns (:obj:`str` or :obj:`List[str]`):
+                Column or list of columns to remove from the dataset.
         """
         if isinstance(columns, str):
             columns = [columns]
@@ -263,11 +282,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         self._data = self._data.drop(columns)
 
-    def unique(self, column: str):
-        """ Return a list of the unque elements in a column.
+    def unique(self, column: str) -> List:
+        """ Return a list of the unique elements in a column.
+
+        This is implemented in the low-level backend and as such, very fast.
 
         Args:
-            columns: str
+            column (:obj:`str`):
+                column name (list all the column names with :func:`nlp.Dataset.column_names`)
+
+        Returns: :obj:`list` of unique elements in the given column.
+
         """
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
@@ -279,7 +304,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             by storing a dictionnary of the strings. This only affect the internal storage.
 
         Args:
-            columns: str
+            column (:obj:`str`):
+
         """
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
@@ -298,9 +324,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.flatten()
 
     def __len__(self):
+        """ Number of rows in the dataset """
         return self._data.num_rows
 
     def __iter__(self):
+        """ Iterate through the examples.
+        If a formating is set with :func:`nlp.Dataset.set_format` rows will be returned with the
+        selected format.
+        """
         format_type = self._format_type
         format_kwargs = self._format_kwargs
         format_columns = self._format_columns
@@ -1309,15 +1340,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         faiss_verbose: bool = False,
         dtype=np.float32,
     ):
-        """ Add a dense index using Faiss for fast retrieval.
-            By default the index is done over the vectors of the specified column.
-            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
-            You can find more information about Faiss here:
-            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+        """Add a dense index using Faiss for fast retrieval.
+        By default the index is done over the vectors of the specified column.
+        You can specify :obj:`device` if you want to run it on GPU (:obj:`device` must be the GPU index).
+        You can find more information about Faiss here:
 
-            Examples of usage:
+            - For `string factory <https://github.com/facebookresearch/faiss/wiki/The-index-factory>`__
+            - For `faiss_gpu_options <https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU>`__
 
-            ```
+        Args:
+            column (:obj:`str`):
+                The column of the vectors to add to the index.
+            index_name (Optional :obj:`str`):
+                The index_name/identifier of the index.
+                This is the index_name that is used to call :func:`nlp.Dataset.get_nearest_examples` or :func:`nlp.Dataset.search`.
+                By default it corresponds to `column`.
+            device (Optional :obj:`int`):
+                If not None, this is the index of the GPU to use.
+                By default it uses the CPU.
+            string_factory (Optional :obj:`str`):
+                This is passed to the index factory of Faiss to create the index.
+                Default index class is ``IndexFlatIP``.
+            faiss_gpu_options (Optional :obj:`FaissGpuOptions`):
+                Options to configure the GPU resources of Faiss.
+            dtype (data-type): The dtype of the numpy arrays that are indexed.
+                Default is ``np.float32``.
+
+        Example::
+
             ds = nlp.load_dataset('crime_and_punish', split='train')
             ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
             ds_with_embeddings.add_faiss_index(column='embeddings')
@@ -1325,28 +1375,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
             # save index
             ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
-            ```
 
-            ```
             ds = nlp.load_dataset('crime_and_punish', split='train')
             # load index
             ds.load_faiss_index('embeddings', 'my_index.faiss')
             # query
             scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
-            ```
-
-            Args:
-                `column` (`str`): The column of the vectors to add to the index.
-                `index_name` (Optional `str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                    By defaul it corresponds to `column`.
-                `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
-                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
-                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
-                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
-                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
-                `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
-        """
+    """
         with self.formated_as(type="numpy", columns=[column], dtype=dtype):
             super().add_faiss_index(
                 column=column,
@@ -1373,22 +1408,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dtype=np.float32,
     ):
         """ Add a dense index using Faiss for fast retrieval.
-            The index is created using the vectors of `external_arrays`.
-            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
-            You can find more information about Faiss here:
-            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+        The index is created using the vectors of `external_arrays`.
+        You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+        You can find more information about Faiss here:
+        - For `string factory <https://github.com/facebookresearch/faiss/wiki/The-index-factory>`__
+        - For `faiss_gpu_options <https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU>`__
 
-            Args:
-                `external_arrays` (`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
-                    It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
-                `index_name` (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
-                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
-                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
-                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
-                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
-                `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
+        Args:
+            external_arrays (:obj:`np.array`):
+                If you want to use arrays from outside the lib for the index, you can set :obj:`external_arrays`.
+                It will use :obj:`external_arrays` to create the Faiss index instead of the arrays in the given :obj:`column`.
+            index_name (:obj:`str`):
+                The index_name/identifier of the index.
+                This is the index_name that is used to call :func:`nlp.Dataset.get_nearest_examples` or :func:`nlp.Dataset.search`.
+            device (Optional :obj:`int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            string_factory (Optional :obj:`str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
+            faiss_gpu_options (Optional :obj:`FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+            dtype (:obj:`numpy.dtype`): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
         super().add_faiss_index_from_external_arrays(
             external_arrays=external_arrays.astype(dtype),
@@ -1413,24 +1449,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     ):
         """ Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
-            Examples of usage:
-
-            ```
-            es_client = elasticsearch.Elasticsearch()
-            ds = nlp.load_dataset('crime_and_punish', split='train')
-            ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
-            scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
-            ```
-
-            Args:
-                `column` (`str`): The column of the documents to add to the index.
-                `index_name` (Optional `str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
-                    By defaul it corresponds to `column`.
-                `documents` (`Union[List[str], nlp.Dataset]`): The documents to index. It can be a `nlp.Dataset`.
-                `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
-                `es_index_name` (Optional `str`): The elasticsearch index name used to create the index.
-                `es_index_config` (Optional `dict`): The configuration of the elasticsearch index.
-                    Default config is
+        Args:
+            column (:obj:`str`):
+                The column of the documents to add to the index.
+            index_name (Optional :obj:`str`):
+                The index_name/identifier of the index.
+                This is the index name that is used to call :func:`nlp.Dataset.get_nearest_examples` or :func:`nlp.Dataset.search`.
+                By default it corresponds to :obj:`column`.
+            documents (:obj:`Union[List[str], nlp.Dataset]`):
+                The documents to index. It can be a :class:`nlp.Dataset`.
+            es_client (:obj:`elasticsearch.Elasticsearch`):
+                The elasticsearch client used to create the index.
+            es_index_name (Optional :obj:`str`):
+                The elasticsearch index name used to create the index.
+            es_index_config (Optional :obj:`dict`):
+                The configuration of the elasticsearch index.
+                Default config is::
+                
                     {
                         "settings": {
                             "number_of_shards": 1,
@@ -1438,10 +1473,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         },
                         "mappings": {
                             "properties": {
-                                "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
+                                "text": {
+                                    "type": "text",
+                                    "analyzer": "standard",
+                                    "similarity": "BM25"
+                                },
                             }
                         },
                     }
+
+        Example::
+
+            es_client = elasticsearch.Elasticsearch()
+            ds = nlp.load_dataset('crime_and_punish', split='train')
+            ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
+            scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
+
         """
         with self.formated_as(type=None, columns=[column]):
             super().add_elasticsearch_index(

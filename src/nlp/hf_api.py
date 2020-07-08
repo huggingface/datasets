@@ -37,12 +37,18 @@ class S3Obj:
         self.ETag = ETag
         self.Size = Size
 
+    def __repr__(self):
+        return f"nlp.S3Obj(filename='{self.filename}')"
+
 
 class PresignedUrl:
     def __init__(self, write: str, access: str, type: str, **kwargs):
         self.write = write
         self.access = access
         self.type = type  # mime-type to send to S3.
+
+    def __repr__(self):
+        return f"nlp.PresignedUrl(write='{self.write}', access='{self.access}', type='{self.type}')"
 
 
 class S3Object:
@@ -66,6 +72,9 @@ class S3Object:
         self.rfilename = rfilename
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def __repr__(self):
+        return f"nlp.S3Object('{self.rfilename}')"
 
 
 class ObjectInfo:
@@ -98,6 +107,10 @@ class ObjectInfo:
         self.siblings = [S3Object(**x) for x in self.siblings] if self.siblings else None
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def __repr__(self):
+        single_line_description = self.description.replace('\n', '')
+        return f"nlp.ObjectInfo(id='{self.id}', description='{single_line_description}', files={self.siblings})"
 
 
 class HfApi:
