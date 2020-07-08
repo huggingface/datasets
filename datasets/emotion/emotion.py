@@ -63,6 +63,7 @@ class Emotion(nlp.GeneratorBasedBuilder):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features({"text": nlp.Value("string"), "label": nlp.Value("string")}),
+            supervised_keys=("text", "label"),
             homepage=_URL,
             citation=_CITATION,
         )
