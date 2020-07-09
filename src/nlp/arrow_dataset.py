@@ -523,7 +523,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     outputs = self._data[key].to_pandas(split_blocks=True).to_list()
             else:
                 outputs = self._data[key].to_pandas(split_blocks=True).to_list()
-        elif isinstance(key, list):
+        elif isinstance(key, list) or isinstance(key, np.ndarray):
             data_subset = pa.concat_tables(self._data.slice(i, 1) for i in key)
             if format_type is not None and format_type == "pandas":
                 outputs = data_subset.to_pandas(split_blocks=True)
