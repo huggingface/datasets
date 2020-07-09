@@ -22,10 +22,10 @@ Contents
 
 The documentation is organized in five parts:
 
-- **GET STARTED** contains a quick tour, the installation instructions and some useful information about our philosophy
-  and a glossary.
-- **RESEARCH** focuses on tutorials that have less to do with how to use the library but more about general resarch in
-  transformers model
+- **GET STARTED** contains a quick tour and the installation instructions.
+- **USING DATASETS** contains general tutorials on how to use and contribute to the datasets in the library.
+- **USING METRICS** contains general tutorials on how to use and contribute to the metrics in the library.
+- **ADVANCED GUIDES** contains more advanced guides that are more specific to a part of the library.
 - **PACKAGE REFERENCE** contains the documentation of each public class and function.
 
 .. toctree::
@@ -37,16 +37,32 @@ The documentation is organized in five parts:
 
 .. toctree::
     :maxdepth: 2
-    :caption: Using 🤗nlp
+    :caption: Using datasets
 
-    loading_methods
-    main_classes
+    loading_datasets
+    exploring
+    processing
+    using_tf_pt
+    faiss_and_ea
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Using metrics
+
+    loading_metrics
+    using_metrics
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Advanced guides
+
+    add_dataset
     splits
     beam_dataset
 
 .. toctree::
     :maxdepth: 2
-    :caption: Adding new datasets and metrics
+    :caption: Package reference
 
-    add_dataset
-
+    package_reference/loading_methods
+    package_reference/main_classes
