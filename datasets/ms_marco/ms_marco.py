@@ -79,13 +79,12 @@ _V1_URLS = {
 }
 
 class MsMarcoConfig(nlp.BuilderConfig):
-    """BuilderConfig for FEVER."""
+    """BuilderConfig for MS MARCO."""
 
-    def __init__(self, task, **kwargs):
-        """BuilderConfig for FEVER
+    def __init__(self, **kwargs):
+        """BuilderConfig for MS MARCO
 
         Args:
-            task: task for which the datset is used for
           **kwargs: keyword arguments forwarded to super.
         """
         super(MsMarcoConfig, self).__init__(**kwargs)
@@ -97,14 +96,12 @@ class MsMarco(nlp.GeneratorBasedBuilder):
         MsMarcoConfig(
             name='v1.1',
             description= """version v1.1""",
-            task='QA_and_NLG',
             version=nlp.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)")
             
         ),
         MsMarcoConfig(
             name='v2.1',
             description= """version v2.1""",
-            task='QA_and_NLG',
             version=nlp.Version("2.1.0", "New split API (https://tensorflow.org/datasets/splits)")
             
         ),
