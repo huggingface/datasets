@@ -182,22 +182,44 @@ In particular, you can easily select a specific column in batches, and also natu
     True
 
 
-Setting the format of dataset to NumPy/pandas/PyTorch/TensorFlow
+Setting the format of dataset for NumPy/pandas/PyTorch/TensorFlow
 ---------------------------------------------------------------------
 
-As we've seen up to now, the rows/batches/columns returned when accessing the elements of the dataset are python objects.
+Up to now, the rows/batches/columns returned when querying the elements of the dataset were python objects.
 
-Now, often we would like to get more sophisticated objects out of our dataset, for instance NumPy arrays or PyTorch tensors instead of lists.
+Sometimes we would like to have more sophisticated objects returned by our dataset, for instance NumPy arrays or PyTorch tensors instead of python lists.
 
-🤗nlp provides a way to do that through its ``format``. While the internal storage of the dataset is always the efficient Apache Arrow format, by setting a specific format, you can filter some columns and apply on-the-fly casting of the output in NumPy/pandas/PyTorch/TensorFlow.
+🤗nlp provides a way to do that through what is called ``format``.
 
-A specific format is activated with :func:`nlp.Dataset.set_format`.
+While the internal storage of the dataset is always the Apache Arrow format, by setting a specific format on a dataset, you can filter some columns and cast the output of :func:`nlp.Dataset.__getitem__` in NumPy/pandas/PyTorch/TensorFlow, on-the-fly.
 
-:func:`nlp.Dataset.set_format` accepts three inputs which control the format of the dataset:
+A specific format can be activated with :func:`nlp.Dataset.set_format`.
 
-- ``type`` (``Union[None, str]``, default to :obj:`None`) defines the return type for the dataset :obj`__getitem__` method and is one of :obj:`[None, 'numpy', 'pandas', 'torch', 'tensorflow']` (:obj:`None` means return python objects),
-- ``columns`` (``Union[None, str, List[str]]``, default to :obj:`None`) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (:obj:`None` means return all columns),
-- ``output_all_columns`` (``bool``, default to :obj:`False`) controls whether the columns which cannot be formated (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
-- format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+:func:`nlp.Dataset.set_format` accepts three inputs to control the format of the dataset:
 
+- :obj:`type` (:obj:`Union[None, str]`, default to :obj:`None`) defines the return type for the dataset :obj`__getitem__` method and is one of :obj:`[None, 'numpy', 'pandas', 'torch', 'tensorflow']` (:obj:`None` means return python objects),
+- :obj:`columns` (:obj:`Union[None, str, List[str]]`, default to :obj:`None`) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (:obj:`None` means return all columns),
+- :obj:`output_all_columns` (:obj:`bool`, default to :obj:`False`) controls whether the columns which cannot be formated (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
+- :obj:`format_kwargs` can be used to provide additional keywords arguments that will be forwarded to the convertiong function like :obj:`np.array`, :obj:`torch.tensor` or :obj:`tensorflow.ragged.constant`. For instance, to create :obj:`torch.Tensor` directly on the GPU you can specify :obj:`device='cuda'`.
 
+.. note::
+
+    The format is only applied to single row or batches of rows (i.e. when querying :obj:`dataset[0]` or :obj:`dataset[10:20]`). Querying a column (e.g. :obj:`dataset['sentence1']`) will always return python objects and will return the column even if it's filtered by the format.
+
+Here is an example:
+
+.. code-block::
+
+    >>> dataset.set_format(type='torch', columns=['label'])
+    >>> dataset[0]
+    {'label': tensor(1)}
+
+The current format of the dataset can be queried with :func:`nlp.Dataset.format` and can be reset to the original format (python and no column filtered) with :func:`nlp.Dataset.reset_format`:
+
+.. code-block::
+
+    >>> dataset.format
+    {'type': 'torch', 'format_kwargs': {}, 'columns': ['label'], 'output_all_columns': False}
+    >>> dataset.reset_format()
+    >>> dataset.format
+    {'type': 'python', 'format_kwargs': {}, 'columns': ['sentence1', 'sentence2', 'label', 'idx'], 'output_all_columns': False}
