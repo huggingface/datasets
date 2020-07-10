@@ -22,13 +22,14 @@ import inspect
 import logging
 import os
 import shutil
+from collections import partial
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
 
 import pyarrow as pa
 
 from . import utils
-from .arrow_reader import ArrowReader, DatasetNotOnHfGcs
+from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
 from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
@@ -383,10 +384,25 @@ class DatasetBuilder:
                     # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
                     # it to every sub function.
                     with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
+                        relative_data_dir = self._relative_data_dir(with_version=True)
                         reader = ArrowReader(self._cache_dir, self.info)
-                        reader.download_from_hf_gcs(self._cache_dir, self._relative_data_dir(with_version=True))
+                        # use reader instructions to download the right files
+                        reader.download_from_hf_gcs(self._cache_dir, relative_data_dir)
                         downloaded_info = DatasetInfo.from_directory(self._cache_dir)
                         self.info.update(downloaded_info)
+                        # download post processing resources
+                        remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
+                        for resource_file_name in self._post_processing_resources().values():
+                            try:
+                                resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
+                                shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
+                            except ConnectionError:
+                                logger.info(
+                                    "Couldn't download resourse file {} from Hf google storage.".format(
+                                        resource_file_name
+                                    )
+                                )
+
                 logger.info("Dataset downloaded from Hf google storage.")
                 print(
                     f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
@@ -498,7 +514,7 @@ class DatasetBuilder:
         del prepare_split_kwargs
         return {}
 
-    def as_dataset(self, split: Optional[Split] = None):
+    def as_dataset(self, split: Optional[Split] = None, run_post_process=True):
         """ Return a Dataset for the specified split.
         """
         logger.info("Constructing Dataset for split %s, from %s", split, self._cache_dir)
@@ -517,16 +533,24 @@ class DatasetBuilder:
             split = {s: s for s in self.info.splits}
 
         # Create a dataset for each of the given splits
-        datasets = utils.map_nested(self._build_single_dataset, split, map_tuple=True)
+        datasets = utils.map_nested(
+            partial(self._build_single_dataset, run_post_process=run_post_process), split, map_tuple=True
+        )
         return datasets
 
-    def _build_single_dataset(self, split):
+    def _build_single_dataset(self, split, run_post_process):
         """as_dataset for a single split."""
         if isinstance(split, str):
             split = Split(split)
 
         # Build base dataset
         ds = self._as_dataset(split=split,)
+        if run_post_process:
+            resources_paths = {
+                resource_name: os.path.join(self.path, resource_file_name)
+                for resource_name, resource_file_name in self._post_processing_resources()
+            }
+            ds = self._post_process(ds, resources_paths)
         return ds
 
     def _as_dataset(self, split: Split = Split.TRAIN):
@@ -547,6 +571,14 @@ class DatasetBuilder:
             name=self.name, instructions=split, split_infos=self.info.splits.values(),
         )
         return ds
+
+    def _post_process(self, dataset, resources_paths):
+        """Run dataset transforms or add indexes"""
+        return dataset
+
+    def _post_processing_resources(self):
+        """Mapping resource_name -> resource_file_name"""
+        return {}
 
     @abc.abstractmethod
     def _split_generators(self, dl_manager):

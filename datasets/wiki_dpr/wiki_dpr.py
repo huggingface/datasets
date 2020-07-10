@@ -1,4 +1,5 @@
 import logging
+import os
 
 import numpy as np
 
@@ -32,14 +33,17 @@ _VECTORS_URL = "https://dl.fbaipublicfiles.com/dpr/data/wiki_encoded/single/nq/w
 class WikiDprConfig(nlp.BuilderConfig):
     """BuilderConfig for WikiDprConfig."""
 
-    def __init__(self, with_embeddings=True, **kwargs):
+    def __init__(self, with_embeddings=True, with_index=False, index_train_size=262144, **kwargs):
         """BuilderConfig for WikiSnippets.
     Args:
         with_embeddings (`bool`, defaults to `True`): Load the 768-dimensional embeddings from DPR trained on NQ.
+        with_index (`bool`, defaults to `True`): Load the faiss index trained on the embeddings.
       **kwargs: keyword arguments forwarded to super.
     """
         super(WikiDprConfig, self).__init__(**kwargs)
         self.with_embeddings = with_embeddings
+        self.with_index = with_index
+        self.index_train_size = index_train_size
 
 
 class WikiDpr(nlp.GeneratorBasedBuilder):
@@ -102,3 +106,36 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
                     "text": text,
                     "title": title,
                 }
+
+    def _post_processing_resources(self):
+        if self.config.with_index:
+            return {"embeddings_index": "psgs_w100_with_nq_embeddings_IVFPQ4096_HNSW32,PQ64-IP.faiss"}
+        else:
+            return {}
+
+    def _post_process(self, dataset, resources_paths):
+        if self.config.with_index:
+            if dataset.split == nlp.Split.TRAIN:
+                index_file = resources_paths["embeddings_index"]
+                if os.path.exists(index_file):
+                    dataset.load_faiss_index("embeddings", index_file)
+                else:
+                    import faiss
+
+                    d = 768
+                    train_size = self.config.index_train_size
+                    quantizer = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
+                    ivf_index = faiss.IndexIVFPQ(quantizer, d, 4096, 64, 8, faiss.METRIC_INNER_PRODUCT)
+                    ivf_index.own_fields = True
+                    quantizer.this.disown()
+
+                    logging.info("Building wiki_dpr faiss index")
+                    dataset.add_faiss_index(
+                        "embeddings",
+                        train_size=train_size,
+                        faiss_verbose=logging.getLogger().level <= logging.DEBUG,
+                        custom_index=ivf_index,
+                    )
+                    logging.info("Saving wiki_dpr faiss index")
+                    dataset.save_faiss_index("embeddings", index_file)
+        return dataset
