@@ -76,7 +76,17 @@ class Json(nlp.ArrowBasedBuilder):
                 else:
                     pa_table = pa.Table.from_pydict(mapping=dataset, schema=self.config.schema)
             else:
-                pa_table = paj.read_json(
-                    file, read_options=self.config.pa_read_options, parse_options=self.config.pa_parse_options,
-                )
+                try:
+                    pa_table = paj.read_json(
+                        file, read_options=self.config.pa_read_options, parse_options=self.config.pa_parse_options,
+                    )
+                except pa.ArrowInvalid:
+                    with open(file, encoding="utf-8") as f:
+                        dataset = json.load(f)
+                    raise ValueError(
+                        f"Not able to read records in the JSON file at {file}. "
+                        f"You should probably indicate the field of the JSON file containing your records. "
+                        f"This JSON file contain the following fields: {str(list(dataset.keys()))}. "
+                        f"Select the correct one and provide it as `field='XXX'` to the `load_dataset` method. "
+                    )
             yield i, pa_table
