@@ -55,3 +55,4 @@ workflows:
             - check_code_quality
             - run_dataset_script_tests
             - build_doc
+            - deploy_doc
