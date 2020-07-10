@@ -193,4 +193,11 @@ Now, often we would like to get more sophisticated objects out of our dataset, f
 
 A specific format is activated with :func:`nlp.Dataset.set_format`.
 
+:func:`nlp.Dataset.set_format` accepts three inputs which control the format of the dataset:
+
+- ``type`` (``Union[None, str]``, default to :obj:`None`) defines the return type for the dataset :obj`__getitem__` method and is one of :obj:`[None, 'numpy', 'pandas', 'torch', 'tensorflow']` (:obj:`None` means return python objects),
+- ``columns`` (``Union[None, str, List[str]]``, default to :obj:`None`) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (:obj:`None` means return all columns),
+- ``output_all_columns`` (``bool``, default to :obj:`False`) controls whether the columns which cannot be formated (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
+- format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+
 
