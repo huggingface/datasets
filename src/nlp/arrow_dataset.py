@@ -645,6 +645,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer_batch_size: Optional[int] = 1000,
         arrow_schema: Optional[pa.Schema] = None,
         disable_nullable: bool = True,
+        verbose: bool = True,
     ):
         """ Apply a function to all the elements in the table (individually or in batches)
             and update the table (if function does updated examples).
@@ -672,6 +673,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `arrow_schema` (`Optional[pa.Schema]`, default: `None`): Use a specific Apache Arrow Schema to store the cache file
                     instead of the automatically generated one.
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         # If the array is empty we do nothing
         if len(self) == 0:
@@ -778,7 +780,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 cache_file_name = self._get_cache_file_path(function, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached processed dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Loading cached processed dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
@@ -788,17 +791,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 writer = ArrowWriter(schema=arrow_schema, stream=buf_writer, writer_batch_size=writer_batch_size)
             else:
                 buf_writer = None
-                logger.info("Caching processed dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Caching processed dataset at %s", cache_file_name)
                 writer = ArrowWriter(schema=arrow_schema, path=cache_file_name, writer_batch_size=writer_batch_size)
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
         if not batched:
-            for i, example in enumerate(tqdm(self)):
+            for i, example in enumerate(tqdm(self, disable=not verbose)):
                 example = apply_function_on_filtered_inputs(example, i)
                 if update_data:
                     writer.write(example)
         else:
-            for i in tqdm(range(0, len(self), batch_size)):
+            for i in tqdm(range(0, len(self), batch_size), disable=not verbose):
                 batch = self[i : i + batch_size]
                 indices = list(range(*(slice(i, i + batch_size).indices(self._data.num_rows))))  # Something simpler?
                 try:
@@ -845,6 +849,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -898,6 +903,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
     ):
         """ Create a new dataset with rows selected following the list/array of indices.
 
@@ -910,6 +916,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -932,7 +939,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 cache_file_name = self._get_cache_file_path(self.select, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached selected dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Loading cached selected dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
@@ -941,11 +949,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer = ArrowWriter(schema=self.schema, stream=buf_writer, writer_batch_size=writer_batch_size)
         else:
             buf_writer = None
-            logger.info("Caching processed dataset at %s", cache_file_name)
+            if verbose:
+                logger.info("Caching processed dataset at %s", cache_file_name)
             writer = ArrowWriter(schema=self.schema, path=cache_file_name, writer_batch_size=writer_batch_size)
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
-        for i in tqdm(indices):
+        for i in tqdm(indices, disable=not verbose):
             example = self._getitem(key=int(i), format_type=None, format_columns=None, format_kwargs=None)
             writer.write(example)
 
@@ -966,6 +975,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True
     ):
         """ Create a new dataset sorted according to a column.
 
@@ -986,6 +996,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1018,7 +1029,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 cache_file_name = self._get_cache_file_path(self.sort, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached sorted dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Loading cached sorted dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         indices = self._getitem(
@@ -1034,6 +1046,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose,
         )
 
     def shuffle(
@@ -1044,6 +1057,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
     ):
         """ Create a new Dataset where rows the rows are shuffled.
 
@@ -1063,6 +1077,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1093,7 +1108,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 cache_file_name = self._get_cache_file_path(self.shuffle, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached shuffled dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Loading cached shuffled dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         if generator is None:
@@ -1107,6 +1123,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose,
         )
 
     def train_test_split(
@@ -1121,6 +1138,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         train_cache_file_name: Optional[str] = None,
         test_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
     ):
         """ Return a dictionary with two random train and test subsets (`train` and `test` ``Dataset`` splits).
             Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
@@ -1152,6 +1170,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     test split calche file instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1258,7 +1277,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if test_cache_file_name is None:
                     test_cache_file_name = self._get_cache_file_path(self.train_test_split, test_kwargs)
             if os.path.exists(train_cache_file_name) and os.path.exists(test_cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name)
+                if verbose:
+                    logger.info("Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name)
                 return {
                     "train": Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
                     "test": Dataset.from_file(test_cache_file_name, info=self.info, split=self.split),
@@ -1282,6 +1302,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=train_cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose
         )
         test_split = self.select(
             indices=test_indices,
@@ -1289,6 +1310,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=test_cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose
         )
 
         return {"train": train_split, "test": test_split}
@@ -1301,6 +1323,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True
     ):
         """ Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
@@ -1318,6 +1341,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         indices = np.arange(index, len(self), num_shards)
         return self.select(
@@ -1326,6 +1350,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose
         )
 
     def add_faiss_index(
