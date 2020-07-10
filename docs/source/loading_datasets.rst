@@ -82,7 +82,7 @@ If you don't provide a :obj:`split` argument to :func:`nlp.load_dataset`, this m
 
 The :obj:`split` argument can actually be used to control extensively the generated dataset split. You can use this argument to build a split from only a portion of a split in absolute number of examples or in proportion (e.g. :obj:`split='train[:10%]'` will load only the first 10% of the train split) or to mix splits (e.g. :obj:`split='train[:100]+validation[:100]'` will create a split from the first 100 examples of the train split and the first 100 examples of the validation split).
 
-You can find more details on the syntax for using :obj:`split` on the :doc:`dedicated tutorial on split <./split>`.
+You can find more details on the syntax for using :obj:`split` on the :doc:`dedicated tutorial on split <./splits>`.
 
 Selecting a configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -137,21 +137,24 @@ Apart from :obj:`name` and :obj:`split`, the :func:`nlp.load_dataset` method pro
 
 You can find the full details on these arguments on the package reference page for :func:`nlp.load_dataset`.
 
+
 Loading a dataset from local files
 -----------------------------------------------------------
 
 It's also possible to load a dataset from local files using relevant script and providing path to the files.
 
 Currently loading scripts are provided for:
-- CSV files (:obj:`csv`)
-- JSON files (:obj:`json`)
-- text files (read as a line-by-line dataset) (:obj:`text`)
-- pandas pickled dataframe. (:obj:`pandas`)
 
-The :obj:`data_files` arguments is used to provide paths to on or several files and accept three possible format:
-- a single string as the path to a single files (considered to constitute the `train` split by default)
-- a list of strings as paths to a list of files (also considered to constitute the `train` split by default)
-- a dictionnary mapping splits to single files or list of files.
+- CSV files (with the :obj:`csv` script),
+- JSON files (with the :obj:`json` script),
+- text files (read as a line-by-line dataset with the :obj:`text` script),
+- pandas pickled dataframe (with the :obj:`pandas` script).
+
+The :obj:`data_files` argument in :func:`nlp.load_dataset` is used to provide paths to one or several files. This arguments currently accept three types of inputs:
+
+- :obj:`str`: a single string as the path to a single file (considered to constitute the `train` split by default)
+- :obj:`List[str]`: a list of strings as paths to a list of files (also considered to constitute the `train` split by default)
+- :obj:`Dict[Union[str, List[str]]]`: a dictionnary mapping splits names to a single file or a list of files.
 
 Let's see an example of all the various ways you can provide files to :func:`nlp.load_dataset`:
 
@@ -163,22 +166,138 @@ Let's see an example of all the various ways you can provide files to :func:`nlp
     >>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'], 
                                                   'test': 'my_test_file.csv'})
 
-The :obj:`split` argument will work similarly to what we detailed above for the datasets on the Hub and you can find more details on the syntax for using :obj:`split` on the :doc:`dedicated tutorial on split <./split>`. The only specific behavior related to loading local files is that if you don't indicate which split each files is realted to, the provided files are assumed to belong to the **train** split.
+.. note::
 
-Defining the features of the dataset
+    The :obj:`split` argument will work similarly to what we detailed above for the datasets on the Hub and you can find more details on the syntax for using :obj:`split` on the :doc:`dedicated tutorial on split <./splits>`. The only specific behavior related to loading local files is that if you don't indicate which split each files is realted to, the provided files are assumed to belong to the **train** split.
+
+
+Loading a dataset from a CSV file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+🤗nlp can read a dataset made of on or several CSV files.
+
+All the CSV files in the dataset should have the same organization and in particular the same datatypes for the columns.
+
+A few interesting features are provided out-of-the-box by the Apache Arrow backend:
+- multi-threaded or single-threaded reading
+- automatic decompression of input files (based on the filename extension, such as my_data.csv.gz)
+- fetching column names from the first row in the CSV file
+- column-wise type inference and conversion to one of null, int64, float64, timestamp[s], string or binary data
+- detecting various spellings of null values such as NaN or #N/A
+
+Here is an example loading two CSV file to create a ``train`` split (default split unless specify otherwise):
+
+.. code-block::
+
+    >>> from nlp import load_dataset
+    >>> dataset = load_dataset('csv', data_files=['my_file_1.csv', 'my_file_2.csv'])
+
+The ``csv`` loading script provides a few simple access options to control parsing and reading the CSV files:
+
+    - :obj:`skip_rows` (int) - Number of first rows in the file to skip (default is 0)
+    - :obj:`column_names` (list, optional) – The column names of the target table. If empty, fall back on autogenerate_column_names (default: empty).
+    - :obj:`autogenerate_column_names` (bool) – Whether to autogenerate column names if column_names is empty. If true, column names will be of the form “f0”, “f1”… If false, column names will be read from the first CSV row after skip_rows (default False).
+    - :obj:`delimiter` (1-character string) – The character delimiting individual cells in the CSV data (default ``','``).
+    - :obj:`quote_char` (1-character string or False) – The character used optionally for quoting CSV values (False if quoting is not allowed, default '"').
+
+If you want more control, the ``csv`` script provide full control on reading, parsong and convertion through the Apache Arrow `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__, `pyarrow.csv.ParseOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ParseOptions.html>`__ and `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__
+
+    - :obj:`read_options` — Can be provided with a `pyarrow.csv.ReadOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ReadOptions.html>`__ to control all the reading options. If :obj:`skip_rows`, :obj:`column_names` or :obj:`autogenerate_column_names` are also provided (see above), they will take priority over the attributes in :obj:`read_options`.
+    - :obj:`parse_options` — Can be provided with a `pyarrow.csv.ParseOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ParseOptions.html>`__ to control all the parsing options. If :obj:`delimiter` or :obj:`quote_char` are also provided (see above), they will take priority over the attributes in :obj:`parse_options`.
+    - :obj:`convert_options` — Can be provided with a `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__ to control all the conversion options.
+
+
+Loading a dataset from a JSON file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+🤗nlp supports building a dataset from JSON files in various format.
+
+The most efficient format is to have JSON files consisting of multiple JSON objects, one per line, representing individual data rows:
+
+.. code-block::
+
+    {"a": 1, "b": 2.0, "c": "foo", "d": false}
+    {"a": 4, "b": -5.5, "c": null, "d": true}
+
+In this case, interesting features are provided out-of-the-box by the Apache Arrow backend:
+
+- multi-threaded reading
+- automatic decompression of input files (based on the filename extension, such as my_data.json.gz)
+- sophisticated type inference (see below)
+
+You can load such a dataset direcly with:
+
+.. code-block::
+
+    >>> from nlp import load_dataset
+    >>> dataset = load_dataset('json', data_files='my_file.json')
+
+In real-life though, JSON files can have diverse format and the ``json`` script will accordingly fallback on using python JSON loading methods to handle various JSON file format.
+
+One common occurence is to have a JSON file with a single root dictionnary where the dataset is contained in a specific field, as a list of dicts or a dict of lists.
+
+.. code-block::
+
+    {"version: "0.1.0",
+     "data": [{"a": 1, "b": 2.0, "c": "foo", "d": false},
+              {"a": 4, "b": -5.5, "c": null, "d": true}]
+    }
+
+In this case you will need to specify which field contains the dataset using the :obj:`field` argument as follow:
+
+.. code-block::
+
+    >>> from nlp import load_dataset
+    >>> dataset = load_dataset('json', data_files='my_file.json', field='data')
+
+
+Loading a dataset from a text file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+🤗nlp also supports building a dataset from text files read line by line (each line will be a row in the dataset).
+
+This is simply done using the ``text`` loading script which will generate a dataset with a single column called ``text`` containing all the text lines of the input files as strings.
+
+.. code-block::
+
+    >>> from nlp import load_dataset
+    >>> dataset = load_dataset('text', data_files={'train': ['my_text_1.txt', 'my_text_2.txt'], 'test': 'my_test_file.txt'})
+
+
+Specifying the features of the dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When you create a dataset from local files, the :class:`nlp.Feature` of the dataset are automatically guessed using an automatic type inference system based on `Apache Arrow Automatic Type Inference <https://arrow.apache.org/docs/python/json.html#automatic-type-inference>`__.
 
 However sometime you may want to define yourself the features of the dataset, for instance to control the names and indices of labels using a :class:`nlp.ClassLabel`.
 
+In this case you can use the :obj:`feature` arguments to :func:`nlp.load_dataset` to supply a :class:`nlp.Features` instance definining the features of your dataset and overriding the default pre-computed features.
+
+Using your own dataset loading script
+-----------------------------------------------------------
+
+If the provided loading scripts for Hub dataset or for local files are not adapted for your use case, you can also easily write and use your own dataset loading script.
+
+You can use a local loading script just by providing its path instead of the usual shortcut name:
+
+.. code-block::
+
+    >>> from nlp import load_dataset
+    >>> dataset = load_dataset('PATH/TO/MY/LOADING/SCRIPT', data_files='PATH/TO/MY/FILE')
+
+We provide more details on how to create your own dataset generation script in the :doc:`Adding a new dataset guide <./add_dataset>` and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/nlp/tree/master/datasets>`__.
+
 
 Loading a dataset from in-memory data
 -----------------------------------------------------------
 
-It's also possible to load a dataset from in-memory data like a python dict or a pandas dataframe.
+Eventually, it's also possible to instantiate a :class:`nlp.Dataset` directly from in-memory data, like a python dict or a pandas dataframe.
 
-In this case, we assume that you have already loaded some data in a in-memory object in your python session.
+In this case, we assume that you have already loaded some data in a in-memory object in your python session:
+
+.. code-block::
+
+    >>> 
 
 You can then directly create a :class:`nlp.Dataset` object using one of the class methode of the :class:`nlp.Dataset` class.
 
