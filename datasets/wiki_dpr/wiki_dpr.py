@@ -115,27 +115,26 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
 
     def _post_process(self, dataset, resources_paths):
         if self.config.with_index:
-            if dataset.split == nlp.Split.TRAIN:
-                index_file = resources_paths["embeddings_index"]
-                if os.path.exists(index_file):
-                    dataset.load_faiss_index("embeddings", index_file)
-                else:
-                    import faiss
+            index_file = resources_paths["embeddings_index"]
+            if os.path.exists(index_file):
+                dataset.load_faiss_index("embeddings", index_file)
+            else:
+                import faiss
 
-                    d = 768
-                    train_size = self.config.index_train_size
-                    quantizer = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
-                    ivf_index = faiss.IndexIVFPQ(quantizer, d, 4096, 64, 8, faiss.METRIC_INNER_PRODUCT)
-                    ivf_index.own_fields = True
-                    quantizer.this.disown()
+                d = 768
+                train_size = self.config.index_train_size
+                quantizer = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
+                ivf_index = faiss.IndexIVFPQ(quantizer, d, 4096, 64, 8, faiss.METRIC_INNER_PRODUCT)
+                ivf_index.own_fields = True
+                quantizer.this.disown()
 
-                    logging.info("Building wiki_dpr faiss index")
-                    dataset.add_faiss_index(
-                        "embeddings",
-                        train_size=train_size,
-                        faiss_verbose=logging.getLogger().level <= logging.DEBUG,
-                        custom_index=ivf_index,
-                    )
-                    logging.info("Saving wiki_dpr faiss index")
-                    dataset.save_faiss_index("embeddings", index_file)
+                logging.info("Building wiki_dpr faiss index")
+                dataset.add_faiss_index(
+                    "embeddings",
+                    train_size=train_size,
+                    faiss_verbose=logging.getLogger().level <= logging.DEBUG,
+                    custom_index=ivf_index,
+                )
+                logging.info("Saving wiki_dpr faiss index")
+                dataset.save_faiss_index("embeddings", index_file)
         return dataset

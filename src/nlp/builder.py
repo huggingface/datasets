@@ -547,8 +547,8 @@ class DatasetBuilder:
         ds = self._as_dataset(split=split,)
         if run_post_process:
             resources_paths = {
-                resource_name: os.path.join(self.path, resource_file_name)
-                for resource_name, resource_file_name in self._post_processing_resources()
+                resource_name: os.path.join(self._cache_dir, resource_file_name)
+                for resource_name, resource_file_name in self._post_processing_resources().items()
             }
             ds = self._post_process(ds, resources_paths)
         return ds
