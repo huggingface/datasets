@@ -1,9 +1,13 @@
 # coding=utf-8
 
 from dataclasses import dataclass
+from typing import Union, List
+from io import BytesIO
 
 import pyarrow as pa
 import pyarrow.json as paj
+
+import json
 
 import nlp
 
@@ -12,23 +16,30 @@ import nlp
 class JsonConfig(nlp.BuilderConfig):
     """BuilderConfig for JSON."""
 
-    read_options: paj.ReadOptions = paj.ReadOptions()
-    parse_options: paj.ParseOptions = paj.ParseOptions()
+    features: nlp.Features = None
+    field: str = None
+    use_threads: bool = True
+    block_size: int = None
+    newlines_in_values: bool = None
 
     @property
     def pa_read_options(self):
-        return self.read_options
+        return paj.ReadOptions(use_threads=self.use_threads, block_size=self.block_size)
 
     @property
     def pa_parse_options(self):
-        return self.parse_options
+        return paj.ParseOptions(explicit_schema=self.schema, newlines_in_values=self.newlines_in_values)
+
+    @property
+    def schema(self):
+        return pa.schema(self.features.type) if self.features is not None else None
 
 
 class Json(nlp.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = JsonConfig
 
     def _info(self):
-        return nlp.DatasetInfo()
+        return nlp.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
         """ We handle string, list and dicts in datafiles
@@ -49,7 +60,26 @@ class Json(nlp.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         for i, file in enumerate(files):
-            pa_table = paj.read_json(
-                file, read_options=self.config.pa_read_options, parse_options=self.config.pa_parse_options,
-            )
+            if self.config.field is not None:
+                with open(file, encoding='utf-8') as f:
+                    dataset = json.load(f)
+
+                # We keep only the field we are interested in
+                dataset = dataset[self.config.field]
+
+                # We accept two format: a list of dicts or a dict of lists
+                if isinstance(dataset, (list, tuple)):
+                    pa_table = paj.read_json(
+                        BytesIO('\n'.join(json.dumps(row) for row in dataset).encode('utf-8')),
+                        read_options=self.config.pa_read_options,
+                        parse_options=self.config.pa_parse_options,
+                    )
+                else:
+                    pa_table = pa.Table.from_pydict(mapping=dataset, schema=self.config.schema)
+            else:
+                pa_table = paj.read_json(
+                    file,
+                    read_options=self.config.pa_read_options,
+                    parse_options=self.config.pa_parse_options,
+                )
             yield i, pa_table
