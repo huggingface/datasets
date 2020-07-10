@@ -1248,9 +1248,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "test_cache_file_name": test_cache_file_name,
                     "writer_batch_size": writer_batch_size,
                 }
-                train_kwargs = cache_kwargs.deepcopy()
+                train_kwargs = cache_kwargs.copy()
                 train_kwargs["split"] = "train"
-                test_kwargs = cache_kwargs.deepcopy()
+                test_kwargs = cache_kwargs.copy()
                 test_kwargs["split"] = "test"
 
                 if train_cache_file_name is None:
