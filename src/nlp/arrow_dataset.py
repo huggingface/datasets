@@ -21,7 +21,7 @@ import hashlib
 import logging
 import os
 from collections import defaultdict
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from functools import partial
 from math import ceil, floor
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -523,8 +523,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     outputs = self._data[key].to_pandas(split_blocks=True).to_list()
             else:
                 outputs = self._data[key].to_pandas(split_blocks=True).to_list()
-        elif isinstance(key, list):
-            data_subset = pa.concat_tables(self._data.slice(i, 1) for i in key)
+        elif isinstance(key, Iterable):
+            data_subset = pa.concat_tables(self._data.slice(int(i), 1) for i in key)
             if format_type is not None and format_type == "pandas":
                 outputs = data_subset.to_pandas(split_blocks=True)
             else:
