@@ -1304,7 +1304,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
-        custom_index: Optional["faiss.Index"] = None,
+        custom_index: Optional["faiss.Index"] = None,  # noqa: F821
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
         dtype=np.float32,
@@ -1367,7 +1367,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
         metric_type: Optional[int] = None,
-        custom_index: Optional["faiss.Index"] = None,
+        custom_index: Optional["faiss.Index"] = None,  # noqa: F821
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
         dtype=np.float32,
@@ -1407,7 +1407,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         index_name: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        es_client: Optional["elasticsearch.Elasticsearch"] = None,
+        es_client: Optional["elasticsearch.Elasticsearch"] = None,  # noqa: F821
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
     ):
