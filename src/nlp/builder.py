@@ -22,8 +22,8 @@ import inspect
 import logging
 import os
 import shutil
-from collections import partial
 from dataclasses import dataclass
+from functools import partial
 from typing import Dict, List, Optional, Union
 
 import pyarrow as pa
