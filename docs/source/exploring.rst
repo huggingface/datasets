@@ -1,4 +1,4 @@
-Exploring the Dataset object
+What's in the Dataset object
 ==============================================================
 
 
