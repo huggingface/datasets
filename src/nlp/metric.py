@@ -156,7 +156,7 @@ class Metric(object):
         return version_data_dir
 
     def _get_cache_path(self, node_id):
-        return os.path.join(self.data_dir, f"{self.experiment_id}-{self.name}-{node_id}.arrow")
+        return os.path.join(self.data_dir, f"{self.experiment_id}-{self.name}-{self.config_name}-{node_id}.arrow")
 
     def finalize(self, timeout=120):
         """ Close all the writing process and load/gather the data
