@@ -171,7 +171,7 @@ Let's see an example of all the various ways you can provide files to :func:`nlp
     The :obj:`split` argument will work similarly to what we detailed above for the datasets on the Hub and you can find more details on the syntax for using :obj:`split` on the :doc:`dedicated tutorial on split <./splits>`. The only specific behavior related to loading local files is that if you don't indicate which split each files is realted to, the provided files are assumed to belong to the **train** split.
 
 
-Loading a dataset from a CSV file
+CSV files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 🤗nlp can read a dataset made of on or several CSV files.
@@ -207,7 +207,7 @@ If you want more control, the ``csv`` script provide full control on reading, pa
     - :obj:`convert_options` — Can be provided with a `pyarrow.csv.ConvertOptions <https://arrow.apache.org/docs/python/generated/pyarrow.csv.ConvertOptions.html>`__ to control all the conversion options.
 
 
-Loading a dataset from a JSON file
+JSON files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 🤗nlp supports building a dataset from JSON files in various format.
@@ -251,7 +251,7 @@ In this case you will need to specify which field contains the dataset using the
     >>> dataset = load_dataset('json', data_files='my_file.json', field='data')
 
 
-Loading a dataset from a text file
+Text files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 🤗nlp also supports building a dataset from text files read line by line (each line will be a row in the dataset).
@@ -296,6 +296,9 @@ Eventually, it's also possible to instantiate a :class:`nlp.Dataset` directly fr
 - a python dict, or
 - a pandas dataframe.
 
+From a python dictionnary
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Let's say that you have already loaded some data in a in-memory object in your python session:
 
 .. code-block::
@@ -310,6 +313,9 @@ You can then directly create a :class:`nlp.Dataset` object using the :func:`nlp.
 
     >>> from nlp import Dataset
     >>> dataset = Dataset.from_dict(my_dict)
+
+From a pandas dataframe
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can similarly instantiate a Dataset object from a ``pandas`` DataFrame:
 
