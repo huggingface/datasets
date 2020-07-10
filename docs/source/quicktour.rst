@@ -76,10 +76,10 @@ Let's take a look at the column in our dataset by printing its :func:`nlp.Datase
 .. code-block::
 
     >>> dataset.features
-    {'idx': Value(dtype='int32', id=None, _type='Value'),
-     'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None, _type='ClassLabel'),
-     'sentence1': Value(dtype='string', id=None, _type='Value'),
-     'sentence2': Value(dtype='string', id=None, _type='Value')}
+    {'idx': Value(dtype='int32', id=None),
+     'label': ClassLabel(num_classes=2, names=['not_equivalent', 'equivalent'], names_file=None, id=None),
+     'sentence1': Value(dtype='string', id=None),
+     'sentence2': Value(dtype='string', id=None)}
 
 Fine-tunign a Bert model on our dataset
 ------------------------------------------
@@ -146,7 +146,7 @@ To be sure we can easily build tensors batches for our model, we will truncate a
 .. code-block::
 
     >>> def encode(examples):
-    >>>     return tokenizer(examples['sentence1'], examples['sentence2'], truncation='max_length', padding='max_length')
+    >>>     return tokenizer(examples['sentence1'], examples['sentence2'], truncation=True, padding='max_length')
     >>>
     >>> dataset = dataset.map(encode, batched=True)
     100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:02<00:00,  1.75it/s]
@@ -163,28 +163,85 @@ This operation has added three new columns to our dataset: ``input_ids``, ``toke
 
 .. note::
 
-    Note that this is not the most efficient padding strategy
+    Note that this is not the most efficient padding strategy, we could also avoid padding at this stage and use ``tokenizer.pad`` as the ``collate_fn`` method in the ``torch.utils.data.DataLoader`` further below.
 
 Prepare the format of the dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`` or a ``tf.data.Dataset`` depending on whether we are training our model using PyTorch or TensorFlow. Let's use PyTorch here.
+Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`` (or a ``tf.data.Dataset`` for TensorFlow) and use it to train our model.
 
-To be able to do this we need two modifications:
+To be able to train our model with this dataset and PyTorch, we will need to do three modifications:
 
+- rename our ``label`` column in ``labels`` which is the `expected input name for labels in BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__,
 - get pytorch tensors out of our :class:`nlp.Dataset`, instead of python objects, and
 - filter the columns to return only the subset of the columns that we need for our model inputs (``input_ids``, ``token_type_ids`` and ``attention_mask``).
 
 .. note::
 
-    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model.
-    
-Both modifications can be controlled is handled by the :func:`nlp.Dataset.set_format` method which will convert, on the fly, the returned output from :func:`nlp.Dataset.__getitem__` to filter the unwanted columns and convert python objects in tensors.
+    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model. 🤗nlp let you control the output format of :func:`nlp.Dataset.__getitem__` to just mask them as detailed in :doc:`exploring <./exploring>`.
 
-Here is how we can apply the right format to our dataset and wrap it in a ``torch.Dataloader``:
+The first modification is just a matter of renaming the column as follow (we could have done it during the tokenization process as well:
+
+.. code-block::
+
+    >>> dataset = dataset.map(lambda examples: {'labels': examples['label']}, batched=True)
+
+The two toehr modifications can be handled by the :func:`nlp.Dataset.set_format` method which will convert, on the fly, the returned output from :func:`nlp.Dataset.__getitem__` to filter the unwanted columns and convert python objects in PyTorch tensors.
+
+Here is how we can apply the right format to our dataset using :func:`nlp.Dataset.set_format` and wrap it in a ``torch.utils.data.DataLoader``:
 
 .. code-block::
 
     >>> import torch
-    >>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
+    >>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
+    >>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
+    >>> next(iter(dataloader))
+    {'attention_mask': tensor([[1, 1, 1,  ..., 0, 0, 0],
+                               [1, 1, 1,  ..., 0, 0, 0],
+                               [1, 1, 1,  ..., 0, 0, 0],
+                               ...,
+                               [1, 1, 1,  ..., 0, 0, 0],
+                               [1, 1, 1,  ..., 0, 0, 0],
+                               [1, 1, 1,  ..., 0, 0, 0]]),
+    'input_ids': tensor([[  101,  7277,  2180,  ...,     0,     0,     0],
+                         [  101, 10684,  2599,  ...,     0,     0,     0],
+                         [  101,  1220,  1125,  ...,     0,     0,     0],
+                         ...,
+                         [  101, 16944,  1107,  ...,     0,     0,     0],
+                         [  101,  1109, 11896,  ...,     0,     0,     0],
+                         [  101,  1109,  4173,  ...,     0,     0,     0]]),
+    'label': tensor([1, 0, 1, 0, 1, 1, 0, 1]),
+    'token_type_ids': tensor([[0, 0, 0,  ..., 0, 0, 0],
+                              [0, 0, 0,  ..., 0, 0, 0],
+                              [0, 0, 0,  ..., 0, 0, 0],
+                              ...,
+                              [0, 0, 0,  ..., 0, 0, 0],
+                              [0, 0, 0,  ..., 0, 0, 0],
+                              [0, 0, 0,  ..., 0, 0, 0]])}
 
+We are now ready to train our model. Let's write a simple training loop and a start the training
+
+.. code-block::
+
+    >>> from tqdm import tqdm
+    >>> device = 'cuda' if torch.cuda.is_available() else 'cpu' 
+    >>> model.train().to(device)
+    >>> optimizer = torch.optim.AdamW(params=model.parameters(), lr=1e-5)
+    >>> for epoch in range(3):
+    >>>     for i, batch in enumerate(tqdm(dataloader)):
+    >>>         batch = {k: v.to(device) for k, v in batch.items()}
+    >>>         outputs = model(**batch)
+    >>>         loss = outputs[0]
+    >>>         loss.backward()
+    >>>         optimizer.step()
+    >>>         optimizer.zero_grad()
+    >>>         if i % 10 == 0:
+    >>>             print(f"loss: {loss}")
+
+Now this was a very simple tour, you should continue with either the detailled notebook which is `here <https://colab.research.google.com/github/huggingface/nlp/blob/master/notebooks/Overview.ipynb#scrollTo=my95uHbLyjwR>`__ or the in-depth guides on
+
+- :doc:`loading datasets <./loading_datasets>`
+- :doc:`exploring the dataset object attributes <./exploring>`
+- :doc:`processing dataset data <./processing>`
+- :doc:`using the dataset with NumPy, pandas, PyTorch, TensorFlow <./using_tf_pt>`
+- :doc:`indexing a dataset with FAISS or Elastic Search <./faiss_and_ea>`
