@@ -66,7 +66,7 @@ class Metric(object):
         # Metric name
         self.name = camelcase_to_snakecase(self.__class__.__name__)
         # Configuration name
-        self.config_name = name
+        self.config_name: str = name or "default"
 
         self.process_id = process_id
         self.num_process = num_process
@@ -107,7 +107,7 @@ class Metric(object):
 
     def _relative_data_dir(self, with_version=True):
         """Relative path of this dataset in data_dir."""
-        builder_data_dir = self.name
+        builder_data_dir = os.path.join(self.name, self.config_name)
         if not with_version:
             return builder_data_dir
 
@@ -156,7 +156,7 @@ class Metric(object):
         return version_data_dir
 
     def _get_cache_path(self, node_id):
-        return os.path.join(self.data_dir, f"{self.experiment_id}-{self.name}-{self.config_name}-{node_id}.arrow")
+        return os.path.join(self.data_dir, f"{self.experiment_id}-{self.name}-{node_id}.arrow")
 
     def finalize(self, timeout=120):
         """ Close all the writing process and load/gather the data
