@@ -36,6 +36,17 @@ jobs:
             - run: cd docs && make html SPHINXOPTS="-W"
             - store_artifacts:
                   path: ./docs/_build
+    deploy_doc:
+        working_directory: ~/nlp
+        docker:
+            - image: circleci/python:3.6
+        steps:
+            - add_ssh_keys:
+                fingerprints:
+                    - "5b:7a:95:18:07:8c:aa:76:4c:60:35:88:ad:60:56:71"
+            - checkout
+            - run: sudo pip install .[docs]
+            - run: ./.circleci/deploy.sh
 
 workflows:
     version: 2
