@@ -26,6 +26,16 @@ jobs:
             - run: black --check --line-length 119 --target-version py36 tests src
             - run: isort --check-only --recursive tests src
             - run: flake8 tests src
+    build_doc:
+        working_directory: ~/nlp
+        docker:
+            - image: circleci/python:3.6
+        steps:
+            - checkout
+            - run: sudo pip install .[docs]
+            - run: cd docs && make html SPHINXOPTS="-W"
+            - store_artifacts:
+                  path: ./docs/_build
 
 workflows:
     version: 2
@@ -33,3 +43,4 @@ workflows:
         jobs:
             - check_code_quality
             - run_dataset_script_tests
+            - build_doc
