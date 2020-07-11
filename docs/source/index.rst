@@ -40,9 +40,9 @@ The documentation is organized in five parts:
     :caption: Using datasets
 
     loading_datasets
+    add_dataset
     exploring
     processing
-    using_tf_pt
     faiss_and_ea
 
 .. toctree::
@@ -56,7 +56,6 @@ The documentation is organized in five parts:
     :maxdepth: 2
     :caption: Advanced guides
 
-    add_dataset
     splits
     beam_dataset
 

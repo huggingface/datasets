@@ -398,13 +398,14 @@ Since the Roberta model is quite large to run on a small laptop CPU, we will res
     ...         K = randint(1, len(words)-1)
     ...         masked_sentence = " ".join(words[:K]  + [mask_token] + words[K+1:])
     ...         predictions = fillmask(masked_sentence)
-    ...         augmented_sequences = [predictions[i]['sequence'][3:-4] for i in range(3)]
+    ...         augmented_sequences = [predictions[i]['sequence']for i in range(3)]
     ...         outputs += [sentence] + augmented_sequences
     ...     
     ...     return {'data': outputs}
     ... 
     >>> augmented_dataset = smaller_dataset.map(augment_data, batched=True, remove_columns=dataset.column_names, batch_size=8)
-    >>> 
+    >>> len(augmented_dataset)
+    400
     >>> augmented_dataset[:9]['data']
     ['Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
      'Amrozi accused his brother, whom he called " the witness ", of deliberately withholding his evidence.',
@@ -415,6 +416,8 @@ Since the Roberta model is quite large to run on a small laptop CPU, we will res
      "Yucaipa owned Dominick's before selling the chain to Safeway in 1998 for $ 2.5 billion.", 
      'Yucaipa owned Dominick Pizza before selling the chain to Safeway in 1998 for $ 2.5 billion.']
 
-We can see that the word ``distorting`` in the first example was augmented with other possibilities by the Roberta model: withholding, suppressing, destroying, while in the second sentence, it was the ``'s`` which was randomly sampled and replaced by Stores and Pizza.
+Here we have now multiply the size of our dataset by ``4`` by adding three alternatives generated with Roberta to each example.  We can see that the word ``distorting`` in the first example was augmented with other possibilities by the Roberta model: ``withholding``, ``suppressing``, ``destroying``, while in the second sentence, it was the ``'s`` token which was randomly sampled and replaced by ``Stores`` and ``Pizza``.
 
-This conclude our chapter on data processing with 🤗nlp (and 🤗transformers).
+Obviously this is a very simple example for data augmentation and it could be improved in several ways, the most interesting take-aways is probably how this can be written in roughtly ten lines of code without any loss in flexibility.
+
+This concludes our chapter on data processing with 🤗nlp (and 🤗transformers).

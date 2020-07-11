@@ -1,9 +1,9 @@
 Splits and slicing
 ===========================
 
-Similarly to Tensorfow Datasets, all `DatasetBuilder`s expose various data subsets defined as splits (eg:
-`train`, `test`). When constructing a `nlp.Dataset` instance using either
-`nlp.load_dataset()` or `nlp.DatasetBuilder.as_dataset()`, one can specify which
+Similarly to Tensorfow Datasets, all :class:`DatasetBuilder` s expose various data subsets defined as splits (eg:
+``train``, ``test``). When constructing a :class:`nlp.Dataset` instance using either
+:func:`nlp.load_dataset()` or :func:`nlp.DatasetBuilder.as_dataset()`, one can specify which
 split(s) to retrieve. It is also possible to retrieve slice(s) of split(s)
 as well as combinations of those.
 
@@ -56,7 +56,7 @@ Examples using the string API:
     ])
 
 
-Examples using the `ReadInstruction` API (equivalent as above):
+Examples using the ``ReadInstruction`` API (equivalent as above):
 
 .. code-block::
 

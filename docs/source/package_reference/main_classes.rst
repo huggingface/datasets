@@ -26,6 +26,31 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version
 
+``Features``
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: nlp.Features
+    :members:
+
+.. autoclass:: nlp.Sequence
+    :members:
+
+.. autoclass:: nlp.ClassLabel
+    :members:
+
+.. autoclass:: nlp.Value
+    :members:
+
+.. autoclass:: nlp.Tensor
+    :members:
+
+.. autoclass:: nlp.Translation
+    :members:
+
+.. autoclass:: nlp.TranslationVariableLanguages
+    :members:
+
+
 ``MetricInfo``
 ~~~~~~~~~~~~~~~~~~~~~
 
