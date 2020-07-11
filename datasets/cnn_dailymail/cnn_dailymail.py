@@ -233,11 +233,9 @@ class CnnDailymail(nlp.GeneratorBasedBuilder):
         # Should return a nlp.DatasetInfo object
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({
-                _ARTICLE: nlp.Value("string"),
-                _HIGHLIGHTS: nlp.Value("string"),
-                'id': nlp.Value("string"),
-            }),
+            features=nlp.Features(
+                {_ARTICLE: nlp.Value("string"), _HIGHLIGHTS: nlp.Value("string"), "id": nlp.Value("string"),}
+            ),
             supervised_keys=None,
             homepage="https://github.com/abisee/cnn-dailymail",
             citation=_CITATION,
@@ -269,5 +267,5 @@ class CnnDailymail(nlp.GeneratorBasedBuilder):
             yield fname, {
                 _ARTICLE: article,
                 _HIGHLIGHTS: highlights,
-                'id': _get_hash_from_path(fname),
+                "id": _get_hash_from_path(fname),
             }
