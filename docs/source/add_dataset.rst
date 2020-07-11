@@ -24,7 +24,7 @@ Optionally, the dataset loading script can define a configuration to be used by 
 	Note on naming: the dataset class should be camel case, while the dataset name is its snake case equivalent (ex: :obj:`class BookCorpus(nlp.GeneratorBasedBuilder)` for the dataset ``book_corpus``).
 
 
-Populating the Dataset metadata
+Adding dataset metadata
 ----------------------------------
 
 The :func:`nlp.DatasetBuilder._info` method is in charge of specifying the dataset metadata as a :obj:`nlp.DatasetInfo` dataclass and in particular the :class:`nlp.Features` which defined the names and types of each column in the dataset,
@@ -68,8 +68,8 @@ The :class:`nlp.Features` define the structure for each examples and can define 
 
 Let's spend some time diving in the ``features``.
 
-The dataset features
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Dataset ``features``
+---------------------------------
 
 :class:`nlp.Features` define the internal structure and typings for each example in the dataset. Features are used to specify the underlying serailization format but also contain high-level informations regarding the fields, e.g. conversion methods from names to integer values for a class label field.
 
@@ -163,20 +163,29 @@ Here is the corresponding first examples in the dataset:
 	}
 
 
-Downloading the files and organizing splits
+Downloading data files and organizing splits
 -------------------------------------------------
 
 The :func:`nlp.DatasetBuilder._split_generator` method is in charge of downloading (or retrieving locally the data files), organizing them according to the splits and defining specific arguments for the generation process if needed.
 
-This method will typically:
-1. first download all the files depending on the builder configuration in ``self.config`` if the configuration is used to select sub-sets of the dataset, and
-2. instantiate a list of splits defined by :class:`nlp.SplitGenerator` objects.
+This method **takes as input** a :class:`nlp.DownloadManager` which is a utility which can be used to download files (or to retreive them from the local filesystem if they are local files or are already in the cache) and return a list of :class:`nlp.SplitGenerator`. A :class:`nlp.SplitGenerator` is a simple dataclass containing the name of the split and keywords arguments to be provided to the :func:`nlp.DatasetBuilder._generate_examples` method that we detail in the next section. These arguments can be specific to each splits and typically comprise at least the local path to the data files to load for each split.
 
-A simple example can be found in the `squad dataset loading script <https://github.com/huggingface/nlp/tree/master/datasets/squad/squad.py>`__: 
+.. note::
+
+	**Using local data files** Two attributes of :class:`nlp.BuilderConfig` are specifically provided to store paths to local data files if your dataset is not online but constituted by local data files. These two attributes are :obj:`data_dir` and :obj:`data_files` and can be freely used to provide a directory path or file paths. These two attributes can be set when calling :func:`nlp.load_dataset` using the associated keyword arguments, e.g. ``dataset = nlp.load_dataset('my_script', data_files='my_local_data_file.csv')`` and the values can be used in :func:`nlp.DatasetBuilder._split_generator` by accessing ``self.config.data_dir`` and ``self.config.data_files``. See the `text file loading script <https://github.com/huggingface/nlp/blob/master/datasets/text/text.py>`__ for a simple example using :attr:`nlp.BuilderConfig.data_files`.
+
+Let's have a look at a simple example of a :func:`nlp.DatasetBuilder._split_generator` method. We'll take the example of the `squad dataset loading script <https://github.com/huggingface/nlp/tree/master/datasets/squad/squad.py>`__:
 
 .. code-block::
 
-    def _split_generators(self, dl_manager):
+class Squad(nlp.GeneratorBasedBuilder):
+    """SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
+
+    _URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
+    _DEV_FILE = "dev-v1.1.json"
+    _TRAINING_FILE = "train-v1.1.json"
+
+    def _split_generators(self, dl_manager: nlp.DownloadManager) -> List[nlp.SplitGenerator]:
         urls_to_download = {
             "train": os.path.join(self._URL, self._TRAINING_FILE),
             "dev": os.path.join(self._URL, self._DEV_FILE),
@@ -188,56 +197,163 @@ A simple example can be found in the `squad dataset loading script <https://gith
             nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
         ]
 
+As you can see this method first prepare a dict of URL to the original data files for SQuAD. This dict is then provided to the :func:`nlp.DownloadManager.download_and_extract` method which will take care of downloading or retriving from the local file system these files and returning a object of the same type and organization (here a dictionary) with the path to the local version of the requetsed files. :func:`nlp.DownloadManager.download_and_extract` can take as input a single URL/path or a list or dictionnary of URLs/paths and will return an object of the same structure (single URL/path, list or dictionnary of URLs/paths) with the path to the local files.
 
-The ``dl_manager`` is an instance of :class:`nlp.DownloadManager`
+This method also takes care of extracting compressed tar, gzip and zip archives.
 
+:func:`nlp.DownloadManager.download_and_extract` can download files from a large set of origins but if your data files are hosted on a special access serveur, it's also possible to provide a callable which will take care of the downloding process to the ``DownloadManager`` using :func:`nlp.DownloadManager.download_custom`.
 
+.. note::
 
+	In addition to :func:`nlp.DownloadManager.download_and_extract` and :func:`nlp.DownloadManager.download_custom`, the :class:`nlp.DownloadManager` class also provide more fine-grained control on the download and extraction process through several methods including: :func:`nlp.DownloadManager.download`, :func:`nlp.DownloadManager.extract` and :func:`nlp.DownloadManager.iter_archive`. Please refere to the package reference on :class:`nlp.DownloadManager` for details on these methods.
 
-Adding dummy test data
-----------------------------
+Once the data files are downloaded, the next mission for the :func:`nlp.DatasetBuilder._split_generator` method is to prepare the :class:`nlp.SplitGenerator` for each split which will be used to call the :func:`nlp.DatasetBuilder._generate_examples` method that we detail in the next session.
 
-3. **Make sure you run all of the following commands from the root of your `nlp` git clone.**. To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
+A :class:`nlp.SplitGenerator` is a simple dataclass containing:
 
-::
-
-	python nlp-cli test datasets/<your-dataset-folder> --save_infos --all_configs
-
-4. If the command was succesful, you should now create some dummy data. Use the following command to get in-detail instructions on how to create the dummy data:
-
-::
-
-	python nlp-cli dummy_data datasets/<your-dataset-folder> 
+- :obj:`name` (``string``) : the **name** of a split, when possible, standard split names provided in :enum:`nlp.Split` can be used: :obj:`nlp.Split.TRAIN`, :obj:`nlp.Split.VALIDATION` and :obj:`nlp.Split.TEST`,
+- :obj:`gen_kwargs` (``dict``): **keywords arguments** to be provided to the :func:`nlp.DatasetBuilder._generate_examples` method to generate the samples in this split. These arguments can be specific to each splits and typically comprise at least the local path to the data files to load for each split as indicated in the above SQuAD example.
 
 
-5. Now test that both the real data and the dummy data work correctly using the following commands:
+Generating the samples in each split
+-------------------------------------------------
 
-*For the real data*:
-::
+The :func:`nlp.DatasetBuilder._generate_examples` is in charge of reading the data files for a split and yielding examples with the format specified in the ``features`` set in :func:`nlp.DatasetBuilder._info`.
 
-	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your-dataset-name>
+The input arguments of :func:`nlp.DatasetBuilder._generate_examples` are defined by the :obj:`gen_kwargs` dictionnary returned by the :func:`nlp.DatasetBuilder._split_generator` method we detailed above.
 
-	and 
+Here again, let's take the simple example of the `squad dataset loading script <https://github.com/huggingface/nlp/tree/master/datasets/squad/squad.py>`__:
 
-*For the dummy data*:
-::
+.. code-block::
 
-	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
+    def _generate_examples(self, filepath):
+        """This function returns the examples in the raw (text) form."""
+        logging.info("generating examples from = %s", filepath)
+        with open(filepath) as f:
+            squad = json.load(f)
+            for article in squad["data"]:
+                title = article.get("title", "").strip()
+                for paragraph in article["paragraphs"]:
+                    context = paragraph["context"].strip()
+                    for qa in paragraph["qas"]:
+                        question = qa["question"].strip()
+                        id_ = qa["id"]
+
+                        answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+                        answers = [answer["text"].strip() for answer in qa["answers"]]
+
+                        # Features currently used are "context", "question", and "answers".
+                        # Others are extracted here for the ease of future expansions.
+                        yield id_, {
+                            "title": title,
+                            "context": context,
+                            "question": question,
+                            "id": id_,
+                            "answers": {"answer_start": answer_starts, "text": answers,},
+                        }
+
+The input argument is the ``filepath`` provided in the :obj:`gen_kwargs` of each :class:`nlp.SplitGenerator` returned by the :func:`nlp.DatasetBuilder._split_generator` method.
+
+The method read and parse the inputs files and yield a tuple constituted of an ``id_`` (can be arbitrary be should be unique (for backward compatibility with TensorFlow dataset) and an example.
+
+The example is a dictionnary with the same structure and element types as the ``features`` defined in :func:`nlp.DatasetBuilder._info`.
+
+Specifying several dataset configurations
+-------------------------------------------------
+
+Sometimes you want to provide access to several sub-sets of your dataset, for instance if your dataset comprise several languages or is constituted of various sub-sets or if you want to provide several ways to structure examples.
+
+This is possible by defining a specific :class:`nlp.BuilderConfig` class and providing predefined instances of this class for the user to select from.
+
+The base :class:`nlp.BuilderConfig` class is very simple and only comprises the following attributes:
+
+- :obj:`name` (``str``) is the name of the dataset configuration, for instance the language name if the various configurations are specific to various languages
+- :obj:`version` an optional version identifier
+- :obj:`data_dir` (``str``) can be used to store the path to a local folder containing data files
+- :obj:`data_files` (``Union[Dict, List]`` can be used to store paths to a local data files
+- :obj:`description` (``str``) can be used to give a long description of the configuration
+
+:class:`nlp.BuilderConfig` is only used as a containiner of informations which can be used in the :class:`nlp.DatasetBuilder` to build the dataset by being access in the ``self.config`` attribute of the :class:`nlp.DatasetBuilder` instance.
+
+You can sub-class the base :class:`nlp.BuilderConfig` class to add additional attributes that you may wan to use to control the generation of a dataset. The specific configuration class that will be used by the dataset is set in the :attr:`nlp.DatasetBuilder.BUILDER_CONFIG_CLASS`.
+
+There are two ways to populate the attributes of a :class:`nlp.BuilderConfig` class or sub-class:
+- a list of predefined :class:`nlp.BuilderConfig` class or sub-class can be set in the :attr:`nlp.DatasetBuilder.BUILDER_CONFIGS` attribute of the dataset. Each specific configuration can then be selected by giving it's ``name`` as ``name`` keyword to :func:`nlp.load_dataset`,
+- when calling :func:`nlp.load_dataset`, all the keyword arguments which are not specific to the :func:`nlp.load_dataset` method will be used to set the associated attributes of the :class:`nlp.BuilderConfig` class and overide the predefined attributes if a specific configuration was selected.
+
+Let's take an example adapted from the `CSV files loading script <https://github.com/huggingface/nlp/blob/master/datasets/csv/csv.py>`__.
+
+Let's say we would like two simple ways to load CSV files: using ``','`` as a delimiter (we will call this configuration ``'comma'``) or using ``';'`` as a delimiter (we will call this configuration ``'semi-colon'``).
+
+We can define a custom configuration with a ``delimiter`` attributes:
+
+.. code-block::
+
+	@dataclass
+	class CsvConfig(nlp.BuilderConfig):
+		"""BuilderConfig for CSV."""
+		delimiter: str = None
+
+And then define several predefined configurations in the DatasetBuilder:
+
+.. code-block::
+
+	class Csv(nlp.ArrowBasedBuilder):
+		BUILDER_CONFIG_CLASS = CsvConfig
+		BUILDER_CONFIGS = [CsvConfig(name='comma',
+									 description="Load CSV using ',' as a delimiter",
+									 delimiter=','),
+						   CsvConfig(name='semi-colon',
+									 description="Load CSV using a semi-colon as a delimiter",
+									 delimiter=';')]
+		
+		...
+
+		def self._generate_examples(file):
+			with open(file) as csvfile:
+				data = csv.reader(csvfile, delimiter = self.config.delimiter)
+				for i, row in enumerate(data):
+					yield i, row
+
+Here we can see how reading the CSV file can be controled using the ``self.config.delimiter`` attribute.
+
+The users of our dataset loading script will be able to select one or the other way to load the CSV files with the configuration names or even a totally different way by setting the ``delimiter`` attrbitute directly. For instance using commands like this:
+
+.. code-block::
+
+	>>> from nlp import load_dataset
+	>>> dataset = load_dataset('my_csv_loading_script', name='comma', data_files='my_file.csv')
+	>>> dataset = load_dataset('my_csv_loading_script', name='semi-colon', data_files='my_file.csv')
+	>>> dataset = load_dataset('my_csv_loading_script', name='comma', delimiter='\t', data_files='my_file.csv')
+
+In the last case, the delimiter set by the configuration will be overiden by the delimiter given as argument to ``load_dataset``.
+
+While the configuration attributes are used in this case to controle the reading/parsing of the data files, the configuration attributes can be used at any stage of the processing and in particulare:
+
+- to control the :class:`nlp.DatasetInfo` attributes set in the :func:`nlp.DatasetBuilder._info` method, for instances the ``features``,
+- to control the files downloaded in the :func:`nlp.DatasetBuilder._split_generator` method, for instance to select different URLs depending on a ``language`` attribute defined by the configuration,
+- etc
+
+An example of a custom configuration class with several predefined configurations can be found in the `Super-GLUE loading script <https://github.com/huggingface/nlp/blob/master/datasets/super_glue/super_glue.py>`__ which provide control over the various sub-dataset of the SuperGLUE benchmark through the conigurations.
+
+Another example is the `Wikipedia loading script <https://github.com/huggingface/nlp/blob/master/datasets/wikipedia/wikipedia.py>`__ which provide control over the language of the Wikipedia dataset through the conigurations.
 
 
-6. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6, 7 and 8 of the section *How to contribute to nlp?*. If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
+Testing the dataset loading script
+-------------------------------------------------
 
+Once you've finished with creating or adapting a dataset loading script, you can try it locally by giving the path to the dataset loading script:
 
-Follow these steps in case the dummy data test keeps failing:
+.. code-block::
 
-- Verify that all filenames are spelled correctly. Rerun the command 
-	::
+	>>> from nlp import load_dataset
+	>>> dataset = load_dataset('PATH/TO/MY/SCRIPT.py')
 
-		python nlp-cli dummy_data datasets/<your-dataset-folder> 
+If your dataset has several configurations or requires to be given the path to local data files, you can use the arguments of :func:`nlp.load_dataset` accordingly:
 
-	and make sure you follow the exact instructions provided by the command of step 5). 
+.. code-block::
 
-- Your datascript might require a difficult dummy data structure. In this case make sure you fully understand the data folder logit created by the function `_split_generations(...)` and expected by the function `_generate_examples(...)` of your dataset script. Also take a look at `tests/README.md` which lists different possible cases of how the dummy data should be created.
+	>>> from nlp import load_dataset
+	>>> dataset = load_dataset('PATH/TO/MY/SCRIPT.py', 'my_configuration', data_files={'train': 'my_train_file.txt', 'validation': 'my_validation_file.txt'})
 
-- If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
 

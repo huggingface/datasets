@@ -16,3 +16,5 @@ Two main classes are mostly used during the dataset building process.
 .. autoclass:: nlp.DownloadManager
 
 .. autoclass:: nlp.SplitGenerator
+
+.. autoclass:: nlp.Split
