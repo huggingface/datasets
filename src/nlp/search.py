@@ -248,6 +248,8 @@ class FaissIndex(BaseIndex):
         # Set verbosity level
         if faiss_verbose is not None:
             self.faiss_index.verbose = faiss_verbose
+            if hasattr(self.faiss_index, "index") and self.faiss_index.index is not None:
+                self.faiss_index.index.verbose = faiss_verbose
             if hasattr(self.faiss_index, "quantizer") and self.faiss_index.quantizer is not None:
                 self.faiss_index.quantizer.verbose = faiss_verbose
             if hasattr(self.faiss_index, "clustering_index") and self.faiss_index.clustering_index is not None:
