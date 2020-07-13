@@ -86,6 +86,8 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
         lines = open(data_file, "r")
         next(lines)  # skip headers
         for i, line in enumerate(lines):
+            if i == 21015300:
+                break  # ignore the last 24 examples for which the embeddings are missing.
             id, text, title = line.strip().split("\t")
             text = text[1:-1]  # remove " symbol at the beginning and the end
             text = text.replace('""', '"')  # replace double quotes by simple quotes
