@@ -33,7 +33,7 @@ _VECTORS_URL = "https://dl.fbaipublicfiles.com/dpr/data/wiki_encoded/single/nq/w
 class WikiDprConfig(nlp.BuilderConfig):
     """BuilderConfig for WikiDprConfig."""
 
-    def __init__(self, with_embeddings=True, with_index=False, index_train_size=262144, **kwargs):
+    def __init__(self, with_embeddings=True, with_index=False, index_train_size=262144, dummy=False, **kwargs):
         """BuilderConfig for WikiSnippets.
     Args:
         with_embeddings (`bool`, defaults to `True`): Load the 768-dimensional embeddings from DPR trained on NQ.
@@ -44,6 +44,7 @@ class WikiDprConfig(nlp.BuilderConfig):
         self.with_embeddings = with_embeddings
         self.with_index = with_index
         self.index_train_size = index_train_size
+        self.dummy = dummy
 
 
 class WikiDpr(nlp.GeneratorBasedBuilder):
@@ -51,6 +52,20 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         WikiDprConfig(name="psgs_w100_with_nq_embeddings", version=nlp.Version("1.0.0"), with_embeddings=True),
         WikiDprConfig(name="psgs_w100_no_embeddings", version=nlp.Version("1.0.0"), with_embeddings=False),
+        WikiDprConfig(
+            name="dummy_psgs_w100_with_nq_embeddings",
+            version=nlp.Version("1.0.0"),
+            with_embeddings=True,
+            index_train_size=None,
+            dummy=True,
+        ),
+        WikiDprConfig(
+            name="dummy_psgs_w100_no_embeddings",
+            version=nlp.Version("1.0.0"),
+            with_embeddings=False,
+            index_train_size=None,
+            dummy=True,
+        ),
     ]
 
     def _info(self):
@@ -75,7 +90,10 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
         files_to_download = {"data_file": _DATA_URL}
         downloaded_files = dl_manager.download_and_extract(files_to_download)
         if self.config.with_embeddings:
-            downloaded_files["vectors_files"] = dl_manager.download([_VECTORS_URL.format(i=i) for i in range(50)])
+            if self.config.dummy:
+                downloaded_files["vectors_files"] = dl_manager.download([_VECTORS_URL.format(i=0)])
+            else:
+                downloaded_files["vectors_files"] = dl_manager.download([_VECTORS_URL.format(i=i) for i in range(50)])
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs=downloaded_files),
         ]
@@ -86,6 +104,8 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
         lines = open(data_file, "r")
         next(lines)  # skip headers
         for i, line in enumerate(lines):
+            if self.config.dummy and i == 10000:
+                break
             if i == 21015300:
                 break  # ignore the last 24 examples for which the embeddings are missing.
             id, text, title = line.strip().split("\t")
@@ -111,7 +131,10 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
 
     def _post_processing_resources(self):
         if self.config.with_index:
-            return {"embeddings_index": "psgs_w100_with_nq_embeddings_IVFPQ4096_HNSW32,PQ64-IP.faiss"}
+            if self.config.dummy:
+                return {"embeddings_index": "dummy_psgs_w100_with_nq_embeddings_IndexFlatIP.faiss"}
+            else:
+                return {"embeddings_index": "psgs_w100_with_nq_embeddings_IVFPQ4096_HNSW32,PQ64-IP.faiss"}
         else:
             return {}
 
@@ -123,20 +146,27 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
             else:
                 import faiss
 
-                d = 768
                 train_size = self.config.index_train_size
-                quantizer = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
-                ivf_index = faiss.IndexIVFPQ(quantizer, d, 4096, 64, 8, faiss.METRIC_INNER_PRODUCT)
-                ivf_index.own_fields = True
-                quantizer.this.disown()
-
                 logging.info("Building wiki_dpr faiss index")
-                dataset.add_faiss_index(
-                    "embeddings",
-                    train_size=train_size,
-                    faiss_verbose=logging.getLogger().level <= logging.DEBUG,
-                    custom_index=ivf_index,
-                )
+                if self.config.dummy:
+                    dataset.add_faiss_index(
+                        "embeddings",
+                        string_factory="Flat",
+                        metric_type=faiss.METRIC_INNER_PRODUCT,
+                        train_size=train_size,
+                    )
+                else:
+                    d = 768
+                    quantizer = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
+                    ivf_index = faiss.IndexIVFPQ(quantizer, d, 4096, 64, 8, faiss.METRIC_INNER_PRODUCT)
+                    ivf_index.own_fields = True
+                    quantizer.this.disown()
+                    dataset.add_faiss_index(
+                        "embeddings",
+                        train_size=train_size,
+                        faiss_verbose=logging.getLogger().level <= logging.DEBUG,
+                        custom_index=ivf_index,
+                    )
                 logging.info("Saving wiki_dpr faiss index")
                 dataset.save_faiss_index("embeddings", index_file)
         return dataset
