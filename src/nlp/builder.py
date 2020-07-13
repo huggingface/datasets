@@ -124,6 +124,9 @@ class DatasetBuilder:
             name: `str` name, optional configuration for the dataset that affects the data generated on disk. Different
                 `builder_config`s will have their own subdirectories and versions.
                 If not provided, uses the first configuration in self.BUILDER_CONFIGS
+            hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
+                script code is udpated (to avoid reusing old data).
+                The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
             config_kwargs: will override the defaults kwargs in config
 
         """
@@ -255,7 +258,7 @@ class DatasetBuilder:
             builder_data_dir = os.path.join(builder_data_dir, builder_config.name)
         if with_version:
             builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
-        if hash:
+        if hash and isinstance(hash, str):
             builder_data_dir = os.path.join(builder_data_dir, hash)
         return builder_data_dir
 

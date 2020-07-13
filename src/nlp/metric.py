@@ -52,7 +52,7 @@ class Metric(object):
                 data_dir (str): path to a directory in which temporary data will be stored.
                     This should be a shared file-system for distributed setups.
                 hash (str): can be used to define a hash specific to the metrics computation script
-                    This avoid overriding the data of one metric when the metric loading script is modified.
+                    This prevents the metric's data to be overridden when the metric loading script is modified.
                 experiment_id (str): Should be used if you perform several concurrent experiments using
                     the same caching directory (will be indicated in the raise error)
                 in_memory (bool): keep all predictions and references in memory. Not possible in distributed settings.
