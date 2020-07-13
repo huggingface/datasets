@@ -41,6 +41,7 @@ class Metric(object):
         num_process: int = 1,
         data_dir: Optional[str] = None,
         in_memory: bool = False,
+        hash: str = None,
         **kwargs,
     ):
         """ A Metrics is the base class and common API for all metrics.
@@ -50,6 +51,8 @@ class Metric(object):
                     (in particular non-additive metrics like F1).
                 data_dir (str): path to a directory in which temporary data will be stored.
                     This should be a shared file-system for distributed setups.
+                hash (str): can be used to define a hash specific to the metrics computation script
+                    This avoid overriding the data of one metric when the metric loading script is modified.
                 experiment_id (str): Should be used if you perform several concurrent experiments using
                     the same caching directory (will be indicated in the raise error)
                 in_memory (bool): keep all predictions and references in memory. Not possible in distributed settings.
@@ -72,6 +75,7 @@ class Metric(object):
         self.num_process = num_process
         self.in_memory = in_memory
         self.experiment_id = experiment_id if experiment_id is not None else "cache"
+        self.hash = hash
         self._version = "1.0.0"
         self._data_dir_root = os.path.expanduser(data_dir or HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
@@ -106,14 +110,17 @@ class Metric(object):
             )
 
     def _relative_data_dir(self, with_version=True):
-        """Relative path of this dataset in data_dir."""
+        """ Relative path of this metric in cache_dir:
+            Will be:
+                self.name/self.config_name/self.config.version/self.hash/
+            If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
+        """
         builder_data_dir = os.path.join(self.name, self.config_name)
-        if not with_version:
-            return builder_data_dir
-
-        version = self._version
-        version_data_dir = os.path.join(builder_data_dir, str(version))
-        return version_data_dir
+        if with_version:
+            builder_data_dir = os.path.join(builder_data_dir, str(self._version))
+        if self.hash:
+            builder_data_dir = os.path.join(builder_data_dir, self.hash)
+        return builder_data_dir
 
     def _build_data_dir(self):
         """ Return the directory for the current version.

@@ -25,7 +25,7 @@ import re
 import shutil
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 from urllib.parse import urlparse
 
 from filelock import FileLock
@@ -48,7 +48,7 @@ METRICS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "metrics")
 METRICS_MODULE = "nlp.metrics"
 
 
-def import_main_class(module_path, dataset=True):
+def import_main_class(module_path, dataset=True) -> Union[DatasetBuilder, Metric]:
     """ Import a module at module_path and return its main class:
         - a DatasetBuilder if dataset is True
         - a Metric if dataset is False
@@ -73,7 +73,7 @@ def import_main_class(module_path, dataset=True):
     return module_main_cls
 
 
-def files_to_hash(file_paths: List[str]):
+def files_to_hash(file_paths: List[str]) -> str:
     """
     Convert a list of scripts or text files provided in file_paths into a hashed filename in a repeatable way.
     """
@@ -108,7 +108,7 @@ def files_to_hash(file_paths: List[str]):
     return filename
 
 
-def convert_github_url(url_path: str):
+def convert_github_url(url_path: str) -> Tuple[str, str]:
     """ Convert a link to a file on a github repo in a link to the raw github object.
     """
     parsed = urlparse(url_path)
@@ -191,7 +191,7 @@ def prepare_module(
     dataset: bool = True,
     force_local_path: Optional[str] = None,
     **download_kwargs,
-) -> DatasetBuilder:
+) -> Tuple[str, str]:
     r"""
         Download/extract/cache a dataset (if dataset==True) or a metric (if dataset==False)
 
@@ -209,10 +209,11 @@ def prepare_module(
                 Used to inspect or modify the script folder.
             **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
-        Return: ``str`` with
-
-            - the import path of the dataset/metric package if force_local_path is False: e.g. 'nlp.datasets.squad'
-            - the local path to the dataset/metric file if force_local_path is True: e.g. '/User/huggingface/nlp/datasets/squad/squad.py'
+        Return: Tuple[``str``, ``str``] with
+            1. The module path being
+                - the import path of the dataset/metric package if force_local_path is False: e.g. 'nlp.datasets.squad'
+                - the local path to the dataset/metric file if force_local_path is True: e.g. '/User/huggingface/nlp/datasets/squad/squad.py'
+            2. A hash string computed from the content of the dataset loading script.
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -394,7 +395,7 @@ def prepare_module(
     else:
         module_path = local_file_path
 
-    return module_path
+    return module_path, hash
 
 
 def load_metric(
@@ -428,10 +429,11 @@ def load_metric(
 
         Returns: `nlp.Metric`.
     """
-    module_path = prepare_module(path, download_config=download_config, dataset=False)
+    module_path, hash = prepare_module(path, download_config=download_config, dataset=False)
     metric_cls = import_main_class(module_path, dataset=False)
     metric = metric_cls(
         name=name,
+        hash=hash,
         process_id=process_id,
         num_process=num_process,
         data_dir=data_dir,
@@ -506,14 +508,14 @@ def load_dataset(
             if `split` is None, a `dict<key: nlp.Split, value: nlp.Dataset>` with each split.
     """
     # Download/copy dataset processing script
-    module_path = prepare_module(path, download_config=download_config, dataset=True)
+    module_path, hash = prepare_module(path, download_config=download_config, dataset=True)
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)
 
     # Instantiate the dataset builder
     builder_instance = builder_cls(
-        cache_dir=cache_dir, name=name, version=version, data_dir=data_dir, data_files=data_files, **config_kwargs,
+        cache_dir=cache_dir, name=name, version=version, data_dir=data_dir, data_files=data_files, hash=hash, **config_kwargs,
     )
 
     # Download and prepare data
