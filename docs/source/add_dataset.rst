@@ -1,7 +1,7 @@
 Writing your own dataset loading script
 =============================================
 
-There are two main reasons you may want to write your own dataset loading script: either you want to use local/private data files and the generic dataloader for CSV/JSON are not suitable for your usage (cf. :ref:`_loading-from-local-files`), or you would like to share a new dataset with the community, for instance with the `HuggingFace Hub <https://huggingface.co/datasets>`__.
+There are two main reasons you may want to write your own dataset loading script: either you want to use local/private data files and the generic dataloader for CSV/JSON are not suitable for your usage (cf. :ref:`loading-from-local-files`), or you would like to share a new dataset with the community, for instance with the `HuggingFace Hub <https://huggingface.co/datasets>`__.
 
 In these cases you will need to understand how datasets are loaded and how you can write or adapt a dataset loading script. This is the purpose of this chapter.
 
@@ -178,24 +178,24 @@ Let's have a look at a simple example of a :func:`nlp.DatasetBuilder._split_gene
 
 .. code-block::
 
-class Squad(nlp.GeneratorBasedBuilder):
-    """SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
+	class Squad(nlp.GeneratorBasedBuilder):
+		"""SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
 
-    _URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
-    _DEV_FILE = "dev-v1.1.json"
-    _TRAINING_FILE = "train-v1.1.json"
+		_URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
+		_DEV_FILE = "dev-v1.1.json"
+		_TRAINING_FILE = "train-v1.1.json"
 
-    def _split_generators(self, dl_manager: nlp.DownloadManager) -> List[nlp.SplitGenerator]:
-        urls_to_download = {
-            "train": os.path.join(self._URL, self._TRAINING_FILE),
-            "dev": os.path.join(self._URL, self._DEV_FILE),
-        }
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+		def _split_generators(self, dl_manager: nlp.DownloadManager) -> List[nlp.SplitGenerator]:
+			urls_to_download = {
+				"train": os.path.join(self._URL, self._TRAINING_FILE),
+				"dev": os.path.join(self._URL, self._DEV_FILE),
+			}
+			downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
-        return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
-        ]
+			return [
+				nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+				nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
+			]
 
 As you can see this method first prepare a dict of URL to the original data files for SQuAD. This dict is then provided to the :func:`nlp.DownloadManager.download_and_extract` method which will take care of downloading or retriving from the local file system these files and returning a object of the same type and organization (here a dictionary) with the path to the local version of the requetsed files. :func:`nlp.DownloadManager.download_and_extract` can take as input a single URL/path or a list or dictionnary of URLs/paths and will return an object of the same structure (single URL/path, list or dictionnary of URLs/paths) with the path to the local files.
 
@@ -211,7 +211,7 @@ Once the data files are downloaded, the next mission for the :func:`nlp.DatasetB
 
 A :class:`nlp.SplitGenerator` is a simple dataclass containing:
 
-- :obj:`name` (``string``) : the **name** of a split, when possible, standard split names provided in :enum:`nlp.Split` can be used: :obj:`nlp.Split.TRAIN`, :obj:`nlp.Split.VALIDATION` and :obj:`nlp.Split.TEST`,
+- :obj:`name` (``string``) : the **name** of a split, when possible, standard split names provided in :class:`nlp.Split` can be used: :obj:`nlp.Split.TRAIN`, :obj:`nlp.Split.VALIDATION` and :obj:`nlp.Split.TEST`,
 - :obj:`gen_kwargs` (``dict``): **keywords arguments** to be provided to the :func:`nlp.DatasetBuilder._generate_examples` method to generate the samples in this split. These arguments can be specific to each splits and typically comprise at least the local path to the data files to load for each split as indicated in the above SQuAD example.
 
 

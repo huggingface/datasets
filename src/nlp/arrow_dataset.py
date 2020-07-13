@@ -228,7 +228,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """The Arrow columns of the Apache Arrow table backing the dataset.
         You probably don't need to access directly these and can rather use
         :func:`nlp.Dataset.column_names` or :func:`nlp.Dataset.__getitem__`
-        to access them as python or numpy objects.  
+        to access them as python or numpy objects.
         """
         return self._data.columns
 
@@ -256,7 +256,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def schema(self) -> pa.Schema:
         """The Arrow schema of the Apache Arrow table backing the dataset.
         You probably don't need to access directly this and can rather use
-        :func:`nlp.Dataset.features` to inspect the dataset features.  
+        :func:`nlp.Dataset.features` to inspect the dataset features.
         """
         return self._data.schema
 
@@ -975,7 +975,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True
+        verbose: bool = True,
     ):
         """ Create a new dataset sorted according to a column.
 
@@ -1278,7 +1278,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     test_cache_file_name = self._get_cache_file_path(self.train_test_split, test_kwargs)
             if os.path.exists(train_cache_file_name) and os.path.exists(test_cache_file_name) and load_from_cache_file:
                 if verbose:
-                    logger.info("Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name)
+                    logger.info(
+                        "Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name
+                    )
                 return {
                     "train": Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
                     "test": Dataset.from_file(test_cache_file_name, info=self.info, split=self.split),
@@ -1302,7 +1304,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=train_cache_file_name,
             writer_batch_size=writer_batch_size,
-            verbose=verbose
+            verbose=verbose,
         )
         test_split = self.select(
             indices=test_indices,
@@ -1310,7 +1312,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=test_cache_file_name,
             writer_batch_size=writer_batch_size,
-            verbose=verbose
+            verbose=verbose,
         )
 
         return {"train": train_split, "test": test_split}
@@ -1323,7 +1325,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True
+        verbose: bool = True,
     ):
         """ Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
@@ -1350,7 +1352,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
-            verbose=verbose
+            verbose=verbose,
         )
 
     def add_faiss_index(
@@ -1489,23 +1491,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 The elasticsearch index name used to create the index.
             es_index_config (Optional :obj:`dict`):
                 The configuration of the elasticsearch index.
-                Default config is::
-                
-                    {
-                        "settings": {
-                            "number_of_shards": 1,
-                            "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
-                        },
-                        "mappings": {
-                            "properties": {
-                                "text": {
-                                    "type": "text",
-                                    "analyzer": "standard",
-                                    "similarity": "BM25"
-                                },
-                            }
+                Default config is:
+
+        Config::
+
+            {
+                "settings": {
+                    "number_of_shards": 1,
+                    "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                },
+                "mappings": {
+                    "properties": {
+                        "text": {
+                            "type": "text",
+                            "analyzer": "standard",
+                            "similarity": "BM25"
                         },
                     }
+                },
+            }
 
         Example::
 

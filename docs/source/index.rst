@@ -40,10 +40,16 @@ The documentation is organized in five parts:
     :caption: Using datasets
 
     loading_datasets
-    add_dataset
     exploring
     processing
     faiss_and_ea
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Creating and sharing datasets
+
+    add_dataset
+    share_dataset
 
 .. toctree::
     :maxdepth: 2
@@ -65,3 +71,4 @@ The documentation is organized in five parts:
 
     package_reference/loading_methods
     package_reference/main_classes
+    package_reference/builder_classes

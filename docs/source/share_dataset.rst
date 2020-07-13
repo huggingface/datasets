@@ -26,6 +26,7 @@ Here are the main differences between these two options.
 	The distinctions between "canonical" and "community provided" datasets is made purely based on the selected sharing workflow and don't involve any ranking, decision or opinion regarding the content of the dataset it-self.
 
 .. _canonical-dataset:
+
 Sharing a "canonical" dataset
 --------------------------------
 
@@ -107,12 +108,14 @@ To add a "canonical" dataset to the library, you need to do the following steps:
 9. Once you are satisfied with the dataset, go the webpage of your fork on GitHub and cick on "Pull request" to open a pull-request on the `main github repository <https://github.com/huggingface/nlp>`__ for review.
 
 .. _community-dataset:
+
 Sharing a "community provided" dataset
 -----------------------------------------
 
 
 
 .. _adding-tests:
+
 Adding tests and metadata to the dataset
 ---------------------------------------------
 
@@ -248,7 +251,7 @@ Go back to **the root of your nlp** folder and use the following command:
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
 
 
-If all tests pass, your dataset works correctly. Awesome! You can now follow the last steps of the :ref:`canonical-datasets` or :ref:`community-datasets` sections to share the dataset with the community.
+If all tests pass, your dataset works correctly. Awesome! You can now follow the last steps of the :ref:`canonical-dataset` or :ref:`community-dataset` sections to share the dataset with the community.
 
 If you experienced problems with the dummy data tests, here are some additional tips:
 

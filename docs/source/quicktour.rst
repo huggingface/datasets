@@ -243,5 +243,6 @@ Now this was a very simple tour, you should continue with either the detailled n
 - :doc:`loading datasets <./loading_datasets>`
 - :doc:`exploring the dataset object attributes <./exploring>`
 - :doc:`processing dataset data <./processing>`
-- :doc:`using the dataset with NumPy, pandas, PyTorch, TensorFlow <./using_tf_pt>`
 - :doc:`indexing a dataset with FAISS or Elastic Search <./faiss_and_ea>`
+- :doc:`Adding new datasets <./add_dataset>`
+- :doc:`Sharing datasets <./share_dataset>`

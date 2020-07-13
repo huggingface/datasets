@@ -9,7 +9,7 @@ Two main classes are mostly used during the dataset building process.
 
 .. autoclass:: nlp.BeamBasedBuilder
 
-.. autoclass:: nlp.ArrowasedBuilder
+.. autoclass:: nlp.ArrowBasedBuilder
 
 .. autoclass:: nlp.BuilderConfig
 

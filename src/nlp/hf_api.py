@@ -109,7 +109,7 @@ class ObjectInfo:
             setattr(self, k, v)
 
     def __repr__(self):
-        single_line_description = self.description.replace('\n', '')
+        single_line_description = self.description.replace("\n", "")
         return f"nlp.ObjectInfo(id='{self.id}', description='{single_line_description}', files={self.siblings})"
 
 

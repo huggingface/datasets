@@ -139,6 +139,7 @@ You can find the full details on these arguments on the package reference page f
 
 
 .. _loading-from-local-files:
+
 Loading a dataset from local files
 -----------------------------------------------------------
 
@@ -151,7 +152,7 @@ Generice loading scripts are provided for:
 - text files (read as a line-by-line dataset with the :obj:`text` script),
 - pandas pickled dataframe (with the :obj:`pandas` script).
 
-If you want to control better how you files are loaded, or if you have a file format exactly reproducing the file format for one of the datasets provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__, it can be more flexible and simpler to create **your own loading script**, from scratch or by adapting one of the provided loading scripts. In this case, please go check the :doc:`<./add_dataset>` chapter.
+If you want to control better how you files are loaded, or if you have a file format exactly reproducing the file format for one of the datasets provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__, it can be more flexible and simpler to create **your own loading script**, from scratch or by adapting one of the provided loading scripts. In this case, please go check the :doc:`add_dataset` chapter.
 
 The :obj:`data_files` argument in :func:`nlp.load_dataset` is used to provide paths to one or several files. This arguments currently accept three types of inputs:
 

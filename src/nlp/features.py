@@ -226,7 +226,7 @@ class ClassLabel:
 @dataclass
 class Translation:
     """`FeatureConnector` for translations with fixed languages per example.
-        Here for compatiblity with tfds.
+    Here for compatiblity with tfds.
 
     Input: The Translate feature accepts a dictionary for each example mapping
         string language codes to string translations.
@@ -234,32 +234,19 @@ class Translation:
     Output: A dictionary mapping string language codes to translations as `Text`
         features.
 
-    Example:
-    At construction time:
+    Example::
 
-    ```
-    nlp.features.Translation(languages=['en', 'fr', 'de'])
-    ```
+        # At construction time:
 
-    During data generation:
+        nlp.features.Translation(languages=['en', 'fr', 'de'])
 
-    ```
-    yield {
-            'en': 'the cat',
-            'fr': 'le chat',
-            'de': 'die katze'
-    }
-    ```
+        # During data generation:
 
-    Tensor returned by `.as_dataset()`:
-
-    ```
-    {
-            'en': 'the cat',
-            'fr': 'le chat',
-            'de': 'die katze',
-    }
-    ```
+        yield {
+                'en': 'the cat',
+                'fr': 'le chat',
+                'de': 'die katze'
+        }
     """
 
     languages: List[str]
@@ -276,7 +263,7 @@ class Translation:
 @dataclass
 class TranslationVariableLanguages:
     """`FeatureConnector` for translations with variable languages per example.
-        Here for compatiblity with tfds.
+    Here for compatiblity with tfds.
 
     Input: The TranslationVariableLanguages feature accepts a dictionary for each
         example mapping string language codes to one or more string translations.
@@ -288,31 +275,26 @@ class TranslationVariableLanguages:
         translation: variable-length 1D tf.Tensor of tf.string plain text
             translations, sorted to align with language codes.
 
-    Example (fixed language list):
-    At construction time:
+    Example::
 
-    ```
-    nlp.features.Translation(languages=['en', 'fr', 'de'])
-    ```
+        # At construction time:
 
-    During data generation:
+        nlp.features.Translation(languages=['en', 'fr', 'de'])
 
-    ```
-    yield {
-            'en': 'the cat',
-            'fr': ['le chat', 'la chatte,']
-            'de': 'die katze'
-    }
-    ```
+        # During data generation:
 
-    Tensor returned :
+        yield {
+                'en': 'the cat',
+                'fr': ['le chat', 'la chatte,']
+                'de': 'die katze'
+        }
 
-    ```
-    {
-            'language': ['en', 'de', 'fr', 'fr'],
-            'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
-    }
-    ```
+        # Tensor returned :
+
+        {
+                'language': ['en', 'de', 'fr', 'fr'],
+                'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
+        }
     """
 
     languages: List = None
