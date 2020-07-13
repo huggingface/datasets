@@ -111,6 +111,23 @@ class DatasetTester(object):
                         "test": os.path.join(path_to_dummy_data, "test.json"),
                         "dev": os.path.join(path_to_dummy_data, "dev.json"),
                     }
+                elif dataset_builder.__class__.__name__ == "Pandas":
+                    # need slight adoption for json dataset
+                    mock_dl_manager.download_dummy_data()
+                    path_to_dummy_data = mock_dl_manager.dummy_file
+                    dataset_builder.config.data_files = {
+                        "train": os.path.join(path_to_dummy_data, "train.pkl"),
+                        "test": os.path.join(path_to_dummy_data, "test.pkl"),
+                        "dev": os.path.join(path_to_dummy_data, "dev.pkl"),
+                    }
+                elif dataset_builder.__class__.__name__ == "Text":
+                    mock_dl_manager.download_dummy_data()
+                    path_to_dummy_data = mock_dl_manager.dummy_file
+                    dataset_builder.config.data_files = {
+                        "train": os.path.join(path_to_dummy_data, "train.txt"),
+                        "test": os.path.join(path_to_dummy_data, "test.txt"),
+                        "dev": os.path.join(path_to_dummy_data, "dev.txt"),
+                    }
 
                 # mock size needed for dummy data instead of actual dataset
                 if dataset_builder.info is not None:

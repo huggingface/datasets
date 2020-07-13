@@ -21,20 +21,27 @@ import hashlib
 import logging
 import os
 from collections import defaultdict
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from functools import partial
 from math import ceil, floor
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 from tqdm.auto import tqdm
 
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .search import FaissGpuOptions, IndexableMixin
+from .features import Features
+from .search import IndexableMixin
 from .utils import map_all_sequences_to_lists, map_nested
+
+
+if TYPE_CHECKING:
+    from .info import DatasetInfo  # noqa: F401
+    from .splits import NamedSplit  # noqa: F401
 
 
 logger = logging.getLogger(__name__)
@@ -135,7 +142,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._output_all_columns: bool = False
 
     @classmethod
-    def from_file(cls, filename: str, info: Optional[Any] = None, split: Optional[Any] = None):
+    def from_file(cls, filename: str, info: Optional["DatasetInfo"] = None, split: Optional["NamedSplit"] = None):
         """ Instantiate a Dataset backed by an Arrow table at filename """
         mmap = pa.memory_map(filename)
         f = pa.ipc.open_stream(mmap)
@@ -143,11 +150,65 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return cls(arrow_table=pa_table, data_files=[{"filename": filename}], info=info, split=split)
 
     @classmethod
-    def from_buffer(cls, buffer: pa.Buffer, info: Optional[Any] = None, split: Optional[Any] = None):
+    def from_buffer(
+        cls, buffer: pa.Buffer, info: Optional["DatasetInfo"] = None, split: Optional["NamedSplit"] = None
+    ):
         """ Instantiate a Dataset backed by an Arrow buffer """
         mmap = pa.BufferReader(buffer)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
+        return cls(pa_table, info=info, split=split)
+
+    @classmethod
+    def from_pandas(
+        cls,
+        df: pd.DataFrame,
+        features: Optional[Features] = None,
+        info: Optional["DatasetInfo"] = None,
+        split: Optional["NamedSplit"] = None,
+    ):
+        """
+        Convert :obj:``pandas.DataFrame`` to a "obj"``pyarrow.Table`` to create a :obj:``nlp.Dataset``.
+
+        The column types in the resulting Arrow Table are inferred from the dtypes of the pandas.Series in the DataFrame. In the case of non-object
+        Series, the NumPy dtype is translated to its Arrow equivalent. In the case of `object`, we need to guess the datatype by looking at the
+        Python objects in this Series.
+
+        Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow type. In the case that
+        we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to
+        null. This behavior can be avoided by constructing an explicit schema and passing it to this function.
+
+        Args:
+            df (:obj:``pandas.DataFrame``): the dataframe that contains the dataset.
+            features (:obj:``nlp.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
+            info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
+                description, citation, etc.
+            split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+        """
+        pa_table = pa.Table.from_pandas(df=df, schema=pa.schema(features.type) if features is not None else None)
+        return cls(pa_table, info=info, split=split)
+
+    @classmethod
+    def from_dict(
+        cls,
+        mapping: dict,
+        features: Optional[Features] = None,
+        info: Optional[Any] = None,
+        split: Optional[Any] = None,
+    ):
+        """
+        Convert :obj:``dict`` to a "obj"``pyarrow.Table`` to create a :obj:``nlp.Dataset``.
+
+        Args:
+            mapping (:obj:``mapping``): A mapping of strings to Arrays or Python lists.
+            features (:obj:``nlp.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
+            info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
+                description, citation, etc.
+            split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+        """
+        pa_table = pa.Table.from_pydict(
+            mapping=mapping, schema=pa.schema(features.type) if features is not None else None
+        )
         return cls(pa_table, info=info, split=split)
 
     @property
@@ -462,8 +523,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     outputs = self._data[key].to_pandas(split_blocks=True).to_list()
             else:
                 outputs = self._data[key].to_pandas(split_blocks=True).to_list()
-        elif isinstance(key, list):
-            data_subset = pa.concat_tables(self._data.slice(i, 1) for i in key)
+        elif isinstance(key, Iterable):
+            data_subset = pa.concat_tables(self._data.slice(int(i), 1) for i in key)
             if format_type is not None and format_type == "pandas":
                 outputs = data_subset.to_pandas(split_blocks=True)
             else:
@@ -1317,7 +1378,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         index_name: Optional[str] = None,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        metric_type: Optional[int] = None,
+        custom_index: Optional["faiss.Index"] = None,  # noqa: F821
+        train_size: Optional[int] = None,
+        faiss_verbose: bool = False,
         dtype=np.float32,
     ):
         """ Add a dense index using Faiss for fast retrieval.
@@ -1325,7 +1389,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
             You can find more information about Faiss here:
             - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
-            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
 
             Examples of usage:
 
@@ -1353,7 +1416,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     By defaul it corresponds to `column`.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
+                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
+                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
         with self.formated_as(type="numpy", columns=[column], dtype=dtype):
@@ -1362,7 +1428,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 index_name=index_name,
                 device=device,
                 string_factory=string_factory,
-                faiss_gpu_options=faiss_gpu_options,
+                metric_type=metric_type,
+                custom_index=custom_index,
+                train_size=train_size,
+                faiss_verbose=faiss_verbose,
             )
         return self
 
@@ -1372,7 +1441,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         index_name: str,
         device: Optional[int] = None,
         string_factory: Optional[str] = None,
-        faiss_gpu_options: Optional[FaissGpuOptions] = None,
+        metric_type: Optional[int] = None,
+        custom_index: Optional["faiss.Index"] = None,  # noqa: F821
+        train_size: Optional[int] = None,
+        faiss_verbose: bool = False,
         dtype=np.float32,
     ):
         """ Add a dense index using Faiss for fast retrieval.
@@ -1380,7 +1452,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
             You can find more information about Faiss here:
             - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
-            - For `faiss_gpu_options`'s resource_vec, device_vec and cloner_options: https://github.com/facebookresearch/faiss/wiki/Faiss-on-the-GPU
 
             Args:
                 `external_arrays` (`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
@@ -1388,7 +1459,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `index_name` (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
                 `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
                 `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `faiss_gpu_options` (Optional `FaissGpuOptions`): Options to configure the GPU resources of Faiss.
+                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
+                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
+                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
                 `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
         super().add_faiss_index_from_external_arrays(
@@ -1396,7 +1470,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             index_name=index_name,
             device=device,
             string_factory=string_factory,
-            faiss_gpu_options=faiss_gpu_options,
+            metric_type=metric_type,
+            custom_index=custom_index,
+            train_size=train_size,
+            faiss_verbose=faiss_verbose,
         )
 
     def add_elasticsearch_index(
@@ -1405,7 +1482,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         index_name: Optional[str] = None,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        es_client: Optional["elasticsearch.Elasticsearch"] = None,
+        es_client: Optional["elasticsearch.Elasticsearch"] = None,  # noqa: F821
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
     ):

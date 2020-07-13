@@ -188,16 +188,15 @@ class ClassLabel:
 
     def int2str(self, int_value):
         """Conversion integer => class name string."""
+        if not 0 <= int_value < self._num_classes:
+            raise ValueError("Invalid integer class label %d" % int_value)
         if self._int2str:
             # Maybe should support batched np array/eager tensors, to allow things
             # like
             # out_ids = model(inputs)
             # labels = cifar10.info.features['label'].int2str(out_ids)
             return self._int2str[int_value]
-
         # No names provided, return str(int)
-        if not 0 <= int_value < self._num_classes:
-            raise ValueError("Invalid integer class label %d" % int_value)
         return str(int_value)
 
     def encode_example(self, example_data):

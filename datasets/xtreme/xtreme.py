@@ -38,7 +38,7 @@ Niger-Congo languages Swahili and Yoruba, spoken in Africa.
 """
 _MLQA_LANG = ["ar", "de", "vi", "zh", "en", "es", "hi"]
 _XQUAD_LANG = ["ar", "de", "vi", "zh", "en", "es", "hi", "el", "ru", "th", "tr"]
-_PAWSX_LANG = ["de", "en", "fr", "ja", "ko", "zh"]
+_PAWSX_LANG = ["de", "en", "es", "fr", "ja", "ko", "zh"]
 _BUCC_LANG = ["de", "fr", "zh", "ru"]
 _TATOEBA_LANG = [
     "afr",
@@ -715,10 +715,9 @@ class Xtreme(nlp.GeneratorBasedBuilder):
         if self.config.name.startswith("PAN-X"):
             path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
             panx_path = os.path.join(path_to_manual_folder, _PAN_X_FOLDER)
-
             if not os.path.exists(panx_path):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('wikihow', data_dir=...)` that includes {}. Manual download instructions: {}".format(
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('xtreme', data_dir=...)` that includes {}. Manual download instructions: {}".format(
                         panx_path, _PAN_X_FOLDER, self.manual_download_instructions
                     )
                 )
