@@ -145,7 +145,7 @@ Loading a dataset from local files
 
 It's also possible to create a dataset from local files.
 
-Generice loading scripts are provided for:
+Generic loading scripts are provided for:
 
 - CSV files (with the :obj:`csv` script),
 - JSON files (with the :obj:`json` script),
