@@ -9,8 +9,8 @@ A :class:`nlp.Dataset` can be created from various source of data:
 
 In this section we study each option.
 
-Loading a dataset from the HuggingFace Hub
------------------------------------------------------------
+From the HuggingFace Hub
+-------------------------------------------------
 
 Over 135 datasets for many NLP tasks like text classification, question answering, language modeling, etc, are provided on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗nlp viewer <https://huggingface.co/nlp/viewer>`__.
 
@@ -116,7 +116,7 @@ Selecting a configuration is done by providing :func: `nlp.load_dataset` with a 
      'test': Dataset(schema: {'sentence': 'string', 'label': 'int64', 'idx': 'int32'}, num_rows: 1821)
     }
 
-Manually downloading some files
+Manually downloading files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Some dataset require you to download manually some files, usually because of licencing issues or when these files are behind a login page.
@@ -140,7 +140,7 @@ You can find the full details on these arguments on the package reference page f
 
 .. _loading-from-local-files:
 
-Loading a dataset from local files
+From local files
 -----------------------------------------------------------
 
 It's also possible to create a dataset from local files.
@@ -277,22 +277,7 @@ However sometime you may want to define yourself the features of the dataset, fo
 
 In this case you can use the :obj:`feature` arguments to :func:`nlp.load_dataset` to supply a :class:`nlp.Features` instance definining the features of your dataset and overriding the default pre-computed features.
 
-Using your own dataset loading script
------------------------------------------------------------
-
-If the provided loading scripts for Hub dataset or for local files are not adapted for your use case, you can also easily write and use your own dataset loading script.
-
-You can use a local loading script just by providing its path instead of the usual shortcut name:
-
-.. code-block::
-
-    >>> from nlp import load_dataset
-    >>> dataset = load_dataset('PATH/TO/MY/LOADING/SCRIPT', data_files='PATH/TO/MY/FILE')
-
-We provide more details on how to create your own dataset generation script in the :doc:`Adding a new dataset guide <./add_dataset>` and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/nlp/tree/master/datasets>`__.
-
-
-Loading a dataset from in-memory data
+From in-memory data
 -----------------------------------------------------------
 
 Eventually, it's also possible to instantiate a :class:`nlp.Dataset` directly from in-memory data, currently one or:
@@ -337,4 +322,19 @@ You can similarly instantiate a Dataset object from a ``pandas`` DataFrame:
     Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow type. In the case that we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to null. This behavior can be avoided by constructing an explicit schema and passing it to this function.
 
 To be sure that the schema and type of the instantiated :class:`nlp.Dataset` are as intended, you can explicitely provide the features of the dataset as a :class:`nlp.Feature` object to the ``from_dict`` and ``from_pandas`` methods.
+
+Using a custom dataset loading script
+-----------------------------------------------------------
+
+If the provided loading scripts for Hub dataset or for local files are not adapted for your use case, you can also easily write and use your own dataset loading script.
+
+You can use a local loading script just by providing its path instead of the usual shortcut name:
+
+.. code-block::
+
+    >>> from nlp import load_dataset
+    >>> dataset = load_dataset('PATH/TO/MY/LOADING/SCRIPT', data_files='PATH/TO/MY/FILE')
+
+We provide more details on how to create your own dataset generation script on the :doc:`<./add_dataset>` page and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/nlp/tree/master/datasets>`__.
+
 

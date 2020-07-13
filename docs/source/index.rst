@@ -62,6 +62,7 @@ The documentation is organized in five parts:
     :maxdepth: 2
     :caption: Advanced guides
 
+    features
     splits
     beam_dataset
 

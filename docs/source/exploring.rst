@@ -2,7 +2,7 @@ What's in the Dataset object
 ==============================================================
 
 
-The :class:`nlp.Dataset` object that you get when you execute for instance
+The :class:`nlp.Dataset` object that you get when you execute for instance the following commands:
 
 .. code-block::
 
@@ -11,9 +11,9 @@ The :class:`nlp.Dataset` object that you get when you execute for instance
 
 behaves like a normal python container. You can query its length, get rows, columns and also lot of metadata on the dataset (description, citation, split sizes, etc).
 
-In this guide we will detail whats in this object and how to access these informations.
+In this guide we will detail what's in this object and how to access all the information.
 
-An :class:`nlp.Dataset` is a python container with a length coresponding to the number of examples in the dataset. You can access single examples by its index:
+An :class:`nlp.Dataset` is a python container with a length coresponding to the number of examples in the dataset. You can access a single example by its index. Let's query the first sample in the dataset:
 
 .. code-block::
 
@@ -28,9 +28,9 @@ An :class:`nlp.Dataset` is a python container with a length coresponding to the 
 Features and columns
 ------------------------------------------------------
 
-:class:`nlp.Dataset` is actually a table with rows and columns in which the columns are typed so querying an example (a single row) will return a python dictionnary with keys corresponding to the names of the columns of the dataset, and values corresponding to the example's value for each of the column.
+A :class:`nlp.Dataset` instance is more precisely a table with **rows** and **columns** in which the columns are typed. Querying an example (a single row) will thus return a python dictionnary with keys corresponding to columns names, and values corresponding to the example's value for each column.
 
-You can access the number of rows and columns of the dataset with various attributes for simplicity:
+You can get the number of rows and columns of the dataset with various standard attributes:
 
 .. code-block::
 
@@ -43,7 +43,7 @@ You can access the number of rows and columns of the dataset with various attrib
     >>> len(dataset)
     3668
 
-You can list the column names with :func:`nlp.Dataset.column_names` and get their detailed types with :func:`nlp.Dataset.features`:
+You can list the column names with :func:`nlp.Dataset.column_names` and get their detailed types (called ``features``) with :attr:`nlp.Dataset.features`:
 
 .. code-block::
 
@@ -56,9 +56,9 @@ You can list the column names with :func:`nlp.Dataset.column_names` and get thei
      'idx': Value(dtype='int32', id=None)
     }
 
-Here we can see that the column ``label`` coresponds to a :class:`nlp.ClassLabel` feature.
+Here we can see that the column ``label`` is a :class:`nlp.ClassLabel` feature.
 
-This feature provides us with more information regarding the elements in the ``label`` columns and in particular provides a mapping from integers to human-readable names and vice-versa:
+We can access this feature to get more information on the values in the ``label`` columns. In particular, a :class:`nlp.ClassLabel` feature provides a mapping from integers (as single integer, lists, numpy arrays or even pytorch/tensorflow tensors) to human-readable names and vice-versa:
 
 .. code-block::
 
@@ -71,14 +71,14 @@ This feature provides us with more information regarding the elements in the ``l
     >>> dataset.features['label'].str2int('not_equivalent')
     0
 
-All the available ``features`` are detailed in the package reference on :class:`nlp.Features`.
+More details on the ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`nlp.Features`.
 
 Metadata
 ------------------------------------------------------
 
-The :class:`nlp.Dataset` object also host many important metadata on the dataset which are all stored in ``dataset.info`` but also accessible on the lower level for simple access.
+The :class:`nlp.Dataset` object also host many important metadata on the dataset which are all stored in ``dataset.info``. Many of these metadata are also accessible on the lower level, i.e. directly as attributes of the Dataset for shorter access (e.g. ``dataset.info.features`` is also available as ``dataset.features``).
 
-All these attributes are listed in the package refefence and the most important ones are ``split``, ``description``, ``citation``, ``homepage`` and ``licence`` (when this one is available).
+All these attributes are listed in the package refefence on :class:`nlp.DatasetInfo`. The most important metadata are ``split``, ``description``, ``citation``, ``homepage`` (and ``licence`` when this one is available).
 
 .. code-block::
 
@@ -137,7 +137,7 @@ You can clean up the cache files in the current dataset directory (only keeping 
     Be careful to check that no other process might be using other cache files when running this command.
 
 
-Accessing single rows, slices, batches and columns
+Getting rows, slices, batches and columns
 ------------------------------------------------------
 
 While you can access a single row with the ``dataset[i]`` pattern, you can also access several rows using slice notation or with a list of indices (or a numpy/torch/tf array of indices):
@@ -157,7 +157,7 @@ While you can access a single row with the ``dataset[i]`` pattern, you can also 
      'idx': [1, 3, 5]
     }
 
-You can also get a full columns by querying its name. This will return a list of elements:
+You can also get a full columns by querying its name as a string. This will return a list of elements:
 
 .. code-block::
 
@@ -166,11 +166,11 @@ You can also get a full columns by querying its name. This will return a list of
 
 As you can see depending on the object queried (single row, batch of rows or column), the returned object is different:
 
-- single row (``dataset[0]``) returns a python dictionary of values
-- batch (``dataset[5:10]``) returns a python dictionnary of lists of values
-- column (``dataset['sentence1']``) returns a python lists of values
+- a single row like ``dataset[0]`` will be returned as a python dictionary of values,
+- a batch like ``dataset[5:10]``) will be returned as a python dictionnary of lists of values,
+- a column like ``dataset['sentence1']`` will be returned as a python lists of values.
 
-This may seems surprising at first but in our experiments it's actually a lot easier to use for data processing than returning the same format for each of these views on the dataset.
+This may seems surprising at first but in our experiments it's actually easier to use these various format for data processing than returning the same format for each of these views on the dataset.
 
 In particular, you can easily select a specific column in batches, and also naturally permute rows and column indexings with identical results:
 
@@ -182,14 +182,14 @@ In particular, you can easily select a specific column in batches, and also natu
     True
 
 
-Setting the format of dataset for NumPy/pandas/PyTorch/TensorFlow
+Working with NumPy, pandas, PyTorch, TensorFlow
 ---------------------------------------------------------------------
 
 Up to now, the rows/batches/columns returned when querying the elements of the dataset were python objects.
 
 Sometimes we would like to have more sophisticated objects returned by our dataset, for instance NumPy arrays or PyTorch tensors instead of python lists.
 
-🤗nlp provides a way to do that through what is called ``format``.
+🤗nlp provides a way to do that through what is called a ``format``.
 
 While the internal storage of the dataset is always the Apache Arrow format, by setting a specific format on a dataset, you can filter some columns and cast the output of :func:`nlp.Dataset.__getitem__` in NumPy/pandas/PyTorch/TensorFlow, on-the-fly.
 
@@ -197,14 +197,15 @@ A specific format can be activated with :func:`nlp.Dataset.set_format`.
 
 :func:`nlp.Dataset.set_format` accepts three inputs to control the format of the dataset:
 
-- :obj:`type` (:obj:`Union[None, str]`, default to :obj:`None`) defines the return type for the dataset :obj`__getitem__` method and is one of :obj:`[None, 'numpy', 'pandas', 'torch', 'tensorflow']` (:obj:`None` means return python objects),
-- :obj:`columns` (:obj:`Union[None, str, List[str]]`, default to :obj:`None`) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (:obj:`None` means return all columns),
-- :obj:`output_all_columns` (:obj:`bool`, default to :obj:`False`) controls whether the columns which cannot be formated (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
-- :obj:`format_kwargs` can be used to provide additional keywords arguments that will be forwarded to the convertiong function like :obj:`np.array`, :obj:`torch.tensor` or :obj:`tensorflow.ragged.constant`. For instance, to create :obj:`torch.Tensor` directly on the GPU you can specify :obj:`device='cuda'`.
+- :obj:`type` (``Union[None, str]``, default to ``None``) defines the return type for the dataset :obj`__getitem__` method and is one of ``[None, 'numpy', 'pandas', 'torch', 'tensorflow']`` (``None`` means return python objects),
+- :obj:`columns` (``Union[None, str, List[str]]``, default to ``None``) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (``None`` means return all columns),
+- :obj:`output_all_columns` (``bool``, default to ``False``) controls whether the columns which cannot be formated (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
+- :obj:`format_kwargs` can be used to provide additional keywords arguments that will be forwarded to the convertiong function like ``np.array``, ``torch.tensor`` or ``tensorflow.ragged.constant``. For instance, to create ``torch.Tensor`` directly on the GPU you can specify ``device='cuda'``.
 
 .. note::
 
     The format is only applied to single row or batches of rows (i.e. when querying :obj:`dataset[0]` or :obj:`dataset[10:20]`). Querying a column (e.g. :obj:`dataset['sentence1']`) will always return python objects and will return the column even if it's filtered by the format.
+    This design choice was made because it's quite rare to use column-only access when working with deep-learning frameworks and it's quite usefull to be able to access column even when they are masked by the format.
 
 Here is an example:
 

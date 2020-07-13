@@ -81,7 +81,7 @@ Let's take a look at the column in our dataset by printing its :func:`nlp.Datase
      'sentence1': Value(dtype='string', id=None),
      'sentence2': Value(dtype='string', id=None)}
 
-Fine-tunign a Bert model on our dataset
+Fine-tuning a deep-learning model
 ------------------------------------------
 
 In the rest of this quick-tour we will use this dataset to fine-tune a Bert model on the sentence pair classification task of Paraphrase Classification. Let's have a quick look at our task.
@@ -123,7 +123,7 @@ Let's import a pretrained Bert model and its tokenizer using 🤗transformers.
 🤗transformers warns us that we should probably train this model on a downstream task before using it which is exactly what we are going to do.
 If you want more details on the models and tokenizers of 🤗transformers, you should refer to the documentation and tutorials of this library `which are available here <https://huggingface.co/transformers/>`__.
 
-Tokenize our dataset
+Tokenizing the dataset
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The first step is to tokenize our sentences in order to build sequences of integers that our model can digest from the pairs of sequences. Bert's tokenizer knows how to do that and we can simply feed it with a pair of sentences as inputs to generate the right inputs for our model:
@@ -165,7 +165,7 @@ This operation has added three new columns to our dataset: ``input_ids``, ``toke
 
     Note that this is not the most efficient padding strategy, we could also avoid padding at this stage and use ``tokenizer.pad`` as the ``collate_fn`` method in the ``torch.utils.data.DataLoader`` further below.
 
-Prepare the format of the dataset
+Formatting the dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`` (or a ``tf.data.Dataset`` for TensorFlow) and use it to train our model.

@@ -30,7 +30,7 @@ As always, let's start by loading a small dataset for our demonstrations:
 Selecting, sorting, shuffling, splitting rows
 --------------------------------------------------
 
-Several methods are provided to create one or several new dataset(s) from the current dataset by:
+Several methods are provided to reorder rows and/or spit the dataset:
 
 - sorting the dataset according to a column (:func:`nlp.Dataset.sort`)
 - shuffling the dataset (:func:`nlp.Dataset.shuffle`)
@@ -42,7 +42,7 @@ These methods have quite simple signature and should be for the most part self-e
 
 Let's see them in action:
 
-Sorting the dataset according to a column: :func:`nlp.Dataset.sort`
+Sorting the dataset according to a column: ``sort``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The provided column has to be of a NumPy compatible column (typically a column containing numerical values).
@@ -57,7 +57,7 @@ The provided column has to be of a NumPy compatible column (typically a column c
     >>> sorted_dataset['label'][-10:]
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
-Shuffling the dataset: ::func:`nlp.Dataset.shuffle`
+Shuffling the dataset: ``shuffle``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block::
@@ -68,7 +68,7 @@ Shuffling the dataset: ::func:`nlp.Dataset.shuffle`
 
 You can also provide a :obj:`numpy.random.Generator` to :func:`nlp.Dataset.shuffle` to control more finely the algorithm used to shuffle the dataset.
 
-Filtering rows: :func:`nlp.Dataset.select` and :func:`nlp.Dataset.filter`
+Filtering rows: ``select`` and ``filter``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can filter rows according to a list of indices (:func:`nlp.Dataset.select`) or with a filter function returning true for the rows to keep (:func:`nlp.Dataset.filter`):
@@ -101,7 +101,7 @@ You can filter rows according to a list of indices (:func:`nlp.Dataset.select`) 
     >>> len(dataset) / 2
     1834.0
 
-Splitting the dataset in train and test split: :func:`nlp.Dataset.train_test_split`
+Splitting the dataset in train and test split: ``train_test_split``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This method is adapted from scikit-learn celebrated :obj:`train_test_split` method with the omission of the stratified options.
@@ -120,11 +120,11 @@ The two splits are returned as a dictionary of :class:`nlp.Dataset`.
     >>> 0.1 * len(dataset)
     366.8
 
-As you can see the test split is 10% of the original dataset.
+We can see that the test split is 10% of the original dataset.
 
 The :func:`nlp.Dataset.train_test_split` has many ways to select the relative sizes of the train and test split so we refer the reader to the package reference of :func:`nlp.Dataset.train_test_split` for all the details.
 
-Sharding the dataset: :func:`nlp.Dataset.shard`
+Sharding the dataset: ``shard``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Eventually, it's possible to "shard" the dataset, i.e. divide it in a deterministic list of dataset of (almost) the same size.
@@ -133,8 +133,8 @@ The :func:`nlp.Dataset.shard` takes as arguments the total number of shards (:ob
 
 This method can be used to slice a very large dataset in a predefined number of chunks.
 
-The map method
--------------------------
+Processing data with ``map``
+--------------------------------
 
 All the methods we seen up to now operate on examples taken as a whole and don't inspect (excepted for the ``filter`` method) or modify the content of the samples.
 
@@ -175,7 +175,7 @@ In such a case, :func:`nlp.Dataset.map` will return the original dataset (:obj:`
 
 Now let's see how we can use a method that actually modify the dataset with :func:`nlp.Dataset.map`.
 
-Modifying the dataset example by example
+Processing data row by row
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The main interest of :func:`nlp.Dataset.map` is to update and modify the content of the table and leverage smart caching and fast backend.
@@ -269,7 +269,7 @@ In the following example, we add the index of the example as a prefix to the 'se
      '4: PG & E Corp. shares jumped $ 1.63 or 8 percent to $ 21.03 on the New York Stock Exchange on Friday .']
 
 
-Modifying the dataset with batched updates
+Processing data in batches
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :func:`nlp.Dataset.map` can also work with batches of examples (slices of the dataset).
@@ -421,3 +421,8 @@ Here we have now multiply the size of our dataset by ``4`` by adding three alter
 Obviously this is a very simple example for data augmentation and it could be improved in several ways, the most interesting take-aways is probably how this can be written in roughtly ten lines of code without any loss in flexibility.
 
 This concludes our chapter on data processing with 🤗nlp (and 🤗transformers).
+
+Controling the cache behavior
+-----------------------------------
+
+[UNDER CONSTRUCTION]
