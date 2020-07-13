@@ -25,7 +25,7 @@ import re
 import shutil
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 from filelock import FileLock
@@ -515,7 +515,13 @@ def load_dataset(
 
     # Instantiate the dataset builder
     builder_instance = builder_cls(
-        cache_dir=cache_dir, name=name, version=version, data_dir=data_dir, data_files=data_files, hash=hash, **config_kwargs,
+        cache_dir=cache_dir,
+        name=name,
+        version=version,
+        data_dir=data_dir,
+        data_files=data_files,
+        hash=hash,
+        **config_kwargs,
     )
 
     # Download and prepare data

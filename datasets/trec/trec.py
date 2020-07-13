@@ -52,13 +52,61 @@ Data are collected from four sources: 4,500 English questions published by USC (
 """
 
 _URLs = {
-    'train': "http://cogcomp.org/Data/QA/QC/train_5500.label",
-    'test': 'http://cogcomp.org/Data/QA/QC/TREC_10.label',
+    "train": "http://cogcomp.org/Data/QA/QC/train_5500.label",
+    "test": "http://cogcomp.org/Data/QA/QC/TREC_10.label",
 }
 
-_COARSE_LABELS = ['DESC', 'ENTY', 'ABBR', 'HUM', 'NUM', 'LOC']
+_COARSE_LABELS = ["DESC", "ENTY", "ABBR", "HUM", "NUM", "LOC"]
 
-_FINE_LABELS = ['manner', 'cremat', 'animal', 'exp', 'ind', 'gr', 'title', 'def', 'date', 'reason', 'event', 'state', 'desc', 'count', 'other', 'letter', 'religion', 'food', 'country', 'color', 'termeq', 'city', 'body', 'dismed', 'mount', 'money', 'product', 'period', 'substance', 'sport', 'plant', 'techmeth', 'volsize', 'instru', 'abb', 'speed', 'word', 'lang', 'perc', 'code', 'dist', 'temp', 'symbol', 'ord', 'veh', 'weight', 'currency']
+_FINE_LABELS = [
+    "manner",
+    "cremat",
+    "animal",
+    "exp",
+    "ind",
+    "gr",
+    "title",
+    "def",
+    "date",
+    "reason",
+    "event",
+    "state",
+    "desc",
+    "count",
+    "other",
+    "letter",
+    "religion",
+    "food",
+    "country",
+    "color",
+    "termeq",
+    "city",
+    "body",
+    "dismed",
+    "mount",
+    "money",
+    "product",
+    "period",
+    "substance",
+    "sport",
+    "plant",
+    "techmeth",
+    "volsize",
+    "instru",
+    "abb",
+    "speed",
+    "word",
+    "lang",
+    "perc",
+    "code",
+    "dist",
+    "temp",
+    "symbol",
+    "ord",
+    "veh",
+    "weight",
+    "currency",
+]
 
 
 class Trec(nlp.GeneratorBasedBuilder):
@@ -98,27 +146,23 @@ class Trec(nlp.GeneratorBasedBuilder):
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": dl_files['train'],
-                },
+                gen_kwargs={"filepath": dl_files["train"],},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": dl_files['test'],
-                },
+                gen_kwargs={"filepath": dl_files["test"],},
             ),
         ]
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
         # TODO: Yields (key, example) tuples from the dataset
-        with open(filepath, 'rb') as f:
+        with open(filepath, "rb") as f:
             for id_, row in enumerate(f):
                 # One non-ASCII byte: sisterBADBYTEcity. We replace it with a space
-                label, _, text = row.replace(b'\xf0', b' ').strip().decode().partition(' ')
-                coarse_label, _, fine_label = label.partition(':')
+                label, _, text = row.replace(b"\xf0", b" ").strip().decode().partition(" ")
+                coarse_label, _, fine_label = label.partition(":")
                 yield id_, {
                     "label-coarse": coarse_label,
                     "label-fine": fine_label,
