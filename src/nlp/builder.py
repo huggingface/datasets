@@ -29,7 +29,7 @@ from typing import Dict, List, Optional, Union
 import pyarrow as pa
 
 from . import utils
-from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs
+from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
 from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
@@ -409,7 +409,7 @@ class DatasetBuilder:
                     f"Subsequent calls will reuse this data."
                 )
                 return
-            except DatasetNotOnHfGcs:
+            except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
                 logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
 
         # Print is intentional: we want this to always go to stdout so user has
