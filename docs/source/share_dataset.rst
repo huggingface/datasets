@@ -12,7 +12,7 @@ Here are the main differences between these two options.
 - **Community provided** datasets:
 	* are faster to share (no reviewing process)
 	* can contain the data files themselves on the Hub
-	* are identified under the namespace of a user or organization: ``thomwolf/my_dataset`` or ``huggingface/our_dataset```
+	* are identified under the namespace of a user or organization: ``thomwolf/my_dataset`` or ``huggingface/our_dataset``
 	* are flagged as ``unsafe`` by default because a dataset contains executable code so the users need to inspect and opt-in to use the datasets
 
 - **Canonical** datasets:
@@ -36,7 +36,7 @@ To add a "canonical" dataset to the library, you need to do the following steps:
 
 2. Clone your fork to your local disk, and add the base repository as a remote:
 
-.. code::bash
+.. code::
 
 	git clone https://github.com/<your_Github_handle>/nlp
 	cd nlp
@@ -45,7 +45,7 @@ To add a "canonical" dataset to the library, you need to do the following steps:
 
 3. Create a new branch to hold your development changes:
 
-.. code::bash
+.. code::
 
 	git checkout -b my-new-dataset
 
@@ -55,7 +55,7 @@ To add a "canonical" dataset to the library, you need to do the following steps:
 
 4. Set up a development environment by running the following command **in a virtual environment**:
 
-.. code::bash
+.. code::
 
 	pip install -e ".[dev]"
 
@@ -123,7 +123,9 @@ Adding tests and metadata to the dataset
 It's recommended to add testing data and checksum metadata to your dataset so it's behavior can be tested and verified, and the generated dataset can be certified.
 
 In this section we'll explain how you can add two objects to the repository for that:
+
 - ``dummy data`` which are used for testing the behavior of the script (without having to download the full data files), and
+
 - ``dataset_infos.json`` which are metadata used to store the matedata of the dataset including the data files checksums and the number of exampes which can used to confirm that the dataset generation procedure went well.
 
 .. note::

@@ -201,7 +201,7 @@ As you can see this method first prepare a dict of URL to the original data file
 
 This method also takes care of extracting compressed tar, gzip and zip archives.
 
-:func:`nlp.DownloadManager.download_and_extract` can download files from a large set of origins but if your data files are hosted on a special access serveur, it's also possible to provide a callable which will take care of the downloding process to the ``DownloadManager`` using :func:`nlp.DownloadManager.download_custom`.
+:func:`nlp.DownloadManager.download_and_extract` can download files from a large set of origins but if your data files are hosted on a special access server, it's also possible to provide a callable which will take care of the downloading process to the ``DownloadManager`` using :func:`nlp.DownloadManager.download_custom`.
 
 .. note::
 

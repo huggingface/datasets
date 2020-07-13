@@ -35,8 +35,8 @@ Several methods are provided to create one or several new dataset(s) from the cu
 - sorting the dataset according to a column (:func:`nlp.Dataset.sort`)
 - shuffling the dataset (:func:`nlp.Dataset.shuffle`)
 - filtering rows either according to a list of indices (:func:`nlp.Dataset.select`) or with a filter function returning true for the rows to keep (:func:`nlp.Dataset.filter`),
-- spliting the dataset in a (potentially shuffled) train and a test split (:func:`nlp.Dataset.train_test_split`),
-- spliting the dataset in a deterministic list of shards (:func:`nlp.Dataset.shard`).
+- splitting the dataset in a (potentially shuffled) train and a test split (:func:`nlp.Dataset.train_test_split`),
+- splitting the dataset in a deterministic list of shards (:func:`nlp.Dataset.shard`).
 
 These methods have quite simple signature and should be for the most part self-explanatory.
 
@@ -101,7 +101,7 @@ You can filter rows according to a list of indices (:func:`nlp.Dataset.select`) 
     >>> len(dataset) / 2
     1834.0
 
-Spliting the dataset in train and test split: :func:`nlp.Dataset.train_test_split`
+Splitting the dataset in train and test split: :func:`nlp.Dataset.train_test_split`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This method is adapted from scikit-learn celebrated :obj:`train_test_split` method with the omission of the stratified options.
