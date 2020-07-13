@@ -335,6 +335,6 @@ You can use a local loading script just by providing its path instead of the usu
     >>> from nlp import load_dataset
     >>> dataset = load_dataset('PATH/TO/MY/LOADING/SCRIPT', data_files='PATH/TO/MY/FILE')
 
-We provide more details on how to create your own dataset generation script on the :doc:`<./add_dataset>` page and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/nlp/tree/master/datasets>`__.
+We provide more details on how to create your own dataset generation script on the :doc:`add_dataset` page and you can also find some inspiration in all the already provided loading scripts on the `GitHub repository <https://github.com/huggingface/nlp/tree/master/datasets>`__.
 
 
