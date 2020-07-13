@@ -53,7 +53,7 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
             download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
             **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
-    module_path = prepare_module(
+    module_path, _ = prepare_module(
         path, download_config=download_config, dataset=True, force_local_path=local_path, **download_kwargs
     )
     print(
@@ -77,7 +77,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
             download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
             **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
-    module_path = prepare_module(
+    module_path, _ = prepare_module(
         path, download_config=download_config, dataset=False, force_local_path=local_path, **download_kwargs
     )
     print(
