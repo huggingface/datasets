@@ -393,6 +393,10 @@ class DatasetBuilder:
                         # download post processing resources
                         remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
                         for resource_file_name in self._post_processing_resources().values():
+                            if "/" in resource_file_name:
+                                raise ValueError(
+                                    "Resources shouldn't be in a sub-directory: {}".format(resource_file_name)
+                                )
                             try:
                                 resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
                                 shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
@@ -546,6 +550,9 @@ class DatasetBuilder:
         # Build base dataset
         ds = self._as_dataset(split=split,)
         if run_post_process:
+            for resource_file_name in self._post_processing_resources().values():
+                if "/" in resource_file_name:
+                    raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
             resources_paths = {
                 resource_name: os.path.join(self._cache_dir, resource_file_name)
                 for resource_name, resource_file_name in self._post_processing_resources().items()
