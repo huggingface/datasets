@@ -492,6 +492,19 @@ class SplitDict(dict):
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
         raise ValueError("Cannot add elem. Use .add() instead.")
 
+    # The following three methods allow pickling and unpickling of SplitDicts.
+    # This is necessary because unpickling will try to call __setitem__ by default.
+    # See https://stackoverflow.com/questions/21144845
+    def __reduce__(self):
+        return SplitDict, (), self.__getstate__()
+
+    def __getstate__(self):
+        return self.dataset_name, dict(self)
+
+    def __setstate__(self, state):
+        self.dataset_name, data = state
+        self.update(data)
+
     def add(self, split_info: SplitInfo):
         """Add the split info."""
         if split_info.name in self:

@@ -143,6 +143,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._format_columns: Optional[list] = None
         self._output_all_columns: bool = False
 
+    def __getstate__(self):
+        logging.warn("Pickling Dataset not supported, as this writes the dataset to disk. Prefer Dataset.from_file instead.")
+        return self.__dict__
+
     @classmethod
     def from_file(cls, filename: str, info: Optional["DatasetInfo"] = None, split: Optional["NamedSplit"] = None):
         """ Instantiate a Dataset backed by an Arrow table at filename """
