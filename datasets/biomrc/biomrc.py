@@ -47,14 +47,9 @@ _DESCRIPTION = """\
 We introduce BIOMRC, a large-scale cloze-style biomedical MRC dataset. Care was taken to reduce noise, compared to the previous BIOREAD dataset of Pappas et al. (2018). Experiments show that simple heuristics do not perform well on the new dataset and that two neural MRC models that had been tested on BIOREAD perform much better on BIOMRC, indicating that the new dataset is indeed less noisy or at least that its task is more feasible. Non-expert human performance is also higher on the new dataset compared to BIOREAD, and biomedical experts perform even better. We also introduce a new BERT-based MRC model, the best version of which substantially outperforms all other methods tested, reaching or surpassing the accuracy of biomedical experts in some experiments. We make the new dataset available in three different sizes, also releasing our code, and providing a leaderboard.
 """
 
-_SETTING = "A"
-_VERSION = "large"
-
 
 class BiomrcConfig(nlp.BuilderConfig):
     """BuilderConfig for BioMRC."""
-
-    global _SETTING, _VERSION
 
     def __init__(self, biomrc_setting="A", biomrc_version="large", **kwargs):
         """BuilderConfig for BioMRC.
@@ -62,18 +57,20 @@ class BiomrcConfig(nlp.BuilderConfig):
       **kwargs: keyword arguments forwarded to super.
     """
         if biomrc_setting.lower() == "b":
-            _SETTING = "B"
+            self.biomrc_setting = "B"
         else:
             if biomrc_setting.lower() != "a":
                 logging.warning("Wrong Setting for BioMRC, using Setting A instead.")
+            self.biomrc_setting = "A"
 
         if biomrc_version.lower() == "small":
-            _VERSION = "small"
+            self.biomrc_version = "small"
         elif biomrc_version.lower() == "tiny":
-            _VERSION = "tiny"
+            self.biomrc_version = "tiny"
         else:
             if biomrc_version.lower() != "large":
                 logging.warning("Wrong version for BioMRC, using BioMRC Large instead.")
+            self.biomrc_version = "large"
 
         super(BiomrcConfig, self).__init__(**kwargs)
 
@@ -81,11 +78,50 @@ class BiomrcConfig(nlp.BuilderConfig):
 class Biomrc(nlp.GeneratorBasedBuilder):
     """BioMRC Dataset"""
 
+    BUILDER_CONFIG_CLASS = BiomrcConfig
+
     BUILDER_CONFIGS = [
         BiomrcConfig(
-            name="plain_text",
+            name="biomrc_large_A",
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
-            description="Plain text",
+            description="Biomrc Version Large Setting A",
+            biomrc_setting="A",
+            biomrc_version="large",
+        ),
+        BiomrcConfig(
+            name="biomrc_large_B",
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            description="Biomrc Version Large Setting B",
+            biomrc_setting="B",
+            biomrc_version="large",
+        ),
+        BiomrcConfig(
+            name="biomrc_small_A",
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            description="Biomrc Version Small Setting A",
+            biomrc_setting="A",
+            biomrc_version="small",
+        ),
+        BiomrcConfig(
+            name="biomrc_small_B",
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            description="Biomrc Version Small Setting B",
+            biomrc_setting="B",
+            biomrc_version="small",
+        ),
+        BiomrcConfig(
+            name="biomrc_tiny_A",
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            description="Biomrc Version Tiny Setting A",
+            biomrc_setting="A",
+            biomrc_version="tiny",
+        ),
+        BiomrcConfig(
+            name="biomrc_tiny_B",
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            description="Biomrc Version Tiny Setting B",
+            biomrc_setting="B",
+            biomrc_version="tiny",
         ),
     ]
 
@@ -106,8 +142,10 @@ class Biomrc(nlp.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        setting = "" if _SETTING == "A" else "_B"
-        if _VERSION == "large":
+        print(self)
+        print(self.config)
+        setting = "" if self.config.biomrc_setting == "A" else "_B"
+        if self.config.biomrc_version == "large":
             urls_to_download = {
                 "train": "https://archive.org/download/biomrc_dataset/biomrc_large/dataset_train{}.json.gz".format(
                     setting
@@ -119,38 +157,37 @@ class Biomrc(nlp.GeneratorBasedBuilder):
                     setting
                 ),
             }
-        elif _VERSION == "small":
+        elif self.config.biomrc_version == "small":
             urls_to_download = {
-                "train": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_small_train{}.json.gz".format(
+                "train": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_train_small{}.json.gz".format(
                     setting
                 ),
-                "val": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_small_val{}.json.gz".format(
+                "val": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_val_small{}.json.gz".format(
                     setting
                 ),
-                "test": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_small_test{}.json.gz".format(
+                "test": "https://archive.org/download/biomrc_dataset/biomrc_small/dataset_test_small{}.json.gz".format(
                     setting
                 ),
             }
         else:
             urls_to_download = {
-                "test": "https://archive.org/download/biomrc_dataset/biomrc_tiny/dataset_tiny_test{}.json.gz".format(
+                "test": "https://archive.org/download/biomrc_dataset/biomrc_tiny/dataset_tiny{}.json.gz".format(
                     setting
                 )
             }
 
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
-        if _VERSION == "tiny":
+        if self.config.biomrc_version == "tiny":
             return [
                 nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
             ]
         else:
-            if _SETTING == "A":
-                return [
-                    nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-                    nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["val"]}),
-                    nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
-                ]
+            return [
+                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+                nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["val"]}),
+                nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+            ]
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
