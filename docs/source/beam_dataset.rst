@@ -22,26 +22,30 @@ If you want to run the Beam pipeline of a dataset anyway, here are the different
 
 - First define which dataset and config you want to process:
 
-::
+.. code::
+
     DATASET_NAME=your_dataset_name  # ex: wikipedia
     CONFIG_NAME=your_config_name    # ex: 20200501.en
 
 - Then, define your GCP infos:
 
-::
+.. code::
+
     PROJECT=your_project
     BUCKET=your_bucket
     REGION=your_region
 
 - Specify the python requirements:
 
-::
+.. code::
+
     echo "nlp" > /tmp/beam_requirements.txt
     echo "apache_beam" >> /tmp/beam_requirements.txt
 
 - Finally run your pipeline:
 
-::
+.. code::
+
     python -m nlp-cli run_beam datasets/$DATASET_NAME \
     --name $CONFIG_NAME \
     --save_infos \

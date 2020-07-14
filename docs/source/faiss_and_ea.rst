@@ -1,12 +1,12 @@
 Adding a FAISS or Elastic Search index to a Dataset
 ====================================================================
 
-It can be interesting to do documents retrieval in a dataset.
+It is possible to do documents retrieval in a dataset.
 
 For example, one way to do Open Domain Question Answering, one way to do that is to first retrieve documents that may be relevant to answer a question, and then we can use a model to generate an answer given the retrieved documents.
 
 FAISS is a library for dense retrieval. It means that it retrieves documents based on their vector representations, by doing a nearest neighbors search.
-As we now have models that can have good semantic vectorized representations of documents, this has become an interesting tool for document retrieval.
+As we now have models that can generate good semantic vector representations of documents, this has become an interesting tool for document retrieval.
 
 On the other hand there exist other tools like ElasticSearch for exact match retrieval in texts (sparse retrieval).
 
@@ -46,6 +46,10 @@ Then you can load your dataset and compute the representations:
     >>> from nlp import load_dataset
     >>> ds = load_dataset('crime_and_punish', split='train[:100]')
     >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': ctx_encoder(**ctx_tokenizer(example["line"], return_tensors="pt"))[0][0].numpy()})
+
+.. note::
+
+    If you have the embeddings in numpy format, you can call :func:`nlp.Dataset.add_faiss_index_from_external_arrays` instead.
 
 We can create the index:
 
