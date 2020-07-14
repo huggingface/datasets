@@ -220,10 +220,6 @@ class BaseDatasetTest(TestCase):
 
             tf_dset = tf.data.TFRecordDataset([tfrecord_path])
             feature_description = {
-                "filename": tf.io.FixedLenFeature([], tf.string),
-                "vec1.vec2": tf.io.RaggedFeature(tf.float32, partitions=[]),
-            }
-            feature_description = {
                 "id": tf.io.FixedLenFeature([], tf.int64),
                 "question": tf.io.FixedLenFeature([], tf.string),
                 "answers.text": tf.io.VarLenFeature(tf.string),
