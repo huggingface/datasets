@@ -1,6 +1,7 @@
 # coding=utf-8
 
 from dataclasses import dataclass
+from typing import List
 
 import pyarrow.csv as pac
 
@@ -11,10 +12,11 @@ import nlp
 class CsvConfig(nlp.BuilderConfig):
     """BuilderConfig for CSV."""
 
-    skip_rows: int = 0
-    header_as_column_names: bool = True
-    delimiter: str = ","
-    quote_char: str = '"'
+    skip_rows: int = None
+    column_names: List[str] = None
+    autogenerate_column_names: bool = None
+    delimiter: str = None
+    quote_char: str = None
     read_options: pac.ReadOptions = None
     parse_options: pac.ParseOptions = None
     convert_options: pac.ConvertOptions = None
@@ -22,15 +24,21 @@ class CsvConfig(nlp.BuilderConfig):
     @property
     def pa_read_options(self):
         read_options = self.read_options or pac.ReadOptions()
-        read_options.skip_rows = self.skip_rows
-        read_options.autogenerate_column_names = not self.header_as_column_names
+        if self.skip_rows is not None:
+            read_options.skip_rows = self.skip_rows
+        if self.column_names is not None:
+            read_options.column_names = self.column_names
+        if self.autogenerate_column_names is not None:
+            read_options.autogenerate_column_names = self.autogenerate_column_names
         return read_options
 
     @property
     def pa_parse_options(self):
         parse_options = self.parse_options or pac.ParseOptions()
-        parse_options.delimiter = self.delimiter
-        parse_options.quote_char = self.quote_char
+        if self.delimiter is not None:
+            parse_options.delimiter = self.delimiter
+        if self.quote_char is not None:
+            parse_options.quote_char = self.quote_char
         return parse_options
 
     @property

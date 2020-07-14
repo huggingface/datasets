@@ -16,7 +16,7 @@
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 import pyarrow as pa
@@ -51,7 +51,7 @@ class Value:
     id: Optional[str] = None
     # Automatically constructed
     pa_type: ClassVar[Any] = None
-    _type: str = "Value"
+    _type: str = field(default="Value", init=False, repr=False)
 
     def __post_init__(self):
         self.pa_type = string_to_arrow(self.dtype)
@@ -82,7 +82,7 @@ class Tensor:
     id: Optional[str] = None
     # Automatically constructed
     pa_type: ClassVar[Any] = None
-    _type: str = "Tensor"
+    _type: str = field(default="Tensor", init=False, repr=False)
 
     def __post_init__(self):
         assert len(self.shape) < 2, "Tensor can only take 0 or 1 dimensional shapes ."
@@ -125,7 +125,7 @@ class ClassLabel:
     pa_type: ClassVar[Any] = pa.int64()
     _str2int: ClassVar[Dict[str, int]] = None
     _int2str: ClassVar[Dict[int, int]] = None
-    _type: str = "ClassLabel"
+    _type: str = field(default="ClassLabel", init=False, repr=False)
 
     def __post_init__(self):
         # The label is explicitly set as undefined (no label defined)
@@ -226,7 +226,7 @@ class ClassLabel:
 @dataclass
 class Translation:
     """`FeatureConnector` for translations with fixed languages per example.
-        Here for compatiblity with tfds.
+    Here for compatiblity with tfds.
 
     Input: The Translate feature accepts a dictionary for each example mapping
         string language codes to string translations.
@@ -234,32 +234,19 @@ class Translation:
     Output: A dictionary mapping string language codes to translations as `Text`
         features.
 
-    Example:
-    At construction time:
+    Example::
 
-    ```
-    nlp.features.Translation(languages=['en', 'fr', 'de'])
-    ```
+        # At construction time:
 
-    During data generation:
+        nlp.features.Translation(languages=['en', 'fr', 'de'])
 
-    ```
-    yield {
-            'en': 'the cat',
-            'fr': 'le chat',
-            'de': 'die katze'
-    }
-    ```
+        # During data generation:
 
-    Tensor returned by `.as_dataset()`:
-
-    ```
-    {
-            'en': 'the cat',
-            'fr': 'le chat',
-            'de': 'die katze',
-    }
-    ```
+        yield {
+                'en': 'the cat',
+                'fr': 'le chat',
+                'de': 'die katze'
+        }
     """
 
     languages: List[str]
@@ -267,7 +254,7 @@ class Translation:
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = None
-    _type: str = "Translation"
+    _type: str = field(default="Translation", init=False, repr=False)
 
     def __call__(self):
         return pa.struct({lang: pa.string() for lang in self.languages})
@@ -276,7 +263,7 @@ class Translation:
 @dataclass
 class TranslationVariableLanguages:
     """`FeatureConnector` for translations with variable languages per example.
-        Here for compatiblity with tfds.
+    Here for compatiblity with tfds.
 
     Input: The TranslationVariableLanguages feature accepts a dictionary for each
         example mapping string language codes to one or more string translations.
@@ -288,31 +275,26 @@ class TranslationVariableLanguages:
         translation: variable-length 1D tf.Tensor of tf.string plain text
             translations, sorted to align with language codes.
 
-    Example (fixed language list):
-    At construction time:
+    Example::
 
-    ```
-    nlp.features.Translation(languages=['en', 'fr', 'de'])
-    ```
+        # At construction time:
 
-    During data generation:
+        nlp.features.Translation(languages=['en', 'fr', 'de'])
 
-    ```
-    yield {
-            'en': 'the cat',
-            'fr': ['le chat', 'la chatte,']
-            'de': 'die katze'
-    }
-    ```
+        # During data generation:
 
-    Tensor returned :
+        yield {
+                'en': 'the cat',
+                'fr': ['le chat', 'la chatte,']
+                'de': 'die katze'
+        }
 
-    ```
-    {
-            'language': ['en', 'de', 'fr', 'fr'],
-            'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
-    }
-    ```
+        # Tensor returned :
+
+        {
+                'language': ['en', 'de', 'fr', 'fr'],
+                'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
+        }
     """
 
     languages: List = None
@@ -321,7 +303,7 @@ class TranslationVariableLanguages:
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = None
-    _type: str = "TranslationVariableLanguages"
+    _type: str = field(default="TranslationVariableLanguages", init=False, repr=False)
 
     def __post_init__(self):
         self.languages = list(sorted(list(set(self.languages)))) if self.languages else None
@@ -366,7 +348,7 @@ class Sequence:
     # Automatically constructed
     dtype: ClassVar[str] = "list"
     pa_type: ClassVar[Any] = None
-    _type: str = "Sequence"
+    _type: str = field(default="Sequence", init=False, repr=False)
 
 
 FeatureType = Union[dict, list, tuple, Value, Tensor, ClassLabel, Translation, TranslationVariableLanguages, Sequence]

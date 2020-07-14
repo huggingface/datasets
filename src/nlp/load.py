@@ -130,25 +130,24 @@ def convert_github_url(url_path: str):
 
 
 def get_imports(file_path: str):
-    r"""
-        Find whether we should import or clone additional files for a given processing script.
+    r"""Find whether we should import or clone additional files for a given processing script.
         And list the import.
 
-        We allow:
-        - library dependencies,
-        - local dependencies and
-        - external dependencies whose url is specified with a comment starting from "# From:' followed by the raw url to a file, an archive or a github repository.
-            external dependencies will be downloaded (and extracted if needed in the dataset folder).
-            We also add an `__init__.py` to each sub-folder of a downloaded folder so the user can import from them in the script.
+    We allow:
+    - library dependencies,
+    - local dependencies and
+    - external dependencies whose url is specified with a comment starting from "# From:' followed by the raw url to a file, an archive or a github repository.
+        external dependencies will be downloaded (and extracted if needed in the dataset folder).
+        We also add an `__init__.py` to each sub-folder of a downloaded folder so the user can import from them in the script.
 
-        Note that only direct import in the dataset processing script will be handled
-        We don't recursively explore the additional import to download further files.
+    Note that only direct import in the dataset processing script will be handled
+    We don't recursively explore the additional import to download further files.
 
-        ```python
+    Examples::
+
         import tensorflow
         import .c4_utils
         import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
-        ```
     """
     lines = []
     with open(file_path, mode="r") as f:
@@ -192,27 +191,28 @@ def prepare_module(
     force_local_path: Optional[str] = None,
     **download_kwargs,
 ) -> DatasetBuilder:
-    r"""
-        Download/extract/cache a dataset (if dataset==True) or a metric (if dataset==False)
+    r"""Download/extract/cache a dataset (if dataset==True) or a metric (if dataset==False)
 
-        Dataset and metrics codes are cached inside the lib to allow easy import (avoid ugly sys.path tweaks)
-        and using cloudpickle (among other things).
+    Dataset and metrics codes are cached inside the lib to allow easy import (avoid ugly sys.path tweaks)
+    and using cloudpickle (among other things).
 
-        Args:
+    Args:
 
-            path (str): path to the dataset or metric script, can be either:
+        path (str):
+            path to the dataset or metric script, can be either:
                 - a path to a local directory containing the dataset processing python script
                 - an url to a S3 directory with a dataset processing python script
-            download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
-            dataset (bool): True if the script to load is a dataset, False if the script is a metric.
-            force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-                Used to inspect or modify the script folder.
-            **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+        download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
+        dataset (bool): True if the script to load is a dataset, False if the script is a metric.
+        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
+            Used to inspect or modify the script folder.
+        **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
-        Return: ``str`` with
-
+    Return:
+        ``str`` with
             - the import path of the dataset/metric package if force_local_path is False: e.g. 'nlp.datasets.squad'
             - the local path to the dataset/metric file if force_local_path is True: e.g. '/User/huggingface/nlp/datasets/squad/squad.py'
+
     """
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
@@ -408,25 +408,25 @@ def load_metric(
     download_config: Optional[DownloadConfig] = None,
     **metric_init_kwargs,
 ) -> Metric:
-    r"""
-        Load a `nlp.Metric`.
+    r"""Load a `nlp.Metric`.
 
-        Args:
+    Args:
 
-            path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+        path (``str``):
+            path to the dataset processing script with the dataset builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                     e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
                 - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-            name (Optional ``str``): defining the name of the dataset configuration
-            process_id (Optional ``int``): for distributed evaluation: id of the process
-            num_process (Optional ``int``): for distributed evaluation: total number of processes
-            data_dir (Optional str): path to store the temporary predictions and references (default to `~/.nlp/`)
-            experiment_id (Optional str): An optional unique id for the experiment.
-            in_memory (bool): Weither to store the temporary results in memory (default: False)
-            download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
+        name (Optional ``str``): defining the name of the dataset configuration
+        process_id (Optional ``int``): for distributed evaluation: id of the process
+        num_process (Optional ``int``): for distributed evaluation: total number of processes
+        data_dir (Optional str): path to store the temporary predictions and references (default to `~/.nlp/`)
+        experiment_id (Optional str): An optional unique id for the experiment.
+        in_memory (bool): Weither to store the temporary results in memory (default: False)
+        download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
 
-        Returns: `nlp.Metric`.
+    Returns: `nlp.Metric`.
     """
     module_path = prepare_module(path, download_config=download_config, dataset=False)
     metric_cls = import_main_class(module_path, dataset=False)
@@ -458,52 +458,54 @@ def load_dataset(
 ) -> Union[Dict[Split, Dataset], Dataset]:
     r"""Load a dataset
 
-        This method does the following under the hood:
+    This method does the following under the hood:
 
-            1. Download and import in the library the dataset loading script from ``path`` if it's not already cached inside the library.
+        1. Download and import in the library the dataset loading script from ``path`` if it's not already cached inside the library.
 
-                Processing scripts are small python scripts that define the citation, info and format of the dataset,
-                contain the URL to the original data files and the code to load examples from the original data files.
+            Processing scripts are small python scripts that define the citation, info and format of the dataset,
+            contain the URL to the original data files and the code to load examples from the original data files.
 
-                You can find some of the scripts here: https://github.com/huggingface/nlp/datasets
-                and easily upload yours to share them using the CLI ``nlp-cli``.
+            You can find some of the scripts here: https://github.com/huggingface/nlp/datasets
+            and easily upload yours to share them using the CLI ``nlp-cli``.
 
-            2. Run the dataset loading script which will:
+        2. Run the dataset loading script which will:
 
-                * Download the dataset file from the original URL (see the script) if it's not already downloaded and cached.
-                * Process and cache the dataset in typed Arrow tables for caching.
+            * Download the dataset file from the original URL (see the script) if it's not already downloaded and cached.
+            * Process and cache the dataset in typed Arrow tables for caching.
 
-                    Arrow table are arbitrarly long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
-                    They can be directly access from drive, loaded in RAM or even streamed over the web.
+                Arrow table are arbitrarly long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
+                They can be directly access from drive, loaded in RAM or even streamed over the web.
 
-            3. Return a dataset build from the requested splits in ``split`` (default: all).
+        3. Return a dataset build from the requested splits in ``split`` (default: all).
 
-        Args:
+    Args:
 
-            path (``str``): path to the dataset processing script with the dataset builder. Can be either:
+        path (``str``):
+            path to the dataset processing script with the dataset builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                     e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
                 - a datatset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-            name (Optional ``str``): defining the name of the dataset configuration
-            version (Optional ``str``): defining the version of the dataset configuration
-            data_files (Optional ``str``): defining the data_files of the dataset configuration
-            data_dir (Optional ``str``): defining the data_dir of the dataset configuration
-            split (`nlp.Split` or `str`): which split of the data to load.
-                If None, will return a `dict` with all splits (typically `nlp.Split.TRAIN` and `nlp.Split.TEST`).
-                If given, will return a single Dataset.
-                Splits can be combined and specified like in tensorflow-datasets.
-            cache_dir (Optional ``str``): directory to read/write data. Defaults to "~/nlp".
-            download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
-            download_mode (Optional `nlp.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
-            ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
-            save_infos (bool): Save the dataset information (checksums/size/splits/...)
-            **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``nlp.BuilderConfig`` and used in the ``nlp.DatasetBuilder``.
+        name (Optional ``str``): defining the name of the dataset configuration
+        version (Optional ``str``): defining the version of the dataset configuration
+        data_files (Optional ``str``): defining the data_files of the dataset configuration
+        data_dir (Optional ``str``): defining the data_dir of the dataset configuration
+        split (`nlp.Split` or `str`): which split of the data to load.
+            If None, will return a `dict` with all splits (typically `nlp.Split.TRAIN` and `nlp.Split.TEST`).
+            If given, will return a single Dataset.
+            Splits can be combined and specified like in tensorflow-datasets.
+        cache_dir (Optional ``str``): directory to read/write data. Defaults to "~/nlp".
+        download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
+        download_mode (Optional `nlp.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
+        ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
+        save_infos (bool): Save the dataset information (checksums/size/splits/...)
+        **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``nlp.BuilderConfig`` and used in the ``nlp.DatasetBuilder``.
 
-        Returns: ``nlp.Dataset`` or ``Dict[nlp.Split, nlp.Dataset]``
-
+    Returns:
+        ``nlp.Dataset`` or ``Dict[nlp.Split, nlp.Dataset]``
             if `split` is not None: the dataset requested,
             if `split` is None, a `dict<key: nlp.Split, value: nlp.Dataset>` with each split.
+
     """
     # Download/copy dataset processing script
     module_path = prepare_module(path, download_config=download_config, dataset=True)

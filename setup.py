@@ -102,6 +102,7 @@ EXTRAS_REQUIRE = {
     'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE,
     'quality': QUALITY_REQUIRE,
+    'docs': ["recommonmark", "sphinx", "sphinx-markdown-tables", "sphinx-rtd-theme==0.4.3", "sphinx-copybutton"]
 }
 
 setup(
