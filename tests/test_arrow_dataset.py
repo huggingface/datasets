@@ -206,7 +206,7 @@ class BaseDatasetTest(TestCase):
                 lambda ex, i: {
                     "id": i,
                     "question": f"Question {i}",
-                    "answers": {"text": [f"Answer {i}-0", f"Answer {i}-1"], "answer_start": [0, 1],},
+                    "answers": {"text": [f"Answer {i}-0", f"Answer {i}-1"], "answer_start": [0, 1]},
                 },
                 with_indices=True,
                 remove_columns=["filename"],
