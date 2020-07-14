@@ -75,6 +75,13 @@ class BaseDatasetTest(TestCase):
         features = Features({"col_1": Value("string"), "col_2": Value("string")})
         self.assertRaises(pa.ArrowTypeError, Dataset.from_dict, data, features=features)
 
+    def test_from_concat(self):
+        data1, data2 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}
+        dset1, dset2 = Dataset.from_dict(data1), Dataset.from_dict(data2)
+
+        dset_concat = Dataset.from_concat([dset1, dset2])
+        self.assertEquals(len(dset_concat), len(dset1) + len(dset2))
+
     def test_map(self):
         dset = self._create_dummy_dataset()
         with tempfile.TemporaryDirectory() as tmp_dir:
