@@ -1100,8 +1100,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # From https://www.tensorflow.org/tutorials/load_data/tfrecord
         def _bytes_feature(values):
             """Returns a bytes_list from a list of string / byte."""
-            # if isinstance(value, type(tf.constant(0))):
-            #     value = value.numpy()  # BytesList won't unpack a string from an EagerTensor.
             return tf.train.Feature(bytes_list=tf.train.BytesList(value=values))
 
         def _float_feature(values):
@@ -1119,10 +1117,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     return _float_feature(values)
                 elif values.dtype == np.dtype(int):
                     return _int64_feature(values)
-                elif values.dtype == np.dtype(str):
-                    pass  # TODO
+                elif values.dtype == np.dtype(str) or (
+                    values.dtype == np.dtype(object) and len(values) > 0 and isinstance(values[0], str)
+                ):
+                    return _bytes_feature([v.encode() for v in values])
                 else:
-                    assert False
+                    raise ValueError(
+                        f"values={values} is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
+                    )
             elif isinstance(values, float):
                 return _float_feature([values])
             elif isinstance(values, int):
@@ -1130,7 +1132,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             elif isinstance(values, str):
                 return _bytes_feature([values.encode()])
             else:
-                assert False
+                raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
 
         def serialize_example(ex):
             feature = {key: _feature(value) for key, value in ex.items()}
@@ -1145,7 +1147,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             for ex in self:
                 yield serialize_example(ex)
 
-        # assert self._format_type == "tensorflow", "Call dataset.set_format('tensorflow') first"
+        assert self._format_type is None, "Do not set dataset format before exporting"
         assert filename.endswith(".tfrecord")
         tf_dataset = tf.data.Dataset.from_generator(generator, output_types=tf.string, output_shapes=())
         writer = tf.data.experimental.TFRecordWriter(filename)

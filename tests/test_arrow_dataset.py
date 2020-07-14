@@ -203,8 +203,13 @@ class BaseDatasetTest(TestCase):
             # Export the data
             tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
             dset = dset.map(
-                lambda ex, i: {"vec1": {"vec2": np.ones(np.random.randint(1, 4), dtype=float) * i}},
+                lambda ex, i: {
+                    "id": i,
+                    "question": f"Question {i}",
+                    "answers": {"text": [f"Answer {i}-0", f"Answer {i}-1"], "answer_start": [0, 1],},
+                },
                 with_indices=True,
+                remove_columns=["filename"],
                 cache_file_name=tmp_file,
             )
             dset.flatten()
@@ -217,6 +222,12 @@ class BaseDatasetTest(TestCase):
             feature_description = {
                 "filename": tf.io.FixedLenFeature([], tf.string),
                 "vec1.vec2": tf.io.RaggedFeature(tf.float32, partitions=[]),
+            }
+            feature_description = {
+                "id": tf.io.FixedLenFeature([], tf.int64),
+                "question": tf.io.FixedLenFeature([], tf.string),
+                "answers.text": tf.io.VarLenFeature(tf.string),
+                "answers.answer_start": tf.io.VarLenFeature(tf.int64),
             }
             tf_parsed_dset = tf_dset.map(
                 lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
