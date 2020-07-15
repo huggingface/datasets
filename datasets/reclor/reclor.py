@@ -54,7 +54,7 @@ class Reclor(nlp.GeneratorBasedBuilder):
                     # These are the features of your dataset like images, labels ...
                     "context": nlp.Value("string"),
                     "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence({"answer": nlp.Value("string")}),
+                    "answers": nlp.features.Sequence( nlp.Value("string")),
                     "label": nlp.Value("string"),
                     "id_string": nlp.Value("string"),
                 }
@@ -108,7 +108,7 @@ class Reclor(nlp.GeneratorBasedBuilder):
                 yield id_, {
                     "context": row["context"],
                     "question": row["question"],
-                    "answers": {"answer": row["answers"]},
+                    "answers": row["answers"],
                     "label": str(row.get("label", "")),
                     "id_string": row["id_string"],
                 }
