@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 from shutil import copyfile
 from typing import List
 
-from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
+from nlp.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder
 from nlp.commands import BaseTransformersCLICommand
 from nlp.info import DATASET_INFOS_DICT_FILE_NAME
 from nlp.load import import_main_class, prepare_module
@@ -75,13 +75,12 @@ class TestCommand(BaseTransformersCLICommand):
         builders: List[DatasetBuilder] = []
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
-                builders.append(builder_cls(name=config.name, data_dir=self._data_dir))
+                builders.append(builder_cls(name=config.name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir))
         else:
-            builders.append(builder_cls(name=name, hash=hash, data_dir=self._data_dir))
+            builders.append(builder_cls(name=name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir))
 
         for builder in builders:
             builder.download_and_prepare(
-                download_config=DownloadConfig(cache_dir=self._cache_dir),
                 download_mode=REUSE_CACHE_IF_EXISTS if not self._force_redownload else FORCE_REDOWNLOAD,
                 save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,
