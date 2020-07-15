@@ -93,7 +93,6 @@ class StyleChangeDetection(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        breakpoint()
         train_dir = os.path.join(data_dir, "train", "dataset-" + self.config.name)
         val_dir = os.path.join(data_dir, "train", "dataset-" + self.config.name)
 
