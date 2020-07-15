@@ -142,8 +142,6 @@ class Biomrc(nlp.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        print(self)
-        print(self.config)
         setting = "" if self.config.biomrc_setting == "A" else "_B"
         if self.config.biomrc_version == "large":
             urls_to_download = {
