@@ -213,25 +213,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
         return cls(pa_table, info=info, split=split)
 
-    @classmethod
-    def from_concat(
-        cls, dsets: List["Dataset"], info: Optional[Any] = None, split: Optional[Any] = None,
-    ):
-        """
-        Converts a list of :obj:``nlp.Dataset`` with the same schema into a single :obj:``nlp.Dataset``.
-
-        Args:
-            dsets (:obj:``List[nlp.Dataset]``): A list of Datasets to concatenate
-            features (:obj:``nlp.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
-            info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
-                description, citation, etc.
-            split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
-        """
-        schema = dsets[0].schema
-        assert all([dset.schema == schema for dset in dsets]), "Schema must match for all datasets"
-        table = pa.concat_tables([dset.data for dset in dsets])
-        return cls(table, info=info, split=split)
-
     @property
     def data(self) -> pa.Table:
         """The Apache Arrow table backing the dataset."""

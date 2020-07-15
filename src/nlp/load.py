@@ -18,6 +18,7 @@
 
 import importlib
 import inspect
+import itertools
 import json
 import logging
 import os
@@ -25,9 +26,10 @@ import re
 import shutil
 from hashlib import sha256
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlparse
 
+import pyarrow as pa
 from filelock import FileLock
 
 from .arrow_dataset import Dataset
@@ -530,3 +532,23 @@ def load_dataset(
     ds = builder_instance.as_dataset(split=split)
 
     return ds
+
+
+def concatenate_datasets(
+    dsets: List["Dataset"], info: Optional[Any] = None, split: Optional[Any] = None,
+):
+    """
+    Converts a list of :obj:``nlp.Dataset`` with the same schema into a single :obj:``nlp.Dataset``.
+
+    Args:
+        dsets (:obj:``List[nlp.Dataset]``): A list of Datasets to concatenate
+        features (:obj:``nlp.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
+        info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
+            description, citation, etc.
+        split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+    """
+    if not all([dset.schema == dsets[0].schema for dset in dsets]):
+        raise ValueError("Schema must match for all datasets")
+    table = pa.concat_tables([dset._data for dset in dsets])
+    data_files = list(itertools.chain(*[dset._data_files for dset in dsets]))
+    return Dataset(table, info=info, split=split, data_files=data_files)
