@@ -195,7 +195,7 @@ class DownloadManager(object):
                 path_or_paths.
         """
         return map_nested(
-            lambda path: cached_path(path, extract_compressed_file=True, force_extract=False), path_or_paths,
+            lambda path: cached_path(path, cache_dir=self._download_config.cache_dir, extract_compressed_file=True, force_extract=False), path_or_paths,
         )
 
     def download_and_extract(self, url_or_urls):
