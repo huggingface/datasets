@@ -550,5 +550,5 @@ def concatenate_datasets(
     if not all([dset.schema == dsets[0].schema for dset in dsets]):
         raise ValueError("Schema must match for all datasets")
     table = pa.concat_tables([dset._data for dset in dsets])
-    data_files = list(itertools.chain(*[dset._data_files for dset in dsets]))
+    data_files = list(itertools.chain.from_iterable([dset._data_files for dset in dsets]))
     return Dataset(table, info=info, split=split, data_files=data_files)
