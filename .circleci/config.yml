@@ -26,6 +26,33 @@ jobs:
             - run: black --check --line-length 119 --target-version py36 tests src
             - run: isort --check-only --recursive tests src
             - run: flake8 tests src
+    build_doc:
+        working_directory: ~/nlp
+        docker:
+            - image: circleci/python:3.6
+        steps:
+            - checkout
+            - run: sudo pip install .[docs]
+            - run: cd docs && make html SPHINXOPTS="-W"
+            - store_artifacts:
+                  path: ./docs/_build
+    deploy_doc:
+        working_directory: ~/nlp
+        docker:
+            - image: circleci/python:3.6
+        steps:
+            - add_ssh_keys:
+                fingerprints:
+                    - "5b:7a:95:18:07:8c:aa:76:4c:60:35:88:ad:60:56:71"
+            - checkout
+            - run: sudo pip install .[docs]
+            - run: ./.circleci/deploy.sh
+
+workflow_filters: &workflow_filters
+    filters:
+        branches:
+            only:
+                - master
 
 workflows:
     version: 2
@@ -33,3 +60,5 @@ workflows:
         jobs:
             - check_code_quality
             - run_dataset_script_tests
+            - build_doc
+            - deploy_doc: *workflow_filters

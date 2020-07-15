@@ -67,6 +67,12 @@ class DatasetNotOnHfGcs(ConnectionError):
     pass
 
 
+class MissingFilesOnHfGcs(ConnectionError):
+    """When some files are missing on the Hf oogle cloud storage"""
+
+    pass
+
+
 @dataclass(frozen=True)
 class FileInstructions:
     """The file instructions associated with a split ReadInstruction.
@@ -236,14 +242,17 @@ class BaseReader:
                 self._info.update(self._info.from_directory(cache_dir))
         except ConnectionError:
             raise DatasetNotOnHfGcs()
-        for split in self._info.splits:
-            file_instructions = self.get_file_instructions(
-                name=self._info.builder_name, instruction=split, split_infos=self._info.splits.values(),
-            )
-            for file_instruction in file_instructions:
-                remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
-                downloaded_prepared_filename = cached_path(remote_prepared_filename)
-                shutil.move(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
+        try:
+            for split in self._info.splits:
+                file_instructions = self.get_file_instructions(
+                    name=self._info.builder_name, instruction=split, split_infos=self._info.splits.values(),
+                )
+                for file_instruction in file_instructions:
+                    remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
+                    downloaded_prepared_filename = cached_path(remote_prepared_filename)
+                    shutil.move(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
+        except ConnectionError:
+            raise MissingFilesOnHfGcs()
 
 
 class ArrowReader(BaseReader):
