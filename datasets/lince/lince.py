@@ -14,7 +14,7 @@ import six
 import nlp
 
 
-_LINCE_CITATION = """\
+_CITATION = """\
 @inproceedings{aguilar-etal-2020-lince,
     title = "{L}in{CE}: A Centralized Benchmark for Linguistic Code-switching Evaluation",
     author = "Aguilar, Gustavo  and
@@ -34,7 +34,7 @@ _LINCE_CITATION = """\
 Note that each LinCE dataset has its own citation. Please see the source to see
 the correct citation for each contained dataset."""
 
-_LINCE_DESCRIPTION = """\
+_DESCRIPTION = """\
 LinCE is a centralized Linguistic Code-switching Evaluation benchmark 
 (https://ritual.uh.edu/lince/) that contains data for training and evaluating
 NLP systems on code-switching tasks.
@@ -269,7 +269,7 @@ class LinceConfig(nlp.BuilderConfig):
 class Lince(nlp.GeneratorBasedBuilder):
     """TODO(lince): Short description of the LinCE dataset."""
 
-    # BUILDER_CONFIG_CLASS = LinceConfig
+    BUILDER_CONFIG_CLASS = LinceConfig
     BUILDER_CONFIGS = [
         # ==========================================================================================
         # Language Identification (LID) datasets
@@ -467,18 +467,15 @@ class Lince(nlp.GeneratorBasedBuilder):
             features["sa"] = nlp.Value("string")
 
         return nlp.DatasetInfo(
-            description=_LINCE_DESCRIPTION,
+            description=_DESCRIPTION,
             features=nlp.Features(features),
             supervised_keys=None,
             homepage="http://ritual.uh.edu/lince",
-            citation=_DATASET_CITATIONS.get(self.config.name, "") + "\n" + _LINCE_CITATION,
+            citation=_DATASET_CITATIONS.get(self.config.name, "") + "\n" + _CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        if not isinstance(self.config, LinceConfig):
-            return []
-
         lince_dir = dl_manager.download_and_extract(f"{_LINCE_URL}/{self.config.name}.zip")
         data_dir = os.path.join(lince_dir, self.config.data_dir)
         return [
