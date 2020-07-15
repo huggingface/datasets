@@ -1088,7 +1088,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
             Args:
                 `filename` (`str`): The filename, including the .tfrecord extension, to write to.
-                `format` (`Optional[str]`): The type of output file. Currently this is a no-op, as
+                `format` (`Optional[str]`, default: `"tfrecord"`): The type of output file. Currently this is a no-op, as
                     TFRecords are the only option. This enables a more flexible function signature
                     later.
         """
