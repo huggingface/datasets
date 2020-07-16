@@ -46,9 +46,8 @@ _CITATION = """
     }
 
 """
-
-_DESCRIPTION = """
 # pylint: disable=line-too-long
+_DESCRIPTION = """
 We publicly release a new large-scale dataset, called SearchQA, for machine comprehension, or question-answering. Unlike recently released datasets, such as DeepMind 
 CNN/DailyMail and SQuAD, the proposed SearchQA was constructed to reflect a full pipeline of general question-answering. That is, we start not from an existing article 
 and generate a question-answer pair, but start from an existing question-answer pair, crawled from J! Archive, and augment it with text snippets retrieved by Google. 
@@ -62,9 +61,9 @@ _DL_URLS = {
     
     "raw_jeopardy": "https://drive.google.com/uc?export=download&id=1U7WdBpd9kJ85S7BbBhWUSiy9NnXrKdO6",
     "train_test_val": "https://drive.google.com/uc?export=download&id=1aHPVfC5TrlnUjehtagVZoDfq4VccgaNT",
-    # pylint: enable=line-too-long
+    
 }
-
+# pylint: enable=line-too-long
 
 class SearchQaConfig(nlp.BuilderConfig):
     """BuilderConfig for SearchQA."""
