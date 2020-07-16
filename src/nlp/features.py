@@ -16,6 +16,7 @@
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
@@ -166,38 +167,53 @@ class ClassLabel:
     def __call__(self):
         return self.pa_type
 
-    def str2int(self, str_value):
+    def str2int(self, values: Union[str, Iterable]):
         """Conversion class name string => integer."""
-        str_value = str(str_value)
+        assert isinstance(values, str) or isinstance(values, Iterable), (
+            f"Values {values} should be a string " f"or an Iterable (list, numpy array, pytorch, tensorflow tensors"
+        )
+        return_list = True
+        if isinstance(values, str):
+            values = [values]
+            return_list = False
 
-        if self._str2int:
-            # strip key if not in dict
-            if str_value not in self._str2int:
-                str_value = str_value.strip()
-            return self._str2int[str_value]
+        output = []
+        for value in values:
+            if self._str2int:
+                # strip key if not in dict
+                if value not in self._str2int:
+                    value = value.strip()
+                output.append(self._str2int[str(value)])
+            else:
+                # No names provided, try to integerize
+                failed_parse = False
+                try:
+                    output.append(int(value))
+                except ValueError:
+                    failed_parse = True
+                if failed_parse or not 0 <= value < self.num_classes:
+                    raise ValueError("Invalid string class label %s" % value)
+        return output if return_list else output[0]
 
-        # No names provided, try to integerize
-        failed_parse = False
-        try:
-            int_value = int(str_value)
-        except ValueError:
-            failed_parse = True
-        if failed_parse or not 0 <= int_value < self._num_classes:
-            raise ValueError("Invalid string class label %s" % str_value)
-        return int_value
-
-    def int2str(self, int_value):
+    def int2str(self, values: Union[int, Iterable]):
         """Conversion integer => class name string."""
-        if not 0 <= int_value < self._num_classes:
-            raise ValueError("Invalid integer class label %d" % int_value)
+        assert isinstance(values, int) or isinstance(values, Iterable), (
+            f"Values {values} should be an integer " f"or an Iterable (list, numpy array, pytorch, tensorflow tensors"
+        )
+        return_list = True
+        if isinstance(values, int):
+            values = [values]
+            return_list = False
+
+        if any(not 0 <= v < self.num_classes for v in values):
+            raise ValueError("Invalid integer class label %d" % values)
+
         if self._int2str:
-            # Maybe should support batched np array/eager tensors, to allow things
-            # like
-            # out_ids = model(inputs)
-            # labels = cifar10.info.features['label'].int2str(out_ids)
-            return self._int2str[int_value]
-        # No names provided, return str(int)
-        return str(int_value)
+            output = [self._int2str[int(v)] for v in values]
+        else:
+            # No names provided, return str(values)
+            output = [str(v) for v in values]
+        return output if return_list else output[0]
 
     def encode_example(self, example_data):
         if self.num_classes is None:
