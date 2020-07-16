@@ -469,7 +469,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if "copy" not in format_kwargs:
                 format_kwargs["copy"] = False
             command = partial(np.array, **format_kwargs)
-            map_nested_kwargs["map_list"] = False  # convert lists to array
+            map_nested_kwargs["map_list"] = False  # convert lists to arrays
         elif format_type == "torch":
             import torch
 
@@ -525,8 +525,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 raise IndexError(f"Index ({key}) outside of table length ({self._data.num_rows}).")
             if format_type is not None and format_type == "pandas":
                 outputs = self._data.slice(key, 1).to_pandas()
-            else:
+            if format_type is not None and format_type in ("numpy", "torch", "tensorflow"):
                 outputs = self._unnest(self._data.slice(key, 1).to_pandas().to_dict("list"))
+            else:
+                outputs = self._unnest(self._data.slice(key, 1).to_pydict())
         elif isinstance(key, slice):
             key_indices = key.indices(self._data.num_rows)
             if key_indices[2] != 1 or key_indices[1] < key_indices[0]:
@@ -535,12 +537,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas(
                     split_blocks=True
                 )
-            else:
+            elif format_type is not None and format_type in ("numpy", "torch", "tensorflow"):
                 outputs = (
                     self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
                     .to_pandas(split_blocks=True)
                     .to_dict("list")
                 )
+            else:
+                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pydict()
         elif isinstance(key, str):
             if key not in self._data.column_names:
                 raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
@@ -548,18 +552,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
                         outputs = self._data[key].to_pandas(split_blocks=True)
+                    if format_type in ("numpy", "torch", "tensorflow"):
+                        outputs = self._data[key].to_pandas(split_blocks=True).to_numpy()
                     else:
-                        outputs = self._data[key].to_pandas(split_blocks=True).to_list()
+                        outputs = self._data[key].to_pylist()
                 else:
-                    outputs = self._data[key].to_pandas(split_blocks=True).to_list()
+                    outputs = self._data[key].to_pylist()
             else:
-                outputs = self._data[key].to_pandas(split_blocks=True).to_list()
+                outputs = self._data[key].to_pylist()
         elif isinstance(key, Iterable):
             data_subset = pa.concat_tables(self._data.slice(int(i), 1) for i in key)
             if format_type is not None and format_type == "pandas":
                 outputs = data_subset.to_pandas(split_blocks=True)
-            else:
+            if format_type is not None and format_type in ("numpy", "torch", "tensorflow"):
                 outputs = data_subset.to_pandas(split_blocks=True).to_dict("list")
+            else:
+                outputs = data_subset.to_pydict()
 
         else:
             raise ValueError("Can only get row(s) (int or slice or list[int]) or columns (string).")
