@@ -48,7 +48,7 @@ class BlendedSkillTalk(nlp.GeneratorBasedBuilder):
                     "previous_utterance": nlp.features.Sequence(nlp.Value("string")),
                     "context": nlp.Value("string"),
                     "free_messages": nlp.features.Sequence(nlp.Value("string")),
-                    "guided_messgaes": nlp.features.Sequence(nlp.Value("string")),
+                    "guided_messages": nlp.features.Sequence(nlp.Value("string")),
                     "suggestions": nlp.features.Sequence({task: nlp.Value("string") for task in _TASK})
                     # These are the features of your dataset like images, labels ...
                 }
@@ -117,7 +117,7 @@ class BlendedSkillTalk(nlp.GeneratorBasedBuilder):
                     "previous_utterance": previous_utterance,
                     "context": context,
                     "free_messages": free_messages,
-                    "guided_messgaes":guided_messages,
+                    "guided_messages":guided_messages,
                     "suggestions": {
                         "convai2": convai_suggestions,
                         "empathetic_dialogues": empathetic_suggestions,
