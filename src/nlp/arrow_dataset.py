@@ -903,6 +903,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        reader_batch_size: Optional[int] = 1000,
         verbose: bool = True,
     ):
         """ Create a new dataset with rows selected following the list/array of indices.
@@ -916,6 +917,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `reader_batch_size` (`int`, default: `1000`): Number of rows per __getitem__ operation when reading from disk.
+                    Higher values may make reading faster but will also consume more temporary memory and make the progress bar less responsive.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
@@ -953,10 +956,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Caching processed dataset at %s", cache_file_name)
             writer = ArrowWriter(schema=self.schema, path=cache_file_name, writer_batch_size=writer_batch_size)
 
-        # Loop over single examples or batches and write to buffer/file if examples are to be updated
-        for i in tqdm(indices, disable=not verbose):
-            example = self._getitem(key=int(i), format_type=None, format_columns=None, format_kwargs=None)
-            writer.write(example)
+        # Loop over batches and write to buffer/file if examples are to be updated
+        for i in tqdm(range(0, len(indices), reader_batch_size), disable=not verbose):
+            batch = self._getitem(
+                key=indices[i : min(len(indices), i + reader_batch_size)],
+                format_type=None,
+                format_columns=None,
+                format_kwargs=None,
+            )
+            writer.write_batch(batch)
 
         writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
 
