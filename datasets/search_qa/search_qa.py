@@ -189,8 +189,6 @@ class SearchQa(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(searchQa): Yields (key, example) tuples from the dataset
         for i, filepath in enumerate(filepaths):
-            print(filepath)
-            print('=='*100)
             with open(filepath) as f:
                 
                 data = json.load(f)   
