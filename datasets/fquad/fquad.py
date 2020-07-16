@@ -53,7 +53,7 @@ class Fquad(nlp.GeneratorBasedBuilder):
             features=nlp.Features(
                 {
                     "context": nlp.Value("string"),
-                    "questions": nlp.features.Sequence({"question": nlp.Value("string"),}),
+                    "questions": nlp.features.Sequence(nlp.Value("string")),
                     "answers": nlp.features.Sequence(
                         {"texts": nlp.Value("string"), "answers_starts": nlp.Value("int32")}
                     ),
@@ -104,6 +104,6 @@ class Fquad(nlp.GeneratorBasedBuilder):
 
                     yield str(id1) + "_" + str(id2), {
                         "context": example["context"],
-                        "questions": {"question": questions,},
+                        "questions": questions,
                         "answers": {"texts": texts, "answers_starts": answers_starts},
                     }

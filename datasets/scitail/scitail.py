@@ -93,7 +93,7 @@ class Scitail(nlp.GeneratorBasedBuilder):
                         "sentence1": nlp.Value("string"),
                         "sentence2_parse": nlp.Value("string"),
                         "sentence2": nlp.Value("string"),
-                        "annotator_labels": nlp.features.Sequence({"annotator_label": nlp.Value("string")}),
+                        "annotator_labels": nlp.features.Sequence(nlp.Value("string")),
                         "gold_label": nlp.Value("string")
                         # These are the features of your dataset like images, labels ...
                     }
@@ -272,7 +272,7 @@ class Scitail(nlp.GeneratorBasedBuilder):
                         "sentence1": data["sentence1"],
                         "sentence2_parse": data["sentence2_parse"],
                         "sentence2": data["sentence2"],
-                        "annotator_labels": {"annotator_label": data["annotator_labels"]},
+                        "annotator_labels": data["annotator_labels"],
                         "gold_label": data["gold_label"],
                     }
             elif self.config.name == "tsv_format":
