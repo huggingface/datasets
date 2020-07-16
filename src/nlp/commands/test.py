@@ -75,7 +75,9 @@ class TestCommand(BaseTransformersCLICommand):
         builders: List[DatasetBuilder] = []
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
-                builders.append(builder_cls(name=config.name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir))
+                builders.append(
+                    builder_cls(name=config.name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir)
+                )
         else:
             builders.append(builder_cls(name=name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir))
 
