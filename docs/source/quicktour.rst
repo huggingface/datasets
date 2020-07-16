@@ -186,7 +186,7 @@ The first modification is just a matter of renaming the column as follow (we cou
 
     >>> dataset = dataset.map(lambda examples: {'labels': examples['label']}, batched=True)
 
-The two toehr modifications can be handled by the :func:`nlp.Dataset.set_format` method which will convert, on the fly, the returned output from :func:`nlp.Dataset.__getitem__` to filter the unwanted columns and convert python objects in PyTorch tensors.
+The two other modifications can be handled by the :func:`nlp.Dataset.set_format` method which will convert, on the fly, the returned output from :func:`nlp.Dataset.__getitem__` to filter the unwanted columns and convert python objects in PyTorch tensors.
 
 Here is how we can apply the right format to our dataset using :func:`nlp.Dataset.set_format` and wrap it in a ``torch.utils.data.DataLoader``:
 
