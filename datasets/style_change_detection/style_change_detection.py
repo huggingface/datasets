@@ -7,9 +7,7 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
@@ -95,7 +93,7 @@ class StyleChangeDetection(nlp.GeneratorBasedBuilder):
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
 
         train_dir = os.path.join(data_dir, "train", "dataset-" + self.config.name)
-        val_dir = os.path.join(data_dir, "train", "dataset-" + self.config.name)
+        val_dir = os.path.join(data_dir, "validation", "dataset-" + self.config.name)
 
         if not os.path.exists(train_dir):
             raise FileNotFoundError(
