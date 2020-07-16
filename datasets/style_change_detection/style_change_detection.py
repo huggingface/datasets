@@ -93,8 +93,17 @@ class StyleChangeDetection(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+
         train_dir = os.path.join(data_dir, "train", "dataset-" + self.config.name)
         val_dir = os.path.join(data_dir, "train", "dataset-" + self.config.name)
+
+        if not os.path.exists(train_dir):
+            raise FileNotFoundError(
+                "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('style_change_detection', data_dir=...)` that includes {}. Manual download instructions: {}".format(
+                    train_dir, train_dir, self.manual_download_instructions
+                )
+            )
+
 
         return [
             nlp.SplitGenerator(
