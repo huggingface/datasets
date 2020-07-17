@@ -213,6 +213,7 @@ class BaseDatasetTest(TestCase):
                 cache_file_name=tmp_file,
             )
             dset.flatten()
+            dset.set_format("numpy")
             dset.export(filename=tfrecord_path, format="tfrecord")
 
             # Import the data

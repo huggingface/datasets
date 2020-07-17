@@ -1176,6 +1176,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         def _feature(values: np.ndarray) -> "tf.train.Feature":
             """Typechecks `values` and returns the corresponding tf.train.Feature."""
+            if values.ndim == 0:
+                values = values.item()
             if isinstance(values, np.ndarray):
                 if values.dtype == np.dtype(float):
                     return _float_feature(values)
@@ -1211,7 +1213,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             for ex in self:
                 yield serialize_example(ex)
 
-        assert self._format_type is None, "Do not set dataset format before exporting"
+        assert self._format_type == "numpy", "Dataset format must be numpy before exporting"
         assert filename.endswith(".tfrecord")
         tf_dataset = tf.data.Dataset.from_generator(generator, output_types=tf.string, output_shapes=())
         writer = tf.data.experimental.TFRecordWriter(filename)
