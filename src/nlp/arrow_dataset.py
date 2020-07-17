@@ -1346,7 +1346,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             Args:
                 `num_shards` (`int`): How many shards to split the dataset into.
                 `index` (`int`): Which shard to select and return.
-                `contiguous`: (`bool`): Whether to select contiguous blocks of indices for shards.
+                `contiguous`: (`bool`, default: `False`): Whether to select contiguous blocks of indices for shards.
                 `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
                 `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
