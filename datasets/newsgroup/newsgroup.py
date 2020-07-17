@@ -25,12 +25,12 @@ import nlp
 
 
 _CITATION = """
-    @inproceedings{Lang95
-    ,author = "Ken Lang"
-    ,title = "Newsweeder: Learning to filter netnews"
-    ,year = 1995
-    ,booktitle = "Proceedings of the Twelfth International Conference on Machine Learning"
-    ,pages = "331-339"
+@inproceedings{Lang95,
+    author = {Ken Lang},
+    title = {Newsweeder: Learning to filter netnews}
+    year = {1995}
+    booktitle = {Proceedings of the Twelfth International Conference on Machine Learning}
+    pages = {331-339}
     }
  """
 
