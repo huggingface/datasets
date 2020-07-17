@@ -36,9 +36,8 @@ _CITATION = """
 
 _DESCRIPTION = """
 The 20 Newsgroups data set is a collection of approximately 20,000 newsgroup documents, partitioned (nearly) evenly across 
-20 different newsgroups. To the best of my knowledge, it was originally collected by Ken Lang, probably for his Newsweeder: 
-Learning to filter netnews paper, though he does not explicitly mention this collection. The 20 newsgroups collection has become 
-a popular data set for experiments in text applications of machine learning techniques, such as text classification and text clustering.
+20 different newsgroups. The 20 newsgroups collection has become a popular data set for experiments in text applications of 
+machine learning techniques, such as text classification and text clustering.
 """
 
 _DOWNLOAD_URL = {
@@ -89,16 +88,16 @@ _CONFIG_NAMES = sorted(_CONFIG_NAMES)
 class NewsgroupConfig(nlp.BuilderConfig):
     """BuilderConfig for 20Newsgroup."""
 
-    def __init__(self, data_dir, **kwargs):
+    def __init__(self, sub_dir, **kwargs):
         """Constructs a 20Newsgroup.
 
         Args:
-        data_dirs: str
+        sub_dirs: str
         **kwargs: keyword arguments forwarded to super.
         """
 
         super(NewsgroupConfig, self).__init__(**kwargs)
-        self.data_dir = data_dir
+        self.sub_dir = sub_dir
 
 
 class Newsgroups(nlp.GeneratorBasedBuilder):
@@ -107,7 +106,7 @@ class Newsgroups(nlp.GeneratorBasedBuilder):
         NewsgroupConfig(
             name=name,
             description = _DESC[name.split('_')[0]],
-            data_dir=name.split('_')[1],
+            sub_dir=name.split('_')[1],
             version=nlp.Version(_VERSIONS[name.split('_')[0]])
         ) for name in _CONFIG_NAMES
     ]
@@ -133,26 +132,26 @@ class Newsgroups(nlp.GeneratorBasedBuilder):
                 nlp.SplitGenerator(
                     name=nlp.Split.TRAIN, 
                     gen_kwargs={
-                        "files_path":  os.path.join(path,"20news-bydate-train", self.config.data_dir)
+                        "files_path":  os.path.join(path,"20news-bydate-train", self.config.sub_dir)
                 }),
                 nlp.SplitGenerator(
                     name=nlp.Split.TEST,
                     gen_kwargs={
-                        "files_path":  os.path.join(path, "20news-bydate-train", self.config.data_dir)
+                        "files_path":  os.path.join(path, "20news-bydate-train", self.config.sub_dir)
                     }),
             ]
         elif self.config.name.startswith('19997'):
             return [
                 nlp.SplitGenerator(
                     name=nlp.Split.TRAIN, gen_kwargs={
-                        "files_path":  os.path.join(path, "20_newsgroups", self.config.data_dir)
+                        "files_path":  os.path.join(path, "20_newsgroups", self.config.sub_dir)
                 })
             ]
         else:
             return [
                 nlp.SplitGenerator(
                     name=nlp.Split.TRAIN, gen_kwargs={
-                        "files_path":  os.path.join(path, "20news-18828", self.config.data_dir)
+                        "files_path":  os.path.join(path, "20news-18828", self.config.sub_dir)
                 })
             ]
             
