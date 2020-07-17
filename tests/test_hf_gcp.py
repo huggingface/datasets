@@ -48,11 +48,15 @@ class TestDatasetOnHfGcp(TestCase):
 
         with TemporaryDirectory() as tmp_dir:
             module_path, hash = prepare_module(dataset, dataset=True, cache_dir=tmp_dir)
+            local_module_path, local_hash = prepare_module(
+                os.path.join("datasets", dataset), dataset=True, cache_dir=tmp_dir, local_files_only=True
+            )
+            self.assertEqual(hash, local_hash)
 
-            builder_cls = import_main_class(module_path, dataset=True)
+            builder_cls = import_main_class(local_module_path, dataset=True)
 
             builder_instance: DatasetBuilder = builder_cls(
-                cache_dir=tmp_dir, name=config_name, hash=hash,
+                cache_dir=tmp_dir, name=config_name, hash=local_hash,
             )
 
             dataset_info_url = os.path.join(
