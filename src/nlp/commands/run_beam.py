@@ -81,7 +81,7 @@ class RunBeamCommand(BaseTransformersCLICommand):
             print("Both parameters `name` and `all_configs` can't be used at once.")
             exit(1)
         path, name = self._dataset, self._name
-        module_path = prepare_module(path)
+        module_path, hash = prepare_module(path)
         builder_cls = import_main_class(module_path)
         builders: List[DatasetBuilder] = []
         if self._beam_pipeline_options:
@@ -94,7 +94,11 @@ class RunBeamCommand(BaseTransformersCLICommand):
             for config in builder_cls.BUILDER_CONFIGS:
                 builders.append(
                     builder_cls(
-                        name=config.name, data_dir=self._data_dir, beam_options=beam_options, cache_dir=self._cache_dir
+                        name=config.name,
+                        data_dir=self._data_dir,
+                        hash=hash,
+                        beam_options=beam_options,
+                        cache_dir=self._cache_dir,
                     )
                 )
         else:

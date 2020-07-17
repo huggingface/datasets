@@ -24,8 +24,8 @@
 	pip install -e ".[dev]"
 	```
 
-   (If transformers was already installed in the virtual environment, remove
-   it with `pip uninstall transformers` before reinstalling it in editable
+   (If nlp was already installed in the virtual environment, remove
+   it with `pip uninstall nlp` before reinstalling it in editable
    mode with the `-e` flag.)
 
    Right now, we need an unreleased version of `isort` to avoid a

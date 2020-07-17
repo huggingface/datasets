@@ -46,7 +46,7 @@ class Race(nlp.GeneratorBasedBuilder):
                     "article": nlp.Value("string"),
                     "answer": nlp.Value("string"),
                     "question": nlp.Value("string"),
-                    "options": nlp.features.Sequence({"option": nlp.Value("string")})
+                    "options": nlp.features.Sequence(nlp.Value("string"))
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -110,5 +110,5 @@ class Race(nlp.GeneratorBasedBuilder):
                         "article": data["article"],
                         "question": question,
                         "answer": answer,
-                        "options": {"option": option},
+                        "options": option,
                     }

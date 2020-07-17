@@ -58,10 +58,12 @@ class DatasetInfoMixin(object):
 
     @property
     def info(self):
+        """ :class:`nlp.DatasetInfo` object containing all the metadata in the dataset."""
         return self._info
 
     @property
     def split(self):
+        """ :class:`nlp.DatasetInfo` object containing all the metadata in the dataset."""
         return self._split
 
     @property
@@ -212,46 +214,63 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return cls(pa_table, info=info, split=split)
 
     @property
-    def data(self):
+    def data(self) -> pa.Table:
+        """The Apache Arrow table backing the dataset."""
         return self._data
 
     @property
     def cache_files(self):
+        """The cache file containing the Apache Arrow table backing the dataset."""
         return self._data_files
 
     @property
     def columns(self):
+        """The Arrow columns of the Apache Arrow table backing the dataset.
+        You probably don't need to access directly these and can rather use
+        :func:`nlp.Dataset.column_names` or :func:`nlp.Dataset.__getitem__`
+        to access them as python or numpy objects.
+        """
         return self._data.columns
 
     @property
-    def nbytes(self):
+    def nbytes(self) -> int:
+        """Number of columns in the dataset."""
         return self._data.nbytes
 
     @property
-    def num_columns(self):
+    def num_columns(self) -> int:
+        """Number of columns in the dataset."""
         return self._data.num_columns
 
     @property
-    def num_rows(self):
+    def num_rows(self) -> int:
+        """Number of rows in the dataset (same as :func:`nlp.Dataset.__len__`)."""
         return self._data.num_rows
 
     @property
-    def column_names(self):
+    def column_names(self) -> List[str]:
+        """Names of the columns in the dataset. """
         return self._data.column_names
 
     @property
     def schema(self) -> pa.Schema:
+        """The Arrow schema of the Apache Arrow table backing the dataset.
+        You probably don't need to access directly this and can rather use
+        :func:`nlp.Dataset.features` to inspect the dataset features.
+        """
         return self._data.schema
 
     @property
     def shape(self):
+        """Shape of the dataset (number of columns, number of rows)."""
         return self._data.shape
 
     def drop(self, columns: Union[str, List[str]]):
         """ Drop one or more columns.
 
         Args:
-            columns: list of str
+            columns (:obj:`str` or :obj:`List[str]`):
+                Column or list of columns to remove from the dataset.
         """
         if isinstance(columns, str):
             columns = [columns]
@@ -263,11 +282,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         self._data = self._data.drop(columns)
 
-    def unique(self, column: str):
-        """ Return a list of the unque elements in a column.
+    def unique(self, column: str) -> List:
+        """ Return a list of the unique elements in a column.
+
+        This is implemented in the low-level backend and as such, very fast.
 
         Args:
-            columns: str
+            column (:obj:`str`):
+                column name (list all the column names with :func:`nlp.Dataset.column_names`)
+
+        Returns: :obj:`list` of unique elements in the given column.
+
         """
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
@@ -279,7 +304,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             by storing a dictionnary of the strings. This only affect the internal storage.
 
         Args:
-            columns: str
+            column (:obj:`str`):
+
         """
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
@@ -298,9 +324,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.flatten()
 
     def __len__(self):
+        """ Number of rows in the dataset """
         return self._data.num_rows
 
     def __iter__(self):
+        """ Iterate through the examples.
+        If a formating is set with :func:`nlp.Dataset.set_format` rows will be returned with the
+        selected format.
+        """
         format_type = self._format_type
         format_kwargs = self._format_kwargs
         format_columns = self._format_columns
@@ -614,6 +645,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer_batch_size: Optional[int] = 1000,
         arrow_schema: Optional[pa.Schema] = None,
         disable_nullable: bool = True,
+        verbose: bool = True,
     ):
         """ Apply a function to all the elements in the table (individually or in batches)
             and update the table (if function does updated examples).
@@ -641,6 +673,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `arrow_schema` (`Optional[pa.Schema]`, default: `None`): Use a specific Apache Arrow Schema to store the cache file
                     instead of the automatically generated one.
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         # If the array is empty we do nothing
         if len(self) == 0:
@@ -747,7 +780,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 cache_file_name = self._get_cache_file_path(function, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached processed dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Loading cached processed dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
@@ -757,17 +791,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 writer = ArrowWriter(schema=arrow_schema, stream=buf_writer, writer_batch_size=writer_batch_size)
             else:
                 buf_writer = None
-                logger.info("Caching processed dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Caching processed dataset at %s", cache_file_name)
                 writer = ArrowWriter(schema=arrow_schema, path=cache_file_name, writer_batch_size=writer_batch_size)
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
         if not batched:
-            for i, example in enumerate(tqdm(self)):
+            for i, example in enumerate(tqdm(self, disable=not verbose)):
                 example = apply_function_on_filtered_inputs(example, i)
                 if update_data:
                     writer.write(example)
         else:
-            for i in tqdm(range(0, len(self), batch_size)):
+            for i in tqdm(range(0, len(self), batch_size), disable=not verbose):
                 batch = self[i : i + batch_size]
                 indices = list(range(*(slice(i, i + batch_size).indices(self._data.num_rows))))  # Something simpler?
                 try:
@@ -814,6 +849,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -867,6 +903,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
     ):
         """ Create a new dataset with rows selected following the list/array of indices.
 
@@ -879,6 +916,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -899,9 +937,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "cache_file_name": cache_file_name,
                     "writer_batch_size": writer_batch_size,
                 }
-                cache_file_name = self._get_cache_file_path(self.select, cache_kwargs)
+                cache_file_name = self._get_cache_file_path(self.__class__.select, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached selected dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Loading cached selected dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
@@ -910,11 +949,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer = ArrowWriter(schema=self.schema, stream=buf_writer, writer_batch_size=writer_batch_size)
         else:
             buf_writer = None
-            logger.info("Caching processed dataset at %s", cache_file_name)
+            if verbose:
+                logger.info("Caching processed dataset at %s", cache_file_name)
             writer = ArrowWriter(schema=self.schema, path=cache_file_name, writer_batch_size=writer_batch_size)
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
-        for i in tqdm(indices):
+        for i in tqdm(indices, disable=not verbose):
             example = self._getitem(key=int(i), format_type=None, format_columns=None, format_kwargs=None)
             writer.write(example)
 
@@ -935,6 +975,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
     ):
         """ Create a new dataset sorted according to a column.
 
@@ -955,6 +996,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -987,7 +1029,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 cache_file_name = self._get_cache_file_path(self.sort, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached sorted dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Loading cached sorted dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         indices = self._getitem(
@@ -1003,6 +1046,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose,
         )
 
     def shuffle(
@@ -1013,6 +1057,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
     ):
         """ Create a new Dataset where rows the rows are shuffled.
 
@@ -1032,6 +1077,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1062,7 +1108,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 cache_file_name = self._get_cache_file_path(self.shuffle, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached shuffled dataset at %s", cache_file_name)
+                if verbose:
+                    logger.info("Loading cached shuffled dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         if generator is None:
@@ -1076,6 +1123,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose,
         )
 
     def export(
@@ -1167,6 +1215,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         train_cache_file_name: Optional[str] = None,
         test_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
     ):
         """ Return a dictionary with two random train and test subsets (`train` and `test` ``Dataset`` splits).
             Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
@@ -1198,6 +1247,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     test split calche file instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1294,9 +1344,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "test_cache_file_name": test_cache_file_name,
                     "writer_batch_size": writer_batch_size,
                 }
-                train_kwargs = cache_kwargs.deepcopy()
+                train_kwargs = cache_kwargs.copy()
                 train_kwargs["split"] = "train"
-                test_kwargs = cache_kwargs.deepcopy()
+                test_kwargs = cache_kwargs.copy()
                 test_kwargs["split"] = "test"
 
                 if train_cache_file_name is None:
@@ -1304,7 +1354,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if test_cache_file_name is None:
                     test_cache_file_name = self._get_cache_file_path(self.train_test_split, test_kwargs)
             if os.path.exists(train_cache_file_name) and os.path.exists(test_cache_file_name) and load_from_cache_file:
-                logger.info("Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name)
+                if verbose:
+                    logger.info(
+                        "Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name
+                    )
                 return {
                     "train": Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
                     "test": Dataset.from_file(test_cache_file_name, info=self.info, split=self.split),
@@ -1328,6 +1381,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=train_cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose,
         )
         test_split = self.select(
             indices=test_indices,
@@ -1335,6 +1389,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=test_cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose,
         )
 
         return {"train": train_split, "test": test_split}
@@ -1347,6 +1402,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
     ):
         """ Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
@@ -1364,6 +1420,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         indices = np.arange(index, len(self), num_shards)
         return self.select(
@@ -1372,6 +1429,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
+            verbose=verbose,
         )
 
     def add_faiss_index(
@@ -1386,15 +1444,39 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         faiss_verbose: bool = False,
         dtype=np.float32,
     ):
-        """ Add a dense index using Faiss for fast retrieval.
-            By default the index is done over the vectors of the specified column.
-            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
-            You can find more information about Faiss here:
-            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+        """Add a dense index using Faiss for fast retrieval.
+        By default the index is done over the vectors of the specified column.
+        You can specify :obj:`device` if you want to run it on GPU (:obj:`device` must be the GPU index).
+        You can find more information about Faiss here:
 
-            Examples of usage:
+            - For `string factory <https://github.com/facebookresearch/faiss/wiki/The-index-factory>`__
 
-            ```
+        Args:
+            column (:obj:`str`):
+                The column of the vectors to add to the index.
+            index_name (Optional :obj:`str`):
+                The index_name/identifier of the index.
+                This is the index_name that is used to call :func:`nlp.Dataset.get_nearest_examples` or :func:`nlp.Dataset.search`.
+                By default it corresponds to `column`.
+            device (Optional :obj:`int`):
+                If not None, this is the index of the GPU to use.
+                By default it uses the CPU.
+            string_factory (Optional :obj:`str`):
+                This is passed to the index factory of Faiss to create the index.
+                Default index class is ``IndexFlat``.
+            metric_type (Optional :obj:`int`):
+                Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+            custom_index (Optional :obj:`faiss.Index`):
+                Custom Faiss index that you already have instantiated and configured for your needs.
+            train_size (Optional :obj:`int`):
+                If the index needs a training step, specifies how many vectors will be used to train the index.
+            faiss_verbose (:obj:`bool`, defaults to False):
+                Enable the verbosity of the Faiss index.
+            dtype (data-type): The dtype of the numpy arrays that are indexed.
+                Default is ``np.float32``.
+
+        Example::
+
             ds = nlp.load_dataset('crime_and_punish', split='train')
             ds_with_embeddings = ds.map(lambda example: {'embeddings': embed(example['line']}))
             ds_with_embeddings.add_faiss_index(column='embeddings')
@@ -1402,28 +1484,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             scores, retrieved_examples = ds_with_embeddings.get_nearest_examples('embeddings', embed('my new query'), k=10)
             # save index
             ds_with_embeddings.save_faiss_index('embeddings', 'my_index.faiss')
-            ```
 
-            ```
             ds = nlp.load_dataset('crime_and_punish', split='train')
             # load index
             ds.load_faiss_index('embeddings', 'my_index.faiss')
             # query
             scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
-            ```
-
-            Args:
-                `column` (`str`): The column of the vectors to add to the index.
-                `index_name` (Optional `str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                    By defaul it corresponds to `column`.
-                `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
-                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
-                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
-                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
-                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
-                `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
-        """
+    """
         with self.formated_as(type="numpy", columns=[column], dtype=dtype):
             super().add_faiss_index(
                 column=column,
@@ -1450,22 +1517,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         dtype=np.float32,
     ):
         """ Add a dense index using Faiss for fast retrieval.
-            The index is created using the vectors of `external_arrays`.
-            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
-            You can find more information about Faiss here:
-            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+        The index is created using the vectors of `external_arrays`.
+        You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+        You can find more information about Faiss here:
+        - For `string factory <https://github.com/facebookresearch/faiss/wiki/The-index-factory>`__
 
-            Args:
-                `external_arrays` (`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
-                    It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
-                `index_name` (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                `device` (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
-                `string_factory` (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                `metric_type` (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
-                `custom_index` (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
-                `train_size` (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
-                `faiss_verbose` (`bool`, defaults to False): Enable the verbosity of the Faiss index.
-                `dtype` (data-type): The dtype of the numpy arrays that are indexed. Default is np.float32.
+        Args:
+            external_arrays (:obj:`np.array`):
+                If you want to use arrays from outside the lib for the index, you can set :obj:`external_arrays`.
+                It will use :obj:`external_arrays` to create the Faiss index instead of the arrays in the given :obj:`column`.
+            index_name (:obj:`str`):
+                The index_name/identifier of the index.
+                This is the index_name that is used to call :func:`nlp.Dataset.get_nearest_examples` or :func:`nlp.Dataset.search`.
+            device (Optional :obj:`int`):
+                If not None, this is the index of the GPU to use.
+                By default it uses the CPU.
+            string_factory (Optional :obj:`str`):
+                This is passed to the index factory of Faiss to create the index.
+                Default index class is ``IndexFlat``.
+            metric_type (Optional :obj:`int`):
+                Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+            custom_index (Optional :obj:`faiss.Index`):
+                Custom Faiss index that you already have instantiated and configured for your needs.
+            train_size (Optional :obj:`int`):
+                If the index needs a training step, specifies how many vectors will be used to train the index.
+            faiss_verbose (:obj:`bool`, defaults to False):
+                Enable the verbosity of the Faiss index.
+            dtype (:obj:`numpy.dtype`): The dtype of the numpy arrays that are indexed. Default is np.float32.
         """
         super().add_faiss_index_from_external_arrays(
             external_arrays=external_arrays.astype(dtype),
@@ -1490,35 +1568,48 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     ):
         """ Add a text index using ElasticSearch for fast retrieval. This is done in-place.
 
-            Examples of usage:
+        Args:
+            column (:obj:`str`):
+                The column of the documents to add to the index.
+            index_name (Optional :obj:`str`):
+                The index_name/identifier of the index.
+                This is the index name that is used to call :func:`nlp.Dataset.get_nearest_examples` or :func:`nlp.Dataset.search`.
+                By default it corresponds to :obj:`column`.
+            documents (:obj:`Union[List[str], nlp.Dataset]`):
+                The documents to index. It can be a :class:`nlp.Dataset`.
+            es_client (:obj:`elasticsearch.Elasticsearch`):
+                The elasticsearch client used to create the index.
+            es_index_name (Optional :obj:`str`):
+                The elasticsearch index name used to create the index.
+            es_index_config (Optional :obj:`dict`):
+                The configuration of the elasticsearch index.
+                Default config is:
 
-            ```
+        Config::
+
+            {
+                "settings": {
+                    "number_of_shards": 1,
+                    "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                },
+                "mappings": {
+                    "properties": {
+                        "text": {
+                            "type": "text",
+                            "analyzer": "standard",
+                            "similarity": "BM25"
+                        },
+                    }
+                },
+            }
+
+        Example::
+
             es_client = elasticsearch.Elasticsearch()
             ds = nlp.load_dataset('crime_and_punish', split='train')
             ds.add_elasticsearch_index(column='line', es_client=es_client, es_index_name="my_es_index")
             scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
-            ```
 
-            Args:
-                `column` (`str`): The column of the documents to add to the index.
-                `index_name` (Optional `str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
-                    By defaul it corresponds to `column`.
-                `documents` (`Union[List[str], nlp.Dataset]`): The documents to index. It can be a `nlp.Dataset`.
-                `es_client` (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
-                `es_index_name` (Optional `str`): The elasticsearch index name used to create the index.
-                `es_index_config` (Optional `dict`): The configuration of the elasticsearch index.
-                    Default config is
-                    {
-                        "settings": {
-                            "number_of_shards": 1,
-                            "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
-                        },
-                        "mappings": {
-                            "properties": {
-                                "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
-                            }
-                        },
-                    }
         """
         with self.formated_as(type=None, columns=[column]):
             super().add_elasticsearch_index(

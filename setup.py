@@ -1,5 +1,5 @@
 # Lint as: python3
-"""HuggingFace/NLP is an open library of NLP datasets.
+""" HuggingFace/NLP is an open library of NLP datasets.
 
 Simple check list for release from AllenNLP repo: https://github.com/allenai/allennlp/blob/master/setup.py
 
@@ -89,6 +89,7 @@ TESTS_REQUIRE = [
 
 QUALITY_REQUIRE = [
     "black",
+    # "isort",
     "isort @ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort",
     "flake8==3.7.9",
 ]
@@ -102,6 +103,7 @@ EXTRAS_REQUIRE = {
     'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE,
     'quality': QUALITY_REQUIRE,
+    'docs': ["recommonmark", "sphinx", "sphinx-markdown-tables", "sphinx-rtd-theme==0.4.3", "sphinx-copybutton"]
 }
 
 setup(
