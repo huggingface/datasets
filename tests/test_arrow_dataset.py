@@ -77,13 +77,14 @@ class BaseDatasetTest(TestCase):
         self.assertRaises(pa.ArrowTypeError, Dataset.from_dict, data, features=features)
 
     def test_concatenate(self):
-        data1, data2 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}
-        dset1, dset2 = Dataset.from_dict(data1), Dataset.from_dict(data2)
+        data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
+        dset1, dset2, dset3 = Dataset.from_dict(data1), Dataset.from_dict(data2), Dataset.from_dict(data3)
         dset1._info = DatasetInfo(description="Dataset1")
         dset2._info = DatasetInfo(description="Dataset2")
+        dset3._info = None
 
-        dset_concat = concatenate_datasets([dset1, dset2])
-        self.assertEquals(len(dset_concat), len(dset1) + len(dset2))
+        dset_concat = concatenate_datasets([dset1, dset2, dset3])
+        self.assertEquals(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
         self.assertEquals(dset_concat.info.description, "Dataset1\n\nDataset2")
 
     def test_map(self):
