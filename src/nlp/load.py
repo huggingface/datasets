@@ -34,7 +34,7 @@ from filelock import FileLock
 
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
-from .info import DATASET_INFOS_DICT_FILE_NAME
+from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo
 from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
@@ -559,4 +559,6 @@ def concatenate_datasets(
         raise ValueError("Schema must match for all datasets")
     table = pa.concat_tables([dset._data for dset in dsets])
     data_files = list(itertools.chain.from_iterable([dset._data_files for dset in dsets]))
+    if info is None:
+        info = DatasetInfo.from_merge([dset.info for dset in dsets])
     return Dataset(table, info=info, split=split, data_files=data_files)
