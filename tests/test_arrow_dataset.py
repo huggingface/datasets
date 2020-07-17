@@ -286,6 +286,11 @@ class BaseDatasetTest(TestCase):
             dset_sharded = dset.shard(num_shards=8, index=1)
             self.assertEqual(2, len(dset_sharded))
             self.assertEqual(["my_name-train_1", "my_name-train_9"], dset_sharded["filename"])
+            # Shard contiguous
+            dset_sharded_contiguous = dset.shard(num_shards=3, index=0, contiguous=True)
+            self.assertEqual([f"my_name-train_{i}" for i in (0, 1, 2, 3)], dset_sharded_contiguous["filename"])
+            # Test lengths of sharded contiguous
+            self.assertEqual([4, 3, 3], [len(dset.shard(3, index=i, contiguous=True)) for i in range(3)])
 
     def test_format_vectors(self):
         dset = self._create_dummy_dataset()
@@ -297,6 +302,15 @@ class BaseDatasetTest(TestCase):
             tmp_file = os.path.join(tmp_dir, "test.arrow")
             dset = dset.map(lambda ex, i: {"vec": np.ones(3) * i}, with_indices=True, cache_file_name=tmp_file)
             columns = dset.column_names
+
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+            for col in columns:
+                self.assertIsInstance(dset[0][col], (str, list))
+                self.assertIsInstance(dset[:2][col], list)
+
+            # don't test if torch and tensorflow are stacked accross examples
+            # we need to use the features definition to know at what depth we have to to the conversion
 
             dset.set_format("tensorflow")
             self.assertIsNotNone(dset[0])
@@ -311,6 +325,7 @@ class BaseDatasetTest(TestCase):
             for col in columns:
                 self.assertIsInstance(dset[0][col], np.ndarray)
                 self.assertIsInstance(dset[:2][col], np.ndarray)  # stacked
+            self.assertEqual(dset[:2]["vec"].shape, (2, 3))  # stacked
 
             dset.set_format("torch", columns=["vec"])
             self.assertIsNotNone(dset[0])
@@ -322,6 +337,8 @@ class BaseDatasetTest(TestCase):
     def test_format_nested(self):
         dset = self._create_dummy_dataset()
         import numpy as np
+        import tensorflow as tf
+        import torch
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
@@ -333,12 +350,18 @@ class BaseDatasetTest(TestCase):
 
             dset.set_format("tensorflow")
             self.assertIsNotNone(dset[0])
+            self.assertIsInstance(dset[0]["nested"]["foo"], (tf.Tensor, tf.RaggedTensor))
             self.assertIsNotNone(dset[:2])
+            self.assertIsInstance(dset[:2]["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
 
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
+            self.assertIsInstance(dset[0]["nested"]["foo"], np.ndarray)
             self.assertIsNotNone(dset[:2])
+            self.assertIsInstance(dset[:2]["nested"][0]["foo"], np.ndarray)
 
             dset.set_format("torch", columns="nested")
             self.assertIsNotNone(dset[0])
+            self.assertIsInstance(dset[0]["nested"]["foo"], torch.Tensor)
             self.assertIsNotNone(dset[:2])
+            self.assertIsInstance(dset[:2]["nested"][0]["foo"], torch.Tensor)

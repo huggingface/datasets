@@ -97,7 +97,7 @@ class Wiqa(nlp.GeneratorBasedBuilder):
 
                 yield id_, {
                     "question_stem": data["question"]["stem"],
-                    "question_para_step":data["question"]["para_steps"],
+                    "question_para_step": data["question"]["para_steps"],
                     "answer_label": data["question"]["answer_label"],
                     "answer_label_as_choice": data["question"]["answer_label_as_choice"],
                     "choices": {

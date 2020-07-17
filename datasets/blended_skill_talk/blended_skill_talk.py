@@ -117,7 +117,7 @@ class BlendedSkillTalk(nlp.GeneratorBasedBuilder):
                     "previous_utterance": previous_utterance,
                     "context": context,
                     "free_messages": free_messages,
-                    "guided_messages":guided_messages,
+                    "guided_messages": guided_messages,
                     "suggestions": {
                         "convai2": convai_suggestions,
                         "empathetic_dialogues": empathetic_suggestions,

@@ -54,7 +54,7 @@ class Reclor(nlp.GeneratorBasedBuilder):
                     # These are the features of your dataset like images, labels ...
                     "context": nlp.Value("string"),
                     "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence( nlp.Value("string")),
+                    "answers": nlp.features.Sequence(nlp.Value("string")),
                     "label": nlp.Value("string"),
                     "id_string": nlp.Value("string"),
                 }

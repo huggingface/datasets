@@ -56,7 +56,8 @@ class Scifact(nlp.GeneratorBasedBuilder):
             features = {
                 "doc_id": nlp.Value("int32"),  # The document's S2ORC ID.
                 "title": nlp.Value("string"),  # The title.
-                "abstract": nlp.features.Sequence(nlp.Value("string")
+                "abstract": nlp.features.Sequence(
+                    nlp.Value("string")
                 ),  # The abstract, written as a list of sentences.
                 "structured": nlp.Value("bool"),  # Indicator for whether this is a structured abstract.
             }
@@ -67,8 +68,7 @@ class Scifact(nlp.GeneratorBasedBuilder):
                 "evidence_doc_id": nlp.Value("string"),
                 "evidence_label": nlp.Value("string"),  # Label for the rationale.
                 "evidence_sentences": nlp.features.Sequence(nlp.Value("int32")),  # Rationale sentences.
-                "cited_doc_ids": nlp.features.Sequence(nlp.Value("int32")
-                ),  # The claim's "cited documents".
+                "cited_doc_ids": nlp.features.Sequence(nlp.Value("int32")),  # The claim's "cited documents".
             }
 
         return nlp.DatasetInfo(
