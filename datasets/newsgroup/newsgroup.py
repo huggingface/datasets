@@ -85,7 +85,7 @@ for version in _VERSIONS:
     for group in _NEWS_GROUPS:
         _CONFIG_NAMES.append(version+'_'+group)
         
-
+_CONFIG_NAMES = sorted(_CONFIG_NAMES)
 class NewsgroupConfig(nlp.BuilderConfig):
     """BuilderConfig for 20Newsgroup."""
 
