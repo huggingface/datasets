@@ -39,7 +39,6 @@ _TEST_DOWNLOAD_URL = "https://www.dropbox.com/s/ikkqxfdbdec3fuj/test.txt?dl=1"
 
 
 class Emotion(nlp.GeneratorBasedBuilder):
-
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,

@@ -91,11 +91,8 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                 {
                     "context": nlp.Value("string"),
                     "questions": nlp.Value("string"),
-                    "answers": nlp.features.Sequence({
-                        "start": nlp.Value("int32"),
-                        "text":  nlp.Value("string")
-                    }),
-                    "ids":  nlp.Value("string"),
+                    "answers": nlp.features.Sequence({"start": nlp.Value("int32"), "text": nlp.Value("string")}),
+                    "ids": nlp.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -190,10 +187,10 @@ class Mlqa(nlp.GeneratorBasedBuilder):
         for examples in data["data"]:
             for example in examples["paragraphs"]:
                 context = example["context"]
-                for qa in example['qas']:
-                    question = qa['question']
-                    id_ = qa['id']
-                    answers = qa['answers']
+                for qa in example["qas"]:
+                    question = qa["question"]
+                    id_ = qa["id"]
+                    answers = qa["answers"]
                     answers_start = [answer["answer_start"] for answer in answers]
                     answers_text = [answer["text"] for answer in answers]
                     yield id_, {

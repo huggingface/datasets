@@ -124,6 +124,6 @@ class Qangaroo(nlp.GeneratorBasedBuilder):
                     "id": example["id"],
                     "query": example["query"],
                     "supports": example["supports"],
-                    "candidates":example["candidates"],
+                    "candidates": example["candidates"],
                     "answer": example["answer"],
                 }
