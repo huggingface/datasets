@@ -274,6 +274,11 @@ class BaseDatasetTest(TestCase):
             dset_sharded = dset.shard(num_shards=8, index=1)
             self.assertEqual(2, len(dset_sharded))
             self.assertEqual(["my_name-train_1", "my_name-train_9"], dset_sharded["filename"])
+            # Shard contiguous
+            dset_sharded_contiguous = dset.shard(num_shards=3, index=0, contiguous=True)
+            self.assertEqual([f"my_name-train_{i}" for i in (0, 1, 2, 3)], dset_sharded_contiguous["filename"])
+            # Test lengths of sharded contiguous
+            self.assertEqual([4, 3, 3], [len(dset.shard(3, index=i, contiguous=True)) for i in range(3)])
 
     def test_format_vectors(self):
         dset = self._create_dummy_dataset()
