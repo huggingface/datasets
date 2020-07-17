@@ -937,7 +937,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "cache_file_name": cache_file_name,
                     "writer_batch_size": writer_batch_size,
                 }
-                cache_file_name = self._get_cache_file_path(self.select, cache_kwargs)
+                cache_file_name = self._get_cache_file_path(self.__class__.select, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
                 if verbose:
                     logger.info("Loading cached selected dataset at %s", cache_file_name)

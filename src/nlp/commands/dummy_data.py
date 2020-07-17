@@ -30,7 +30,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         self._dataset_name = path_to_dataset.split("/")[-2]
 
     def run(self):
-        module_path = prepare_module(self._path_to_dataset)
+        module_path, hash = prepare_module(self._path_to_dataset)
         builder_cls = import_main_class(module_path)
 
         # use `None` as config if no configs
@@ -44,7 +44,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
                 version = config.version
                 name = config.name
 
-            dataset_builder = builder_cls(name=name)
+            dataset_builder = builder_cls(name=name, hash=hash)
             mock_dl_manager = MockDownloadManager(
                 dataset_name=self._dataset_name, config=config, version=version, is_local=True
             )

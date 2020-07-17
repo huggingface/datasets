@@ -92,7 +92,7 @@ class Coqa(nlp.GeneratorBasedBuilder):
                 {
                     "source": nlp.Value("string"),
                     "story": nlp.Value("string"),
-                    "questions": nlp.features.Sequence({"input_text": nlp.Value("string"),}),
+                    "questions": nlp.features.Sequence(nlp.Value("string")),
                     "answers": nlp.features.Sequence(
                         {
                             "input_text": nlp.Value("string"),
@@ -100,13 +100,6 @@ class Coqa(nlp.GeneratorBasedBuilder):
                             "answer_end": nlp.Value("int32"),
                         }
                     ),
-                    # ##the foloowing feature allows to take into account additional answers in the validation set
-                    # 'additional_answers': nlp.features.Sequence({
-                    #         "input_texts": nlp.Value('int32'),
-                    #         "answers_start": nlp.Value('int32'),
-                    #         "answers_end": nlp.Value('int32')
-                    #     }),
-                    # These are the features of your dataset like images, labels ...
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -147,23 +140,9 @@ class Coqa(nlp.GeneratorBasedBuilder):
                 answers_start = [answer["span_start"] for answer in row["answers"]]
                 answers_end = [answer["span_end"] for answer in row["answers"]]
                 answers = [answer["input_text"] for answer in row["answers"]]
-                # add_answers = row['additional_answers']
-                # add_input_tests = []
-                # add_start_answers = []
-                # add_end_answers = []
-                # for key in add_answers:
-                #     add_answers_key = add_answers[key]
-                #     add_input_tests.append([add_answer['input_text'] for add_answer in add_answers_key])
-                #     add_start_answers.append([add_answer['span_start'] for add_answer in add_answers_key])
-                #     add_end_answers.append([add_answer['span_end'] for add_answer in add_answers_key])
                 yield row["id"], {
                     "source": source,
                     "story": story,
-                    "questions": {"input_text": questions,},
+                    "questions": questions,
                     "answers": {"input_text": answers, "answer_start": answers_start, "answer_end": answers_end}
-                    # 'additional_answers': {
-                    #     "input_texts": add_input_tests ,
-                    #     "answers_start": add_start_answers,
-                    #     "answers_end": add_end_answers,
-                    # }
                 }
