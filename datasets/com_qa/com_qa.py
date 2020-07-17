@@ -61,8 +61,8 @@ class ComQa(nlp.GeneratorBasedBuilder):
             features=nlp.Features(
                 {
                     "cluster_id": nlp.Value("string"),
-                    "questions": nlp.features.Sequence({"question": nlp.Value("string")}),
-                    "answers": nlp.features.Sequence({"answer": nlp.Value("string")}),
+                    "questions": nlp.features.Sequence(nlp.Value("string")),
+                    "answers": nlp.features.Sequence(nlp.Value("string")),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -120,6 +120,6 @@ class ComQa(nlp.GeneratorBasedBuilder):
                 answers = example["answers"]
                 yield id_, {
                     "cluster_id": cluster_id,
-                    "questions": {"question": questions},
-                    "answers": {"answer": answers},
+                    "questions": questions,
+                    "answers": answers,
                 }

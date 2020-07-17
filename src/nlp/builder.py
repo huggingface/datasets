@@ -114,7 +114,7 @@ class DatasetBuilder:
     # displayed in the dataset documentation.
 
     def __init__(
-        self, cache_dir=None, name=None, **config_kwargs,
+        self, cache_dir=None, name=None, hash=None, **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
 
@@ -125,11 +125,15 @@ class DatasetBuilder:
             name: `str` name, optional configuration for the dataset that affects the data generated on disk. Different
                 `builder_config`s will have their own subdirectories and versions.
                 If not provided, uses the first configuration in self.BUILDER_CONFIGS
+            hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
+                script code is udpated (to avoid reusing old data).
+                The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
             config_kwargs: will override the defaults kwargs in config
 
         """
         # DatasetBuilder name
         self.name = camelcase_to_snakecase(self.__class__.__name__)
+        self.hash = hash
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
@@ -243,17 +247,21 @@ class DatasetBuilder:
         return self._cache_dir
 
     def _relative_data_dir(self, with_version=True):
-        """Relative path of this dataset in cache_dir."""
+        """ Relative path of this dataset in cache_dir:
+            Will be:
+                self.name/self.config.version/self.hash/
+            If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
+        """
         builder_data_dir = self.name
         builder_config = self.config
+        hash = self.hash
         if builder_config:
             builder_data_dir = os.path.join(builder_data_dir, builder_config.name)
-        if not with_version:
-            return builder_data_dir
-
-        version = self.config.version
-        version_data_dir = os.path.join(builder_data_dir, str(version))
-        return version_data_dir
+        if with_version:
+            builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
+        if hash and isinstance(hash, str):
+            builder_data_dir = os.path.join(builder_data_dir, hash)
+        return builder_data_dir
 
     def _build_cache_dir(self):
         """Return the data directory for the current version."""
