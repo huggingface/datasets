@@ -144,5 +144,5 @@ class Coqa(nlp.GeneratorBasedBuilder):
                     "source": source,
                     "story": story,
                     "questions": questions,
-                    "answers": {"input_text": answers, "answer_start": answers_start, "answer_end": answers_end}
+                    "answers": {"input_text": answers, "answer_start": answers_start, "answer_end": answers_end},
                 }
