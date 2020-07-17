@@ -1,0 +1,4 @@
+[
+    {"url": "http://www.freebase.com/view/en/jamaica", "targetValue": "(list (description \"Jamaican Creole English Language\") (description \"Jamaican English\"))", "utterance": "what does jamaican people speak?"},
+    {"url": "http://www.freebase.com/view/en/jamarcus_russell", "targetValue": "(list (description Mobile))", "utterance": "where is jamarcus russell from?"}
+]
