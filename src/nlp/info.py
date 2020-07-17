@@ -153,7 +153,7 @@ class DatasetInfo:
             homepage=homepage,
             license=license,
             features=features,
-            supervised_keys=None,
+            supervised_keys=supervised_keys,
         )
 
     @classmethod
