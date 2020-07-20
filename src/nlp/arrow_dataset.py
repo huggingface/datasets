@@ -192,7 +192,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             info.features = features
         elif info.features != features and features is not None:
             raise ValueError(
-                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".fprmat(
+                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
                     features, info.features
                 )
             )
@@ -227,7 +227,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             info.features = features
         elif info.features != features and features is not None:
             raise ValueError(
-                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".fprmat(
+                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
                     features, info.features
                 )
             )
