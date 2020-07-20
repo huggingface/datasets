@@ -24,7 +24,7 @@ As always, let's start by loading a small dataset for our demonstrations:
 
     This usually makes it very efficient to process data with 🤗nlp.
 
-    If the disk space is critical, these methods can be called with arguments to avoid this behavior (see the last section), or the cache files can be cleaned using the method :func:`nlp.Dataset.clean_cache_files`.
+    If the disk space is critical, these methods can be called with arguments to avoid this behavior (see the last section), or the cache files can be cleaned using the method :func:`nlp.Dataset.cleanup_cache_files`.
 
 
 Selecting, sorting, shuffling, splitting rows
