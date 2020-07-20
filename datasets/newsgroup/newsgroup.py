@@ -43,48 +43,45 @@ machine learning techniques, such as text classification and text clustering.
 _DOWNLOAD_URL = {
     "bydate": "http://qwone.com/~jason/20Newsgroups/20news-bydate.tar.gz",
     "19997": "http://qwone.com/~jason/20Newsgroups/20news-19997.tar.gz",
-    "18828": "http://qwone.com/~jason/20Newsgroups/20news-18828.tar.gz"
+    "18828": "http://qwone.com/~jason/20Newsgroups/20news-18828.tar.gz",
 }
 _NEWS_GROUPS = [
     "comp.graphics",
     "comp.os.ms-windows.misc",
     "comp.sys.ibm.pc.hardware",
     "comp.sys.mac.hardware",
-    "comp.windows.x", 
+    "comp.windows.x",
     "rec.autos",
     "rec.motorcycles",
     "rec.sport.baseball",
-    "rec.sport.hockey",	
+    "rec.sport.hockey",
     "sci.crypt",
     "sci.electronics",
     "sci.med",
     "sci.space",
-    "misc.forsale",	
+    "misc.forsale",
     "talk.politics.misc",
     "talk.politics.guns",
-    "talk.politics.mideast",	
+    "talk.politics.mideast",
     "talk.religion.misc",
     "alt.atheism",
     "soc.religion.christian",
 ]
-_VERSIONS = {
-    "19997": "1.0.0",
-    
-    "bydate": "2.0.0",
-    "18828": "3.0.0"
-}
+_VERSIONS = {"19997": "1.0.0", "bydate": "2.0.0", "18828": "3.0.0"}
 
 _DESC = {
     "19997": "the original, unmodified version.",
     "bydate": "sorted by date into training(60%) and test(40%) sets, does not include cross-posts (duplicates) and does not include newsgroup-identifying headers (Xref, Newsgroups, Path, Followup-To, Date)",
-    "18828": 'does not include cross-posts and includes only the "From" and "Subject" headers.'
+    "18828": 'does not include cross-posts and includes only the "From" and "Subject" headers.',
 }
 _CONFIG_NAMES = []
 for version in _VERSIONS:
     for group in _NEWS_GROUPS:
-        _CONFIG_NAMES.append(version+'_'+group)
-        
+        _CONFIG_NAMES.append(version + "_" + group)
+
 _CONFIG_NAMES = sorted(_CONFIG_NAMES)
+
+
 class NewsgroupConfig(nlp.BuilderConfig):
     """BuilderConfig for 20Newsgroup."""
 
@@ -101,70 +98,62 @@ class NewsgroupConfig(nlp.BuilderConfig):
 
 
 class Newsgroups(nlp.GeneratorBasedBuilder):
-    
+
     BUILDER_CONFIGS = [
         NewsgroupConfig(
             name=name,
-            description = _DESC[name.split('_')[0]],
-            sub_dir=name.split('_')[1],
-            version=nlp.Version(_VERSIONS[name.split('_')[0]])
-        ) for name in _CONFIG_NAMES
+            description=_DESC[name.split("_")[0]],
+            sub_dir=name.split("_")[1],
+            version=nlp.Version(_VERSIONS[name.split("_")[0]]),
+        )
+        for name in _CONFIG_NAMES
     ]
 
     def _info(self):
         return nlp.DatasetInfo(
-            description=_DESCRIPTION + '\n' + self.config.description,
-            features=nlp.Features(
-                {
-                    "text": nlp.Value("string"),
-                }
-            ),
+            description=_DESCRIPTION + "\n" + self.config.description,
+            features=nlp.Features({"text": nlp.Value("string"),}),
             homepage="http://qwone.com/~jason/20Newsgroups/",
             citation=_CITATION,
         )
-    
+
     def _split_generators(self, dl_manager):
-        url = _DOWNLOAD_URL[self.config.name.split('_')[0]]
+        url = _DOWNLOAD_URL[self.config.name.split("_")[0]]
         path = dl_manager.download_and_extract(url)
         if self.config.name.startswith("bydate"):
 
             return [
                 nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN, 
-                    gen_kwargs={
-                        "files_path":  os.path.join(path,"20news-bydate-train", self.config.sub_dir)
-                }),
+                    name=nlp.Split.TRAIN,
+                    gen_kwargs={"files_path": os.path.join(path, "20news-bydate-train", self.config.sub_dir)},
+                ),
                 nlp.SplitGenerator(
                     name=nlp.Split.TEST,
-                    gen_kwargs={
-                        "files_path":  os.path.join(path, "20news-bydate-train", self.config.sub_dir)
-                    }),
+                    gen_kwargs={"files_path": os.path.join(path, "20news-bydate-train", self.config.sub_dir)},
+                ),
             ]
-        elif self.config.name.startswith('19997'):
+        elif self.config.name.startswith("19997"):
             return [
                 nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN, gen_kwargs={
-                        "files_path":  os.path.join(path, "20_newsgroups", self.config.sub_dir)
-                })
+                    name=nlp.Split.TRAIN,
+                    gen_kwargs={"files_path": os.path.join(path, "20_newsgroups", self.config.sub_dir)},
+                )
             ]
         else:
             return [
                 nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN, gen_kwargs={
-                        "files_path":  os.path.join(path, "20news-18828", self.config.sub_dir)
-                })
+                    name=nlp.Split.TRAIN,
+                    gen_kwargs={"files_path": os.path.join(path, "20news-18828", self.config.sub_dir)},
+                )
             ]
-            
+
     def _generate_examples(self, files_path):
         """Yields examples."""
         files = sorted(os.listdir(files_path))
         for id_, file in enumerate(files):
             filepath = os.path.join(files_path, file)
-            with open(filepath, encoding="utf8", errors='ignore') as f:  #here we can ignore byte encoded tokens. we only have a very few and in most case it happens at the end of the file (kind of \FF)
+            with open(
+                filepath, encoding="utf8", errors="ignore"
+            ) as f:  # here we can ignore byte encoded tokens. we only have a very few and in most case it happens at the end of the file (kind of \FF)
                 text = f.read()
-                yield id_, {
-                    'text': text
-                }
-                
-                
-        
+                yield id_, {"text": text}

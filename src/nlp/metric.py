@@ -104,6 +104,7 @@ class Metric(object):
         self.info = info
 
         # Update 'compute' and 'add' docstring
+        # methods need to be copied otherwise it changes the docstrings of every instance
         self.compute = types.MethodType(copyfunc(self.compute), self)
         self.add_batch = types.MethodType(copyfunc(self.add_batch), self)
         self.add = types.MethodType(copyfunc(self.add), self)
