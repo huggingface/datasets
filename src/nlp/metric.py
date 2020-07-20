@@ -17,6 +17,7 @@
 """ Metrics base class."""
 import logging
 import os
+import types
 from contextlib import contextmanager
 from typing import Any, Dict, Optional
 
@@ -28,7 +29,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .info import MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils import HF_METRICS_CACHE, Version
+from .utils import HF_METRICS_CACHE, Version, copyfunc
 
 
 logger = logging.getLogger(__file__)
@@ -103,6 +104,9 @@ class Metric(object):
         self.info = info
 
         # Update 'compute' and 'add' docstring
+        self.compute = types.MethodType(copyfunc(self.compute), self)
+        self.add_batch = types.MethodType(copyfunc(self.add_batch), self)
+        self.add = types.MethodType(copyfunc(self.add), self)
         self.compute.__func__.__doc__ += self.info.inputs_description
         self.add_batch.__func__.__doc__ += self.info.inputs_description
         self.add.__func__.__doc__ += self.info.inputs_description
