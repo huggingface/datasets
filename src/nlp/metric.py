@@ -24,6 +24,7 @@ import numpy as np
 import pyarrow as pa
 from filelock import FileLock, Timeout
 
+from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .info import MetricInfo
@@ -202,7 +203,7 @@ class Metric(object):
 
             # Read the predictions and references
             reader = ArrowReader(path=self.data_dir, info=None)
-            self.data = reader.read_files(node_files)
+            self.data = Dataset(**reader.read_files(node_files))
 
             # Release all of our locks
             for lock in locks:
