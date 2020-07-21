@@ -724,7 +724,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
 
             panx_dl_dir = dl_manager.extract(panx_path)
             lang = self.config.name.split(".")[1]
-            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, lang + ".tar.gz"))
+            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, "panx_dataset", lang + ".tar.gz"))
             return [
                 nlp.SplitGenerator(
                     name=nlp.Split.VALIDATION,
