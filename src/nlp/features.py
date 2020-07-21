@@ -448,19 +448,19 @@ def generate_from_dict(obj: Any):
     return class_type(**obj)
 
 
-def generate_from_arrow(pa_type: pa.DataType):
+def generate_from_arrow_type(pa_type: pa.DataType):
     if isinstance(pa_type, pa.StructType):
-        return {field.name: generate_from_arrow(field.type) for field in pa_type}
+        return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):
-        return Sequence(feature=generate_from_arrow(pa_type.value_type), length=pa_type.list_size)
+        return Sequence(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
     elif isinstance(pa_type, pa.ListType):
-        return [generate_from_arrow(pa_type.value_type)]
+        return [generate_from_arrow_type(pa_type.value_type)]
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=str(pa_type))
     else:
-        return ValueError(f"Cannot convert {pa_type} to a Feature type.")
+        raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
 
 class Features(dict):
@@ -469,12 +469,12 @@ class Features(dict):
         return get_nested_type(self)
 
     @classmethod
-    def from_pyarrow_type(cls, pa_type: pa.DataType):
-        obj = generate_from_arrow(pa_type)
+    def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
+        obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
         return cls(**obj)
 
     @classmethod
-    def from_dict(cls, dic):
+    def from_dict(cls, dic) -> "Features":
         obj = generate_from_dict(dic)
         return cls(**obj)
 
