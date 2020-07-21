@@ -16,12 +16,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import json
-import os
-
-import gdown
-
 import nlp
+import json
 
 
 _CITATION = """\
@@ -67,10 +63,9 @@ class EmoDataset(nlp.GeneratorBasedBuilder):
     """ SemEval-2019 Task 3: EmoContext Contextual Emotion Detection in Text. Version 1.0.0 """
 
     VERSION = nlp.Version("1.0.0")
-    force = False
 
     BUILDER_CONFIGS = [
-        EmoConfig(name="tuples of labels and text", version=nlp.Version("1.0.0"), description="Plain text",),
+        EmoConfig(name="emo2019", version=nlp.Version("1.0.0"), description="Plain text",),
     ]
 
     def _info(self):
