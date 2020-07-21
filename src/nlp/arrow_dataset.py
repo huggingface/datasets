@@ -24,7 +24,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from functools import partial
 from math import ceil, floor
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -35,13 +35,10 @@ from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
 from .features import Features
+from .info import DatasetInfo
 from .search import IndexableMixin
+from .splits import NamedSplit
 from .utils import map_all_sequences_to_lists, map_nested
-
-
-if TYPE_CHECKING:
-    from .info import DatasetInfo  # noqa: F401
-    from .splits import NamedSplit  # noqa: F401
 
 
 logger = logging.getLogger(__name__)
@@ -52,7 +49,7 @@ class DatasetInfoMixin(object):
         at the base level of the Dataset for easy access.
     """
 
-    def __init__(self, info, split):
+    def __init__(self, info: Optional[DatasetInfo], split: Optional[NamedSplit]):
         self._info = info
         self._split = split
 
@@ -129,10 +126,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def __init__(
         self,
-        arrow_table: Union[pa.Table, pa.RecordBatch],
+        arrow_table: pa.Table,
         data_files: Optional[List[dict]] = None,
-        info: Optional[Any] = None,
-        split: Optional[Any] = None,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
     ):
         DatasetInfoMixin.__init__(self, info=info, split=split)
         IndexableMixin.__init__(self)
@@ -144,7 +141,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._output_all_columns: bool = False
 
     @classmethod
-    def from_file(cls, filename: str, info: Optional["DatasetInfo"] = None, split: Optional["NamedSplit"] = None):
+    def from_file(
+        cls, filename: str, info: Optional[DatasetInfo] = None, split: Optional[NamedSplit] = None
+    ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow table at filename """
         mmap = pa.memory_map(filename)
         f = pa.ipc.open_stream(mmap)
@@ -153,8 +152,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @classmethod
     def from_buffer(
-        cls, buffer: pa.Buffer, info: Optional["DatasetInfo"] = None, split: Optional["NamedSplit"] = None
-    ):
+        cls, buffer: pa.Buffer, info: Optional[DatasetInfo] = None, split: Optional[NamedSplit] = None
+    ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow buffer """
         mmap = pa.BufferReader(buffer)
         f = pa.ipc.open_stream(mmap)
@@ -166,9 +165,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cls,
         df: pd.DataFrame,
         features: Optional[Features] = None,
-        info: Optional["DatasetInfo"] = None,
-        split: Optional["NamedSplit"] = None,
-    ):
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+    ) -> "Dataset":
         """
         Convert :obj:``pandas.DataFrame`` to a "obj"``pyarrow.Table`` to create a :obj:``nlp.Dataset``.
 
@@ -187,7 +186,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 description, citation, etc.
             split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
         """
-        pa_table = pa.Table.from_pandas(df=df, schema=pa.schema(features.type) if features is not None else None)
+        if info is None:
+            info = DatasetInfo()
+        if info.features is None:
+            info.features = features
+        elif info.features != features and features is not None:
+            raise ValueError(
+                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
+                    features, info.features
+                )
+            )
+        pa_table: pa.Table = pa.Table.from_pandas(
+            df=df, schema=pa.schema(info.features.type) if info.features is not None else None
+        )
+        if info.features is None:
+            info.features = Features.from_arrow_schema(pa_table.schema)
         return cls(pa_table, info=info, split=split)
 
     @classmethod
@@ -197,7 +210,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         features: Optional[Features] = None,
         info: Optional[Any] = None,
         split: Optional[Any] = None,
-    ):
+    ) -> "Dataset":
         """
         Convert :obj:``dict`` to a "obj"``pyarrow.Table`` to create a :obj:``nlp.Dataset``.
 
@@ -208,9 +221,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 description, citation, etc.
             split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
         """
-        pa_table = pa.Table.from_pydict(
-            mapping=mapping, schema=pa.schema(features.type) if features is not None else None
+        if info is None:
+            info = DatasetInfo()
+        if info.features is None:
+            info.features = features
+        elif info.features != features and features is not None:
+            raise ValueError(
+                "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
+                    features, info.features
+                )
+            )
+        pa_table: pa.Table = pa.Table.from_pydict(
+            mapping=mapping, schema=pa.schema(info.features.type) if info.features is not None else None
         )
+        if info.features is None:
+            info.features = Features.from_arrow_schema(pa_table.schema)
         return cls(pa_table, info=info, split=split)
 
     @property
@@ -316,12 +341,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         casted_schema.set(field_index, casted_field)
         self._data = self._data.cast(casted_schema)
 
-    def flatten(self):
+    def flatten(self, max_depth=16):
         """ Flatten the Table.
             Each column with a struct type is flattened into one column per struct field.
             Other columns are left unchanged.
         """
-        self._data = self._data.flatten()
+        for depth in range(1, max_depth):
+            if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
+                self._data = self._data.flatten()
+            else:
+                break
+        if self.info is not None:
+            self.info.features = Features.from_arrow_schema(self.schema)
+        logger.info(
+            "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
+        )
 
     def __len__(self):
         """ Number of rows in the dataset """

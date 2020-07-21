@@ -2,6 +2,7 @@ from unittest import TestCase
 
 import pyarrow as pa
 
+from nlp.arrow_dataset import Dataset
 from nlp.arrow_reader import BaseReader
 from nlp.info import DatasetInfo
 from nlp.splits import SplitDict, SplitInfo
@@ -39,13 +40,14 @@ class BaseReaderTest(TestCase):
         reader = ReaderTest("", info)
 
         instructions = "test[:33%]"
-        dset = reader.read(name, instructions, split_infos)
+        dset = Dataset(**reader.read(name, instructions, split_infos))
         self.assertEqual(dset["filename"][0], f"{name}-test")
         self.assertEqual(dset.num_rows, 33)
         self.assertEqual(dset.num_columns, 1)
 
         instructions = ["train", "test[:33%]"]
-        train_dset, test_dset = reader.read(name, instructions, split_infos)
+        datasets_kwargs = [reader.read(name, instr, split_infos) for instr in instructions]
+        train_dset, test_dset = [Dataset(**dataset_kwargs) for dataset_kwargs in datasets_kwargs]
         self.assertEqual(train_dset["filename"][0], f"{name}-train")
         self.assertEqual(train_dset.num_rows, 100)
         self.assertEqual(train_dset.num_columns, 1)
@@ -63,7 +65,7 @@ class BaseReaderTest(TestCase):
         reader = ReaderTest("", info)
 
         files = [{"filename": "train"}, {"filename": "test", "skip": 10, "take": 10}]
-        dset = reader.read_files(files, original_instructions="")
+        dset = Dataset(**reader.read_files(files, original_instructions=""))
         self.assertEqual(dset.num_rows, 110)
         self.assertEqual(dset.num_columns, 1)
         self.assertEqual(dset._data_files, files)

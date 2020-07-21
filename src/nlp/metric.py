@@ -17,11 +17,14 @@
 """ Metrics base class."""
 import logging
 import os
+from contextlib import contextmanager
 from typing import Any, Dict, Optional
 
+import numpy as np
 import pyarrow as pa
 from filelock import FileLock, Timeout
 
+from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .info import MetricInfo
@@ -30,6 +33,16 @@ from .utils import HF_METRICS_CACHE, Version
 
 
 logger = logging.getLogger(__file__)
+
+
+@contextmanager
+def temp_seed(seed: int):
+    state = np.random.get_state()
+    np.random.seed(seed)
+    try:
+        yield
+    finally:
+        np.random.set_state(state)
 
 
 class Metric(object):
@@ -42,20 +55,22 @@ class Metric(object):
         data_dir: Optional[str] = None,
         in_memory: bool = False,
         hash: str = None,
+        seed: Optional[int] = None,
         **kwargs,
     ):
         """ A Metrics is the base class and common API for all metrics.
             Args:
-                process_id (int): specify the id of the node in a distributed settings between 0 and num_nodes-1
+                process_id (``int``): specify the id of the node in a distributed settings between 0 and num_nodes-1
                     This can be used, to compute metrics on distributed setups
                     (in particular non-additive metrics like F1).
-                data_dir (str): path to a directory in which temporary data will be stored.
+                data_dir (``str``): path to a directory in which temporary data will be stored.
                     This should be a shared file-system for distributed setups.
-                hash (str): can be used to define a hash specific to the metrics computation script
+                hash (``str``): can be used to define a hash specific to the metrics computation script
                     This prevents the metric's data to be overridden when the metric loading script is modified.
-                experiment_id (str): Should be used if you perform several concurrent experiments using
+                experiment_id (Optional ``str``): Should be used if you perform several concurrent experiments using
                     the same caching directory (will be indicated in the raise error)
-                in_memory (bool): keep all predictions and references in memory. Not possible in distributed settings.
+                in_memory (``bool``): keep all predictions and references in memory. Not possible in distributed settings.
+                seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`nlp.Metric.compute` is run.
         """
         # Safety checks
         assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
@@ -79,6 +94,7 @@ class Metric(object):
         self._version = "1.0.0"
         self._data_dir_root = os.path.expanduser(data_dir or HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
+        self.seed: int = seed or np.random.get_state()[1][0]
 
         # prepare info
         info = self._info()
@@ -187,7 +203,7 @@ class Metric(object):
 
             # Read the predictions and references
             reader = ArrowReader(path=self.data_dir, info=None)
-            self.data = reader.read_files(node_files)
+            self.data = Dataset(**reader.read_files(node_files))
 
             # Release all of our locks
             for lock in locks:
@@ -204,7 +220,8 @@ class Metric(object):
 
         predictions = self.data["predictions"]
         references = self.data["references"]
-        output = self._compute(predictions=predictions, references=references, **metrics_kwargs)
+        with temp_seed(self.seed):
+            output = self._compute(predictions=predictions, references=references, **metrics_kwargs)
         return output
 
     def add_batch(self, predictions=None, references=None, **kwargs):
