@@ -9,8 +9,9 @@ class FeaturesTest(TestCase):
         data = {"a": [{"b": {"c": "text"}}] * 10, "foo": [1] * 10}
         original_features = Features({"a": {"b": {"c": Value("string")}}, "foo": Value("int64")})
         dset = Dataset.from_dict(data, features=original_features)
-        new_features = Features.from_arrow_schema(dset.schema)
+        new_features = dset.features
         new_dset = Dataset.from_dict(data, features=new_features)
+        self.assertEqual(original_features.type, new_features.type)
         self.assertDictEqual(dset[0], new_dset[0])
         self.assertDictEqual(dset[:], new_dset[:])
 
@@ -18,7 +19,8 @@ class FeaturesTest(TestCase):
         data = {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10}
         original_features = Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")})
         dset = Dataset.from_dict(data, features=original_features)
-        new_features = Features.from_arrow_schema(dset.schema)
+        new_features = dset.features
         new_dset = Dataset.from_dict(data, features=new_features)
+        self.assertEqual(original_features.type, new_features.type)
         self.assertDictEqual(dset[0], new_dset[0])
         self.assertDictEqual(dset[:], new_dset[:])

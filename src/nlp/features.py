@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 
 def string_to_arrow(type_str: str):
+    if type_str in ("double", "float"):
+        type_str = "float64"
     if type_str not in pa.__dict__:
         if str(type_str + "_") not in pa.__dict__:
             raise ValueError(

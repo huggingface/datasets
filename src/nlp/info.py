@@ -85,7 +85,7 @@ class DatasetInfo:
     citation: str = field(default_factory=str)
     homepage: str = field(default_factory=str)
     license: str = field(default_factory=str)
-    features: Features = None
+    features: Optional[Features] = None
     supervised_keys: Optional[SupervisedKeysData] = None
 
     # Set later by the builder
