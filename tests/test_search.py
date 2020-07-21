@@ -45,7 +45,7 @@ class IndexableDatasetTest(TestCase):
         split_dict.add(test_info)
         info = DatasetInfo(splits=split_dict)
         reader = ReaderTester("", info)
-        dset = reader.read(name, "train", split_infos)
+        dset = Dataset(**reader.read(name, "train", split_infos))
         return dset
 
     def test_add_faiss_index(self):

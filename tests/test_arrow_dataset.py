@@ -9,7 +9,7 @@ import pyarrow as pa
 from nlp import concatenate_datasets
 from nlp.arrow_dataset import Dataset
 from nlp.arrow_reader import BaseReader
-from nlp.features import Features, Value
+from nlp.features import Features, Sequence, Value
 from nlp.info import DatasetInfo
 from nlp.splits import SplitDict, SplitInfo
 
@@ -44,7 +44,7 @@ class BaseDatasetTest(TestCase):
         split_dict.add(test_info)
         info = DatasetInfo(splits=split_dict)
         reader = ReaderTester("", info)
-        dset = reader.read(name, "train", split_infos)
+        dset = Dataset(**reader.read(name, "train", split_infos))
         return dset
 
     def test_from_pandas(self):
@@ -53,11 +53,13 @@ class BaseDatasetTest(TestCase):
         dset = Dataset.from_pandas(df)
         self.assertListEqual(dset["col_1"], data["col_1"])
         self.assertListEqual(dset["col_2"], data["col_2"])
+        self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
 
         features = Features({"col_1": Value("int64"), "col_2": Value("string")})
         dset = Dataset.from_pandas(df, features=features)
         self.assertListEqual(dset["col_1"], data["col_1"])
         self.assertListEqual(dset["col_2"], data["col_2"])
+        self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
 
         features = Features({"col_1": Value("string"), "col_2": Value("string")})
         self.assertRaises(pa.ArrowTypeError, Dataset.from_pandas, df, features=features)
@@ -67,11 +69,13 @@ class BaseDatasetTest(TestCase):
         dset = Dataset.from_dict(data)
         self.assertListEqual(dset["col_1"], data["col_1"])
         self.assertListEqual(dset["col_2"], data["col_2"])
+        self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
 
         features = Features({"col_1": Value("int64"), "col_2": Value("string")})
         dset = Dataset.from_dict(data, features=features)
         self.assertListEqual(dset["col_1"], data["col_1"])
         self.assertListEqual(dset["col_2"], data["col_2"])
+        self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
 
         features = Features({"col_1": Value("string"), "col_2": Value("string")})
         self.assertRaises(pa.ArrowTypeError, Dataset.from_dict, data, features=features)
@@ -86,6 +90,15 @@ class BaseDatasetTest(TestCase):
         dset_concat = concatenate_datasets([dset1, dset2, dset3])
         self.assertEquals(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
         self.assertEquals(dset_concat.info.description, "Dataset1\n\nDataset2")
+
+    def test_flatten(self):
+        dset = Dataset.from_dict(
+            {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
+            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
+        )
+        dset.flatten()
+        self.assertListEqual(dset.column_names, ["a.b.c", "foo"])
+        self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
 
     def test_map(self):
         dset = self._create_dummy_dataset()

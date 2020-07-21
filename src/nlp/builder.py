@@ -29,6 +29,7 @@ from typing import Dict, List, Optional, Union
 import pyarrow as pa
 
 from . import utils
+from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .features import Features, Value
@@ -568,7 +569,7 @@ class DatasetBuilder:
             ds = self._post_process(ds, resources_paths)
         return ds
 
-    def _as_dataset(self, split: Split = Split.TRAIN):
+    def _as_dataset(self, split: Split = Split.TRAIN) -> Dataset:
         """Constructs a `Dataset`.
 
         This is the internal implementation to overwrite called when user calls
@@ -582,10 +583,10 @@ class DatasetBuilder:
             `Dataset`
         """
 
-        ds = ArrowReader(self._cache_dir, self.info).read(
+        dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
             name=self.name, instructions=split, split_infos=self.info.splits.values(),
         )
-        return ds
+        return Dataset(**dataset_kwargs)
 
     def _post_process(self, dataset, resources_paths):
         """Run dataset transforms or add indexes"""
