@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
+from nlp import concatenate_datasets
 from nlp.arrow_dataset import Dataset
 from nlp.arrow_reader import BaseReader
 from nlp.features import Features, Sequence, Value
@@ -78,6 +79,17 @@ class BaseDatasetTest(TestCase):
 
         features = Features({"col_1": Value("string"), "col_2": Value("string")})
         self.assertRaises(pa.ArrowTypeError, Dataset.from_dict, data, features=features)
+
+    def test_concatenate(self):
+        data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
+        dset1, dset2, dset3 = Dataset.from_dict(data1), Dataset.from_dict(data2), Dataset.from_dict(data3)
+        dset1._info = DatasetInfo(description="Dataset1")
+        dset2._info = DatasetInfo(description="Dataset2")
+        dset3._info = None
+
+        dset_concat = concatenate_datasets([dset1, dset2, dset3])
+        self.assertEquals(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
+        self.assertEquals(dset_concat.info.description, "Dataset1\n\nDataset2")
 
     def test_flatten(self):
         dset = Dataset.from_dict(
