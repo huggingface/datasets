@@ -208,6 +208,46 @@ class BaseDatasetTest(TestCase):
             for i, row in enumerate(dset_sorted):
                 self.assertEqual(int(row["filename"][-1]), len(dset_sorted) - 1 - i)
 
+    def test_export(self):
+        dset = self._create_dummy_dataset()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            # Export the data
+            tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
+            dset = dset.map(
+                lambda ex, i: {
+                    "id": i,
+                    "question": f"Question {i}",
+                    "answers": {"text": [f"Answer {i}-0", f"Answer {i}-1"], "answer_start": [0, 1]},
+                },
+                with_indices=True,
+                remove_columns=["filename"],
+                cache_file_name=tmp_file,
+            )
+            dset.flatten()
+            dset.set_format("numpy")
+            dset.export(filename=tfrecord_path, format="tfrecord")
+
+            # Import the data
+            import tensorflow as tf
+
+            tf_dset = tf.data.TFRecordDataset([tfrecord_path])
+            feature_description = {
+                "id": tf.io.FixedLenFeature([], tf.int64),
+                "question": tf.io.FixedLenFeature([], tf.string),
+                "answers.text": tf.io.VarLenFeature(tf.string),
+                "answers.answer_start": tf.io.VarLenFeature(tf.int64),
+            }
+            tf_parsed_dset = tf_dset.map(
+                lambda example_proto: tf.io.parse_single_example(example_proto, feature_description)
+            )
+            # Test that keys match original dataset
+            for i, ex in enumerate(tf_parsed_dset):
+                self.assertEqual(ex.keys(), dset[i].keys())
+            # Test for equal number of elements
+            self.assertEqual(i, len(dset) - 1)
+
     def test_train_test_split(self):
         dset = self._create_dummy_dataset()
 

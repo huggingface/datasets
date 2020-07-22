@@ -1176,6 +1176,85 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             verbose=verbose,
         )
 
+    def export(
+        self, filename: str, format: str = "tfrecord",
+    ):
+        """ Writes the Arrow dataset to a TFRecord file.
+
+            The dataset must already be in tensorflow format. The records will be written with
+            keys from `dataset._format_columns`.
+
+            Args:
+                `filename` (`str`): The filename, including the .tfrecord extension, to write to.
+                `format` (`Optional[str]`, default: `"tfrecord"`): The type of output file. Currently this is a no-op, as
+                    TFRecords are the only option. This enables a more flexible function signature
+                    later.
+        """
+        try:
+            import tensorflow as tf  # noqa: F401
+        except ImportError:
+            logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
+
+        # From https://www.tensorflow.org/tutorials/load_data/tfrecord
+        def _bytes_feature(values):
+            """Returns a bytes_list from a list of string / byte."""
+            return tf.train.Feature(bytes_list=tf.train.BytesList(value=values))
+
+        def _float_feature(values):
+            """Returns a float_list from a list of float / double."""
+            return tf.train.Feature(float_list=tf.train.FloatList(value=values))
+
+        def _int64_feature(values):
+            """Returns an int64_list from a list of bool / enum / int / uint."""
+            return tf.train.Feature(int64_list=tf.train.Int64List(value=values))
+
+        def _feature(values: np.ndarray) -> "tf.train.Feature":
+            """Typechecks `values` and returns the corresponding tf.train.Feature."""
+            if values.ndim == 0:
+                values = values.item()
+            if isinstance(values, np.ndarray):
+                if values.dtype == np.dtype(float):
+                    return _float_feature(values)
+                elif values.dtype == np.dtype(int):
+                    return _int64_feature(values)
+                elif values.dtype == np.dtype(str) or (
+                    values.dtype == np.dtype(object) and len(values) > 0 and isinstance(values[0], str)
+                ):
+                    return _bytes_feature([v.encode() for v in values])
+                else:
+                    raise ValueError(
+                        f"values={values} is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
+                    )
+            elif isinstance(values, float):
+                return _float_feature([values])
+            elif isinstance(values, int):
+                return _int64_feature([values])
+            elif isinstance(values, str):
+                return _bytes_feature([values.encode()])
+            else:
+                raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
+
+        def serialize_example(ex):
+            feature = {key: _feature(value) for key, value in ex.items()}
+            example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+            return example_proto.SerializeToString()
+
+        def tf_serialize_example(ex):
+            tf_string = tf.py_function(serialize_example, (ex,), tf.string)
+            return tf.reshape(tf_string, ())
+
+        def generator():
+            for ex in self:
+                yield serialize_example(ex)
+
+        assert self._format_type == "numpy", "Dataset format must be numpy before exporting"
+        assert filename.endswith(".tfrecord")
+        tf_dataset = tf.data.Dataset.from_generator(generator, output_types=tf.string, output_shapes=())
+        writer = tf.data.experimental.TFRecordWriter(filename)
+        logger.info(f"Writing TFRecord to {filename}")
+        writer.write(tf_dataset)
+        logger.info(f"Finished writing TFRecord to {filename}")
+
     def train_test_split(
         self,
         test_size: Union[float, int, None] = None,

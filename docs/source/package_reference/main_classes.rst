@@ -6,7 +6,7 @@ Main classes
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nlp.DatasetInfo
-    :members: 
+    :members:
 
 ``Dataset``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -18,7 +18,7 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
         drop, unique, dictionary_encode_column, flatten,
         __len__, __iter__, formated_as, set_format, reset_format,
         __getitem__, cleanup_cache_files,
-        map, filter, select, sort, shuffle, train_test_split, shard,
+        map, filter, select, sort, shuffle, train_test_split, shard, export,
         add_faiss_index, add_faiss_index_from_external_arrays, save_faiss_index, load_faiss_index,
         add_elasticsearch_index,
         list_indexes, get_index, drop_index, search, search_batch, get_nearest_examples, get_nearest_examples_batch,
@@ -55,7 +55,7 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: nlp.MetricInfo
-    :members: 
+    :members:
 
 ``Metric``
 ~~~~~~~~~~~~~~~~~~~~~
