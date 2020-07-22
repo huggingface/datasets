@@ -12,9 +12,9 @@ from nlp.features import Features, Sequence, Value
 
 class BaseDatasetTest(TestCase):
     def _create_dummy_dataset(self):
-        dset = Dataset(pa.Table.from_pydict({
-            "filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]
-        }))
+        dset = Dataset(
+            pa.Table.from_pydict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
+        )
         return dset
 
     def test_dummy_dataset(self):
@@ -78,9 +78,10 @@ class BaseDatasetTest(TestCase):
             )
             self.assertEqual(len(dset_test), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(dset_test.features, Features({
-                "filename": Value("string"), "name": Value("string"), "id": Value("int64")
-            }))
+            self.assertDictEqual(
+                dset_test.features,
+                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
+            )
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
@@ -89,9 +90,10 @@ class BaseDatasetTest(TestCase):
             )
             self.assertEqual(len(dset_test_with_indices), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(dset_test_with_indices.features, Features({
-                "filename": Value("string"), "name": Value("string"), "id": Value("int64")
-            }))
+            self.assertDictEqual(
+                dset_test_with_indices.features,
+                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
+            )
 
     def test_map_batched(self):
         dset = self._create_dummy_dataset()
@@ -104,9 +106,9 @@ class BaseDatasetTest(TestCase):
             dset_test_batched = dset.map(map_batched, batched=True, cache_file_name=tmp_file)
             self.assertEqual(len(dset_test_batched), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(dset_test_batched.features, Features({
-                "filename": Value("string"), "filename_new": Value("string")
-            }))
+            self.assertDictEqual(
+                dset_test_batched.features, Features({"filename": Value("string"), "filename_new": Value("string")})
+            )
 
         def map_batched_with_indices(example, idx):
             return {"filename_new": [x + "_extension_" + str(idx) for x in example["filename"]]}
@@ -118,9 +120,10 @@ class BaseDatasetTest(TestCase):
             )
             self.assertEqual(len(dset_test_with_indices_batched), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
-            self.assertDictEqual(dset_test_with_indices_batched.features, Features({
-                "filename": Value("string"), "filename_new": Value("string")
-            }))
+            self.assertDictEqual(
+                dset_test_with_indices_batched.features,
+                Features({"filename": Value("string"), "filename_new": Value("string")}),
+            )
 
     def test_remove_colums(self):
         dset = self._create_dummy_dataset()
@@ -131,17 +134,15 @@ class BaseDatasetTest(TestCase):
                 lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True, cache_file_name=tmp_file
             )
             self.assertTrue("id" in dset[0])
-            self.assertDictEqual(dset.features, Features({
-                "filename": Value("string"), "name": Value("string"), "id": Value("int64")
-            }))
+            self.assertDictEqual(
+                dset.features, Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")})
+            )
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
             dset = dset.map(lambda x: x, remove_columns=["id"], cache_file_name=tmp_file)
             self.assertTrue("id" not in dset[0])
-            self.assertDictEqual(dset.features, Features({
-                "filename": Value("string"), "name": Value("string")
-            }))
+            self.assertDictEqual(dset.features, Features({"filename": Value("string"), "name": Value("string")}))
 
     def test_filter(self):
         dset = self._create_dummy_dataset()
@@ -377,7 +378,9 @@ class BaseDatasetTest(TestCase):
                 cache_file_name=tmp_file,
                 batched=True,
             )
-            self.assertDictEqual(dset.features, Features({"filename": Value("string"), "nested": {"foo": [Value("float64")]}}))
+            self.assertDictEqual(
+                dset.features, Features({"filename": Value("string"), "nested": {"foo": [Value("float64")]}})
+            )
 
             dset.set_format("tensorflow")
             self.assertIsNotNone(dset[0])

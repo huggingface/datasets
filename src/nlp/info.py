@@ -162,7 +162,11 @@ class DatasetInfo:
     def update(self, other_dataset_info, ignore_none=True):
         self_dict = self.__dict__
         self_dict.update(
-            **{k: copy.deepcopy(v) for k, v in other_dataset_info.__dict__.items() if (v is not None or not ignore_none)}
+            **{
+                k: copy.deepcopy(v)
+                for k, v in other_dataset_info.__dict__.items()
+                if (v is not None or not ignore_none)
+            }
         )
 
     def copy(self) -> "DatasetInfo":
