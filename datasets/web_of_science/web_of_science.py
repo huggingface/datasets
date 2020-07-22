@@ -34,29 +34,10 @@ organization={IEEE}
 """
 
 _DESCRIPTION = """\
-Copyright (c) 2017 Kamran Kowsari
+    The Web Of Science (WOS) dataset is a collection of data  of published papers
+    available from the Web of Science. WOS has been released in three versions: WOS-46985, WOS-11967 and WOS-5736. WOS-46985 is the
+    full dataset. WOS-11967 and WOS-5736 are two subsets of WOS-46985.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this dataset and associated documentation files (the "Dataset"), to deal
-in the dataset without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Dataset, and to permit persons to whom the dataset is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Dataset.
-
-If you use this dataset please cite: Referenced paper: HDLTex: Hierarchical Deep Learning for Text Classification
-
-Description of Dataset:
-
-Here is three datasets which include WOS-11967 , WOS-46985, and WOS-5736
-Each folder contains:
--X.txt
--Y.txt
--YL1.txt
--YL2.txt
-
-X is input data that include text sequences
-Y is target value
-YL1 is target value of level one (parent label)
-YL2 is target value of level one (child label)
 """
 
 _DATA_URL = "https://data.mendeley.com/datasets/9rw3vkcfy4/6/files/c9ea673d-5542-44c0-ab7b-f1311f7d61df/WebOfScience.zip?dl=1"
