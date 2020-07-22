@@ -22,20 +22,16 @@ import json
 
 _CITATION = """\
 @inproceedings{chatterjee-etal-2019-semeval,
-    title = "{S}em{E}val-2019 Task 3: {E}mo{C}ontext Contextual Emotion Detection in Text",
-    author = "Chatterjee, Ankush  and
-      Narahari, Kedhar Nath  and
-      Joshi, Meghana  and
-      Agrawal, Puneet",
-    booktitle = "Proceedings of the 13th International Workshop on Semantic Evaluation",
-    month = jun,
-    year = "2019",
-    address = "Minneapolis, Minnesota, USA",
-    publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/S19-2005",
-    doi = "10.18653/v1/S19-2005",
-    pages = "39--48",
-    abstract = "In this paper, we present the SemEval-2019 Task 3 - EmoContext: Contextual Emotion Detection in Text. Lack of facial expressions and voice modulations make detecting emotions in text a challenging problem. For instance, as humans, on reading {``}Why don{'}t you ever text me!{''} we can either interpret it as a sad or angry emotion and the same ambiguity exists for machines. However, the context of dialogue can prove helpful in detection of the emotion. In this task, given a textual dialogue i.e. an utterance along with two previous turns of context, the goal was to infer the underlying emotion of the utterance by choosing from four emotion classes - Happy, Sad, Angry and Others. To facilitate the participation in this task, textual dialogues from user interaction with a conversational agent were taken and annotated for emotion classes after several data processing steps. A training data set of 30160 dialogues, and two evaluation data sets, Test1 and Test2, containing 2755 and 5509 dialogues respectively were released to the participants. A total of 311 teams made submissions to this task. The final leader-board was evaluated on Test2 data set, and the highest ranked submission achieved 79.59 micro-averaged F1 score. Our analysis of systems submitted to the task indicate that Bi-directional LSTM was the most common choice of neural architecture used, and most of the systems had the best performance for the Sad emotion class, and the worst for the Happy emotion class.",
+    title={SemEval-2019 Task 3: EmoContext Contextual Emotion Detection in Text},
+    author={Ankush Chatterjee and Kedhar Nath Narahari and Meghana Joshi and Puneet Agrawal},
+    booktitle={Proceedings of the 13th International Workshop on Semantic Evaluation},
+    year={2019},
+    address={Minneapolis, Minnesota, USA},
+    publisher={Association for Computational Linguistics},
+    url={https://www.aclweb.org/anthology/S19-2005},
+    doi={10.18653/v1/S19-2005},
+    pages={39--48},
+    abstract={In this paper, we present the SemEval-2019 Task 3 - EmoContext: Contextual Emotion Detection in Text. Lack of facial expressions and voice modulations make detecting emotions in text a challenging problem. For instance, as humans, on reading ''Why don't you ever text me!'' we can either interpret it as a sad or angry emotion and the same ambiguity exists for machines. However, the context of dialogue can prove helpful in detection of the emotion. In this task, given a textual dialogue i.e. an utterance along with two previous turns of context, the goal was to infer the underlying emotion of the utterance by choosing from four emotion classes - Happy, Sad, Angry and Others. To facilitate the participation in this task, textual dialogues from user interaction with a conversational agent were taken and annotated for emotion classes after several data processing steps. A training data set of 30160 dialogues, and two evaluation data sets, Test1 and Test2, containing 2755 and 5509 dialogues respectively were released to the participants. A total of 311 teams made submissions to this task. The final leader-board was evaluated on Test2 data set, and the highest ranked submission achieved 79.59 micro-averaged F1 score. Our analysis of systems submitted to the task indicate that Bi-directional LSTM was the most common choice of neural architecture used, and most of the systems had the best performance for the Sad emotion class, and the worst for the Happy emotion class}
 }
 """
 
