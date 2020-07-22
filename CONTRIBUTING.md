@@ -35,7 +35,7 @@
    $ pip install -U git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort
    ```
 
-5. Develop the features on your branch. If you want to add a dataset see more in-detail intsructions in the section *How to add a dataset*.
+5. Develop the features on your branch. If you want to add a dataset see more in-detail intsructions in the section [*How to add a dataset*](#how-to-add-a-dataset). Alternatively, you can follow the steps to [add a dataset](https://huggingface.co/nlp/add_dataset.html) and [share a dataset](https://huggingface.co/nlp/share_dataset.html) in the documentation.
 
 6. Format your code. Run black and isort so that your newly added files look nice with the following command:
 
@@ -67,12 +67,11 @@
 8. Once you are satisfied, go the webpage of your fork on GitHub. Click on "Pull request" to send your to the project maintainers for review.
 
 ## How-To-Add a dataset
-
-1. Make sure you followed steps 1-4 of the section *How to contribute to nlp?*.
+1. Make sure you followed steps 1-4 of the section [*How to contribute to nlp?*](#how-to-contribute-to-nlp).
 
 2. Create your dataset folder under `datasets/<your_dataset_name>` and create your dataset script under `datasets/<your_dataset_name>/<your_dataset_name>.py`. You can check out other dataset scripts under `datasets` for some inspiration. Note on naming: the dataset class should be camel case, while the dataset name is its snake case equivalent (ex: `class BookCorpus(nlp.GeneratorBasedBuilder)` for the dataset `book_corpus`).
 
-3. **Make sure you run all of the following commands from the root of your `nlp` git clone.**. To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
+3. **Make sure you run all of the following commands from the root of your `nlp` git clone.** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
 
 	```bash
 	python nlp-cli test datasets/<your-dataset-folder> --save_infos --all_configs
@@ -97,7 +96,7 @@
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
 	```
 
-6. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6, 7 and 8 of the section *How to contribute to nlp?*. If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
+6. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6, 7 and 8 of the section [*How to contribute to nlp?*](#how-to-contribute-to-nlp). If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
 
 
 ### Help for dummy data tests
