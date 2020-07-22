@@ -38,7 +38,7 @@ from .features import Features
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .utils import map_all_sequences_to_lists, map_nested
+from .utils import map_nested
 
 
 logger = logging.getLogger(__name__)
@@ -131,7 +131,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
     ):
-        DatasetInfoMixin.__init__(self, info=info or DatasetInfo(), split=split)
+        info = info.copy() if info is not None else DatasetInfo()
+        DatasetInfoMixin.__init__(self, info=info, split=split)
         IndexableMixin.__init__(self)
         self._data: pa.Table = arrow_table
         self._data_files: List[dict] = data_files if data_files is not None else []

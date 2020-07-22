@@ -490,7 +490,9 @@ class SplitDict(dict):
             return SubSplitInfo(instructions)
 
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
-        raise ValueError("Cannot add elem. Use .add() instead.")
+        if key in self:
+            raise ValueError("Cannot add elem. Use .add() instead.")
+        super().__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):
         """Add the split info."""
