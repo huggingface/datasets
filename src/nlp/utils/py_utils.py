@@ -22,6 +22,7 @@ import contextlib
 import functools
 import itertools
 import os
+import types
 from io import BytesIO as StringIO
 from shutil import disk_usage
 from types import CodeType
@@ -358,3 +359,7 @@ def save_code(pickler, obj):
     pickler.save_reduce(CodeType, args, obj=obj)
     dill._dill.log.info("# Co")
     return
+
+
+def copyfunc(func):
+    return types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)

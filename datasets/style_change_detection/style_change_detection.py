@@ -102,7 +102,6 @@ class StyleChangeDetection(nlp.GeneratorBasedBuilder):
                 )
             )
 
-
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
