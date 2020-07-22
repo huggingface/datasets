@@ -315,6 +315,25 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
         return self._data.column(column).unique().to_pylist()
 
+    def dictionary_encode_column(self, column: str):
+        """ Dictionary encode a column.
+            Dictionnary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+            by storing a dictionnary of the strings. This only affect the internal storage.
+
+        Args:
+            column (:obj:`str`):
+
+        """
+        if column not in self._data.column_names:
+            raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
+        casted_schema: pa.Schema = self._data.schema
+        field_index = casted_schema.get_field_index(column)
+        field: pa.Field = casted_schema.field(field_index)
+        casted_field = pa.field(field.name, pa.dictionary(pa.int32(), field.type), nullable=False)
+        casted_schema.set(field_index, casted_field)
+        self._data = self._data.cast(casted_schema)
+        self.info.features = Features.from_arrow_schema(self._data.schema)
+
     def flatten(self, max_depth=16):
         """ Flatten the Table.
             Each column with a struct type is flattened into one column per struct field.
