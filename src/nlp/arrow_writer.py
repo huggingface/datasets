@@ -23,6 +23,7 @@ import socket
 from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
+from tqdm.auto import tqdm
 
 from .features import Features
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
@@ -306,9 +307,9 @@ def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
     writer = ArrowWriter(path=destination, stream=stream)
-    for source in sources:
+    for source in tqdm(sources, unit="sources"):
         pf = pa.parquet.ParquetFile(source)
-        for i in range(pf.num_row_groups):
+        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False):
             df = pf.read_row_group(i).to_pandas()
             for col in df.columns:
                 df[col] = df[col].apply(json.loads)
