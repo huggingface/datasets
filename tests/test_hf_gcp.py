@@ -25,6 +25,7 @@ DATASETS_ON_HF_GCP = [
     {"dataset": "wiki_dpr", "config_name": "psgs_w100_no_embeddings"},
     {"dataset": "wiki_dpr", "config_name": "dummy_psgs_w100_with_nq_embeddings"},
     {"dataset": "wiki_dpr", "config_name": "dummy_psgs_w100_no_embeddings"},
+    {"dataset": "natural_questions", "config_name": "default"},
 ]
 
 
