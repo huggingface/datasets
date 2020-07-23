@@ -34,9 +34,9 @@ organization={IEEE}
 """
 
 _DESCRIPTION = """\
-    The Web Of Science (WOS) dataset is a collection of data  of published papers
-    available from the Web of Science. WOS has been released in three versions: WOS-46985, WOS-11967 and WOS-5736. WOS-46985 is the
-    full dataset. WOS-11967 and WOS-5736 are two subsets of WOS-46985.
+The Web Of Science (WOS) dataset is a collection of data  of published papers
+available from the Web of Science. WOS has been released in three versions: WOS-46985, WOS-11967 and WOS-5736. WOS-46985 is the
+full dataset. WOS-11967 and WOS-5736 are two subsets of WOS-46985.
 
 """
 
@@ -60,19 +60,16 @@ class WebOfScience(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         WebOfScienceConfig(
             name="WOS5736",
-            description="""Web of Science Dataset WOS-5736
-                        -This dataset contains 5,736 documents with 11 categories which include 3 parents categories.""",
+            description="""Web of Science Dataset WOS-5736: This dataset contains 5,736 documents with 11 categories which include 3 parents categories.""",
         ),
         WebOfScienceConfig(
             name="WOS11967",
-            description="""Web of Science Dataset WOS-11967
-                        -This dataset contains 11,967 documents with 35 categories which include 7 parents categories."""
+            description="""Web of Science Dataset WOS-11967: This dataset contains 11,967 documents with 35 categories which include 7 parents categories."""
         ),
         WebOfScienceConfig(
             name="WOS46985",
             description="""
-                        Web of Science Dataset WOS-46985
-                        -This dataset contains 46,985 documents with 134 categories which include 7 parents categories."""
+                        Web of Science Dataset WOS-46985: This dataset contains 46,985 documents with 134 categories which include 7 parents categories."""
         )
     ]
     
