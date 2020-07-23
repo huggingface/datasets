@@ -45,7 +45,7 @@ class TestDatasetOnHfGcp(TestCase):
     dataset = None
     config_name = None
 
-    def test_dataset_info_available(self, dataset, config_name):
+    def test_script_synced_with_s3(self, dataset, config_name):
 
         with TemporaryDirectory() as tmp_dir:
             module_path, hash = prepare_module(dataset, dataset=True, cache_dir=tmp_dir)
@@ -53,6 +53,13 @@ class TestDatasetOnHfGcp(TestCase):
                 os.path.join("datasets", dataset), dataset=True, cache_dir=tmp_dir, local_files_only=True
             )
             self.assertEqual(hash, local_hash)
+
+    def test_dataset_info_available(self, dataset, config_name):
+
+        with TemporaryDirectory() as tmp_dir:
+            local_module_path, local_hash = prepare_module(
+                os.path.join("datasets", dataset), dataset=True, cache_dir=tmp_dir, local_files_only=True
+            )
 
             builder_cls = import_main_class(local_module_path, dataset=True)
 
