@@ -32,6 +32,7 @@ from . import utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
+from .dataset_dict import DatasetDict
 from .features import Features, Value
 from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
@@ -549,6 +550,8 @@ class DatasetBuilder:
         datasets = utils.map_nested(
             partial(self._build_single_dataset, run_post_process=run_post_process), split, map_tuple=True
         )
+        if isinstance(datasets, dict):
+            datasets = DatasetDict(datasets)
         return datasets
 
     def _build_single_dataset(self, split, run_post_process):

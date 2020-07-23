@@ -680,7 +680,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         features: Optional[Features] = None,
         disable_nullable: bool = True,
         verbose: bool = True,
-    ):
+    ) -> "Dataset":
         """ Apply a function to all the elements in the table (individually or in batches)
             and update the table (if function does updated examples).
 
@@ -849,7 +849,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             return self
 
-    def filter(self, function, with_indices=False, **kwargs):
+    def filter(
+        self,
+        function,
+        with_indices=False,
+        batch_size: Optional[int] = 1000,
+        remove_columns: Optional[List[str]] = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
+    ) -> "Dataset":
         """ Apply a filter function to all the elements in the table in batches
             and update the table so that the dataset only includes examples according to the filter function.
 
@@ -870,7 +881,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
@@ -909,7 +919,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return result
 
         # return map function
-        return self.map(map_function, batched=True, with_indices=with_indices, features=self.features, **kwargs)
+        return self.map(
+            map_function,
+            batched=True,
+            with_indices=with_indices,
+            features=self.features,
+            batch_size=batch_size,
+            remove_columns=remove_columns,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+            verbose=verbose,
+        )
 
     def select(
         self,
@@ -999,7 +1021,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-    ):
+    ) -> "Dataset":
         """ Create a new dataset sorted according to a column.
 
             Currently sorting according to a column name uses numpy sorting algorithm under the hood.
@@ -1082,7 +1104,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
     ):
-        """ Create a new Dataset where rows the rows are shuffled.
+        """ Create a new Dataset where the rows are shuffled.
 
             Currently shuffling uses numpy random generators.
             You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
