@@ -41,7 +41,7 @@ In this dataset, given a textual dialogue i.e. an utterance along with two previ
 
 
 class EmoConfig(nlp.BuilderConfig):
-    """BuilderConfig for SQUAD."""
+    """BuilderConfig for EmoContext."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for EmoContext.
