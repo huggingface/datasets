@@ -528,7 +528,7 @@ class DatasetBuilder:
         del prepare_split_kwargs
         return {}
 
-    def as_dataset(self, split: Optional[Split] = None, run_post_process=True):
+    def as_dataset(self, split: Optional[Split] = None, run_post_process=True) -> Union[Dataset, DatasetDict]:
         """ Return a Dataset for the specified split.
         """
         logger.info("Constructing Dataset for split %s, from %s", split, self._cache_dir)
