@@ -34,6 +34,7 @@ from tqdm.auto import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
+from .dataset_dict import DatasetDict
 from .features import Features
 from .info import DatasetInfo
 from .search import IndexableMixin
@@ -1103,7 +1104,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-    ):
+    ) -> "Dataset":
         """ Create a new Dataset where the rows are shuffled.
 
             Currently shuffling uses numpy random generators.
@@ -1263,7 +1264,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         test_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-    ):
+    ) -> DatasetDict:
         """ Return a dictionary with two random train and test subsets (`train` and `test` ``Dataset`` splits).
             Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
 
@@ -1302,7 +1303,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         # If the array is empty we do nothing
         if len(self) == 0:
-            return self
+            return DatasetDict({"train": self, "test": self})
 
         if test_size is None and train_size is None:
             test_size = 0.25
@@ -1405,10 +1406,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     logger.info(
                         "Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name
                     )
-                return {
-                    "train": Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
-                    "test": Dataset.from_file(test_cache_file_name, info=self.info, split=self.split),
-                }
+                return DatasetDict(
+                    {
+                        "train": Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
+                        "test": Dataset.from_file(test_cache_file_name, info=self.info, split=self.split),
+                    }
+                )
 
         if not shuffle:
             train_indices = np.arange(n_train)
@@ -1439,7 +1442,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             verbose=verbose,
         )
 
-        return {"train": train_split, "test": test_split}
+        return DatasetDict({"train": train_split, "test": test_split})
 
     def shard(
         self,
@@ -1451,7 +1454,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-    ):
+    ) -> "Dataset":
         """ Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
             This shards deterministically. dset.shard(n, i) will contain all elements of dset whose
