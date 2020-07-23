@@ -55,7 +55,7 @@ _TEST_URL = "https://drive.google.com/file/d/1Hn5ytHSSoGOC4sjm3wYy0Dh0oY_oXBbb/v
 _TRAIN_URL = "https://drive.google.com/file/d/12Uz59TYg_NtxOy7SXraYeXPMRT7oaO7X/view?usp=sharing"
 
 
-class EmoDataset(nlp.GeneratorBasedBuilder):
+class Emo(nlp.GeneratorBasedBuilder):
     """ SemEval-2019 Task 3: EmoContext Contextual Emotion Detection in Text. Version 1.0.0 """
 
     VERSION = nlp.Version("1.0.0")
