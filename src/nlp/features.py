@@ -55,6 +55,10 @@ class Value:
     _type: str = field(default="Value", init=False, repr=False)
 
     def __post_init__(self):
+        if self.dtype == "double":  # fix inferred type
+            self.dtype = "float64"
+        if self.dtype == "float":  # fix inferred type
+            self.dtype = "float32"
         self.pa_type = string_to_arrow(self.dtype)
 
     def __call__(self):

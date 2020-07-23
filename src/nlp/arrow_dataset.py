@@ -38,7 +38,7 @@ from .features import Features
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
-from .utils import map_all_sequences_to_lists, map_nested
+from .utils import map_nested
 
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class DatasetInfoMixin(object):
         at the base level of the Dataset for easy access.
     """
 
-    def __init__(self, info: Optional[DatasetInfo], split: Optional[NamedSplit]):
+    def __init__(self, info: DatasetInfo, split: Optional[NamedSplit]):
         self._info = info
         self._split = split
 
@@ -92,7 +92,7 @@ class DatasetInfoMixin(object):
         return self._info.download_size
 
     @property
-    def features(self):
+    def features(self) -> Features:
         return self._info.features
 
     @property
@@ -131,6 +131,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
     ):
+        info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
         IndexableMixin.__init__(self)
         self._data: pa.Table = arrow_table
@@ -139,6 +140,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._format_kwargs: dict = {}
         self._format_columns: Optional[list] = None
         self._output_all_columns: bool = False
+        inferred_features = Features.from_arrow_schema(arrow_table.schema)
+        if self.info.features is not None:
+            if self.info.features.type != inferred_features.type:
+                self.info.features = inferred_features
+            else:
+                pass  # keep the original features
+        else:
+            self.info.features = inferred_features
+        assert self.features is not None, "Features can't be None in a Dataset object"
 
     @classmethod
     def from_file(
@@ -177,7 +187,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Be aware that Series of the `object` dtype don't carry enough information to always lead to a meaningful Arrow type. In the case that
         we cannot infer a type, e.g. because the DataFrame is of length 0 or the Series only contains None/nan objects, the type is set to
-        null. This behavior can be avoided by constructing an explicit schema and passing it to this function.
+        null. This behavior can be avoided by constructing explicit features and passing it to this function.
 
         Args:
             df (:obj:``pandas.DataFrame``): the dataframe that contains the dataset.
@@ -186,21 +196,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 description, citation, etc.
             split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
         """
-        if info is None:
-            info = DatasetInfo()
-        if info.features is None:
-            info.features = features
-        elif info.features != features and features is not None:
+        if info is not None and features is not None and info.features != features:
             raise ValueError(
                 "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
                     features, info.features
                 )
             )
+        features = features if features is not None else info.feature if info is not None else None
         pa_table: pa.Table = pa.Table.from_pandas(
-            df=df, schema=pa.schema(info.features.type) if info.features is not None else None
+            df=df, schema=pa.schema(features.type) if features is not None else None
         )
-        if info.features is None:
-            info.features = Features.from_arrow_schema(pa_table.schema)
         return cls(pa_table, info=info, split=split)
 
     @classmethod
@@ -221,21 +226,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 description, citation, etc.
             split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
         """
-        if info is None:
-            info = DatasetInfo()
-        if info.features is None:
-            info.features = features
-        elif info.features != features and features is not None:
+        if info is not None and features is not None and info.features != features:
             raise ValueError(
                 "Features specified in `features` and `info.features` can't be different:\n{}\n{}".format(
                     features, info.features
                 )
             )
+        features = features if features is not None else info.feature if info is not None else None
         pa_table: pa.Table = pa.Table.from_pydict(
-            mapping=mapping, schema=pa.schema(info.features.type) if info.features is not None else None
+            mapping=mapping, schema=pa.schema(features.type) if features is not None else None
         )
-        if info.features is None:
-            info.features = Features.from_arrow_schema(pa_table.schema)
         return cls(pa_table, info=info, split=split)
 
     @property
@@ -276,14 +276,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def column_names(self) -> List[str]:
         """Names of the columns in the dataset. """
         return self._data.column_names
-
-    @property
-    def schema(self) -> pa.Schema:
-        """The Arrow schema of the Apache Arrow table backing the dataset.
-        You probably don't need to access directly this and can rather use
-        :func:`nlp.Dataset.features` to inspect the dataset features.
-        """
-        return self._data.schema
 
     @property
     def shape(self):
@@ -340,6 +332,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         casted_field = pa.field(field.name, pa.dictionary(pa.int32(), field.type), nullable=False)
         casted_schema.set(field_index, casted_field)
         self._data = self._data.cast(casted_schema)
+        self.info.features = Features.from_arrow_schema(self._data.schema)
 
     def flatten(self, max_depth=16):
         """ Flatten the Table.
@@ -352,7 +345,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             else:
                 break
         if self.info is not None:
-            self.info.features = Features.from_arrow_schema(self.schema)
+            self.info.features = Features.from_arrow_schema(self._data.schema)
         logger.info(
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
@@ -380,8 +373,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
     def __repr__(self):
-        schema_str = dict((a, str(b)) for a, b in zip(self._data.schema.names, self._data.schema.types))
-        return f"Dataset(schema: {schema_str}, num_rows: {self.num_rows})"
+        return f"Dataset(features: {self.features}, num_rows: {self.num_rows})"
 
     @property
     def format(self):
@@ -685,7 +677,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        arrow_schema: Optional[pa.Schema] = None,
+        features: Optional[Features] = None,
         disable_nullable: bool = True,
         verbose: bool = True,
     ):
@@ -712,7 +704,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `arrow_schema` (`Optional[pa.Schema]`, default: `None`): Use a specific Apache Arrow Schema to store the cache file
+                `features` (`Optional[nlp.Features]`, default: `None`): Use a specific Features to store the cache file
                     instead of the automatically generated one.
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
@@ -792,18 +784,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             inputs.update(processed_inputs)
             return inputs
 
-        # Find the output schema if none is given
-        test_inputs = self[:2] if batched else self[0]
-        test_indices = [0, 1] if batched else 0
-        test_output = apply_function_on_filtered_inputs(test_inputs, test_indices)
-        if arrow_schema is None and update_data:
-            if not batched:
-                test_output = self._nest(test_output)
-            test_output = map_all_sequences_to_lists(test_output)
-            arrow_schema = pa.Table.from_pydict(test_output).schema
-            if disable_nullable:
-                arrow_schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in arrow_schema)
-
         # Check if we've already cached this computation (indexed by a hash)
         if self._data_files and update_data:
             if cache_file_name is None:
@@ -817,7 +797,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "load_from_cache_file": load_from_cache_file,
                     "cache_file_name": cache_file_name,
                     "writer_batch_size": writer_batch_size,
-                    "arrow_schema": arrow_schema,
+                    "features": features,
                     "disable_nullable": disable_nullable,
                 }
                 cache_file_name = self._get_cache_file_path(function, cache_kwargs)
@@ -830,12 +810,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if update_data:
             if keep_in_memory or not self._data_files:
                 buf_writer = pa.BufferOutputStream()
-                writer = ArrowWriter(schema=arrow_schema, stream=buf_writer, writer_batch_size=writer_batch_size)
+                writer = ArrowWriter(features=features, stream=buf_writer, writer_batch_size=writer_batch_size)
             else:
                 buf_writer = None
                 if verbose:
                     logger.info("Caching processed dataset at %s", cache_file_name)
-                writer = ArrowWriter(schema=arrow_schema, path=cache_file_name, writer_batch_size=writer_batch_size)
+                writer = ArrowWriter(features=features, path=cache_file_name, writer_batch_size=writer_batch_size)
 
         # Loop over single examples or batches and write to buffer/file if examples are to be updated
         if not batched:
@@ -928,15 +908,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
             return result
 
-        # to avoid errors with the arrow_schema we define it here
-        test_inputs = self[:2]
-        if "remove_columns" in kwargs:
-            test_inputs = {key: test_inputs[key] for key in (test_inputs.keys() - kwargs["remove_columns"])}
-        test_inputs = map_all_sequences_to_lists(test_inputs)
-        arrow_schema = pa.Table.from_pydict(test_inputs).schema
-
         # return map function
-        return self.map(map_function, batched=True, with_indices=with_indices, arrow_schema=arrow_schema, **kwargs)
+        return self.map(map_function, batched=True, with_indices=with_indices, features=self.features, **kwargs)
 
     def select(
         self,
@@ -991,12 +964,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Prepare output buffer and batched writer in memory or on file if we update the table
         if keep_in_memory or not self._data_files:
             buf_writer = pa.BufferOutputStream()
-            writer = ArrowWriter(schema=self.schema, stream=buf_writer, writer_batch_size=writer_batch_size)
+            writer = ArrowWriter(features=self.features, stream=buf_writer, writer_batch_size=writer_batch_size)
         else:
             buf_writer = None
             if verbose:
                 logger.info("Caching processed dataset at %s", cache_file_name)
-            writer = ArrowWriter(schema=self.schema, path=cache_file_name, writer_batch_size=writer_batch_size)
+            writer = ArrowWriter(features=self.features, path=cache_file_name, writer_batch_size=writer_batch_size)
 
         # Loop over batches and write to buffer/file if examples are to be updated
         for i in tqdm(range(0, len(indices), reader_batch_size), disable=not verbose):

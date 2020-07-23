@@ -29,6 +29,7 @@ processed the dataset as well:
  - etc.
 """
 
+import copy
 import json
 import logging
 import os
@@ -85,7 +86,7 @@ class DatasetInfo:
     citation: str = field(default_factory=str)
     homepage: str = field(default_factory=str)
     license: str = field(default_factory=str)
-    features: Features = None
+    features: Optional[Features] = None
     supervised_keys: Optional[SupervisedKeysData] = None
 
     # Set later by the builder
@@ -180,8 +181,15 @@ class DatasetInfo:
     def update(self, other_dataset_info, ignore_none=True):
         self_dict = self.__dict__
         self_dict.update(
-            **{k: v for k, v in other_dataset_info.__dict__.items() if (v is not None or not ignore_none)}
+            **{
+                k: copy.deepcopy(v)
+                for k, v in other_dataset_info.__dict__.items()
+                if (v is not None or not ignore_none)
+            }
         )
+
+    def copy(self) -> "DatasetInfo":
+        return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
 class DatasetInfosDict(dict):

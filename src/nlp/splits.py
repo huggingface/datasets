@@ -477,7 +477,6 @@ class SplitDict(dict):
 
     def __init__(self, *args, dataset_name=None, **kwargs):
         super(SplitDict, self).__init__(*args, **kwargs)
-        # super(SplitDict, self).__init__(error_msg="Split {key} already present", **kwargs)
         self.dataset_name = dataset_name
 
     def __getitem__(self, key: Union[SplitBase, str]):
@@ -490,14 +489,16 @@ class SplitDict(dict):
             return SubSplitInfo(instructions)
 
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):
-        raise ValueError("Cannot add elem. Use .add() instead.")
+        if key != value.name:
+            raise ValueError("Cannot add elem. (key mismatch: '{}' != '{}')".format(key, value.name))
+        if key in self:
+            raise ValueError("Split {} already present".format(key))
+        super(SplitDict, self).__setitem__(key, value)
 
     def add(self, split_info: SplitInfo):
         """Add the split info."""
         if split_info.name in self:
             raise ValueError("Split {} already present".format(split_info.name))
-        # Forward the dataset name required to build file instructions:
-        # info.splits['train'].file_instructions
         split_info.dataset_name = self.dataset_name
         super(SplitDict, self).__setitem__(split_info.name, split_info)
 
