@@ -68,8 +68,7 @@ class WebOfScience(nlp.GeneratorBasedBuilder):
         ),
         WebOfScienceConfig(
             name="WOS46985",
-            description="""
-                        Web of Science Dataset WOS-46985: This dataset contains 46,985 documents with 134 categories which include 7 parents categories."""
+            description="""Web of Science Dataset WOS-46985: This dataset contains 46,985 documents with 134 categories which include 7 parents categories."""
         )
     ]
     
