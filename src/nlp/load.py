@@ -555,8 +555,8 @@ def concatenate_datasets(
             description, citation, etc.
         split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
     """
-    if not all([dset.schema == dsets[0].schema for dset in dsets]):
-        raise ValueError("Schema must match for all datasets")
+    if not all([dset.features.type == dsets[0].features.type for dset in dsets]):
+        raise ValueError("Features must match for all datasets")
     table = pa.concat_tables([dset._data for dset in dsets])
     data_files = list(itertools.chain.from_iterable([dset._data_files for dset in dsets]))
     if info is None:

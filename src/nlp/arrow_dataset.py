@@ -202,7 +202,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     features, info.features
                 )
             )
-        features = features if features is not None else info.feature if info is not None else None
+        features = features if features is not None else info.features if info is not None else None
         pa_table: pa.Table = pa.Table.from_pandas(
             df=df, schema=pa.schema(features.type) if features is not None else None
         )
@@ -232,7 +232,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     features, info.features
                 )
             )
-        features = features if features is not None else info.feature if info is not None else None
+        features = features if features is not None else info.features if info is not None else None
         pa_table: pa.Table = pa.Table.from_pydict(
             mapping=mapping, schema=pa.schema(features.type) if features is not None else None
         )
