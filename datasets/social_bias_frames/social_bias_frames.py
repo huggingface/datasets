@@ -41,6 +41,7 @@ behind the statement "we shouldn’t lower our standards to hire more women."
 
 _DATA_URL = "https://homes.cs.washington.edu/~msap/social-bias-frames/SocialBiasFrames_v2.tgz"
 
+
 class SocialBiasFrames(nlp.GeneratorBasedBuilder):
     """TSocial Bias Frame"""
 
@@ -49,24 +50,24 @@ class SocialBiasFrames(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(
                 {
-                    'whoTarget': nlp.Value("string"), 
-                    'intentYN': nlp.Value("string"), 
-                    'sexYN': nlp.Value("string"), 
-                    'sexReason':nlp.Value("string"), 
-                    'offensiveYN': nlp.Value("string"), 
-                    'annotatorGender':nlp.Value("string"), 
-                    'annotatorMinority':nlp.Value("string"), 
-                    'sexPhrase': nlp.Value("string"), 
-                    'speakerMinorityYN': nlp.Value("string"), 
-                    'WorkerId': nlp.Value("string"), 
-                    'HITId': nlp.Value("string"), 
-                    'annotatorPolitics': nlp.Value("string"), 
-                    'annotatorRace': nlp.Value("string"), 
-                    'annotatorAge': nlp.Value("string"), 
-                    'post': nlp.Value("string"), 
-                    'targetMinority':nlp.Value("string"), 
-                    'targetCategory': nlp.Value("string"), 
-                    'targetStereotype': nlp.Value("string")
+                    "whoTarget": nlp.Value("string"),
+                    "intentYN": nlp.Value("string"),
+                    "sexYN": nlp.Value("string"),
+                    "sexReason": nlp.Value("string"),
+                    "offensiveYN": nlp.Value("string"),
+                    "annotatorGender": nlp.Value("string"),
+                    "annotatorMinority": nlp.Value("string"),
+                    "sexPhrase": nlp.Value("string"),
+                    "speakerMinorityYN": nlp.Value("string"),
+                    "WorkerId": nlp.Value("string"),
+                    "HITId": nlp.Value("string"),
+                    "annotatorPolitics": nlp.Value("string"),
+                    "annotatorRace": nlp.Value("string"),
+                    "annotatorAge": nlp.Value("string"),
+                    "post": nlp.Value("string"),
+                    "targetMinority": nlp.Value("string"),
+                    "targetCategory": nlp.Value("string"),
+                    "targetStereotype": nlp.Value("string"),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -79,15 +80,11 @@ class SocialBiasFrames(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.tst.csv")}
-            ),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.tst.csv")}),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.dev.csv")}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.trn.csv")}
-            ),
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.trn.csv")}),
         ]
 
     def _generate_examples(self, filepath):
@@ -96,4 +93,3 @@ class SocialBiasFrames(nlp.GeneratorBasedBuilder):
             reader = csv.DictReader(f)
             for idx, row in enumerate(reader):
                 yield idx, row
-                

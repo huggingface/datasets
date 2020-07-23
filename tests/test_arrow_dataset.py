@@ -9,6 +9,7 @@ import pyarrow as pa
 from nlp import concatenate_datasets
 from nlp.arrow_dataset import Dataset
 from nlp.features import Features, Sequence, Value
+from nlp.info import DatasetInfo
 
 
 class BaseDatasetTest(TestCase):
@@ -61,14 +62,17 @@ class BaseDatasetTest(TestCase):
 
     def test_concatenate(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
-        dset1, dset2, dset3 = Dataset.from_dict(data1), Dataset.from_dict(data2), Dataset.from_dict(data3)
-        dset1._info = DatasetInfo(description="Dataset1")
-        dset2._info = DatasetInfo(description="Dataset2")
-        dset3._info = None
+        info1 = DatasetInfo(description="Dataset1")
+        info2 = DatasetInfo(description="Dataset2")
+        dset1, dset2, dset3 = (
+            Dataset.from_dict(data1, info=info1),
+            Dataset.from_dict(data2, info=info2),
+            Dataset.from_dict(data3),
+        )
 
         dset_concat = concatenate_datasets([dset1, dset2, dset3])
         self.assertEquals(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
-        self.assertEquals(dset_concat.info.description, "Dataset1\n\nDataset2")
+        self.assertEquals(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
 
     def test_flatten(self):
         dset = Dataset.from_dict(
