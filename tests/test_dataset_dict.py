@@ -80,3 +80,11 @@ class DatasetDictTest(TestCase):
                 [f.split("_")[-1] for f in sorted_dsets_2["train"]["filename"]],
                 sorted((str(x) for x in range(30)), reverse=True),
             )
+
+    def test_check_values_type(self):
+        dsets = self._create_dummy_dataset_dict()
+        dsets["bad_split"] = None
+        self.assertRaises(TypeError, dsets.map, lambda x: x)
+        self.assertRaises(TypeError, dsets.filter, lambda x: True)
+        self.assertRaises(TypeError, dsets.shuffle)
+        self.assertRaises(TypeError, dsets.sort, "filename")

@@ -2,10 +2,19 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
+from .arrow_dataset import Dataset
 from .features import Features
 
 
 class DatasetDict(dict):
+
+    def _check_values_type(self):
+        for dataset in self.values():
+            if not isinstance(dataset, Dataset):
+                raise TypeError(
+                    "Values in `DatasetDict` should of type `Dataset` but got type '{}'".format(type(dataset))
+                )
+
     def map(
         self,
         function,
@@ -51,6 +60,7 @@ class DatasetDict(dict):
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
+        self._check_values_type()
         if cache_file_names is None:
             cache_file_names = {k: None for k in self}
         return DatasetDict(
@@ -109,6 +119,7 @@ class DatasetDict(dict):
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
+        self._check_values_type()
         if cache_file_names is None:
             cache_file_names = {k: None for k in self}
         return DatasetDict(
@@ -162,6 +173,7 @@ class DatasetDict(dict):
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
+        self._check_values_type()
         if cache_file_names is None:
             cache_file_names = {k: None for k in self}
         return DatasetDict(
@@ -214,6 +226,7 @@ class DatasetDict(dict):
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
+        self._check_values_type()
         if seeds is None:
             seeds = {k: None for k in self}
         if generators is None:

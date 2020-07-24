@@ -24,7 +24,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from functools import partial
 from math import ceil, floor
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -34,13 +34,15 @@ from tqdm.auto import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .dataset_dict import DatasetDict
 from .features import Features
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .utils import map_nested
 
+
+if TYPE_CHECKING:
+    from .dataset_dict import DatasetDict
 
 logger = logging.getLogger(__name__)
 
@@ -1264,7 +1266,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         test_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-    ) -> DatasetDict:
+    ) -> "DatasetDict":
         """ Return a dictionary (:obj:`nlp.DatsetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
             Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
 
@@ -1297,6 +1299,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
+        from .dataset_dict import DatasetDict  # import here because of circular dependency
+
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.train_test_split` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
