@@ -1265,7 +1265,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
     ) -> DatasetDict:
-        """ Return a dictionary with two random train and test subsets (`train` and `test` ``Dataset`` splits).
+        """ Return a dictionary (:obj:`nlp.DatsetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
             Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
 
             This method is similar to scikit-learn `train_test_split` with the omission of the stratified options.

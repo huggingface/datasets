@@ -509,7 +509,7 @@ def load_dataset(
     Returns:
         ``nlp.Dataset`` or ``nlp.DatasetDict``
             if `split` is not None: the dataset requested,
-            if `split` is None, a `dict<key: nlp.Split, value: nlp.Dataset>` with each split.
+            if `split` is None, a ``nlp.DatasetDict`` with each split.
 
     """
     # Download/copy dataset processing script
