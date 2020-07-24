@@ -41,7 +41,7 @@ def list_datasets_on_hf_gcp_parameters(with_config=True):
         ]
     else:
         return [
-            {"testcase_name": dataset, "dataset": dataset,}
+            {"testcase_name": dataset, "dataset": dataset}
             for dataset in set(d["dataset"] for d in DATASETS_ON_HF_GCP)
         ]
 
