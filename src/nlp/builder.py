@@ -401,20 +401,21 @@ class DatasetBuilder:
                         self.info.update(downloaded_info)
                         # download post processing resources
                         remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
-                        for resource_file_name in self._post_processing_resources().values():
-                            if "/" in resource_file_name:
-                                raise ValueError(
-                                    "Resources shouldn't be in a sub-directory: {}".format(resource_file_name)
-                                )
-                            try:
-                                resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
-                                shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
-                            except ConnectionError:
-                                logger.info(
-                                    "Couldn't download resourse file {} from Hf google storage.".format(
-                                        resource_file_name
+                        for split in self.info.splits:
+                            for resource_file_name in self._post_processing_resources(split).values():
+                                if "/" in resource_file_name:
+                                    raise ValueError(
+                                        "Resources shouldn't be in a sub-directory: {}".format(resource_file_name)
                                     )
-                                )
+                                try:
+                                    resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
+                                    shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
+                                except ConnectionError:
+                                    logger.info(
+                                        "Couldn't download resourse file {} from Hf google storage.".format(
+                                            resource_file_name
+                                        )
+                                    )
 
                 logger.info("Dataset downloaded from Hf google storage.")
                 print(
@@ -559,12 +560,12 @@ class DatasetBuilder:
         # Build base dataset
         ds = self._as_dataset(split=split,)
         if run_post_process:
-            for resource_file_name in self._post_processing_resources().values():
+            for resource_file_name in self._post_processing_resources(split).values():
                 if "/" in resource_file_name:
                     raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
             resources_paths = {
                 resource_name: os.path.join(self._cache_dir, resource_file_name)
-                for resource_name, resource_file_name in self._post_processing_resources().items()
+                for resource_name, resource_file_name in self._post_processing_resources(split).items()
             }
             ds = self._post_process(ds, resources_paths)
         return ds
@@ -592,7 +593,7 @@ class DatasetBuilder:
         """Run dataset transforms or add indexes"""
         return dataset
 
-    def _post_processing_resources(self):
+    def _post_processing_resources(self, split: str):
         """Mapping resource_name -> resource_file_name"""
         return {}
 

@@ -129,12 +129,12 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
                     "title": title,
                 }
 
-    def _post_processing_resources(self):
+    def _post_processing_resources(self, split):
         if self.config.with_index:
             if self.config.dummy:
-                return {"embeddings_index": "dummy_psgs_w100_with_nq_embeddings_IndexFlatIP.faiss"}
+                return {"embeddings_index": "dummy_psgs_w100_with_nq_embeddings_IndexFlatIP-{}.faiss".format(split)}
             else:
-                return {"embeddings_index": "psgs_w100_with_nq_embeddings_IVFPQ4096_HNSW32,PQ64-IP.faiss"}
+                return {"embeddings_index": "psgs_w100_with_nq_embeddings_IVFPQ4096_HNSW32,PQ64-IP-{}.faiss".format(split)}
         else:
             return {}
 
