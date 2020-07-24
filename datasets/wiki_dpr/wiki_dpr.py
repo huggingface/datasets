@@ -134,7 +134,9 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
             if self.config.dummy:
                 return {"embeddings_index": "dummy_psgs_w100_with_nq_embeddings_IndexFlatIP-{}.faiss".format(split)}
             else:
-                return {"embeddings_index": "psgs_w100_with_nq_embeddings_IVFPQ4096_HNSW32,PQ64-IP-{}.faiss".format(split)}
+                return {
+                    "embeddings_index": "psgs_w100_with_nq_embeddings_IVFPQ4096_HNSW32,PQ64-IP-{}.faiss".format(split)
+                }
         else:
             return {}
 

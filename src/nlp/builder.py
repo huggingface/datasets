@@ -408,7 +408,9 @@ class DatasetBuilder:
                                         "Resources shouldn't be in a sub-directory: {}".format(resource_file_name)
                                     )
                                 try:
-                                    resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
+                                    resource_path = utils.cached_path(
+                                        os.path.join(remote_cache_dir, resource_file_name)
+                                    )
                                     shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
                                 except ConnectionError:
                                     logger.info(
