@@ -7,7 +7,6 @@ from .features import Features
 
 
 class DatasetDict(dict):
-
     def _check_values_type(self):
         for dataset in self.values():
             if not isinstance(dataset, Dataset):
