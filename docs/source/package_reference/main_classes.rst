@@ -26,6 +26,16 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version
 
+
+``DatasetDict``
+~~~~~~~~~~~~~~~~~~~~~
+
+Dictionary with split names as keys ('train', 'test' for example), and :obj:`nlp.Dataset` objects as values
+
+.. autoclass:: nlp.DatasetDict
+    :members: map, filter, sort, shuffle
+
+
 ``Features``
 ~~~~~~~~~~~~~~~~~~~~~
 
