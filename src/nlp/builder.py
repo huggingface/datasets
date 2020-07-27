@@ -115,7 +115,7 @@ class DatasetBuilder:
     # displayed in the dataset documentation.
 
     def __init__(
-        self, cache_dir=None, name=None, hash=None, **config_kwargs,
+        self, cache_dir=None, name=None, hash=None, info=None, **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
 
@@ -129,6 +129,8 @@ class DatasetBuilder:
             hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
                 script code is udpated (to avoid reusing old data).
                 The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
+            info: `DatasetInfo`, optional info to update the builder's info after calling `._info()`
+                It can be used to changed the :obj:`nlp.Features` description of a dataset for example.
             config_kwargs: will override the defaults kwargs in config
 
         """
@@ -142,12 +144,12 @@ class DatasetBuilder:
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
-        info = self.get_exported_dataset_info()
-        info.update(self._info())
-        info.builder_name = self.name
-        info.config_name = self.config.name
-        info.version = self.config.version
-        self.info = info
+        total_info = self.get_exported_dataset_info()
+        total_info.update(self._info())
+        total_info.builder_name = self.name
+        total_info.config_name = self.config.name
+        total_info.version = self.config.version
+        self.info = total_info
 
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
@@ -163,6 +165,10 @@ class DatasetBuilder:
                     )
                 )
                 os.rmdir(self._cache_dir)
+
+        # update info with user specified infos
+        if info is not None:
+            self.info.update(info)
 
     @property
     def manual_download_instructions(self) -> Optional[str]:
