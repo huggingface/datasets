@@ -59,13 +59,13 @@ class Sogou_News(nlp.GeneratorBasedBuilder):
                 {
                     "title": nlp.Value("string"),
                     "content": nlp.Value("string"),
-                    "class": nlp.Value("string")
+                    "label": nlp.features.ClassLabel(names=["sports", "finance", "entertainment", "automobile", "technology"])
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
             # and hypothesis as input).
             supervised_keys=None,
-            homepage="",
+            homepage="", #didn't find a real homepage
             citation=_CITATION,
         )
         
@@ -75,25 +75,21 @@ class Sogou_News(nlp.GeneratorBasedBuilder):
         
         return [
             nlp.SplitGenerator(name=nlp.Split.TEST, 
-                               gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "test.csv"),
-                                           "class_file": os.path.join(dl_dir, "sogou_news_csv", "classes.txt")}),
+                               gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "test.csv")}),
            
             nlp.SplitGenerator(name=nlp.Split.TRAIN, 
-                               gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv",  "train.csv"),
-                                            "class_file": os.path.join(dl_dir, "sogou_news_csv", "classes.txt")}),
+                               gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv",  "train.csv")}),
         ]
 
-    def _generate_examples(self, filepath, class_file):
+    def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        with open(class_file) as f:
-           classes = [c.replace("\n", "") for c in f.readlines()]
         with open(filepath) as csv_file:
             data =csv.reader(csv_file)
             for id_, row in enumerate(data):
                 yield id_, {
                     "title": row[1],
                     "content": row[2],
-                    "class": classes[int(row[0]) - 1]
+                    "label": int(row[0]) - 1
                 }
             
            
