@@ -18,12 +18,7 @@ import tempfile
 
 from absl.testing import parameterized
 
-from nlp import (
-    DownloadConfig,
-    GenerateMode,
-    hf_api,
-    load_metric,
-)
+from nlp import DownloadConfig, GenerateMode, hf_api, load_metric
 
 from .utils import aws, slow
 
@@ -42,6 +37,7 @@ def get_aws_metric_names():
 @aws
 class AWSMetricTest(parameterized.TestCase):
     metric_name = None
+
     @slow
     def test_load_real_metric(self, metric_name):
         with tempfile.TemporaryDirectory() as temp_data_dir:
