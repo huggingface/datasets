@@ -30,7 +30,8 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
 ``DatasetDict``
 ~~~~~~~~~~~~~~~~~~~~~
 
-Dictionary with split names as keys ('train', 'test' for example), and :obj:`nlp.Dataset` objects as values
+Dictionary with split names as keys ('train', 'test' for example), and :obj:`nlp.Dataset` objects as values.
+It also has dataset transform methods like map or filter, to process all the splits at once.
 
 .. autoclass:: nlp.DatasetDict
     :members: map, filter, sort, shuffle

@@ -7,6 +7,7 @@ from .features import Features
 
 
 class DatasetDict(dict):
+    """A dictionary (dict of str: nlp.Dataset) with dataset transforms methods (map, filter, etc.)"""
     def _check_values_type(self):
         for dataset in self.values():
             if not isinstance(dataset, Dataset):
