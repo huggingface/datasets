@@ -842,10 +842,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
 
             # Create new Dataset from buffer or file
+            info = self.info.copy()
+            info.features = writer._features
             if buf_writer is None:
-                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+                return Dataset.from_file(cache_file_name, info=info, split=self.split)
             else:
-                return Dataset.from_buffer(buf_writer.getvalue(), info=self.info, split=self.split)
+                return Dataset.from_buffer(buf_writer.getvalue(), info=info, split=self.split)
         else:
             return self
 

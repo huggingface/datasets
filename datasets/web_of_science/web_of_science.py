@@ -40,7 +40,9 @@ full dataset. WOS-11967 and WOS-5736 are two subsets of WOS-46985.
 
 """
 
-_DATA_URL = "https://data.mendeley.com/datasets/9rw3vkcfy4/6/files/c9ea673d-5542-44c0-ab7b-f1311f7d61df/WebOfScience.zip?dl=1"
+_DATA_URL = (
+    "https://data.mendeley.com/datasets/9rw3vkcfy4/6/files/c9ea673d-5542-44c0-ab7b-f1311f7d61df/WebOfScience.zip?dl=1"
+)
 
 
 class WebOfScienceConfig(nlp.BuilderConfig):
@@ -52,11 +54,14 @@ class WebOfScienceConfig(nlp.BuilderConfig):
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super(WebOfScienceConfig, self).__init__(version=nlp.Version("6.0.0", "New split API (https://tensorflow.org/datasets/splits)"),**kwargs)
-        
+        super(WebOfScienceConfig, self).__init__(
+            version=nlp.Version("6.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+        )
+
 
 class WebOfScience(nlp.GeneratorBasedBuilder):
     """Web of Science"""
+
     BUILDER_CONFIGS = [
         WebOfScienceConfig(
             name="WOS5736",
@@ -64,24 +69,23 @@ class WebOfScience(nlp.GeneratorBasedBuilder):
         ),
         WebOfScienceConfig(
             name="WOS11967",
-            description="""Web of Science Dataset WOS-11967: This dataset contains 11,967 documents with 35 categories which include 7 parents categories."""
+            description="""Web of Science Dataset WOS-11967: This dataset contains 11,967 documents with 35 categories which include 7 parents categories.""",
         ),
         WebOfScienceConfig(
             name="WOS46985",
-            description="""Web of Science Dataset WOS-46985: This dataset contains 46,985 documents with 134 categories which include 7 parents categories."""
-        )
+            description="""Web of Science Dataset WOS-46985: This dataset contains 46,985 documents with 134 categories which include 7 parents categories.""",
+        ),
     ]
-    
 
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION + self.config.description,
             features=nlp.Features(
                 {
-                   "input_data": nlp.Value('string'),
-                   "label": nlp.Value('int32'),
-                   "label_level_1": nlp.Value("int32"),
-                   "label_level_2": nlp.Value("int32"),
+                    "input_data": nlp.Value("string"),
+                    "label": nlp.Value("int32"),
+                    "label_level_1": nlp.Value("int32"),
+                    "label_level_2": nlp.Value("int32"),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -90,10 +94,10 @@ class WebOfScience(nlp.GeneratorBasedBuilder):
             homepage="https://data.mendeley.com/datasets/9rw3vkcfy4/6",
             citation=_CITATION,
         )
-        
+
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        
+
         # dl_manager is a nlp.download.DownloadManager that can be used to
 
         dl_path = dl_manager.download_and_extract(_DATA_URL)
@@ -101,10 +105,12 @@ class WebOfScience(nlp.GeneratorBasedBuilder):
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"input_file": os.path.join(dl_path, self.config.name, 'X.txt'),
-                            "label_file": os.path.join(dl_path, self.config.name, 'Y.txt'),
-                            "label_level_1_file": os.path.join(dl_path, self.config.name, 'YL1.txt'),
-                            "label_level_2_file": os.path.join(dl_path, self.config.name, 'YL2.txt')},
+                gen_kwargs={
+                    "input_file": os.path.join(dl_path, self.config.name, "X.txt"),
+                    "label_file": os.path.join(dl_path, self.config.name, "Y.txt"),
+                    "label_level_1_file": os.path.join(dl_path, self.config.name, "YL1.txt"),
+                    "label_level_2_file": os.path.join(dl_path, self.config.name, "YL2.txt"),
+                },
             )
         ]
 
