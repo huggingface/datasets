@@ -64,19 +64,7 @@ class TestDatasetOnHfGcp(TestCase):
             )
 
             dataset_info_url = os.path.join(
-                HF_GCP_BASE_URL, builder_instance._relative_data_dir(), DATASET_INFO_FILENAME
+                HF_GCP_BASE_URL, builder_instance._relative_data_dir(with_hash=False), DATASET_INFO_FILENAME
             )
             datset_info_path = cached_path(dataset_info_url, cache_dir=tmp_dir)
             self.assertTrue(os.path.exists(datset_info_path))
-
-
-@parameterized.named_parameters(list_datasets_on_hf_gcp_parameters(with_config=False))
-class TestDatasetSynced(TestCase):
-    def test_script_synced_with_s3(self, dataset):
-
-        with TemporaryDirectory() as tmp_dir:
-            module_path, hash = prepare_module(dataset, dataset=True, cache_dir=tmp_dir)
-            local_module_path, local_hash = prepare_module(
-                os.path.join("datasets", dataset), dataset=True, cache_dir=tmp_dir, local_files_only=True
-            )
-            self.assertEqual(hash, local_hash)

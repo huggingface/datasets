@@ -518,7 +518,7 @@ def load_dataset(
     builder_cls = import_main_class(module_path, dataset=True)
 
     # Instantiate the dataset builder
-    builder_instance = builder_cls(
+    builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
         name=name,
         version=version,
