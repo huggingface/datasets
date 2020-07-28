@@ -176,7 +176,7 @@ class Guardian2013(nlp.GeneratorBasedBuilder):
 
                            train_folder="Books", valid_folder="UK", test_folder="Politics,Society,World"),
 
-        Guardian2013Config(name="cross-genre_{}".format(4),
+        Guardian2013Config(name="cross_genre_{}".format(4),
                            version=nlp.Version("{}.0.0".format(4),
                                                description="The Original DS with the cross-genre scenario no.{}".format(
                                                    4)),
