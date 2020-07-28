@@ -24,6 +24,7 @@ import os
 import shutil
 from dataclasses import dataclass
 from functools import partial
+from hashlib import sha256
 from typing import Dict, List, Optional, Union
 
 import pyarrow as pa
@@ -247,7 +248,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True):
+    def _relative_data_dir(self, with_version=True, with_hash=True):
         """ Relative path of this dataset in cache_dir:
             Will be:
                 self.name/self.config.version/self.hash/
@@ -260,7 +261,7 @@ class DatasetBuilder:
             builder_data_dir = os.path.join(builder_data_dir, builder_config.name)
         if with_version:
             builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
-        if hash and isinstance(hash, str):
+        if with_hash and hash and isinstance(hash, str):
             builder_data_dir = os.path.join(builder_data_dir, hash)
         return builder_data_dir
 
@@ -785,6 +786,42 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         parse_schema(writer.schema, features)
         self.info.features = Features(features)
+
+    def _relative_data_dir(self, with_version=True, with_hash=True, with_data_hash=True):
+        """ Relative path of this dataset in cache_dir:
+            Will be:
+                self.name/self.config.version/self.hash/self.data_files_hash
+            If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
+        """
+        builder_data_dir = self.name
+        builder_config = self.config
+        hash = self.hash
+        data_hash = self.data_hash
+        if builder_config:
+            builder_data_dir = os.path.join(builder_data_dir, builder_config.name)
+        if with_version:
+            builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
+        if with_hash and hash and isinstance(hash, str):
+            builder_data_dir = os.path.join(builder_data_dir, hash)
+        if with_data_hash:
+            builder_data_dir = os.path.join(builder_data_dir, data_hash)
+        return builder_data_dir
+
+    @utils.memoized_property
+    def data_hash(self):
+        m = sha256()
+        if isinstance(self.config.data_files, str):
+            data_files = [self.config.data_files]
+        elif isinstance(self.config.data_files, (tuple, list)):
+            data_files = self.config.data_files
+        elif isinstance(self.config.data_files, dict):
+            data_files = [self.config.data_files[key] for key in sorted(self.config.data_files)]
+            m.update(",".join(sorted(self.config.data_files.keys()).encode("utf-8")))
+        for data_file in data_files:
+            with open(data_file, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    m.update(chunk)
+        return m.hexdigest()
 
 
 class MissingBeamOptions(ValueError):
