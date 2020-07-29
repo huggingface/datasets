@@ -21,10 +21,8 @@ DATASETS_ON_HF_GCP = [
     {"dataset": "snli", "config_name": "plain_text"},
     {"dataset": "eli5", "config_name": "LFQA_reddit"},
     {"dataset": "wiki40b", "config_name": "en"},
-    {"dataset": "wiki_dpr", "config_name": "psgs_w100_with_nq_embeddings"},
-    {"dataset": "wiki_dpr", "config_name": "psgs_w100_no_embeddings"},
-    {"dataset": "wiki_dpr", "config_name": "dummy_psgs_w100_with_nq_embeddings"},
-    {"dataset": "wiki_dpr", "config_name": "dummy_psgs_w100_no_embeddings"},
+    {"dataset": "wiki_dpr", "config_name": "psgs_w100.nq.compressed"},
+    {"dataset": "wiki_dpr", "config_name": "psgs_w100.no_embeddings.compressed"},
     {"dataset": "natural_questions", "config_name": "default"},
 ]
 

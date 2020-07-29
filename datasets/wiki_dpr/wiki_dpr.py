@@ -38,10 +38,12 @@ class WikiDprConfig(nlp.BuilderConfig):
     def __init__(
         self,
         with_embeddings=True,
-        with_index=False,
+        with_index=True,
+        wiki_split="psgs_w100",
+        embeddings_name="nq",
+        index_name="compressed",
         index_train_size=262144,
         dummy=False,
-        index_type="compressed",
         **kwargs,
     ):
         """BuilderConfig for WikiSnippets.
@@ -50,52 +52,30 @@ class WikiDprConfig(nlp.BuilderConfig):
         with_index (`bool`, defaults to `True`): Load the faiss index trained on the embeddings.
       **kwargs: keyword arguments forwarded to super.
     """
-        super(WikiDprConfig, self).__init__(**kwargs)
-        assert index_type in ("compressed", "exact"), "`index_type` mus be in ('compressed', 'exact')"
         self.with_embeddings = with_embeddings
         self.with_index = with_index
-        self.index_type = index_type
+        self.wiki_split = wiki_split
+        self.embeddings_name = embeddings_name if with_embeddings else "no_embeddings"
+        self.index_name = index_name if with_index else "no_index"
         self.index_train_size = index_train_size
         self.dummy = dummy
-
-        if self.index_type == "exact":
-            self.index_file = "psgs_w100_with_nq_embeddings_IndexFlatIP-{split}.faiss"
-        else:
-            self.index_file = "psgs_w100_with_nq_embeddings_IVFPQ4096_HNSW32,PQ64-IP-{split}.faiss"
+        name = [self.wiki_split, self.embeddings_name, self.index_name]
         if self.dummy:
-            self.index_file = "dummy_" + self.index_file
+            name = ["dummy"] + name
+            assert self.index_name != "compressed" or not self.with_index, "Please use `index_name='exact' for dummy wiki_dpr`"
+        kwargs["name"] = ".".join(name)
+        super(WikiDprConfig, self).__init__(**kwargs)
+
+        if self.index_name == "exact":
+            self.index_file = "psgs_w100.nq.IndexFlatIP-{split}.faiss"
+        else:
+            self.index_file = "psgs_w100.nq.IVFPQ4096_HNSW32_PQ64-IP-{split}.faiss"
+        if self.dummy:
+            self.index_file = "dummy." + self.index_file
 
 
 class WikiDpr(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = WikiDprConfig
-    BUILDER_CONFIGS = [
-        WikiDprConfig(
-            name="psgs_w100_with_nq_embeddings",
-            version=nlp.Version("1.0.0"),
-            with_embeddings=True,
-            index_type="compressed",
-        ),
-        WikiDprConfig(
-            name="psgs_w100_no_embeddings",
-            version=nlp.Version("1.0.0"),
-            with_embeddings=False,
-            index_type="compressed",
-        ),
-        WikiDprConfig(
-            name="dummy_psgs_w100_with_nq_embeddings",
-            version=nlp.Version("1.0.0"),
-            with_embeddings=True,
-            dummy=True,
-            index_type="exact",
-        ),
-        WikiDprConfig(
-            name="dummy_psgs_w100_no_embeddings",
-            version=nlp.Version("1.0.0"),
-            with_embeddings=False,
-            dummy=True,
-            index_type="exact",
-        ),
-    ]
 
     def _info(self):
         return nlp.DatasetInfo(
@@ -118,11 +98,6 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         files_to_download = {"data_file": _DATA_URL}
         downloaded_files = dl_manager.download_and_extract(files_to_download)
-        downloaded_index = {}
-        if self.config.with_index:
-            downloaded_index["embeddings_index"] = dl_manager.download_and_extract(
-                os.path.join(_INDEX_URL, self.config.index_file)
-            )
         if self.config.with_embeddings:
             if self.config.dummy:
                 downloaded_files["vectors_files"] = dl_manager.download([_VECTORS_URL.format(i=0)])
