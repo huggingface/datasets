@@ -779,21 +779,7 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
-        features = {}
-
-        def parse_schema(schema, schema_dict):
-            for field in schema:
-                if pa.types.is_struct(field.type):
-                    schema_dict[field.name] = {}
-                    parse_schema(field.type, schema_dict[field.name])
-                elif pa.types.is_list(field.type) and pa.types.is_struct(field.type.value_type):
-                    schema_dict[field.name] = {}
-                    parse_schema(field.type.value_type, schema_dict[field.name])
-                else:
-                    schema_dict[field.name] = Value(str(field.type))
-
-        parse_schema(writer.schema, features)
-        self.info.features = Features(features)
+        self.info.features = writer._features
 
 
 class MissingBeamOptions(ValueError):
