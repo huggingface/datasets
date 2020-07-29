@@ -27,6 +27,7 @@ from functools import partial
 from typing import Dict, List, Optional, Union
 
 import pyarrow as pa
+import xxhash
 
 from . import utils
 from .arrow_dataset import Dataset
@@ -231,6 +232,26 @@ class DatasetBuilder:
                 raise ValueError("BuilderConfig %s must have a version" % name)
             # if not builder_config.description:
             #     raise ValueError("BuilderConfig %s must have a description" % name)
+        if builder_config.data_files is not None:
+            m = xxhash.xxh64()
+            if isinstance(builder_config.data_files, str):
+                data_files = {"train": [builder_config.data_files]}
+            elif isinstance(builder_config.data_files, (tuple, list)):
+                data_files = {"train": builder_config.data_files}
+            elif isinstance(builder_config.data_files, dict):
+                data_files = {
+                    key: files if isinstance(files, (tuple, list)) else [files]
+                    for key, files in builder_config.data_files.items()
+                }
+            else:
+                raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
+            for key in sorted(data_files.keys()):
+                m.update(key.encode("utf-8"))
+                for data_file in data_files[key]:
+                    with open(data_file, "rb") as f:
+                        for chunk in iter(lambda: f.read(1 << 20), b""):
+                            m.update(chunk)
+            builder_config.name += "-" + m.hexdigest()
         return builder_config
 
     @utils.classproperty
@@ -248,7 +269,7 @@ class DatasetBuilder:
     def cache_dir(self):
         return self._cache_dir
 
-    def _relative_data_dir(self, with_version=True):
+    def _relative_data_dir(self, with_version=True, with_hash=True):
         """ Relative path of this dataset in cache_dir:
             Will be:
                 self.name/self.config.version/self.hash/
@@ -261,7 +282,7 @@ class DatasetBuilder:
             builder_data_dir = os.path.join(builder_data_dir, builder_config.name)
         if with_version:
             builder_data_dir = os.path.join(builder_data_dir, str(self.config.version))
-        if hash and isinstance(hash, str):
+        if with_hash and hash and isinstance(hash, str):
             builder_data_dir = os.path.join(builder_data_dir, hash)
         return builder_data_dir
 
