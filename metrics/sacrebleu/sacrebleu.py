@@ -82,7 +82,7 @@ class Sacrebleu(nlp.Metric):
                 smooth_value=None,
                 force=False,
                 lowercase=False,
-                tokenize=scb.sacrebleu.DEFAULT_TOKENIZER,
+                tokenize=scb.DEFAULT_TOKENIZER,
                 use_effective_order=False):
         output = scb.corpus_bleu(
             sys_stream=predictions,

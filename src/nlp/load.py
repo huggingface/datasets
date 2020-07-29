@@ -34,6 +34,7 @@ from filelock import FileLock
 
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
+from .dataset_dict import DatasetDict
 from .features import Features
 from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo
 from .metric import Metric
@@ -461,7 +462,7 @@ def load_dataset(
     ignore_verifications: bool = False,
     save_infos: bool = False,
     **config_kwargs,
-) -> Union[Dict[Split, Dataset], Dataset]:
+) -> Union[DatasetDict, Dataset]:
     r"""Load a dataset
 
     This method does the following under the hood:
@@ -509,9 +510,9 @@ def load_dataset(
         **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``nlp.BuilderConfig`` and used in the ``nlp.DatasetBuilder``.
 
     Returns:
-        ``nlp.Dataset`` or ``Dict[nlp.Split, nlp.Dataset]``
+        ``nlp.Dataset`` or ``nlp.DatasetDict``
             if `split` is not None: the dataset requested,
-            if `split` is None, a `dict<key: nlp.Split, value: nlp.Dataset>` with each split.
+            if `split` is None, a ``nlp.DatasetDict`` with each split.
 
     """
     # Download/copy dataset processing script

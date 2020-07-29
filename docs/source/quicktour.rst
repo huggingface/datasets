@@ -54,7 +54,7 @@ If you want to create a :class:`nlp.Dataset` from local CSV, JSON, text or panda
 
 .. note::
 
-    If you don't provide a :obj:`split` argument to :func:`nlp.load_dataset`, this method will return a dictionnary containing a datasets for each split in the dataset.
+    If you don't provide a :obj:`split` argument to :func:`nlp.load_dataset`, this method will return a dictionary containing a datasets for each split in the dataset. This dictionary is a :obj:`nlp.DatasetDict` object that lets you process all the splits at once using :func:`nlp.DatasetDict.map`, :func:`nlp.DatasetDict.filter`, etc.
 
 Now let's have a look at our newly created :class:`nlp.Dataset` object. It basically behaves like a normal python container. You can query its length, get a single row but also get multiple rows and even index along columns (see all the details in :doc:`exploring </exploring>`):
 

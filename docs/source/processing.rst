@@ -420,6 +420,30 @@ Here we have now multiply the size of our dataset by ``4`` by adding three alter
 
 Obviously this is a very simple example for data augmentation and it could be improved in several ways, the most interesting take-aways is probably how this can be written in roughtly ten lines of code without any loss in flexibility.
 
+Processing several splits at once
+-----------------------------------
+
+When you load a dataset that has various splits, :func:`nlp.load_dataset` returns a :obj:`nlp.DatasetDict` that is a dictionary with split names as keys ('train', 'test' for example), and :obj:`nlp.Dataset` objects as values.
+You can directly call map, filter, shuffle, and sort directly on a :obj:`nlp.DatasetDict` object:
+
+.. code-block::
+
+    >>> from nlp import load_dataset
+    >>>
+    >>> dataset = load_dataset('glue', 'mrpc')  # load all the splits
+    >>> dataset.keys()
+    dict_keys(['train', 'validation', 'test'])
+    >>> encoded_dataset = dataset.map(lambda examples: tokenizer(examples['sentence1']), batched=True) 
+    >>> encoded_dataset["train"][0]
+    {'sentence1': 'Amrozi accused his brother , whom he called " the witness " , of deliberately distorting his evidence .',
+     'sentence2': 'Referring to him as only " the witness " , Amrozi accused his brother of deliberately distorting his evidence .',
+     'label': 1,
+     'idx': 0,
+     'input_ids': [  101,  7277,  2180,  5303,  4806,  1117,  1711,   117,  2292, 1119,  1270,   107,  1103,  7737,   107,   117,  1104,  9938, 4267, 12223, 21811,  1117,  2554,   119,   102],
+     'token_type_ids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    }
+
 This concludes our chapter on data processing with 🤗nlp (and 🤗transformers).
 
 Controling the cache behavior

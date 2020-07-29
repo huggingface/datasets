@@ -55,6 +55,14 @@ class BeamBuilderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = DummyBeamDataset(cache_dir=tmp_cache_dir, beam_runner="DirectRunner")
             builder.download_and_prepare()
+            self.assertTrue(
+                os.path.exists(
+                    os.path.join(
+                        tmp_cache_dir, "dummy_beam_dataset", "default", "0.0.0", "dummy_beam_dataset-train.arrow"
+                    )
+                )
+            )
+            self.assertDictEqual(builder.info.features, nlp.Features({"content": nlp.Value("string")}))
             dset = builder.as_dataset()
             self.assertEqual(dset["train"].num_rows, expected_num_examples)
             self.assertEqual(dset["train"].info.splits["train"].num_examples, expected_num_examples)
@@ -78,6 +86,14 @@ class BeamBuilderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = NestedBeamDataset(cache_dir=tmp_cache_dir, beam_runner="DirectRunner")
             builder.download_and_prepare()
+            self.assertTrue(
+                os.path.exists(
+                    os.path.join(
+                        tmp_cache_dir, "nested_beam_dataset", "default", "0.0.0", "nested_beam_dataset-train.arrow"
+                    )
+                )
+            )
+            self.assertDictEqual(builder.info.features, nlp.Features({"a": nlp.Sequence({"b": nlp.Value("string")})}))
             dset = builder.as_dataset()
             self.assertEqual(dset["train"].num_rows, expected_num_examples)
             self.assertEqual(dset["train"].info.splits["train"].num_examples, expected_num_examples)
