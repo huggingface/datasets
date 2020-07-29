@@ -18,8 +18,7 @@ import logging
 import os
 
 import nlp
-
-from bleurt import score # From: git+https://github.com/google-research/bleurt.git
+from bleurt import score  # From: git+https://github.com/google-research/bleurt.git
 
 
 logger = logging.getLogger(__name__)
