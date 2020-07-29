@@ -30,7 +30,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import pyarrow as pa
-
 from filelock import FileLock
 
 from .arrow_dataset import Dataset
