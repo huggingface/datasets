@@ -30,6 +30,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
 import pyarrow as pa
+
 from filelock import FileLock
 
 from .arrow_dataset import Dataset
@@ -182,7 +183,12 @@ def get_imports(file_path: str):
                 # The import should be at the same place as the file
                 imports.append(("internal", match.group(2), match.group(2), None))
         else:
-            imports.append(("library", match.group(2), match.group(2), None))
+            if match.group(3):
+                # The import has a comment with `From: git+https:...`, asks user to pip install from git.
+                url_path = match.group(3)
+                imports.append(("library", match.group(2), url_path, None))
+            else:
+                imports.append(("library", match.group(2), match.group(2), None))
 
     return imports
 
@@ -263,7 +269,7 @@ def prepare_module(
     library_imports = []
     for import_type, import_name, import_path, sub_directory in imports:
         if import_type == "library":
-            library_imports.append(import_name)  # Import from a library
+            library_imports.append((import_name, import_path))  # Import from a library
             continue
 
         if import_name == short_name:
@@ -287,15 +293,16 @@ def prepare_module(
 
     # Check library imports
     needs_to_be_installed = []
-    for library_import in library_imports:
+    for library_import_name, library_import_path in library_imports:
         try:
-            lib = importlib.import_module(library_import)  # noqa F841
+            lib = importlib.import_module(library_import_name)  # noqa F841
         except ImportError:
-            needs_to_be_installed.append(library_import)
+            needs_to_be_installed.append((library_import_name, library_import_path))
     if needs_to_be_installed:
         raise ImportError(
-            f"To be able to use this {module_type}, you need to install the following dependencies {needs_to_be_installed} "
-            f"using 'pip install {' '.join(needs_to_be_installed)}' for instance'"
+            f"To be able to use this {module_type}, you need to install the following dependencies"
+            f"{[lib_name for lib_name, lib_path in needs_to_be_installed]} using 'pip install "
+            f"{' '.join([lib_path for lib_name, lib_path in needs_to_be_installed])}' for instance'"
         )
 
     # Define a directory with a unique name in our dataset or metric folder
