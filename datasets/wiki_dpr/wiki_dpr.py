@@ -62,7 +62,9 @@ class WikiDprConfig(nlp.BuilderConfig):
         name = [self.wiki_split, self.embeddings_name, self.index_name]
         if self.dummy:
             name = ["dummy"] + name
-            assert self.index_name != "compressed" or not self.with_index, "Please use `index_name='exact' for dummy wiki_dpr`"
+            assert (
+                self.index_name != "compressed" or not self.with_index
+            ), "Please use `index_name='exact' for dummy wiki_dpr`"
         kwargs["name"] = ".".join(name)
         super(WikiDprConfig, self).__init__(**kwargs)
 
