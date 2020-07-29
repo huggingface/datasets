@@ -69,7 +69,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
     """dataset for same- and cross-topic authorship attribution"""
 
     # VERSION = nlp.Version("1.0.0")
-    offset = 12
+
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,
     # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
@@ -159,9 +159,9 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
 
         # # cross-genre
         GuardianAuthorshipConfig(name="cross_genre_{}".format(1),
-                           version=nlp.Version("{}.0.0".format(13),
+                           version=nlp.Version("{}.0.0".format(2),
                                                description="The Original DS with the cross-genre scenario no.{}".format(
-                                                   13)),
+                                                   2)),
                            train_folder="Books", valid_folder="Politics", test_folder="Society,UK,World"),
 
         # GuardianAuthorshipConfig(name="cross_genre_{}".format(2),
@@ -261,20 +261,30 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         # print(self.name)
         # print("data_dir", data_dir)
         # print("samples_folder", samples_folders)
-        # if os.path.exists(data_dir):
-        #     print("path exists")
-        # else:
-        #     print("path dne")
+
+        print(split, "========================")
+        print(os.listdir(data_dir))
+        print(samples_folders)
 
         if samples_folders.count(',') == 0:
             samples_folders = [samples_folders]
         else :
             samples_folders = samples_folders.split(',')
 
+        # if os.path.exists(samples_folders[0]):
+        #     print("path exists")
+        # else:
+        #     print("path dne")
+
         # print(samples_folders)
         for topic in samples_folders:
             # print(topic)
             full_path = os.path.join(data_dir, topic)
+            print(full_path)
+            if os.path.exists(full_path):
+                print("path exists")
+            else:
+                print("path dne")
 
             # print(full_path)
             for author in os.listdir(full_path):
