@@ -272,10 +272,10 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
 
         # print(samples_folders)
         for topic in samples_folders:
-            print(topic)
+            # print(topic)
             full_path = os.path.join(data_dir, topic)
 
-            print(full_path)
+            # print(full_path)
             for author in os.listdir(full_path):
                 # print(author)
 
