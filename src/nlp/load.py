@@ -529,7 +529,7 @@ def load_dataset(
         data_dir=data_dir,
         data_files=data_files,
         hash=hash,
-        info=DatasetInfo(features=features),
+        features=features,
         **config_kwargs,
     )
 
