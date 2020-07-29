@@ -121,3 +121,74 @@ class BuilderTest(TestCase):
                     os.path.join(tmp_dir, "dummy_generator_based_builder", "dummy", "0.0.0", "dataset_info.json")
                 )
             )
+
+    def test_cache_dir_for_data_files(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dummy_data1 = os.path.join(tmp_dir, "dummy_data1.txt")
+            with open(dummy_data1, "w") as f:
+                f.writelines("foo bar")
+            dummy_data2 = os.path.join(tmp_dir, "dummy_data2.txt")
+            with open(dummy_data2, "w") as f:
+                f.writelines("foo bar\n")
+
+            dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_files=dummy_data1)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_files=dummy_data1)
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_files=[dummy_data1])
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={"train": dummy_data1}
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={"train": [dummy_data1]}
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={"test": dummy_data1}
+            )
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_files=dummy_data2)
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_files=[dummy_data2])
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files=[dummy_data1, dummy_data2]
+            )
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+
+            dummy_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files=[dummy_data1, dummy_data2]
+            )
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files=[dummy_data1, dummy_data2]
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files=[dummy_data2, dummy_data1]
+            )
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+
+            dummy_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={"train": dummy_data1, "test": dummy_data2}
+            )
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={"train": dummy_data1, "test": dummy_data2}
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={"train": [dummy_data1], "test": dummy_data2}
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={"test": dummy_data2, "train": dummy_data1}
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={"train": dummy_data1, "validation": dummy_data2}
+            )
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={"train": [dummy_data1, dummy_data2], "test": dummy_data2}
+            )
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)

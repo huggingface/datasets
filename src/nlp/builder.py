@@ -235,18 +235,22 @@ class DatasetBuilder:
         if builder_config.data_files is not None:
             m = xxhash.xxh64()
             if isinstance(builder_config.data_files, str):
-                data_files = [builder_config.data_files]
+                data_files = {"train": [builder_config.data_files]}
             elif isinstance(builder_config.data_files, (tuple, list)):
-                data_files = builder_config.data_files
+                data_files = {"train": builder_config.data_files}
             elif isinstance(builder_config.data_files, dict):
-                data_files = [builder_config.data_files[key] for key in sorted(builder_config.data_files)]
-                m.update(",".join(sorted(builder_config.data_files.keys()).encode("utf-8")))
+                data_files = {
+                    key: files if isinstance(files, (tuple, list)) else [files]
+                    for key, files in builder_config.data_files.items()
+                }
             else:
                 raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
-            for data_file in data_files:
-                with open(data_file, "rb") as f:
-                    for chunk in iter(lambda: f.read(4096), b""):
-                        m.update(chunk)
+            for key in sorted(data_files.keys()):
+                m.update(key.encode("utf-8"))
+                for data_file in data_files[key]:
+                    with open(data_file, "rb") as f:
+                        for chunk in iter(lambda: f.read(1 << 20), b""):
+                            m.update(chunk)
             builder_config.name += "-" + m.hexdigest()
         return builder_config
 
