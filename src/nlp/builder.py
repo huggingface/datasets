@@ -24,10 +24,10 @@ import os
 import shutil
 from dataclasses import dataclass
 from functools import partial
-from hashlib import sha256
 from typing import Dict, List, Optional, Union
 
 import pyarrow as pa
+import xxhash
 
 from . import utils
 from .arrow_dataset import Dataset
@@ -232,7 +232,7 @@ class DatasetBuilder:
             # if not builder_config.description:
             #     raise ValueError("BuilderConfig %s must have a description" % name)
         if builder_config.data_files is not None:
-            m = sha256()
+            m = xxhash.xxh64()
             if isinstance(builder_config.data_files, str):
                 data_files = [builder_config.data_files]
             elif isinstance(builder_config.data_files, (tuple, list)):
