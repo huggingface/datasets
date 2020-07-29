@@ -69,7 +69,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
     """dataset for same- and cross-topic authorship attribution"""
 
     # VERSION = nlp.Version("1.0.0")
-
+    offset = 12
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,
     # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
@@ -156,28 +156,29 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         #                                            12)),
         #                    train_folder="World", valid_folder="UK", test_folder="Politics,Society"),
 
+
         # # cross-genre
         GuardianAuthorshipConfig(name="cross_genre_{}".format(1),
-                           version=nlp.Version("{}.0.0".format(1),
+                           version=nlp.Version("{}.0.0".format(13),
                                                description="The Original DS with the cross-genre scenario no.{}".format(
-                                                   1)),
+                                                   13)),
                            train_folder="Books", valid_folder="Politics", test_folder="Society,UK,World"),
 
         # GuardianAuthorshipConfig(name="cross_genre_{}".format(2),
-        #                    version=nlp.Version("{}.0.0".format(2),
+        #                    version=nlp.Version("{}.0.0".format(14),
         #                                        description="The Original DS with the cross-genre scenario no.{}".format(
         #                                            2)),
         #                    train_folder="Books", valid_folder="Society", test_folder="Politics,UK,World"),
         #
         # GuardianAuthorshipConfig(name="cross_genre_{}".format(3),
-        #                    version=nlp.Version("{}.0.0".format(3),
+        #                    version=nlp.Version("{}.0.0".format(15),
         #                                        description="The Original DS with the cross-genre scenario no.{}".format(
         #                                            3)),
         #
         #                    train_folder="Books", valid_folder="UK", test_folder="Politics,Society,World"),
         #
         # GuardianAuthorshipConfig(name="cross_genre_{}".format(4),
-        #                    version=nlp.Version("{}.0.0".format(4),
+        #                    version=nlp.Version("{}.0.0".format(16),
         #                                        description="The Original DS with the cross-genre scenario no.{}".format(
         #                                            4)),
         #                    train_folder="Books", valid_folder="World", test_folder="Politics,Society,UK"),
