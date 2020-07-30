@@ -454,11 +454,13 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             features["gold_label"] = nlp.Value("string")
 
         if self.config.name.startswith("PAN-X"):
-            features = nlp.Features({
-                "words": nlp.Sequence(nlp.Value("string")),
-                "ner_tags": nlp.Sequence(nlp.Value("string")),
-                "langs": nlp.Sequence(nlp.Value("string")),
-            })
+            features = nlp.Features(
+                {
+                    "words": nlp.Sequence(nlp.Value("string")),
+                    "ner_tags": nlp.Sequence(nlp.Value("string")),
+                    "langs": nlp.Sequence(nlp.Value("string")),
+                }
+            )
         return nlp.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=self.config.description + "\n" + _DESCRIPTION,
