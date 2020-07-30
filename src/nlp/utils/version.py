@@ -17,6 +17,7 @@
 """Version utils."""
 
 import re
+import dataclasses
 from dataclasses import dataclass
 
 
@@ -97,7 +98,8 @@ class Version:
 
     @classmethod
     def from_dict(cls, dic):
-        return cls(**dic)
+        field_names = set(f.name for f in dataclasses.fields(cls))
+        return cls(**{k: v for k, v in dic.items() if k in field_names})
 
 
 def _str_to_version(version_str, allow_wildcard=False):
