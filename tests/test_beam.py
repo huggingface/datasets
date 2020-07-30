@@ -46,7 +46,7 @@ def get_test_dummy_examples():
 
 
 def get_test_nested_examples():
-    return [(i, {"a": {"b": [content]}}) for i, content in enumerate(["foo", "bar", "foobar"])] * 10_000
+    return [(i, {"a": {"b": [content]}}) for i, content in enumerate(["foo", "bar", "foobar"])]
 
 
 class BeamBuilderTest(TestCase):
