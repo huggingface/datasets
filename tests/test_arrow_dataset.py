@@ -8,7 +8,7 @@ import pyarrow as pa
 
 from nlp import concatenate_datasets
 from nlp.arrow_dataset import Dataset
-from nlp.features import Features, Sequence, Value
+from nlp.features import ClassLabel, Features, Sequence, Value
 from nlp.info import DatasetInfo
 
 
@@ -109,6 +109,20 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(
                 dset_test_with_indices.features,
                 Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
+            )
+
+    def test_new_features(self):
+        dset = self._create_dummy_dataset()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            features = Features({"filename": Value("string"), "label": ClassLabel(names=["positive", "negative"])})
+            dset_test_with_indices = dset.map(
+                lambda x, i: {"label": i % 2}, with_indices=True, cache_file_name=tmp_file, features=features
+            )
+            self.assertEqual(len(dset_test_with_indices), 30)
+            self.assertDictEqual(
+                dset_test_with_indices.features, features,
             )
 
     def test_map_batched(self):

@@ -24,7 +24,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from functools import partial
 from math import ceil, floor
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -40,6 +40,9 @@ from .search import IndexableMixin
 from .splits import NamedSplit
 from .utils import map_nested
 
+
+if TYPE_CHECKING:
+    from .dataset_dict import DatasetDict
 
 logger = logging.getLogger(__name__)
 
@@ -680,7 +683,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         features: Optional[Features] = None,
         disable_nullable: bool = True,
         verbose: bool = True,
-    ):
+    ) -> "Dataset":
         """ Apply a function to all the elements in the table (individually or in batches)
             and update the table (if function does updated examples).
 
@@ -842,14 +845,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
 
             # Create new Dataset from buffer or file
+            info = self.info.copy()
+            info.features = writer._features
             if buf_writer is None:
-                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+                return Dataset.from_file(cache_file_name, info=info, split=self.split)
             else:
-                return Dataset.from_buffer(buf_writer.getvalue(), info=self.info, split=self.split)
+                return Dataset.from_buffer(buf_writer.getvalue(), info=info, split=self.split)
         else:
             return self
 
-    def filter(self, function, with_indices=False, **kwargs):
+    def filter(
+        self,
+        function,
+        with_indices=False,
+        batch_size: Optional[int] = 1000,
+        remove_columns: Optional[List[str]] = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+        verbose: bool = True,
+    ) -> "Dataset":
         """ Apply a filter function to all the elements in the table in batches
             and update the table so that the dataset only includes examples according to the filter function.
 
@@ -870,7 +886,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     results of the computation instead of the automatically generated cache file name.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
@@ -909,7 +924,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return result
 
         # return map function
-        return self.map(map_function, batched=True, with_indices=with_indices, features=self.features, **kwargs)
+        return self.map(
+            map_function,
+            batched=True,
+            with_indices=with_indices,
+            features=self.features,
+            batch_size=batch_size,
+            remove_columns=remove_columns,
+            keep_in_memory=keep_in_memory,
+            load_from_cache_file=load_from_cache_file,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+            verbose=verbose,
+        )
 
     def select(
         self,
@@ -999,7 +1026,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-    ):
+    ) -> "Dataset":
         """ Create a new dataset sorted according to a column.
 
             Currently sorting according to a column name uses numpy sorting algorithm under the hood.
@@ -1081,8 +1108,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-    ):
-        """ Create a new Dataset where rows the rows are shuffled.
+    ) -> "Dataset":
+        """ Create a new Dataset where the rows are shuffled.
 
             Currently shuffling uses numpy random generators.
             You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
@@ -1241,8 +1268,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         test_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-    ):
-        """ Return a dictionary with two random train and test subsets (`train` and `test` ``Dataset`` splits).
+    ) -> "DatasetDict":
+        """ Return a dictionary (:obj:`nlp.DatsetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
             Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
 
             This method is similar to scikit-learn `train_test_split` with the omission of the stratified options.
@@ -1274,13 +1301,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
+        from .dataset_dict import DatasetDict  # import here because of circular dependency
+
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.train_test_split` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
         # If the array is empty we do nothing
         if len(self) == 0:
-            return self
+            return DatasetDict({"train": self, "test": self})
 
         if test_size is None and train_size is None:
             test_size = 0.25
@@ -1383,10 +1412,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     logger.info(
                         "Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name
                     )
-                return {
-                    "train": Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
-                    "test": Dataset.from_file(test_cache_file_name, info=self.info, split=self.split),
-                }
+                return DatasetDict(
+                    {
+                        "train": Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
+                        "test": Dataset.from_file(test_cache_file_name, info=self.info, split=self.split),
+                    }
+                )
 
         if not shuffle:
             train_indices = np.arange(n_train)
@@ -1417,7 +1448,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             verbose=verbose,
         )
 
-        return {"train": train_split, "test": test_split}
+        return DatasetDict({"train": train_split, "test": test_split})
 
     def shard(
         self,
@@ -1429,7 +1460,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-    ):
+    ) -> "Dataset":
         """ Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
             This shards deterministically. dset.shard(n, i) will contain all elements of dset whose

@@ -27,11 +27,13 @@ from functools import partial
 from typing import Dict, List, Optional, Union
 
 import pyarrow as pa
+import xxhash
 
 from . import utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
+from .dataset_dict import DatasetDict
 from .features import Features, Value
 from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
@@ -230,6 +232,26 @@ class DatasetBuilder:
                 raise ValueError("BuilderConfig %s must have a version" % name)
             # if not builder_config.description:
             #     raise ValueError("BuilderConfig %s must have a description" % name)
+        if builder_config.data_files is not None:
+            m = xxhash.xxh64()
+            if isinstance(builder_config.data_files, str):
+                data_files = {"train": [builder_config.data_files]}
+            elif isinstance(builder_config.data_files, (tuple, list)):
+                data_files = {"train": builder_config.data_files}
+            elif isinstance(builder_config.data_files, dict):
+                data_files = {
+                    key: files if isinstance(files, (tuple, list)) else [files]
+                    for key, files in builder_config.data_files.items()
+                }
+            else:
+                raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
+            for key in sorted(data_files.keys()):
+                m.update(key.encode("utf-8"))
+                for data_file in data_files[key]:
+                    with open(data_file, "rb") as f:
+                        for chunk in iter(lambda: f.read(1 << 20), b""):
+                            m.update(chunk)
+            builder_config.name += "-" + m.hexdigest()
         return builder_config
 
     @utils.classproperty
@@ -539,7 +561,7 @@ class DatasetBuilder:
         del prepare_split_kwargs
         return {}
 
-    def as_dataset(self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False):
+    def as_dataset(self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False) -> Union[Dataset, DatasetDict]:
         """ Return a Dataset for the specified split.
         """
         logger.info(
@@ -569,6 +591,8 @@ class DatasetBuilder:
             split,
             map_tuple=True,
         )
+        if isinstance(datasets, dict):
+            datasets = DatasetDict(datasets)
         return datasets
 
     def _build_single_dataset(self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool):

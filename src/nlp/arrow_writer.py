@@ -73,7 +73,6 @@ class ArrowWriter(object):
         if disable_nullable and self._schema is not None:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._type)
             self._type = pa.struct(pa.field(field.name, field.type, nullable=False) for field in self._type)
-            self._features = Features.from_arrow_schema(self._schema)
 
         self._path = path
         if stream is None:
@@ -93,8 +92,10 @@ class ArrowWriter(object):
 
     def _build_writer(self, schema: pa.Schema):
         self._schema: pa.Schema = schema
-        self._type: pa.DataType = pa.struct(field for field in self._schema)
-        self._features = Features.from_arrow_schema(self._schema)
+        if self._type is None:
+            self._type: pa.DataType = pa.struct(field for field in self._schema)
+        if self._features is None:
+            self._features: Features = Features.from_arrow_schema(self._schema)
         self.pa_writer = pa.RecordBatchStreamWriter(self.stream, schema)
 
     @property
