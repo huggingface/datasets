@@ -66,18 +66,6 @@ CHECKPOINT_URLS = {
 class BLEURT(nlp.Metric):        
     def _info(self):
 
-        # check that config name specifies a valid BLEURT model
-        if self.config_name == 'default':
-            logger.warning("Using default BLEURT-Base checkpoint for sequence maximum length 128. "
-                           "You can use a bigger model for better results with e.g.: nlp.load_metric('bleurt', 'bleurt-large-512').")
-            self.config_name = "bleurt-base-128"
-        if self.config_name not in CHECKPOINT_URLS.keys():
-            raise KeyError(f"{self.config_name} model not found. You should supply the name of a model checkpoint for bleurt in {CHECKPOINT_URLS.keys()}")
-
-        # download the model checkpoint specified by self.config_name and set up the scorer
-        model_path = nlp.utils.file_utils.cached_path(CHECKPOINT_URLS[self.config_name], extract_compressed_file=True)
-        self.scorer = score.BleurtScorer(os.path.join(model_path, self.config_name))
-
         return nlp.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
@@ -91,6 +79,20 @@ class BLEURT(nlp.Metric):
             reference_urls=["https://github.com/google-research/bleurt",
                             "https://arxiv.org/abs/2004.04696"]
         )
+
+    def _download_and_prepare(self, dl_manager):
+
+        # check that config name specifies a valid BLEURT model
+        if self.config_name == 'default':
+            logger.warning("Using default BLEURT-Base checkpoint for sequence maximum length 128. "
+                           "You can use a bigger model for better results with e.g.: nlp.load_metric('bleurt', 'bleurt-large-512').")
+            self.config_name = "bleurt-base-128"
+        if self.config_name not in CHECKPOINT_URLS.keys():
+            raise KeyError(f"{self.config_name} model not found. You should supply the name of a model checkpoint for bleurt in {CHECKPOINT_URLS.keys()}")
+
+        # download the model checkpoint specified by self.config_name and set up the scorer
+        model_path = dl_manager.download_and_extract(CHECKPOINT_URLS[self.config_name])
+        self.scorer = score.BleurtScorer(os.path.join(model_path, self.config_name))        
 
     def _compute(
         self,

@@ -451,6 +451,10 @@ def load_metric(
         in_memory=in_memory,
         **metric_init_kwargs,
     )
+
+    # Download and prepare resources for the metric
+    metric.download_and_prepare(download_config=download_config)
+
     return metric
 
 

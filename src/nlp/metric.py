@@ -31,6 +31,8 @@ from .arrow_writer import ArrowWriter
 from .info import MetricInfo
 from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, Version, copyfunc
+from .utils.download_manager import DownloadManager
+from .utils.file_utils import DownloadConfig
 
 
 logger = logging.getLogger(__file__)
@@ -268,6 +270,42 @@ class Metric(object):
             info: (MetricInfo) The metrics information
         """
         raise NotImplementedError
+
+    def download_and_prepare(
+        self,
+        download_config: Optional[DownloadConfig] = None,
+        dl_manager: Optional[DownloadManager] = None,
+        **download_and_prepare_kwargs,
+    ):
+        """Downloads and prepares dataset for reading.
+
+        Args:
+            download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
+            dl_manager (Optional ``nlp.DownloadManager``): specific Download Manger to use
+        """
+        if dl_manager is None:
+            if download_config is None:
+                download_config = DownloadConfig()
+                download_config.cache_dir = os.path.join(self.data_dir, "downloads")
+                download_config.force_download = False
+
+            dl_manager = DownloadManager(
+                dataset_name=self.name, download_config=download_config, data_dir=self.data_dir
+            )
+
+        self._download_and_prepare(dl_manager)
+
+    def _download_and_prepare(self, dl_manager):
+        """Downloads and prepares resources for the metric.
+
+        This is the internal implementation to overwrite called when user calls
+        `download_and_prepare`. It should download all required resources for the metric.
+
+        Args:
+            dl_manager: (DownloadManager) `DownloadManager` used to download and cache
+                data..
+        """
+        return None
 
     def _compute(self, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
         """ This method defines the common API for all the metrics in the library """
