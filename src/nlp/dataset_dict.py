@@ -1,3 +1,4 @@
+import contextlib
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -15,6 +16,71 @@ class DatasetDict(dict):
                 raise TypeError(
                     "Values in `DatasetDict` should of type `Dataset` but got type '{}'".format(type(dataset))
                 )
+
+    @contextlib.contextmanager
+    def formated_as(
+        self,
+        type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
+    ):
+        """ To be used in a `with` statement. Set __getitem__ return format (type and columns)
+            The transformation is applied to all the datasets of the dataset dictionary.
+
+            Args:
+                type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
+                    None means __getitem__ returns python objects (default)
+                columns (Optional ``List[str]``): columns to format in the output
+                    None means __getitem__ returns all columns (default)
+                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+        """
+        self._check_values_type()
+        old_format_type = {k: dataset._format_type for k, dataset in self.items()}
+        old_format_kwargs = {k: dataset._format_kwargs for k, dataset in self.items()}
+        old_format_columns = {k: dataset._format_columns for k, dataset in self.items()}
+        old_output_all_columns = {k: dataset._output_all_columns for k, dataset in self.items()}
+        try:
+            self.set_format(type, columns, output_all_columns, **format_kwargs)
+            yield
+        finally:
+            for k, dataset in self.items():
+                dataset.set_format(
+                    old_format_type[k], old_format_columns[k], old_output_all_columns[k], **old_format_kwargs[k]
+                )
+
+    def set_format(
+        self,
+        type: Optional[str] = None,
+        columns: Optional[List] = None,
+        output_all_columns: bool = False,
+        **format_kwargs,
+    ):
+        """ Set __getitem__ return format (type and columns)
+            The transformation is applied to all the datasets of the dataset dictionary.
+
+            Args:
+                type (Optional ``str``): output type selected in [None, 'numpy', 'torch', 'tensorflow', 'pandas']
+                    None means __getitem__ returns python objects (default)
+                columns (Optional ``List[str]``): columns to format in the output
+                    None means __getitem__ returns all columns (default)
+                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.set_format(type=type, columns=columns, output_all_columns=output_all_columns, **format_kwargs)
+
+    def reset_format(self):
+        """ Reset __getitem__ return format to python objects and all columns.
+            The transformation is applied to all the datasets of the dataset dictionary.
+
+            Same as ``self.set_format()``
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.set_format()
 
     def map(
         self,
