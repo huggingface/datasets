@@ -33,7 +33,14 @@ from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
-from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
+from .info import (
+    DATASET_INFO_FILENAME,
+    DATASET_INFOS_DICT_FILE_NAME,
+    LICENSE_FILENAME,
+    DatasetInfo,
+    DatasetInfosDict,
+    PostProcessedInfo,
+)
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
@@ -632,17 +639,19 @@ class DatasetBuilder:
                 size_checksum = get_size_checksum_dict(resource_path)
                 recorded_checksums[resource_name] = size_checksum
             if verify_infos:
-                if self.info.post_processing_resources_checksums is None:
+                if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
                     expected_checksums = None
                 else:
-                    expected_checksums = self.info.post_processing_resources_checksums.get(split)
+                    expected_checksums = self.info.post_processed.resources_checksums.get(split)
                 verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
-            if self.info.post_processing_resources_checksums is None:
-                self.info.post_processing_resources_checksums = {}
-            self.info.post_processing_resources_checksums[str(split)] = recorded_checksums
+            if self.info.post_processed is None:
+                self.info.post_processed = PostProcessedInfo()
+            if self.info.post_processed.resources_checksums is None:
+                self.info.post_processed.resources_checksums = {}
+            self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
             self.info.post_processing_size = sum(
                 checksums_dict["num_bytes"]
-                for split_checksums_dicts in self.info.post_processing_resources_checksums.values()
+                for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
                 for checksums_dict in split_checksums_dicts.values()
             )
             if self.info.dataset_size is not None and self.info.download_size is not None:

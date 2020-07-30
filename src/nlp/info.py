@@ -75,6 +75,7 @@ class NonMatchingCachedSizesError(Exception):
 @dataclass
 class PostProcessedInfo:
     features: Optional[Features] = None
+    resources_checksums: Optional[dict] = None
 
     def __post_init__(self):
         # Convert back to the correct classes when we reload from dict
@@ -113,7 +114,6 @@ class DatasetInfo:
     # Set later by `download_and_prepare`
     splits: Optional[dict] = None
     download_checksums: Optional[dict] = None
-    post_processing_resources_checksums: Optional[dict] = None
     download_size: Optional[int] = None
     post_processing_size: Optional[int] = None
     dataset_size: Optional[int] = None

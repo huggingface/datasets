@@ -155,6 +155,10 @@ class BuilderTest(TestCase):
             self.assertEqual(len(dset), 10)
             self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
             self.assertListEqual(dset.column_names, ["text", "tokens"])
+            self.assertGreater(dummy_builder.info.post_processing_size, 0)
+            self.assertGreater(
+                dummy_builder.info.post_processed.resources_checksums["train"]["tokenized_dataset"]["num_bytes"], 0
+            )
 
             dset = dummy_builder.as_dataset("train+test[:30%]")
             self.assertIsInstance(dset, Dataset)
@@ -264,6 +268,8 @@ class BuilderTest(TestCase):
             self.assertListEqual(dsets["test"].column_names, ["text"])
             self.assertListEqual(dsets["train"].list_indexes(), ["my_index"])
             self.assertListEqual(dsets["test"].list_indexes(), ["my_index"])
+            self.assertGreater(dummy_builder.info.post_processing_size, 0)
+            self.assertGreater(dummy_builder.info.post_processed.resources_checksums["train"]["index"]["num_bytes"], 0)
 
             dset = dummy_builder.as_dataset("train")
             self.assertIsInstance(dset, Dataset)
