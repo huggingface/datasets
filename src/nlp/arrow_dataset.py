@@ -146,7 +146,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
         if self.info.features is not None:
             if self.info.features.type != inferred_features.type:
-                self.info.features = inferred_features
+                raise ValueError(
+                    "External features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
+                        self.info.features, inferred_features
+                    )
+                )
             else:
                 pass  # keep the original features
         else:

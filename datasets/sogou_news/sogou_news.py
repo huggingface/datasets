@@ -17,15 +17,15 @@
 """Sogou News"""
 
 from __future__ import absolute_import, division, print_function
+
+import csv
 import os
+import sys
 
 import nlp
 
-import sys
-import csv
 
 csv.field_size_limit(sys.maxsize)
-
 
 
 _CITATION = """\
@@ -59,37 +59,33 @@ class Sogou_News(nlp.GeneratorBasedBuilder):
                 {
                     "title": nlp.Value("string"),
                     "content": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["sports", "finance", "entertainment", "automobile", "technology"])
+                    "label": nlp.features.ClassLabel(
+                        names=["sports", "finance", "entertainment", "automobile", "technology"]
+                    ),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
             # and hypothesis as input).
             supervised_keys=None,
-            homepage="", #didn't find a real homepage
+            homepage="",  # didn't find a real homepage
             citation=_CITATION,
         )
-        
 
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
-        
+
         return [
-            nlp.SplitGenerator(name=nlp.Split.TEST, 
-                               gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "test.csv")}),
-           
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, 
-                               gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv",  "train.csv")}),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "test.csv")}
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "train.csv")}
+            ),
         ]
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
         with open(filepath) as csv_file:
-            data =csv.reader(csv_file)
+            data = csv.reader(csv_file)
             for id_, row in enumerate(data):
-                yield id_, {
-                    "title": row[1],
-                    "content": row[2],
-                    "label": int(row[0]) - 1
-                }
-            
-           
+                yield id_, {"title": row[1], "content": row[2], "label": int(row[0]) - 1}
