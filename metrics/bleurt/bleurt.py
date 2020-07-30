@@ -98,5 +98,5 @@ class BLEURT(nlp.Metric):
         references, 
         checkpoint=None
     ):
-        scores = self.scorer.score(references, predictions)
+        scores = self.scorer.score(references=references, candidates=predictions)
         return { "scores" : scores }
