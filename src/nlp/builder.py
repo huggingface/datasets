@@ -564,9 +564,6 @@ class DatasetBuilder:
     def as_dataset(self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False) -> Union[Dataset, DatasetDict]:
         """ Return a Dataset for the specified split.
         """
-        logger.info(
-            "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
-        )
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
                 (
@@ -576,6 +573,10 @@ class DatasetBuilder:
                 )
                 % (self.name, self._cache_dir_root)
             )
+
+        logger.info(
+            "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
+        )
 
         # By default, return all splits
         if split is None:
@@ -630,7 +631,8 @@ class DatasetBuilder:
                 for split_checksums_dicts in self.info.post_processing_resources_checksums.values()
                 for checksums_dict in split_checksums_dicts.values()
             )
-            self.info.size_in_bytes = self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+            if self.info.dataset_size is not None and self.info.download_size is not None:
+                self.info.size_in_bytes = self.info.dataset_size + self.info.download_size + self.info.post_processing_size
             self._save_info()
 
         return ds
