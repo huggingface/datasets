@@ -96,7 +96,9 @@ class DatasetInfo:
     # Set later by `download_and_prepare`
     splits: Optional[dict] = None
     download_checksums: Optional[dict] = None
+    post_processing_resources_checksums: Optional[dict] = None
     download_size: Optional[int] = None
+    post_processing_size: Optional[int] = None
     dataset_size: Optional[int] = None
     size_in_bytes: Optional[int] = None
 

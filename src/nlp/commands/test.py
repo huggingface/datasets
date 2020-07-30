@@ -88,6 +88,9 @@ class TestCommand(BaseTransformersCLICommand):
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
             )
+            builder.as_dataset()
+            if self._save_infos:
+                builder._save_infos()
 
         print("Test successful.")
         # If save_infos=True, the dataset infos file is created next to the loaded module file.

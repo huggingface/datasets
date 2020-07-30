@@ -511,6 +511,7 @@ def load_dataset(
             if `split` is None, a `dict<key: nlp.Split, value: nlp.Dataset>` with each split.
 
     """
+    ignore_verifications = ignore_verifications or save_infos
     # Download/copy dataset processing script
     module_path, hash = prepare_module(path, download_config=download_config, dataset=True)
 
@@ -530,14 +531,13 @@ def load_dataset(
 
     # Download and prepare data
     builder_instance.download_and_prepare(
-        download_config=download_config,
-        download_mode=download_mode,
-        ignore_verifications=ignore_verifications,
-        save_infos=save_infos,
+        download_config=download_config, download_mode=download_mode, ignore_verifications=ignore_verifications,
     )
 
     # Build dataset for splits
-    ds = builder_instance.as_dataset(split=split)
+    ds = builder_instance.as_dataset(split=split, ignore_verifications=ignore_verifications)
+    if save_infos:
+        builder_instance._save_infos()
 
     return ds
 

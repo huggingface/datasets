@@ -38,7 +38,7 @@ from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig, is_remote_url
-from .utils.info_utils import verify_checksums, verify_splits
+from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 
 
 logger = logging.getLogger(__name__)
@@ -324,7 +324,6 @@ class DatasetBuilder:
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[GenerateMode] = None,
         ignore_verifications: bool = False,
-        save_infos: bool = False,
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
         **download_and_prepare_kwargs,
@@ -340,6 +339,7 @@ class DatasetBuilder:
             dl_manager (Optional ``nlp.DownloadManager``): specific Download Manger to use
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
+        verify_infos = not ignore_verifications
 
         if dl_manager is None:
             if download_config is None:
@@ -372,10 +372,11 @@ class DatasetBuilder:
             os.makedirs(self._cache_dir_root, exist_ok=True)
             if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
                 raise IOError(
-                    "Not enough disk space. Needed: {} (download: {}, generated: {})".format(
+                    "Not enough disk space. Needed: {} (download: {}, generated: {}, post-processed: {})".format(
                         utils.size_str(self.info.size_in_bytes or 0),
                         utils.size_str(self.info.download_size or 0),
                         utils.size_str(self.info.dataset_size or 0),
+                        utils.size_str(self.info.post_processing_size or 0),
                     )
                 )
 
@@ -401,7 +402,7 @@ class DatasetBuilder:
         # This comes right before the progress bar.
         print(
             f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
-            f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
+            f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, post-processed: {utils.size_str(self.info.post_processing_size)}"
             f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
         )
 
@@ -417,7 +418,6 @@ class DatasetBuilder:
             # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
             # it to every sub function.
             with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
-                verify_infos = not save_infos and not ignore_verifications
                 # Try to download the already prepared dataset files
                 downloaded_from_gcs = False
                 if try_from_hf_gcs:
@@ -436,10 +436,6 @@ class DatasetBuilder:
                 self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
                 # Save info
                 self._save_info()
-
-        # Save to datasetinfos
-        if save_infos:
-            DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
         # Download post processing resources
         self.download_post_processing_resources(dl_manager)
@@ -490,7 +486,9 @@ class DatasetBuilder:
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
         # Checksums verification
         if verify_infos:
-            verify_checksums(self.info.download_checksums, dl_manager.get_recorded_sizes_checksums())
+            verify_checksums(
+                self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
+            )
         for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(
@@ -533,12 +531,15 @@ class DatasetBuilder:
     def _save_info(self):
         self.info.write_to_directory(self._cache_dir)
 
+    def _save_infos(self):
+        DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
+
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
         del prepare_split_kwargs
         return {}
 
-    def as_dataset(self, split: Optional[Split] = None, run_post_process=True):
+    def as_dataset(self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False):
         """ Return a Dataset for the specified split.
         """
         logger.info(
@@ -560,12 +561,19 @@ class DatasetBuilder:
 
         # Create a dataset for each of the given splits
         datasets = utils.map_nested(
-            partial(self._build_single_dataset, run_post_process=run_post_process), split, map_tuple=True
+            partial(
+                self._build_single_dataset,
+                run_post_process=run_post_process,
+                ignore_verifications=ignore_verifications,
+            ),
+            split,
+            map_tuple=True,
         )
         return datasets
 
-    def _build_single_dataset(self, split: Union[str, Split], run_post_process: bool):
+    def _build_single_dataset(self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool):
         """as_dataset for a single split."""
+        verify_infos = not ignore_verifications
         if isinstance(split, str):
             split = Split(split)
 
@@ -580,6 +588,27 @@ class DatasetBuilder:
                 for resource_name, resource_file_name in self._post_processing_resources(split).items()
             }
             ds = self._post_process(ds, resources_paths)
+            recorded_checksums = {}
+            for resource_name, resource_path in resources_paths.items():
+                size_checksum = get_size_checksum_dict(resource_path)
+                recorded_checksums[resource_name] = size_checksum
+            if verify_infos:
+                if self.info.post_processing_resources_checksums is None:
+                    expected_checksums = None
+                else:
+                    expected_checksums = self.info.post_processing_resources_checksums.get(split)
+                verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
+            if self.info.post_processing_resources_checksums is None:
+                self.info.post_processing_resources_checksums = {}
+            self.info.post_processing_resources_checksums[str(split)] = recorded_checksums
+            self.info.post_processing_size = sum(
+                checksums_dict["num_bytes"]
+                for split_checksums_dicts in self.info.post_processing_resources_checksums.values()
+                for checksums_dict in split_checksums_dicts.values()
+            )
+            self.info.size_in_bytes = self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+            self._save_info()
+
         return ds
 
     def _as_dataset(self, split: Split = Split.TRAIN) -> Dataset:
