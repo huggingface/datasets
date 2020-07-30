@@ -67,6 +67,8 @@ REQUIRED_PKGS = [
     "dataclasses;python_version<'3.7'",
     # filesystem locks e.g. to prevent parallel downloads
     "filelock",
+    # for fast hashing
+    "xxhash"
 ]
 
 TESTS_REQUIRE = [

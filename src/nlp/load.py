@@ -15,7 +15,7 @@
 
 # Lint as: python3
 """Access datasets."""
-
+import filecmp
 import importlib
 import inspect
 import itertools
@@ -358,7 +358,7 @@ def prepare_module(
             else:
                 logger.info("Couldn't find dataset infos file at %s", dataset_infos)
         else:
-            if local_dataset_infos_path is not None:
+            if local_dataset_infos_path is not None and not filecmp.cmp(local_dataset_infos_path, dataset_infos_path):
                 logger.info("Updating dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
