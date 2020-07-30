@@ -453,6 +453,14 @@ class Xtreme(nlp.GeneratorBasedBuilder):
         if self.config.name == "XNLI":
             features["gold_label"] = nlp.Value("string")
 
+        if self.config.name.startswith("PAN-X"):
+            features = nlp.Features(
+                {
+                    "words": nlp.Sequence(nlp.Value("string")),
+                    "ner_tags": nlp.Sequence(nlp.Value("string")),
+                    "langs": nlp.Sequence(nlp.Value("string")),
+                }
+            )
         return nlp.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=self.config.description + "\n" + _DESCRIPTION,
@@ -878,10 +886,27 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                         if len(row) >= 10 and row[1] != "_":
                             yield str(id_file) + "_" + str(id_row), {"word": row[1], "pos_tag": row[3]}
         if self.config.name.startswith("PAN-X"):
-            with open(filepath) as f:
-                data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-                for id_, row in enumerate(data):
-                    if row:
-                        lang, word = row[0].split(":")[0], row[0].split(":")[1]
-                        tag = row[1]
-                        yield id_, {"word": word, "ner_tag": tag, "lang": lang}
+            guid_index = 1
+            with open(filepath, encoding="utf-8") as f:
+                words = []
+                ner_tags = []
+                langs = []
+                for line in f:
+                    if line.startswith("-DOCSTART-") or line == "" or line == "\n":
+                        if words:
+                            yield guid_index, {"words": words, "ner_tags": ner_tags, "langs": langs}
+                            guid_index += 1
+                            words = []
+                            ner_tags = []
+                            langs = []
+                    else:
+                        # pan-x data is tab separated
+                        splits = line.split("\t")
+                        # strip out en: prefix
+                        langs.append(splits[0][:2])
+                        words.append(splits[0][3:])
+                        if len(splits) > 1:
+                            ner_tags.append(splits[-1].replace("\n", ""))
+                        else:
+                            # examples have no label in test set
+                            ner_tags.append("O")

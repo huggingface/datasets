@@ -26,7 +26,6 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, List, Optional, Union
 
-import pyarrow as pa
 import xxhash
 
 from . import utils
@@ -34,7 +33,6 @@ from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
-from .features import Features, Value
 from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict
@@ -117,7 +115,7 @@ class DatasetBuilder:
     # displayed in the dataset documentation.
 
     def __init__(
-        self, cache_dir=None, name=None, hash=None, **config_kwargs,
+        self, cache_dir=None, name=None, hash=None, features=None, **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
 
@@ -131,6 +129,8 @@ class DatasetBuilder:
             hash: a hash specific to the dataset code. Used to update the caching directory when the dataset loading
                 script code is udpated (to avoid reusing old data).
                 The typical caching directory (defined in ``self._relative_data_dir``) is: ``name/version/hash/``
+            features: `Features`, optional features that will be used to read/write the dataset
+                It can be used to changed the :obj:`nlp.Features` description of a dataset for example.
             config_kwargs: will override the defaults kwargs in config
 
         """
@@ -150,6 +150,9 @@ class DatasetBuilder:
         info.config_name = self.config.name
         info.version = self.config.version
         self.info = info
+        # update info with user specified infos
+        if features is not None:
+            self.info.features = features
 
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
@@ -794,21 +797,7 @@ class ArrowBasedBuilder(DatasetBuilder):
 
         split_generator.split_info.num_examples = num_examples
         split_generator.split_info.num_bytes = num_bytes
-        features = {}
-
-        def parse_schema(schema, schema_dict):
-            for field in schema:
-                if pa.types.is_struct(field.type):
-                    schema_dict[field.name] = {}
-                    parse_schema(field.type, schema_dict[field.name])
-                elif pa.types.is_list(field.type) and pa.types.is_struct(field.type.value_type):
-                    schema_dict[field.name] = {}
-                    parse_schema(field.type.value_type, schema_dict[field.name])
-                else:
-                    schema_dict[field.name] = Value(str(field.type))
-
-        parse_schema(writer.schema, features)
-        self.info.features = Features(features)
+        self.info.features = writer._features
 
 
 class MissingBeamOptions(ValueError):

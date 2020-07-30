@@ -146,7 +146,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
         if self.info.features is not None:
             if self.info.features.type != inferred_features.type:
-                self.info.features = inferred_features
+                raise ValueError(
+                    "External features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
+                        self.info.features, inferred_features
+                    )
+                )
             else:
                 pass  # keep the original features
         else:
@@ -445,8 +449,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
         else:
             assert not (
-                type == "pandas" and format_kwargs is not None
-            ), "Format type 'pandas' doesn't have any `**format_kwargs`."
+                type == "pandas" and (output_all_columns or format_kwargs)
+            ), "Format type 'pandas' doesn't allow the use of `output_all_columns` or `**format_kwargs`."
             assert (
                 type is None or type == "numpy" or type == "pandas"
             ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas']."
@@ -516,6 +520,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         if isinstance(outputs, (list, tuple)):
             return command(outputs)
+        elif isinstance(outputs, pd.DataFrame):
+            if format_columns is not None and not output_all_columns:
+                to_remove_columns = [col for col in self.column_names if col not in format_columns]
+                output_dict = outputs.drop(to_remove_columns, axis=1)
         else:
             output_dict = {}
             for k, v in outputs.items():
@@ -552,26 +560,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 key = self._data.num_rows + key
             if key >= self._data.num_rows:
                 raise IndexError(f"Index ({key}) outside of table length ({self._data.num_rows}).")
-            if format_type is not None and format_type == "pandas":
-                outputs = self._data.slice(key, 1).to_pandas()
-            if format_type is not None and format_type in ("numpy", "torch", "tensorflow"):
-                outputs = self._unnest(self._data.slice(key, 1).to_pandas().to_dict("list"))
+            if format_type is not None:
+                if format_type == "pandas":
+                    outputs = self._data.slice(key, 1).to_pandas()
+                else:
+                    outputs = self._unnest(self._data.slice(key, 1).to_pandas().to_dict("list"))
             else:
                 outputs = self._unnest(self._data.slice(key, 1).to_pydict())
         elif isinstance(key, slice):
             key_indices = key.indices(self._data.num_rows)
             if key_indices[2] != 1 or key_indices[1] < key_indices[0]:
                 raise ValueError("Slicing can only take contiguous and ordered slices.")
-            if format_type is not None and format_type == "pandas":
-                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas(
-                    split_blocks=True
-                )
-            elif format_type is not None and format_type in ("numpy", "torch", "tensorflow"):
-                outputs = (
-                    self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
-                    .to_pandas(split_blocks=True)
-                    .to_dict("list")
-                )
+            if format_type is not None:
+                if format_type == "pandas":
+                    outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas(
+                        split_blocks=True
+                    )
+                else:
+                    outputs = (
+                        self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
+                        .to_pandas(split_blocks=True)
+                        .to_dict("list")
+                    )
             else:
                 outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pydict()
         elif isinstance(key, str):
@@ -581,7 +591,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
                         outputs = self._data[key].to_pandas(split_blocks=True)
-                    if format_type in ("numpy", "torch", "tensorflow"):
+                    elif format_type in ("numpy", "torch", "tensorflow"):
                         outputs = self._data[key].to_pandas(split_blocks=True).to_numpy()
                     else:
                         outputs = self._data[key].to_pylist()
@@ -591,21 +601,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 outputs = self._data[key].to_pylist()
         elif isinstance(key, Iterable):
             data_subset = pa.concat_tables(self._data.slice(int(i), 1) for i in key)
-            if format_type is not None and format_type == "pandas":
-                outputs = data_subset.to_pandas(split_blocks=True)
-            if format_type is not None and format_type in ("numpy", "torch", "tensorflow"):
-                outputs = data_subset.to_pandas(split_blocks=True).to_dict("list")
+            if format_type is not None:
+                if format_type == "pandas":
+                    outputs = data_subset.to_pandas(split_blocks=True)
+                else:
+                    outputs = data_subset.to_pandas(split_blocks=True).to_dict("list")
             else:
                 outputs = data_subset.to_pydict()
 
         else:
             raise ValueError("Can only get row(s) (int or slice or list[int]) or columns (string).")
 
-        if (
-            (format_type is not None or format_columns is not None)
-            and not isinstance(key, str)
-            and format_type != "pandas"
-        ):
+        if (format_type is not None or format_columns is not None) and not isinstance(key, str):
             outputs = self._convert_outputs(
                 outputs,
                 format_type=format_type,

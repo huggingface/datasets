@@ -15,7 +15,7 @@
 
 # Lint as: python3
 """Access datasets."""
-
+import filecmp
 import importlib
 import inspect
 import itertools
@@ -35,6 +35,7 @@ from filelock import FileLock
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
+from .features import Features
 from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo
 from .metric import Metric
 from .splits import Split
@@ -363,7 +364,7 @@ def prepare_module(
             else:
                 logger.info("Couldn't find dataset infos file at %s", dataset_infos)
         else:
-            if local_dataset_infos_path is not None:
+            if local_dataset_infos_path is not None and not filecmp.cmp(local_dataset_infos_path, dataset_infos_path):
                 logger.info("Updating dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
@@ -461,6 +462,7 @@ def load_dataset(
     data_files: Union[Dict, List] = None,
     split: Optional[Union[str, Split]] = None,
     cache_dir: Optional[str] = None,
+    features: Optional[Features] = None,
     download_config: Optional[DownloadConfig] = None,
     download_mode: Optional[GenerateMode] = None,
     ignore_verifications: bool = False,
@@ -506,6 +508,7 @@ def load_dataset(
             If given, will return a single Dataset.
             Splits can be combined and specified like in tensorflow-datasets.
         cache_dir (Optional ``str``): directory to read/write data. Defaults to "~/nlp".
+        features (Optional ``nlp.Features``): Set the features type to use for this dataset.
         download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
         download_mode (Optional `nlp.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
         ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
@@ -532,6 +535,7 @@ def load_dataset(
         data_dir=data_dir,
         data_files=data_files,
         hash=hash,
+        features=features,
         **config_kwargs,
     )
 
