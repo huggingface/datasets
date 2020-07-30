@@ -162,13 +162,13 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
             if os.path.exists(index_file):
                 dataset.load_faiss_index("embeddings", index_file)
             else:
-                if "embedings" not in dataset.column_names:
+                if "embeddings" not in dataset.column_names:
                     raise ValueError("Couldn't build the index because there are no embeddings.")
                 import faiss
 
                 train_size = self.config.index_train_size
                 logging.info("Building wiki_dpr faiss index")
-                if self.config.index_type == "exact":
+                if self.config.index_name == "exact":
                     dataset.add_faiss_index(
                         "embeddings", string_factory="Flat", metric_type=faiss.METRIC_INNER_PRODUCT,
                     )
