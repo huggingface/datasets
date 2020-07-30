@@ -2,6 +2,8 @@ import os
 import unittest
 from distutils.util import strtobool
 
+from nlp.utils.file_utils import _tf_available, _torch_available
+
 
 def parse_flag_from_env(key, default=False):
     try:
@@ -22,6 +24,30 @@ def parse_flag_from_env(key, default=False):
 _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
 _run_aws_tests = parse_flag_from_env("RUN_AWS", default=True)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
+
+
+def require_torch(test_case):
+    """
+    Decorator marking a test that requires PyTorch.
+
+    These tests are skipped when PyTorch isn't installed.
+
+    """
+    if not _torch_available:
+        test_case = unittest.skip("test requires PyTorch")(test_case)
+    return test_case
+
+
+def require_tf(test_case):
+    """
+    Decorator marking a test that requires TensorFlow.
+
+    These tests are skipped when TensorFlow isn't installed.
+
+    """
+    if not _tf_available:
+        test_case = unittest.skip("test requires TensorFlow")(test_case)
+    return test_case
 
 
 def slow(test_case):

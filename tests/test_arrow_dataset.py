@@ -11,12 +11,18 @@ from nlp.arrow_dataset import Dataset
 from nlp.features import ClassLabel, Features, Sequence, Value
 from nlp.info import DatasetInfo
 
+from .utils import require_tf, require_torch
+
 
 class BaseDatasetTest(TestCase):
-    def _create_dummy_dataset(self):
-        dset = Dataset(
-            pa.Table.from_pydict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
-        )
+    def _create_dummy_dataset(self, multiple_columns=False):
+        if multiple_columns:
+            data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
+            dset = Dataset.from_dict(data)
+        else:
+            dset = Dataset(
+                pa.Table.from_pydict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
+            )
         return dset
 
     def test_dummy_dataset(self):
@@ -59,6 +65,87 @@ class BaseDatasetTest(TestCase):
 
         features = Features({"col_1": Value("string"), "col_2": Value("string")})
         self.assertRaises(pa.ArrowTypeError, Dataset.from_dict, data, features=features)
+
+    def test_set_format_numpy(self):
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        dset.set_format(type="numpy", columns=["col_1"])
+        self.assertEqual(len(dset[0]), 1)
+        self.assertIsInstance(dset[0]["col_1"], np.ndarray)
+        self.assertListEqual(list(dset[0]["col_1"].shape), [])
+        self.assertEqual(dset[0]["col_1"].item(), 3)
+
+        dset.reset_format()
+        with dset.formated_as(type="numpy", columns=["col_1"]):
+            self.assertEqual(len(dset[0]), 1)
+            self.assertIsInstance(dset[0]["col_1"], np.ndarray)
+            self.assertListEqual(list(dset[0]["col_1"].shape), [])
+            self.assertEqual(dset[0]["col_1"].item(), 3)
+
+        self.assertEqual(dset.format["type"], "python")
+        self.assertEqual(dset.format["format_kwargs"], {})
+        self.assertEqual(dset.format["columns"], dset.column_names)
+        self.assertEqual(dset.format["output_all_columns"], False)
+
+        dset.set_format(type="numpy", columns=["col_1"], output_all_columns=True)
+        self.assertEqual(len(dset[0]), 2)
+        self.assertIsInstance(dset[0]["col_2"], str)
+        self.assertEqual(dset[0]["col_2"], "a")
+
+        dset.set_format(type="numpy", columns=["col_1", "col_2"])
+        self.assertEqual(len(dset[0]), 2)
+        self.assertEqual(dset[0]["col_2"].item(), "a")
+
+    @require_torch
+    def test_set_format_torch(self):
+        import torch
+
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        dset.set_format(type="torch", columns=["col_1"])
+        self.assertEqual(len(dset[0]), 1)
+        self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
+        self.assertListEqual(list(dset[0]["col_1"].shape), [])
+        self.assertEqual(dset[0]["col_1"].item(), 3)
+
+        dset.set_format(type="torch", columns=["col_1"], output_all_columns=True)
+        self.assertEqual(len(dset[0]), 2)
+        self.assertIsInstance(dset[0]["col_2"], str)
+        self.assertEqual(dset[0]["col_2"], "a")
+
+        dset.set_format(type="torch", columns=["col_1", "col_2"])
+        with self.assertRaises(TypeError):
+            dset[0]
+
+    @require_tf
+    def test_set_format_tf(self):
+        import tensorflow as tf
+
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        dset.set_format(type="tensorflow", columns=["col_1"])
+        self.assertEqual(len(dset[0]), 1)
+        self.assertIsInstance(dset[0]["col_1"], tf.Tensor)
+        self.assertListEqual(list(dset[0]["col_1"].shape), [])
+        self.assertEqual(dset[0]["col_1"].numpy().item(), 3)
+
+        dset.set_format(type="tensorflow", columns=["col_1"], output_all_columns=True)
+        self.assertEqual(len(dset[0]), 2)
+        self.assertIsInstance(dset[0]["col_2"], str)
+        self.assertEqual(dset[0]["col_2"], "a")
+
+        dset.set_format(type="tensorflow", columns=["col_1", "col_2"])
+        self.assertEqual(len(dset[0]), 2)
+        self.assertEqual(dset[0]["col_2"].numpy().decode("utf-8"), "a")
+
+    def test_set_format_pandas(self):
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        dset.set_format(type="pandas", columns=["col_1"])
+        self.assertEqual(len(dset[0].columns), 1)
+        self.assertIsInstance(dset[0], pd.DataFrame)
+        self.assertListEqual(list(dset[0].shape), [1, 1])
+        self.assertEqual(dset[0]["col_1"].item(), 3)
+
+        dset.set_format(type="pandas", columns=["col_1", "col_2"])
+        self.assertEqual(len(dset[0].columns), 2)
+        self.assertEqual(dset[0]["col_2"].item(), "a")
 
     def test_concatenate(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
