@@ -5,7 +5,6 @@ from unittest import TestCase
 
 import numpy as np
 import pandas as pd
-import pyarrow as pa
 
 from nlp.arrow_dataset import Dataset
 from nlp.dataset_dict import DatasetDict
@@ -19,9 +18,7 @@ class DatasetDictTest(TestCase):
             data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
             dset = Dataset.from_dict(data)
         else:
-            dset = Dataset(
-                pa.Table.from_pydict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
-            )
+            dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
         return dset
 
     def _create_dummy_dataset_dict(self, multiple_columns=False) -> DatasetDict:
@@ -125,26 +122,6 @@ class DatasetDictTest(TestCase):
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0].columns), 2)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
-
-    def test_set_format(self):
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            dsets = self._create_dummy_dataset_dict()
-
-            mapped_dsets_1: Dict[str, Dataset] = dsets.map(
-                lambda ex: {"foo": ["bar"] * len(ex["filename"])}, batched=True
-            )
-            self.assertListEqual(list(dsets.keys()), list(mapped_dsets_1.keys()))
-            self.assertListEqual(mapped_dsets_1["train"].column_names, ["filename", "foo"])
-
-            cache_file_names = {
-                "train": os.path.join(tmp_dir, "train.arrow"),
-                "test": os.path.join(tmp_dir, "test.arrow"),
-            }
-            mapped_dsets_2: Dict[str, Dataset] = mapped_dsets_1.map(
-                lambda ex: {"bar": ["foo"] * len(ex["filename"])}, batched=True, cache_file_names=cache_file_names
-            )
-            self.assertListEqual(list(dsets.keys()), list(mapped_dsets_2.keys()))
-            self.assertListEqual(mapped_dsets_2["train"].column_names, ["filename", "foo", "bar"])
 
     def test_map(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

@@ -34,7 +34,7 @@ Dictionary with split names as keys ('train', 'test' for example), and :obj:`nlp
 It also has dataset transform methods like map or filter, to process all the splits at once.
 
 .. autoclass:: nlp.DatasetDict
-    :members: map, filter, sort, shuffle
+    :members: map, filter, sort, shuffle, set_format, reset_format, formated_as
 
 
 ``Features``

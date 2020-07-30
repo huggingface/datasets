@@ -20,9 +20,7 @@ class BaseDatasetTest(TestCase):
             data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
             dset = Dataset.from_dict(data)
         else:
-            dset = Dataset(
-                pa.Table.from_pydict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
-            )
+            dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
         return dset
 
     def test_dummy_dataset(self):
