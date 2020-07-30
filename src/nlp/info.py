@@ -73,6 +73,21 @@ class NonMatchingCachedSizesError(Exception):
 
 
 @dataclass
+class PostProcessedInfo:
+    features: Optional[Features] = None
+
+    def __post_init__(self):
+        # Convert back to the correct classes when we reload from dict
+        if self.features is not None and not isinstance(self.features, Features):
+            self.features = Features.from_dict(self.features)
+
+    @classmethod
+    def from_dict(cls, post_processed_info_dict: dict) -> "PostProcessedInfo":
+        field_names = set(f.name for f in dataclasses.fields(cls))
+        return cls(**{k: v for k, v in post_processed_info_dict.items() if k in field_names})
+
+
+@dataclass
 class DatasetInfo:
     """Information about a dataset.
 
@@ -88,6 +103,7 @@ class DatasetInfo:
     homepage: str = field(default_factory=str)
     license: str = field(default_factory=str)
     features: Optional[Features] = None
+    post_processed: Optional[PostProcessedInfo] = None
     supervised_keys: Optional[SupervisedKeysData] = None
 
     # Set later by the builder
@@ -107,6 +123,8 @@ class DatasetInfo:
         # Convert back to the correct classes when we reload from dict
         if self.features is not None and not isinstance(self.features, Features):
             self.features = Features.from_dict(self.features)
+        if self.post_processed is not None and not isinstance(self.post_processed, PostProcessedInfo):
+            self.post_processed = PostProcessedInfo.from_dict(self.post_processed)
         if self.version is not None and not isinstance(self.version, Version):
             if isinstance(self.version, str):
                 self.version = Version(self.version)

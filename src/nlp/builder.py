@@ -564,7 +564,9 @@ class DatasetBuilder:
         del prepare_split_kwargs
         return {}
 
-    def as_dataset(self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False) -> Union[Dataset, DatasetDict]:
+    def as_dataset(
+        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False
+    ) -> Union[Dataset, DatasetDict]:
         """ Return a Dataset for the specified split.
         """
         if not os.path.exists(self._cache_dir):
@@ -616,6 +618,15 @@ class DatasetBuilder:
                 for resource_name, resource_file_name in self._post_processing_resources(split).items()
             }
             ds = self._post_process(ds, resources_paths)
+            if self.info.post_processed is not None and self.info.post_processed.features is not None:
+                if self.info.post_processed.features.type != ds.features.type:
+                    raise ValueError(
+                        "Post-processed features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
+                            self.info.post_processed.features, ds.features
+                        )
+                    )
+                else:
+                    ds.info.features = self.info.post_processed.features
             recorded_checksums = {}
             for resource_name, resource_path in resources_paths.items():
                 size_checksum = get_size_checksum_dict(resource_path)
@@ -635,7 +646,9 @@ class DatasetBuilder:
                 for checksums_dict in split_checksums_dicts.values()
             )
             if self.info.dataset_size is not None and self.info.download_size is not None:
-                self.info.size_in_bytes = self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+                self.info.size_in_bytes = (
+                    self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+                )
             self._save_info()
 
         return ds

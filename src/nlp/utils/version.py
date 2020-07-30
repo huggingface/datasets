@@ -16,8 +16,8 @@
 # Lint as: python3
 """Version utils."""
 
-import re
 import dataclasses
+import re
 from dataclasses import dataclass
 
 
