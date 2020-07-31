@@ -369,11 +369,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         You can also remove a column using :func:`Dataset.map` with `feature` but :func:`cast_`
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
         """
-        if any(field_name not in self.features for field_name in features):
+        if list(features) != self._data.column_names:
             raise ValueError(
-                "Field {} not in the dataset. Current fields in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, features)), self._data.column_names
-                )
+                f"The columns in features ({list(features)}) must be identical and in the same order "
+                f"as the columns in the dataset: {self._data.column_names}"
             )
 
         self._info.features = features
