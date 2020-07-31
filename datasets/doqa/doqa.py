@@ -101,7 +101,7 @@ class Doqa(nlp.GeneratorBasedBuilder):
                     "answer_start": nlp.Value("int32"),
             }),
             }),
-            homepage="https://github.com/RevanthRameshkumar/CRD3",
+            homepage="http://ixa.eus/node/12931",
             citation=_CITATION,
         )
 
@@ -111,29 +111,29 @@ class Doqa(nlp.GeneratorBasedBuilder):
             return [
                 nlp.SplitGenerator(
                     name=nlp.Split.TEST,
-                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1/doqa_dataset",  "doqa-cooking-test-v2.1.json")},
+                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset",  "doqa-cooking-test-v2.1.json")},
                 ),
                 nlp.SplitGenerator(
                     name=nlp.Split.VALIDATION,
-                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1/doqa_dataset", "doqa-cooking-dev-v2.1.json")},
+                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-cooking-dev-v2.1.json")},
                 ),
                 nlp.SplitGenerator(
                     name=nlp.Split.TRAIN,
-                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1/doqa_dataset",  "doqa-cooking-train-v2.1.json")},
+                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1","doqa_dataset",  "doqa-cooking-train-v2.1.json")},
                 )
             ]
         elif self.config.name == "movies":
             return [
                 nlp.SplitGenerator(
                     name=nlp.Split.TEST,
-                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1/doqa_dataset",  "doqa-movies-test-v2.1.json")},
+                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset",  "doqa-movies-test-v2.1.json")},
                 )
             ]
         elif self.config.name == "travel":
             return [
                 nlp.SplitGenerator(
                     name=nlp.Split.TEST,
-                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1/doqa_dataset", "doqa-travel-test-v2.1.json")},
+                    gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-travel-test-v2.1.json")},
                 )
             ]
 
