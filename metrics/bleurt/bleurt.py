@@ -94,11 +94,6 @@ class BLEURT(nlp.Metric):
         model_path = dl_manager.download_and_extract(CHECKPOINT_URLS[self.config_name])
         self.scorer = score.BleurtScorer(os.path.join(model_path, self.config_name))        
 
-    def _compute(
-        self,
-        predictions,
-        references, 
-        checkpoint=None
-    ):
+    def _compute(self, predictions, references):
         scores = self.scorer.score(references=references, candidates=predictions)
         return { "scores" : scores }
