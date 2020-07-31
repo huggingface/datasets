@@ -43,6 +43,13 @@ class BaseDatasetTest(TestCase):
         self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
         self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
 
+        features = Features({"col_1": Value("int64"), "col_2": Value("string")})
+        dset = Dataset.from_pandas(df, features=features, info=DatasetInfo(features=features))
+        self.assertListEqual(dset["col_1"], data["col_1"])
+        self.assertListEqual(dset["col_2"], data["col_2"])
+        self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+        self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
+
         features = Features({"col_1": Value("string"), "col_2": Value("string")})
         self.assertRaises(pa.ArrowTypeError, Dataset.from_pandas, df, features=features)
 
@@ -56,6 +63,13 @@ class BaseDatasetTest(TestCase):
 
         features = Features({"col_1": Value("int64"), "col_2": Value("string")})
         dset = Dataset.from_dict(data, features=features)
+        self.assertListEqual(dset["col_1"], data["col_1"])
+        self.assertListEqual(dset["col_2"], data["col_2"])
+        self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
+        self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
+
+        features = Features({"col_1": Value("int64"), "col_2": Value("string")})
+        dset = Dataset.from_dict(data, features=features, info=DatasetInfo(features=features))
         self.assertListEqual(dset["col_1"], data["col_1"])
         self.assertListEqual(dset["col_2"], data["col_2"])
         self.assertListEqual(list(dset.features.keys()), ["col_1", "col_2"])
@@ -188,7 +202,7 @@ class BaseDatasetTest(TestCase):
         dset.flatten()
         self.assertListEqual(dset.column_names, ["a.b.c", "foo"])
         self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
-        self.assertDictEqual(dset.features, Features({"a.b.c": [Value("string")], "foo": Value("int64")}))
+        self.assertDictEqual(dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}))
 
     def test_map(self):
         dset = self._create_dummy_dataset()
@@ -329,6 +343,105 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_filter_even_num), 15)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
+
+    def test_keep_features_after_transform_specified(self):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            inverted_dset = dset.map(invert_labels, cache_file_name=tmp_file, features=features)
+            self.assertEqual(inverted_dset.features.type, features.type)
+            self.assertDictEqual(inverted_dset.features, features)
+
+    def test_keep_features_after_transform_unspecified(self):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            inverted_dset = dset.map(invert_labels, cache_file_name=tmp_file)
+            self.assertEqual(inverted_dset.features.type, features.type)
+            self.assertDictEqual(inverted_dset.features, features)
+
+    def test_keep_features_after_transform_from_file(self):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset.map(invert_labels, cache_file_name=tmp_file)
+            inverted_dset = Dataset.from_file(tmp_file)
+            self.assertEqual(inverted_dset.features.type, features.type)
+            self.assertDictEqual(inverted_dset.features, features)
+
+    def test_keep_features_after_transform_in_memory(self):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        inverted_dset = dset.map(invert_labels, keep_in_memory=True)
+        self.assertEqual(inverted_dset.features.type, features.type)
+        self.assertDictEqual(inverted_dset.features, features)
+
+    def test_keep_features_after_loading_from_cache(self):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            inverted_dset = dset.map(invert_labels, cache_file_name=tmp_file)
+            inverted_dset = dset.map(invert_labels, cache_file_name=tmp_file)
+            self.assertGreater(len(inverted_dset.cache_files), 0)
+            self.assertEqual(inverted_dset.features.type, features.type)
+            self.assertDictEqual(inverted_dset.features, features)
+
+    def test_keep_features_with_new_features(self):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]], "labels2": x["labels"]}
+
+        expected_features = Features(
+            {
+                "tokens": Sequence(Value("string")),
+                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+                "labels2": Sequence(Value("int64")),
+            }
+        )
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            inverted_dset = dset.map(invert_labels, cache_file_name=tmp_file)
+            self.assertEqual(inverted_dset.features.type, expected_features.type)
+            self.assertDictEqual(inverted_dset.features, expected_features)
 
     def test_select(self):
         dset = self._create_dummy_dataset()
@@ -568,7 +681,9 @@ class BaseDatasetTest(TestCase):
             for col in columns:
                 self.assertIsInstance(dset[0][col], (str, list))
                 self.assertIsInstance(dset[:2][col], list)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string"), "vec": [Value("float64")]}))
+            self.assertDictEqual(
+                dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
+            )
 
             # don't test if torch and tensorflow are stacked accross examples
             # we need to use the features definition to know at what depth we have to to the conversion
@@ -609,7 +724,7 @@ class BaseDatasetTest(TestCase):
                 batched=True,
             )
             self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "nested": {"foo": [Value("float64")]}})
+                dset.features, Features({"filename": Value("string"), "nested": {"foo": Sequence(Value("float64"))}})
             )
 
             dset.set_format("tensorflow")

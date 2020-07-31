@@ -18,6 +18,7 @@
 
 import contextlib
 import hashlib
+import json
 import logging
 import os
 import shutil
@@ -146,11 +147,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._format_columns: Optional[list] = None
         self._output_all_columns: bool = False
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
-        if self.info.features is not None:
+        if self.info.features is None:  # try to load features from the arrow file metadata
+            if self._data.schema.metadata is not None and "huggingface".encode("utf-8") in self._data.schema.metadata:
+                self.info.features = DatasetInfo.from_dict(
+                    json.loads(self._data.schema.metadata["huggingface".encode("utf-8")].decode())
+                ).features
+        if self.info.features is not None:  # make sure features in self.info match the data
             if self.info.features.type != inferred_features.type:
                 raise ValueError(
-                    "External features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
-                        self.info.features, inferred_features
+                    "External features info don't match the dataset:\nGot\n{}\nwith type\n{}\n\nbut expected something like\n{}\nwith type\n{}".format(
+                        self.info.features, self.info.features.type, inferred_features, inferred_features.type
                     )
                 )
             else:
@@ -158,7 +164,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             self.info.features = inferred_features
         assert self.features is not None, "Features can't be None in a Dataset object"
-        assert self.features.type == inferred_features.type, "Features should match inferred type"
 
     @classmethod
     def from_file(
@@ -213,6 +218,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 )
             )
         features = features if features is not None else info.features if info is not None else None
+        if info is None:
+            info = DatasetInfo()
+        info.features = features
         pa_table: pa.Table = pa.Table.from_pandas(
             df=df, schema=pa.schema(features.type) if features is not None else None
         )
@@ -243,6 +251,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 )
             )
         features = features if features is not None else info.features if info is not None else None
+        if info is None:
+            info = DatasetInfo()
+        info.features = features
         pa_table: pa.Table = pa.Table.from_pydict(
             mapping=mapping, schema=pa.schema(features.type) if features is not None else None
         )
@@ -898,16 +909,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
         if update_data:
+            if features is None:
+                features = self.features
+                update_features = True
+            else:
+                update_features = False
             if keep_in_memory or cache_file_name is None:
                 buf_writer = pa.BufferOutputStream()
                 tmp_file = None
-                writer = ArrowWriter(features=features, stream=buf_writer, writer_batch_size=writer_batch_size)
+                writer = ArrowWriter(
+                    features=features,
+                    stream=buf_writer,
+                    writer_batch_size=writer_batch_size,
+                    update_features=update_features,
+                )
             else:
                 buf_writer = None
                 if verbose:
                     logger.info("Caching processed dataset at %s", cache_file_name)
                 tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
-                writer = ArrowWriter(features=features, path=tmp_file.name, writer_batch_size=writer_batch_size)
+                writer = ArrowWriter(
+                    features=features,
+                    path=tmp_file.name,
+                    writer_batch_size=writer_batch_size,
+                    update_features=update_features,
+                )
 
         try:
             # Loop over single examples or batches and write to buffer/file if examples are to be updated

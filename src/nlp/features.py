@@ -277,7 +277,7 @@ class Translation:
     _type: str = field(default="Translation", init=False, repr=False)
 
     def __call__(self):
-        return pa.struct({lang: pa.string() for lang in self.languages})
+        return pa.struct({lang: pa.string() for lang in sorted(self.languages)})
 
 
 @dataclass
@@ -378,7 +378,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     """ Convert our Feature nested object in an Apache Arrow type """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return pa.struct({key: get_nested_type(value) for key, value in schema.items()})
+        return pa.struct(
+            {key: get_nested_type(schema[key]) for key in sorted(schema)}
+        )  # sort to make the type deterministic
     elif isinstance(schema, (list, tuple)):
         assert len(schema) == 1, "We defining list feature, you should just provide one example of the inner type"
         inner_type = get_nested_type(schema[0])
@@ -387,7 +389,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         inner_type = get_nested_type(schema.feature)
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
         if isinstance(inner_type, pa.StructType):
-            return pa.struct(dict((f.name, pa.list_(f.type, schema.length)) for f in inner_type))
+            return pa.struct(dict(sorted((f.name, pa.list_(f.type, schema.length)) for f in inner_type)))
         return pa.list_(inner_type, schema.length)
 
     # Other objects are callable which returns their data type (ClassLabel, Tensor, Translation, Arrow datatype creation methods)
@@ -458,7 +460,10 @@ def generate_from_arrow_type(pa_type: pa.DataType):
     elif isinstance(pa_type, pa.FixedSizeListType):
         return Sequence(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
     elif isinstance(pa_type, pa.ListType):
-        return [generate_from_arrow_type(pa_type.value_type)]
+        feature = generate_from_arrow_type(pa_type.value_type)
+        if isinstance(feature, (dict, tuple, list)):
+            return [feature]
+        return Sequence(feature=feature)
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
