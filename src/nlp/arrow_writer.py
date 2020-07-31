@@ -135,7 +135,8 @@ class ArrowWriter(object):
     def write_on_file(self):
         """ Write stored examples
         """
-        type = None if self.update_features else self._type
+        # infer type on first write
+        type = None if self.update_features and self.pa_writer is None else self._type
         if self.current_rows:
             pa_array = pa.array(self.current_rows, type=type)
             first_example = pa.array(self.current_rows[0:1], type=type)[0]
