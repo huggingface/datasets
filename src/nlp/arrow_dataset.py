@@ -18,6 +18,7 @@
 
 import contextlib
 import hashlib
+import json
 import logging
 import os
 import shutil
@@ -146,7 +147,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._format_columns: Optional[list] = None
         self._output_all_columns: bool = False
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
-        if self.info.features is not None:
+        if self.info.features is None:  # try to load features from the arrow file metadata
+            if self._data.schema.metadata is not None and "huggingface/datasets".encode("utf-8") in self._data.schema.metadata:
+                self.info.features = DatasetInfo.from_dict(json.loads(
+                    self._data.schema.metadata["huggingface/datasets".encode("utf-8")].decode()
+                )).features
+        if self.info.features is not None:  # make sure features in self.info match the data
             if self.info.features.type != inferred_features.type:
                 raise ValueError(
                     "External features info don't match the dataset:\nGot\n{}\nwith type\n{}\n\nbut expected something like\n{}\nwith type\n{}".format(

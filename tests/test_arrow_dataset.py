@@ -353,22 +353,21 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(inverted_dset.features.type, features.type)
             self.assertDictEqual(inverted_dset.features, features)
 
-    # TODO(QL): keep features in arrow metadata
-    # def test_keep_features_after_transform_from_file(self):
-    #     features = Features(
-    #         {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
-    #     )
-    #     dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+    def test_keep_features_after_transform_from_file(self):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
 
-    #     def invert_labels(x):
-    #         return {"labels": [(1 - label) for label in x["labels"]]}
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
 
-    #     with tempfile.TemporaryDirectory() as tmp_dir:
-    #         tmp_file = os.path.join(tmp_dir, "test.arrow")
-    #         dset.map(invert_labels, cache_file_name=tmp_file)
-    #         inverted_dset = Dataset.from_file(tmp_file)
-    #         self.assertEqual(inverted_dset.features.type, features.type)
-    #         self.assertDictEqual(inverted_dset.features, features)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset.map(invert_labels, cache_file_name=tmp_file)
+            inverted_dset = Dataset.from_file(tmp_file)
+            self.assertEqual(inverted_dset.features.type, features.type)
+            self.assertDictEqual(inverted_dset.features, features)
 
     def test_select(self):
         dset = self._create_dummy_dataset()

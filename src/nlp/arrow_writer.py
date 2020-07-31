@@ -20,12 +20,14 @@ import json
 import logging
 import os
 import socket
+from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
 import pyarrow as pa
 from tqdm.auto import tqdm
 
 from .features import Features
+from .info import DatasetInfo
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
 from .utils.py_utils import map_all_sequences_to_lists
 
@@ -51,6 +53,7 @@ class ArrowWriter(object):
         writer_batch_size: Optional[int] = None,
         disable_nullable: bool = True,
         update_features: bool = False,
+        with_metadata: bool = True,
     ):
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
@@ -83,6 +86,7 @@ class ArrowWriter(object):
 
         self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
+        self.with_metadata = with_metadata
 
         self._num_examples = 0
         self._num_bytes = 0
@@ -106,11 +110,20 @@ class ArrowWriter(object):
             self._features = inferred_features
             self._schema: pa.Schema = inferred_schema
             self._type: pa.DataType = pa.struct(field for field in self._schema)
+        if self.with_metadata:
+            self._schema = self._schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features)))
         self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
 
     @property
     def schema(self):
         return self._schema if self._schema is not None else []
+
+    def _build_metadata(self, info) -> Dict[str, str]:
+        keys = ["features"]  # we can add support for more DatasetInfo keys in the future
+        info_as_dict = asdict(info)
+        return {"huggingface/datasets": json.dumps({
+            key: info_as_dict[key] for key in keys
+        })}
 
     def _write_array_on_file(self, pa_array):
         """Write a PyArrow Array"""
