@@ -369,6 +369,19 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(inverted_dset.features.type, features.type)
             self.assertDictEqual(inverted_dset.features, features)
 
+    def test_keep_features_after_transform_in_memory(self):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]]}
+
+        inverted_dset = dset.map(invert_labels, keep_in_memory=True)
+        self.assertEqual(inverted_dset.features.type, features.type)
+        self.assertDictEqual(inverted_dset.features, features)
+
     def test_select(self):
         dset = self._create_dummy_dataset()
         # select every two example

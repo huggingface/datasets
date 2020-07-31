@@ -121,9 +121,7 @@ class ArrowWriter(object):
     def _build_metadata(self, info) -> Dict[str, str]:
         keys = ["features"]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
-        return {"huggingface/datasets": json.dumps({
-            key: info_as_dict[key] for key in keys
-        })}
+        return {"huggingface/datasets": json.dumps({key: info_as_dict[key] for key in keys})}
 
     def _write_array_on_file(self, pa_array):
         """Write a PyArrow Array"""
