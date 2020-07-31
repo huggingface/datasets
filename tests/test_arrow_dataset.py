@@ -181,7 +181,7 @@ class BaseDatasetTest(TestCase):
         dset.flatten()
         self.assertListEqual(dset.column_names, ["a.b.c", "foo"])
         self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
-        self.assertDictEqual(dset.features, Features({"a.b.c": [Value("string")], "foo": Value("int64")}))
+        self.assertDictEqual(dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}))
 
     def test_map(self):
         dset = self._create_dummy_dataset()
@@ -398,6 +398,29 @@ class BaseDatasetTest(TestCase):
             self.assertGreater(len(inverted_dset.cache_files), 0)
             self.assertEqual(inverted_dset.features.type, features.type)
             self.assertDictEqual(inverted_dset.features, features)
+
+    def test_keep_features_with_new_features(self):
+        features = Features(
+            {"tokens": Sequence(Value("string")), "labels": Sequence(ClassLabel(names=["negative", "positive"]))}
+        )
+        dset = Dataset.from_dict({"tokens": [["foo"] * 5] * 10, "labels": [[1] * 5] * 10}, features=features)
+
+        def invert_labels(x):
+            return {"labels": [(1 - label) for label in x["labels"]], "labels2": x["labels"]}
+
+        expected_features = Features(
+            {
+                "tokens": Sequence(Value("string")),
+                "labels": Sequence(ClassLabel(names=["negative", "positive"])),
+                "labels2": Sequence(Value("int64")),
+            }
+        )
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            inverted_dset = dset.map(invert_labels, cache_file_name=tmp_file)
+            self.assertEqual(inverted_dset.features.type, expected_features.type)
+            self.assertDictEqual(inverted_dset.features, expected_features)
 
     def test_select(self):
         dset = self._create_dummy_dataset()
@@ -637,7 +660,9 @@ class BaseDatasetTest(TestCase):
             for col in columns:
                 self.assertIsInstance(dset[0][col], (str, list))
                 self.assertIsInstance(dset[:2][col], list)
-            self.assertDictEqual(dset.features, Features({"filename": Value("string"), "vec": [Value("float64")]}))
+            self.assertDictEqual(
+                dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
+            )
 
             # don't test if torch and tensorflow are stacked accross examples
             # we need to use the features definition to know at what depth we have to to the conversion
@@ -678,7 +703,7 @@ class BaseDatasetTest(TestCase):
                 batched=True,
             )
             self.assertDictEqual(
-                dset.features, Features({"filename": Value("string"), "nested": {"foo": [Value("float64")]}})
+                dset.features, Features({"filename": Value("string"), "nested": {"foo": Sequence(Value("float64"))}})
             )
 
             dset.set_format("tensorflow")

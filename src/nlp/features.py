@@ -460,7 +460,8 @@ def generate_from_arrow_type(pa_type: pa.DataType):
     elif isinstance(pa_type, pa.FixedSizeListType):
         return Sequence(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
     elif isinstance(pa_type, pa.ListType):
-        return [generate_from_arrow_type(pa_type.value_type)]
+        # return [generate_from_arrow_type(pa_type.value_type)]
+        return Sequence(feature=generate_from_arrow_type(pa_type.value_type))
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
