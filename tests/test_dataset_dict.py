@@ -6,6 +6,7 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 
+from nlp import Features, Sequence, Value
 from nlp.arrow_dataset import Dataset
 from nlp.dataset_dict import DatasetDict
 from nlp.features import Value
@@ -29,6 +30,17 @@ class DatasetDictTest(TestCase):
                 "test": self._create_dummy_dataset(multiple_columns=multiple_columns),
             }
         )
+
+    def test_flatten(self):
+        dset_split = Dataset.from_dict(
+            {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
+            features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
+        )
+        dset = DatasetDict({"train": dset_split, "test": dset_split})
+        dset.flatten_()
+        self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
+        self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
+        self.assertDictEqual(dset["train"].features, Features({"a.b.c": [Value("string")], "foo": Value("int64")}))
 
     def test_set_format_numpy(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)

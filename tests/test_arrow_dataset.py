@@ -230,7 +230,7 @@ class BaseDatasetTest(TestCase):
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
             features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
         )
-        dset.flatten()
+        dset.flatten_()
         self.assertListEqual(dset.column_names, ["a.b.c", "foo"])
         self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}))
@@ -655,7 +655,7 @@ class BaseDatasetTest(TestCase):
                 remove_columns=["filename"],
                 cache_file_name=tmp_file,
             )
-            dset.flatten()
+            dset.flatten_()
             dset.set_format("numpy")
             dset.export(filename=tfrecord_path, format="tfrecord")
 

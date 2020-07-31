@@ -27,7 +27,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from functools import partial
 from math import ceil, floor
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -276,20 +276,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self._data_files
 
     @property
-    def columns(self):
-        """The Arrow columns of the Apache Arrow table backing the dataset.
-        You probably don't need to access directly these and can rather use
-        :func:`nlp.Dataset.column_names` or :func:`nlp.Dataset.__getitem__`
-        to access them as python or numpy objects.
-        """
-        return self._data.columns
-
-    @property
-    def nbytes(self) -> int:
-        """Number of columns in the dataset."""
-        return self._data.nbytes
-
-    @property
     def num_columns(self) -> int:
         """Number of columns in the dataset."""
         return self._data.num_columns
@@ -305,11 +291,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self._data.column_names
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int]:
         """Shape of the dataset (number of columns, number of rows)."""
         return self._data.shape
 
-    def drop(self, columns: Union[str, List[str]]):
+    def drop_(self, columns: Union[str, List[str]]):
         """ Drop one or more columns.
 
         Args:
@@ -326,7 +312,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
         self._data = self._data.drop(columns)
 
-    def unique(self, column: str) -> List:
+    def unique(self, column: str) -> List[Any]:
         """ Return a list of the unique elements in a column.
 
         This is implemented in the low-level backend and as such, very fast.
@@ -342,7 +328,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
         return self._data.column(column).unique().to_pylist()
 
-    def dictionary_encode_column(self, column: str):
+    def dictionary_encode_column_(self, column: str):
         """ Dictionary encode a column.
             Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
             by storing a dictionary of the strings. This only affect the internal storage.
@@ -361,14 +347,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    def flatten(self, max_depth=16):
+    def flatten_(self, max_depth=16):
         """ Flatten the Table.
             Each column with a struct type is flattened into one column per struct field.
             Other columns are left unchanged.
         """
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
-                self._data = self._data.flatten()
+                self._data = self._data.flatten_()
             else:
                 break
         if self.info is not None:
