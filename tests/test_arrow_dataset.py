@@ -145,6 +145,27 @@ class BaseDatasetTest(TestCase):
         self.assertEqual(len(dset[0].columns), 2)
         self.assertEqual(dset[0]["col_2"].item(), "a")
 
+    def test_cast_(self):
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        features = dset.features
+        features["col_1"] = Value("float64")
+        dset.cast_(features)
+        self.assertEqual(dset.num_columns, 2)
+        self.assertEqual(dset.features["col_1"], Value("float64"))
+        self.assertIsInstance(dset[0]["col_1"], float)
+
+    def test_remove_column_(self):
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        dset.remove_column_(column_name="col_1")
+        self.assertEqual(dset.num_columns, 1)
+        self.assertListEqual(list(dset.column_names), ["col_2"])
+
+    def test_rename_column_(self):
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
+        self.assertEqual(dset.num_columns, 2)
+        self.assertListEqual(list(dset.column_names), ["new_name", "col_2"])
+
     def test_concatenate(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
         info1 = DatasetInfo(description="Dataset1")
