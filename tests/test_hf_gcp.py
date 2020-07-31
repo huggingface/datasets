@@ -22,6 +22,7 @@ DATASETS_ON_HF_GCP = [
     {"dataset": "eli5", "config_name": "LFQA_reddit"},
     {"dataset": "wiki40b", "config_name": "en"},
     {"dataset": "wiki_dpr", "config_name": "psgs_w100.nq.compressed"},
+    {"dataset": "wiki_dpr", "config_name": "psgs_w100.nq.no_index"},
     {"dataset": "wiki_dpr", "config_name": "psgs_w100.no_embeddings.compressed"},
     {"dataset": "natural_questions", "config_name": "default"},
 ]
