@@ -277,7 +277,7 @@ class Translation:
     _type: str = field(default="Translation", init=False, repr=False)
 
     def __call__(self):
-        return pa.struct({lang: pa.string() for lang in self.languages})
+        return pa.struct({lang: pa.string() for lang in sorted(self.languages)})
 
 
 @dataclass

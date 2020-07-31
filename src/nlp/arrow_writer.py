@@ -50,12 +50,13 @@ class ArrowWriter(object):
         stream: Optional[pa.NativeFile] = None,
         writer_batch_size: Optional[int] = None,
         disable_nullable: bool = True,
+        update_features: bool = False,
     ):
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
         if features is not None:
             self._features = features
-            self._schema = pa.schema(features.type) if features is not None else None
+            self._schema = pa.schema(features.type)
             self._type: pa.DataType = pa.struct(field for field in self._schema)
         elif data_type is not None:
             self._type: pa.DataType = data_type
@@ -81,22 +82,31 @@ class ArrowWriter(object):
             self.stream = stream
 
         self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
+        self.update_features = update_features
 
         self._num_examples = 0
         self._num_bytes = 0
         self.current_rows = []
-
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
-        if self._schema is not None:
-            self._build_writer(schema=self._schema)
 
-    def _build_writer(self, schema: pa.Schema):
-        self._schema: pa.Schema = schema
-        if self._type is None:
+    def _build_writer(self, inferred_schema: pa.Schema):
+        inferred_features = Features.from_arrow_schema(inferred_schema)
+        if self._features is not None:
+            if self.update_features:
+                fields = {field.name: field for field in self._features.type}
+                for inferred_field in inferred_features.type:
+                    name = inferred_field.name
+                    if name in fields:
+                        if inferred_field == fields[name]:
+                            inferred_features[name] = self._features[name]
+                self._features = inferred_features
+                self._schema: pa.Schema = inferred_schema
+                self._type: pa.DataType = pa.struct(field for field in self._schema)
+        else:
+            self._features = inferred_features
+            self._schema: pa.Schema = inferred_schema
             self._type: pa.DataType = pa.struct(field for field in self._schema)
-        if self._features is None:
-            self._features: Features = Features.from_arrow_schema(self._schema)
-        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, schema)
+        self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
 
     @property
     def schema(self):
@@ -108,21 +118,22 @@ class ArrowWriter(object):
         self._num_bytes += pa_array.nbytes
         if self.pa_writer is None:
             pa_table = pa.Table.from_batches([pa_batch])
-            self._build_writer(schema=pa_table.schema)
+            self._build_writer(inferred_schema=pa_table.schema)
         self.pa_writer.write_batch(pa_batch)
 
     def write_on_file(self):
         """ Write stored examples
         """
+        type = None if self.update_features else self._type
         if self.current_rows:
-            pa_array = pa.array(self.current_rows, type=self._type)
-            first_example = pa.array(self.current_rows[0:1], type=self._type)[0]
+            pa_array = pa.array(self.current_rows, type=type)
+            first_example = pa.array(self.current_rows[0:1], type=type)[0]
             # Sanity check
             if pa_array[0] != first_example:
                 # There was an Overflow in StructArray. Let's reduce the batch_size
                 while pa_array[0] != first_example:
                     new_batch_size = self.writer_batch_size // 2
-                    pa_array = pa.array(self.current_rows[:new_batch_size], type=self._type)
+                    pa_array = pa.array(self.current_rows[:new_batch_size], type=type)
                 logger.warning(
                     "Batch size is too big (>2GB). Reducing it from {} to {}".format(
                         self.writer_batch_size, new_batch_size
@@ -133,7 +144,7 @@ class ArrowWriter(object):
                 n_batches += int(len(self.current_rows) % new_batch_size != 0)
                 for i in range(n_batches):
                     pa_array = pa.array(
-                        self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=self._type,
+                        self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=type,
                     )
                     self._write_array_on_file(pa_array)
             else:
@@ -165,7 +176,7 @@ class ArrowWriter(object):
         """
         batch_examples = map_all_sequences_to_lists(batch_examples)
         if self.pa_writer is None:
-            self._build_writer(schema=pa.Table.from_pydict(batch_examples).schema)
+            self._build_writer(inferred_schema=pa.Table.from_pydict(batch_examples).schema)
         pa_table: pa.Table = pa.Table.from_pydict(batch_examples, schema=self._schema)
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
@@ -184,7 +195,7 @@ class ArrowWriter(object):
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
-            self._build_writer(schema=pa_table.schema)
+            self._build_writer(inferred_schema=pa_table.schema)
         batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
         self._num_bytes += sum(batch.nbytes for batch in batches)
         self._num_examples += pa_table.num_rows
