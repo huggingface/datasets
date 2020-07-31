@@ -861,7 +861,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
             if tmp_file is not None:
-                os.remove(tmp_file.name)
+                if os.path.exists(tmp_file.name):
+                    os.remove(tmp_file.name)
             raise
 
         if tmp_file is not None:
@@ -1040,7 +1041,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
             if tmp_file is not None:
-                os.remove(tmp_file.name)
+                if os.path.exists(tmp_file.name):
+                    os.remove(tmp_file.name)
             raise
 
         if tmp_file is not None:
