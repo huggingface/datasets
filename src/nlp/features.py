@@ -378,7 +378,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     """ Convert our Feature nested object in an Apache Arrow type """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return pa.struct({key: get_nested_type(schema[key]) for key in sorted(schema)})  # sort to make the type deterministic
+        return pa.struct(
+            {key: get_nested_type(schema[key]) for key in sorted(schema)}
+        )  # sort to make the type deterministic
     elif isinstance(schema, (list, tuple)):
         assert len(schema) == 1, "We defining list feature, you should just provide one example of the inner type"
         inner_type = get_nested_type(schema[0])

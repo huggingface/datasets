@@ -839,13 +839,23 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if keep_in_memory or cache_file_name is None:
                 buf_writer = pa.BufferOutputStream()
                 tmp_file = None
-                writer = ArrowWriter(features=features, stream=buf_writer, writer_batch_size=writer_batch_size, update_features=update_features)
+                writer = ArrowWriter(
+                    features=features,
+                    stream=buf_writer,
+                    writer_batch_size=writer_batch_size,
+                    update_features=update_features,
+                )
             else:
                 buf_writer = None
                 if verbose:
                     logger.info("Caching processed dataset at %s", cache_file_name)
                 tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
-                writer = ArrowWriter(features=features, path=tmp_file.name, writer_batch_size=writer_batch_size, update_features=update_features)
+                writer = ArrowWriter(
+                    features=features,
+                    path=tmp_file.name,
+                    writer_batch_size=writer_batch_size,
+                    update_features=update_features,
+                )
 
         try:
             # Loop over single examples or batches and write to buffer/file if examples are to be updated

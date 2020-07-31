@@ -143,9 +143,7 @@ class ArrowWriter(object):
                 n_batches = len(self.current_rows) // new_batch_size
                 n_batches += int(len(self.current_rows) % new_batch_size != 0)
                 for i in range(n_batches):
-                    pa_array = pa.array(
-                        self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=type,
-                    )
+                    pa_array = pa.array(self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=type,)
                     self._write_array_on_file(pa_array)
             else:
                 # All good
