@@ -36,7 +36,7 @@ class MockDownloadManager(object):
         self.is_local = is_local
         self.config = config
 
-        # TODO(PVP, QUENTIN) might need to make this more general
+        # TODO(PVP, QL) might need to make this more general
         self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
         # to be downloaded
         self._dummy_file = None

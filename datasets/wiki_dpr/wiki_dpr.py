@@ -29,44 +29,55 @@ _DATA_URL = "https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz
 
 _VECTORS_URL = "https://dl.fbaipublicfiles.com/dpr/data/wiki_encoded/single/nq/wiki_passages_{i}"
 
+_INDEX_URL = "https://storage.googleapis.com/huggingface-nlp/datasets/wiki_dpr"
+
 
 class WikiDprConfig(nlp.BuilderConfig):
     """BuilderConfig for WikiDprConfig."""
 
-    def __init__(self, with_embeddings=True, with_index=False, index_train_size=262144, dummy=False, **kwargs):
+    def __init__(
+        self,
+        with_embeddings=True,
+        with_index=True,
+        wiki_split="psgs_w100",
+        embeddings_name="nq",
+        index_name="compressed",
+        index_train_size=262144,
+        dummy=False,
+        **kwargs,
+    ):
         """BuilderConfig for WikiSnippets.
     Args:
         with_embeddings (`bool`, defaults to `True`): Load the 768-dimensional embeddings from DPR trained on NQ.
         with_index (`bool`, defaults to `True`): Load the faiss index trained on the embeddings.
       **kwargs: keyword arguments forwarded to super.
     """
-        super(WikiDprConfig, self).__init__(**kwargs)
         self.with_embeddings = with_embeddings
         self.with_index = with_index
+        self.wiki_split = wiki_split
+        self.embeddings_name = embeddings_name if with_embeddings else "no_embeddings"
+        self.index_name = index_name if with_index else "no_index"
         self.index_train_size = index_train_size
         self.dummy = dummy
+        name = [self.wiki_split, self.embeddings_name, self.index_name]
+        if self.dummy:
+            name = ["dummy"] + name
+            assert (
+                self.index_name != "compressed" or not self.with_index
+            ), "Please use `index_name='exact' for dummy wiki_dpr`"
+        kwargs["name"] = ".".join(name)
+        super(WikiDprConfig, self).__init__(**kwargs)
+
+        if self.index_name == "exact":
+            self.index_file = "psgs_w100.nq.IndexFlatIP-{split}.faiss"
+        else:
+            self.index_file = "psgs_w100.nq.IVFPQ4096_HNSW32_PQ64-IP-{split}.faiss"
+        if self.dummy:
+            self.index_file = "dummy." + self.index_file
 
 
 class WikiDpr(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = WikiDprConfig
-    BUILDER_CONFIGS = [
-        WikiDprConfig(name="psgs_w100_with_nq_embeddings", version=nlp.Version("1.0.0"), with_embeddings=True),
-        WikiDprConfig(name="psgs_w100_no_embeddings", version=nlp.Version("1.0.0"), with_embeddings=False),
-        WikiDprConfig(
-            name="dummy_psgs_w100_with_nq_embeddings",
-            version=nlp.Version("1.0.0"),
-            with_embeddings=True,
-            index_train_size=None,
-            dummy=True,
-        ),
-        WikiDprConfig(
-            name="dummy_psgs_w100_no_embeddings",
-            version=nlp.Version("1.0.0"),
-            with_embeddings=False,
-            index_train_size=None,
-            dummy=True,
-        ),
-    ]
 
     def _info(self):
         return nlp.DatasetInfo(
@@ -129,14 +140,21 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
                     "title": title,
                 }
 
-    def _post_processing_resources(self):
+    def _post_processing_resources(self, split):
         if self.config.with_index:
-            if self.config.dummy:
-                return {"embeddings_index": "dummy_psgs_w100_with_nq_embeddings_IndexFlatIP.faiss"}
-            else:
-                return {"embeddings_index": "psgs_w100_with_nq_embeddings_IVFPQ4096_HNSW32,PQ64-IP.faiss"}
+            return {"embeddings_index": self.config.index_file.format(split=split)}
         else:
             return {}
+
+    def _download_post_processing_resources(self, split, resource_name, dl_manager):
+        if resource_name == "embeddings_index":
+            try:
+                downloaded_resources = dl_manager.download_and_extract(
+                    {"embeddings_index": os.path.join(_INDEX_URL, self.config.index_file.format(split=split))}
+                )
+                return downloaded_resources["embeddings_index"]
+            except ConnectionError:  # index doesn't exist
+                pass
 
     def _post_process(self, dataset, resources_paths):
         if self.config.with_index:
@@ -144,16 +162,15 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
             if os.path.exists(index_file):
                 dataset.load_faiss_index("embeddings", index_file)
             else:
+                if "embeddings" not in dataset.column_names:
+                    raise ValueError("Couldn't build the index because there are no embeddings.")
                 import faiss
 
                 train_size = self.config.index_train_size
                 logging.info("Building wiki_dpr faiss index")
-                if self.config.dummy:
+                if self.config.index_name == "exact":
                     dataset.add_faiss_index(
-                        "embeddings",
-                        string_factory="Flat",
-                        metric_type=faiss.METRIC_INNER_PRODUCT,
-                        train_size=train_size,
+                        "embeddings", string_factory="Flat", metric_type=faiss.METRIC_INNER_PRODUCT,
                     )
                 else:
                     d = 768

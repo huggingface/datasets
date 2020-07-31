@@ -156,6 +156,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             self.info.features = inferred_features
         assert self.features is not None, "Features can't be None in a Dataset object"
+        assert self.features.type == inferred_features.type, "Features should match inferred type"
 
     @classmethod
     def from_file(
@@ -814,7 +815,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if os.path.exists(cache_file_name) and load_from_cache_file:
                 if verbose:
                     logger.info("Loading cached processed dataset at %s", cache_file_name)
-                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+                info = self.info.copy()
+                info.features = features
+                return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
         if update_data:
