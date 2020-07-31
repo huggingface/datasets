@@ -20,6 +20,8 @@ import contextlib
 import hashlib
 import logging
 import os
+import shutil
+import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from functools import partial
@@ -156,6 +158,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             self.info.features = inferred_features
         assert self.features is not None, "Features can't be None in a Dataset object"
+        assert self.features.type == inferred_features.type, "Features should match inferred type"
 
     @classmethod
     def from_file(
@@ -719,6 +722,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
+        assert (
+            not keep_in_memory or cache_file_name is None
+        ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
@@ -814,43 +820,58 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if os.path.exists(cache_file_name) and load_from_cache_file:
                 if verbose:
                     logger.info("Loading cached processed dataset at %s", cache_file_name)
-                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+                info = self.info.copy()
+                info.features = features
+                return Dataset.from_file(cache_file_name, info=info, split=self.split)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
         if update_data:
-            if keep_in_memory or not self._data_files:
+            if keep_in_memory or cache_file_name is None:
                 buf_writer = pa.BufferOutputStream()
+                tmp_file = None
                 writer = ArrowWriter(features=features, stream=buf_writer, writer_batch_size=writer_batch_size)
             else:
                 buf_writer = None
                 if verbose:
                     logger.info("Caching processed dataset at %s", cache_file_name)
-                writer = ArrowWriter(features=features, path=cache_file_name, writer_batch_size=writer_batch_size)
+                tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
+                writer = ArrowWriter(features=features, path=tmp_file.name, writer_batch_size=writer_batch_size)
 
-        # Loop over single examples or batches and write to buffer/file if examples are to be updated
-        if not batched:
-            for i, example in enumerate(tqdm(self, disable=not verbose)):
-                example = apply_function_on_filtered_inputs(example, i)
-                if update_data:
-                    writer.write(example)
-        else:
-            for i in tqdm(range(0, len(self), batch_size), disable=not verbose):
-                batch = self[i : i + batch_size]
-                indices = list(range(*(slice(i, i + batch_size).indices(self._data.num_rows))))  # Something simpler?
-                try:
-                    batch = apply_function_on_filtered_inputs(
-                        batch, indices, check_same_num_examples=len(self.list_indexes()) > 0
-                    )
-                except NumExamplesMismatch:
-                    raise DatasetTransformationNotAllowedError(
-                        "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
-                    )
-                if update_data:
-                    writer.write_batch(batch)
+        try:
+            # Loop over single examples or batches and write to buffer/file if examples are to be updated
+            if not batched:
+                for i, example in enumerate(tqdm(self, disable=not verbose)):
+                    example = apply_function_on_filtered_inputs(example, i)
+                    if update_data:
+                        writer.write(example)
+            else:
+                for i in tqdm(range(0, len(self), batch_size), disable=not verbose):
+                    batch = self[i : i + batch_size]
+                    indices = list(
+                        range(*(slice(i, i + batch_size).indices(self._data.num_rows)))
+                    )  # Something simpler?
+                    try:
+                        batch = apply_function_on_filtered_inputs(
+                            batch, indices, check_same_num_examples=len(self.list_indexes()) > 0
+                        )
+                    except NumExamplesMismatch:
+                        raise DatasetTransformationNotAllowedError(
+                            "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
+                        )
+                    if update_data:
+                        writer.write_batch(batch)
+            if update_data:
+                writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
+        except (Exception, KeyboardInterrupt):
+            if tmp_file is not None:
+                if os.path.exists(tmp_file.name):
+                    os.remove(tmp_file.name)
+            raise
+
+        if tmp_file is not None:
+            shutil.move(tmp_file.name, cache_file_name)
 
         if update_data:
-            writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
-
             # Create new Dataset from buffer or file
             info = self.info.copy()
             info.features = writer._features
@@ -970,6 +991,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     Higher values may make reading faster but will also consume more temporary memory and make the progress bar less responsive.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
+        assert (
+            not keep_in_memory or cache_file_name is None
+        ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
@@ -996,26 +1020,36 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
-        if keep_in_memory or not self._data_files:
+        if keep_in_memory or cache_file_name is None:
             buf_writer = pa.BufferOutputStream()
+            tmp_file = None
             writer = ArrowWriter(features=self.features, stream=buf_writer, writer_batch_size=writer_batch_size)
         else:
             buf_writer = None
             if verbose:
                 logger.info("Caching processed dataset at %s", cache_file_name)
-            writer = ArrowWriter(features=self.features, path=cache_file_name, writer_batch_size=writer_batch_size)
+            tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
+            writer = ArrowWriter(features=self.features, path=tmp_file.name, writer_batch_size=writer_batch_size)
 
-        # Loop over batches and write to buffer/file if examples are to be updated
-        for i in tqdm(range(0, len(indices), reader_batch_size), disable=not verbose):
-            batch = self._getitem(
-                key=indices[i : min(len(indices), i + reader_batch_size)],
-                format_type=None,
-                format_columns=None,
-                format_kwargs=None,
-            )
-            writer.write_batch(batch)
+        try:
+            # Loop over batches and write to buffer/file if examples are to be updated
+            for i in tqdm(range(0, len(indices), reader_batch_size), disable=not verbose):
+                batch = self._getitem(
+                    key=indices[i : min(len(indices), i + reader_batch_size)],
+                    format_type=None,
+                    format_columns=None,
+                    format_kwargs=None,
+                )
+                writer.write_batch(batch)
+            writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
+        except (Exception, KeyboardInterrupt):
+            if tmp_file is not None:
+                if os.path.exists(tmp_file.name):
+                    os.remove(tmp_file.name)
+            raise
 
-        writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
+        if tmp_file is not None:
+            shutil.move(tmp_file.name, cache_file_name)
 
         # Create new Dataset from buffer or file
         if buf_writer is None:

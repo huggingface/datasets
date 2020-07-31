@@ -33,12 +33,19 @@ from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
-from .info import DATASET_INFO_FILENAME, DATASET_INFOS_DICT_FILE_NAME, LICENSE_FILENAME, DatasetInfo, DatasetInfosDict
+from .info import (
+    DATASET_INFO_FILENAME,
+    DATASET_INFOS_DICT_FILE_NAME,
+    LICENSE_FILENAME,
+    DatasetInfo,
+    DatasetInfosDict,
+    PostProcessedInfo,
+)
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
-from .splits import Split, SplitDict
+from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig, is_remote_url
-from .utils.info_utils import verify_checksums, verify_splits
+from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 
 
 logger = logging.getLogger(__name__)
@@ -349,7 +356,6 @@ class DatasetBuilder:
         download_config: Optional[DownloadConfig] = None,
         download_mode: Optional[GenerateMode] = None,
         ignore_verifications: bool = False,
-        save_infos: bool = False,
         try_from_hf_gcs: bool = True,
         dl_manager: Optional[DownloadManager] = None,
         **download_and_prepare_kwargs,
@@ -365,10 +371,22 @@ class DatasetBuilder:
             dl_manager (Optional ``nlp.DownloadManager``): specific Download Manger to use
         """
         download_mode = GenerateMode(download_mode or GenerateMode.REUSE_DATASET_IF_EXISTS)
+        verify_infos = not ignore_verifications
+
+        if dl_manager is None:
+            if download_config is None:
+                download_config = DownloadConfig()
+                download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
+                download_config.force_download = download_mode == FORCE_REDOWNLOAD
+
+            dl_manager = DownloadManager(
+                dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
+            )
 
         data_exists = os.path.exists(self._cache_dir)
         if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
             logger.info("Reusing dataset %s (%s)", self.name, self._cache_dir)
+            self.download_post_processing_resources(dl_manager)
             return
 
         # Currently it's not possible to overwrite the data because it would
@@ -386,10 +404,11 @@ class DatasetBuilder:
             os.makedirs(self._cache_dir_root, exist_ok=True)
             if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
                 raise IOError(
-                    "Not enough disk space. Needed: {} (download: {}, generated: {})".format(
+                    "Not enough disk space. Needed: {} (download: {}, generated: {}, post-processed: {})".format(
                         utils.size_str(self.info.size_in_bytes or 0),
                         utils.size_str(self.info.download_size or 0),
                         utils.size_str(self.info.dataset_size or 0),
+                        utils.size_str(self.info.post_processing_size or 0),
                     )
                 )
 
@@ -410,64 +429,14 @@ class DatasetBuilder:
                     if os.path.exists(tmp_dir):
                         shutil.rmtree(tmp_dir)
 
-        # Try to download the already prepared dataset files
-        if try_from_hf_gcs:
-            try:
-                # Create a tmp dir and rename to self._cache_dir on successful exit.
-                with incomplete_dir(self._cache_dir) as tmp_data_dir:
-                    # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
-                    # it to every sub function.
-                    with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
-                        relative_data_dir = self._relative_data_dir(with_version=True)
-                        reader = ArrowReader(self._cache_dir, self.info)
-                        # use reader instructions to download the right files
-                        reader.download_from_hf_gcs(self._cache_dir, relative_data_dir)
-                        downloaded_info = DatasetInfo.from_directory(self._cache_dir)
-                        self.info.update(downloaded_info)
-                        # download post processing resources
-                        remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
-                        for resource_file_name in self._post_processing_resources().values():
-                            if "/" in resource_file_name:
-                                raise ValueError(
-                                    "Resources shouldn't be in a sub-directory: {}".format(resource_file_name)
-                                )
-                            try:
-                                resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
-                                shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
-                            except ConnectionError:
-                                logger.info(
-                                    "Couldn't download resourse file {} from Hf google storage.".format(
-                                        resource_file_name
-                                    )
-                                )
-
-                logger.info("Dataset downloaded from Hf google storage.")
-                print(
-                    f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
-                    f"Subsequent calls will reuse this data."
-                )
-                return
-            except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
-                logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
-
         # Print is intentional: we want this to always go to stdout so user has
         # information needed to cancel download/preparation if needed.
         # This comes right before the progress bar.
         print(
             f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
-            f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
+            f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, post-processed: {utils.size_str(self.info.post_processing_size)}"
             f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
         )
-
-        if dl_manager is None:
-            if download_config is None:
-                download_config = DownloadConfig()
-                download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
-                download_config.force_download = download_mode == FORCE_REDOWNLOAD
-
-            dl_manager = DownloadManager(
-                dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
-            )
 
         if self.manual_download_instructions is not None:
             assert (
@@ -481,10 +450,18 @@ class DatasetBuilder:
             # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
             # it to every sub function.
             with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
-                verify_infos = not save_infos and not ignore_verifications
-                self._download_and_prepare(
-                    dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
-                )
+                # Try to download the already prepared dataset files
+                downloaded_from_gcs = False
+                if try_from_hf_gcs:
+                    try:
+                        self._download_prepared_from_hf_gcs()
+                        downloaded_from_gcs = True
+                    except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
+                        logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
+                if not downloaded_from_gcs:
+                    self._download_and_prepare(
+                        dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
+                    )
                 # Sync info
                 self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
                 self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
@@ -492,14 +469,35 @@ class DatasetBuilder:
                 # Save info
                 self._save_info()
 
-        # Save to datasetinfos
-        if save_infos:
-            DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
+        # Download post processing resources
+        self.download_post_processing_resources(dl_manager)
 
         print(
             f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
             f"Subsequent calls will reuse this data."
         )
+
+    def _download_prepared_from_hf_gcs(self):
+        relative_data_dir = self._relative_data_dir(with_version=True, with_hash=False)
+        reader = ArrowReader(self._cache_dir, self.info)
+        # use reader instructions to download the right files
+        reader.download_from_hf_gcs(self._cache_dir, relative_data_dir)
+        downloaded_info = DatasetInfo.from_directory(self._cache_dir)
+        self.info.update(downloaded_info)
+        # download post processing resources
+        remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
+        for split in self.info.splits:
+            for resource_file_name in self._post_processing_resources(split).values():
+                if "/" in resource_file_name:
+                    raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
+                try:
+                    resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
+                    shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
+                except ConnectionError:
+                    logger.info(
+                        "Couldn't download resourse file {} from Hf google storage.".format(resource_file_name)
+                    )
+        logger.info("Dataset downloaded from Hf google storage.")
 
     def _download_and_prepare(self, dl_manager, verify_infos, **prepare_split_kwargs):
         """Downloads and prepares dataset for reading.
@@ -520,7 +518,9 @@ class DatasetBuilder:
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
         # Checksums verification
         if verify_infos:
-            verify_checksums(self.info.download_checksums, dl_manager.get_recorded_sizes_checksums())
+            verify_checksums(
+                self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
+            )
         for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(
@@ -544,18 +544,38 @@ class DatasetBuilder:
         self.info.splits = split_dict
         self.info.download_size = dl_manager.downloaded_size
 
+    def download_post_processing_resources(self, dl_manager):
+        for split in self.info.splits:
+            for resource_name, resource_file_name in self._post_processing_resources(split).items():
+                if "/" in resource_file_name:
+                    raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
+                resource_path = os.path.join(self._cache_dir, resource_file_name)
+                if not os.path.exists(resource_path):
+                    downloaded_resource_path = self._download_post_processing_resources(
+                        split, resource_name, dl_manager
+                    )
+                    if downloaded_resource_path:
+                        logger.info(
+                            "Downloaded post-processing resource {} as {}".format(resource_name, resource_file_name)
+                        )
+                        shutil.move(downloaded_resource_path, resource_path)
+
     def _save_info(self):
         self.info.write_to_directory(self._cache_dir)
+
+    def _save_infos(self):
+        DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
         del prepare_split_kwargs
         return {}
 
-    def as_dataset(self, split: Optional[Split] = None, run_post_process=True) -> Union[Dataset, DatasetDict]:
+    def as_dataset(
+        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False
+    ) -> Union[Dataset, DatasetDict]:
         """ Return a Dataset for the specified split.
         """
-        logger.info("Constructing Dataset for split %s, from %s", split, self._cache_dir)
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
                 (
@@ -566,34 +586,80 @@ class DatasetBuilder:
                 % (self.name, self._cache_dir_root)
             )
 
+        logger.info(
+            "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
+        )
+
         # By default, return all splits
         if split is None:
             split = {s: s for s in self.info.splits}
 
         # Create a dataset for each of the given splits
         datasets = utils.map_nested(
-            partial(self._build_single_dataset, run_post_process=run_post_process), split, map_tuple=True
+            partial(
+                self._build_single_dataset,
+                run_post_process=run_post_process,
+                ignore_verifications=ignore_verifications,
+            ),
+            split,
+            map_tuple=True,
         )
         if isinstance(datasets, dict):
             datasets = DatasetDict(datasets)
         return datasets
 
-    def _build_single_dataset(self, split, run_post_process):
+    def _build_single_dataset(self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool):
         """as_dataset for a single split."""
+        verify_infos = not ignore_verifications
         if isinstance(split, str):
             split = Split(split)
 
         # Build base dataset
         ds = self._as_dataset(split=split,)
         if run_post_process:
-            for resource_file_name in self._post_processing_resources().values():
+            for resource_file_name in self._post_processing_resources(split).values():
                 if "/" in resource_file_name:
                     raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
             resources_paths = {
                 resource_name: os.path.join(self._cache_dir, resource_file_name)
-                for resource_name, resource_file_name in self._post_processing_resources().items()
+                for resource_name, resource_file_name in self._post_processing_resources(split).items()
             }
             ds = self._post_process(ds, resources_paths)
+            if self.info.post_processed is not None and self.info.post_processed.features is not None:
+                if self.info.post_processed.features.type != ds.features.type:
+                    raise ValueError(
+                        "Post-processed features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
+                            self.info.post_processed.features, ds.features
+                        )
+                    )
+                else:
+                    ds.info.features = self.info.post_processed.features
+            recorded_checksums = {}
+            for resource_name, resource_path in resources_paths.items():
+                size_checksum = get_size_checksum_dict(resource_path)
+                recorded_checksums[resource_name] = size_checksum
+            if verify_infos:
+                if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
+                    expected_checksums = None
+                else:
+                    expected_checksums = self.info.post_processed.resources_checksums.get(split)
+                verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
+            if self.info.post_processed is None:
+                self.info.post_processed = PostProcessedInfo()
+            if self.info.post_processed.resources_checksums is None:
+                self.info.post_processed.resources_checksums = {}
+            self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
+            self.info.post_processing_size = sum(
+                checksums_dict["num_bytes"]
+                for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
+                for checksums_dict in split_checksums_dicts.values()
+            )
+            if self.info.dataset_size is not None and self.info.download_size is not None:
+                self.info.size_in_bytes = (
+                    self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+                )
+            self._save_info()
+
         return ds
 
     def _as_dataset(self, split: Split = Split.TRAIN) -> Dataset:
@@ -615,16 +681,21 @@ class DatasetBuilder:
         )
         return Dataset(**dataset_kwargs)
 
-    def _post_process(self, dataset, resources_paths):
+    def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Dataset:
         """Run dataset transforms or add indexes"""
         return dataset
 
-    def _post_processing_resources(self):
+    def _post_processing_resources(self, split: str) -> Dict[str, str]:
         """Mapping resource_name -> resource_file_name"""
         return {}
 
+    def _download_post_processing_resources(
+        self, split: str, resource_name: str, dl_manager: DownloadManager
+    ) -> Optional[str]:
+        """Download the resource using the download manager and return the downloaded path"""
+
     @abc.abstractmethod
-    def _split_generators(self, dl_manager):
+    def _split_generators(self, dl_manager: DownloadManager):
         """Specify feature dictionary generators and dataset splits.
 
         This function returns a list of `SplitGenerator`s defining how to generate
@@ -670,7 +741,7 @@ class DatasetBuilder:
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _prepare_split(self, split_generator, **kwargs):
+    def _prepare_split(self, split_generator: SplitGenerator, **kwargs):
         """Generate the examples and record them on disk.
 
         Args:

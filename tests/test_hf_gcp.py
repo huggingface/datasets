@@ -21,38 +21,33 @@ DATASETS_ON_HF_GCP = [
     {"dataset": "snli", "config_name": "plain_text"},
     {"dataset": "eli5", "config_name": "LFQA_reddit"},
     {"dataset": "wiki40b", "config_name": "en"},
-    {"dataset": "wiki_dpr", "config_name": "psgs_w100_with_nq_embeddings"},
-    {"dataset": "wiki_dpr", "config_name": "psgs_w100_no_embeddings"},
-    {"dataset": "wiki_dpr", "config_name": "dummy_psgs_w100_with_nq_embeddings"},
-    {"dataset": "wiki_dpr", "config_name": "dummy_psgs_w100_no_embeddings"},
+    {"dataset": "wiki_dpr", "config_name": "psgs_w100.nq.compressed"},
+    {"dataset": "wiki_dpr", "config_name": "psgs_w100.nq.no_index"},
+    {"dataset": "wiki_dpr", "config_name": "psgs_w100.no_embeddings.compressed"},
     {"dataset": "natural_questions", "config_name": "default"},
 ]
 
 
-def list_datasets_on_hf_gcp_parameters():
-    return [
-        {
-            "testcase_name": d["dataset"] + "/" + d["config_name"],
-            "dataset": d["dataset"],
-            "config_name": d["config_name"],
-        }
-        for d in DATASETS_ON_HF_GCP
-    ]
+def list_datasets_on_hf_gcp_parameters(with_config=True):
+    if with_config:
+        return [
+            {
+                "testcase_name": d["dataset"] + "/" + d["config_name"],
+                "dataset": d["dataset"],
+                "config_name": d["config_name"],
+            }
+            for d in DATASETS_ON_HF_GCP
+        ]
+    else:
+        return [
+            {"testcase_name": dataset, "dataset": dataset} for dataset in set(d["dataset"] for d in DATASETS_ON_HF_GCP)
+        ]
 
 
-@parameterized.named_parameters(list_datasets_on_hf_gcp_parameters())
+@parameterized.named_parameters(list_datasets_on_hf_gcp_parameters(with_config=True))
 class TestDatasetOnHfGcp(TestCase):
     dataset = None
     config_name = None
-
-    def test_script_synced_with_s3(self, dataset, config_name):
-
-        with TemporaryDirectory() as tmp_dir:
-            module_path, hash = prepare_module(dataset, dataset=True, cache_dir=tmp_dir)
-            local_module_path, local_hash = prepare_module(
-                os.path.join("datasets", dataset), dataset=True, cache_dir=tmp_dir, local_files_only=True
-            )
-            self.assertEqual(hash, local_hash)
 
     def test_dataset_info_available(self, dataset, config_name):
 
@@ -68,7 +63,7 @@ class TestDatasetOnHfGcp(TestCase):
             )
 
             dataset_info_url = os.path.join(
-                HF_GCP_BASE_URL, builder_instance._relative_data_dir(), DATASET_INFO_FILENAME
+                HF_GCP_BASE_URL, builder_instance._relative_data_dir(with_hash=False), DATASET_INFO_FILENAME
             )
             datset_info_path = cached_path(dataset_info_url, cache_dir=tmp_dir)
             self.assertTrue(os.path.exists(datset_info_path))

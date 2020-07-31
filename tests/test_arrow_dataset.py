@@ -196,6 +196,37 @@ class BaseDatasetTest(TestCase):
                 Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
             )
 
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            def func(x, i):
+                if i == 4:
+                    raise KeyboardInterrupt()
+                return {"name": x["filename"][:-2], "id": i}
+
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            self.assertRaises(
+                KeyboardInterrupt,
+                dset.map,
+                function=func,
+                with_indices=True,
+                cache_file_name=tmp_file,
+                writer_batch_size=2,
+            )
+            self.assertFalse(os.path.exists(tmp_file))
+            dset_test_with_indices = dset.map(
+                lambda x, i: {"name": x["filename"][:-2], "id": i},
+                with_indices=True,
+                cache_file_name=tmp_file,
+                writer_batch_size=2,
+            )
+            self.assertTrue(os.path.exists(tmp_file))
+            self.assertEqual(len(dset_test_with_indices), 30)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertDictEqual(
+                dset_test_with_indices.features,
+                Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
+            )
+
     def test_new_features(self):
         dset = self._create_dummy_dataset()
 
@@ -289,6 +320,29 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_select_even), 15)
             for row in dset_select_even:
                 self.assertEqual(int(row["filename"][-1]) % 2, 0)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertDictEqual(dset_select_even.features, Features({"filename": Value("string")}))
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            bad_indices = list(range(5))
+            bad_indices[3] = "foo"
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            self.assertRaises(
+                Exception,
+                dset.select,
+                indices=bad_indices,
+                cache_file_name=tmp_file,
+                writer_batch_size=2,
+                reader_batch_size=2,
+            )
+            self.assertFalse(os.path.exists(tmp_file))
+            dset_select_five = dset.select(
+                list(range(5)), cache_file_name=tmp_file, writer_batch_size=2, reader_batch_size=2
+            )
+            self.assertTrue(os.path.exists(tmp_file))
+            self.assertEqual(len(dset_select_five), 5)
+            for i, row in enumerate(dset_select_five):
+                self.assertEqual(int(row["filename"][-1]), i)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_select_even.features, Features({"filename": Value("string")}))
 

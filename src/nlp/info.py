@@ -30,6 +30,7 @@ processed the dataset as well:
 """
 
 import copy
+import dataclasses
 import json
 import logging
 import os
@@ -72,6 +73,22 @@ class NonMatchingCachedSizesError(Exception):
 
 
 @dataclass
+class PostProcessedInfo:
+    features: Optional[Features] = None
+    resources_checksums: Optional[dict] = None
+
+    def __post_init__(self):
+        # Convert back to the correct classes when we reload from dict
+        if self.features is not None and not isinstance(self.features, Features):
+            self.features = Features.from_dict(self.features)
+
+    @classmethod
+    def from_dict(cls, post_processed_info_dict: dict) -> "PostProcessedInfo":
+        field_names = set(f.name for f in dataclasses.fields(cls))
+        return cls(**{k: v for k, v in post_processed_info_dict.items() if k in field_names})
+
+
+@dataclass
 class DatasetInfo:
     """Information about a dataset.
 
@@ -87,6 +104,7 @@ class DatasetInfo:
     homepage: str = field(default_factory=str)
     license: str = field(default_factory=str)
     features: Optional[Features] = None
+    post_processed: Optional[PostProcessedInfo] = None
     supervised_keys: Optional[SupervisedKeysData] = None
 
     # Set later by the builder
@@ -97,6 +115,7 @@ class DatasetInfo:
     splits: Optional[dict] = None
     download_checksums: Optional[dict] = None
     download_size: Optional[int] = None
+    post_processing_size: Optional[int] = None
     dataset_size: Optional[int] = None
     size_in_bytes: Optional[int] = None
 
@@ -104,6 +123,8 @@ class DatasetInfo:
         # Convert back to the correct classes when we reload from dict
         if self.features is not None and not isinstance(self.features, Features):
             self.features = Features.from_dict(self.features)
+        if self.post_processed is not None and not isinstance(self.post_processed, PostProcessedInfo):
+            self.post_processed = PostProcessedInfo.from_dict(self.post_processed)
         if self.version is not None and not isinstance(self.version, Version):
             if isinstance(self.version, str):
                 self.version = Version(self.version)
@@ -158,7 +179,7 @@ class DatasetInfo:
         )
 
     @classmethod
-    def from_directory(cls, dataset_info_dir):
+    def from_directory(cls, dataset_info_dir: dict) -> "DatasetInfo":
         """Create DatasetInfo from the JSON file in `dataset_info_dir`.
 
         This function updates all the dynamically generated fields (num_examples,
@@ -176,9 +197,14 @@ class DatasetInfo:
 
         with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "r") as f:
             dataset_info_dict = json.load(f)
-        return cls(**dataset_info_dict)
+        return cls.from_dict(dataset_info_dict)
 
-    def update(self, other_dataset_info, ignore_none=True):
+    @classmethod
+    def from_dict(cls, dataset_info_dict: dict) -> "DatasetInfo":
+        field_names = set(f.name for f in dataclasses.fields(cls))
+        return cls(**{k: v for k, v in dataset_info_dict.items() if k in field_names})
+
+    def update(self, other_dataset_info: "DatasetInfo", ignore_none=True):
         self_dict = self.__dict__
         self_dict.update(
             **{
@@ -209,11 +235,11 @@ class DatasetInfosDict(dict):
     def from_directory(cls, dataset_infos_dir):
         logger.info("Loading Dataset Infos from {}".format(dataset_infos_dir))
         with open(os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME), "r") as f:
-            dataset_info_dict = {
-                config_name: DatasetInfo(**dataset_info_dict)
+            dataset_infos_dict = {
+                config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()
             }
-        return cls(**dataset_info_dict)
+        return cls(**dataset_infos_dict)
 
 
 @dataclass
@@ -264,7 +290,7 @@ class MetricInfo:
             f.write(self.license)
 
     @classmethod
-    def from_directory(cls, metric_info_dir):
+    def from_directory(cls, metric_info_dir) -> "MetricInfo":
         """Create MetricInfo from the JSON file in `metric_info_dir`.
 
         Args:
@@ -276,5 +302,10 @@ class MetricInfo:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 
         with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "r") as f:
-            dataset_info_dict = json.load(f)
-        return cls(**dataset_info_dict)
+            metric_info_dict = json.load(f)
+        return cls.from_dict(metric_info_dict)
+
+    @classmethod
+    def from_dict(cls, metric_info_dict: dict) -> "MetricInfo":
+        field_names = set(f.name for f in dataclasses.fields(cls))
+        return cls(**{k: v for k, v in metric_info_dict.items() if k in field_names})
