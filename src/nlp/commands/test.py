@@ -84,7 +84,6 @@ class TestCommand(BaseTransformersCLICommand):
         for builder in builders:
             builder.download_and_prepare(
                 download_mode=REUSE_CACHE_IF_EXISTS if not self._force_redownload else FORCE_REDOWNLOAD,
-                save_infos=self._save_infos,
                 ignore_verifications=self._ignore_verifications,
                 try_from_hf_gcs=False,
             )
