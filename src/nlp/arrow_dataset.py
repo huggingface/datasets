@@ -362,12 +362,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def cast_(self, features: Features):
         """
-        Cast the dataset to a new set of features. The name of the fields in the features must match.
-        The type of the data must also be convertible from one type to the other.
-        For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+        Cast the dataset to a new set of features.
 
         You can also remove a column using :func:`Dataset.map` with `feature` but :func:`cast_`
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            features (:class:`nlp.Features`): New features to cast the dataset to.
+                The name and order of the fields in the features must match the current column names.
+                The type of the data must also be convertible from one type to the other.
+                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
         """
         if list(features) != self._data.column_names:
             raise ValueError(
@@ -385,6 +389,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            column_name (:obj:`str`): Name of the column to remove.
         """
         if column_name not in self._data.column_names:
             raise ValueError(
@@ -405,6 +412,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         You can also rename a column using :func:`Dataset.map` with `remove_columns` but the present method:
             - takes care of moving the original features under the new column name.
             - doesn't copy the data to a new dataset and is thus much faster.
+
+        Args:
+            original_column_name (:obj:`str`): Name of the column to rename.
+            new_column_name (:obj:`str`): New name for the column.
         """
         if original_column_name not in self._data.column_names:
             raise ValueError(
