@@ -360,6 +360,78 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
+    def cast_(self, features: Features):
+        """
+        Cast the dataset to a new set of features.
+
+        You can also remove a column using :func:`Dataset.map` with `feature` but :func:`cast_`
+        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            features (:class:`nlp.Features`): New features to cast the dataset to.
+                The name and order of the fields in the features must match the current column names.
+                The type of the data must also be convertible from one type to the other.
+                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+        """
+        if list(features) != self._data.column_names:
+            raise ValueError(
+                f"The columns in features ({list(features)}) must be identical and in the same order "
+                f"as the columns in the dataset: {self._data.column_names}"
+            )
+
+        self._info.features = features
+        schema = pa.schema(features.type)
+        self._data = self._data.cast(schema)
+
+    def remove_column_(self, column_name: str):
+        """
+        Remove a column in the dataset and the features associated to the column.
+
+        You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
+        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            column_name (:obj:`str`): Name of the column to remove.
+        """
+        if column_name not in self._data.column_names:
+            raise ValueError(
+                f"Column name {column_name} not in the dataset. "
+                f"Current columns in the dataset: {self._data.column_names}"
+            )
+
+        column_index = (self._data.column_names).index(column_name)
+
+        del self._info.features[column_name]
+
+        self._data = self._data.remove_column(column_index)
+
+    def rename_column_(self, original_column_name: str, new_column_name: str):
+        """
+        Rename a column in the dataset and move the features associated to the original column under the new column name.
+
+        You can also rename a column using :func:`Dataset.map` with `remove_columns` but the present method:
+            - takes care of moving the original features under the new column name.
+            - doesn't copy the data to a new dataset and is thus much faster.
+
+        Args:
+            original_column_name (:obj:`str`): Name of the column to rename.
+            new_column_name (:obj:`str`): New name for the column.
+        """
+        if original_column_name not in self._data.column_names:
+            raise ValueError(
+                f"Orignal column name {original_column_name} not in the dataset. "
+                f"Current columns in the dataset: {self._data.column_names}"
+            )
+        if not new_column_name:
+            raise ValueError("New column name is empty.")
+
+        new_column_names = [new_column_name if col == original_column_name else col for col in self._data.column_names]
+
+        self._info.features[new_column_name] = self._info.features[original_column_name]
+        del self._info.features[original_column_name]
+
+        self._data = self._data.rename_columns(new_column_names)
+
     def __len__(self):
         """ Number of rows in the dataset """
         return self._data.num_rows

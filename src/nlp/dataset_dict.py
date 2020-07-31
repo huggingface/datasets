@@ -17,6 +17,56 @@ class DatasetDict(dict):
                     "Values in `DatasetDict` should of type `Dataset` but got type '{}'".format(type(dataset))
                 )
 
+    def cast_(self, features: Features):
+        """
+        Cast the dataset to a new set of features.
+        The transformation is applied to all the datasets of the dataset dictionary.
+
+        You can also remove a column using :func:`Dataset.map` with `feature` but :func:`cast_`
+        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            features (:class:`nlp.Features`): New features to cast the dataset to.
+                The name and order of the fields in the features must match the current column names.
+                The type of the data must also be convertible from one type to the other.
+                For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.cast_(features=features)
+
+    def remove_column_(self, column_name: str):
+        """
+        Remove a column in the dataset and the features associated to the column.
+        The transformation is applied to all the datasets of the dataset dictionary.
+
+        You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
+        is in-place (doesn't copy the data to a new dataset) and is thus faster.
+
+        Args:
+            column_name (:obj:`str`): Name of the column to remove.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.remove_column_(column_name=column_name)
+
+    def rename_column_(self, original_column_name: str, new_column_name: str):
+        """
+        Rename a column in the dataset and move the features associated to the original column under the new column name.
+        The transformation is applied to all the datasets of the dataset dictionary.
+
+        You can also rename a column using :func:`Dataset.map` with `remove_columns` but the present method:
+            - takes care of moving the original features under the new column name.
+            - doesn't copy the data to a new dataset and is thus much faster.
+
+        Args:
+            original_column_name (:obj:`str`): Name of the column to rename.
+            new_column_name (:obj:`str`): New name for the column.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.rename_column_(original_column_name=original_column_name, new_column_name=new_column_name)
+
     @contextlib.contextmanager
     def formated_as(
         self,

@@ -8,6 +8,7 @@ import pandas as pd
 
 from nlp.arrow_dataset import Dataset
 from nlp.dataset_dict import DatasetDict
+from nlp.features import Value
 
 from .utils import require_tf, require_torch
 
@@ -122,6 +123,30 @@ class DatasetDictTest(TestCase):
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0].columns), 2)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
+
+    def test_cast_(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        features = dset["train"].features
+        features["col_1"] = Value("float64")
+        dset.cast_(features)
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 2)
+            self.assertEqual(dset_split.features["col_1"], Value("float64"))
+            self.assertIsInstance(dset_split[0]["col_1"], float)
+
+    def test_remove_column_(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset.remove_column_(column_name="col_1")
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 1)
+            self.assertListEqual(list(dset_split.column_names), ["col_2"])
+
+    def test_rename_column_(self):
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 2)
+            self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
 
     def test_map(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
