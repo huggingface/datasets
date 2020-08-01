@@ -222,9 +222,23 @@ class Metric(object):
             for lock in locks:
                 lock.release()
 
-    def compute(self, *, predictions=None, references=None, timeout=120, **metrics_kwargs):
+    def compute(self, *args, **kwargs):
         """ Compute the metrics.
+
+        Args:
+            We disallow the usage of positional arguments to prevent mistakes
+            `predictions` (Optional list/array/tensor): predictions
+            `references` (Optional list/array/tensor): references
+            `timeout` (Optional int): timeout for distributed gathering of values on several nodes
+            `**kwargs` (Optional other kwargs): will be forwared to the metrics :func:`_compute` method (see details in the docstring)
         """
+        if args:
+            raise ValueError("Please call `compute` using keyword arguments.")
+
+        predictions = kwargs.pop('predictions', None)
+        references = kwargs.pop('references', None)
+        timeout = kwargs.pop('timeout', 120)
+
         if predictions is not None:
             self.add_batch(predictions=predictions, references=references)
         self.finalize(timeout=timeout)
@@ -234,18 +248,16 @@ class Metric(object):
         predictions = self.data["predictions"]
         references = self.data["references"]
         with temp_seed(self.seed):
-            output = self._compute(predictions=predictions, references=references, **metrics_kwargs)
+            output = self._compute(predictions=predictions, references=references, **kwargs)
         return output
 
-    def add_batch(self, *, predictions=None, references=None, **kwargs):
-        """
-        Add a batch of predictions and references for the metric's stack.
-        """
-
+    @staticmethod
+    def _cast_to_python_objects(predictions, references):
+        """ Cast numpy/pytorch/tensorflow/pandas objects to python lists. """
         if isinstance(predictions, np.ndarray):
             predictions = predictions.tolist()
         elif _torch_available and isinstance(predictions, torch.Tensor):
-            predictions = predictions.cpu().numpy().tolist()
+            predictions = predictions.detach().cpu().numpy().tolist()
         elif _tf_available and isinstance(predictions, tf.Tensor):
             predictions = predictions.numpy().tolist()
         elif isinstance(predictions, pds.DataFrame):
@@ -254,12 +266,19 @@ class Metric(object):
         if isinstance(references, np.ndarray):
             references = references.tolist()
         elif _torch_available and isinstance(references, torch.Tensor):
-            references = references.cpu().numpy().tolist()
+            references = references.detach().cpu().numpy().tolist()
         elif _tf_available and isinstance(references, tf.Tensor):
             references = references.numpy().tolist()
         elif isinstance(references, pds.DataFrame):
             references = references.values.tolist()
 
+        return predictions, references
+
+    def add_batch(self, *, predictions=None, references=None, **kwargs):
+        """
+        Add a batch of predictions and references for the metric's stack.
+        """
+        predictions, references = self._cast_to_python_objects(predictions, references)
         batch = {"predictions": predictions, "references": references}
         if self.writer is None:
             self._init_writer()
@@ -268,6 +287,7 @@ class Metric(object):
     def add(self, *, prediction=None, reference=None, **kwargs):
         """ Add one prediction and reference for the metric's stack.
         """
+        predictions, references = self._cast_to_python_objects(predictions, references)
         example = {"predictions": prediction, "references": reference}
         example = self.info.features.encode_example(example)
         if self.writer is None:
