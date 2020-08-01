@@ -91,11 +91,11 @@ INCOMPLETE_SUFFIX = ".incomplete"
 
 
 @contextmanager
-def temp_seed(seed: int):
+def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
     np_state = np.random.get_state()
     np.random.seed(seed)
 
-    if _torch_available:
+    if set_pytorch and _torch_available:
         torch_state = torch.random.get_rng_state()
         torch.random.manual_seed(seed)
 
@@ -103,7 +103,7 @@ def temp_seed(seed: int):
             torch_cuda_states = torch.cuda.get_rng_state_all()
             torch.cuda.manual_seed_all(seed)
 
-    if _tf_available:
+    if set_tensorflow and _tf_available:
         tf_state = tf.random.get_global_generator()
         temp_gen = tf.random.Generator.from_seed(seed)
         tf.random.set_global_generator(temp_gen)
@@ -113,12 +113,12 @@ def temp_seed(seed: int):
     finally:
         np.random.set_state(np_state)
 
-        if _torch_available:
+        if set_pytorch and _torch_available:
             torch.random.set_rng_state(torch_state)
             if torch.cuda.is_available():
                 torch.cuda.set_rng_state_all(torch_cuda_states)
 
-        if _tf_available:
+        if set_tensorflow and _tf_available:
             tf.random.set_global_generator(tf_state)
 
 
