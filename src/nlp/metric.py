@@ -23,6 +23,7 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import pyarrow as pa
+import pandas as pds
 from filelock import FileLock, Timeout
 
 from .arrow_dataset import Dataset
@@ -32,8 +33,13 @@ from .info import MetricInfo
 from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, Version, copyfunc
 from .utils.download_manager import DownloadManager
-from .utils.file_utils import DownloadConfig
+from .utils.file_utils import DownloadConfig, _torch_available, _tf_available
 
+if _torch_available:
+    import torch
+
+if _tf_available:
+    import tensorflow as tf
 
 logger = logging.getLogger(__file__)
 
@@ -233,6 +239,27 @@ class Metric(object):
 
     def add_batch(self, *, predictions=None, references=None, **kwargs):
         """
+        Add a batch of predictions and references for the metric's stack.
+        """
+
+        if isinstance(predictions, np.ndarray):
+            predictions = predictions.tolist()
+        elif _torch_available and isinstance(predictions, torch.Tensor):
+            predictions = predictions.cpu().numpy().tolist()
+        elif _tf_available and isinstance(predictions, tf.Tensor):
+            predictions = predictions.numpy().tolist()
+        elif isinstance(predictions, pds.DataFrame):
+            predictions = predictions.values.tolist()
+
+        if isinstance(references, np.ndarray):
+            references = references.tolist()
+        elif _torch_available and isinstance(references, torch.Tensor):
+            references = references.cpu().numpy().tolist()
+        elif _tf_available and isinstance(references, tf.Tensor):
+            references = references.numpy().tolist()
+        elif isinstance(references, pds.DataFrame):
+            references = references.values.tolist()
+
         batch = {"predictions": predictions, "references": references}
         if self.writer is None:
             self._init_writer()
