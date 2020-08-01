@@ -216,7 +216,7 @@ class Metric(object):
             for lock in locks:
                 lock.release()
 
-    def compute(self, predictions=None, references=None, timeout=120, **metrics_kwargs):
+    def compute(self, *, predictions=None, references=None, timeout=120, **metrics_kwargs):
         """ Compute the metrics.
         """
         if predictions is not None:
@@ -231,15 +231,14 @@ class Metric(object):
             output = self._compute(predictions=predictions, references=references, **metrics_kwargs)
         return output
 
-    def add_batch(self, predictions=None, references=None, **kwargs):
-        """ Add a batch of predictions and references for the metric's stack.
+    def add_batch(self, *, predictions=None, references=None, **kwargs):
         """
         batch = {"predictions": predictions, "references": references}
         if self.writer is None:
             self._init_writer()
         self.writer.write_batch(batch)
 
-    def add(self, prediction=None, reference=None, **kwargs):
+    def add(self, *, prediction=None, reference=None, **kwargs):
         """ Add one prediction and reference for the metric's stack.
         """
         example = {"predictions": prediction, "references": reference}
@@ -307,6 +306,6 @@ class Metric(object):
         """
         return None
 
-    def _compute(self, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
+    def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
         """ This method defines the common API for all the metrics in the library """
         raise NotImplementedError
