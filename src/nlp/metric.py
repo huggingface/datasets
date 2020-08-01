@@ -31,7 +31,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .info import MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils import HF_METRICS_CACHE, Version, copyfunc
+from .utils import HF_METRICS_CACHE, Version, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig, _tf_available, _torch_available
 
@@ -43,16 +43,6 @@ if _tf_available:
     import tensorflow as tf
 
 logger = logging.getLogger(__file__)
-
-
-@contextmanager
-def temp_seed(seed: int):
-    state = np.random.get_state()
-    np.random.seed(seed)
-    try:
-        yield
-    finally:
-        np.random.set_state(state)
 
 
 class Metric(object):

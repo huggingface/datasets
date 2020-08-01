@@ -89,6 +89,38 @@ CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/met
 INCOMPLETE_SUFFIX = ".incomplete"
 
 
+@contextmanager
+def temp_seed(seed: int):
+    np_state = np.random.get_state()
+    np.random.seed(seed)
+
+    if _torch_available:
+        torch_state = torch.random.get_rng_state()
+        torch.random.manual_seed(seed)
+
+        if torch.cuda.is_available():
+            torch_cuda_states = torch.cuda.get_rng_state_all()
+            torch.cuda.manual_seed_all(seed)
+
+    if _tf_available:
+        tf_state = tf.random.get_global_generator()
+        temp_gen = tf.random.Generator.from_seed(seed)
+        tf.random.set_global_generator(temp_gen)
+
+    try:
+        yield
+    finally:
+        np.random.set_state(np_state)
+
+        if _torch_available:
+            torch.random.set_rng_state(torch_state)
+            if torch.cuda.is_available():
+                torch.cuda.set_rng_state_all(torch_cuda_states)
+
+        if _tf_available:
+            tf.random.set_global_generator(tf_state)
+
+
 def is_torch_available():
     return _torch_available
 
