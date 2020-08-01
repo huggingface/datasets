@@ -22,8 +22,8 @@ from contextlib import contextmanager
 from typing import Any, Dict, Optional
 
 import numpy as np
-import pyarrow as pa
 import pandas as pds
+import pyarrow as pa
 from filelock import FileLock, Timeout
 
 from .arrow_dataset import Dataset
@@ -33,7 +33,8 @@ from .info import MetricInfo
 from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, Version, copyfunc
 from .utils.download_manager import DownloadManager
-from .utils.file_utils import DownloadConfig, _torch_available, _tf_available
+from .utils.file_utils import DownloadConfig, _tf_available, _torch_available
+
 
 if _torch_available:
     import torch
@@ -235,9 +236,9 @@ class Metric(object):
         if args:
             raise ValueError("Please call `compute` using keyword arguments.")
 
-        predictions = kwargs.pop('predictions', None)
-        references = kwargs.pop('references', None)
-        timeout = kwargs.pop('timeout', 120)
+        predictions = kwargs.pop("predictions", None)
+        references = kwargs.pop("references", None)
+        timeout = kwargs.pop("timeout", 120)
 
         if predictions is not None:
             self.add_batch(predictions=predictions, references=references)
@@ -287,7 +288,7 @@ class Metric(object):
     def add(self, *, prediction=None, reference=None, **kwargs):
         """ Add one prediction and reference for the metric's stack.
         """
-        predictions, references = self._cast_to_python_objects(predictions, references)
+        prediction, reference = self._cast_to_python_objects(prediction, reference)
         example = {"predictions": prediction, "references": reference}
         example = self.info.features.encode_example(example)
         if self.writer is None:
