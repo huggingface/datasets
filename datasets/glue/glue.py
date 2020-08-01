@@ -35,9 +35,7 @@ _GLUE_CITATION = """\
   note={In the Proceedings of ICLR.},
   year={2019}
 }
-
-Note that each GLUE dataset has its own citation. Please see the source to see
-the correct citation for each contained dataset."""
+"""
 
 _GLUE_DESCRIPTION = """\
 GLUE, the General Language Understanding Evaluation benchmark
