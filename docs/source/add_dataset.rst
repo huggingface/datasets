@@ -97,7 +97,7 @@ Here are the features of the SQuAD dataset for instance, which is taken from the
                 }
             )
 
-These features should be mostly self-explanatory given the above introduction. One specific behavior here is the fact that the ``Sequence`` field in ``"answers"`` is given a dictionnary of sub-fields. As mentioned in the above note, in this case, this feature is actually **converted in a dictionnary of lists** (instead of the list of dictionnary that we read in the feature here).
+These features should be mostly self-explanatory given the above introduction. One specific behavior here is the fact that the ``Sequence`` field in ``"answers"`` is given a dictionary of sub-fields. As mentioned in the above note, in this case, this feature is actually **converted in a dictionary of lists** (instead of the list of dictionary that we read in the feature here).
 
 We can see a confirmation of that in the structure of the examples yield by the generation method at the very end of the `squad dataset loading script <https://github.com/huggingface/nlp/tree/master/datasets/squad/squad.py>`__:
 
@@ -114,7 +114,7 @@ We can see a confirmation of that in the structure of the examples yield by the 
 		"answers": {"answer_start": answer_starts, "text": answers,},
 	}
 
-Here the ``"answers"`` is accordingly provided with a dictionnary of lists and not a list of dictionnary.
+Here the ``"answers"`` is accordingly provided with a dictionary of lists and not a list of dictionary.
 
 Let's take another example of features from the `large-scale reading comprehension dataset Race <https://huggingface.co/datasets/race>`__:
 
@@ -185,7 +185,7 @@ Let's have a look at a simple example of a :func:`nlp.DatasetBuilder._split_gene
 				nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
 			]
 
-As you can see this method first prepare a dict of URL to the original data files for SQuAD. This dict is then provided to the :func:`nlp.DownloadManager.download_and_extract` method which will take care of downloading or retriving from the local file system these files and returning a object of the same type and organization (here a dictionary) with the path to the local version of the requetsed files. :func:`nlp.DownloadManager.download_and_extract` can take as input a single URL/path or a list or dictionnary of URLs/paths and will return an object of the same structure (single URL/path, list or dictionnary of URLs/paths) with the path to the local files.
+As you can see this method first prepare a dict of URL to the original data files for SQuAD. This dict is then provided to the :func:`nlp.DownloadManager.download_and_extract` method which will take care of downloading or retriving from the local file system these files and returning a object of the same type and organization (here a dictionary) with the path to the local version of the requetsed files. :func:`nlp.DownloadManager.download_and_extract` can take as input a single URL/path or a list or dictionary of URLs/paths and will return an object of the same structure (single URL/path, list or dictionary of URLs/paths) with the path to the local files.
 
 This method also takes care of extracting compressed tar, gzip and zip archives.
 
@@ -208,7 +208,7 @@ Generating the samples in each split
 
 The :func:`nlp.DatasetBuilder._generate_examples` is in charge of reading the data files for a split and yielding examples with the format specified in the ``features`` set in :func:`nlp.DatasetBuilder._info`.
 
-The input arguments of :func:`nlp.DatasetBuilder._generate_examples` are defined by the :obj:`gen_kwargs` dictionnary returned by the :func:`nlp.DatasetBuilder._split_generator` method we detailed above.
+The input arguments of :func:`nlp.DatasetBuilder._generate_examples` are defined by the :obj:`gen_kwargs` dictionary returned by the :func:`nlp.DatasetBuilder._split_generator` method we detailed above.
 
 Here again, let's take the simple example of the `squad dataset loading script <https://github.com/huggingface/nlp/tree/master/datasets/squad/squad.py>`__:
 
@@ -244,7 +244,7 @@ The input argument is the ``filepath`` provided in the :obj:`gen_kwargs` of each
 
 The method read and parse the inputs files and yield a tuple constituted of an ``id_`` (can be arbitrary be should be unique (for backward compatibility with TensorFlow dataset) and an example.
 
-The example is a dictionnary with the same structure and element types as the ``features`` defined in :func:`nlp.DatasetBuilder._info`.
+The example is a dictionary with the same structure and element types as the ``features`` defined in :func:`nlp.DatasetBuilder._info`.
 
 Specifying several dataset configurations
 -------------------------------------------------
