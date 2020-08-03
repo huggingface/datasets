@@ -306,247 +306,85 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
                 exchanges = []
                 date = ''
                 title = ''
-                if self.config.name == "ModHayes":
-                    while line:
-                        if line.startswith("<REUTERS"):
-                            line = line.split()
-                            lewis_split = line[2].split('=')[1]
-                            cgis_split = line[3].split('=')[1]
-                            old_id = line[4].split('=')[1]
-                            new_id = line[5].split('=')[1][:-1]
-                            has_topic = line[1].split('=')[1]
-                            line = f.readline()
-                            if split not in cgis_split:  #skip example that are not in the current split
+                while line:
+                    if line.startswith("<REUTERS"):
+                        line = line.split()
+                        lewis_split = line[2].split("=")[1]
+                        cgis_split = line[3].split("=")[1]
+                        old_id = line[4].split("=")[1]
+                        new_id = line[5].split("=")[1][:-1]
+                        has_topic = line[1].split("=")[1]
+                        line = f.readline()
+                        if (self.config.name == "ModHayes" and split not in cgis_split) or (self.config.name == "ModLewis" and ((split not in lewis_split) or 
+                                (split=="TRAIN" and has_topic not in ['"YES"', '"NO"']) or (split=="TEST" and has_topic not in ['"YES"', '"NO"'])  or
+                                (split=="NOT-USED" and has_topic not in ['"YES"', '"NO"', '"BYPASS"']))) or (self.config.name == "ModApte" and (split not in lewis_split or 
+                                (split=="TRAIN" and has_topic != '"YES"') or (split=="TEST" and has_topic != '"YES"') or 
+                                (split=="NOT-USED" and has_topic not in ['"YES"', '"NO"', '"BYPASS"']))): #skip example that are not in the current split
                                 l = line
                                 while l and not l.startswith("<REUTERS"):
                                     l = f.readline()
                                 if l:
                                     line = l 
-                        elif line.startswith("<TOPICS>"):
-                            if line.replace("\n", "") != "<TOPICS></TOPICS>":
-                                line = line.split("<D>")
-                                topics = [topic.replace("</D>", "") for topic in line[1:-1]]
-                                topics = [topic.replace("</TOPICS>", "") for topic in topics]
+                    elif line.startswith("<TOPICS>"):
+                        if line.replace("\n", "") != "<TOPICS></TOPICS>":
+                            line = line.split("<D>")
+                            topics = [topic.replace("</D>", "") for topic in line[1:-1]]
+                            topics = [topic.replace("</TOPICS>", "") for topic in topics]
+                        line = f.readline()
+                    elif line.startswith("<PLACES>"):
+                        if line.replace("\n", "") != "<PLACES></PLACES>":
+                            line = line.split("<D>")
+                            places = [place.replace("</D>", "") for place in line[1:-1]]
+                            places = [place.replace("</PLACES>", "") for place in places]
+                        line = f.readline()
+                    elif line.startswith("<PEOPLE>"):
+                        if line.replace("\n", "") != "<PEOPLE></PEOPLE>":
+                            line = line.split("<D>")
+                            people = [p.replace("</D>", "") for p in line[1:-1]]
+                            people = [p.replace("</PEOPLE>", "") for p in people]
+                        line = f.readline()
+                    elif line.startswith("<ORGS>"):
+                        if line.replace("\n", "") != "<ORGS></ORGS>":
+                            line = line.split("<D>")
+                            orgs = [org.replace("</D>", "") for org in line[1:-1]]
+                            orgs = [org.replace("</ORGS>", "") for org in orgs]
+                        line = f.readline()
+                    elif line.startswith("<EXCHANGES>"):
+                        if line.replace("\n", "") != "<EXCHANGES></EXCHANGES>":
+                            line = line.split("<D>")
+                            exchanges = [ex.replace("</D>", "") for ex in line[1:-1]]
+                            exchanges = [ex.replace("</EXCHANGES>", "") for ex in exchanges]
+                        line = f.readline()
+                    elif line.startswith("<DATE>"):
+                        date = line.replace("\n", "")
+                        date = line[6:-8]   
+                        line = f.readline()
+                    elif line.startswith("<TITLE>"):
+                        title = line[7:-9]
+                        line = f.readline()
+                    elif "<BODY>" in line:
+                        text = line.split('<BODY>')[1]
+                        line = f.readline()
+                        while "</BODY>" not in line:
+                            text += line
                             line = f.readline()
-                        elif line.startswith("<PLACES>"):
-                            if line.replace("\n", "") != "<PLACES></PLACES>":
-                                line = line.split("<D>")
-                                places = [place.replace("</D>", "") for place in line[1:-1]]
-                                places = [place.replace("</PLACES>", "") for place in places]
-                            line = f.readline()
-                        elif line.startswith("<PEOPLE>"):
-                            if line.replace("\n", "") != "<PEOPLE></PEOPLE>":
-                                line = line.split("<D>")
-                                people = [p.replace("</D>", "") for p in line[1:-1]]
-                                people = [p.replace("</PEOPLE>", "") for p in people]
-                            line = f.readline()
-                        elif line.startswith("<ORGS>"):
-                            if line.replace("\n", "") != "<ORGS></ORGS>":
-                                line = line.split("<D>")
-                                orgs = [org.replace("</D>", "") for org in line[1:-1]]
-                                orgs = [org.replace("</ORGS>", "") for org in orgs]
-                            line = f.readline()
-                        elif line.startswith("<EXCHANGES>"):
-                            if line.replace("\n", "") != "<EXCHANGES></EXCHANGES>":
-                                line = line.split("<D>")
-                                exchanges = [ex.replace("</D>", "") for ex in line[1:-1]]
-                                exchanges = [ex.replace("</EXCHANGES>", "") for ex in exchanges]
-                            line = f.readline()
-                        elif line.startswith("<DATE>"):
-                            date = line.replace("\n", "")
-                            date = line[6:-8]   
-                            line = f.readline()
-                        elif line.startswith("<TITLE>"):
-                            title = line[7:-9]
-                            line = f.readline()
-                        elif "<BODY>" in line:
-                            text = line.split('<BODY>')[1]
-                            line = f.readline()
-                            while "</BODY>" not in line:
-                                text += line
-                                line = f.readline()
+                        
+                        yield new_id, {
+                                "lewis_split": lewis_split,
+                                "cgis_split": cgis_split,
+                                "old_id": old_id,
+                                "new_id": new_id,
+                                "topics": topics,
+                                "places": places,
+                                "people": people,
+                                "orgs": orgs,
+                                "exchanges": exchanges,
+                                "date": date,
+                                "title": title,
+                                "text": text
+                        }
+                        line = f.readline()
+                        
+                    else:
+                        line = f.readline()
                             
-                            yield new_id, {
-                                    "lewis_split": lewis_split,
-                                    "cgis_split": cgis_split,
-                                    "old_id": old_id,
-                                    "new_id":  new_id,
-                                    "topics":  topics,
-                                    "places":  places,
-                                    "people":  people,
-                                    "orgs":  orgs,
-                                    "exchanges":  exchanges,
-                                    "date":  date,
-                                    "title": title,
-                                    "text": text
-                            }
-                            line = f.readline()
-                            
-                        else:
-                            line = f.readline()
-                elif self.config.name == "ModLewis":
-                        while line:
-                            if line.startswith("<REUTERS"):
-                                line = line.split()
-                                lewis_split = line[2].split('=')[1]
-                                cgis_split = line[3].split('=')[1]
-                                old_id = line[4].split('=')[1]
-                                new_id = line[5].split('=')[1][:-1]
-                                has_topic = line[1].split('=')[1]
-                                line = f.readline()
-                                if ((split not in lewis_split) or 
-                                    (split=="TRAIN" and has_topic not in ['"YES"', '"NO"']) or
-                                    (split=="TEST" and has_topic not in ['"YES"', '"NO"'])  or
-                                    (split=="NOT-USED" and has_topic not in ['"YES"', '"NO"', '"BYPASS"'])):  #skip example that are not in the current split
-                                    l = line
-                                    while l and not l.startswith("<REUTERS"):
-                                        l = f.readline()
-                                    if l:
-                                        line = l 
-                                 
-                            elif line.startswith("<TOPICS>"):
-                                if line.replace("\n", "") != "<TOPICS></TOPICS>":
-                                    line = line.split("<D>")
-                                    topics = [topic.replace("</D>", "") for topic in line[1:-1]]
-                                    topics = [topic.replace("</TOPICS>", "") for topic in topics]
-                                line = f.readline()
-                            elif line.startswith("<PLACES>"):
-                                if line.replace("\n", "") != "<PLACES></PLACES>":
-                                    line = line.split("<D>")
-                                    places = [place.replace("</D>", "") for place in line[1:-1]]
-                                    places = [place.replace("</PLACES>", "") for place in places]
-                                line = f.readline()
-                            elif line.startswith("<PEOPLE>"):
-                                if line.replace("\n", "") != "<PEOPLE></PEOPLE>":
-                                    line = line.split("<D>")
-                                    people = [p.replace("</D>", "") for p in line[1:-1]]
-                                    people = [p.replace("</PEOPLE>", "") for p in people]
-                                line = f.readline()
-                            elif line.startswith("<ORGS>"):
-                                if line.replace("\n", "") != "<ORGS></ORGS>":
-                                    line = line.split("<D>")
-                                    orgs = [org.replace("</D>", "") for org in line[1:-1]]
-                                    orgs = [org.replace("</ORGS>", "") for org in orgs]
-                                line = f.readline()
-                            elif line.startswith("<EXCHANGES>"):
-                                if line.replace("\n", "") != "<EXCHANGES></EXCHANGES>":
-                                    line = line.split("<D>")
-                                    exchanges = [ex.replace("</D>", "") for ex in line[1:-1]]
-                                    exchanges = [ex.replace("</EXCHANGES>", "") for ex in exchanges]
-                                line = f.readline()
-                            elif line.startswith("<DATE>"):
-                                date = line.replace("\n", "")
-                                date = line[6:-8]   
-                                line = f.readline()
-                            elif line.startswith("<TITLE>"):
-                                title = line[7:-9]
-                                line = f.readline()
-                            elif "<BODY>" in line:
-                                text = line.split('<BODY>')[1]
-                                line = f.readline()
-                                while "</BODY>" not in line:
-                                    text += line
-                                    line = f.readline()
-                                
-                                yield new_id, {
-                                        "lewis_split": lewis_split,
-                                        "cgis_split": cgis_split,
-                                        "old_id": old_id,
-                                        "new_id":  new_id,
-                                        "topics":  topics,
-                                        "places":  places,
-                                        "people":  people,
-                                        "orgs":  orgs,
-                                        "exchanges":  exchanges,
-                                        "date":  date,
-                                        "title": title,
-                                        "text": text
-                                }
-                                line = f.readline()
-                                
-                            else:
-                                line = f.readline()
-                            
-                else:
-                    while line:
-                        if line.startswith("<REUTERS"):
-                            line = line.split()
-                            lewis_split = line[2].split('=')[1]
-                            cgis_split = line[3].split('=')[1]
-                            old_id = line[4].split('=')[1]
-                            new_id = line[5].split('=')[1][:-1]
-                            has_topic = line[1].split('=')[1]
-                            line = f.readline()
-                            if (split not in lewis_split 
-                                or (split=="TRAIN" and has_topic != '"YES"')
-                                or (split=="TEST" and has_topic != '"YES"')  
-                                or (split=="NOT-USED" and has_topic not in ['"YES"', '"NO"', '"BYPASS"'])):  #skip example that are not in the current split
-                                l = line
-                                while l and not l.startswith("<REUTERS"):
-                                    l = f.readline()
-                                if l:
-                                    line = l 
-                                
-                        elif line.startswith("<TOPICS>"):
-                            if line.replace("\n", "") != "<TOPICS></TOPICS>":
-                                line = line.split("<D>")
-                                topics = [topic.replace("</D>", "") for topic in line[1:-1]]
-                                topics = [topic.replace("</TOPICS>", "") for topic in topics]
-                            line = f.readline()
-                        elif line.startswith("<PLACES>"):
-                            if line.replace("\n", "") != "<PLACES></PLACES>":
-                                line = line.split("<D>")
-                                places = [place.replace("</D>", "") for place in line[1:-1]]
-                                places = [place.replace("</PLACES>", "") for place in places]
-                            line = f.readline()
-                        elif line.startswith("<PEOPLE>"):
-                            if line.replace("\n", "") != "<PEOPLE></PEOPLE>":
-                                line = line.split("<D>")
-                                people = [p.replace("</D>", "") for p in line[1:-1]]
-                                people = [p.replace("</PEOPLE>", "") for p in people]
-                            line = f.readline()
-                        elif line.startswith("<ORGS>"):
-                            if line.replace("\n", "") != "<ORGS></ORGS>":
-                                line = line.split("<D>")
-                                orgs = [org.replace("</D>", "") for org in line[1:-1]]
-                                orgs = [org.replace("</ORGS>", "") for org in orgs]
-                            line = f.readline()
-                        elif line.startswith("<EXCHANGES>"):
-                            if line.replace("\n", "") != "<EXCHANGES></EXCHANGES>":
-                                line = line.split("<D>")
-                                exchanges = [ex.replace("</D>", "") for ex in line[1:-1]]
-                                exchanges = [ex.replace("</EXCHANGES>", "") for ex in exchanges]
-                            line = f.readline()
-                        elif line.startswith("<DATE>"):
-                            date = line.replace("\n", "")
-                            date = line[6:-8]   
-                            line = f.readline()
-                        elif line.startswith("<TITLE>"):
-                            title = line[7:-9]
-                            line = f.readline()
-                        elif "<BODY>" in line:
-                            text = line.split('<BODY>')[1]
-                            line = f.readline()
-                            while "</BODY>" not in line:
-                                text += line
-                                line = f.readline()
-                            
-                            yield new_id, {
-                                    "lewis_split": lewis_split,
-                                    "cgis_split": cgis_split,
-                                    "old_id": old_id,
-                                    "new_id":  new_id,
-                                    "topics":  topics,
-                                    "places":  places,
-                                    "people":  people,
-                                    "orgs":  orgs,
-                                    "exchanges":  exchanges,
-                                    "date":  date,
-                                    "title": title,
-                                    "text": text
-                            }
-                            line = f.readline()
-                            
-                        else:
-                            line = f.readline()
-
