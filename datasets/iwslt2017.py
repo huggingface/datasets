@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
 import os
 
 import nlp
@@ -43,13 +41,13 @@ The IWSLT 2017 Evaluation Campaign includes a multilingual TED Talks MT task. Th
 For each language pair, training and development sets are available through the entry of the table below: by clicking, an archive will be downloaded which contains the sets and a README file. Numbers in the table refer to millions of units (untokenized words) of the target side of all parallel training sets.
 """
 
-_URL = "https://wit3.fbk.eu/archive/2017-01-trnmted//texts/DeEnItNlRo/DeEnItNlRo/DeEnItNlRo-DeEnItNlRo.tgz"
+MULTI_URL = "https://wit3.fbk.eu/archive/2017-01-trnmted//texts/DeEnItNlRo/DeEnItNlRo/DeEnItNlRo-DeEnItNlRo.tgz"
 
 
 class IWSLT2017Config(nlp.BuilderConfig):
     """ BuilderConfig for NewDataset"""
 
-    def __init__(self, pair, **kwargs):
+    def __init__(self, pair, is_multilingual, **kwargs):
         """
 
         Args:
@@ -57,12 +55,27 @@ class IWSLT2017Config(nlp.BuilderConfig):
             **kwargs: keyword arguments forwarded to super.
         """
         self.pair = pair
-        # self.multilingual = multilingual
+        self.is_multilingual = is_multilingual
         super(IWSLT2017Config, self).__init__(**kwargs)
 
 
-LANGUAGES = ["de", "en", "it", "nl", "ro"]
-PAIRS = [f"{a}-{b}" for a in LANGUAGES for b in LANGUAGES if a != b]
+# XXX: Artificially removed DE from here, as it also exists within bilingual data
+MULTI_LANGUAGES = ["en", "it", "nl", "ro"]
+BI_LANGUAGES = ["ar", "de", "en", "fr", "ja", "ko", "zh"]
+MULTI_PAIRS = [
+    f"{source}-{target}"
+    for source in MULTI_LANGUAGES
+    for target in MULTI_LANGUAGES
+    if source != target
+]
+BI_PAIRS = [
+    f"{source}-{target}"
+    for source in BI_LANGUAGES
+    for target in BI_LANGUAGES
+    if source != target and (source == "en" or target == "en")
+]
+
+PAIRS = MULTI_PAIRS + BI_PAIRS
 
 
 class IWSLT217(nlp.GeneratorBasedBuilder):
@@ -76,7 +89,10 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = IWSLT2017Config
     BUILDER_CONFIGS = [
         IWSLT2017Config(
-            name="iwslt2017_" + pair, description="A small dataset", pair=pair
+            name="iwslt2017-" + pair,
+            description="A small dataset",
+            pair=pair,
+            is_multilingual=pair in MULTI_PAIRS,
         )
         for pair in PAIRS
     ]
@@ -100,20 +116,33 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_dir = dl_manager.download_and_extract(_URL)
-        data_dir = os.path.join(dl_dir, "DeEnItNlRo-DeEnItNlRo")
         source, target = self.config.pair.split("-")
+        if self.config.is_multilingual:
+            dl_dir = dl_manager.download_and_extract(MULTI_URL)
+            data_dir = os.path.join(dl_dir, "DeEnItNlRo-DeEnItNlRo")
+            years = [2010]
+        else:
+            bi_url = f"https://wit3.fbk.eu/archive/2017-01-trnted//texts/{source}/{target}/{source}-{target}.tgz"
+            dl_dir = dl_manager.download_and_extract(bi_url)
+            data_dir = os.path.join(dl_dir, f"{source}-{target}")
+            years = [2010, 2011, 2012, 2013, 2014, 2015]
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "source_file": os.path.join(
-                        data_dir, "train.tags.{}.{}".format(self.config.pair, source)
-                    ),
-                    "target_file": os.path.join(
-                        data_dir, "train.tags.{}.{}".format(self.config.pair, target)
-                    ),
+                    "source_files": [
+                        os.path.join(
+                            data_dir,
+                            "train.tags.{}.{}".format(self.config.pair, source),
+                        )
+                    ],
+                    "target_files": [
+                        os.path.join(
+                            data_dir,
+                            "train.tags.{}.{}".format(self.config.pair, target),
+                        )
+                    ],
                     "split": "train",
                 },
             ),
@@ -121,18 +150,24 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
                 name=nlp.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "source_file": os.path.join(
-                        data_dir,
-                        "IWSLT17.TED.tst2010.{}.{}.xml".format(
-                            self.config.pair, source
-                        ),
-                    ),
-                    "target_file": os.path.join(
-                        data_dir,
-                        "IWSLT17.TED.tst2010.{}.{}.xml".format(
-                            self.config.pair, target
-                        ),
-                    ),
+                    "source_files": [
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.tst{}.{}.{}.xml".format(
+                                year, self.config.pair, source
+                            ),
+                        )
+                        for year in years
+                    ],
+                    "target_files": [
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.tst{}.{}.{}.xml".format(
+                                year, self.config.pair, target
+                            ),
+                        )
+                        for year in years
+                    ],
                     "split": "test",
                 },
             ),
@@ -140,48 +175,53 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
                 name=nlp.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "source_file": os.path.join(
-                        data_dir,
-                        "IWSLT17.TED.dev2010.{}.{}.xml".format(
-                            self.config.pair, source
-                        ),
-                    ),
-                    "target_file": os.path.join(
-                        data_dir,
-                        "IWSLT17.TED.dev2010.{}.{}.xml".format(
-                            self.config.pair, target
-                        ),
-                    ),
+                    "source_files": [
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.dev2010.{}.{}.xml".format(
+                                self.config.pair, source
+                            ),
+                        )
+                    ],
+                    "target_files": [
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.dev2010.{}.{}.xml".format(
+                                self.config.pair, target
+                            ),
+                        )
+                    ],
                     "split": "dev",
                 },
             ),
         ]
 
-    def _generate_examples(self, source_file, target_file, split):
+    def _generate_examples(self, source_files, target_files, split):
         """ Yields examples. """
         id_ = 0
-        with open(source_file) as sf:
-            with open(target_file) as tf:
-                for source_row, target_row in zip(sf, tf):
-                    source_row = source_row.strip()
-                    target_row = target_row.strip()
+        for source_file, target_file in zip(source_files, target_files):
+            with open(source_file) as sf:
+                with open(target_file) as tf:
+                    for source_row, target_row in zip(sf, tf):
+                        source_row = source_row.strip()
+                        target_row = target_row.strip()
 
-                    if source_row.startswith("<"):
-                        if source_row.startswith("<seg"):
-                            # Remove <seg id="1">.....</seg>
-                            # Very simple code instead of regex or xml parsing
-                            part1 = source_row.split(">")[1]
-                            source_row = part1.split("<")[0]
-                            part1 = target_row.split(">")[1]
-                            target_row = part1.split("<")[0]
+                        if source_row.startswith("<"):
+                            if source_row.startswith("<seg"):
+                                # Remove <seg id="1">.....</seg>
+                                # Very simple code instead of regex or xml parsing
+                                part1 = source_row.split(">")[1]
+                                source_row = part1.split("<")[0]
+                                part1 = target_row.split(">")[1]
+                                target_row = part1.split("<")[0]
 
-                            source_row = source_row.strip()
-                            target_row = target_row.strip()
-                        else:
-                            continue
+                                source_row = source_row.strip()
+                                target_row = target_row.strip()
+                            else:
+                                continue
 
-                    yield id_, {
-                        "source": source_row,
-                        "target": target_row,
-                    }
-                    id_ += 1
+                        yield id_, {
+                            "source": source_row,
+                            "target": target_row,
+                        }
+                        id_ += 1
