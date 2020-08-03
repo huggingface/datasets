@@ -1,7 +1,10 @@
-from .arrow_dataset import Dataset
+import os
 from checklist.test_suite import TestSuite
 from typing import Callable, Any, Dict
 import numpy as np
+from .load import load_dataset, prepare_module, import_main_class
+from nlp.utils.download_manager import DownloadManager
+from nlp.utils.file_utils import DownloadConfig
 
 def aggr_testcases(dataset):
     nd = {'data': [], 'test_name': [], 'test_case': []}
@@ -25,14 +28,24 @@ class CheckListSuite(object):
     def __init__(
         self,
         path: str,
-        example_to_dict_fn: Callable[[Any], Dict[str, Any]] = None,
-        new_sample: bool = False,
         **kwargs
     ):
-        self.suite = TestSuite.from_file(path)
-        self.example_to_dict_fn = example_to_dict_fn
-        d = self.suite.to_dict(example_to_dict_fn, new_sample=new_sample, **kwargs)
-        self.dataset = Dataset.from_dict(d)
+        self.dataset = load_dataset(path, **kwargs)['test']
+        download_config = kwargs.get('download_config')
+        module_path, hash = prepare_module(path, download_config=download_config, dataset=True)
+        builder_cls = import_main_class(module_path, dataset=True)
+        builder_instance = builder_cls(
+            hash=hash,
+            **kwargs,
+            )
+        if download_config is None:
+            download_config = DownloadConfig()
+            download_config.cache_dir = os.path.join(builder_instance._cache_dir_root, "downloads")
+        dl_manager = DownloadManager(
+            dataset_name=builder_instance.name, download_config=download_config, data_dir=builder_instance.config.data_dir
+        )
+        suite_file = os.path.join(dl_manager.download_and_extract(builder_instance.config.url), builder_instance.config.suite_name)
+        self.suite = TestSuite.from_file(suite_file)
         self.fail_rate = {}
 
     def get_test(
@@ -45,15 +58,6 @@ class CheckListSuite(object):
             d = aggr_testcases(d)
         return d
 
-
-    def subsample(
-        self,
-        n: int,
-        seed: bool=False,
-    ):
-        d = self.suite.to_dict(self.example_to_dict_fn, n=n, seed=seed, new_sample=True)
-        self.dataset = Dataset.from_dict(d)
-        self.fail_rate = {}
 
 
     def compute(
