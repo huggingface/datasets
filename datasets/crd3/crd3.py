@@ -49,7 +49,7 @@ _URL = "https://github.com/RevanthRameshkumar/CRD3/archive/master.zip"
 def get_train_test_dev_files(files, test_split, train_split, dev_split):
     test_files = dev_files = train_files = []
     for file in files:
-        filename = os.path.split(file)[1].split('_')[0]
+        filename = os.path.split(file)[1].split("_")[0]
         if filename in test_split:
             test_files.append(file)
         elif filename in train_split:
@@ -134,7 +134,7 @@ class CRD3(nlp.GeneratorBasedBuilder):
                         turn_names = turn["NAMES"]
                         turn_utterances = turn["UTTERANCES"]
                         turn_num = turn["NUMBER"]
-                        yield str(id1)+'_'+str(id2), {
+                        yield str(id1)+"_"+str(id2), {
                             "chunk":chunk,
                             "chunk_id": chunk_id,
                             "turn_start": turn_start,
