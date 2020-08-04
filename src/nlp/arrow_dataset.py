@@ -1300,7 +1300,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ), "The provided generator must be an instance of numpy.random.Generator"
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self._data_files:
+        if self._data_files and (seed is not None or generator is not None):
             if cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 cache_kwargs = {
@@ -1538,7 +1538,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self._data_files:
+        if self._data_files and (seed is not None or generator is not None):
             if train_cache_file_name is None or test_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 cache_kwargs = {
