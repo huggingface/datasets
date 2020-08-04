@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A CheckList suite for three-way sentiment analysis (negative, neutral, positive)."""
+"""A CheckList suite for Quora Question Pair"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -34,25 +34,24 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-A CheckList for three-way sentiment analysis (negative, neutral, positive).
+A CheckList for Quora Question Pair.
 Predictions: should be integers, where:
-  - 0: negative
-  - 1: neutral
-  - 2: positive
-Confidences: should be list(float) of length 3, with prediction probabilities
-for negative, neutral and positive (respectively)
+  - 0: non-duplicate
+  - 1: duplicate
+Confidences: should be list(float) of length 2, with prediction probabilities
+for non-duplicate and duplicate(respectively)
 
-Test names for Table 1 in the paper:
-['neutral words in context', 'Sentiment-laden words in context', 'change neutral words with BERT', 'add positive phrases', 'add negative phrases', 'add random urls and handles', 'typos', 'change locations', 'change names', 'used to, but now', 'simple negations: not negative', 'simple negations: not neutral is still neutral', 'simple negations: I thought x was negative, but it was not (should be neutral or positive)', 'Hard: Negation of positive with neutral stuff in the middle (should be negative)', 'my opinion is what matters', 'Q & A: yes', 'Q & A: no']
+Test names for Table 2 in the paper:
+['Modifier: adj',  'How can I become more {synonym}?', 'Replace synonyms in real pairs', 'How can I become more X = How can I become less antonym(X)', 'add one typo', '(q, paraphrase(q))',  'Change same name in both questions',  'Change first and last name in one of the questions', 'Keep entitites, fill in with gibberish', 'Is person X != Did person use to be X',   'Is it {ok, dangerous, ...} to {smoke, rest, ...} after != before', "What was person's life before becoming X != What was person's life after becoming X", 'How can I become a X person != How can I become a person who is not X', 'How can I become a X person == How can I become a person who is not antonym(X)', 'Simple coref: he and she', 'Simple coref: his and her',  'Order does not matter for comparison', 'Order does not matter for symmetric relations', 'Order does matter for asymmetric relations',  'traditional SRL: active / passive swap with people', 'traditional SRL: wrong active / passive swap with people', 'Symmetry: f(a, b) = f(b, a)', 'Testing implications']
 
 Use with nlp.checklist.CheckListSuite
 """
 
-_URL = "https://github.com/marcotcr/checklist/raw/master/release_suites/sentiment_suite.tar.gz"
-_SUITE_NAME = "sentiment_suite.pkl"
+_URL = "https://github.com/marcotcr/checklist/raw/master/release_suites/qqp_suite.tar.gz"
+_SUITE_NAME = "qqp_suite.pkl"
 
 
-class SentimentCheckListConfig(nlp.BuilderConfig):
+class QqpCheckListConfig(nlp.BuilderConfig):
     """ BuilderConfig for NewDataset"""
 
     def __init__(self, url=_URL, suite_name=_SUITE_NAME, **kwargs):
@@ -65,16 +64,16 @@ class SentimentCheckListConfig(nlp.BuilderConfig):
         """
         self.url = url
         self.suite_name = suite_name
-        super(SentimentCheckListConfig, self).__init__(**kwargs)
+        super(QqpCheckListConfig, self).__init__(**kwargs)
 
 
-class SentimentCheckList(nlp.GeneratorBasedBuilder):
+class QqpCheckList(nlp.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
     VERSION = nlp.Version("1.1.0")
 
-    BUILDER_CONFIG_CLASS = SentimentCheckListConfig
-    BUILDER_CONFIGS = [SentimentCheckListConfig(_URL, _SUITE_NAME, version=VERSION, name="sentiment_checklist_config")]
+    BUILDER_CONFIG_CLASS = QqpCheckListConfig
+    BUILDER_CONFIGS = [QqpCheckListConfig(_URL, _SUITE_NAME, version=VERSION, name="qqp_checklist_config")]
 
     def _info(self):
         return nlp.DatasetInfo(
@@ -82,7 +81,8 @@ class SentimentCheckList(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(
                 {
-                    "tweet": nlp.Value("string"),
+                    "question1": nlp.Value("string"),
+                    "question2": nlp.Value("string"),
                     "test_name": nlp.Value("string"),
                     "test_case": nlp.Value("int32"),
                     "example_idx": nlp.Value("int32"),
@@ -108,7 +108,7 @@ class SentimentCheckList(nlp.GeneratorBasedBuilder):
         """ Yields examples. """
         logging.info("generating examples from = %s", filepath)
         suite = TestSuite.from_file(filepath)
-        example_to_dict_fn = lambda x: {"tweet": x}
+        example_to_dict_fn = lambda x: {"question1": x[0], "question2": x[1]}
         d = suite.to_dict(example_to_dict_fn)
         keys = list(d.keys())
         for i in range(len(d[keys[0]])):

@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A CheckList suite for three-way sentiment analysis (negative, neutral, positive)."""
+"""A CheckList suite for SQuAD"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -34,25 +34,21 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-A CheckList for three-way sentiment analysis (negative, neutral, positive).
-Predictions: should be integers, where:
-  - 0: negative
-  - 1: neutral
-  - 2: positive
-Confidences: should be list(float) of length 3, with prediction probabilities
-for negative, neutral and positive (respectively)
+A CheckList for SQuAD.
+Predictions: each prediction is a string, containing the answer
+Confidences: not necessary for this checklist
 
-Test names for Table 1 in the paper:
-['neutral words in context', 'Sentiment-laden words in context', 'change neutral words with BERT', 'add positive phrases', 'add negative phrases', 'add random urls and handles', 'typos', 'change locations', 'change names', 'used to, but now', 'simple negations: not negative', 'simple negations: not neutral is still neutral', 'simple negations: I thought x was negative, but it was not (should be neutral or positive)', 'Hard: Negation of positive with neutral stuff in the middle (should be negative)', 'my opinion is what matters', 'Q & A: yes', 'Q & A: no']
+Test names for Table 3 in the paper:
+['A is COMP than B. Who is more / less COMP?', 'Intensifiers (very, super, extremely) and reducers (somewhat, kinda, etc)?', 'size, shape, age, color', 'Profession vs nationality', 'Animal vs Vehicle v2', 'A is COMP than B. Who is antonym(COMP)? B', 'A is more X than B. Who is more antonym(X)? B. Who is less X? B. Who is more X? A. Who is less antonym(X)? A.', 'Question typo', 'Add random sentence to context', 'There was a change in profession', 'Understanding before / after -> first / last.', 'Negation in context, may or may not be in question', 'Negation in question only.', 'M/F failure rates should be similar for different professions', 'Basic coref, he / she', 'Basic coref, his / her', 'Former / Latter', 'Agent / object distinction', 'Agent / object distinction with 3 agents']
 
 Use with nlp.checklist.CheckListSuite
 """
 
-_URL = "https://github.com/marcotcr/checklist/raw/master/release_suites/sentiment_suite.tar.gz"
-_SUITE_NAME = "sentiment_suite.pkl"
+_URL = "https://github.com/marcotcr/checklist/raw/master/release_suites/squad_suite.tar.gz"
+_SUITE_NAME = "squad_suite.pkl"
 
 
-class SentimentCheckListConfig(nlp.BuilderConfig):
+class SquadCheckListConfig(nlp.BuilderConfig):
     """ BuilderConfig for NewDataset"""
 
     def __init__(self, url=_URL, suite_name=_SUITE_NAME, **kwargs):
@@ -65,16 +61,16 @@ class SentimentCheckListConfig(nlp.BuilderConfig):
         """
         self.url = url
         self.suite_name = suite_name
-        super(SentimentCheckListConfig, self).__init__(**kwargs)
+        super(SquadCheckListConfig, self).__init__(**kwargs)
 
 
-class SentimentCheckList(nlp.GeneratorBasedBuilder):
+class SquadCheckList(nlp.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
     VERSION = nlp.Version("1.1.0")
 
-    BUILDER_CONFIG_CLASS = SentimentCheckListConfig
-    BUILDER_CONFIGS = [SentimentCheckListConfig(_URL, _SUITE_NAME, version=VERSION, name="sentiment_checklist_config")]
+    BUILDER_CONFIG_CLASS = SquadCheckListConfig
+    BUILDER_CONFIGS = [SquadCheckListConfig(_URL, _SUITE_NAME, version=VERSION, name="squad_checklist_config")]
 
     def _info(self):
         return nlp.DatasetInfo(
@@ -82,7 +78,8 @@ class SentimentCheckList(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(
                 {
-                    "tweet": nlp.Value("string"),
+                    "context": nlp.Value("string"),
+                    "question": nlp.Value("string"),
                     "test_name": nlp.Value("string"),
                     "test_case": nlp.Value("int32"),
                     "example_idx": nlp.Value("int32"),
@@ -108,7 +105,7 @@ class SentimentCheckList(nlp.GeneratorBasedBuilder):
         """ Yields examples. """
         logging.info("generating examples from = %s", filepath)
         suite = TestSuite.from_file(filepath)
-        example_to_dict_fn = lambda x: {"tweet": x}
+        example_to_dict_fn = lambda x: {"context": x[0], "question": x[1]}
         d = suite.to_dict(example_to_dict_fn)
         keys = list(d.keys())
         for i in range(len(d[keys[0]])):
