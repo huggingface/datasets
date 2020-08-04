@@ -109,8 +109,8 @@ class ObjectInfo:
             setattr(self, k, v)
 
     def __repr__(self):
-        single_line_description = self.description.replace("\n", "")
-        return f"nlp.ObjectInfo(id='{self.id}', description='{single_line_description}', files={self.siblings})"
+        single_line_description = self.description.replace("\n", "") if self.description is not None else ""
+        return f"nlp.ObjectInfo(\n\tid='{self.id}',\n\tdescription='{single_line_description}',\n\tfiles={self.siblings}\n)"
 
 
 class HfApi:
