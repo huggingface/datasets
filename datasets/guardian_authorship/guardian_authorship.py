@@ -189,8 +189,6 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
                                  train_folder="Books", valid_folder="World", test_folder="Politics,Society,UK"),
     ]
 
-    # @property
-    @property
     def _info(self):
         # Specifies the nlp.DatasetInfo object
         return nlp.DatasetInfo(
