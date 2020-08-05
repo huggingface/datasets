@@ -705,8 +705,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if len(key) > 0 and isinstance(key[0], (bool, np.bool_)):
                 if len(key) != self.__len__():
                     raise ValueError(
-                        f"Iterable with bool entries must be length of dataset ({self.__len__()}), "
-                        f"not {len(key)}"
+                        f"Iterable with bool entries must be length of dataset ({self.__len__()}), " f"not {len(key)}"
                     )
                 indices = [i for i, val in enumerate(key) if val]
             else:
@@ -802,7 +801,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         features: Optional[Features] = None,
         disable_nullable: bool = True,
         verbose: bool = True,
-        **fn_kwargs
+        **fn_kwargs,
     ) -> "Dataset":
         """ Apply a function to all the elements in the table (individually or in batches)
             and update the table (if function does updated examples).
@@ -866,7 +865,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         def does_function_return_dict(inputs, indices):
             """ Does the function returns a dict. """
             fn_input = inputs if input_column is None else inputs[input_column]
-            processed_inputs = function(fn_input, indices, **fn_kwargs) if with_indices else function(fn_input, **fn_kwargs)
+            processed_inputs = (
+                function(fn_input, indices, **fn_kwargs) if with_indices else function(fn_input, **fn_kwargs)
+            )
             does_return_dict = isinstance(processed_inputs, Mapping)
 
             if does_return_dict is False and processed_inputs is not None:
@@ -901,7 +902,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False):
             """ Utility to apply the function on a selection of columns. """
             fn_input = inputs if input_column is None else inputs[input_column]
-            processed_inputs = function(fn_input, indices, **fn_kwargs) if with_indices else function(fn_input, **fn_kwargs)
+            processed_inputs = (
+                function(fn_input, indices, **fn_kwargs) if with_indices else function(fn_input, **fn_kwargs)
+            )
             if not update_data:
                 return None  # Nothing to update, let's move on
             if remove_columns is not None:
