@@ -702,7 +702,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             else:
                 outputs = self._data[key].to_pylist()
         elif isinstance(key, Iterable):
-            data_subset = pa.concat_tables(self._data.slice(int(i), 1) for i in key)
+            if len(key) > 0 and isinstance(key[0], (bool, np.bool_)):
+                if len(key) != self.__len__():
+                    raise ValueError(
+                        f"Iterable with bool entries must be length of dataset ({self.__len__()}), "
+                        f"not {len(key)}"
+                    )
+                indices = [i for i, val in enumerate(key) if val]
+            else:
+                indices = key
+            data_subset = pa.concat_tables(self._data.slice(int(i), 1) for i in indices)
             if format_type is not None:
                 if format_type == "pandas":
                     outputs = data_subset.to_pandas(split_blocks=True)
