@@ -16,9 +16,7 @@
 # Lint as: python3
 """WebQuestions Benchmark for Question Answering."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import json
 import re
@@ -43,10 +41,8 @@ _CITATION = """
 }
 """
 _SPLIT_DOWNLOAD_URL = {
-    'train':
-        'https://worksheets.codalab.org/rest/bundles/0x4a763f8cde224c2da592b75f29e2f5c2/contents/blob/',
-    'test':
-        'https://worksheets.codalab.org/rest/bundles/0xe7bac352fce7448c9ef238fb0a297ec2/contents/blob/',
+    "train": "https://worksheets.codalab.org/rest/bundles/0x4a763f8cde224c2da592b75f29e2f5c2/contents/blob/",
+    "test": "https://worksheets.codalab.org/rest/bundles/0xe7bac352fce7448c9ef238fb0a297ec2/contents/blob/",
 }
 
 _DESCRIPTION = """\
@@ -58,51 +54,46 @@ The questions are popular ones asked on the web (at least in 2013).
 
 
 class WebQuestions(nlp.GeneratorBasedBuilder):
-  """WebQuestions Benchmark for Question Answering."""
+    """WebQuestions Benchmark for Question Answering."""
 
-  VERSION = nlp.Version('1.0.0')
+    VERSION = nlp.Version("1.0.0")
 
-  def _info(self):
-    return nlp.DatasetInfo(
-        description=_DESCRIPTION,
-        features=nlp.Features({
-            'url':
-                nlp.Value('string'),
-            'question':
-                nlp.Value('string'),
-            'answers':
-                nlp.features.Sequence(nlp.Value('string')),
-        }),
-        supervised_keys=None,
-        homepage='https://worksheets.codalab.org/worksheets/0xba659fe363cb46e7a505c5b6a774dc8a',
-        citation=_CITATION,
-    )
+    def _info(self):
+        return nlp.DatasetInfo(
+            description=_DESCRIPTION,
+            features=nlp.Features(
+                {
+                    "url": nlp.Value("string"),
+                    "question": nlp.Value("string"),
+                    "answers": nlp.features.Sequence(nlp.Value("string")),
+                }
+            ),
+            supervised_keys=None,
+            homepage="https://worksheets.codalab.org/worksheets/0xba659fe363cb46e7a505c5b6a774dc8a",
+            citation=_CITATION,
+        )
 
-  def _split_generators(self, dl_manager):
-    """Returns SplitGenerators."""
-    file_paths = dl_manager.download(_SPLIT_DOWNLOAD_URL)
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        file_paths = dl_manager.download(_SPLIT_DOWNLOAD_URL)
 
-    return [
-        nlp.SplitGenerator(
-            name=split, gen_kwargs={'file_path': file_path})
-        for split, file_path in file_paths.items()
-    ]
+        return [
+            nlp.SplitGenerator(name=split, gen_kwargs={"file_path": file_path})
+            for split, file_path in file_paths.items()
+        ]
 
-  def _generate_examples(self, file_path):
-    """Parses split file and yields examples."""
+    def _generate_examples(self, file_path):
+        """Parses split file and yields examples."""
 
-    def _target_to_answers(target):
-      target = re.sub(r'^\(list |\)$', '', target)
-      return [
-          ''.join(ans) for ans in
-          re.findall(r'\(description (?:"([^"]+?)"|([^)]+?))\)\w*', target)
-      ]
+        def _target_to_answers(target):
+            target = re.sub(r"^\(list |\)$", "", target)
+            return ["".join(ans) for ans in re.findall(r'\(description (?:"([^"]+?)"|([^)]+?))\)\w*', target)]
 
-    with open(file_path) as f:
-      examples = json.load(f)
-      for i, ex in enumerate(examples):
-        yield i, {
-            'url': ex['url'],
-            'question': ex['utterance'],
-            'answers': _target_to_answers(ex['targetValue']),
-        }
+        with open(file_path) as f:
+            examples = json.load(f)
+            for i, ex in enumerate(examples):
+                yield i, {
+                    "url": ex["url"],
+                    "question": ex["utterance"],
+                    "answers": _target_to_answers(ex["targetValue"]),
+                }
