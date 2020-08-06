@@ -801,7 +801,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         features: Optional[Features] = None,
         disable_nullable: bool = True,
         verbose: bool = True,
-        **fn_kwargs,
+        fn_kwargs: Optional[dict] = None,
     ) -> "Dataset":
         """ Apply a function to all the elements in the table (individually or in batches)
             and update the table (if function does updated examples).
@@ -832,7 +832,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     instead of the automatically generated one.
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
-                `**fn_kwargs`: Keyword arguments to be passed to `function`
+                `fn_kwargs` (`Optional[dict]`, default: `None`): Keyword arguments to be passed to `function`
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -1034,7 +1034,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
-        **fn_kwargs,
+        fn_kwargs: Optional[dict] = None,
     ) -> "Dataset":
         """ Apply a filter function to all the elements in the table in batches
             and update the table so that the dataset only includes examples according to the filter function.
@@ -1059,7 +1059,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
-                `**fn_kwargs`: Keyword arguments to be passed to `function`.
+                `fn_kwargs` (`Optional[dict]`, default: `None`): Keyword arguments to be passed to `function`
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
