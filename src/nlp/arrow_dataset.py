@@ -857,6 +857,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 )
             )
 
+        if fn_kwargs is None:
+            fn_kwargs = dict()
+
         # If we do batch computation but no batch sze is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self._data.num_rows
@@ -1065,6 +1068,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise DatasetTransformationNotAllowedError(
                 "Using `.filter` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it.`"
             )
+
+        if fn_kwargs is None:
+            fn_kwargs = dict()
 
         # transforme the filter function into the map function
         def map_function(batch, *args):
