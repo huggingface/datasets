@@ -677,10 +677,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
                         outputs = self._data[key].to_pandas(split_blocks=True)
-                    elif format_type in ("numpy", "torch", "tensorflow"):
+                    elif format_type == "numpy":
                         outputs = self._data[key].to_pandas(split_blocks=True).to_numpy()
                     else:
-                        outputs = self._data[key].to_pylist()
+                        outputs = self._convert_outputs(self._data[key].to_pylist(), format_type=format_type)
                 else:
                     outputs = self._data[key].to_pylist()
             else:
