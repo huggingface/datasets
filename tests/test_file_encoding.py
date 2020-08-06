@@ -1,6 +1,6 @@
 import re
-from re import Match
 from pathlib import Path
+from re import Match
 
 
 def no_encoding_on_file_open(filepath: str) -> Match:
