@@ -1,9 +1,7 @@
 import re
 from pathlib import Path
-from re import Match
 
-
-def no_encoding_on_file_open(filepath: str) -> Match:
+def no_encoding_on_file_open(filepath: str) -> re.Match:
     r"""Find all instances where a non-binary file is opened without UTF-8 encoding.
 
     Regex explanation
