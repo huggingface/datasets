@@ -76,7 +76,9 @@ class MultiNews(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, path=None):
         """Yields examples."""
-        with open(os.path.join(path + ".src"), encoding="utf-8") as src_f, open(os.path.join(path + ".tgt"), encoding="utf-8") as tgt_f:
+        with open(os.path.join(path + ".src"), encoding="utf-8") as src_f, open(
+            os.path.join(path + ".tgt"), encoding="utf-8"
+        ) as tgt_f:
             for i, (src_line, tgt_line) in enumerate(zip(src_f, tgt_f)):
                 yield i, {
                     # In original file, each line has one example and natural newline
