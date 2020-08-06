@@ -506,7 +506,7 @@ class Lince(nlp.GeneratorBasedBuilder):
 
         index = 0
         for is_empty, pack in groupby(
-            csv.reader(open(filepath), delimiter=delimiter, quoting=csv.QUOTE_NONE, encoding="utf-8"), is_empty_line
+            csv.reader(open(filepath), delimiter=delimiter, quoting=csv.QUOTE_NONE), is_empty_line
         ):
             if is_empty is False:
                 # packed sentence -> [['tok_1', 'lid_1', 'ner_1'], ..., ['tok_n', 'lid_n', 'ner_n']]
