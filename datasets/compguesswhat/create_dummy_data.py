@@ -49,7 +49,7 @@ def create_dummy_data_for_split(data_path, dataset_name, dataset_version, data_f
 
         split_filepath = os.path.join(data_path, full_dataset_name, dataset_version, split_file)
         print(f"Reading split file {split_filepath}")
-        with gzip.open(split_filepath) as in_file:
+        with gzip.open(split_filepath, encoding="utf-8") as in_file:
             dummy_filepath = os.path.join(dummy_data_path, split_file)
             with gzip.open(dummy_filepath, mode="w") as out_file:
                 for i, line in enumerate(in_file):
@@ -71,7 +71,7 @@ def main(args):
             "The file 'dataset_info.json' doesn't exists. Make sure that you run the dataset tests via nlp-cli."
         )
 
-    with open(dataset_info_path) as in_file:
+    with open(dataset_info_path, encoding="utf-8") as in_file:
         dataset_info = json.load(in_file)
 
     dataset_version = dataset_info["default"]["version"]["version_str"]

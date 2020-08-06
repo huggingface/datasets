@@ -107,7 +107,7 @@ class ComQa(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """Yields examples."""
         # TODO(com_qa): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for id_, example in enumerate(data):
                 questions = []

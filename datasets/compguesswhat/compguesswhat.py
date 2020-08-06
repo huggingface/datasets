@@ -221,6 +221,6 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
             return game["id"], game
 
         """Yields examples."""
-        with gzip.open(filepath) as in_file:
+        with gzip.open(filepath, encoding="utf-8") as in_file:
             for data in in_file:
                 yield _extract_game_tuple(data)

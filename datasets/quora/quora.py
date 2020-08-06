@@ -49,7 +49,7 @@ class Quora(nlp.GeneratorBasedBuilder):
         return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs=data_file)]
 
     def _generate_examples(self, data_file):
-        with open(data_file) as f:
+        with open(data_file, encoding="utf-8") as f:
             data = csv.DictReader(f, delimiter="\t")
             for idx, row in enumerate(data):
                 yield idx, {

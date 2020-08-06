@@ -62,7 +62,7 @@ def _gather_dump_urls(base_url, mode, dl_manager):
     from bs4 import BeautifulSoup
 
     page_path = dl_manager.download(_REDDIT_URL + mode)
-    page_f = open(page_path)
+    page_f = open(page_path, encoding="utf-8")
     page_content = page_f.read()
     page_f.close()
     soup = BeautifulSoup(page_content, "lxml")
@@ -98,9 +98,9 @@ def _open_compressed_file(f_name, f_type):
 
     fh = None
     if f_type == "xz":
-        f = lzma.open(f_name, "rt")
+        f = lzma.open(f_name, "rt", encoding="utf-8")
     elif f_type == "bz2":
-        f = bz2.open(f_name, "rt")
+        f = bz2.open(f_name, "rt", encoding="utf-8")
     elif f_type == "zst":
         fh = open(f_name, "rb")
         dctx = zstd.ZstdDecompressor()
@@ -297,7 +297,7 @@ class Eli5(nlp.GeneratorBasedBuilder):
         )
         if isfile(qa_data_file):
             logging.info("loading pre-computed QA list")
-            self.filtered_reddit = json.load(open(qa_data_file))
+            self.filtered_reddit = json.load(open(qa_data_file), encoding="utf-8")
         else:
             self.filtered_reddit = _download_and_filter_reddit(
                 dl_manager, start_year=2011, start_month=7, end_year=2019, end_month=7
@@ -306,7 +306,7 @@ class Eli5(nlp.GeneratorBasedBuilder):
             json.dump(self.filtered_reddit, open(qa_data_file, "w"))
         # download data splits from AWS
         fpath_splits = dl_manager.download(self._DATA_SPLIT_URL)
-        self.data_split = json.load(open(fpath_splits))
+        self.data_split = json.load(open(fpath_splits), encoding="utf-8")
         return [
             nlp.SplitGenerator(
                 name=nlp.Split("train_eli5"), gen_kwargs={"split": "train", "subreddit_name": "explainlikeimfive"},

@@ -278,7 +278,7 @@ class Qanta(nlp.GeneratorBasedBuilder):
             path = trick_filepath
         else:
             path = qanta_filepath
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             questions = json.load(f)["questions"]
             for q in questions:
                 if q["page"] is not None and q["fold"] == fold:

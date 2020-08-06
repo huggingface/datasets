@@ -176,7 +176,7 @@ class Wikitext(nlp.GeneratorBasedBuilder):
 
         """Yields examples."""
         # TODO(wikitext): Yields (key, example) tuples from the dataset
-        with open(data_file) as f:
+        with open(data_file, encoding="utf-8") as f:
             for idx, row in enumerate(f):
                 if row.strip():
                     yield idx, {"text": row}

@@ -83,7 +83,7 @@ class WikiQa(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(wiki_qa): Yields (key, example) tuples from the dataset
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for idx, row in enumerate(reader):
                 yield idx, {

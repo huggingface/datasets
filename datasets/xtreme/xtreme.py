@@ -759,7 +759,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
         # TODO(xtreme): Yields (key, example) tuples from the dataset
 
         if self.config.name == "tydiqa" or self.config.name.startswith("MLQA") or self.config.name == "SQuAD":
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for article in data["data"]:
                     title = article.get("title", "").strip()
@@ -782,7 +782,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                                 "answers": {"answer_start": answer_starts, "text": answers},
                             }
         if self.config.name == "XNLI":
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = csv.DictReader(f, delimiter="\t")
                 for id_, row in enumerate(data):
                     yield id_, {
@@ -792,13 +792,13 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                         "gold_label": row["gold_label"],
                     }
         if self.config.name.startswith("PAWS-X"):
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
                 for id_, row in enumerate(data):
                     if len(row) == 4:
                         yield id_, {"sentence1": row[1], "sentence2": row[2], "label": row[3]}
         if self.config.name.startswith("XQuAD"):
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 xquad = json.load(f)
                 for article in xquad["data"]:
                     for paragraph in article["paragraphs"]:
@@ -830,13 +830,13 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                     source_target_file = os.path.join(filepath, file)
                 else:
                     source_file = os.path.join(filepath, file)
-            with open(target_file) as f:
+            with open(target_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
                 target_sentences = [row for row in data]
-            with open(source_file) as f:
+            with open(source_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
                 source_sentences = [row for row in data]
-            with open(source_target_file) as f:
+            with open(source_target_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
                 source_target_ids = [row for row in data]
             for id_, pair in enumerate(source_target_ids):
@@ -865,10 +865,10 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             target_file = filepath[1]
             source_sentences = []
             target_sentences = []
-            with open(source_file) as f1:
+            with open(source_file, encoding="utf-8") as f1:
                 for row in f1:
                     source_sentences.append(row)
-            with open(target_file) as f2:
+            with open(target_file, encoding="utf-8") as f2:
                 for row in f2:
                     target_sentences.append(row)
             for i in range(len(source_sentences)):
@@ -880,7 +880,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                 }
         if self.config.name.startswith("udpos"):
             for id_file, file in enumerate(filepath):
-                with open(file) as f:
+                with open(file, encoding="utf-8") as f:
                     data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                     for id_row, row in enumerate(data):
                         if len(row) >= 10 and row[1] != "_":

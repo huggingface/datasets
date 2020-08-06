@@ -131,7 +131,7 @@ class Coqa(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """Yields examples."""
         # TODO(coqa): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for row in data["data"]:
                 questions = [question["input_text"] for question in row["questions"]]

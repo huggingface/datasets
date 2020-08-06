@@ -349,7 +349,7 @@ def split_wet_file(wet_file_path, counter_inc_fn=None):
 
     import apache_beam as beam
 
-    with beam.io.filesystems.FileSystems.open(wet_file_path) as f, gzip.GzipFile(fileobj=f) as g:
+    with beam.io.filesystems.FileSystems.open(wet_file_path) as f, gzip.GzipFile(fileobj=f, encoding="utf-8") as g:
         url = None
         content = None
         content_len = None

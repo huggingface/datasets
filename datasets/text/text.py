@@ -32,7 +32,7 @@ class Text(nlp.GeneratorBasedBuilder):
         """ Read files sequentially, then lines sequentially. """
         idx = 0
         for filename in files:
-            with open(filename) as file:
+            with open(filename, encoding="utf-8") as file:
                 for line in file:
                     yield idx, {"text": line}
                     idx += 1

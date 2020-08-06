@@ -102,7 +102,7 @@ class Xquad(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(xquad): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             xquad = json.load(f)
             for article in xquad["data"]:
                 for paragraph in article["paragraphs"]:

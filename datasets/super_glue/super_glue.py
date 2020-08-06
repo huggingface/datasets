@@ -489,7 +489,7 @@ class SuperGlue(nlp.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, data_file, split):
-        with open(data_file) as f:
+        with open(data_file, encoding="utf-8") as f:
             for line in f:
                 row = json.loads(line)
 

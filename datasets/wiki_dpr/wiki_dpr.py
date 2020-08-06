@@ -112,7 +112,7 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, data_file, vectors_files=None):
         vec_idx = 0
         vecs = []
-        lines = open(data_file, "r")
+        lines = open(data_file, "r", encoding="utf-8")
         next(lines)  # skip headers
         for i, line in enumerate(lines):
             if self.config.dummy and i == 10000:

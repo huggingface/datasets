@@ -85,7 +85,7 @@ class Quoref(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(quoref): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for article in data["data"]:
                 title = article.get("title", "").strip()
