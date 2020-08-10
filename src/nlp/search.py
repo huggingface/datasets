@@ -179,7 +179,7 @@ class ElasticSearchIndex(BaseIndex):
             body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
         )
         hits = response["hits"]["hits"]
-        return SearchResults([hit["_score"] for hit in hits], [hit["_id"] for hit in hits])
+        return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
 
 
 class FaissIndex(BaseIndex):
