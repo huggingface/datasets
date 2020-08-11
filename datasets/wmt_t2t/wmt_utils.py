@@ -385,10 +385,18 @@ _TRAIN_SUBSETS = [
     SubDataset(
         name="uncorpus_v1",
         target="en",
-        sources={"ru", "zh"},
+        sources={"ru"},
         url="https://storage.googleapis.com/tfdataset-data/downloadataset/uncorpus/UNv1.0.en-{src}.tar.gz",
         path=("en-{src}/UNv1.0.en-{src}.{src}", "en-{src}/UNv1.0.en-{src}.en"),
     ),
+    SubDataset(
+        name="uncorpus_zh",
+        target="en",
+        sources={"zh"},
+        url="https://stuncorpusprod.blob.core.windows.net/corpusfiles/UNv1.0.en-zh.tar.gz.00",
+        path=("en-{src}/UNv1.0.en-{src}.{src}", "en-{src}/UNv1.0.en-{src}.en"),
+    ),
+
     SubDataset(
         name="wikiheadlines_fi",
         target="en",
