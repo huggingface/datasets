@@ -205,8 +205,8 @@ class BaseDatasetTest(TestCase):
         )
 
         dset_concat = concatenate_datasets([dset1, dset2, dset3])
-        self.assertEquals(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
-        self.assertEquals(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
+        self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
+        self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
 
     def test_flatten(self):
         dset = Dataset.from_dict(
@@ -699,34 +699,88 @@ class BaseDatasetTest(TestCase):
                 dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
             )
 
-            # don't test if torch and tensorflow are stacked accross examples
-            # we need to use the features definition to know at what depth we have to to the conversion
-
             dset.set_format("tensorflow")
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
             for col in columns:
                 self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
-                self.assertIsInstance(dset[:2][col][0], (tf.Tensor, tf.RaggedTensor))  # not stacked
-                self.assertIsInstance(dset[col][0], (tf.Tensor, tf.RaggedTensor))  # not stacked
+                self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
+                self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
+            self.assertEqual(dset[:2]["vec"].shape, (2, 3))
+            self.assertEqual(dset["vec"][:2].shape, (2, 3))
 
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
             for col in columns:
                 self.assertIsInstance(dset[0][col], np.ndarray)
-                self.assertIsInstance(dset[:2][col], np.ndarray)  # stacked
-                self.assertIsInstance(dset[col], np.ndarray)  # stacked
-            self.assertEqual(dset[:2]["vec"].shape, (2, 3))  # stacked
-            self.assertEqual(dset["vec"][:2].shape, (2, 3))  # stacked
+                self.assertIsInstance(dset[:2][col], np.ndarray)
+                self.assertIsInstance(dset[col], np.ndarray)
+            self.assertEqual(dset[:2]["vec"].shape, (2, 3))
+            self.assertEqual(dset["vec"][:2].shape, (2, 3))
 
             dset.set_format("torch", columns=["vec"])
             self.assertIsNotNone(dset[0])
             self.assertIsNotNone(dset[:2])
             # torch.Tensor is only for numerical columns
             self.assertIsInstance(dset[0]["vec"], torch.Tensor)
-            self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)  # not stacked
-            self.assertIsInstance(dset["vec"][0], torch.Tensor)  # not stacked
+            self.assertIsInstance(dset[:2]["vec"], torch.Tensor)
+            self.assertIsInstance(dset["vec"][:2], torch.Tensor)
+            self.assertEqual(dset[:2]["vec"].shape, (2, 3))
+            self.assertEqual(dset["vec"][:2].shape, (2, 3))
+
+    def test_format_ragged_vectors(self):
+        dset = self._create_dummy_dataset()
+        import numpy as np
+        import tensorflow as tf
+        import torch
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset = dset.map(lambda ex, i: {"vec": np.ones(3 + i) * i}, with_indices=True, cache_file_name=tmp_file)
+            columns = dset.column_names
+
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+            for col in columns:
+                self.assertIsInstance(dset[0][col], (str, list))
+                self.assertIsInstance(dset[:2][col], list)
+            self.assertDictEqual(
+                dset.features, Features({"filename": Value("string"), "vec": Sequence(Value("float64"))})
+            )
+
+            dset.set_format("tensorflow")
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+            for col in columns:
+                self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
+                self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
+                self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
+            # dim is None for ragged vectors in tensorflow
+            self.assertListEqual(dset[:2]["vec"].shape.as_list(), [2, None])
+            self.assertListEqual(dset["vec"][:2].shape.as_list(), [2, None])
+
+            dset.set_format("numpy")
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+            for col in columns:
+                self.assertIsInstance(dset[0][col], np.ndarray)
+                self.assertIsInstance(dset[:2][col], np.ndarray)
+                self.assertIsInstance(dset[col], np.ndarray)
+            # array is flat for raged vectors in numpy
+            self.assertEqual(dset[:2]["vec"].shape, (2,))
+            self.assertEqual(dset["vec"][:2].shape, (2,))
+
+            dset.set_format("torch", columns=["vec"])
+            self.assertIsNotNone(dset[0])
+            self.assertIsNotNone(dset[:2])
+            # torch.Tensor is only for numerical columns
+            self.assertIsInstance(dset[0]["vec"], torch.Tensor)
+            self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)
+            self.assertIsInstance(dset["vec"][0], torch.Tensor)
+            # pytorch doesn't support ragged tensors, so we should have lists
+            self.assertIsInstance(dset[:2]["vec"], list)
+            self.assertIsInstance(dset["vec"][:2], list)
 
     def test_format_nested(self):
         dset = self._create_dummy_dataset()
@@ -750,15 +804,18 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset[0]["nested"]["foo"], (tf.Tensor, tf.RaggedTensor))
             self.assertIsNotNone(dset[:2])
             self.assertIsInstance(dset[:2]["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
+            self.assertIsInstance(dset["nested"][0]["foo"], (tf.Tensor, tf.RaggedTensor))
 
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
             self.assertIsInstance(dset[0]["nested"]["foo"], np.ndarray)
             self.assertIsNotNone(dset[:2])
             self.assertIsInstance(dset[:2]["nested"][0]["foo"], np.ndarray)
+            self.assertIsInstance(dset["nested"][0]["foo"], np.ndarray)
 
             dset.set_format("torch", columns="nested")
             self.assertIsNotNone(dset[0])
             self.assertIsInstance(dset[0]["nested"]["foo"], torch.Tensor)
             self.assertIsNotNone(dset[:2])
             self.assertIsInstance(dset[:2]["nested"][0]["foo"], torch.Tensor)
+            self.assertIsInstance(dset["nested"][0]["foo"], torch.Tensor)

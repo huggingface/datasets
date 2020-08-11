@@ -590,11 +590,30 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         elif format_type == "torch":
             import torch
 
-            command = partial(torch.tensor, **format_kwargs)
+            map_nested_kwargs["map_list"] = False  # convert lists to tensors
+
+            def command(x):
+                if isinstance(x, Iterable):  # add support for nested types like struct of list of struct
+                    x = np.array(x, copy=False)
+                    if x.dtype == np.object:
+                        return [map_nested(command, i, **map_nested_kwargs) for i in x]
+                return torch.tensor(x, **format_kwargs)
+
         elif format_type == "tensorflow":
             import tensorflow
 
-            command = partial(tensorflow.ragged.constant, **format_kwargs)
+            map_nested_kwargs["map_list"] = False  # convert lists to tensors
+
+            def command(x):
+                if isinstance(x, Iterable):  # add support for nested types like struct of list of struct
+                    x = np.array(x, copy=False)
+                    if x.dtype == np.object:
+                        try:
+                            return tensorflow.ragged.constant(x)
+                        except ValueError:
+                            return [map_nested(command, i, **map_nested_kwargs) for i in x]
+                return tensorflow.constant(x, **format_kwargs)
+
         else:
 
             def identity(x):
