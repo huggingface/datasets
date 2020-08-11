@@ -26,6 +26,13 @@ class BaseDatasetTest(TestCase):
     def test_dummy_dataset(self):
         dset = self._create_dummy_dataset()
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertEqual(dset[0]["filename"], "my_name-train_0")
+        self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
+        self.assertEqual(dset[0]["col_1"], 3)
+        self.assertEqual(dset["col_1"][0], 3)
 
     def test_from_pandas(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
@@ -78,13 +85,16 @@ class BaseDatasetTest(TestCase):
         features = Features({"col_1": Value("string"), "col_2": Value("string")})
         self.assertRaises(pa.ArrowTypeError, Dataset.from_dict, data, features=features)
 
-    def test_set_format_numpy(self):
+    def test_set_format_numpy_multiple_columns(self):
         dset = self._create_dummy_dataset(multiple_columns=True)
         dset.set_format(type="numpy", columns=["col_1"])
         self.assertEqual(len(dset[0]), 1)
         self.assertIsInstance(dset[0]["col_1"], np.ndarray)
         self.assertListEqual(list(dset[0]["col_1"].shape), [])
         self.assertEqual(dset[0]["col_1"].item(), 3)
+        self.assertIsInstance(dset["col_1"], np.ndarray)
+        self.assertListEqual(list(dset["col_1"].shape), [4])
+        np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
 
         dset.reset_format()
         with dset.formated_as(type="numpy", columns=["col_1"]):
@@ -92,6 +102,9 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset[0]["col_1"], np.ndarray)
             self.assertListEqual(list(dset[0]["col_1"].shape), [])
             self.assertEqual(dset[0]["col_1"].item(), 3)
+            self.assertIsInstance(dset["col_1"], np.ndarray)
+            self.assertListEqual(list(dset["col_1"].shape), [4])
+            np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
 
         self.assertEqual(dset.format["type"], "python")
         self.assertEqual(dset.format["format_kwargs"], {})
@@ -115,6 +128,7 @@ class BaseDatasetTest(TestCase):
         dset.set_format(type="torch", columns=["col_1"])
         self.assertEqual(len(dset[0]), 1)
         self.assertIsInstance(dset[0]["col_1"], torch.Tensor)
+        self.assertIsInstance(dset["col_1"], torch.Tensor)
         self.assertListEqual(list(dset[0]["col_1"].shape), [])
         self.assertEqual(dset[0]["col_1"].item(), 3)
 
@@ -694,6 +708,7 @@ class BaseDatasetTest(TestCase):
             for col in columns:
                 self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
                 self.assertIsInstance(dset[:2][col][0], (tf.Tensor, tf.RaggedTensor))  # not stacked
+                self.assertIsInstance(dset[col][0], (tf.Tensor, tf.RaggedTensor))  # not stacked
 
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
@@ -701,7 +716,9 @@ class BaseDatasetTest(TestCase):
             for col in columns:
                 self.assertIsInstance(dset[0][col], np.ndarray)
                 self.assertIsInstance(dset[:2][col], np.ndarray)  # stacked
+                self.assertIsInstance(dset[col], np.ndarray)  # stacked
             self.assertEqual(dset[:2]["vec"].shape, (2, 3))  # stacked
+            self.assertEqual(dset["vec"][:2].shape, (2, 3))  # stacked
 
             dset.set_format("torch", columns=["vec"])
             self.assertIsNotNone(dset[0])
@@ -709,6 +726,7 @@ class BaseDatasetTest(TestCase):
             # torch.Tensor is only for numerical columns
             self.assertIsInstance(dset[0]["vec"], torch.Tensor)
             self.assertIsInstance(dset[:2]["vec"][0], torch.Tensor)  # not stacked
+            self.assertIsInstance(dset["vec"][0], torch.Tensor)  # not stacked
 
     def test_format_nested(self):
         dset = self._create_dummy_dataset()

@@ -583,8 +583,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         map_nested_kwargs = {}
         if format_type == "numpy":
-            import numpy as np
-
             if "copy" not in format_kwargs:
                 format_kwargs["copy"] = False
             command = partial(np.array, **format_kwargs)
@@ -603,8 +601,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return x
 
             command = identity
-
-        if isinstance(outputs, (list, tuple)):
+        if isinstance(outputs, (list, tuple, np.ndarray)):
             return command(outputs)
         elif isinstance(outputs, pd.DataFrame):
             if format_columns is not None and not output_all_columns:
@@ -678,7 +675,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     if format_type == "pandas":
                         outputs = self._data[key].to_pandas(split_blocks=True)
                     elif format_type in ("numpy", "torch", "tensorflow"):
-                        outputs = self._data[key].to_pandas(split_blocks=True).to_numpy()
+                        outputs = self._data.to_pandas(split_blocks=True).to_dict("list")[key]
                     else:
                         outputs = self._data[key].to_pylist()
                 else:
@@ -698,7 +695,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             raise ValueError("Can only get row(s) (int or slice or list[int]) or columns (string).")
 
-        if (format_type is not None or format_columns is not None) and not isinstance(key, str):
+        if format_type is not None or format_columns is not None:
             outputs = self._convert_outputs(
                 outputs,
                 format_type=format_type,
