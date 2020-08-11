@@ -35,6 +35,8 @@ deploy_doc "master" master
 # Example of how to deploy a doc on a certain commit (the commit doesn't have to be on the master branch).
 # The following commit would live on huggingface.co/nlp/v1.0.0
 #deploy_doc "b33a385" v1.0.0
+deploy_doc "99e0ee6" v0.3.0
+deploy_doc "21e8091" v0.4.0
 
 # Replace this by the latest stable commit. It is recommended to pin on a version release rather than master.
 deploy_doc "master"
