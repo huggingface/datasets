@@ -98,9 +98,9 @@ def _open_compressed_file(f_name, f_type):
 
     fh = None
     if f_type == "xz":
-        f = lzma.open(f_name, "rt", encoding="utf-8")
+        f = lzma.open(f_name, "rt")
     elif f_type == "bz2":
-        f = bz2.open(f_name, "rt", encoding="utf-8")
+        f = bz2.open(f_name, "rt")
     elif f_type == "zst":
         fh = open(f_name, "rb")
         dctx = zstd.ZstdDecompressor()

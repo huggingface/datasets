@@ -456,7 +456,7 @@ class Wikipedia(nlp.BeamBasedBuilder):
         def _extract_content(filepath):
             """Extracts article content from a single WikiMedia XML file."""
             logging.info("generating examples from = %s", filepath)
-            with beam.io.filesystems.FileSystems.open(filepath, encoding="utf-8") as f:
+            with beam.io.filesystems.FileSystems.open(filepath) as f:
                 f = bz2.BZ2File(filename=f)
                 if six.PY3:
                     # Workaround due to:
