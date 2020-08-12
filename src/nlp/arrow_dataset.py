@@ -1120,7 +1120,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             verbose=verbose,
-            fn_kwargs=fn_kwargs
+            fn_kwargs=fn_kwargs,
         )
 
     def select(
