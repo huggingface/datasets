@@ -52,6 +52,7 @@ class IWSLT2017Config(nlp.BuilderConfig):
 
         Args:
             pair: the language pair to consider
+            is_multilingual: Is this pair in the multilingual dataset (download source is different)
             **kwargs: keyword arguments forwarded to super.
         """
         self.pair = pair
@@ -62,12 +63,7 @@ class IWSLT2017Config(nlp.BuilderConfig):
 # XXX: Artificially removed DE from here, as it also exists within bilingual data
 MULTI_LANGUAGES = ["en", "it", "nl", "ro"]
 BI_LANGUAGES = ["ar", "de", "en", "fr", "ja", "ko", "zh"]
-MULTI_PAIRS = [
-    f"{source}-{target}"
-    for source in MULTI_LANGUAGES
-    for target in MULTI_LANGUAGES
-    if source != target
-]
+MULTI_PAIRS = [f"{source}-{target}" for source in MULTI_LANGUAGES for target in MULTI_LANGUAGES if source != target]
 BI_PAIRS = [
     f"{source}-{target}"
     for source in BI_LANGUAGES
@@ -91,6 +87,7 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
         IWSLT2017Config(
             name="iwslt2017-" + pair,
             description="A small dataset",
+            version=nlp.Version("1.0.0"),
             pair=pair,
             is_multilingual=pair in MULTI_PAIRS,
         )
@@ -102,9 +99,7 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # nlp.features.FeatureConnectors
-            features=nlp.Features(
-                {"source": nlp.Value("string"), "target": nlp.Value("string"),}
-            ),
+            features=nlp.Features({"translation": nlp.features.Translation(languages=self.config.pair.split("-"))}),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
@@ -131,18 +126,8 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
                 name=nlp.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "source_files": [
-                        os.path.join(
-                            data_dir,
-                            "train.tags.{}.{}".format(self.config.pair, source),
-                        )
-                    ],
-                    "target_files": [
-                        os.path.join(
-                            data_dir,
-                            "train.tags.{}.{}".format(self.config.pair, target),
-                        )
-                    ],
+                    "source_files": [os.path.join(data_dir, "train.tags.{}.{}".format(self.config.pair, source),)],
+                    "target_files": [os.path.join(data_dir, "train.tags.{}.{}".format(self.config.pair, target),)],
                     "split": "train",
                 },
             ),
@@ -151,21 +136,11 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
-                        os.path.join(
-                            data_dir,
-                            "IWSLT17.TED.tst{}.{}.{}.xml".format(
-                                year, self.config.pair, source
-                            ),
-                        )
+                        os.path.join(data_dir, "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, source),)
                         for year in years
                     ],
                     "target_files": [
-                        os.path.join(
-                            data_dir,
-                            "IWSLT17.TED.tst{}.{}.{}.xml".format(
-                                year, self.config.pair, target
-                            ),
-                        )
+                        os.path.join(data_dir, "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, target),)
                         for year in years
                     ],
                     "split": "test",
@@ -176,20 +151,10 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
-                        os.path.join(
-                            data_dir,
-                            "IWSLT17.TED.dev2010.{}.{}.xml".format(
-                                self.config.pair, source
-                            ),
-                        )
+                        os.path.join(data_dir, "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, source),)
                     ],
                     "target_files": [
-                        os.path.join(
-                            data_dir,
-                            "IWSLT17.TED.dev2010.{}.{}.xml".format(
-                                self.config.pair, target
-                            ),
-                        )
+                        os.path.join(data_dir, "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, target),)
                     ],
                     "split": "dev",
                 },
@@ -199,6 +164,7 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, source_files, target_files, split):
         """ Yields examples. """
         id_ = 0
+        source, target = self.config.pair.split("-")
         for source_file, target_file in zip(source_files, target_files):
             with open(source_file) as sf:
                 with open(target_file) as tf:
@@ -220,8 +186,5 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
                             else:
                                 continue
 
-                        yield id_, {
-                            "source": source_row,
-                            "target": target_row,
-                        }
+                        yield id_, {"translation": {source: source_row, target: target_row}}
                         id_ += 1
