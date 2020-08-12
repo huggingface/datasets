@@ -20,12 +20,22 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
+import numpy as np
+import pandas as pd
 import pyarrow as pa
 
 from . import utils
+from .utils.file_utils import _tf_available, _torch_available
 
 
 logger = logging.getLogger(__name__)
+
+
+if _torch_available:
+    import torch
+
+if _tf_available:
+    import tensorflow as tf
 
 
 def string_to_arrow(type_str: str):
@@ -41,6 +51,24 @@ def string_to_arrow(type_str: str):
         arrow_data_type_str = type_str
 
     return pa.__dict__[arrow_data_type_str]()
+
+
+def _cast_to_python_objects(obj):
+    """ Cast numpy/pytorch/tensorflow/pandas objects to python lists. """
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif _torch_available and isinstance(obj, torch.Tensor):
+        return obj.detach().cpu().numpy().tolist()
+    elif _tf_available and isinstance(obj, tf.Tensor):
+        return obj.numpy().tolist()
+    elif isinstance(obj, pd.DataFrame):
+        return obj.values.tolist()
+    else:
+        return obj
+
+
+def cast_to_python_objects(obj):
+    return utils.map_nested(_cast_to_python_objects, obj, map_list=True, map_tuple=True, map_numpy=False)
 
 
 @dataclass
@@ -488,4 +516,13 @@ class Features(dict):
         return cls(**obj)
 
     def encode_example(self, example):
+        example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
+
+    def encode_batch(self, batch):
+        encoded_batch = {}
+        if set(batch) != set(self):
+            raise ValueError("Column mismatch between batch {} and features {}".format(set(batch), set(self)))
+        for key, column in batch.items():
+            encoded_batch[key] = [encode_nested_example(self[key], cast_to_python_objects(obj)) for obj in column]
+        return encoded_batch
