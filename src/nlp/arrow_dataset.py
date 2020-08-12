@@ -832,7 +832,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     instead of the automatically generated one.
                 `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
-                `fn_kwargs` (`Optional[dict]`, default: `None`): Keyword arguments to be passed to `function`
+                `fn_kwargs` (`Optional[Dict]`, default: `None`): Keyword arguments to be passed to `function`
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -1064,11 +1064,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
-                `fn_kwargs` (`Optional[dict]`, default: `None`): Keyword arguments to be passed to `function`
+                `fn_kwargs` (`Optional[Dict]`, default: `None`): Keyword arguments to be passed to `function`
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.filter` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it.`"
+            )
+
+        if input_column is not None and input_column not in self._data.column_names:
+            raise ValueError(
+                "Input column {} not in the dataset. Current columns in the dataset: {}".format(
+                    input_column, self._data.column_names
+                )
             )
 
         if fn_kwargs is None:
