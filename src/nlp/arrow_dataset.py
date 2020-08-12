@@ -943,6 +943,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "writer_batch_size": writer_batch_size,
                     "features": features,
                     "disable_nullable": disable_nullable,
+                    "input_column": input_column,
+                    "fn_kwargs": fn_kwargs,
                 }
                 cache_file_name = self._get_cache_file_path(function, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
@@ -1071,18 +1073,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         if fn_kwargs is None:
             fn_kwargs = dict()
+        fn_kwargs["input_column"] = input_column
 
         # transforme the filter function into the map function
-        def map_function(batch, *args):
+        def map_function(batch, *args, **fn_kwargs):
             result = defaultdict(list)
             num_examples = len(batch[next(iter(batch.keys()))])
+            input_column = fn_kwargs.pop("input_column", None)
 
             # create single examples
             for i in range(num_examples):
                 example = map_nested(lambda x: x[i], batch, dict_only=True)
                 fn_input = example if input_column is None else example[input_column]
 
-                # check if example should be fildered or not
+                # check if example should be filtered or not
                 if with_indices:
                     keep_example = function(fn_input, args[0][i], **fn_kwargs)
                 else:
@@ -1116,6 +1120,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             verbose=verbose,
+            fn_kwargs=fn_kwargs
         )
 
     def select(
@@ -1337,13 +1342,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator, np.random.Generator
         ), "The provided generator must be an instance of numpy.random.Generator"
 
+        if generator is None:
+            generator = np.random.default_rng(seed)
+
         # Check if we've already cached this computation (indexed by a hash)
-        if self._data_files and (seed is not None or generator is not None):
+        if self._data_files:
             if cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 cache_kwargs = {
                     "generator": generator,
-                    "seed": seed,
                     "keep_in_memory": keep_in_memory,
                     "load_from_cache_file": load_from_cache_file,
                     "cache_file_name": cache_file_name,
@@ -1354,9 +1361,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if verbose:
                     logger.info("Loading cached shuffled dataset at %s", cache_file_name)
                 return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
-
-        if generator is None:
-            generator = np.random.default_rng(seed)
 
         permutation = generator.permutation(len(self))
 
@@ -1575,8 +1579,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 "aforementioned parameters."
             )
 
+        if generator is None:
+            generator = np.random.default_rng(seed)
+
         # Check if we've already cached this computation (indexed by a hash)
-        if self._data_files and (seed is not None or generator is not None):
+        if self._data_files:
             if train_cache_file_name is None or test_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 cache_kwargs = {
@@ -1584,7 +1591,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "train_size": train_size,
                     "shuffle": shuffle,
                     "generator": generator,
-                    "seed": seed,
                     "keep_in_memory": keep_in_memory,
                     "load_from_cache_file": load_from_cache_file,
                     "train_cache_file_name": train_cache_file_name,
@@ -1616,9 +1622,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             train_indices = np.arange(n_train)
             test_indices = np.arange(n_train, n_train + n_test)
         else:
-            if generator is None:
-                generator = np.random.default_rng(seed)
-
             # random partition
             permutation = generator.permutation(len(self))
             test_indices = permutation[:n_test]
