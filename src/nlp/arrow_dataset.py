@@ -37,7 +37,7 @@ from tqdm.auto import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .features import Features
+from .features import Features, cast_to_python_objects
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -254,6 +254,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
+        if features is not None:
+            mapping = features.encode_batch(mapping)
+        else:
+            mapping = cast_to_python_objects(mapping)
         pa_table: pa.Table = pa.Table.from_pydict(
             mapping=mapping, schema=pa.schema(features.type) if features is not None else None
         )
@@ -957,6 +961,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for i, example in enumerate(tqdm(self, disable=not verbose)):
                     example = apply_function_on_filtered_inputs(example, i)
                     if update_data:
+                        example = cast_to_python_objects(example)
                         writer.write(example)
             else:
                 for i in tqdm(range(0, len(self), batch_size), disable=not verbose):
@@ -973,6 +978,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
                         )
                     if update_data:
+                        batch = cast_to_python_objects(batch)
                         writer.write_batch(batch)
             if update_data:
                 writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
