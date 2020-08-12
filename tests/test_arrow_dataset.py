@@ -323,10 +323,11 @@ class BaseDatasetTest(TestCase):
     @require_torch
     def test_map_torch(self):
         import torch
+
         dset = self._create_dummy_dataset()
 
         def func(example):
-            return {"tensor": torch.Tensor([1., 2, 3])}
+            return {"tensor": torch.Tensor([1.0, 2, 3])}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
@@ -340,10 +341,11 @@ class BaseDatasetTest(TestCase):
     @require_tf
     def test_map_tf(self):
         import tensorflow as tf
+
         dset = self._create_dummy_dataset()
 
         def func(example):
-            return {"tensor": tf.constant([1., 2, 3])}
+            return {"tensor": tf.constant([1.0, 2, 3])}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
@@ -358,7 +360,7 @@ class BaseDatasetTest(TestCase):
         dset = self._create_dummy_dataset()
 
         def func(example):
-            return {"tensor": np.array([1., 2, 3])}
+            return {"tensor": np.array([1.0, 2, 3])}
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")

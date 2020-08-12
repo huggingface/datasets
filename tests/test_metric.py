@@ -1,6 +1,8 @@
-from nlp.metric import Metric, MetricInfo
 from unittest import TestCase
+
 from nlp.features import Features, Value
+from nlp.metric import Metric, MetricInfo
+
 from .utils import require_tf, require_torch
 
 
@@ -9,10 +11,7 @@ class DummyMetric(Metric):
         return MetricInfo(
             description="dummy metric for tests",
             citation="insert citation here",
-            features=Features({
-                'predictions': Value('int64'),
-                'references': Value('int64'),
-            }),
+            features=Features({"predictions": Value("int64"), "references": Value("int64"),}),
         )
 
     def _compute(self, predictions, references):
@@ -20,7 +19,6 @@ class DummyMetric(Metric):
 
 
 class TestMetric(TestCase):
-
     def test_dummy_metric(self):
         preds, refs = [1, 2, 3, 4], [1, 2, 4, 3]
 
