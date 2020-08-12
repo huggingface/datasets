@@ -11,7 +11,7 @@ class DummyMetric(Metric):
         return MetricInfo(
             description="dummy metric for tests",
             citation="insert citation here",
-            features=Features({"predictions": Value("int64"), "references": Value("int64"),}),
+            features=Features({"predictions": Value("int64"), "references": Value("int64")}),
         )
 
     def _compute(self, predictions, references):
