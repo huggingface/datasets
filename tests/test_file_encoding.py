@@ -11,15 +11,13 @@ def _no_encoding_on_file_open(filepath: str):
     (?!.*\b(?:encoding|rb|w|wb|w+|wb+|ab|ab+)\b): Lookahead and discard match if `encoding` or `rb` etc are
     arguments of `open()`.
 
-    (?<!\.): Lookbehind and discard match if `open()` preceded by `.`. Used to exclude `gzip.open()`
+    (?<=\s): Lookbehind and match if `open()` predeceded by one whitespace.
 
-    (?<!csv.reader\(): Lookahead and discard match if `open()` preceded by `csv.reader(`
-
-    (open)\((.*)\): Capture everything in braces of `open()`
+    (open)\((.*)\): Capture everything in parentheses of `open()`.
     """
 
     with open(filepath, "r", encoding="utf-8") as input_file:
-        regexp = re.compile(r"(?!.*\b(?:encoding|rb|w|wb|w+|wb+|ab|ab+)\b)(?<!\.)(?<!csv.reader\()(open)\((.*)\)")
+        regexp = re.compile(r"(?!.*\b(?:encoding|rb|w|wb|w+|wb+|ab|ab+)\b)(?<=\s)(open)\((.*)\)")
         input_text = input_file.read()
         match = regexp.search(input_text)
 
