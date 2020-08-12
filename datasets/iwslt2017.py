@@ -122,7 +122,7 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
             data_dir = os.path.join(dl_dir, "DeEnItNlRo-DeEnItNlRo")
             years = [2010]
         else:
-            bi_url = f"https://wit3.fbk.eu/archive/2017-01-trnted//texts/{source}/{target}/{source}-{target}.tgz"
+            bi_url = f"https://wit3.fbk.eu/archive/2017-01-trnted/texts/{source}/{target}/{source}-{target}.tgz"
             dl_dir = dl_manager.download_and_extract(bi_url)
             data_dir = os.path.join(dl_dir, f"{source}-{target}")
             years = [2010, 2011, 2012, 2013, 2014, 2015]
