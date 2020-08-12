@@ -297,7 +297,7 @@ class Eli5(nlp.GeneratorBasedBuilder):
         )
         if isfile(qa_data_file):
             logging.info("loading pre-computed QA list")
-            self.filtered_reddit = json.load(open(qa_data_file), encoding="utf-8")
+            self.filtered_reddit = json.load(open(qa_data_file))
         else:
             self.filtered_reddit = _download_and_filter_reddit(
                 dl_manager, start_year=2011, start_month=7, end_year=2019, end_month=7
@@ -306,7 +306,7 @@ class Eli5(nlp.GeneratorBasedBuilder):
             json.dump(self.filtered_reddit, open(qa_data_file, "w"))
         # download data splits from AWS
         fpath_splits = dl_manager.download(self._DATA_SPLIT_URL)
-        self.data_split = json.load(open(fpath_splits), encoding="utf-8")
+        self.data_split = json.load(open(fpath_splits))
         return [
             nlp.SplitGenerator(
                 name=nlp.Split("train_eli5"), gen_kwargs={"split": "train", "subreddit_name": "explainlikeimfive"},
