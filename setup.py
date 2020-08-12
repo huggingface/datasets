@@ -105,12 +105,12 @@ EXTRAS_REQUIRE = {
     'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE,
     'quality': QUALITY_REQUIRE,
-    'docs': ["recommonmark", "sphinx", "sphinx-markdown-tables", "sphinx-rtd-theme==0.4.3", "sphinx-copybutton"]
+    'docs': ["recommonmark", "sphinx==3.1.2", "sphinx-markdown-tables", "sphinx-rtd-theme==0.4.3", "sphinx-copybutton"]
 }
 
 setup(
     name='nlp',
-    version="0.3.0",
+    version="0.4.0",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',

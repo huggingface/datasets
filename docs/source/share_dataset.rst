@@ -68,7 +68,7 @@ To add a "canonical" dataset to the library, you need to do the following steps:
    Right now, we need an unreleased version of ``isort`` to avoid a
    `bug <https://github.com/timothycrosley/isort/pull/1000>`__:
 
-.. code-block::bash
+.. code-block::
 
    pip install -U git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort
 
@@ -137,7 +137,7 @@ Adding metadata
 
 You can check that the new dataset loading script works correctly and create the ``dataset_infos.json`` file at the same time by running the command:
 
-.. code-block::bash
+.. code-block::
 
 	python nlp-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 
@@ -242,6 +242,7 @@ Now test that both the real data and the dummy data work correctly.
 Go back to **the root of your nlp** folder and use the following command:
 
 *For the real data*:
+
 .. code-block::
 
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your-dataset-name>
@@ -249,6 +250,7 @@ Go back to **the root of your nlp** folder and use the following command:
 	and 
 
 *For the dummy data*:
+
 .. code-block::
 
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
