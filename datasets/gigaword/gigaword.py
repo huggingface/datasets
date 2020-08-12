@@ -113,7 +113,7 @@ class Gigaword(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, src_path=None, tgt_path=None, replace_unk=None):
         """Yields examples."""
-        with open(src_path) as f_d, open(tgt_path, encoding="utf-8") as f_s:
+        with open(src_path, encoding="utf-8") as f_d, open(tgt_path, encoding="utf-8") as f_s:
             for i, (doc_text, sum_text) in enumerate(zip(f_d, f_s)):
                 if replace_unk:
                     yield i, {
