@@ -395,5 +395,7 @@ try:
         pickler.save_reduce(regex.compile, args, obj=obj)
         dill._dill.log.info("# Re")
         return
+
+
 except ImportError:
     pass
