@@ -171,9 +171,7 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
                 if self.config.index_name == "exact":
                     d = 768
                     index = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
-                    dataset.add_faiss_index(
-                        "embeddings", custom_index=index
-                    )
+                    dataset.add_faiss_index("embeddings", custom_index=index)
                 else:
                     d = 768
                     quantizer = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
