@@ -1,8 +1,20 @@
+import logging
 import os
 import unittest
 from distutils.util import strtobool
 
 from nlp.utils.file_utils import _tf_available, _torch_available
+
+
+logger = logging.getLogger(__name__)
+
+try:
+    import transformers
+
+    _transformers_available = True  # pylint: disable=invalid-name
+    logger.info("transformers version {} available.".format(transformers.__version__))
+except ImportError:
+    _transformers_available = False  # pylint: disable=invalid-name
 
 
 def parse_flag_from_env(key, default=False):
@@ -47,6 +59,18 @@ def require_tf(test_case):
     """
     if not _tf_available:
         test_case = unittest.skip("test requires TensorFlow")(test_case)
+    return test_case
+
+
+def require_transformers(test_case):
+    """
+    Decorator marking a test that requires transformers.
+
+    These tests are skipped when transformers isn't installed.
+
+    """
+    if not _transformers_available:
+        test_case = unittest.skip("test requires transformers")(test_case)
     return test_case
 
 
