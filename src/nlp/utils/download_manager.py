@@ -20,7 +20,7 @@ import enum
 import logging
 import os
 
-from .file_utils import cached_path, get_from_cache, hash_url_to_filename
+from .file_utils import HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
 from .py_utils import flatten_nested, map_nested, size_str
 
@@ -121,22 +121,23 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
+        cache_dir = self._download_config.cache_dir or os.path.join(HF_DATASETS_CACHE, "downloads")
 
         def url_to_downloaded_path(url):
-            return os.path.join(self._download_config.cache_dir, hash_url_to_filename(url))
+            return os.path.join(cache_dir, hash_url_to_filename(url))
 
         downloaded_path_or_paths = map_nested(url_to_downloaded_path, url_or_urls)
         flattened_urls_or_urls = flatten_nested(url_or_urls)
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
         for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             try:
-                get_from_cache(url, cache_dir=self._download_config.cache_dir, local_files_only=True)
+                get_from_cache(url, cache_dir=cache_dir, local_files_only=True)
                 cached = True
             except FileNotFoundError:
                 cached = False
             if not cached or self._download_config.force_download:
                 custom_download(url, path)
-                get_from_cache(url, cache_dir=self._download_config.cache_dir, local_files_only=True)
+                get_from_cache(url, cache_dir=cache_dir, local_files_only=True)
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
 
@@ -194,7 +195,10 @@ class DownloadManager(object):
                 path_or_paths.
         """
         return map_nested(
-            lambda path: cached_path(path, extract_compressed_file=True, force_extract=False), path_or_paths,
+            lambda path: cached_path(
+                path, cache_dir=self._download_config.cache_dir, extract_compressed_file=True, force_extract=False
+            ),
+            path_or_paths,
         )
 
     def download_and_extract(self, url_or_urls):

@@ -668,12 +668,6 @@ class WmtConfig(nlp.BuilderConfig):
 class Wmt(ABC, nlp.GeneratorBasedBuilder):
     """WMT translation dataset."""
 
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-  Some of the wmt configs here, require a manual download.
-  Please look into wmt.py to see the exact path (and file name) that has to
-  be downloaded.
-  """
-
     def __init__(self, *args, **kwargs):
         if type(self) == Wmt and "config" not in kwargs:  # pylint: disable=unidiomatic-typecheck
             raise ValueError(
@@ -826,14 +820,14 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
                     or ss_name.startswith("wikititles_v1")
                 ):
                     sub_generator = functools.partial(_parse_tsv, language_pair=self.config.language_pair)
-                elif "tmx" in fname or ss_name.startswith("paracrawl_v3"):
+                elif "tmx" in fname or ss_name.startswith("paracrawl_v3") or ss_name.startswith("setimes_2"):
                     sub_generator = _parse_tmx
                 elif ss_name.startswith("wikiheadlines"):
                     sub_generator = _parse_wikiheadlines
                 else:
-                    raise ValueError("Unsupported file format: %s" % fname)
+                    raise ValueError(f"Unsupported file format: {fname} for {ss_name}")
             else:
-                raise ValueError("Invalid number of files: %d" % len(files))
+                raise ValueError(f"Invalid number of files: {len(files)}")
 
             for sub_key, ex in sub_generator(*files):
                 if not all(ex.values()):
@@ -886,8 +880,8 @@ def _parse_parallel_sentences(f1, f2):
 
     # Some datasets (e.g., CWMT) contain multiple parallel files specified with
     # a wildcard. We sort both sets to align them and parse them one by one.
-    f1_files = glob.glob(f1)
-    f2_files = glob.glob(f2)
+    f1_files = sorted(glob.glob(f1))
+    f2_files = sorted(glob.glob(f2))
 
     assert f1_files and f2_files, "No matching files found: %s, %s." % (f1, f2)
     assert len(f1_files) == len(f2_files), "Number of files do not match: %d vs %d for %s vs %s." % (
@@ -993,7 +987,7 @@ def _parse_czeng(*paths, **kwargs):
         logging.info("Loaded %d bad blocks to filter from CzEng v1.6 to make v1.7.", len(bad_blocks))
 
     for path in paths:
-        for gz_path in glob.glob(path):
+        for gz_path in sorted(glob.glob(path)):
             with open(gz_path, "rb") as g, gzip.GzipFile(fileobj=g) as f:
                 filename = os.path.basename(gz_path)
                 for line_id, line in enumerate(f):

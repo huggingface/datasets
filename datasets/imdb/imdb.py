@@ -18,9 +18,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import glob
 import os
-import re
 
 import nlp
 
@@ -73,7 +71,7 @@ class Imdb(nlp.GeneratorBasedBuilder):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(
-                {"text": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["neg", "pos"]),}
+                {"text": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["neg", "pos"])}
             ),
             supervised_keys=None,
             homepage="http://ai.stanford.edu/~amaas/data/sentiment/",
@@ -101,17 +99,17 @@ class Imdb(nlp.GeneratorBasedBuilder):
         # For labeled examples, extract the label from the path.
         if labeled:
             files = {
-                "pos": os.listdir(os.path.join(directory, "pos")),
-                "neg": os.listdir(os.path.join(directory, "neg")),
+                "pos": sorted(os.listdir(os.path.join(directory, "pos"))),
+                "neg": sorted(os.listdir(os.path.join(directory, "neg"))),
             }
             for key in files:
                 for id_, file in enumerate(files[key]):
                     filepath = os.path.join(directory, key, file)
-                    with open(filepath) as f:
+                    with open(filepath, encoding="UTF-8") as f:
                         yield key + "_" + str(id_), {"text": f.read(), "label": key}
         else:
-            unsup_files = os.listdir(os.path.join(directory, "unsup"))
+            unsup_files = sorted(os.listdir(os.path.join(directory, "unsup")))
             for id_, file in enumerate(unsup_files):
                 filepath = os.path.join(directory, "unsup", file)
-                with open(filepath) as f:
+                with open(filepath, encoding="UTF-8") as f:
                     yield id_, {"text": f.read(), "label": -1}

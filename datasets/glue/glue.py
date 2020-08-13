@@ -230,7 +230,7 @@ class Glue(nlp.GeneratorBasedBuilder):
           @online{WinNT,
             author = {Iyer, Shankar and Dandekar, Nikhil and Csernai, Kornel},
             title = {First Quora Dataset Release: Question Pairs},
-            year = 2017,
+            year = {2017},
             url = {https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs},
             urldate = {2019-04-03}
           }"""
@@ -522,7 +522,7 @@ class Glue(nlp.GeneratorBasedBuilder):
             # header.
             is_cola_non_test = self.config.name == "cola" and split != "test"
 
-            with open(data_file) as f:
+            with open(data_file, encoding="utf8") as f:
                 reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                 if is_cola_non_test:
                     reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
@@ -556,7 +556,7 @@ class Glue(nlp.GeneratorBasedBuilder):
 
     def _generate_example_mrpc_files(self, mrpc_files, split):
         if split == "test":
-            with open(mrpc_files["test"]) as f:
+            with open(mrpc_files["test"], encoding="utf8") as f:
                 reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                 for n, row in enumerate(reader):
                     yield {
@@ -566,10 +566,10 @@ class Glue(nlp.GeneratorBasedBuilder):
                         "idx": n,
                     }
         else:
-            with open(mrpc_files["dev_ids"]) as f:
+            with open(mrpc_files["dev_ids"], encoding="utf8") as f:
                 reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                 dev_ids = [[row[0], row[1]] for row in reader]
-            with open(mrpc_files["train"]) as f:
+            with open(mrpc_files["train"], encoding="utf8") as f:
                 # The first 3 bytes are the utf-8 BOM \xef\xbb\xbf, which messes with
                 # the Quality key.
                 f.seek(3)

@@ -21,15 +21,19 @@ import logging
 import math
 import os
 import re
+import shutil
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 import pyarrow as pa
 import pyarrow.parquet
 
-from .arrow_dataset import Dataset
 from .naming import filename_for_dataset_split
-from .utils import cached_path, py_utils
+from .utils import cached_path
+
+
+if TYPE_CHECKING:
+    from .info import DatasetInfo  # noqa: F401
 
 
 logger = logging.getLogger(__name__)
@@ -58,6 +62,12 @@ _ADDITION_SEP_RE = re.compile(r"\s*\+\s*")
 
 class DatasetNotOnHfGcs(ConnectionError):
     """When you can't get the dataset from the Hf google cloud storage"""
+
+    pass
+
+
+class MissingFilesOnHfGcs(ConnectionError):
+    """When some files are missing on the Hf oogle cloud storage"""
 
     pass
 
@@ -123,28 +133,29 @@ class BaseReader:
     Build a Dataset object out of Instruction instance(s).
     """
 
-    def __init__(self, path, info):
+    def __init__(self, path: str, info: Optional["DatasetInfo"]):
         """Initializes ArrowReader.
 
         Args:
             path (str): path where tfrecords are stored.
             info (DatasetInfo): info about the dataset.
         """
-        self._path = path
-        self._info = info
-        self._filetype_suffix = None
+        self._path: str = path
+        self._info: Optional["DatasetInfo"] = info
+        self._filetype_suffix: Optional[str] = None
 
     def _get_dataset_from_filename(self, filename_skip_take):
         """Returns a Dataset instance from given (filename, skip, take)."""
         raise NotImplementedError
 
-    def _read_files(self, files, info) -> Dataset:
+    def _read_files(self, files, info, original_instructions) -> dict:
         """Returns Dataset for given file instructions.
 
         Args:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contain the absolute path, not relative.
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
+            original_instructions: store the original instructions used to build the dataset split in the dataset
         """
         pa_batches = []
         for f_dict in files:
@@ -152,8 +163,8 @@ class BaseReader:
             pa_batches.extend(pa_table.to_batches())
         if pa_batches:
             pa_table = pa.Table.from_batches(pa_batches)
-        ds = Dataset(arrow_table=pa_table, data_files=files, info=info)
-        return ds
+        dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=info, split=original_instructions)
+        return dataset_kwargs
 
     def get_file_instructions(self, name, instruction, split_infos):
         """Return list of dict {'filename': str, 'skip': int, 'take': int}"""
@@ -170,28 +181,23 @@ class BaseReader:
 
         Args:
             name (str): name of the dataset.
-            instructions (ReadInstruction, List[], Dict[]): instruction(s) to read.
-                Instructions can be string and will then be passed to the Instruction
+            instructions (ReadInstruction): instructions to read.
+                Instruction can be string and will then be passed to the Instruction
                 constructor as it.
             split_infos (list of SplitInfo proto): the available splits for dataset.
 
         Returns:
-             a single Dataset instance if instruction is a single
-             ReadInstruction instance. Otherwise a dict/list of Dataset
-             corresponding to given instructions param shape.
+             kwargs to build a single Dataset instance.
         """
 
-        def _read_instruction_to_ds(instruction):
-            files = self.get_file_instructions(name, instruction, split_infos)
-            if not files:
-                msg = 'Instruction "%s" corresponds to no data!' % instruction
-                raise AssertionError(msg)
-            return self.read_files(files=tuple(files),)
-
-        return py_utils.map_nested(_read_instruction_to_ds, instructions)
+        files = self.get_file_instructions(name, instructions, split_infos)
+        if not files:
+            msg = 'Instruction "%s" corresponds to no data!' % instructions
+            raise AssertionError(msg)
+        return self.read_files(files=tuple(files), original_instructions=instructions)
 
     def read_files(
-        self, files,
+        self, files, original_instructions=None,
     ):
         """Returns single Dataset instance for the set of file instructions.
 
@@ -199,16 +205,17 @@ class BaseReader:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contains the relative path, not absolute.
                 skip/take indicates which example read in the file: `ds.skip().take()`
+            original_instructions: store the original instructions used to build the dataset split in the dataset
 
         Returns:
-             a Dataset instance.
+            kwargs to build a Dataset instance.
         """
         # Prepend path to filename
         files = copy.deepcopy(files)
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
-        dataset = self._read_files(files=files, info=self._info,)
-        return dataset
+        dataset_kwargs = self._read_files(files=files, info=self._info, original_instructions=original_instructions)
+        return dataset_kwargs
 
     def download_from_hf_gcs(self, cache_dir, relative_data_dir):
         """
@@ -224,17 +231,22 @@ class BaseReader:
         try:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
             downloaded_dataset_info = cached_path(remote_dataset_info)
-            os.rename(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
+            shutil.move(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
+            if self._info is not None:
+                self._info.update(self._info.from_directory(cache_dir))
         except ConnectionError:
             raise DatasetNotOnHfGcs()
-        for split in self._info.splits:
-            file_instructions = self.get_file_instructions(
-                name=self._info.builder_name, instruction=split, split_infos=self._info.splits.values(),
-            )
-            for file_instruction in file_instructions:
-                remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
-                downloaded_prepared_filename = cached_path(remote_prepared_filename)
-                os.rename(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
+        try:
+            for split in self._info.splits:
+                file_instructions = self.get_file_instructions(
+                    name=self._info.builder_name, instruction=split, split_infos=self._info.splits.values(),
+                )
+                for file_instruction in file_instructions:
+                    remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
+                    downloaded_prepared_filename = cached_path(remote_prepared_filename)
+                    shutil.move(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
+        except ConnectionError:
+            raise MissingFilesOnHfGcs()
 
 
 class ArrowReader(BaseReader):
@@ -243,7 +255,7 @@ class ArrowReader(BaseReader):
     This Reader uses memory mapping on arrow files.
     """
 
-    def __init__(self, path, info):
+    def __init__(self, path: str, info: Optional["DatasetInfo"]):
         """Initializes ArrowReader.
 
         Args:
@@ -274,7 +286,7 @@ class ParquetReader(BaseReader):
     This Reader uses memory mapping on parquet files.
     """
 
-    def __init__(self, path, info):
+    def __init__(self, path: str, info: Optional["DatasetInfo"]):
         """Initializes ParquetReader.
 
         Args:

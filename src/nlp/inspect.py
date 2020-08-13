@@ -27,16 +27,16 @@ from .utils import DownloadConfig
 logger = logging.getLogger(__name__)
 
 
-def list_datasets():
+def list_datasets(with_community_datasets=True):
     """ List all the datasets scripts available on HuggingFace AWS bucket """
     api = HfApi()
-    return api.dataset_list()
+    return api.dataset_list(with_community_datasets=with_community_datasets)
 
 
-def list_metrics():
+def list_metrics(with_community_metrics=True):
     """ List all the metrics script available on HuggingFace AWS bucket """
     api = HfApi()
-    return api.metric_list()
+    return api.metric_list(with_community_metrics=with_community_metrics)
 
 
 def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
@@ -53,7 +53,7 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
             download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
             **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
-    module_path = prepare_module(
+    module_path, _ = prepare_module(
         path, download_config=download_config, dataset=True, force_local_path=local_path, **download_kwargs
     )
     print(
@@ -77,7 +77,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
             download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
             **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
-    module_path = prepare_module(
+    module_path, _ = prepare_module(
         path, download_config=download_config, dataset=False, force_local_path=local_path, **download_kwargs
     )
     print(

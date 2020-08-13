@@ -57,7 +57,7 @@ class Scifact(nlp.GeneratorBasedBuilder):
                 "doc_id": nlp.Value("int32"),  # The document's S2ORC ID.
                 "title": nlp.Value("string"),  # The title.
                 "abstract": nlp.features.Sequence(
-                    {"sentence": nlp.Value("string")}
+                    nlp.Value("string")
                 ),  # The abstract, written as a list of sentences.
                 "structured": nlp.Value("bool"),  # Indicator for whether this is a structured abstract.
             }
@@ -67,10 +67,8 @@ class Scifact(nlp.GeneratorBasedBuilder):
                 "claim": nlp.Value("string"),  # The text of the claim.
                 "evidence_doc_id": nlp.Value("string"),
                 "evidence_label": nlp.Value("string"),  # Label for the rationale.
-                "evidence_sentences": nlp.features.Sequence({"sentence": nlp.Value("int32")}),  # Rationale sentences.
-                "cited_doc_ids": nlp.features.Sequence(
-                    {"doc_id": nlp.Value("int32")}
-                ),  # The claim's "cited documents".
+                "evidence_sentences": nlp.features.Sequence(nlp.Value("int32")),  # Rationale sentences.
+                "cited_doc_ids": nlp.features.Sequence(nlp.Value("int32")),  # The claim's "cited documents".
             }
 
         return nlp.DatasetInfo(
@@ -134,7 +132,7 @@ class Scifact(nlp.GeneratorBasedBuilder):
                     yield id_, {
                         "doc_id": int(data["doc_id"]),
                         "title": data["title"],
-                        "abstract": {"sentence": data["abstract"]},
+                        "abstract": data["abstract"],
                         "structured": data["structured"],
                     }
                 else:
@@ -144,8 +142,8 @@ class Scifact(nlp.GeneratorBasedBuilder):
                             "claim": data["claim"],
                             "evidence_doc_id": "",
                             "evidence_label": "",
-                            "evidence_sentences": {"sentence": []},
-                            "cited_doc_ids": {"doc_id": []},
+                            "evidence_sentences": [],
+                            "cited_doc_ids": [],
                         }
                     else:
                         evidences = data["evidence"]
@@ -157,8 +155,8 @@ class Scifact(nlp.GeneratorBasedBuilder):
                                         "claim": data["claim"],
                                         "evidence_doc_id": doc_id,
                                         "evidence_label": evidence["label"],
-                                        "evidence_sentences": {"sentence": evidence["sentences"]},
-                                        "cited_doc_ids": {"doc_id": data.get("cited_doc_ids", [])},
+                                        "evidence_sentences": evidence["sentences"],
+                                        "cited_doc_ids": data.get("cited_doc_ids", []),
                                     }
                         else:
                             yield id_, {
@@ -166,6 +164,6 @@ class Scifact(nlp.GeneratorBasedBuilder):
                                 "claim": data["claim"],
                                 "evidence_doc_id": "",
                                 "evidence_label": "",
-                                "evidence_sentences": {"sentence": []},
-                                "cited_doc_ids": {"doc_id": data.get("cited_doc_ids", [])},
+                                "evidence_sentences": [],
+                                "cited_doc_ids": data.get("cited_doc_ids", []),
                             }

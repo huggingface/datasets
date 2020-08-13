@@ -18,19 +18,28 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "0.2.0"
+__version__ = "0.4.0"
 
+import pyarrow
 from pyarrow import total_allocated_bytes
 
 from . import datasets
 from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
+from .dataset_dict import DatasetDict
 from .features import ClassLabel, Features, Sequence, Tensor, Translation, TranslationVariableLanguages, Value
 from .info import DatasetInfo, MetricInfo
 from .inspect import inspect_dataset, inspect_metric, list_datasets, list_metrics
-from .load import import_main_class, load_dataset, load_metric, prepare_module
+from .load import concatenate_datasets, import_main_class, load_dataset, load_metric, prepare_module
 from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar
+
+
+if int(pyarrow.__version__.split(".")[1]) < 16 and int(pyarrow.__version__.split(".")[0]) == 0:
+    raise ImportWarning(
+        "To use `nlp`, the module `pyarrow>=0.16.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
+        "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
+    )

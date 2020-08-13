@@ -75,8 +75,8 @@ class Qangaroo(nlp.GeneratorBasedBuilder):
                 {
                     # These are the features of your dataset like images, labels ...
                     "query": nlp.Value("string"),
-                    "supports": nlp.features.Sequence({"support": nlp.Value("string")}),
-                    "candidates": nlp.features.Sequence({"candidate": nlp.Value("string")}),
+                    "supports": nlp.features.Sequence(nlp.Value("string")),
+                    "candidates": nlp.features.Sequence(nlp.Value("string")),
                     "answer": nlp.Value("string"),
                     "id": nlp.Value("string")
                     # These are the features of your dataset like images, labels ...
@@ -123,7 +123,7 @@ class Qangaroo(nlp.GeneratorBasedBuilder):
                 yield id_, {
                     "id": example["id"],
                     "query": example["query"],
-                    "supports": {"support": example["supports"]},
-                    "candidates": {"candidate": example["candidates"]},
+                    "supports": example["supports"],
+                    "candidates": example["candidates"],
                     "answer": example["answer"],
                 }

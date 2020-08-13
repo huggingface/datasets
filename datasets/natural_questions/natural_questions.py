@@ -170,7 +170,7 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
                     "document": {
                         "title": ex_json["document_title"],
                         "url": ex_json["document_url"],
-                        "html": html_bytes,
+                        "html": ex_json["document_html"],
                         "tokens": [
                             {"token": t["token"], "is_html": t["html_token"]} for t in ex_json["document_tokens"]
                         ],
@@ -180,4 +180,9 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
                 },
             )
 
-        return pipeline | beam.Create(filepaths) | beam.io.ReadAllFromText() | beam.Map(_parse_example)
+        return (
+            pipeline
+            | beam.Create(filepaths)
+            | beam.io.ReadAllFromText(compression_type=beam.io.textio.CompressionTypes.GZIP)
+            | beam.Map(_parse_example)
+        )

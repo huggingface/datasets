@@ -43,7 +43,7 @@ class Wiqa(nlp.GeneratorBasedBuilder):
                 {
                     # These are the features of your dataset like images, labels ...
                     "question_stem": nlp.Value("string"),
-                    "question_para_step": nlp.features.Sequence({"steps": nlp.Value("string")}),
+                    "question_para_step": nlp.features.Sequence(nlp.Value("string")),
                     "answer_label": nlp.Value("string"),
                     "answer_label_as_choice": nlp.Value("string"),
                     "choices": nlp.features.Sequence({"text": nlp.Value("string"), "label": nlp.Value("string")}),
@@ -97,7 +97,7 @@ class Wiqa(nlp.GeneratorBasedBuilder):
 
                 yield id_, {
                     "question_stem": data["question"]["stem"],
-                    "question_para_step": {"steps": data["question"]["para_steps"]},
+                    "question_para_step": data["question"]["para_steps"],
                     "answer_label": data["question"]["answer_label"],
                     "answer_label_as_choice": data["question"]["answer_label_as_choice"],
                     "choices": {

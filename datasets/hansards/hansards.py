@@ -28,7 +28,7 @@ Caveats
 1. This release contains only sentence pairs. Even though the order of the sentences is the same
 as in the original, there may be gaps resulting from many-to-one, many-to-many, or one-to-many
 alignments that were filtered out. Therefore, this release may not be suitable for
-discourse-related research. 
+discourse-related research.
 2. Neither the sentence splitting nor the alignments are perfect. In particular, watch out for
 pairs that differ considerably in length. You may want to filter these out before you do
 any statistical training.
@@ -128,8 +128,8 @@ class Hansards(nlp.GeneratorBasedBuilder):
                 name, split_name + "ing"
             )
             data_dir = os.path.join(downloaded_files[split_name], archive_dir)
-            split_compress_files = list(glob.glob(os.path.join(data_dir, "*.gz")))
-            split_compress_files += list(glob.glob(os.path.join(data_dir, "**/*.gz")))
+            split_compress_files = list(sorted(glob.glob(os.path.join(data_dir, "*.gz"))))
+            split_compress_files += list(sorted(glob.glob(os.path.join(data_dir, "**/*.gz"))))
             fr_split_compress_files = sorted([f for f in split_compress_files if f.endswith(".f.gz")])
             en_split_compress_files = sorted([f for f in split_compress_files if f.endswith(".e.gz")])
             fr_files[split_name] = dl_manager.extract(fr_split_compress_files)

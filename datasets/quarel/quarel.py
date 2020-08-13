@@ -42,7 +42,7 @@ class Quarel(nlp.GeneratorBasedBuilder):
                     # These are the features of your dataset like images, labels ...
                     "id": nlp.Value("string"),
                     "answer_index": nlp.Value("int32"),
-                    "logical_forms": nlp.features.Sequence({"logical_form": nlp.Value("string")}),
+                    "logical_forms": nlp.features.Sequence(nlp.Value("string")),
                     "logical_form_pretty": nlp.Value("string"),
                     "world_literals": nlp.features.Sequence(
                         {"world1": nlp.Value("string"), "world2": nlp.Value("string")}
@@ -93,7 +93,7 @@ class Quarel(nlp.GeneratorBasedBuilder):
                 yield id_, {
                     "id": data["id"],
                     "answer_index": data["answer_index"],
-                    "logical_forms": {"logical_form": data["logical_forms"],},
+                    "logical_forms": data["logical_forms"],
                     "world_literals": {
                         "world1": [data["world_literals"]["world1"]],
                         "world2": [data["world_literals"]["world2"]],

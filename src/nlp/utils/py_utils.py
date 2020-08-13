@@ -22,11 +22,13 @@ import contextlib
 import functools
 import itertools
 import os
+import types
 from io import BytesIO as StringIO
 from shutil import disk_usage
 from types import CodeType
 
 import dill
+import numpy as np
 
 
 # NOTE: When used on an instance method, the cache is shared across all
@@ -37,14 +39,15 @@ import dill
 memoize = functools.lru_cache
 
 
-def convert_tuples_in_lists(data_struct):
+def map_all_sequences_to_lists(data_struct):
     # Could add support for more exotic data_struct, like OrderedDict
-    if isinstance(data_struct, dict):
-        return {k: convert_tuples_in_lists(v) for k, v in data_struct.items()}
-    else:
-        if isinstance(data_struct, (list, tuple)):
-            return [convert_tuples_in_lists(v) for v in data_struct]
-    return data_struct
+    def sequences_to_list(seq):
+        if isinstance(seq, (tuple, np.ndarray)):
+            return list(seq)
+        else:
+            return seq
+
+    return map_nested(sequences_to_list, data_struct)
 
 
 def size_str(size_in_bytes):
@@ -90,8 +93,10 @@ def temporary_assignment(obj, attr, value):
     """Temporarily assign obj.attr to value."""
     original = getattr(obj, attr, None)
     setattr(obj, attr, value)
-    yield
-    setattr(obj, attr, original)
+    try:
+        yield
+    finally:
+        setattr(obj, attr, original)
 
 
 def zip_dict(*dicts):
@@ -150,22 +155,38 @@ class memoized_property(property):  # pylint: disable=invalid-name
         return cached
 
 
-def map_nested(function, data_struct, dict_only=False, map_tuple=False):
+def map_nested(function, data_struct, dict_only=False, map_list=True, map_tuple=False, map_numpy=False):
     """Apply a function recursively to each element of a nested data struct."""
 
     # Could add support for more exotic data_struct, like OrderedDict
     if isinstance(data_struct, dict):
-        return {k: map_nested(function, v, dict_only, map_tuple) for k, v in data_struct.items()}
+        return {
+            k: map_nested(
+                function, v, dict_only=dict_only, map_list=map_list, map_tuple=map_tuple, map_numpy=map_numpy
+            )
+            for k, v in data_struct.items()
+        }
     elif not dict_only:
-        types = [list]
+        types = []
+        if map_list:
+            types.append(list)
         if map_tuple:
             types.append(tuple)
+        if map_numpy:
+            types.append(np.ndarray)
         if isinstance(data_struct, tuple(types)):
-            mapped = [map_nested(function, v, dict_only, map_tuple) for v in data_struct]
+            mapped = [
+                map_nested(
+                    function, v, dict_only=dict_only, map_list=map_list, map_tuple=map_tuple, map_numpy=map_numpy
+                )
+                for v in data_struct
+            ]
             if isinstance(data_struct, list):
                 return mapped
-            else:
+            elif isinstance(data_struct, tuple):
                 return tuple(mapped)
+            else:
+                return np.array(mapped)
     # Singleton
     return function(data_struct)
 
@@ -338,3 +359,7 @@ def save_code(pickler, obj):
     pickler.save_reduce(CodeType, args, obj=obj)
     dill._dill.log.info("# Co")
     return
+
+
+def copyfunc(func):
+    return types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)

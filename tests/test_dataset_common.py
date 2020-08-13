@@ -22,7 +22,6 @@ import requests
 from absl.testing import parameterized
 
 from nlp import (
-    BeamBasedBuilder,
     BuilderConfig,
     DatasetBuilder,
     DownloadConfig,
@@ -48,9 +47,9 @@ class DatasetTester(object):
     def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
         if is_local is True:
-            module_path = prepare_module("./datasets/" + dataset_name)
+            module_path, _ = prepare_module("./datasets/" + dataset_name)
         else:
-            module_path = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
+            module_path, _ = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
         # Get dataset builder class
         builder_cls = import_main_class(module_path)
         # Instantiate dataset builder
@@ -75,9 +74,9 @@ class DatasetTester(object):
                 name = config.name if config is not None else None
                 dataset_builder = dataset_builder_cls(name=name, cache_dir=processed_temp_dir)
 
-                # TODO: skip Beam datasets for now
-                if isinstance(dataset_builder, BeamBasedBuilder):
-                    logging.info("Skip tests for Beam datasets for now")
+                # TODO: skip Beam datasets and datasets that lack dummy data for now
+                if not dataset_builder.test_dummy_data:
+                    logging.info("Skip tests for this dataset for now")
                     return
 
                 if config is not None:
@@ -112,10 +111,38 @@ class DatasetTester(object):
                         "test": os.path.join(path_to_dummy_data, "test.json"),
                         "dev": os.path.join(path_to_dummy_data, "dev.json"),
                     }
+                elif dataset_builder.__class__.__name__ == "Pandas":
+                    # need slight adoption for json dataset
+                    mock_dl_manager.download_dummy_data()
+                    path_to_dummy_data = mock_dl_manager.dummy_file
+                    dataset_builder.config.data_files = {
+                        "train": os.path.join(path_to_dummy_data, "train.pkl"),
+                        "test": os.path.join(path_to_dummy_data, "test.pkl"),
+                        "dev": os.path.join(path_to_dummy_data, "dev.pkl"),
+                    }
+                elif dataset_builder.__class__.__name__ == "Text":
+                    mock_dl_manager.download_dummy_data()
+                    path_to_dummy_data = mock_dl_manager.dummy_file
+                    dataset_builder.config.data_files = {
+                        "train": os.path.join(path_to_dummy_data, "train.txt"),
+                        "test": os.path.join(path_to_dummy_data, "test.txt"),
+                        "dev": os.path.join(path_to_dummy_data, "dev.txt"),
+                    }
+
+                # mock size needed for dummy data instead of actual dataset
+                if dataset_builder.info is not None:
+                    # approximate upper bound of order of magnitude of dummy data files
+                    one_mega_byte = 2 << 19
+                    dataset_builder.info.size_in_bytes = 2 * one_mega_byte
+                    dataset_builder.info.download_size = one_mega_byte
+                    dataset_builder.info.dataset_size = one_mega_byte
 
                 # generate examples from dummy data
                 dataset_builder.download_and_prepare(
-                    dl_manager=mock_dl_manager, download_mode=GenerateMode.FORCE_REDOWNLOAD, ignore_verifications=True
+                    dl_manager=mock_dl_manager,
+                    download_mode=GenerateMode.FORCE_REDOWNLOAD,
+                    ignore_verifications=True,
+                    try_from_hf_gcs=False,
                 )
 
                 # get dataset
@@ -179,7 +206,7 @@ class LocalDatasetTest(parameterized.TestCase):
 def get_aws_dataset_names():
     api = hf_api.HfApi()
     # fetch all dataset names
-    datasets = [x.id for x in api.dataset_list()]
+    datasets = [x.id for x in api.dataset_list(with_community_datasets=False)]
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 

@@ -10,18 +10,27 @@
     <a href="https://github.com/huggingface/nlp/blob/master/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/nlp.svg?color=blue">
     </a>
-    <!-- <a href="https://huggingface.co/nlp/index.html">
+    <a href="https://huggingface.co/nlp/index.html">
         <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/nlp/index.html.svg?down_color=red&down_message=offline&up_message=online">
-    </a> -->
+    </a>
     <a href="https://github.com/huggingface/nlp/releases">
         <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/nlp.svg">
+    </a>
+    <a href="https://huggingface.co/nlp/viewer/">
+        <img alt="Number of datasets" src="https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen">
     </a>
 </p>
 
 <h3 align="center">
 <p> Datasets and evaluation metrics for natural language processing
-<p> Works with NumPy, Pandas, PyTorch and TensorFlow
+<p> Compatible with NumPy, Pandas, PyTorch and TensorFlow
 </h3>
+
+🎓 **Documentation**: https://huggingface.co/nlp/
+
+🕹 **Colab demo**: https://colab.research.google.com/github/huggingface/nlp/blob/master/notebooks/Overview.ipynb
+
+🔎 **Online dataset explorer**: https://huggingface.co/nlp/viewer
 
 🤗 `nlp` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
 
@@ -42,33 +51,19 @@
 
 # Installation
 
-## From PyPI
-
 `nlp` can be installed from PyPi and has to be installed in a virtual environment (venv or conda for instance)
 
 ```bash
 pip install nlp
 ```
 
-## From source
-
-You can also install `nlp` from source:
-```bash
-git clone https://github.com/huggingface/nlp
-cd nlp
-pip install .
-```
-
-When you update the repository, you should upgrade the nlp installation and its dependencies as follows:
-
-```bash
-git pull
-pip install --upgrade .
-```
+For more details on installation, check the installation page in the documentation: https://huggingface.co/nlp/installation.html
 
 ## Using with PyTorch/TensorFlow/pandas
 
 If you plan to use `nlp` with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install PyTorch, Tensorflow or pandas.
+
+For more details on using the library with NumPy, pandas, PyTorch or Tensorflow, check the quick tour page in the documentation: https://huggingface.co/nlp/quicktour.html
 
 # Usage
 
@@ -98,7 +93,15 @@ print([metric.id for metric in nlp.list_metrics()])
 squad_metric = nlp.load_metric('squad')
 ```
 
-Now the best introduction to `nlp` is to follow the tutorial in Google Colab which is here:
+For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/nlp/quicktour.html and the specific pages on
+
+- Loading a dataset https://huggingface.co/nlp/loading_datasets.html
+- What's in a Dataset: https://huggingface.co/nlp/exploring.html
+- Processing data with `nlp`: https://huggingface.co/nlp/processing.html
+- Writing your own dataset loading script: https://huggingface.co/nlp/add_dataset.html
+- etc
+
+Another introduction to `nlp` is the tutorial on Google Colab which is here:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/nlp/blob/master/notebooks/Overview.ipynb)
 
 # Main differences between `nlp` and `tfds`

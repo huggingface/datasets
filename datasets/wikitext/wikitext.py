@@ -11,7 +11,7 @@ import nlp
 _CITATION = """\
 @InProceedings{wikitext,
     author={Stephen, Merity and Caiming ,Xiong and James, Bradbury and Richard Socher}
-    year=2016
+    year={2016}
 }
 """
 
@@ -176,8 +176,6 @@ class Wikitext(nlp.GeneratorBasedBuilder):
 
         """Yields examples."""
         # TODO(wikitext): Yields (key, example) tuples from the dataset
-        # print(data_file)
-        # print('=='*100)
         with open(data_file) as f:
             for idx, row in enumerate(f):
                 if row.strip():

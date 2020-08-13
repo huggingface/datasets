@@ -11,19 +11,19 @@ import nlp
 # TODO(com_qa): BibTeX citation
 _CITATION = """\
 @inproceedings{abujabal-etal-2019-comqa,
-    title = "{C}om{QA}: A Community-sourced Dataset for Complex Factoid Question Answering with Paraphrase Clusters",
-    author = "Abujabal, Abdalghani  and
+    title = "{ComQA: A Community-sourced Dataset for Complex Factoid Question Answering with Paraphrase Clusters",
+    author = {Abujabal, Abdalghani  and
       Saha Roy, Rishiraj  and
       Yahya, Mohamed  and
-      Weikum, Gerhard",
-    booktitle = "Proceedings of the 2019 Conference of the North {A}merican Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)",
-    month = jun,
-    year = "2019",
-    address = "Minneapolis, Minnesota",
-    publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/N19-1027",
-    doi = "10.18653/v1/N19-1027",
-    pages = "307--317",
+      Weikum, Gerhard},
+    booktitle = {Proceedings of the 2019 Conference of the North {A}merican Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)},
+    month = {jun},
+    year = {2019},
+    address = {Minneapolis, Minnesota},
+    publisher = {Association for Computational Linguistics},
+    url = {https://www.aclweb.org/anthology/N19-1027},
+    doi = {10.18653/v1/N19-1027{,
+    pages = {307--317},
     }
 """
 
@@ -61,8 +61,8 @@ class ComQa(nlp.GeneratorBasedBuilder):
             features=nlp.Features(
                 {
                     "cluster_id": nlp.Value("string"),
-                    "questions": nlp.features.Sequence({"question": nlp.Value("string")}),
-                    "answers": nlp.features.Sequence({"answer": nlp.Value("string")}),
+                    "questions": nlp.features.Sequence(nlp.Value("string")),
+                    "answers": nlp.features.Sequence(nlp.Value("string")),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -120,6 +120,6 @@ class ComQa(nlp.GeneratorBasedBuilder):
                 answers = example["answers"]
                 yield id_, {
                     "cluster_id": cluster_id,
-                    "questions": {"question": questions},
-                    "answers": {"answer": answers},
+                    "questions": questions,
+                    "answers": answers,
                 }

@@ -29,9 +29,9 @@ _BENCHMARK_URL = "https://paracrawl.eu/releases.html"
 
 _CITATION = """\
 @misc {paracrawl,
-    title  = "ParaCrawl",
-    year   = "2018",
-    url    = "http://paracrawl.eu/download.html."
+    title  = {ParaCrawl},
+    year   = {2018},
+    url    = {http://paracrawl.eu/download.html.}
 }
 """
 

@@ -214,7 +214,7 @@ def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Op
         # Path where we extract compressed archives
         # We extract in the cache dir, and get the extracted path name by hashing the original path"
         abs_output_path = os.path.abspath(output_path)
-        output_path_extracted = os.path.join(cache_dir, hash_url_to_filename(abs_output_path))
+        output_path_extracted = os.path.join(cache_dir, "extracted", hash_url_to_filename(abs_output_path))
 
         if (
             os.path.isdir(output_path_extracted)
@@ -389,7 +389,7 @@ def get_from_cache(
             http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent, cookies=cookies)
 
         logger.info("storing %s in cache at %s", url, cache_path)
-        os.rename(temp_file.name, cache_path)
+        shutil.move(temp_file.name, cache_path)
 
         logger.info("creating metadata file for %s", cache_path)
         meta = {"url": url, "etag": etag}
