@@ -21,6 +21,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import textwrap
 import xml.etree.ElementTree as ET
+import glob
 
 import nlp
 
@@ -40,9 +41,8 @@ Given a news article text, decide whether it follows a hyperpartisan argumentati
 There are 2 parts:
 - byarticle: Labeled through crowdsourcing on an article basis. The data contains only articles for which a consensus among the crowdsourcing workers existed.
 - bypublisher: Labeled by the overall bias of the publisher as provided by BuzzFeed journalists or MediaBiasFactCheck.com.
-
-Access to the dataset needs to be requested from zenodo.
 """
+_URL_BASE = "https://zenodo.org/record/1489920/files/"
 
 
 class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
@@ -78,17 +78,6 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
         ),
     ]
 
-    @property
-    def manual_download_instructions(self):
-        return """\
-  You should download the dataset from https://zenodo.org/record/1489920
-  The dataset needs requesting.
-
-  Download each file, extract it and place in a dir of your choice,
-  which will be used as a manual_dir, e.g. `~/.manual_dirs/hyperpartisan_news_detection`
-  Hyperpartisan News Detection can then be loaded via:
-  `nlp.load_dataset("hyperpartisan_news_detection", data_dir="~/.manual_dirs/hyperpartisan_news_detection")`.
-  """
 
     def _info(self):
         features = {
@@ -111,42 +100,44 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
+
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-
-        splits = [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
-                gen_kwargs={
-                    "articles_file": os.path.join(data_dir, "articles-training-" + self.config.name + "-20181122.xml"),
-                    "labels_file": os.path.join(
-                        data_dir, "ground-truth-training-" + self.config.name + "-20181122.xml"
-                    ),
-                },
-            )
-        ]
+        urls = {
+            nlp.Split.TRAIN:{
+                "articles_file": _URL_BASE + "articles-training-" + self.config.name + "-20181122.zip?download=1",
+                "labels_file": _URL_BASE + "ground-truth-training-" + self.config.name + "-20181122.zip?download=1",
+            },
+        }
         if self.config.name == "bypublisher":
+            urls[nlp.Split.VALIDATION] = {
+                "articles_file": _URL_BASE + "articles-training-" + self.config.name + "-20181122.zip?download=1",
+                "labels_file": _URL_BASE + "ground-truth-training-" + self.config.name + "-20181122.zip?download=1",
+            }
+
+        data_dir = {}
+        for key in urls:
+            data_dir[key] = dl_manager.download_and_extract(urls[key])
+
+        splits = []
+        for split in data_dir:
+            for key in data_dir[split]:
+                data_dir[split][key] = os.path.join(
+                        data_dir[split][key],
+                        os.listdir(data_dir[split][key])[0]
+                    )
             splits.append(
                 nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
-                    gen_kwargs={
-                        "articles_file": os.path.join(
-                            data_dir, "articles-validation-" + self.config.name + "-20181122.xml"
-                        ),
-                        "labels_file": os.path.join(
-                            data_dir, "ground-truth-validation-" + self.config.name + "-20181122.xml"
-                        ),
-                    },
+                    name=split,
+                    gen_kwargs = data_dir[split]
                 )
             )
         return splits
 
+
     def _generate_examples(self, articles_file=None, labels_file=None):
         """Yields examples."""
-
         labels = {}
-
         with open(labels_file, "rb") as f_labels:
             tree = ET.parse(f_labels)
             root = tree.getroot()
