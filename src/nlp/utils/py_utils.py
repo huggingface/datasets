@@ -30,6 +30,8 @@ from types import CodeType
 import dill
 import numpy as np
 
+from .file_utils import _transformers_available
+
 
 # NOTE: When used on an instance method, the cache is shared across all
 # instances and IS NOT per-instance.
@@ -274,7 +276,7 @@ def dump(obj, file):
 
 @contextlib.contextmanager
 def _no_cache_fields(obj):
-    try:
+    if _transformers_available:
         import transformers as tr
 
         if isinstance(obj, (tr.CTRLTokenizer, tr.GPT2Tokenizer, tr.OpenAIGPTTokenizer, tr.XLMTokenizer)):
@@ -282,7 +284,7 @@ def _no_cache_fields(obj):
                 yield
         else:
             yield
-    except ImportError:
+    else:
         yield
 
 

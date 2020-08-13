@@ -59,6 +59,13 @@ try:
 except (ImportError, AssertionError):
     _tf_available = False  # pylint: disable=invalid-name
 
+try:
+    import transformers
+
+    _transformers_available = True  # pylint: disable=invalid-name
+    logger.info("transformers version {} available.".format(transformers.__version__))
+except ImportError:
+    _transformers_available = False  # pylint: disable=invalid-name
 
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))

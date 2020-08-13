@@ -3,18 +3,7 @@ import os
 import unittest
 from distutils.util import strtobool
 
-from nlp.utils.file_utils import _tf_available, _torch_available
-
-
-logger = logging.getLogger(__name__)
-
-try:
-    import transformers
-
-    _transformers_available = True  # pylint: disable=invalid-name
-    logger.info("transformers version {} available.".format(transformers.__version__))
-except ImportError:
-    _transformers_available = False  # pylint: disable=invalid-name
+from nlp.utils.file_utils import _tf_available, _torch_available, _transformers_available
 
 
 def parse_flag_from_env(key, default=False):
