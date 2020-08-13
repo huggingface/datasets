@@ -29,7 +29,6 @@ from types import CodeType
 
 import dill
 import numpy as np
-import regex
 
 
 # NOTE: When used on an instance method, the cache is shared across all
@@ -383,13 +382,18 @@ def copyfunc(func):
     return types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
 
 
-@pklregister(type(regex.Regex("", 0)))
-def _save_regex(pickler, obj):
-    dill._dill.log.info("Re: %s" % obj)
-    args = (
-        obj.pattern,
-        obj.flags,
-    )
-    pickler.save_reduce(regex.compile, args, obj=obj)
-    dill._dill.log.info("# Re")
-    return
+try:
+    import regex
+
+    @pklregister(type(regex.Regex("", 0)))
+    def _save_regex(pickler, obj):
+        dill._dill.log.info("Re: %s" % obj)
+        args = (
+            obj.pattern,
+            obj.flags,
+        )
+        pickler.save_reduce(regex.compile, args, obj=obj)
+        dill._dill.log.info("# Re")
+        return
+except ImportError:
+    pass
