@@ -982,7 +982,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     os.remove(tmp_file.name)
             raise
 
-        if tmp_file is not None:
+        if 'tmp_file' in locals() and tmp_file is not None:
             shutil.move(tmp_file.name, cache_file_name)
 
         if update_data:
