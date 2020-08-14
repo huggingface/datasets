@@ -218,7 +218,28 @@ class BaseDatasetTest(TestCase):
         self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}))
 
-    def test_map(self):
+    def test_map_not_cached(self):
+        dset = self._create_dummy_dataset()
+
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        dset_test = dset.map(
+            lambda x: {"name": x["filename"][:-2], "id": int(x["filename"][-1])}, cache_file_name=None
+        )
+        self.assertEqual(len(dset_test), 30)
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertDictEqual(
+            dset_test.features, Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
+        )
+
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        dset_test = dset.map(lambda x: None, cache_file_name=None)
+        self.assertEqual(len(dset_test), 30)
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertDictEqual(
+            dset_test.features, Features({"filename": Value("string")}),
+        )
+
+    def test_map_cached(self):
         dset = self._create_dummy_dataset()
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")

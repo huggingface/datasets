@@ -977,12 +977,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if update_data:
                 writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
-            if tmp_file is not None:
+            if update_data and tmp_file is not None:
                 if os.path.exists(tmp_file.name):
                     os.remove(tmp_file.name)
             raise
 
-        if tmp_file is not None:
+        if update_data and tmp_file is not None:
             shutil.move(tmp_file.name, cache_file_name)
 
         if update_data:
