@@ -979,13 +979,16 @@ class BeamBasedBuilder(DatasetBuilder):
             split_info.num_bytes = num_bytes
 
     def _save_info(self):
-        import apache_beam as beam
+        if os.path.exists(self._cache_dir):
+            super()._save_info()
+        else:
+            import apache_beam as beam
 
-        fs = beam.io.filesystems.FileSystems
-        with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
-            self.info._dump_info(f)
-        with fs.create(os.path.join(self._cache_dir, LICENSE_FILENAME)) as f:
-            self.info._dump_license(f)
+            fs = beam.io.filesystems.FileSystems
+            with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
+                self.info._dump_info(f)
+            with fs.create(os.path.join(self._cache_dir, LICENSE_FILENAME)) as f:
+                self.info._dump_license(f)
 
     def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam
