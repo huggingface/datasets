@@ -109,6 +109,16 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
         temp_gen = tf.random.Generator.from_seed(seed)
         tf.random.set_global_generator(temp_gen)
 
+        if not tf.executing_eagerly():
+            raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
+
+        tf_context = tf.python.context.context()  # eager mode context
+        tf_seed = tf_context._seed
+        tf_rng_initialized = hasattr(tf_context, "_rng")
+        if tf_rng_initialized:
+            tf_rng = tf_context._rng
+        tf_context._set_global_seed(seed)
+
     try:
         yield
     finally:
@@ -121,6 +131,12 @@ def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
 
         if set_tensorflow and _tf_available:
             tf.random.set_global_generator(tf_state)
+
+            tf_context._seed = tf_seed
+            if tf_rng_initialized:
+                tf_context._rng = tf_rng
+            else:
+                delattr(tf_context, "_rng")
 
 
 def is_torch_available():
