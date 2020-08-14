@@ -22,8 +22,10 @@ class TempSeedTest(TestCase):
             out1 = gen_random_output()
         with temp_seed(42, set_tensorflow=True):
             out2 = gen_random_output()
+        out3 = gen_random_output()
 
         np.testing.assert_equal(out1, out2)
+        self.assertGreater(np.abs(out1 - out3).sum(), 0)
 
     @require_torch
     def test_torch(self):
@@ -38,16 +40,20 @@ class TempSeedTest(TestCase):
             out1 = gen_random_output()
         with temp_seed(42, set_pytorch=True):
             out2 = gen_random_output()
+        out3 = gen_random_output()
 
         np.testing.assert_equal(out1, out2)
+        self.assertGreater(np.abs(out1 - out3).sum(), 0)
 
     def test_numpy(self):
         def gen_random_output():
             return np.random.rand(1, 3)
 
-        with temp_seed(42, set_pytorch=True):
+        with temp_seed(42):
             out1 = gen_random_output()
-        with temp_seed(42, set_pytorch=True):
+        with temp_seed(42):
             out2 = gen_random_output()
+        out3 = gen_random_output()
 
         np.testing.assert_equal(out1, out2)
+        self.assertGreater(np.abs(out1 - out3).sum(), 0)
