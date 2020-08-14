@@ -48,7 +48,7 @@ well-ordered the matched words in the machine translation are in relation
 to the reference.  
 
 METEOR gets an R correlation value of 0.347 with human evaluation on the Arabic
-data and 0.331 on the Chinese data. This is shown to be an im-provement on
+data and 0.331 on the Chinese data. This is shown to be an improvement on
 using simply unigram-precision, unigram-recall and their harmonic F1
 combination. 
 """
@@ -56,12 +56,12 @@ combination.
 _KWARGS_DESCRIPTION = """
 Computes METEOR score of translated segments against one or more references.
 Args:
-    predictions: list of predictions to score. Each predictions
+    predictions: list of predictions to score. Each prediction
         should be a string with tokens separated by spaces.
     references: list of reference for each prediction. Each
         reference should be a string with tokens separated by spaces.
-    alpha: Paramter for controlling relative weights of precision and recall. default: 0.9
-    beta: Paramter for controlling shape of penalty as a function of fragmentation. default: 3
+    alpha: Parameter for controlling relative weights of precision and recall. default: 0.9
+    beta: Parameter for controlling shape of penalty as a function of fragmentation. default: 3
     gamma: Relative weight assigned to fragmentation penalty. default: 0.5
 Returns:
     'meteor': meteor score.
