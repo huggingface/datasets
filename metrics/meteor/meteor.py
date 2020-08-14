@@ -39,8 +39,8 @@ METEOR, an automatic metric for machine translation evaluation
 that is based on a generalized concept of unigram matching between the
 machine-produced translation and human-produced reference translations.
 Unigrams can be matched based on their surface forms, stemmed forms,
-and meanings; further-more, METEOR can be easily extended to include more
-advanced matching strate-gies. Once all generalized unigram matches
+and meanings; furthermore, METEOR can be easily extended to include more
+advanced matching strategies. Once all generalized unigram matches
 between the two strings have been found, METEOR computes a score for
 this matching using a combination of unigram-precision, unigram-recall, and
 a measure of fragmentation that is designed to directly capture how
@@ -49,7 +49,7 @@ to the reference.
 
 METEOR gets an R correlation value of 0.347 with human evaluation on the Arabic
 data and 0.331 on the Chinese data. This is shown to be an im-provement on
-using simply unigram-precision, unigram-recall and their har-monic F1
+using simply unigram-precision, unigram-recall and their harmonic F1
 combination. 
 """
 
