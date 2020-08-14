@@ -4,6 +4,7 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
+import copy
 import gzip
 import json
 import logging
@@ -191,6 +192,9 @@ class DownloadConfig:
     user_agent: Optional[str] = None
     extract_compressed_file: bool = False
     force_extract: bool = False
+
+    def copy(self) -> "DownloadConfig":
+        return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
 def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Optional[str]:
