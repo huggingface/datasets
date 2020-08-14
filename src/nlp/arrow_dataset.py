@@ -1586,7 +1586,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 "aforementioned parameters."
             )
 
-        if generator is None:
+        if generator is None and shuffle is True:
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
