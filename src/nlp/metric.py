@@ -234,7 +234,7 @@ class Metric(object):
             output = self._compute(predictions=predictions, references=references, **kwargs)
         return output
 
-    def add_batch(self, *, predictions=None, references=None, **kwargs):
+    def add_batch(self, *, predictions=None, references=None):
         """
         Add a batch of predictions and references for the metric's stack.
         """
@@ -244,7 +244,7 @@ class Metric(object):
             self._init_writer()
         self.writer.write_batch(batch)
 
-    def add(self, *, prediction=None, reference=None, **kwargs):
+    def add(self, *, prediction=None, reference=None):
         """ Add one prediction and reference for the metric's stack.
         """
         example = {"predictions": prediction, "references": reference}
