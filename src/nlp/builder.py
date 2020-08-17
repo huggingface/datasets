@@ -434,7 +434,8 @@ class DatasetBuilder:
         # This comes right before the progress bar.
         print(
             f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
-            f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, post-processed: {utils.size_str(self.info.post_processing_size)}"
+            f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
+            f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
             f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
         )
 

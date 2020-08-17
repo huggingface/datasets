@@ -18,7 +18,6 @@
 import logging
 import os
 import types
-from contextlib import contextmanager
 from typing import Any, Dict, Optional
 
 import numpy as np
@@ -30,22 +29,12 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .info import MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils import HF_METRICS_CACHE, Version, copyfunc
+from .utils import HF_METRICS_CACHE, Version, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig
 
 
 logger = logging.getLogger(__file__)
-
-
-@contextmanager
-def temp_seed(seed: int):
-    state = np.random.get_state()
-    np.random.seed(seed)
-    try:
-        yield
-    finally:
-        np.random.set_state(state)
 
 
 class Metric(object):
@@ -216,9 +205,23 @@ class Metric(object):
             for lock in locks:
                 lock.release()
 
-    def compute(self, predictions=None, references=None, timeout=120, **metrics_kwargs):
+    def compute(self, *args, **kwargs):
         """ Compute the metrics.
+
+        Args:
+            We disallow the usage of positional arguments to prevent mistakes
+            `predictions` (Optional list/array/tensor): predictions
+            `references` (Optional list/array/tensor): references
+            `timeout` (Optional int): timeout for distributed gathering of values on several nodes
+            `**kwargs` (Optional other kwargs): will be forwared to the metrics :func:`_compute` method (see details in the docstring)
         """
+        if args:
+            raise ValueError("Please call `compute` using keyword arguments.")
+
+        predictions = kwargs.pop("predictions", None)
+        references = kwargs.pop("references", None)
+        timeout = kwargs.pop("timeout", 120)
+
         if predictions is not None:
             self.add_batch(predictions=predictions, references=references)
         self.finalize(timeout=timeout)
@@ -228,18 +231,20 @@ class Metric(object):
         predictions = self.data["predictions"]
         references = self.data["references"]
         with temp_seed(self.seed):
-            output = self._compute(predictions=predictions, references=references, **metrics_kwargs)
+            output = self._compute(predictions=predictions, references=references, **kwargs)
         return output
 
-    def add_batch(self, predictions=None, references=None, **kwargs):
-        """ Add a batch of predictions and references for the metric's stack.
+    def add_batch(self, *, predictions=None, references=None):
+        """
+        Add a batch of predictions and references for the metric's stack.
         """
         batch = {"predictions": predictions, "references": references}
+        batch = self.info.features.encode_batch(batch)
         if self.writer is None:
             self._init_writer()
         self.writer.write_batch(batch)
 
-    def add(self, prediction=None, reference=None, **kwargs):
+    def add(self, *, prediction=None, reference=None):
         """ Add one prediction and reference for the metric's stack.
         """
         example = {"predictions": prediction, "references": reference}
@@ -307,6 +312,6 @@ class Metric(object):
         """
         return None
 
-    def _compute(self, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
+    def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
         """ This method defines the common API for all the metrics in the library """
         raise NotImplementedError

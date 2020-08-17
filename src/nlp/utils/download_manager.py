@@ -152,8 +152,10 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
+        download_config = self._download_config.copy()
+        download_config.extract_compressed_file = False
         downloaded_path_or_paths = map_nested(
-            lambda url: cached_path(url, download_config=self._download_config,), url_or_urls,
+            lambda url: cached_path(url, download_config=download_config), url_or_urls,
         )
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
@@ -194,12 +196,10 @@ class DownloadManager(object):
             extracted_path(s): `str`, The extracted paths matching the given input
                 path_or_paths.
         """
-        return map_nested(
-            lambda path: cached_path(
-                path, cache_dir=self._download_config.cache_dir, extract_compressed_file=True, force_extract=False
-            ),
-            path_or_paths,
-        )
+        download_config = self._download_config.copy()
+        download_config.extract_compressed_file = True
+        download_config.force_extract = False
+        return map_nested(lambda path: cached_path(path, download_config=download_config), path_or_paths,)
 
     def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.

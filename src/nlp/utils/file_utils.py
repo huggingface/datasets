@@ -4,6 +4,7 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
+import copy
 import gzip
 import json
 import logging
@@ -20,6 +21,7 @@ from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
+import numpy as np
 import requests
 from filelock import FileLock
 from tqdm.auto import tqdm
@@ -87,6 +89,54 @@ S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/metric"
 
 INCOMPLETE_SUFFIX = ".incomplete"
+
+
+@contextmanager
+def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
+    np_state = np.random.get_state()
+    np.random.seed(seed)
+
+    if set_pytorch and _torch_available:
+        torch_state = torch.random.get_rng_state()
+        torch.random.manual_seed(seed)
+
+        if torch.cuda.is_available():
+            torch_cuda_states = torch.cuda.get_rng_state_all()
+            torch.cuda.manual_seed_all(seed)
+
+    if set_tensorflow and _tf_available:
+        tf_state = tf.random.get_global_generator()
+        temp_gen = tf.random.Generator.from_seed(seed)
+        tf.random.set_global_generator(temp_gen)
+
+        if not tf.executing_eagerly():
+            raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
+
+        tf_context = tf.python.context.context()  # eager mode context
+        tf_seed = tf_context._seed
+        tf_rng_initialized = hasattr(tf_context, "_rng")
+        if tf_rng_initialized:
+            tf_rng = tf_context._rng
+        tf_context._set_global_seed(seed)
+
+    try:
+        yield
+    finally:
+        np.random.set_state(np_state)
+
+        if set_pytorch and _torch_available:
+            torch.random.set_rng_state(torch_state)
+            if torch.cuda.is_available():
+                torch.cuda.set_rng_state_all(torch_cuda_states)
+
+        if set_tensorflow and _tf_available:
+            tf.random.set_global_generator(tf_state)
+
+            tf_context._seed = tf_seed
+            if tf_rng_initialized:
+                tf_context._rng = tf_rng
+            else:
+                delattr(tf_context, "_rng")
 
 
 def is_torch_available():
@@ -158,6 +208,9 @@ class DownloadConfig:
     user_agent: Optional[str] = None
     extract_compressed_file: bool = False
     force_extract: bool = False
+
+    def copy(self) -> "DownloadConfig":
+        return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
 def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Optional[str]:

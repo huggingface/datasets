@@ -341,6 +341,57 @@ class BaseDatasetTest(TestCase):
                 Features({"filename": Value("string"), "filename_new": Value("string")}),
             )
 
+    @require_torch
+    def test_map_torch(self):
+        import torch
+
+        dset = self._create_dummy_dataset()
+
+        def func(example):
+            return {"tensor": torch.Tensor([1.0, 2, 3])}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test = dset.map(func, cache_file_name=tmp_file)
+            self.assertEqual(len(dset_test), 30)
+            self.assertDictEqual(
+                dset_test.features, Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
+            )
+            self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
+
+    @require_tf
+    def test_map_tf(self):
+        import tensorflow as tf
+
+        dset = self._create_dummy_dataset()
+
+        def func(example):
+            return {"tensor": tf.constant([1.0, 2, 3])}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test = dset.map(func, cache_file_name=tmp_file)
+            self.assertEqual(len(dset_test), 30)
+            self.assertDictEqual(
+                dset_test.features, Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
+            )
+            self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
+
+    def test_map_numpy(self):
+        dset = self._create_dummy_dataset()
+
+        def func(example):
+            return {"tensor": np.array([1.0, 2, 3])}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test = dset.map(func, cache_file_name=tmp_file)
+            self.assertEqual(len(dset_test), 30)
+            self.assertDictEqual(
+                dset_test.features, Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
+            )
+            self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
+
     def test_remove_colums(self):
         dset = self._create_dummy_dataset()
 
