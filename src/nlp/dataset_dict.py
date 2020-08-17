@@ -136,7 +136,7 @@ class DatasetDict(dict):
         self,
         function,
         with_indices: bool = False,
-        input_column: Optional[str] = None,
+        input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
@@ -160,8 +160,8 @@ class DatasetDict(dict):
                     - `function(batch: Dict[List]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
                     - `function(batch: Dict[List], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
                 `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-                `input_column` (`Optional[str]`, default: `None`): The column to be passed into `function`. If `None`, a dict
-                    mapping to all formatted columns is passed.
+                `input_columns` (`Optional[Union[str, List[str]]]`, default: `None`): The columns to be passed into `function` as
+                    positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
                 `batched` (`bool`, default: `False`): Provide batch of examples to `function`
                 `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
@@ -190,7 +190,7 @@ class DatasetDict(dict):
                 k: dataset.map(
                     function=function,
                     with_indices=with_indices,
-                    input_column=input_column,
+                    input_columns=input_columns,
                     batched=batched,
                     batch_size=batch_size,
                     remove_columns=remove_columns,
@@ -211,7 +211,7 @@ class DatasetDict(dict):
         self,
         function,
         with_indices=False,
-        input_column: Optional[str] = None,
+        input_columns: Optional[Union[str, List[str]]] = None,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
@@ -230,8 +230,8 @@ class DatasetDict(dict):
                     - `function(example: Dict) -> bool` if `with_indices=False`
                     - `function(example: Dict, indices: int) -> bool` if `with_indices=True`
                 `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-                `input_column` (`Optional[str]`, default: `None`): The column to be passed into `function`. If `None`, a dict
-                    mapping to all formatted columns is passed.
+                `input_columns` (`Optional[Union[str, List[str]]]`, default: `None`): The columns to be passed into `function` as
+                    positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
                 `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
                 `remove_columns` (`Optional[List[str]]`, default: `None`): Remove a selection of columns while doing the mapping.
@@ -256,7 +256,7 @@ class DatasetDict(dict):
                 k: dataset.filter(
                     function=function,
                     with_indices=with_indices,
-                    input_column=input_column,
+                    input_columns=input_columns,
                     batch_size=batch_size,
                     remove_columns=remove_columns,
                     keep_in_memory=keep_in_memory,
