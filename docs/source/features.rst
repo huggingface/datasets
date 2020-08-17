@@ -16,6 +16,5 @@ Here is a brief presentation of the various types of features which can be used 
 - a :class:`nlp.ClassLabel` feature specifies a field with a predefined set of classes which can have labels associated to them and will be stored as integers in the dataset. This field will be stored and retrieved as an integer value and two conversion methodes, :func:`nlp.ClassLabel.str2int` and :func:`nlp.ClassLabel.int2str` can be used to convert from the label names to the associate integer value and vice-versa.
 
 - a :class:`nlp.Value` feature specifies a single typed value, e.g. ``int64`` or ``string``. The types supported are all the `non-nested types of Apache Arrow <https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions>`__ among which the most commonly used ones are ``int64``, ``float32`` and ``string``.
-- :class:`nlp.Tensor` is mostly supported to have a compatibility layer with the TensorFlow Datasets library and can host a 0D or 1D array. A 0D array is equivalent to a :class:`nlp.Value` of the same dtype while a 1D array is equivalent to a :class:`nlp.Sequence` of the same dtype and fixed length.
 - eventually, two features are specific to Machine Translation: :class:`nlp.Translation` and :class:`nlp.TranslationVariableLanguages`. We refere to the package reference for more details on these features.
 

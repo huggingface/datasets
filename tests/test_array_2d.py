@@ -17,7 +17,7 @@ SHAPE_TEST_2 = (36, 1024)
 SPEED_SHAPE_TEST = (100, 100)
 
 DEFAULT_FEATURES = nlp.Features(
-    {"text": features.Array2D(dtype="float32"), "image": features.Array2D(dtype="float32"),}
+    {"text": features.Array2D(dtype="float32"), "image": features.Array2D(dtype="float32")}
 )
 
 

@@ -664,7 +664,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
             return pa.struct(dict(sorted((f.name, pa.list_(f.type, schema.length)) for f in inner_type)))
         return pa.list_(inner_type, schema.length)
 
-    # Other objects are callable which returns their data type (ClassLabel, Tensor, Translation, Arrow datatype creation methods)
+    # Other objects are callable which returns their data type (ClassLabel, Array2d, Translation, Arrow datatype creation methods)
     return schema()
 
 
