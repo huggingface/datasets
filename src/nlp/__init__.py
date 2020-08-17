@@ -28,7 +28,7 @@ from .arrow_dataset import Dataset
 from .arrow_reader import ReadInstruction
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .dataset_dict import DatasetDict
-from .features import ClassLabel, Features, Sequence, Tensor, Translation, TranslationVariableLanguages, Value
+from .features import Array2D, ClassLabel, Features, Sequence, Translation, TranslationVariableLanguages, Value
 from .info import DatasetInfo, MetricInfo
 from .inspect import inspect_dataset, inspect_metric, list_datasets, list_metrics
 from .load import concatenate_datasets, import_main_class, load_dataset, load_metric, prepare_module

@@ -18,7 +18,7 @@
 import logging
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -156,31 +156,6 @@ class Value:
             return float(value)
         else:
             return value
-
-
-@dataclass
-class Tensor:
-    """ Construct a 0D or 1D Tensor feature.
-        If 0D, the Tensor is an dtype element, if 1D it will be a fixed length list or dtype elements.
-        Mostly here for compatiblity with tfds.
-    """
-
-    shape: Union[Tuple[int], List[int]]
-    dtype: str
-    id: Optional[str] = None
-    # Automatically constructed
-    pa_type: ClassVar[Any] = None
-    _type: str = field(default="Tensor", init=False, repr=False)
-
-    def __post_init__(self):
-        assert len(self.shape) < 2, "Tensor can only take 0 or 1 dimensional shapes ."
-        if len(self.shape) == 1:
-            self.pa_type = pa.list_(string_to_arrow(self.dtype), self.shape[0])
-        else:
-            self.pa_type = string_to_arrow(self.dtype)
-
-    def __call__(self):
-        return self.pa_type
 
 
 @dataclass
@@ -668,9 +643,7 @@ class Sequence:
     _type: str = field(default="Sequence", init=False, repr=False)
 
 
-FeatureType = Union[
-    dict, list, tuple, Value, Tensor, ClassLabel, Translation, TranslationVariableLanguages, Sequence, Array2D
-]
+FeatureType = Union[dict, list, tuple, Value, ClassLabel, Translation, TranslationVariableLanguages, Sequence, Array2D]
 
 
 def get_nested_type(schema: FeatureType) -> pa.DataType:
@@ -797,3 +770,6 @@ class Features(dict):
         for key, column in batch.items():
             encoded_batch[key] = [encode_nested_example(self[key], cast_to_python_objects(obj)) for obj in column]
         return encoded_batch
+
+    def copy(self):
+        return Features(super().copy())
