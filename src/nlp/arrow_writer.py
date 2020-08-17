@@ -5,8 +5,6 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -72,6 +70,7 @@ class ArrowWriter(object):
             self._features = None
             self._schema = None
             self._type = None
+            self._sorted_names = None
 
         if disable_nullable and self._schema is not None:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._type)
@@ -134,9 +133,24 @@ class ArrowWriter(object):
     def write_on_file(self):
         """ Write stored examples
         """
-        # infer type on first write
+        if not self.current_rows:
+            return
+        ext_cols = set(x.name for x in self._type if isinstance(x.type, pa.PyExtensionType))
         type = None if self.update_features and self.pa_writer is None else self._type
-        if self.current_rows:
+        if ext_cols:
+            entries = []
+            for row in self.current_rows:
+                row_list = [
+                    pa.array([row[f.name]], type[f.name].type) if f.name not in ext_cols else row[f.name]
+                    for f in self.schema
+                ]
+                row = pa.RecordBatch.from_arrays(row_list, schema=self._schema)
+                row = pa.Table.from_batches([row])
+                entries.append(row)
+            table = pa.concat_tables(entries)
+            self.write_table(table)
+
+        else:
             pa_array = pa.array(self.current_rows, type=type)
             inferred_type = pa_array.type
             first_example = pa.array(self.current_rows[0:1], type=inferred_type)[0]

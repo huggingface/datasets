@@ -37,7 +37,7 @@ from tqdm.auto import tqdm
 from nlp.utils.py_utils import dumps
 
 from .arrow_writer import ArrowWriter
-from .features import Features, cast_to_python_objects
+from .features import Features, cast_to_python_objects, pandas_types_mapper
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -669,9 +669,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 raise IndexError(f"Index ({key}) outside of table length ({self._data.num_rows}).")
             if format_type is not None:
                 if format_type == "pandas":
-                    outputs = self._data.slice(key, 1).to_pandas()
+                    outputs = self._data.slice(key, 1).to_pandas(types_mapper=pandas_types_mapper)
                 else:
-                    outputs = self._unnest(self._data.slice(key, 1).to_pandas().to_dict("list"))
+                    outputs = self._unnest(
+                        self._data.slice(key, 1).to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
+                    )
             else:
                 outputs = self._unnest(self._data.slice(key, 1).to_pydict())
         elif isinstance(key, slice):
@@ -681,12 +683,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if format_type is not None:
                 if format_type == "pandas":
                     outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas(
-                        split_blocks=True
+                        types_mapper=pandas_types_mapper
                     )
                 else:
                     outputs = (
                         self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
-                        .to_pandas(split_blocks=True)
+                        .to_pandas(types_mapper=pandas_types_mapper)
                         .to_dict("list")
                     )
             else:
@@ -697,13 +699,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if format_type is not None:
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
-                        outputs = self._data[key].to_pandas(split_blocks=True)
-                    elif format_type in ("numpy", "torch", "tensorflow"):
-                        outputs = self._data.to_pandas(split_blocks=True).to_dict("list")[key]
+                        outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper)
                     else:
-                        outputs = self._data[key].to_pylist()
+                        outputs = self._data.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")[key]
                 else:
-                    outputs = self._data[key].to_pylist()
+                    outputs = self._data.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")[key]
             else:
                 outputs = self._data[key].to_pylist()
         elif isinstance(key, Iterable):
@@ -718,9 +718,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             data_subset = pa.concat_tables(self._data.slice(int(i), 1) for i in indices)
             if format_type is not None:
                 if format_type == "pandas":
-                    outputs = data_subset.to_pandas(split_blocks=True)
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper)
                 else:
-                    outputs = data_subset.to_pandas(split_blocks=True).to_dict("list")
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
             else:
                 outputs = data_subset.to_pydict()
 

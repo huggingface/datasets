@@ -18,11 +18,13 @@
 import logging
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+from pandas.api.extensions import ExtensionArray as PandasExtensionArray
+from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from . import utils
 from .utils.file_utils import _tf_available, _torch_available
@@ -179,6 +181,220 @@ class Tensor:
 
     def __call__(self):
         return self.pa_type
+
+
+@dataclass
+class Array2D:
+    dtype: str
+    id: Optional[str] = None
+    # Automatically constructed
+    _type: str = field(default="Array2D", init=False, repr=False)
+
+    def __call__(self):
+        return Array2DExtensionType(self.dtype)
+
+    def encode_example(self, value):
+        if isinstance(value, np.ndarray):
+            value = value[np.newaxis, ...]
+            value = value.tolist()
+        elif isinstance(value, list):
+            value = [value]
+        encoded = pa.ExtensionArray.from_storage(self(), pa.array(value, self().storage_type_name))
+        return encoded
+
+
+# 2D main class and helper classes
+class Array2DExtensionType(pa.PyExtensionType):
+
+    dims: int = 2
+
+    def __init__(self, dtype: str):
+        self.inner_type = dtype
+        self.storage_type_name = Array2DExtensionType._generate_dtype(self.inner_type, self.dims)
+        pa.PyExtensionType.__init__(self, self.storage_type_name)
+
+    def __reduce__(self):
+        return Array2DExtensionType, (self.inner_type,)
+
+    def __arrow_ext_class__(self):
+        return Array2DExtensionArray
+
+    @staticmethod
+    def _generate_dtype(dtype, ndims=2):
+        dtype = string_to_arrow(dtype)
+        for i in range(ndims):
+            if i == 0:
+                dtype = pa.list_(dtype, -1)
+            else:
+                dtype = pa.list_(dtype)
+        return dtype
+
+    @staticmethod
+    def _generate_flatten(storage, ndims=2):
+        for i in range(ndims):
+            storage = storage.flatten()
+        return storage.to_numpy()
+
+    @property
+    def _get_arrow_ext_name(self):
+        return Array2DExtensionArray._get_class().__name__
+
+
+class Array2DExtensionArray(pa.ExtensionArray):
+
+    dims: int = 2
+
+    def __repr__(self):
+        return f"{Array2DExtensionArray._get_class().__name__}:" f"{self._construct_shape(self.storage)}"
+
+    def __array__(self):
+        return self.to_numpy()
+
+    def __iter__(self):
+        for i in range(self.storage.offsets[-1].as_py()):
+            yield self.to_numpy()[i].tolist()
+
+    @staticmethod
+    def _construct_shape(storage, ndims=2):
+        shape = []
+        prev_channels = 1
+        for i in range(ndims):
+            if i == 0:
+                pass
+            else:
+                storage = storage.flatten()
+            cur_channels = storage.offsets[-1].as_py() // prev_channels
+            shape.append(cur_channels)
+            prev_channels = cur_channels
+        return tuple(shape)
+
+    @classmethod
+    def _get_class(cls):
+        return cls
+
+    @property
+    def shape(self):
+        return Array2DExtensionArray._construct_shape(self.storage)
+
+    def to_numpy(self):
+        numpy_arr = Array2DExtensionType._generate_flatten(self.storage, self.dims)
+        numpy_arr = numpy_arr.reshape(len(self), *Array2DExtensionArray._construct_shape(self.storage))
+        return numpy_arr
+
+    def to_pylist(self):
+        return self.to_numpy().tolist()
+
+
+class PandasArrayExtensionDtype(PandasExtensionDtype):
+    _metadata = "subtype"
+
+    def __init__(self, subtype: Union["PandasArrayExtensionDtype", np.dtype]):
+        self._subtype = subtype
+
+    def __from_arrow__(self, array):
+        if isinstance(array, pa.ChunkedArray):
+            numpy_arr = np.vstack([chunk.to_numpy() for chunk in array.chunks])
+        else:
+            numpy_arr = array.to_numpy()
+        return PandasArrayExtensionArray(numpy_arr)
+
+    @classmethod
+    def construct_array_type(cls):
+        return PandasArrayExtensionArray
+
+    @property
+    def type(self) -> type:
+        return np.ndarray
+
+    @property
+    def kind(self) -> str:
+        return "O"
+
+    @property
+    def name(self) -> str:
+        return f"array[{self.subtype}]"
+
+    @property
+    def subtype(self) -> np.dtype:
+        return self._subtype
+
+
+class PandasArrayExtensionArray(PandasExtensionArray):
+    def __init__(self, data: np.ndarray, copy: bool = False):
+        self._data = data if not copy else np.array(data)
+        self._dtype = PandasArrayExtensionDtype(data.dtype)
+
+    def copy(self, deep: bool = False) -> "PandasArrayExtensionArray":
+        return PandasArrayExtensionArray(self._data, copy=True)
+
+    @classmethod
+    def _from_sequence(
+        cls, scalars, dtype: Optional[PandasArrayExtensionDtype] = None, copy: bool = False
+    ) -> "PandasArrayExtensionArray":
+        data = np.array(scalars, dtype=dtype if dtype is None else dtype.subtype, copy=copy)
+        return PandasArrayExtensionArray(data, dtype=dtype, copy=copy)
+
+    @classmethod
+    def _concat_same_type(cls, to_concat: Sequence["PandasArrayExtensionArray"]) -> "PandasArrayExtensionArray":
+        data = np.vstack([va._data for va in to_concat])
+        return cls(data, copy=False)
+
+    @property
+    def dtype(self) -> PandasArrayExtensionDtype:
+        return self._dtype
+
+    @property
+    def nbytes(self) -> int:
+        return self._data.nbytes
+
+    def isna(self) -> np.ndarray:
+        if np.issubdtype(self.dtype.subtype, np.floating):
+            return np.array(np.isnan(arr).any() for arr in self._data)
+        return np.array((arr < 0).any() for arr in self._data)
+
+    def __setitem__(self, key: Union[int, slice, np.ndarray], value: Any) -> None:
+        raise NotImplementedError()
+
+    def __getitem__(self, item: Union[int, slice, np.ndarray]) -> Union[np.ndarray, "PandasArrayExtensionArray"]:
+        if isinstance(item, int):
+            return self._data[item]
+        return PandasArrayExtensionArray(self._data[item, :], copy=False)
+
+    def take(
+        self, indices: Sequence[int], allow_fill: bool = False, fill_value: bool = None
+    ) -> "PandasArrayExtensionArray":
+        indices = np.asarray(indices, dtype="int")
+        if allow_fill:
+            fill_value = (
+                self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.subtype)
+            )
+            mask = indices == -1
+            if (indices < -1).any():
+                raise ValueError("Invalid value in `indices`, must be all >= -1 for `allow_fill` is True")
+            elif len(self) > 0:
+                pass
+            elif not np.all(mask):
+                raise IndexError("Invalid take for empty PandasArrayExtensionArray, must be all -1.")
+            else:
+                data = np.array([fill_value] * len(indices), dtype=self.dtype.subtype)
+                return PandasArrayExtensionArray(data, copy=False)
+        took = self._data.take(indices, axis=0)
+        if allow_fill and mask.any():
+            took[mask] = [fill_value] * np.sum(mask)
+        return PandasArrayExtensionArray(took, copy=False)
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __eq__(self, other) -> np.ndarray:
+        if not isinstance(other, PandasArrayExtensionArray):
+            raise NotImplementedError("Invalid type to compare to: {}".format(type(other)))
+        return (self._data == other._data).all()
+
+
+def pandas_types_mapper(dtype):
+    if isinstance(dtype, Array2DExtensionType):
+        return PandasArrayExtensionDtype(dtype.inner_type)
 
 
 @dataclass
@@ -452,7 +668,9 @@ class Sequence:
     _type: str = field(default="Sequence", init=False, repr=False)
 
 
-FeatureType = Union[dict, list, tuple, Value, Tensor, ClassLabel, Translation, TranslationVariableLanguages, Sequence]
+FeatureType = Union[
+    dict, list, tuple, Value, Tensor, ClassLabel, Translation, TranslationVariableLanguages, Sequence, Array2D
+]
 
 
 def get_nested_type(schema: FeatureType) -> pa.DataType:
@@ -508,12 +726,10 @@ def encode_nested_example(schema, obj):
         if isinstance(obj, str):  # don't interpret a string as a list
             raise ValueError("Got a string but expected a list instead: '{}'".format(obj))
         return [encode_nested_example(schema.feature, o) for o in obj]
-
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value)):
+    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value, Array2D)):
         return schema.encode_example(obj)
-
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
 
@@ -545,6 +761,8 @@ def generate_from_arrow_type(pa_type: pa.DataType):
         if isinstance(feature, (dict, tuple, list)):
             return [feature]
         return Sequence(feature=feature)
+    elif isinstance(pa_type, Array2DExtensionType):
+        return Array2D(dtype=pa_type.inner_type)
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
