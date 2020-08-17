@@ -157,6 +157,18 @@ While you can access a single row with the ``dataset[i]`` pattern, you can also 
      'idx': [1, 3, 5]
     }
 
+Or use an iterable of type ``bool`` for boolean array indexing:
+
+.. code-block::
+
+    >>> label_mask = np.array(dataset['label']) == 0
+    >>> dataset[label_mask]['sentence1'][:3]
+    ["Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .",
+     'Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
+     'The Nasdaq had a weekly gain of 17.27 , or 1.2 percent , closing at 1,520.15 on Friday .']
+    >>> dataset[label_mask]['label'][:10]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
 You can also get a full columns by querying its name as a string. This will return a list of elements:
 
 .. code-block::

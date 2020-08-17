@@ -652,7 +652,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         output_all_columns=False,
         format_kwargs=None,
     ) -> Union[Dict, List]:
-        """ Can be used to index columns (by string names) or rows (by integer index or slices)
+        """
+        Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
         # In the following, to convert data from the arrow table to dicts or lists,
         # we use .to_pandas().to_dict() or .to_pandas().to_list() as they are
@@ -733,7 +734,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return outputs
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
-        """ Can be used to index columns (by string names) or rows (by integer index)
+        """
+        Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)
         """
         return self._getitem(
             key,
@@ -790,7 +792,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self,
         function,
         with_indices: bool = False,
-        input_column: Optional[str] = None,
+        input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
@@ -813,8 +815,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     - `function(batch: Union[Dict[List], List[Any]]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
                     - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
                 `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-                `input_column` (`Optional[str]`, default: `None`): The column to be passed into `function`. If `None`, a dict
-                    mapping to all formatted columns is passed.
+                `input_columns` (`Optional[Union[str, List[str]]]`, default: `None`): The columns to be passed into `function` as
+                    positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
                 `batched` (`bool`, default: `False`): Provide batch of examples to `function`
                 `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
@@ -850,12 +852,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 )
             )
 
-        if input_column is not None and input_column not in self._data.column_names:
-            raise ValueError(
-                "Input column {} not in the dataset. Current columns in the dataset: {}".format(
-                    input_column, self._data.column_names
-                )
-            )
+        if isinstance(input_columns, str):
+            input_columns = [input_columns]
+
+        if input_columns is not None:
+            for input_column in input_columns:
+                if input_column not in self._data.column_names:
+                    raise ValueError(
+                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
+                            input_column, self._data.column_names
+                        )
+                    )
 
         if fn_kwargs is None:
             fn_kwargs = dict()
@@ -867,9 +874,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Check if the function returns updated examples
         def does_function_return_dict(inputs, indices):
             """ Does the function returns a dict. """
-            fn_input = inputs if input_column is None else inputs[input_column]
+            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             processed_inputs = (
-                function(fn_input, indices, **fn_kwargs) if with_indices else function(fn_input, **fn_kwargs)
+                function(*fn_args, indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
             )
             does_return_dict = isinstance(processed_inputs, Mapping)
 
@@ -904,9 +911,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False):
             """ Utility to apply the function on a selection of columns. """
-            fn_input = inputs if input_column is None else inputs[input_column]
+            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
             processed_inputs = (
-                function(fn_input, indices, **fn_kwargs) if with_indices else function(fn_input, **fn_kwargs)
+                function(*fn_args, indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
             )
             if not update_data:
                 return None  # Nothing to update, let's move on
@@ -943,7 +950,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "writer_batch_size": writer_batch_size,
                     "features": features,
                     "disable_nullable": disable_nullable,
-                    "input_column": input_column,
+                    "input_columns": input_columns,
                     "fn_kwargs": fn_kwargs,
                 }
                 cache_file_name = self._get_cache_file_path(function, cache_kwargs)
@@ -1031,7 +1038,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self,
         function,
         with_indices=False,
-        input_column: Optional[str] = None,
+        input_columns: Optional[Union[str, List[str]]] = None,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
@@ -1049,8 +1056,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     - `function(example: Union[Dict, Any]) -> bool` if `with_indices=False`
                     - `function(example: Union[Dict, Any], indices: int) -> bool` if `with_indices=True`
                 `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-                `input_column` (`Optional[str]`, default: `None`): The column to be passed into `function`. If `None`, a dict
-                    mapping to all formatted columns is passed.
+                `input_columns` (`Optional[Union[str, List[str]]]`, default: `None`): The columns to be passed into `function` as
+                    positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
                 `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
                 `remove_columns` (`Optional[List[str]]`, default: `None`): Remove a selection of columns while doing the mapping.
@@ -1071,33 +1078,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 "Using `.filter` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it.`"
             )
 
-        if input_column is not None and input_column not in self._data.column_names:
-            raise ValueError(
-                "Input column {} not in the dataset. Current columns in the dataset: {}".format(
-                    input_column, self._data.column_names
-                )
-            )
+        if isinstance(input_columns, str):
+            input_columns = [input_columns]
+
+        if input_columns is not None:
+            for input_column in input_columns:
+                if input_column not in self._data.column_names:
+                    raise ValueError(
+                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
+                            input_column, self._data.column_names
+                        )
+                    )
 
         if fn_kwargs is None:
             fn_kwargs = dict()
-        fn_kwargs["input_column"] = input_column
+        fn_kwargs["input_columns"] = input_columns
 
         # transforme the filter function into the map function
         def map_function(batch, *args, **fn_kwargs):
             result = defaultdict(list)
             num_examples = len(batch[next(iter(batch.keys()))])
-            input_column = fn_kwargs.pop("input_column", None)
+            input_columns = fn_kwargs.pop("input_columns", None)
 
             # create single examples
             for i in range(num_examples):
                 example = map_nested(lambda x: x[i], batch, dict_only=True)
-                fn_input = example if input_column is None else example[input_column]
+                fn_args = [example] if input_columns is None else [example[col] for col in input_columns]
 
                 # check if example should be filtered or not
                 if with_indices:
-                    keep_example = function(fn_input, args[0][i], **fn_kwargs)
+                    keep_example = function(*fn_args, args[0][i], **fn_kwargs)
                 else:
-                    keep_example = function(fn_input, **fn_kwargs)
+                    keep_example = function(*fn_args, **fn_kwargs)
 
                 assert isinstance(
                     keep_example, bool
