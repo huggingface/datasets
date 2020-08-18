@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional
 import pyarrow as pa
 from tqdm.auto import tqdm
 
-from .features import Features
+from .features import EncodedBatch, Features
 from .info import DatasetInfo
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
 
@@ -121,39 +121,20 @@ class ArrowWriter(object):
         info_as_dict = asdict(info)
         return {"huggingface": json.dumps({key: info_as_dict[key] for key in keys})}
 
-    def _write_array_on_file(self, pa_array):
-        """Write a PyArrow Array"""
-        pa_batch = pa.RecordBatch.from_struct_array(pa_array)
-        self._num_bytes += pa_array.nbytes
-        if self.pa_writer is None:
-            pa_table = pa.Table.from_batches([pa_batch])
-            self._build_writer(inferred_schema=pa_table.schema)
-        self.pa_writer.write_batch(pa_batch)
-
     def write_on_file(self):
         """ Write stored examples
         """
         if not self.current_rows:
             return
-        ext_cols = set(x.name for x in self._type if isinstance(x.type, pa.PyExtensionType))
+        cols = sorted(self.current_rows[0].keys())
         type = None if self.update_features and self.pa_writer is None else self._type
-        if ext_cols:
-            entries = []
-            for row in self.current_rows:
-                row_list = [
-                    pa.array([row[f.name]], type[f.name].type) if f.name not in ext_cols else row[f.name]
-                    for f in self.schema
-                ]
-                row = pa.RecordBatch.from_arrays(row_list, schema=self._schema)
-                row = pa.Table.from_batches([row])
-                entries.append(row)
-            table = pa.concat_tables(entries)
-            self.write_table(table)
-
-        else:
-            pa_array = pa.array(self.current_rows, type=type)
+        arrays = []
+        inferred_types = []
+        for col in cols:
+            encoded_batch = EncodedBatch([row[col] for row in self.current_rows])
+            pa_array = pa.array(encoded_batch, type=type[col].type if type is not None else None)
             inferred_type = pa_array.type
-            first_example = pa.array(self.current_rows[0:1], type=inferred_type)[0]
+            first_example = pa.array(EncodedBatch(encoded_batch.data[:1]), type=inferred_type)[0]
             # Sanity check
             if pa_array[0] != first_example:
                 # There was an Overflow in StructArray. Let's reduce the batch_size
@@ -162,20 +143,26 @@ class ArrowWriter(object):
                     if new_batch_size < 2:
                         raise RuntimeError("The given example is too big (>2GB) to fit in an array.")
                     new_batch_size = self.writer_batch_size // 2
-                    pa_array = pa.array(self.current_rows[:new_batch_size], type=inferred_type)
+                    encoded_batch = EncodedBatch(encoded_batch.data[:new_batch_size])
+                    pa_array = pa.array(encoded_batch, type=inferred_type)
                 logger.warning(
                     "Batch size is too big (>2GB). Reducing it from {} to {}".format(
                         self.writer_batch_size, new_batch_size
                     )
                 )
                 self.writer_batch_size = new_batch_size
+                col_arrays = []
                 for i in range(0, len(self.current_rows), new_batch_size):
                     rows_batch = self.current_rows[i, i + new_batch_size]
-                    self._write_array_on_file(pa.array(rows_batch, type=inferred_type))
-            else:
-                # All good
-                self._write_array_on_file(pa_array)
-            self.current_rows = []
+                    col_arrays.append(pa.array(rows_batch, type=inferred_type))
+                pa_array = pa.chunked_array(col_arrays)
+            arrays.append(pa_array)
+            inferred_types.append(inferred_type)
+        schema = self._schema if type is not None else pa.schema(zip(cols, inferred_types))
+        batch = pa.RecordBatch.from_arrays(arrays, schema=schema)
+        table = pa.Table.from_batches([batch])
+        self.write_table(table)
+        self.current_rows = []
 
     def write(self, example: Dict[str, Any], writer_batch_size: Optional[int] = None):
         """ Add a given Example to the write-pool which is written to file.

@@ -170,12 +170,18 @@ class Array2D:
 
     def encode_example(self, value):
         if isinstance(value, np.ndarray):
-            value = value[np.newaxis, ...]
             value = value.tolist()
-        elif isinstance(value, list):
-            value = [value]
-        encoded = pa.ExtensionArray.from_storage(self(), pa.array(value, self().storage_type_name))
-        return encoded
+        return value
+
+
+class EncodedBatch:
+    def __init__(self, data):
+        self.data = data
+
+    def __arrow_array__(self, type=None):
+        if isinstance(type, Array2DExtensionType):
+            return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_type_name))
+        return pa.array(self.data, type=type)
 
 
 # 2D main class and helper classes
@@ -226,21 +232,19 @@ class Array2DExtensionArray(pa.ExtensionArray):
         return self.to_numpy()
 
     def __iter__(self):
-        for i in range(self.storage.offsets[-1].as_py()):
+        for i in range(len(self)):
             yield self.to_numpy()[i].tolist()
+
+    def __getitem__(self, i):
+        return self.to_numpy()[i].tolist()
 
     @staticmethod
     def _construct_shape(storage, ndims=2):
         shape = []
-        prev_channels = 1
         for i in range(ndims):
-            if i == 0:
-                pass
-            else:
-                storage = storage.flatten()
-            cur_channels = storage.offsets[-1].as_py() // prev_channels
-            shape.append(cur_channels)
-            prev_channels = cur_channels
+            prev_len = len(storage)
+            storage = storage.flatten()
+            shape.append(len(storage) // prev_len)
         return tuple(shape)
 
     @classmethod
@@ -768,7 +772,9 @@ class Features(dict):
         if set(batch) != set(self):
             raise ValueError("Column mismatch between batch {} and features {}".format(set(batch), set(self)))
         for key, column in batch.items():
-            encoded_batch[key] = [encode_nested_example(self[key], cast_to_python_objects(obj)) for obj in column]
+            encoded_batch[key] = EncodedBatch(
+                [encode_nested_example(self[key], cast_to_python_objects(obj)) for obj in column]
+            )
         return encoded_batch
 
     def copy(self):

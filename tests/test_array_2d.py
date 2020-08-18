@@ -264,8 +264,8 @@ class SpeedBenchmarkTest(unittest.TestCase):
         benchmark_df = pd.DataFrame.from_dict(times, orient="index", columns=["time"]).sort_index()
         warn("Speed benchmark:\n" + str(benchmark_df))
         self.assertGreater(
-            times["write_nested_sequence"], times["write_array2d"] * 25
-        )  # At leasr 25 times faster (it is supposed to be ~50 times faster)
+            times["write_nested_sequence"], times["write_array2d"] * 10
+        )  # At leasr 10 times faster (it is supposed to be ~25 times faster)
         self.assertGreater(
             times["read_batch_formated_as_numpy after write_nested_sequence"],
             times["read_batch_formated_as_numpy after write_array2d"],
@@ -348,7 +348,7 @@ class Array2dTest(unittest.TestCase):
             my_features = nlp.Features(my_features)
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
 
-            # dict_examples = my_features.encode_batch(dict_examples)
+            dict_examples = my_features.encode_batch(dict_examples)
             writer.write_batch(dict_examples)
             num_examples, num_bytes = writer.finalize()
             dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
@@ -373,3 +373,7 @@ class Array2dTest(unittest.TestCase):
                 self.assertEqual(dataset["matrix"].shape, (2, 16, 256))
                 self.assertEqual(dataset[0]["matrix"].shape, (16, 256))
                 self.assertEqual(dataset[:2]["matrix"].shape, (2, 16, 256))
+
+
+if __name__ == "__main__":  # useful to run the profiler
+    SpeedBenchmarkTest().test_benchmark_speed()

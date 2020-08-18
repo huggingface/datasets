@@ -701,9 +701,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     if format_type == "pandas":
                         outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper)
                     else:
-                        outputs = self._data.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")[key]
+                        outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper).to_list()
                 else:
-                    outputs = self._data.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")[key]
+                    outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper).to_list()
             else:
                 outputs = self._data[key].to_pylist()
         elif isinstance(key, Iterable):
