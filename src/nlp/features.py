@@ -174,16 +174,6 @@ class Array2D:
         return value
 
 
-class EncodedBatch:
-    def __init__(self, data):
-        self.data = data
-
-    def __arrow_array__(self, type=None):
-        if isinstance(type, Array2DExtensionType):
-            return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_type_name))
-        return pa.array(self.data, type=type)
-
-
 # 2D main class and helper classes
 class Array2DExtensionType(pa.PyExtensionType):
 
@@ -219,6 +209,9 @@ class Array2DExtensionType(pa.PyExtensionType):
     @property
     def _get_arrow_ext_name(self):
         return Array2DExtensionArray._get_class().__name__
+
+    def to_pandas_dtype(self):
+        return PandasArrayExtensionDtype(self.inner_type)
 
 
 class Array2DExtensionArray(pa.ExtensionArray):
@@ -772,9 +765,7 @@ class Features(dict):
         if set(batch) != set(self):
             raise ValueError("Column mismatch between batch {} and features {}".format(set(batch), set(self)))
         for key, column in batch.items():
-            encoded_batch[key] = EncodedBatch(
-                [encode_nested_example(self[key], cast_to_python_objects(obj)) for obj in column]
-            )
+            encoded_batch[key] = [encode_nested_example(self[key], cast_to_python_objects(obj)) for obj in column]
         return encoded_batch
 
     def copy(self):

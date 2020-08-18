@@ -699,11 +699,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if format_type is not None:
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
-                        outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper)
+                        # We should use
+                        # outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper)
+                        # but there is a bug in pyarrow that makes ignores the types_mapper in that case
+                        # see https://issues.apache.org/jira/browse/ARROW-9664
+                        outputs = self._data.to_pandas(types_mapper=pandas_types_mapper)[key]
                     else:
-                        outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper).to_list()
+                        outputs = self._data.to_pandas(types_mapper=pandas_types_mapper)[key].to_list()
                 else:
-                    outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper).to_list()
+                    outputs = self._data.to_pandas(types_mapper=pandas_types_mapper)[key].to_list()
             else:
                 outputs = self._data[key].to_pylist()
         elif isinstance(key, Iterable):
