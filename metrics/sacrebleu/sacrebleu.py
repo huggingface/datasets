@@ -84,9 +84,17 @@ class Sacrebleu(nlp.Metric):
                 lowercase=False,
                 tokenize=scb.DEFAULT_TOKENIZER,
                 use_effective_order=False):
+        # Transform references into sacrebleu format
+        # NOTE: Only uses first k references for each prediction, where
+        # k is the minimum number of references for any prediction.
+        min_ref_length = min(len(lst) for lst in references)
+        transformed_refs = [
+            [lst[i] for lst in references]
+            for i in range(min_ref_length)
+        ]
         output = scb.corpus_bleu(
             sys_stream=predictions,
-            ref_streams=references,
+            ref_streams=transformed_refs,
             smooth_method=smooth_method,
             smooth_value=smooth_value,
             force=force,
