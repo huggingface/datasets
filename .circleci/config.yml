@@ -71,6 +71,7 @@ workflows:
     build_and_test:
         jobs:
             - check_code_quality
-            - run_dataset_script_tests
+            - run_dataset_script_tests_beam
+            - run_dataset_script_tests_no_beam
             - build_doc
             - deploy_doc: *workflow_filters
