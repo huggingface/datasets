@@ -794,6 +794,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
         if self.config.name.startswith("PAWS-X"):
             with open(filepath) as f:
                 data = csv.reader(f, delimiter="\t")
+                next(data)  # skip header
                 for id_, row in enumerate(data):
                     if len(row) == 4:
                         yield id_, {"sentence1": row[1], "sentence2": row[2], "label": row[3]}
