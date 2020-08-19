@@ -279,7 +279,7 @@ def _no_cache_fields(obj):
     if _transformers_available:
         import transformers as tr
 
-        if isinstance(obj, (tr.CTRLTokenizer, tr.GPT2Tokenizer, tr.OpenAIGPTTokenizer, tr.XLMTokenizer)):
+        if isinstance(obj, tr.PreTrainedTokenizerBase) and hasattr(obj, "cache") and isinstance(obj.cache, dict):
             with temporary_assignment(obj, "cache", {}):
                 yield
         else:
