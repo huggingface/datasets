@@ -1,3 +1,6 @@
+import os
+import pickle
+import tempfile
 from unittest import TestCase
 
 from nlp.features import Features, Value
@@ -33,6 +36,20 @@ class TestMetric(TestCase):
         for pred, ref in zip(preds, refs):
             metric.add(prediction=pred, reference=ref)
         self.assertEqual(0.5, metric.compute())
+
+    def test_dummy_metric_pickle(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "metric.pt")
+            preds, refs = [1, 2, 3, 4], [1, 2, 4, 3]
+
+            metric = DummyMetric()
+
+            with open(tmp_file, "wb") as f:
+                pickle.dump(metric, f)
+
+            with open(tmp_file, "rb") as f:
+                metric = pickle.load(f)
+            self.assertEqual(0.5, metric.compute(predictions=preds, references=refs))
 
     def test_input_numpy(self):
         import numpy as np

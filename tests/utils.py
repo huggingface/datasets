@@ -2,7 +2,7 @@ import os
 import unittest
 from distutils.util import strtobool
 
-from nlp.utils.file_utils import _tf_available, _torch_available, _transformers_available
+from nlp.utils.file_utils import _tf_available, _torch_available
 
 
 def parse_flag_from_env(key, default=False):
@@ -57,9 +57,12 @@ def require_transformers(test_case):
     These tests are skipped when transformers isn't installed.
 
     """
-    if not _transformers_available:
-        test_case = unittest.skip("test requires transformers")(test_case)
-    return test_case
+    try:
+        import transformers  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires transformers")(test_case)
+    else:
+        return test_case
 
 
 def slow(test_case):
