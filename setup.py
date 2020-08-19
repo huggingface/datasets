@@ -52,7 +52,8 @@ from setuptools import setup
 DOCLINES = __doc__.split('\n')
 
 REQUIRED_PKGS = [
-    'numpy',
+    # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
+    'numpy>=1.17',
     # Backend and serialization
     'pyarrow>=0.16.0',
     # For smart caching dataset processing
