@@ -500,7 +500,7 @@ class BaseDatasetTest(TestCase):
                 Exception, dset.select, indices=bad_indices, indices_cache_file_name=tmp_file, writer_batch_size=2,
             )
             self.assertFalse(os.path.exists(tmp_file))
-            dset_select_five = dset.select(list(range(5)), indices_cache_file_name=tmp_file, writer_batch_size=2,)
+            dset_select_five = dset.select(range(5), indices_cache_file_name=tmp_file, writer_batch_size=2,)
             self.assertTrue(os.path.exists(tmp_file))
             self.assertEqual(len(dset_select_five), 5)
             for i, row in enumerate(dset_select_five):
@@ -696,9 +696,9 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_sharded.features, Features({"filename": Value("string")}))
             # Shard contiguous
-            tmp_file_1 = os.path.join(tmp_dir, "test_1.arrow")
+            tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
             dset_sharded_contiguous = dset.shard(
-                num_shards=3, index=0, contiguous=True, indices_cache_file_name=tmp_file_1
+                num_shards=3, index=0, contiguous=True, indices_cache_file_name=tmp_file_2
             )
             self.assertEqual([f"my_name-train_{i}" for i in (0, 1, 2, 3)], dset_sharded_contiguous["filename"])
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
@@ -706,7 +706,7 @@ class BaseDatasetTest(TestCase):
             # Test lengths of sharded contiguous
             self.assertEqual(
                 [4, 3, 3],
-                [len(dset.shard(3, index=i, contiguous=True, indices_cache_file_name=tmp_file_1)) for i in range(3)],
+                [len(dset.shard(3, index=i, contiguous=True, indices_cache_file_name=tmp_file_2)) for i in range(3)],
             )
 
     def test_flatten_indices(self):

@@ -263,7 +263,7 @@ class DatasetDict(dict):
         kind: str = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_names: Optional[Dict[str, str]] = None,
+        indices_cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
     ) -> "DatasetDict":
@@ -283,16 +283,16 @@ class DatasetDict(dict):
                 `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
                 `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
-                `cache_file_names` (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
-                    results of the computation instead of the automatically generated cache file name.
-                    You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
+                `indices_cache_file_names` (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
+                    indices mapping instead of the automatically generated cache file name.
+                    You have to provide one :obj:`indices_cache_file_name` per dataset in the dataset dictionary.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         self._check_values_type()
-        if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+        if indices_cache_file_names is None:
+            indices_cache_file_names = {k: None for k in self}
         return DatasetDict(
             {
                 k: dataset.sort(
@@ -301,7 +301,7 @@ class DatasetDict(dict):
                     kind=kind,
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
-                    cache_file_name=cache_file_names[k],
+                    indices_cache_file_name=indices_cache_file_names[k],
                     writer_batch_size=writer_batch_size,
                     verbose=verbose,
                 )
@@ -315,7 +315,7 @@ class DatasetDict(dict):
         generators: Optional[Dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_names: Optional[Dict[str, str]] = None,
+        indices_cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
     ):
@@ -336,8 +336,8 @@ class DatasetDict(dict):
                 `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
                 `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
-                `cache_file_names` (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
-                    results of the computation instead of the automatically generated cache file name.
+                `indices_cache_file_names` (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
+                    indices mappings instead of the automatically generated cache file name.
                     You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
                 `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
@@ -348,8 +348,8 @@ class DatasetDict(dict):
             seeds = {k: None for k in self}
         if generators is None:
             generators = {k: None for k in self}
-        if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+        if indices_cache_file_names is None:
+            indices_cache_file_names = {k: None for k in self}
         return DatasetDict(
             {
                 k: dataset.shuffle(
@@ -357,7 +357,7 @@ class DatasetDict(dict):
                     generator=generators[k],
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
-                    cache_file_name=cache_file_names[k],
+                    indices_cache_file_name=indices_cache_file_names[k],
                     writer_batch_size=writer_batch_size,
                     verbose=verbose,
                 )

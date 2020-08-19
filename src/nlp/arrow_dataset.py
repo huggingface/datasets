@@ -938,6 +938,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 `batched` (`bool`, default: `False`): Provide batch of examples to `function`
                 `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
+                `drop_last_batch` (`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
+                    dropped instead of being processed by the function.
                 `remove_columns` (`Optional[List[str]]`, default: `None`): Remove a selection of columns while doing the mapping.
                     Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                     columns with names in `remove_columns`, these columns will be kept.
@@ -961,9 +963,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self
 
         if function is None:
-
-            def function(x):
-                return x
+            function = lambda x: x  # noqa: E731
 
         # Select the columns (arrow columns) to process
         if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
@@ -1174,9 +1174,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         if function is None:
-
-            def function(x):
-                return True
+            function = lambda x: True  # noqa: E731
 
         # transforme the filter function into the map function
         def map_function(batch, *args):
@@ -1279,14 +1277,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_cache_file_name is not None or indices_buffer is not None
         ), "At least one of indices_cache_file_name or indices_buffer must be provided."
 
+        data_files = self._data_files
         if indices_cache_file_name is not None:
             indices_mmap = pa.memory_map(indices_cache_file_name)
+            if data_files is None:
+                data_files = []
+            data_files.append({"filename": indices_cache_file_name})
         else:
             indices_mmap = pa.BufferReader(indices_buffer)
         indices_f = pa.ipc.open_stream(indices_mmap)
         indices_pa_table = indices_f.read_all()
-
-        data_files = self._data_files + [{"filename": indices_cache_file_name}]
 
         # Return new Dataset object
         return Dataset(
@@ -1360,7 +1360,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Return new Dataset object
         return self._new_dataset_with_indices(
-            indices_cache_file_name=indices_cache_file_name, indices_buffer=buf_writer
+            indices_cache_file_name=indices_cache_file_name, indices_buffer=buf_writer.getvalue()
         )
 
     def sort(
@@ -1430,10 +1430,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     logger.info("Loading cached sorted indices for dataset at %s", indices_cache_file_name)
                 return self._new_dataset_with_indices(indices_cache_file_name=indices_cache_file_name)
 
-        indices = self._getitem(
+        column_data = self._getitem(
             column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
         )
-        indices = np.argsort(indices, kind=kind)
+        indices = np.argsort(column_data, kind=kind)
         if reverse:
             indices = indices[::-1]
 
