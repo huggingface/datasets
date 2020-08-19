@@ -95,7 +95,6 @@ class ArrowWriter(object):
             self._features = None
             self._schema = None
             self._type = None
-            self._sorted_names = None
 
         if disable_nullable and self._schema is not None:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._type)
@@ -134,7 +133,6 @@ class ArrowWriter(object):
             self._schema: pa.Schema = inferred_schema
             self._type: pa.DataType = pa.struct(field for field in self._schema)
         if self.with_metadata:
-            self._schema.add_metadata
             self._schema = self._schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features)))
         self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
 
