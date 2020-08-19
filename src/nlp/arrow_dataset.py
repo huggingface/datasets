@@ -453,7 +453,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def __iter__(self):
         """ Iterate through the examples.
-        If a formating is set with :func:`nlp.Dataset.set_format` rows will be returned with the
+        If a formatting is set with :func:`nlp.Dataset.set_format` rows will be returned with the
         selected format.
         """
         format_type = self._format_type
@@ -482,7 +482,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         }
 
     @contextlib.contextmanager
-    def formated_as(
+    def formatted_as(
         self,
         type: Optional[str] = None,
         columns: Optional[List] = None,
@@ -496,7 +496,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     None means __getitem__ returns python objects (default)
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
-                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
                 format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         old_format_type = self._format_type
@@ -523,7 +523,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     None means __getitem__ returns python objects (default)
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
-                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
                 format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         # Check return type
@@ -561,7 +561,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._output_all_columns = output_all_columns
         logger.info(
             "Set __getitem__(key) output type to %s for %s columns "
-            " (when key is int or slice) and %s output other (un-formated) columns.",
+            " (when key is int or slice) and %s output other (un-formatted) columns.",
             "python objects" if type is None else type,
             "no" if columns is None else str(columns),
             "do" if output_all_columns else "don't",
@@ -1788,7 +1788,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # query
             scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
     """
-        with self.formated_as(type="numpy", columns=[column], dtype=dtype):
+        with self.formatted_as(type="numpy", columns=[column], dtype=dtype):
             super().add_faiss_index(
                 column=column,
                 index_name=index_name,
@@ -1908,7 +1908,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
 
         """
-        with self.formated_as(type=None, columns=[column]):
+        with self.formatted_as(type=None, columns=[column]):
             super().add_elasticsearch_index(
                 column=column, host=host, port=port, es_client=es_client, index_name=index_name
             )

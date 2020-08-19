@@ -97,7 +97,7 @@ class BaseDatasetTest(TestCase):
         np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
 
         dset.reset_format()
-        with dset.formated_as(type="numpy", columns=["col_1"]):
+        with dset.formatted_as(type="numpy", columns=["col_1"]):
             self.assertEqual(len(dset[0]), 1)
             self.assertIsInstance(dset[0]["col_1"], np.ndarray)
             self.assertListEqual(list(dset[0]["col_1"].shape), [])
