@@ -36,7 +36,7 @@ from tqdm.auto import tqdm
 
 from nlp.utils.py_utils import dumps
 
-from .arrow_writer import ArrowWriter, TypedBatch
+from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, cast_to_python_objects, pandas_types_mapper
 from .info import DatasetInfo
 from .search import IndexableMixin
@@ -258,9 +258,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             mapping = features.encode_batch(mapping)
         else:
             mapping = cast_to_python_objects(mapping)
-        mapping = {col: TypedBatch(
-            data, type=features.type[col].type if features is not None else None
-        ) for col, data in mapping.items()}
+        mapping = {
+            col: TypedSequence(data, type=features.type[col].type if features is not None else None)
+            for col, data in mapping.items()
+        }
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 

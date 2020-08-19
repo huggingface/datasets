@@ -250,14 +250,15 @@ class SpeedBenchmarkTest(unittest.TestCase):
 
 
 class Array2dTest(unittest.TestCase):
-
     @property
     def my_features(self):
-        return nlp.Features({
-            "matrix": features.Array2D(dtype="float32"),
-            "image": features.Array2D(dtype="float32"),
-            "source": features.Value("string"),
-        })
+        return nlp.Features(
+            {
+                "matrix": features.Array2D(dtype="float32"),
+                "image": features.Array2D(dtype="float32"),
+                "source": features.Value("string"),
+            }
+        )
 
     @property
     def dict_example_0(self):

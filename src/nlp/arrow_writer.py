@@ -36,14 +36,14 @@ logger = logging.getLogger(__name__)
 DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
 
 
-class TypedBatch:
+class TypedSequence:
     def __init__(self, data, type=None, try_type=None):
         self.data = data
         self.type = type
         self.try_type = try_type  # used only when type is not specified, and is ignored if it doesn't match the data
 
     def __arrow_array__(self, type=None):
-        assert type is None, "TypedBatch is supposed to be used with pa.array(typed_batch, type=None)"
+        assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
         type = self.type
         trying_type = False
         if type is None and self.try_type:
@@ -158,10 +158,12 @@ class ArrowWriter(object):
         for col in cols:
             col_type = type[col].type if type is not None else None
             col_try_type = try_type[col].type if try_type is not None and col in [f.name for f in try_type] else None
-            typed_batch = TypedBatch([row[col] for row in self.current_rows], type=col_type, try_type=col_try_type)
-            pa_array = pa.array(typed_batch)
+            typed_sequence = TypedSequence(
+                [row[col] for row in self.current_rows], type=col_type, try_type=col_try_type
+            )
+            pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
-            first_example = pa.array(TypedBatch(typed_batch.data[:1], type=inferred_type))[0]
+            first_example = pa.array(TypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             # Sanity check
             if pa_array[0] != first_example:
                 # There was an Overflow in StructArray. Let's reduce the batch_size
@@ -170,8 +172,7 @@ class ArrowWriter(object):
                     if new_batch_size < 2:
                         raise RuntimeError("The given example is too big (>2GB) to fit in an array.")
                     new_batch_size = self.writer_batch_size // 2
-                    batch = typed_batch.data[:new_batch_size]
-                    pa_array = pa.array(batch, type=inferred_type)
+                    pa_array = pa.array(TypedSequence(typed_sequence.data[:new_batch_size], type=inferred_type))
                 logger.warning(
                     "Batch size is too big (>2GB). Reducing it from {} to {}".format(
                         self.writer_batch_size, new_batch_size
@@ -181,7 +182,7 @@ class ArrowWriter(object):
                 col_arrays = []
                 for i in range(0, len(self.current_rows), new_batch_size):
                     rows_batch = self.current_rows[i, i + new_batch_size]
-                    col_arrays.append(pa.array(TypedBatch(rows_batch, type=inferred_type)))
+                    col_arrays.append(pa.array(TypedSequence(rows_batch, type=inferred_type)))
                 pa_array = pa.chunked_array(col_arrays)
             arrays.append(pa_array)
             inferred_types.append(inferred_type)
@@ -212,13 +213,13 @@ class ArrowWriter(object):
         """
         type = None if self.pa_writer is None and self.update_features else self._type
         try_type = self._type if self.pa_writer is None and self.update_features else None
-        typed_batch_examples = {}
+        typed_sequence_examples = {}
         for col in sorted(batch_examples.keys()):
             col_type = type[col].type if type is not None else None
             col_try_type = try_type[col].type if try_type is not None and col in [f.name for f in try_type] else None
-            typed_batch = TypedBatch(batch_examples[col], type=col_type, try_type=col_try_type)
-            typed_batch_examples[col] = typed_batch
-        pa_table = pa.Table.from_pydict(typed_batch_examples)
+            typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
+            typed_sequence_examples[col] = typed_sequence
+        pa_table = pa.Table.from_pydict(typed_sequence_examples)
         self.write_table(pa_table)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
