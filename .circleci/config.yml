@@ -1,6 +1,18 @@
 version: 2
 jobs:
-    run_dataset_script_tests:
+    run_dataset_script_tests_beam:
+        working_directory: ~/nlp
+        docker:
+            - image: circleci/python:3.6
+        resource_class: medium
+        steps:
+            - checkout
+            - run: python -m venv venv
+            - run: source venv/bin/activate
+            - run: pip install .[tests,apache-beam]
+            - run: python -m pytest -sv ./tests/
+
+    run_dataset_script_tests_no_beam:
         working_directory: ~/nlp
         docker:
             - image: circleci/python:3.6

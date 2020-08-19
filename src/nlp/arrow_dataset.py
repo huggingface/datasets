@@ -49,6 +49,11 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+if int(pa.__version__.split(".")[0]) == 0:
+    PYARROW_V0 = True
+else:
+    PYARROW_V0 = False
+
 
 class DatasetInfoMixin(object):
     """ This base class exposes some attributes of DatasetInfo
@@ -690,6 +695,37 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def _nest(py_dict):
         return dict((key, [elem]) for key, elem in py_dict.items())
 
+    def _map_indices(self, indices: Union[int, slice, pa.Array, Iterable]):
+        if self._indices is None:
+            return indices
+
+        if isinstance(indices, int):
+            return self._indices.column(0)[indices].as_py()
+
+        slice_indices = None
+        array_indices = None
+        if isinstance(indices, slice):
+            slice_indices = indices.indices(self.num_rows)
+            # Check if the slice is a contiguous slice - else build an indices array
+            if slice_indices[2] != 1 or slice_indices[1] < slice_indices[0]:
+                array_indices = pa.array(list(range(*slice_indices)), type=pa.uint64())
+        elif isinstance(indices, pa.Array):
+            array_indices = indices
+        elif isinstance(indices, Iterable):
+            array_indices = pa.array([int(i) for i in indices], type=pa.uint64())
+
+        # We can do a slice
+        if array_indices is None:
+            return self._indices.column(0).slice(array_indices[0], array_indices[1] - array_indices[0])
+
+        # We cannot do a slice, we need to do a take or some concatenation on pyarrow < 1.0.0
+        if PYARROW_V0:  # pre-1.0.0 backward compatibility
+            data_array = pa.concat_tables(self._indices.slice(i.as_py(), 1) for i in array_indices).column(0)
+        else:
+            data_array = self._indices.column(0).take(array_indices)
+
+        return data_array
+
     def _getitem(
         self,
         key: Union[int, slice, str],
@@ -710,8 +746,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 raise IndexError(f"Index ({key}) outside of table length ({self.num_rows}).")
 
             # Check if we need to convert indices
-            if self._indices is not None:
-                key = self._indices.column(0)[key].as_py()
+            key = self._map_indices(key)
 
             if format_type is not None:
                 if format_type == "pandas":
@@ -731,17 +766,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
             # Check if we need to convert indices
             if self._indices is not None:
-                if indices_array is not None:
-                    indices_array = self._indices.column(0).take(indices_array)
-                else:
-                    indices_array = self._indices.column(0).slice(key_indices[0], key_indices[1] - key_indices[0])
-
+                indices_array = self._map_indices(indices_array if indices_array else key)
                 # TODO: here we could add a check that the resulting indices are a contiguous slice
                 # to avoid using 'take' instead of 'slice'
 
             # Get the subset of the table
             if indices_array is not None:
-                data_subset = self._data.take(indices_array)
+                if PYARROW_V0:
+                    data_subset = pa.concat_tables(
+                        self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
+                    )
+                else:
+                    data_subset = self._data.take(indices_array)
             else:
                 data_subset = self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
 
@@ -758,36 +794,45 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if key not in self._data.column_names:
                 raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
 
-            data_subset = self._data[key]
-
             # Check if we need to convert indices
             if self._indices is not None:
-                data_subset = data_subset.take(self._indices.column(0))
+                indices_array = self._indices.column(0)
+                if PYARROW_V0:
+                    data_array = pa.concat_tables(self._data.slice(i.as_py(), 1) for i in indices_array).column(key)
+                else:
+                    data_array = self._data.column(key).take(indices_array)
+            else:
+                data_array = self._data.column(key)
 
             if format_type is not None:
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
-                        outputs = data_subset.to_pandas(split_blocks=True)
+                        outputs = data_array.to_pandas(split_blocks=True)
                     elif format_type in ("numpy", "torch", "tensorflow"):
-                        outputs = data_subset.to_pandas(split_blocks=True).to_list()
+                        outputs = data_array.to_pandas(split_blocks=True).to_list()
                     else:
-                        outputs = data_subset.to_pylist()
+                        outputs = data_array.to_pylist()
                 else:
-                    outputs = data_subset.to_pylist()
+                    outputs = data_array.to_pylist()
             else:
-                outputs = data_subset.to_pylist()
+                outputs = data_array.to_pylist()
 
         elif isinstance(key, Iterable):
             indices_array = pa.array([int(i) for i in key], type=pa.uint64())
 
             # Check if we need to convert indices
-            if self._indices is not None:
-                indices_array = self._indices.column(0).take(indices_array)
+            indices_array = self._map_indices(indices_array)
 
             # TODO: here we could add a check that the resulting indices are a contiguous slice
             # to avoid using 'take' instead of 'slice'
 
-            data_subset = self._data.take(indices_array)
+            if PYARROW_V0:
+                data_subset = pa.concat_tables(
+                    self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
+                )
+            else:
+                data_subset = self._data.take(indices_array)
+
             if format_type is not None:
                 if format_type == "pandas":
                     outputs = data_subset.to_pandas(split_blocks=True)
@@ -1294,7 +1339,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
         if self._indices is not None:
-            indices_array = self._indices.column(0).take(indices_array)
+            if PYARROW_V0:
+                indices_array = self._indices.column(0).chunk(0).take(indices_array)
+            else:
+                indices_array = self._indices.column(0).take(indices_array)
 
         indices_table = pa.Table.from_arrays([indices_array], names=["indices"])
 

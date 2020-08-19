@@ -2,9 +2,13 @@ import os
 import tempfile
 from unittest import TestCase
 
-import apache_beam as beam
-
 import nlp
+
+from .utils import require_beam
+
+
+if nlp.is_beam_available():
+    import apache_beam as beam
 
 
 class DummyBeamDataset(nlp.BeamBasedBuilder):
@@ -50,6 +54,7 @@ def get_test_nested_examples():
 
 
 class BeamBuilderTest(TestCase):
+    @require_beam
     def test_download_and_prepare(self):
         expected_num_examples = len(get_test_dummy_examples())
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
@@ -76,11 +81,13 @@ class BeamBuilderTest(TestCase):
                 )
             )
 
+    @require_beam
     def test_no_beam_options(self):
         with tempfile.TemporaryDirectory() as tmp_cache_dir:
             builder = DummyBeamDataset(cache_dir=tmp_cache_dir)
             self.assertRaises(nlp.builder.MissingBeamOptions, builder.download_and_prepare)
 
+    @require_beam
     def test_nested_features(self):
         expected_num_examples = len(get_test_nested_examples())
         with tempfile.TemporaryDirectory() as tmp_cache_dir:

@@ -26,6 +26,18 @@ _run_aws_tests = parse_flag_from_env("RUN_AWS", default=True)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 
 
+def require_beam(test_case):
+    """
+    Decorator marking a test that requires Apache Beam.
+
+    These tests are skipped when Apache Beam isn't installed.
+
+    """
+    if not _torch_available:
+        test_case = unittest.skip("test requires PyTorch")(test_case)
+    return test_case
+
+
 def require_torch(test_case):
     """
     Decorator marking a test that requires PyTorch.

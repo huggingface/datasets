@@ -73,7 +73,6 @@ REQUIRED_PKGS = [
 ]
 
 TESTS_REQUIRE = [
-    'apache-beam',
     'absl-py',
     'bs4',
     'elasticsearch',
