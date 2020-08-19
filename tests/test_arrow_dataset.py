@@ -326,6 +326,17 @@ class BaseDatasetTest(TestCase):
                 dset_test_batched.features, Features({"filename": Value("string"), "filename_new": Value("string")})
             )
 
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with dset.formated_as("numpy", columns=["filename"]):
+                tmp_file = os.path.join(tmp_dir, "test.arrow")
+                dset_test_batched = dset.map(map_batched, batched=True, cache_file_name=tmp_file)
+                self.assertEqual(len(dset_test_batched), 30)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(
+                    dset_test_batched.features,
+                    Features({"filename": Value("string"), "filename_new": Value("string")}),
+                )
+
         def map_batched_with_indices(example, idx):
             return {"filename_new": [x + "_extension_" + str(idx) for x in example["filename"]]}
 
