@@ -233,6 +233,8 @@ class Array2DExtensionArray(pa.ExtensionArray):
 
     @staticmethod
     def _construct_shape(storage, ndims=2):
+        if len(storage) == 0:
+            return tuple()
         shape = []
         for i in range(ndims):
             prev_len = len(storage)
@@ -765,7 +767,8 @@ class Features(dict):
         if set(batch) != set(self):
             raise ValueError("Column mismatch between batch {} and features {}".format(set(batch), set(self)))
         for key, column in batch.items():
-            encoded_batch[key] = [encode_nested_example(self[key], cast_to_python_objects(obj)) for obj in column]
+            column = cast_to_python_objects(column)
+            encoded_batch[key] = [encode_nested_example(self[key], obj) for obj in column]
         return encoded_batch
 
     def copy(self):

@@ -36,7 +36,7 @@ from tqdm.auto import tqdm
 
 from nlp.utils.py_utils import dumps
 
-from .arrow_writer import ArrowWriter
+from .arrow_writer import ArrowWriter, TypedBatch
 from .features import Features, cast_to_python_objects, pandas_types_mapper
 from .info import DatasetInfo
 from .search import IndexableMixin
@@ -258,9 +258,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             mapping = features.encode_batch(mapping)
         else:
             mapping = cast_to_python_objects(mapping)
-        pa_table: pa.Table = pa.Table.from_pydict(
-            mapping=mapping, schema=pa.schema(features.type) if features is not None else None
-        )
+        mapping = {col: TypedBatch(
+            data, type=features.type[col].type if features is not None else None
+        ) for col, data in mapping.items()}
+        pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
     @property
@@ -624,12 +625,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return x
 
             command = identity
-        if isinstance(outputs, (list, tuple, np.ndarray)):
+        if isinstance(outputs, (list, tuple, np.ndarray, pd.Series)):
             return command(outputs)
         elif isinstance(outputs, pd.DataFrame):
             if format_columns is not None and not output_all_columns:
                 to_remove_columns = [col for col in self.column_names if col not in format_columns]
                 output_dict = outputs.drop(to_remove_columns, axis=1)
+            else:
+                output_dict = outputs
         else:
             output_dict = {}
             for k, v in outputs.items():

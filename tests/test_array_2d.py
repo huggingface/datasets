@@ -44,13 +44,7 @@ def generate_examples(
             shape_index = col_id % len(shapes) if columns_have_different_shapes else 0  # alternate
             if isinstance(v, features.Array2D):
                 shape = shapes[shape_index]
-                if not ragged_array:  # matrix
-                    data = np.random.rand(*shape).astype(v.dtype)
-                else:  # ragged
-                    data = []
-                    for i in range(shape[0]):
-                        data.append(np.arange(max(shape[1], i + 1)).astype(v.dtype))
-                    data = np.array(data)
+                data = np.random.rand(*shape).astype(v.dtype)
             elif isinstance(v, nlp.Value):
                 data = "foo"
             elif isinstance(v, nlp.Sequence) and str(v).count("Sequence") > 1:  # nested sequence
@@ -178,27 +172,6 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             self.assertEqual(first_len, 2, "use a sequence type if dim is  < 2")
             self.assertEqual(second_len, 2, "use a sequence type if dim is  < 2")
 
-    # save this test for later if we ever want to have a non-fixed last dimension
-    # def test_varying_last_dim(self):
-    #     with tempfile.TemporaryDirectory() as tmp_dir:
-    #         my_features = DEFAULT_FEATURES
-    #         writer = ArrowWriter(data_type=my_features.type, path=os.path.join(tmp_dir, "beta.arrow"))
-    #         for key, record in generate_examples(schema=my_features, num_examples=1, ragged_array=True):
-    #             example = my_features.encode_example(record)
-    #             writer.write(example)
-    #         num_examples, num_bytes = writer.finalize()
-    #         dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-    #         row = dataset[0]
-    #         inspect = None
-    #         for col in row:
-    #             if hasattr(col, "shape"):
-    #                 self.assertNotEqual(len(col.shape) == 1, "use a sequence type if dim is  < 2")
-    #                 inspect = col.tolist()
-    #                 break
-    #         self.assertTrue(inspect is not None, "could not find extension")
-    #         match_this_dim = len(inspect[0])
-    #         self.assertTrue(not all([len(i) == match_this_dim for i in inspect]), "dim -1 must not all be the same")
-
     def test_compatability_with_string_values(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
@@ -277,102 +250,100 @@ class SpeedBenchmarkTest(unittest.TestCase):
 
 
 class Array2dTest(unittest.TestCase):
-    def test_write(self):
 
-        my_features = {
+    @property
+    def my_features(self):
+        return nlp.Features({
             "matrix": features.Array2D(dtype="float32"),
             "image": features.Array2D(dtype="float32"),
             "source": features.Value("string"),
-        }
+        })
 
-        dict_example_0 = {
+    @property
+    def dict_example_0(self):
+        return {
             "image": np.random.rand(5, 5).astype("float32"),
             "source": "foo",
             "matrix": np.random.rand(16, 256).astype("float32"),
         }
 
-        dict_example_1 = {
+    @property
+    def dict_example_1(self):
+        return {
             "image": np.random.rand(5, 5).astype("float32"),
             "matrix": np.random.rand(16, 256).astype("float32"),
             "source": "bar",
         }
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
-
-            my_features = nlp.Features(my_features)
-            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            my_examples = [(0, dict_example_0), (1, dict_example_1)]
-            for key, record in my_examples:
-                example = my_features.encode_example(record)
-                writer.write(example)
-            num_examples, num_bytes = writer.finalize()
-            dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-
-            matrix_column = dataset["matrix"]
-            self.assertIsInstance(matrix_column, list)
-            self.assertIsInstance(matrix_column[0], list)
-            self.assertIsInstance(matrix_column[0][0], list)
-            self.assertEqual(np.array(matrix_column).shape, (2, 16, 256))
-
-            matrix_field_of_first_example = dataset[0]["matrix"]
-            self.assertIsInstance(matrix_field_of_first_example, list)
-            self.assertIsInstance(matrix_field_of_first_example, list)
-            self.assertEqual(np.array(matrix_field_of_first_example).shape, (16, 256))
-
-            matrix_field_of_first_two_examples = dataset[:2]["matrix"]
-            self.assertIsInstance(matrix_field_of_first_two_examples, list)
-            self.assertIsInstance(matrix_field_of_first_two_examples[0], list)
-            self.assertIsInstance(matrix_field_of_first_two_examples[0][0], list)
-            self.assertEqual(np.array(matrix_field_of_first_two_examples).shape, (2, 16, 256))
-            with dataset.formated_as("numpy"):
-                self.assertEqual(dataset["matrix"].shape, (2, 16, 256))
-                self.assertEqual(dataset[0]["matrix"].shape, (16, 256))
-                self.assertEqual(dataset[:2]["matrix"].shape, (2, 16, 256))
-
-    def test_write_batch(self):
-
-        my_features = {
-            "matrix": features.Array2D(dtype="float32"),
-            "image": features.Array2D(dtype="float32"),
-            "source": features.Value("string"),
-        }
-
-        dict_examples = {
+    @property
+    def dict_examples(self):
+        return {
             "image": np.random.rand(2, 5, 5).astype("float32").tolist(),
             "source": ["foo", "bar"],
             "matrix": np.random.rand(2, 16, 256).astype("float32").tolist(),
         }
 
+    def _check_getitem_output_type(self, dataset):
+        matrix_column = dataset["matrix"]
+        self.assertIsInstance(matrix_column, list)
+        self.assertIsInstance(matrix_column[0], list)
+        self.assertIsInstance(matrix_column[0][0], list)
+        self.assertEqual(np.array(matrix_column).shape, (2, 16, 256))
+
+        matrix_field_of_first_example = dataset[0]["matrix"]
+        self.assertIsInstance(matrix_field_of_first_example, list)
+        self.assertIsInstance(matrix_field_of_first_example, list)
+        self.assertEqual(np.array(matrix_field_of_first_example).shape, (16, 256))
+
+        matrix_field_of_first_two_examples = dataset[:2]["matrix"]
+        self.assertIsInstance(matrix_field_of_first_two_examples, list)
+        self.assertIsInstance(matrix_field_of_first_two_examples[0], list)
+        self.assertIsInstance(matrix_field_of_first_two_examples[0][0], list)
+        self.assertEqual(np.array(matrix_field_of_first_two_examples).shape, (2, 16, 256))
+
+        with dataset.formated_as("numpy"):
+            self.assertEqual(dataset["matrix"].shape, (2, 16, 256))
+            self.assertEqual(dataset[0]["matrix"].shape, (16, 256))
+            self.assertEqual(dataset[:2]["matrix"].shape, (2, 16, 256))
+
+        with dataset.formated_as("pandas"):
+            self.assertIsInstance(dataset["matrix"], pd.Series)
+            self.assertIsInstance(dataset[0]["matrix"], pd.Series)
+            self.assertIsInstance(dataset[:2]["matrix"], pd.Series)
+            self.assertEqual(dataset["matrix"].to_numpy().shape, (2, 16, 256))
+            self.assertEqual(dataset[0]["matrix"].to_numpy().shape, (1, 16, 256))
+            self.assertEqual(dataset[:2]["matrix"].to_numpy().shape, (2, 16, 256))
+
+    def test_write(self):
+
         with tempfile.TemporaryDirectory() as tmp_dir:
 
-            my_features = nlp.Features(my_features)
+            my_features = nlp.Features(self.my_features)
+            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
+            my_examples = [(0, self.dict_example_0), (1, self.dict_example_1)]
+            for key, record in my_examples:
+                example = my_features.encode_example(record)
+                writer.write(example)
+            num_examples, num_bytes = writer.finalize()
+            dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
+            self._check_getitem_output_type(dataset)
+
+    def test_write_batch(self):
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            my_features = nlp.Features(self.my_features)
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
 
-            dict_examples = my_features.encode_batch(dict_examples)
+            dict_examples = my_features.encode_batch(self.dict_examples)
             writer.write_batch(dict_examples)
             num_examples, num_bytes = writer.finalize()
             dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
+            self._check_getitem_output_type(dataset)
 
-            matrix_column = dataset["matrix"]
-            self.assertIsInstance(matrix_column, list)
-            self.assertIsInstance(matrix_column[0], list)
-            self.assertIsInstance(matrix_column[0][0], list)
-            self.assertEqual(np.array(matrix_column).shape, (2, 16, 256))
-
-            matrix_field_of_first_example = dataset[0]["matrix"]
-            self.assertIsInstance(matrix_field_of_first_example, list)
-            self.assertIsInstance(matrix_field_of_first_example, list)
-            self.assertEqual(np.array(matrix_field_of_first_example).shape, (16, 256))
-
-            matrix_field_of_first_two_examples = dataset[:2]["matrix"]
-            self.assertIsInstance(matrix_field_of_first_two_examples, list)
-            self.assertIsInstance(matrix_field_of_first_two_examples[0], list)
-            self.assertIsInstance(matrix_field_of_first_two_examples[0][0], list)
-            self.assertEqual(np.array(matrix_field_of_first_two_examples).shape, (2, 16, 256))
-            with dataset.formated_as("numpy"):
-                self.assertEqual(dataset["matrix"].shape, (2, 16, 256))
-                self.assertEqual(dataset[0]["matrix"].shape, (16, 256))
-                self.assertEqual(dataset[:2]["matrix"].shape, (2, 16, 256))
+    def test_from_dict(self):
+        dataset = nlp.Dataset.from_dict(self.dict_examples, features=nlp.Features(self.my_features))
+        self._check_getitem_output_type(dataset)
 
 
 if __name__ == "__main__":  # useful to run the profiler
