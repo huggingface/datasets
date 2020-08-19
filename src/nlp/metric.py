@@ -110,16 +110,8 @@ class Metric(object):
         self.writer_batch_size = None
         self.data = None
 
-        # Check we can write on the cache file without competitors
         self.cache_file_name = self._get_cache_path(self.process_id)
-        self.filelock = FileLock(self.cache_file_name + ".lock")
-        try:
-            self.filelock.acquire(timeout=1)
-        except Timeout:
-            raise ValueError(
-                "Cannot acquire lock, caching file might be used by another process, "
-                "you should setup a unique 'experiment_id' for this run."
-            )
+        self.filelock = None  # Keep it None for now so we can (cloud)pickle the object
 
     def _relative_data_dir(self, with_version=True):
         """ Relative path of this metric in cache_dir:
@@ -181,7 +173,8 @@ class Metric(object):
         """ Close all the writing process and load/gather the data
             from all the nodes if main node or all_process is True.
         """
-        self.writer.finalize()
+        if self.writer is not None:
+            self.writer.finalize()
         self.writer = None
         self.buf_writer = None
         self.filelock.release()
@@ -261,6 +254,18 @@ class Metric(object):
             )
         else:
             self.buf_writer = None
+
+            # Check we can write on the cache file without competitors
+            if self.filelock is None:
+                self.filelock = FileLock(self.cache_file_name + ".lock")
+                try:
+                    self.filelock.acquire(timeout=1)
+                except Timeout:
+                    raise ValueError(
+                        "Cannot acquire lock, caching file might be used by another process, "
+                        "you should setup a unique 'experiment_id' for this run."
+                    )
+
             self.writer = ArrowWriter(
                 schema=self.arrow_schema, path=self.cache_file_name, writer_batch_size=self.writer_batch_size
             )
