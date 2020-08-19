@@ -63,7 +63,7 @@ except (ImportError, AssertionError):
 try:
     USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
     if USE_BEAM in ("1", "ON", "YES", "AUTO"):
-        import apache_beam
+        import apache_beam  # noqa: F401
 
         _beam_available = True  # pylint: disable=invalid-name
         logger.info("Apache Beam available.")
