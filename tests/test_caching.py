@@ -88,6 +88,14 @@ class RecurseDumpTest(TestCase):
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
 
+    def test_recurse_dump_for_method(self):
+
+        hash1 = md5(nlp.utils.dumps(Foo([0]).__call__)).hexdigest()
+        hash2 = md5(nlp.utils.dumps(Foo([1]).__call__)).hexdigest()
+        hash3 = md5(nlp.utils.dumps(Foo([0]).__call__)).hexdigest()
+        self.assertEqual(hash1, hash3)
+        self.assertNotEqual(hash1, hash2)
+
     def test_dump_ipython_function(self):
 
         code_args = (
