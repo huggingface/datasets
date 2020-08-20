@@ -34,9 +34,49 @@ logger = logging.getLogger(__name__)
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
+type_ = type  # keep python's type function
 
 
 class TypedSequence:
+    """
+    This data container generalizes the typing when instantiating pyarrow arrays, tabels or batches.
+
+    More specifically it add several features:
+    - Support extension types like ``nlp.features.Array2DExtensionType``:
+        By default pyarrow arrays don't return extension arrays. One has to call
+        ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type_name))``
+        in order to get an extension array.
+    - Support for ``try_type`` parameter that can be used instead of ``type``:
+        When an array is transformed, we like to keep the same type as before if possible.
+        For example when calling :func:`nlp.Dataset.map`, we don't want to change the type
+        of each column by default.
+    - Better error message when a pyarrow array overflows.
+    
+    Example::
+
+        from nlp.features import Array2DExtensionType
+        from nlp.arrow_writer import TypedSequence
+        import pyarrow as pa
+
+        arr = pa.array(TypedSequence([1, 2, 3], type=pa.int32()))
+        assert arr.type == pa.int32()
+
+        arr = pa.array(TypedSequence([1, 2, 3], try_type=pa.int32()))
+        assert arr.type == pa.int32()
+
+        arr = pa.array(TypedSequence(["foo", "bar"], try_type=pa.int32()))
+        assert arr.type == pa.string()
+
+        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType("int64")))
+        assert arr.type == Array2DExtensionType("int64")
+
+        table = pa.Table.from_pydict({
+            "image": TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType("int64"))
+        })
+        assert table["image"].type == Array2DExtensionType("int64")
+
+    """
+
     def __init__(self, data, type=None, try_type=None):
         assert type is None or try_type is None, "You cannot specify both type and try_type"
         self.data = data
@@ -56,9 +96,25 @@ class TypedSequence:
                 return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_type_name))
             else:
                 return pa.array(self.data, type=type)
-        except (TypeError, pa.lib.ArrowInvalid):
+        except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
-                return pa.array(self.data, type=None)
+                try:
+                    return pa.array(self.data, type=None)  # second chance
+                except pa.lib.ArrowInvalid as e:
+                    if "overflow" in str(e):
+                        raise OverflowError(
+                            "There was an overflow with type {}. Try to reduce the writer batch size to have batches smaller than 2GB.\n({})".format(
+                                type_(self.data), e
+                            )
+                        )
+                    else:
+                        raise
+            elif "overflow" in str(e):
+                raise OverflowError(
+                    "There was an overflow with type {}. Try to reduce the writer batch size to have batches smaller than 2GB.\n({})".format(
+                        type_(self.data), e
+                    )
+                )
             else:
                 raise
 
@@ -158,26 +214,10 @@ class ArrowWriter(object):
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
             first_example = pa.array(TypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
-            # Sanity check
-            if pa_array[0] != first_example:
-                # There was an Overflow in StructArray. Let's reduce the batch_size
-                new_batch_size = self.writer_batch_size
-                while pa_array[0] != first_example:
-                    if new_batch_size < 2:
-                        raise RuntimeError("The given example is too big (>2GB) to fit in an array.")
-                    new_batch_size = self.writer_batch_size // 2
-                    pa_array = pa.array(TypedSequence(typed_sequence.data[:new_batch_size], type=inferred_type))
-                logger.warning(
-                    "Batch size is too big (>2GB). Reducing it from {} to {}".format(
-                        self.writer_batch_size, new_batch_size
-                    )
+            if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
+                raise OverflowError(
+                    "There was an overflow in the {}. Try to reduce the batch size".format(type(pa_array))
                 )
-                self.writer_batch_size = new_batch_size
-                col_arrays = []
-                for i in range(0, len(self.current_rows), new_batch_size):
-                    rows_batch = self.current_rows[i, i + new_batch_size]
-                    col_arrays.append(pa.array(TypedSequence(rows_batch, type=inferred_type)))
-                pa_array = pa.chunked_array(col_arrays)
             arrays.append(pa_array)
             inferred_types.append(inferred_type)
         schema = pa.schema(zip(cols, inferred_types)) if self.pa_writer is None else self._schema
