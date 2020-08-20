@@ -926,7 +926,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     inputs.pop(column)
             if self._format_type is not None:
                 inputs = self._getitem(
-                    key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1])),
+                    key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
                     format_type=None,
                     format_columns=None,
                     format_kwargs=None,
