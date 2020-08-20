@@ -84,17 +84,16 @@ class Sacrebleu(nlp.Metric):
                 lowercase=False,
                 tokenize=scb.DEFAULT_TOKENIZER,
                 use_effective_order=False):
-        # Transform references into sacrebleu format
-        # NOTE: Only uses first k references for each prediction, where
-        # k is the minimum number of references for any prediction.
-        min_ref_length = min(len(lst) for lst in references)
-        transformed_refs = [
-            [lst[i] for lst in references]
-            for i in range(min_ref_length)
+        references_per_prediction = len(references[0])
+        if any(len(refs) != references_per_prediction for refs in references):
+            raise ValueError('Sacrebleu requires the same number of references for each prediction')
+        transformed_references = [
+            [refs[i] for refs in references]
+            for i in range(references_per_prediction)
         ]
         output = scb.corpus_bleu(
             sys_stream=predictions,
-            ref_streams=transformed_refs,
+            ref_streams=transformed_references,
             smooth_method=smooth_method,
             smooth_value=smooth_value,
             force=force,
