@@ -267,7 +267,7 @@ class MetricInfo:
     # Set later by the builder
     metric_name: Optional[str] = None
     config_name: Optional[str] = None
-    version: Optional[str] = None
+    experiment_id: Optional[str] = None
 
     def __post_init__(self):
         assert "predictions" in self.features, "Need to have at least a 'predictions' field in 'features'."

@@ -410,12 +410,11 @@ def prepare_module(
 
 def load_metric(
     path: str,
-    name: Optional[str] = None,
+    config_name: Optional[str] = None,
     process_id: int = 0,
     num_process: int = 1,
     data_dir: Optional[str] = None,
-    experiment_id: Optional[str] = None,
-    in_memory: bool = False,
+    keep_in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
     **metric_init_kwargs,
 ) -> Metric:
@@ -429,7 +428,7 @@ def load_metric(
                     e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
                 - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-        name (Optional ``str``): defining the name of the dataset configuration
+        config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
         data_dir (Optional str): path to store the temporary predictions and references (default to `~/.nlp/`)
@@ -442,13 +441,11 @@ def load_metric(
     module_path, hash = prepare_module(path, download_config=download_config, dataset=False)
     metric_cls = import_main_class(module_path, dataset=False)
     metric = metric_cls(
-        name=name,
-        hash=hash,
+        config_name=config_name,
         process_id=process_id,
         num_process=num_process,
         data_dir=data_dir,
-        experiment_id=experiment_id,
-        in_memory=in_memory,
+        keep_in_memory=keep_in_memory,
         **metric_init_kwargs,
     )
 
