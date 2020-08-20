@@ -342,8 +342,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def dictionary_encode_column(self, column: str):
         """ Dictionary encode a column.
-            Dictionnary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-            by storing a dictionnary of the strings. This only affect the internal storage.
+            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+            by storing a dictionary of the strings. This only affect the internal storage.
 
         Args:
             column (:obj:`str`):
