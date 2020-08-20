@@ -327,7 +327,7 @@ class BaseDatasetTest(TestCase):
             )
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with dset.formated_as("numpy", columns=["filename"]):
+            with dset.formatted_as("numpy", columns=["filename"]):
                 tmp_file = os.path.join(tmp_dir, "test.arrow")
                 dset_test_batched = dset.map(map_batched, batched=True, cache_file_name=tmp_file)
                 self.assertEqual(len(dset_test_batched), 30)
