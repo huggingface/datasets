@@ -28,7 +28,7 @@ An :class:`nlp.Dataset` is a python container with a length coresponding to the 
 Features and columns
 ------------------------------------------------------
 
-A :class:`nlp.Dataset` instance is more precisely a table with **rows** and **columns** in which the columns are typed. Querying an example (a single row) will thus return a python dictionnary with keys corresponding to columns names, and values corresponding to the example's value for each column.
+A :class:`nlp.Dataset` instance is more precisely a table with **rows** and **columns** in which the columns are typed. Querying an example (a single row) will thus return a python dictionary with keys corresponding to columns names, and values corresponding to the example's value for each column.
 
 You can get the number of rows and columns of the dataset with various standard attributes:
 
@@ -179,7 +179,7 @@ You can also get a full columns by querying its name as a string. This will retu
 As you can see depending on the object queried (single row, batch of rows or column), the returned object is different:
 
 - a single row like ``dataset[0]`` will be returned as a python dictionary of values,
-- a batch like ``dataset[5:10]``) will be returned as a python dictionnary of lists of values,
+- a batch like ``dataset[5:10]``) will be returned as a python dictionary of lists of values,
 - a column like ``dataset['sentence1']`` will be returned as a python lists of values.
 
 This may seems surprising at first but in our experiments it's actually easier to use these various format for data processing than returning the same format for each of these views on the dataset.

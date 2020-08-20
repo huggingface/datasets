@@ -69,7 +69,7 @@ This call to :func:`nlp.load_dataset` does the following steps under the hood:
 Selecting a split
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If you don't provide a :obj:`split` argument to :func:`nlp.load_dataset`, this method will return a dictionnary containing a datasets for each split in the dataset.
+If you don't provide a :obj:`split` argument to :func:`nlp.load_dataset`, this method will return a dictionary containing a datasets for each split in the dataset.
 
 .. code-block::
 
@@ -158,7 +158,7 @@ The :obj:`data_files` argument in :func:`nlp.load_dataset` is used to provide pa
 
 - :obj:`str`: a single string as the path to a single file (considered to constitute the `train` split by default)
 - :obj:`List[str]`: a list of strings as paths to a list of files (also considered to constitute the `train` split by default)
-- :obj:`Dict[Union[str, List[str]]]`: a dictionnary mapping splits names to a single file or a list of files.
+- :obj:`Dict[Union[str, List[str]]]`: a dictionary mapping splits names to a single file or a list of files.
 
 Let's see an example of all the various ways you can provide files to :func:`nlp.load_dataset`:
 
@@ -238,7 +238,7 @@ You can load such a dataset direcly with:
 
 In real-life though, JSON files can have diverse format and the ``json`` script will accordingly fallback on using python JSON loading methods to handle various JSON file format.
 
-One common occurence is to have a JSON file with a single root dictionnary where the dataset is contained in a specific field, as a list of dicts or a dict of lists.
+One common occurence is to have a JSON file with a single root dictionary where the dataset is contained in a specific field, as a list of dicts or a dict of lists.
 
 .. code-block::
 
@@ -285,7 +285,7 @@ Eventually, it's also possible to instantiate a :class:`nlp.Dataset` directly fr
 - a python dict, or
 - a pandas dataframe.
 
-From a python dictionnary
+From a python dictionary
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let's say that you have already loaded some data in a in-memory object in your python session:
