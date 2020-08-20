@@ -120,10 +120,10 @@ class StyleChangeDetection(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         for idx, article_filename in enumerate(articles):
             label_path = os.path.join(base_dir, "truth-" + article_filename[:-4] + ".json")
-            with open(label_path) as f:
+            with open(label_path, encoding="utf-8") as f:
                 example = json.load(f)
                 example["id"] = article_filename[8:-4]
-                example["text"] = open(os.path.join(base_dir, article_filename)).read()
+                example["text"] = open(os.path.join(base_dir, article_filename), encoding="utf-8").read()
 
                 # Convert integers into boolean
                 example["multi-author"] = example["multi-author"] == 1

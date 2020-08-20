@@ -138,7 +138,7 @@ class CivilComments(nlp.GeneratorBasedBuilder):
     Yields:
       A dictionary of features, all floating point except the input text.
     """
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 example = {}

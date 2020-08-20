@@ -116,13 +116,13 @@ class WebOfScience(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, input_file, label_file, label_level_1_file, label_level_2_file):
         """Yields examples."""
-        with open(input_file) as f:
+        with open(input_file, encoding="utf-8") as f:
             input_data = f.readlines()
-        with open(label_file) as f:
+        with open(label_file, encoding="utf-8") as f:
             label_data = f.readlines()
-        with open(label_level_1_file) as f:
+        with open(label_level_1_file, encoding="utf-8") as f:
             label_level_1_data = f.readlines()
-        with open(label_level_2_file) as f:
+        with open(label_level_2_file, encoding="utf-8") as f:
             label_level_2_data = f.readlines()
         for i in range(len(input_data)):
             yield i, {

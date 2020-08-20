@@ -249,7 +249,7 @@ class TriviaQa(nlp.GeneratorBasedBuilder):
                     new_item = item.copy()
                     fname = item["Filename"]
                     try:
-                        with open(os.path.join(file_dir, fname)) as f:
+                        with open(os.path.join(file_dir, fname), encoding="utf-8") as f:
                             new_item[context_field] = f.read()
                     except (IOError, nlp.Value("errors").NotFoundError):
                         logging.info("File does not exist, skipping: %s", fname)
@@ -292,7 +292,7 @@ class TriviaQa(nlp.GeneratorBasedBuilder):
             logging.info("generating examples from = %s", filepath)
             fname = os.path.basename(filepath)
 
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 current_record = ""
                 for line in f:
                     if line == "        {\n":

@@ -110,7 +110,7 @@ class Lm1b(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, files):
         for filepath in files:
             logging.info("generating examples from = %s", filepath)
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 for idx, line in enumerate(f):
                     yield "%s_%d" % (os.path.basename(filepath), idx), {
                         "text": line.strip(),

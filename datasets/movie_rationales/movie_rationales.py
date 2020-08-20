@@ -90,12 +90,12 @@ class MovieRationales(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         reviews_dir = os.path.join(data_dir, "docs")
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             for line in f:
                 row = json.loads(line)
                 doc_id = row["annotation_id"]
                 review_file = os.path.join(reviews_dir, doc_id)
-                with open(review_file) as f1:
+                with open(review_file, encoding="utf-8") as f1:
                     review_text = f1.read()
 
                 evidences = []

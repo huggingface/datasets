@@ -99,7 +99,7 @@ class Xnli(nlp.GeneratorBasedBuilder):
         """This function returns the examples in the raw (text) form."""
         rows_per_pair_id = collections.defaultdict(list)
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for row in reader:
                 rows_per_pair_id[row["pairID"]].append(row)

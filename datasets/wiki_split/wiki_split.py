@@ -93,7 +93,7 @@ class WikiSplit(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(wiki_split): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = csv.reader(f, delimiter="\t")
             # data = csv.reader(f, delimiter='\t')
 

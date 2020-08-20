@@ -89,7 +89,7 @@ class Aeslc(nlp.GeneratorBasedBuilder):
 
 def _parse_email_file(filename):
     """Parse email file text for email body and subject."""
-    with open(filename) as f:
+    with open(filename, encoding="utf-8") as f:
         email_body = ""
         for line in f:
             if line == "\n":

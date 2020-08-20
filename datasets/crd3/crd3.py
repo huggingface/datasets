@@ -86,12 +86,12 @@ class CRD3(nlp.GeneratorBasedBuilder):
         test_file = os.path.join(path, "CRD3-master", "data", "aligned data", "test_files")
         train_file = os.path.join(path, "CRD3-master", "data", "aligned data", "train_files")
         dev_file = os.path.join(path, "CRD3-master", "data", "aligned data", "val_files")
-        with open(test_file) as f:
+        with open(test_file, encoding="utf-8") as f:
             test_splits = [file.replace("\n", "") for file in f.readlines()]
 
-        with open(train_file) as f:
+        with open(train_file, encoding="utf-8") as f:
             train_splits = [file.replace("\n", "") for file in f.readlines()]
-        with open(dev_file) as f:
+        with open(dev_file, encoding="utf-8") as f:
             dev_splits = [file.replace("\n", "") for file in f.readlines()]
         c2 = "CRD3-master/data/aligned data/c=2"
         c3 = "CRD3-master/data/aligned data/c=3"
@@ -112,7 +112,7 @@ class CRD3(nlp.GeneratorBasedBuilder):
         """Yields examples."""
 
         for file in files_path:
-            with open(file) as f:
+            with open(file, encoding="utf-8") as f:
                 data = json.load(f)
                 for id1, row in enumerate(data):
                     chunk = row["CHUNK"]

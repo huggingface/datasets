@@ -93,7 +93,7 @@ class Cmrc2018(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(cmrc2018): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for example in data["data"]:
                 for paragraph in example["paragraphs"]:

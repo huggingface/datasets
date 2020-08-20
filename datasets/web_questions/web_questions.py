@@ -89,7 +89,7 @@ class WebQuestions(nlp.GeneratorBasedBuilder):
             target = re.sub(r"^\(list |\)$", "", target)
             return ["".join(ans) for ans in re.findall(r'\(description (?:"([^"]+?)"|([^)]+?))\)\w*', target)]
 
-        with open(file_path) as f:
+        with open(file_path, encoding="utf-8") as f:
             examples = json.load(f)
             for i, ex in enumerate(examples):
                 yield i, {
