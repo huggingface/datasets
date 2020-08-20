@@ -51,7 +51,7 @@ class TypedSequence:
         For example when calling :func:`nlp.Dataset.map`, we don't want to change the type
         of each column by default.
     - Better error message when a pyarrow array overflows.
-    
+
     Example::
 
         from nlp.features import Array2DExtensionType
