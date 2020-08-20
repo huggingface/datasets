@@ -68,7 +68,7 @@ class DatasetDict(dict):
             dataset.rename_column_(original_column_name=original_column_name, new_column_name=new_column_name)
 
     @contextlib.contextmanager
-    def formated_as(
+    def formatted_as(
         self,
         type: Optional[str] = None,
         columns: Optional[List] = None,
@@ -83,7 +83,7 @@ class DatasetDict(dict):
                     None means __getitem__ returns python objects (default)
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
-                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
                 format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         self._check_values_type()
@@ -115,7 +115,7 @@ class DatasetDict(dict):
                     None means __getitem__ returns python objects (default)
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
-                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
                 format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         self._check_values_type()

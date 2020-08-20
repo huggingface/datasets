@@ -211,7 +211,7 @@ A specific format can be activated with :func:`nlp.Dataset.set_format`.
 
 - :obj:`type` (``Union[None, str]``, default to ``None``) defines the return type for the dataset :obj`__getitem__` method and is one of ``[None, 'numpy', 'pandas', 'torch', 'tensorflow']`` (``None`` means return python objects),
 - :obj:`columns` (``Union[None, str, List[str]]``, default to ``None``) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (``None`` means return all columns),
-- :obj:`output_all_columns` (``bool``, default to ``False``) controls whether the columns which cannot be formated (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
+- :obj:`output_all_columns` (``bool``, default to ``False``) controls whether the columns which cannot be formatted (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
 - :obj:`format_kwargs` can be used to provide additional keywords arguments that will be forwarded to the convertiong function like ``np.array``, ``torch.tensor`` or ``tensorflow.ragged.constant``. For instance, to create ``torch.Tensor`` directly on the GPU you can specify ``device='cuda'``.
 
 .. note::

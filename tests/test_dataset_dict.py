@@ -40,7 +40,7 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         dset.reset_format()
-        with dset.formated_as(type="numpy", columns=["col_1"]):
+        with dset.formatted_as(type="numpy", columns=["col_1"]):
             for dset_split in dset.values():
                 self.assertEqual(len(dset_split[0]), 1)
                 self.assertIsInstance(dset_split[0]["col_1"], np.ndarray)
