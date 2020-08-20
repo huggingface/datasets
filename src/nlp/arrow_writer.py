@@ -38,23 +38,25 @@ DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (
 
 class TypedSequence:
     def __init__(self, data, type=None, try_type=None):
+        assert type is None or try_type is None, "You cannot specify both type and try_type"
         self.data = data
         self.type = type
         self.try_type = try_type  # used only when type is not specified, and is ignored if it doesn't match the data
 
     def __arrow_array__(self, type=None):
         assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
-        type = self.type
         trying_type = False
         if type is None and self.try_type:
             type = self.try_type
             trying_type = True
+        else:
+            type = self.type
         try:
             if isinstance(type, Array2DExtensionType):
                 return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_type_name))
             else:
                 return pa.array(self.data, type=type)
-        except TypeError:
+        except (TypeError, pa.lib.ArrowInvalid):
             if trying_type:
                 return pa.array(self.data, type=None)
             else:
