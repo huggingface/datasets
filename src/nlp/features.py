@@ -38,7 +38,7 @@ if _tf_available:
     import tensorflow as tf
 
 
-def string_to_arrow(type_str: str):
+def string_to_arrow(type_str: str) -> pa.DataType:
     if type_str not in pa.__dict__:
         if str(type_str + "_") not in pa.__dict__:
             raise ValueError(
@@ -53,7 +53,7 @@ def string_to_arrow(type_str: str):
     return pa.__dict__[arrow_data_type_str]()
 
 
-def _cast_to_python_objects(obj):
+def _cast_to_python_objects(obj: Any) -> Tuple[Any, bool]:
     """
     Cast numpy/pytorch/tensorflow/pandas objects to python lists.
     It works recursively.
@@ -75,8 +75,10 @@ def _cast_to_python_objects(obj):
         return obj.detach().cpu().numpy().tolist(), True
     elif _tf_available and isinstance(obj, tf.Tensor):
         return obj.numpy().tolist(), True
-    elif isinstance(obj, pd.DataFrame):
+    elif isinstance(obj, pd.Series):
         return obj.values.tolist(), True
+    elif isinstance(obj, pd.DataFrame):
+        return obj.to_dict("list"), True
     elif isinstance(obj, dict):
         output = {}
         has_changed = False
@@ -99,12 +101,12 @@ def _cast_to_python_objects(obj):
                 else:
                     return list(obj), True
         else:
-            return [], True
+            return obj if isinstance(obj, list) else [], isinstance(obj, tuple)
     else:
         return obj, False
 
 
-def cast_to_python_objects(obj):
+def cast_to_python_objects(obj: Any) -> Any:
     """
     Cast numpy/pytorch/tensorflow/pandas objects to python lists.
     It works recursively.
