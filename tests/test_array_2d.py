@@ -62,7 +62,7 @@ def generate_examples(
 @get_duration
 def write_array2d(feats, dummy_data, tmp_dir):
     my_features = nlp.Features(feats)
-    writer = ArrowWriter(data_type=my_features.type, path=os.path.join(tmp_dir, "beta.arrow"))
+    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
     for key, record in dummy_data:
         example = my_features.encode_example(record)
         writer.write(example)
@@ -72,7 +72,7 @@ def write_array2d(feats, dummy_data, tmp_dir):
 @get_duration
 def write_nested_sequence(feats, dummy_data, tmp_dir):
     my_features = nlp.Features(feats)
-    writer = ArrowWriter(data_type=my_features.type, path=os.path.join(tmp_dir, "beta.arrow"))
+    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
     for key, record in dummy_data:
         example = my_features.encode_example(record)
         writer.write(example)
@@ -82,7 +82,7 @@ def write_nested_sequence(feats, dummy_data, tmp_dir):
 @get_duration
 def write_flattened_sequence(feats, dummy_data, tmp_dir):
     my_features = nlp.Features(feats)
-    writer = ArrowWriter(data_type=my_features.type, path=os.path.join(tmp_dir, "beta.arrow"))
+    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
     for key, record in dummy_data:
         example = my_features.encode_example(record)
         writer.write(example)
@@ -140,7 +140,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
     def test_array2d_nonspecific_shape(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
-            writer = ArrowWriter(data_type=my_features.type, path=os.path.join(tmp_dir, "beta.arrow"))
+            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
             for key, record in generate_examples(
                 schema=DEFAULT_FEATURES, num_examples=1, columns_have_different_shapes=True
             ):
@@ -159,7 +159,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
     def test_multiple_extensions_same_row(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
-            writer = ArrowWriter(data_type=my_features.type, path=os.path.join(tmp_dir, "beta.arrow"))
+            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
             for key, record in generate_examples(schema=my_features, num_examples=1):
                 example = my_features.encode_example(record)
                 writer.write(example)
@@ -176,7 +176,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             my_features["image_id"] = nlp.Value("string")
-            writer = ArrowWriter(data_type=my_features.type, path=os.path.join(tmp_dir, "beta.arrow"))
+            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
             for key, record in generate_examples(schema=my_features, num_examples=1):
                 example = my_features.encode_example(record)
                 writer.write(example)
@@ -188,7 +188,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             my_features["explicit_ext"] = features.Array2D(dtype="float32")
-            writer = ArrowWriter(data_type=my_features.type, path=os.path.join(tmp_dir, "beta.arrow"))
+            writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
             for key, record in generate_examples(schema=my_features, num_examples=1):
                 example = my_features.encode_example(record)
                 writer.write(example)

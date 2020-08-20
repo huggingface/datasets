@@ -69,13 +69,12 @@ class ArrowWriter(object):
 
     def __init__(
         self,
-        data_type: Optional[pa.DataType] = None,
         schema: Optional[pa.Schema] = None,
         features: Optional[Features] = None,
         path: Optional[str] = None,
         stream: Optional[pa.NativeFile] = None,
         writer_batch_size: Optional[int] = None,
-        disable_nullable: bool = True,
+        disable_nullable: bool = False,
         update_features: bool = False,
         with_metadata: bool = True,
     ):
@@ -84,23 +83,15 @@ class ArrowWriter(object):
         if features is not None:
             self._features = features
             self._schema = pa.schema(features.type)
-            self._type: pa.DataType = pa.struct(field for field in self._schema)
-        elif data_type is not None:
-            self._type: pa.DataType = data_type
-            self._schema: pa.Schema = pa.schema(field for field in self._type)
-            self._features = Features.from_arrow_schema(self._schema)
         elif schema is not None:
             self._schema: pa.Schema = schema
-            self._type: pa.DataType = pa.struct(field for field in self._schema)
             self._features = Features.from_arrow_schema(self._schema)
         else:
             self._features = None
             self._schema = None
-            self._type = None
 
         if disable_nullable and self._schema is not None:
-            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._type)
-            self._type = pa.struct(pa.field(field.name, field.type, nullable=False) for field in self._type)
+            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
 
         self._path = path
         if stream is None:
@@ -108,6 +99,7 @@ class ArrowWriter(object):
         else:
             self.stream = stream
 
+        self.disable_nullable = disable_nullable
         self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
         self.with_metadata = with_metadata
@@ -129,11 +121,11 @@ class ArrowWriter(object):
                             inferred_features[name] = self._features[name]
                 self._features = inferred_features
                 self._schema: pa.Schema = inferred_schema
-                self._type: pa.DataType = pa.struct(field for field in self._schema)
         else:
             self._features = inferred_features
             self._schema: pa.Schema = inferred_schema
-            self._type: pa.DataType = pa.struct(field for field in self._schema)
+        if self.disable_nullable:
+            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
         if self.with_metadata:
             self._schema = self._schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features)))
         self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
@@ -153,13 +145,13 @@ class ArrowWriter(object):
         if not self.current_rows:
             return
         cols = sorted(self.current_rows[0].keys())
-        type = None if self.pa_writer is None and self.update_features else self._type
-        try_type = self._type if self.pa_writer is None and self.update_features else None
+        schema = None if self.pa_writer is None and self.update_features else self._schema
+        try_schema = self._schema if self.pa_writer is None and self.update_features else None
         arrays = []
         inferred_types = []
         for col in cols:
-            col_type = type[col].type if type is not None else None
-            col_try_type = try_type[col].type if try_type is not None and col in [f.name for f in try_type] else None
+            col_type = schema.field(col).type if schema is not None else None
+            col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = TypedSequence(
                 [row[col] for row in self.current_rows], type=col_type, try_type=col_try_type
             )
@@ -213,12 +205,12 @@ class ArrowWriter(object):
         Args:
             example: the Example to add.
         """
-        type = None if self.pa_writer is None and self.update_features else self._type
-        try_type = self._type if self.pa_writer is None and self.update_features else None
+        schema = None if self.pa_writer is None and self.update_features else self._schema
+        try_schema = self._schema if self.pa_writer is None and self.update_features else None
         typed_sequence_examples = {}
         for col in sorted(batch_examples.keys()):
-            col_type = type[col].type if type is not None else None
-            col_try_type = try_type[col].type if try_type is not None and col in [f.name for f in try_type] else None
+            col_type = schema.field(col).type if schema is not None else None
+            col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
             typed_sequence_examples[col] = typed_sequence
         pa_table = pa.Table.from_pydict(typed_sequence_examples)
@@ -263,23 +255,23 @@ class BeamWriter(object):
 
     def __init__(
         self,
-        data_type: Optional[pa.DataType] = None,
+        features: Optional[Features] = None,
         schema: Optional[pa.Schema] = None,
         path: Optional[str] = None,
         namespace: Optional[str] = None,
         cache_dir: Optional[str] = None,
     ):
-        if data_type is None and schema is None:
-            raise ValueError("At least one of data_type and schema must be provided.")
+        if features is None and schema is None:
+            raise ValueError("At least one of features and schema must be provided.")
         if path is None:
             raise ValueError("Path must be provided.")
 
-        if data_type is not None:
-            self._type: pa.DataType = data_type
-            self._schema: pa.Schema = pa.schema(field for field in self._type)
+        if features is not None:
+            self._features: Features = features
+            self._schema: pa.Schema = pa.schema(features.type)
         else:
             self._schema: pa.Schema = schema
-            self._type: pa.DataType = pa.struct(field for field in self._schema)
+            self._features: Features = Features.from_arrow_schema(schema)
 
         self._path = path
         self._parquet_path = os.path.splitext(path)[0]  # remove extension

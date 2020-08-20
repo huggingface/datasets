@@ -17,7 +17,7 @@
 """ This class handle features definition in datasets and some utilities to display table type."""
 import logging
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Any, ClassVar, Dict, List, Optional, Sequence, Union
 
 import numpy as np
@@ -720,7 +720,9 @@ def generate_from_dict(obj: Any):
 
     if class_type == Sequence:
         return Sequence(feature=generate_from_dict(obj["feature"]), length=obj["length"])
-    return class_type(**obj)
+
+    field_names = set(f.name for f in fields(class_type))
+    return class_type(**{k: v for k, v in obj.items() if k in field_names})
 
 
 def generate_from_arrow_type(pa_type: pa.DataType):

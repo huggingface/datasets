@@ -145,7 +145,7 @@ class DatasetDict(dict):
         cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
-        disable_nullable: bool = True,
+        disable_nullable: bool = False,
         verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
     ) -> "DatasetDict":
@@ -178,7 +178,7 @@ class DatasetDict(dict):
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `features` (`Optional[nlp.Features]`, default: `None`): Use a specific Features to store the cache file
                     instead of the automatically generated one.
-                `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
+                `disable_nullable` (`bool`, default: `False`): Allow null values in the table.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
                 `fn_kwargs` (`Optional[Dict]`, default: `None`): Keyword arguments to be passed to `function`
         """
