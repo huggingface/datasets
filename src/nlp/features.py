@@ -54,21 +54,72 @@ def string_to_arrow(type_str: str):
 
 
 def _cast_to_python_objects(obj):
-    """ Cast numpy/pytorch/tensorflow/pandas objects to python lists. """
+    """
+    Cast numpy/pytorch/tensorflow/pandas objects to python lists.
+    It works recursively.
+
+    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be casted.
+    If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
+    This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
+
+    Args:
+        obj: the object (nested struct) to cast
+
+    Returns:
+        casted_obj: the casted object
+        has_changed (bool): True if the object has been changed, False if it is identical
+    """
     if isinstance(obj, np.ndarray):
-        return obj.tolist()
+        return obj.tolist(), True
     elif _torch_available and isinstance(obj, torch.Tensor):
-        return obj.detach().cpu().numpy().tolist()
+        return obj.detach().cpu().numpy().tolist(), True
     elif _tf_available and isinstance(obj, tf.Tensor):
-        return obj.numpy().tolist()
+        return obj.numpy().tolist(), True
     elif isinstance(obj, pd.DataFrame):
-        return obj.values.tolist()
+        return obj.values.tolist(), True
+    elif isinstance(obj, dict):
+        output = {}
+        has_changed = False
+        for k, v in obj.items():
+            casted_v, has_changed_v = _cast_to_python_objects(v)
+            has_changed |= has_changed_v
+            output[k] = casted_v
+        return output if has_changed else obj, has_changed
+    elif isinstance(obj, (list, tuple)):
+        if len(obj) > 0:
+            for first_elmt in obj:
+                if first_elmt is not None:
+                    break
+            casted_first_elmt, has_changed_first_elmt = _cast_to_python_objects(first_elmt)
+            if has_changed_first_elmt:
+                return [_cast_to_python_objects(elmt)[0] for elmt in obj], True
+            else:
+                if isinstance(obj, list):
+                    return obj, False
+                else:
+                    return list(obj), True
+        else:
+            return [], True
     else:
-        return obj
+        return obj, False
 
 
 def cast_to_python_objects(obj):
-    return utils.map_nested(_cast_to_python_objects, obj, map_list=True, map_tuple=True, map_numpy=False)
+    """
+    Cast numpy/pytorch/tensorflow/pandas objects to python lists.
+    It works recursively.
+
+    To avoid iterating over possibly long lists, it first checks if the first element that is not None has to be casted.
+    If the first element needs to be casted, then all the elements of the list will be casted, otherwise they'll stay the same.
+    This trick allows to cast objects that contain tokenizers outputs without iterating over every single token for example.
+
+    Args:
+        obj: the object (nested struct) to cast
+
+    Returns:
+        casted_obj: the casted object
+    """
+    return _cast_to_python_objects(obj)[0]
 
 
 @dataclass
