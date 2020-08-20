@@ -69,7 +69,7 @@ class WikiDprConfig(nlp.BuilderConfig):
         super(WikiDprConfig, self).__init__(**kwargs)
 
         if self.index_name == "exact":
-            self.index_file = "psgs_w100.nq.IndexFlatIP-{split}.faiss"
+            self.index_file = "psgs_w100.nq.IndexHNSWFlat-IP-{split}.faiss"
         else:
             self.index_file = "psgs_w100.nq.IVFPQ4096_HNSW32_PQ64-IP-{split}.faiss"
         if self.dummy:
@@ -169,9 +169,9 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
                 train_size = self.config.index_train_size
                 logging.info("Building wiki_dpr faiss index")
                 if self.config.index_name == "exact":
-                    dataset.add_faiss_index(
-                        "embeddings", string_factory="Flat", metric_type=faiss.METRIC_INNER_PRODUCT,
-                    )
+                    d = 768
+                    index = faiss.IndexHNSWFlat(d, 512, faiss.METRIC_INNER_PRODUCT)
+                    dataset.add_faiss_index("embeddings", custom_index=index)
                 else:
                     d = 768
                     quantizer = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
