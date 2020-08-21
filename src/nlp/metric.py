@@ -19,7 +19,7 @@ import logging
 import os
 import types
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pyarrow as pa
@@ -30,7 +30,7 @@ from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .info import MetricInfo
 from .naming import camelcase_to_snakecase
-from .utils import HF_METRICS_CACHE, Version, copyfunc, temp_seed
+from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig
 
@@ -48,6 +48,7 @@ class Metric(object):
         seed: Optional[int] = None,
         config_name: Optional[str] = None,
         experiment_id: Optional[str] = None,
+        max_concurrent_cache_files: int = 10000,
         **kwargs,
     ):
         """ A Metrics is the base class and common API for all metrics.
@@ -62,13 +63,16 @@ class Metric(object):
                 seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`nlp.Metric.compute` is run.
                 config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
                     to be overridden when the metric loading script is modified.
+                experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
+                    This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
+                max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
         """
         # Metric name
         self.name = camelcase_to_snakecase(self.__class__.__name__)
         # Configuration name
-        self.config_name: str = config_name or "default"
+        self.config_name: str = config_name or "default_config"
         # Experiment id
-        self.experiment_id: str = experiment_id or "run"
+        self.experiment_id: str = experiment_id or "default_experiment"
 
         # Safety checks on num_process and process_id
         assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
@@ -80,6 +84,7 @@ class Metric(object):
         ), "Using 'keep_in_memory' is not possible in distributed setting (process_id > 0)."
         self.num_process = num_process
         self.process_id = process_id
+        self.max_concurrent_cache_files = max_concurrent_cache_files
 
         self.keep_in_memory = keep_in_memory
         self._data_dir_root = os.path.expanduser(data_dir or HF_METRICS_CACHE)
@@ -102,7 +107,7 @@ class Metric(object):
         self.add_batch.__func__.__doc__ += self.info.inputs_description
         self.add.__func__.__doc__ += self.info.inputs_description
 
-        self.arrow_schema = pa.schema(field for field in self.info.features.type)
+        # self.arrow_schema = pa.schema(field for field in self.info.features.type)
         self.buf_writer = None
         self.writer = None
         self.writer_batch_size = None
@@ -155,32 +160,42 @@ class Metric(object):
             os.remove(file_path)
         return len(files_to_remove)
 
-    def _create_cache_file(self, find_free_filename=True, timeout=120, max_attemps=1000):
-        file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{process_id}.arrow")
+    def _create_cache_file(self, timeout=1) -> Tuple[str, FileLock]:
+        """ Create a new cache file. If the default cache file is used, we generated a new hash. """
+        file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{self.process_id}.arrow")
 
-        for i in range(max_attemps):
+        for i in range(self.max_concurrent_cache_files):
             filelock = FileLock(file_path + ".lock")
             try:
                 filelock.acquire(timeout=timeout)
             except Timeout:
                 # If we have reached the max number of attempts or we are not allow to find a free name (distributed setup)
                 # We raise an error
-                if i == max_attemps - 1 or not find_free_filename:
+                if self.num_process != 1:
                     raise ValueError(
-                        "Cannot acquire lock, caching file might be used by another process, "
-                        "you should setup a unique 'experiment_id' for this run."
+                        "Another metric instance is already using the local cache file. "
+                        "Please specify an experiment_id to avoid colision between distributed metric instances."
+                    )
+                if i == self.max_concurrent_cache_files - 1:
+                    raise ValueError(
+                        f"Cannot acquire lock, too many metric instance are operating concurrently on this file system."
+                        f"You should set a larger value of max_concurrent_cache_files when creating the metric "
+                        f"(current value is {self.max_concurrent_cache_files})."
                     )
                 # In other cases (allow to find new file name + not yet at max num of attempts) we can try to sample a new hashing name.
                 file_uuid = str(uuid.uuid4())
                 file_path = os.path.join(
-                    self.data_dir, f"{self.experiment_id}-{file_uuid}-{self.num_process}-{process_id}.arrow"
+                    self.data_dir, f"{self.experiment_id}-{file_uuid}-{self.num_process}-{self.process_id}.arrow"
                 )
             else:
                 break
 
         return file_path, filelock
 
-    def _get_all_cache_files(self, timeout=120):
+    def _get_all_cache_files(self, timeout=100) -> Tuple[List[str], List[FileLock]]:
+        """ Get a lock on all the cache files in a distributed setup.
+            We wait for timeout second to let all the distributed node finish their tasks (default is 100 seconds).
+        """
         if self.num_process == 1:
             file_paths = [self.cache_file_name]
         else:
@@ -196,10 +211,7 @@ class Metric(object):
             try:
                 filelock.acquire(timeout=timeout)
             except Timeout:
-                # If we are in distributed setup or we have reached the max number of attempts
-                # We raise an error
-                if self.num_process != 1 or i == max_attemps - 1 or not find_unused_file:
-                    raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
+                raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
             else:
                 filelocks.append(filelock)
 
@@ -221,13 +233,13 @@ class Metric(object):
 
             # Read the predictions and references
             reader = ArrowReader(path=self.data_dir, info=None)
-            self.data = Dataset(**reader.read_files(file_paths))
+            self.data = Dataset(**reader.read_files([{"filename": f} for f in file_paths]))
 
             # Store file paths and locks and we will release/delete them after the computation.
             self.file_paths = file_paths
             self.filelocks = filelocks
 
-    def compute(self, *args, **kwargs):
+    def compute(self, *args, **kwargs) -> Optional[dict]:
         """ Compute the metrics.
 
         Args:
@@ -236,6 +248,10 @@ class Metric(object):
             `references` (Optional list/array/tensor): references
             `timeout` (Optional int): timeout for distributed gathering of values on several nodes
             `**kwargs` (Optional other kwargs): will be forwared to the metrics :func:`_compute` method (see details in the docstring)
+
+        Return:
+            Dictionnary with the metrics if this metric is run on the main process (process_id == 0)
+            None if the metric is not run on the main process (process_id != 0)
         """
         if args:
             raise ValueError("Please call `compute` using keyword arguments.")
@@ -248,20 +264,26 @@ class Metric(object):
             self.add_batch(predictions=predictions, references=references)
         self.finalize(timeout=timeout)
 
-        self.data.set_format(type=self.info.format)
+        self.cache_file_name = None
+        self.filelock = None
 
-        predictions = self.data["predictions"]
-        references = self.data["references"]
-        with temp_seed(self.seed):
-            output = self._compute(predictions=predictions, references=references, **kwargs)
+        if self.process_id == 0:
+            self.data.set_format(type=self.info.format)
 
-        # Release locks and delete all the cache files
-        for file_path, filelock in zip(self.filelocks, self.file_paths):
-            logger.info(f"Removing {file_path}")
-            filelock.release()
-            os.remove(file_path)
+            predictions = self.data["predictions"]
+            references = self.data["references"]
+            with temp_seed(self.seed):
+                output = self._compute(predictions=predictions, references=references, **kwargs)
 
-        return output
+            # Release locks and delete all the cache files
+            for filelock, file_path in zip(self.filelocks, self.file_paths):
+                logger.info(f"Removing {file_path}")
+                os.remove(file_path)
+                filelock.release()
+
+            return output
+        else:
+            return None
 
     def add_batch(self, *, predictions=None, references=None):
         """
@@ -283,22 +305,22 @@ class Metric(object):
         self.writer.write(example)
 
     def _init_writer(self):
-        if self.in_memory:
+        if self.keep_in_memory:
             self.buf_writer = pa.BufferOutputStream()
             self.writer = ArrowWriter(
-                schema=self.arrow_schema, stream=self.buf_writer, writer_batch_size=self.writer_batch_size
+                features=self.info.features, stream=self.buf_writer, writer_batch_size=self.writer_batch_size
             )
         else:
             self.buf_writer = None
 
             # Get cache file name and lock it
             if self.cache_file_name is None or self.filelock is None:
-                cache_file_name, filelock = self._get_cache_path()
+                cache_file_name, filelock = self._create_cache_file()
                 self.cache_file_name = cache_file_name
                 self.filelock = filelock
 
             self.writer = ArrowWriter(
-                schema=self.arrow_schema, path=self.cache_file_name, writer_batch_size=self.writer_batch_size
+                features=self.info.features, path=self.cache_file_name, writer_batch_size=self.writer_batch_size
             )
 
     def _info(self) -> MetricInfo:

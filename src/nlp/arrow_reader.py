@@ -259,7 +259,7 @@ class ArrowReader(BaseReader):
         """Initializes ArrowReader.
 
         Args:
-            path (str): path where tfrecords are stored.
+            path (str): path where Arrow files are stored.
             info (DatasetInfo): info about the dataset.
         """
         super().__init__(path, info)
