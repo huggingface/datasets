@@ -6,9 +6,11 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from absl.testing import parameterized
 
 import nlp
 import nlp.features as features
+from nlp.features import Array2D, Array3D, Array4D, Array5D
 from nlp.arrow_writer import ArrowWriter
 
 
@@ -249,102 +251,109 @@ class SpeedBenchmarkTest(unittest.TestCase):
         )  # At least 5 times faster (it is supposed to be ~10 times faster)
 
 
-class Array2dTest(unittest.TestCase):
-    @property
-    def my_features(self):
+def get_array_feature_types():
+    shape_1 = [3] * 5
+    shape_2 = [3, 4, 5, 6, 7]
+    return [
+        {"testcase_name": "{}d".format(d), "array_feature": array_feature, "shape_1": tuple(shape_1[:d]), "shape_2": tuple(shape_2[:d])}
+        for d, array_feature in zip(range(2, 6), [Array2D, Array3D, Array4D, Array5D])
+    ]
+
+
+@parameterized.named_parameters(get_array_feature_types())
+class ArrayXDTest(unittest.TestCase):
+
+    def get_features(self, array_feature):
         return nlp.Features(
             {
-                "matrix": features.Array2D(dtype="float32"),
-                "image": features.Array2D(dtype="float32"),
+                "matrix": array_feature(dtype="float32"),
+                "image": array_feature(dtype="float32"),
                 "source": features.Value("string"),
             }
         )
 
-    @property
-    def dict_example_0(self):
+    def get_dict_example_0(self, shape_1, shape_2):
         return {
-            "image": np.random.rand(5, 5).astype("float32"),
+            "image": np.random.rand(*shape_1).astype("float32"),
             "source": "foo",
-            "matrix": np.random.rand(16, 256).astype("float32"),
+            "matrix": np.random.rand(*shape_2).astype("float32"),
         }
 
-    @property
-    def dict_example_1(self):
+    def get_dict_example_1(self, shape_1, shape_2):
         return {
-            "image": np.random.rand(5, 5).astype("float32"),
-            "matrix": np.random.rand(16, 256).astype("float32"),
+            "image": np.random.rand(*shape_1).astype("float32"),
+            "matrix": np.random.rand(*shape_2).astype("float32"),
             "source": "bar",
         }
 
-    @property
-    def dict_examples(self):
+    def get_dict_examples(self, shape_1, shape_2):
         return {
-            "image": np.random.rand(2, 5, 5).astype("float32").tolist(),
+            "image": np.random.rand(2, *shape_1).astype("float32").tolist(),
             "source": ["foo", "bar"],
-            "matrix": np.random.rand(2, 16, 256).astype("float32").tolist(),
+            "matrix": np.random.rand(2, *shape_2).astype("float32").tolist(),
         }
 
-    def _check_getitem_output_type(self, dataset):
+    def _check_getitem_output_type(self, dataset, shape_1, shape_2):
         matrix_column = dataset["matrix"]
         self.assertIsInstance(matrix_column, list)
         self.assertIsInstance(matrix_column[0], list)
         self.assertIsInstance(matrix_column[0][0], list)
-        self.assertEqual(np.array(matrix_column).shape, (2, 16, 256))
+        self.assertEqual(np.array(matrix_column).shape, (2, *shape_2))
 
         matrix_field_of_first_example = dataset[0]["matrix"]
         self.assertIsInstance(matrix_field_of_first_example, list)
         self.assertIsInstance(matrix_field_of_first_example, list)
-        self.assertEqual(np.array(matrix_field_of_first_example).shape, (16, 256))
+        self.assertEqual(np.array(matrix_field_of_first_example).shape, shape_2)
 
         matrix_field_of_first_two_examples = dataset[:2]["matrix"]
         self.assertIsInstance(matrix_field_of_first_two_examples, list)
         self.assertIsInstance(matrix_field_of_first_two_examples[0], list)
         self.assertIsInstance(matrix_field_of_first_two_examples[0][0], list)
-        self.assertEqual(np.array(matrix_field_of_first_two_examples).shape, (2, 16, 256))
+        self.assertEqual(np.array(matrix_field_of_first_two_examples).shape, (2, *shape_2))
 
         with dataset.formated_as("numpy"):
-            self.assertEqual(dataset["matrix"].shape, (2, 16, 256))
-            self.assertEqual(dataset[0]["matrix"].shape, (16, 256))
-            self.assertEqual(dataset[:2]["matrix"].shape, (2, 16, 256))
+            self.assertEqual(dataset["matrix"].shape, (2, *shape_2))
+            self.assertEqual(dataset[0]["matrix"].shape, shape_2)
+            self.assertEqual(dataset[:2]["matrix"].shape, (2, *shape_2))
 
         with dataset.formated_as("pandas"):
             self.assertIsInstance(dataset["matrix"], pd.Series)
             self.assertIsInstance(dataset[0]["matrix"], pd.Series)
             self.assertIsInstance(dataset[:2]["matrix"], pd.Series)
-            self.assertEqual(dataset["matrix"].to_numpy().shape, (2, 16, 256))
-            self.assertEqual(dataset[0]["matrix"].to_numpy().shape, (1, 16, 256))
-            self.assertEqual(dataset[:2]["matrix"].to_numpy().shape, (2, 16, 256))
+            self.assertEqual(dataset["matrix"].to_numpy().shape, (2, *shape_2))
+            self.assertEqual(dataset[0]["matrix"].to_numpy().shape, (1, *shape_2))
+            self.assertEqual(dataset[:2]["matrix"].to_numpy().shape, (2, *shape_2))
 
-    def test_write(self):
+    def test_write(self, array_feature, shape_1, shape_2):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
 
-            my_features = nlp.Features(self.my_features)
+            my_features = self.get_features(array_feature)
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            my_examples = [(0, self.dict_example_0), (1, self.dict_example_1)]
+            my_examples = [(0, self.get_dict_example_0(shape_1, shape_2)), (1, self.get_dict_example_1(shape_1, shape_2))]
             for key, record in my_examples:
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
             dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self._check_getitem_output_type(dataset)
+            self._check_getitem_output_type(dataset, shape_1, shape_2)
 
-    def test_write_batch(self):
+    def test_write_batch(self, array_feature, shape_1, shape_2):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
 
-            my_features = nlp.Features(self.my_features)
+            my_features = self.get_features(array_feature)
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
 
-            dict_examples = my_features.encode_batch(self.dict_examples)
+            dict_examples = my_features.encode_batch(self.get_dict_examples(shape_1, shape_2))
             writer.write_batch(dict_examples)
             num_examples, num_bytes = writer.finalize()
             dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self._check_getitem_output_type(dataset)
+            self._check_getitem_output_type(dataset, shape_1, shape_2)
 
-    def test_from_dict(self):
-        dataset = nlp.Dataset.from_dict(self.dict_examples, features=nlp.Features(self.my_features))
-        self._check_getitem_output_type(dataset)
+    def test_from_dict(self, array_feature, shape_1, shape_2):
+        dataset = nlp.Dataset.from_dict(self.get_dict_examples(shape_1, shape_2), features=self.get_features(array_feature))
+        self._check_getitem_output_type(dataset, shape_1, shape_2)
 
 
 if __name__ == "__main__":  # useful to run the profiler

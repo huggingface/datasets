@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional
 import pyarrow as pa
 from tqdm.auto import tqdm
 
-from .features import Array2DExtensionType, Features
+from .features import _ArrayXDExtensionType, Features
 from .info import DatasetInfo
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
 
@@ -81,9 +81,10 @@ class TypedSequence:
         assert type is None or try_type is None, "You cannot specify both type and try_type"
         self.data = data
         self.type = type
-        self.try_type = try_type  # used only when type is not specified, and is ignored if it doesn't match the data
+        self.try_type = try_type  # is ignored if it doesn't match the data
 
     def __arrow_array__(self, type=None):
+        """This function is called when calling pa.array(typed_sequence)"""
         assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
         trying_type = False
         if type is None and self.try_type:
@@ -92,7 +93,7 @@ class TypedSequence:
         else:
             type = self.type
         try:
-            if isinstance(type, Array2DExtensionType):
+            if isinstance(type, _ArrayXDExtensionType):
                 return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_type_name))
             else:
                 return pa.array(self.data, type=type)
@@ -216,7 +217,7 @@ class ArrowWriter(object):
             first_example = pa.array(TypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
                 raise OverflowError(
-                    "There was an overflow in the {}. Try to reduce the batch size".format(type(pa_array))
+                    "There was an overflow in the {}. Try to reduce the writer batch size to have batches smaller than 2GB".format(type(pa_array))
                 )
             arrays.append(pa_array)
             inferred_types.append(inferred_type)
