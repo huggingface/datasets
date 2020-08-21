@@ -94,7 +94,7 @@ class Esnli(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, files):
         """Yields examples."""
         for filepath in files:
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 reader = csv.DictReader(f)
                 for _, row in enumerate(reader):
                     yield row["pairID"], {

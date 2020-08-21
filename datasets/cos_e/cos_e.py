@@ -26,14 +26,14 @@ import nlp
 
 _CITATION = """
 @inproceedings{rajani2019explain,
-     title = "Explain Yourself! Leveraging Language models for Commonsense Reasoning",
-    author = "Rajani, Nazneen Fatema  and
+     title = {Explain Yourself! Leveraging Language models for Commonsense Reasoning},
+    author = {Rajani, Nazneen Fatema  and
       McCann, Bryan  and
       Xiong, Caiming  and
-      Socher, Richard",
-      year="2019",
-    booktitle = "Proceedings of the 2019 Conference of the Association for Computational Linguistics (ACL2019)",
-    url ="https://arxiv.org/abs/1906.02361"
+      Socher, Richard}
+      year={2019}
+    booktitle = {Proceedings of the 2019 Conference of the Association for Computational Linguistics (ACL2019)}
+    url ={https://arxiv.org/abs/1906.02361}
 }
 """
 
@@ -70,7 +70,7 @@ def _download_and_index_cqa(dl_manager, name):
     cqa_splits = ["cqa_train", "cqa_dev"]
     cqa_complete = []
     for split in cqa_splits:
-        with open(downloaded_files[split]) as f:
+        with open(downloaded_files[split], encoding="utf-8") as f:
             for _, line in enumerate(f):
                 d = json.loads(line)
                 cqa_complete.append(d)
@@ -147,6 +147,7 @@ class CosE(nlp.GeneratorBasedBuilder):
         # NB: The CQA Dataset should be read only once, and only by callers who
         # want to _create_ the Cos-E dataset from scratch.
         cqa_indexed = _download_and_index_cqa(dl_manager, self.config.name)
+
         if self.config.name == "v1.11":
             files = dl_manager.download_and_extract(
                 {
@@ -154,6 +155,7 @@ class CosE(nlp.GeneratorBasedBuilder):
                     "train": [os.path.join(_COS_E_URL, "v1.11/cose_train_v1.11_processed.jsonl")],
                 }
             )
+
         elif self.config.name == "v1.0":
             files = dl_manager.download_and_extract(
                 {
@@ -163,7 +165,6 @@ class CosE(nlp.GeneratorBasedBuilder):
             )
         else:
             raise ValueError("Unknown config name")
-
         # We use the CoS-E/CQA dev set as our validation set.
         return [
             nlp.SplitGenerator(
@@ -178,7 +179,7 @@ class CosE(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         cqa_indexed = kwargs["cqa_indexed"]
         for filepath in files:
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 for line in f:
                     cos = json.loads(line)
                     cqa = cqa_indexed[cos["id"]]

@@ -15,7 +15,7 @@ import nlp
 _URL_ = "https://storage.googleapis.com/discofuse_dataset_v1/"
 _CITATION = """\
 @InProceedings{GevaEtAl2019,
-  title = {{DiscoFuse: A Large-Scale Dataset for Discourse-Based Sentence Fusion}},
+  title = {DiscoFuse: A Large-Scale Dataset for Discourse-Based Sentence Fusion},
   author = {Geva, Mor and Malmi, Eric and Szpektor, Idan and Berant, Jonathan},
   booktitle = {Proceedings of the 2019 Annual Conference of the North American Chapter of the Association for Computational Linguistics},
   note = {arXiv preprint arXiv:1902.10526},
@@ -178,7 +178,7 @@ class Discofuse(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(discofuse): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = csv.DictReader(f, delimiter="\t")
             for id_, row in enumerate(data):
                 co_first_sent = row["coherent_first_sentence"]

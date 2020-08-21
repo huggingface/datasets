@@ -90,11 +90,9 @@ class Mlqa(nlp.GeneratorBasedBuilder):
             features=nlp.Features(
                 {
                     "context": nlp.Value("string"),
-                    "questions": nlp.features.Sequence({"question": nlp.Value("string")}),
-                    "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
-                    ),
-                    "ids": nlp.features.Sequence({"idx": nlp.Value("string")})
+                    "questions": nlp.Value("string"),
+                    "answers": nlp.features.Sequence({"start": nlp.Value("int32"), "text": nlp.Value("string")}),
+                    "ids": nlp.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -123,8 +121,7 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                         "filepath": os.path.join(
                             os.path.join(dl_file, "mlqa-translate-train"),
                             "{}_squad-translate-train-train-v1.1.json".format(lang),
-                        ),
-                        "lang": lang,
+                        )
                     },
                 ),
                 nlp.SplitGenerator(
@@ -134,8 +131,7 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                         "filepath": os.path.join(
                             os.path.join(dl_file, "mlqa-translate-train"),
                             "{}_squad-translate-train-dev-v1.1.json".format(lang),
-                        ),
-                        "lang": lang,
+                        )
                     },
                 ),
             ]
@@ -153,8 +149,7 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                             "filepath": os.path.join(
                                 os.path.join(dl_file, "MLQA_V1/test"),
                                 "test-context-{}-question-{}.json".format(l1, l2),
-                            ),
-                            "lang": (l1, l2),
+                            )
                         },
                     ),
                     nlp.SplitGenerator(
@@ -163,8 +158,7 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                         gen_kwargs={
                             "filepath": os.path.join(
                                 os.path.join(dl_file, "MLQA_V1/dev"), "dev-context-{}-question-{}.json".format(l1, l2)
-                            ),
-                            "lang": (l1, l2),
+                            )
                         },
                     ),
                 ]
@@ -180,28 +174,28 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                                 "filepath": os.path.join(
                                     os.path.join(dl_file, "mlqa-translate-test"),
                                     "translate-test-context-{}-question-{}.json".format(lang, lang),
-                                ),
-                                "lang": lang,
+                                )
                             },
                         ),
                     ]
 
-    def _generate_examples(self, filepath, lang):
+    def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(mlqa): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
-        for id1, examples in enumerate(data["data"]):
-            for id2, example in enumerate(examples["paragraphs"]):
+        for examples in data["data"]:
+            for example in examples["paragraphs"]:
                 context = example["context"]
-                questions = [qa["question"] for qa in example["qas"]]
-                answers = [qa["answers"] for qa in example["qas"]]
-                ids = [qa["id"] for qa in example["qas"]]
-                answers_start = [answer[0]["answer_start"] for answer in answers]
-                answers_text = [answer[0]["text"] for answer in answers]
-                yield str(id1) + "-" + str(id2), {
-                    "context": context,
-                    "questions": {"question": questions,},
-                    "answers": {"answer_start": answers_start, "text": answers_text},
-                    "ids": {"idx": ids},
-                }
+                for qa in example["qas"]:
+                    question = qa["question"]
+                    id_ = qa["id"]
+                    answers = qa["answers"]
+                    answers_start = [answer["answer_start"] for answer in answers]
+                    answers_text = [answer["text"] for answer in answers]
+                    yield id_, {
+                        "context": context,
+                        "questions": question,
+                        "answers": {"start": answers_start, "text": answers_text},
+                        "ids": id_,
+                    }

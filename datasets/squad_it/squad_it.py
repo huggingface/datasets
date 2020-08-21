@@ -11,15 +11,15 @@ import nlp
 # TODO(squad_it): BibTeX citation
 _CITATION = """\
 @InProceedings{10.1007/978-3-030-03840-3_29,
-	author="Croce, Danilo and Zelenanska, Alexandra and Basili, Roberto",
-	editor="Ghidini, Chiara and Magnini, Bernardo and Passerini, Andrea and Traverso, Paolo",
-	title="Neural Learning for Question Answering in Italian",
-	booktitle="AI*IA 2018 -- Advances in Artificial Intelligence",
-	year="2018",
-	publisher="Springer International Publishing",
-	address="Cham",
-	pages="389--402",
-	isbn="978-3-030-03840-3"
+	author={Croce, Danilo and Zelenanska, Alexandra and Basili, Roberto},
+	editor={Ghidini, Chiara and Magnini, Bernardo and Passerini, Andrea and Traverso, Paolo",
+	title={Neural Learning for Question Answering in Italian},
+	booktitle={AI*IA 2018 -- Advances in Artificial Intelligence},
+	year={2018},
+	publisher={Springer International Publishing},
+	address={Cham},
+	pages={389--402},
+	isbn={978-3-030-03840-3}
 }
 """
 
@@ -83,7 +83,7 @@ class SquadIt(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(squad_it): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for example in data["data"]:
                 for paragraph in example["paragraphs"]:

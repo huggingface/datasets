@@ -668,12 +668,6 @@ class WmtConfig(nlp.BuilderConfig):
 class Wmt(ABC, nlp.GeneratorBasedBuilder):
     """WMT translation dataset."""
 
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-  Some of the wmt configs here, require a manual download.
-  Please look into wmt.py to see the exact path (and file name) that has to
-  be downloaded.
-  """
-
     def __init__(self, *args, **kwargs):
         if type(self) == Wmt and "config" not in kwargs:  # pylint: disable=unidiomatic-typecheck
             raise ValueError(
@@ -826,14 +820,14 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
                     or ss_name.startswith("wikititles_v1")
                 ):
                     sub_generator = functools.partial(_parse_tsv, language_pair=self.config.language_pair)
-                elif "tmx" in fname or ss_name.startswith("paracrawl_v3"):
+                elif "tmx" in fname or ss_name.startswith("paracrawl_v3") or ss_name.startswith("setimes_2"):
                     sub_generator = _parse_tmx
                 elif ss_name.startswith("wikiheadlines"):
                     sub_generator = _parse_wikiheadlines
                 else:
-                    raise ValueError("Unsupported file format: %s" % fname)
+                    raise ValueError(f"Unsupported file format: {fname} for {ss_name}")
             else:
-                raise ValueError("Invalid number of files: %d" % len(files))
+                raise ValueError(f"Invalid number of files: {len(files)}")
 
             for sub_key, ex in sub_generator(*files):
                 if not all(ex.values()):
@@ -874,7 +868,7 @@ def _parse_parallel_sentences(f1, f2):
         # Note: We can't use the XML parser since some of the files are badly
         # formatted.
         seg_re = re.compile(r"<seg id=\"\d+\">(.*)</seg>")
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 seg_match = re.match(seg_re, line)
                 if seg_match:
@@ -914,9 +908,9 @@ def _parse_parallel_sentences(f1, f2):
 
 
 def _parse_frde_bitext(fr_path, de_path):
-    with open(fr_path) as f:
+    with open(fr_path, encoding="utf-8") as f:
         fr_sentences = f.read().split("\n")
-    with open(de_path) as f:
+    with open(de_path, encoding="utf-8") as f:
         de_sentences = f.read().split("\n")
     assert len(fr_sentences) == len(de_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (
         len(fr_sentences),
@@ -962,7 +956,7 @@ def _parse_tsv(path, language_pair=None):
         l1, l2 = lang_match.groups()
     else:
         l1, l2 = language_pair
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         for j, line in enumerate(f):
             cols = line.split("\t")
             if len(cols) != 2:
@@ -977,7 +971,7 @@ def _parse_wikiheadlines(path):
     lang_match = re.match(r".*\.([a-z][a-z])-([a-z][a-z])$", path)
     assert lang_match is not None, "Invalid Wikiheadlines filename: %s" % path
     l1, l2 = lang_match.groups()
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         for line_id, line in enumerate(f):
             s1, s2 = line.split("|||")
             yield line_id, {l1: s1.strip(), l2: s2.strip()}
@@ -988,7 +982,7 @@ def _parse_czeng(*paths, **kwargs):
     filter_path = kwargs.get("filter_path", None)
     if filter_path:
         re_block = re.compile(r"^[^-]+-b(\d+)-\d\d[tde]")
-        with open(filter_path) as f:
+        with open(filter_path, encoding="utf-8") as f:
             bad_blocks = {blk for blk in re.search(r"qw{([\s\d]*)}", f.read()).groups()[0].split()}
         logging.info("Loaded %d bad blocks to filter from CzEng v1.6 to make v1.7.", len(bad_blocks))
 
@@ -1013,7 +1007,7 @@ def _parse_czeng(*paths, **kwargs):
 
 
 def _parse_hindencorp(path):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         for line_id, line in enumerate(f):
             split_line = line.split("\t")
             if len(split_line) != 5:

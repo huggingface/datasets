@@ -245,7 +245,7 @@ class BreakData(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(break_data): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             if (
                 self.config.name == "QDMR-high-level"
                 or self.config.name == "QDMR"

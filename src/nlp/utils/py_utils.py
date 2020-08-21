@@ -22,11 +22,15 @@ import contextlib
 import functools
 import itertools
 import os
+import types
 from io import BytesIO as StringIO
 from shutil import disk_usage
 from types import CodeType
 
 import dill
+import numpy as np
+
+from .file_utils import _transformers_available
 
 
 # NOTE: When used on an instance method, the cache is shared across all
@@ -37,14 +41,15 @@ import dill
 memoize = functools.lru_cache
 
 
-def convert_tuples_in_lists(data_struct):
+def map_all_sequences_to_lists(data_struct):
     # Could add support for more exotic data_struct, like OrderedDict
-    if isinstance(data_struct, dict):
-        return {k: convert_tuples_in_lists(v) for k, v in data_struct.items()}
-    else:
-        if isinstance(data_struct, (list, tuple)):
-            return [convert_tuples_in_lists(v) for v in data_struct]
-    return data_struct
+    def sequences_to_list(seq):
+        if isinstance(seq, (tuple, np.ndarray)):
+            return list(seq)
+        else:
+            return seq
+
+    return map_nested(sequences_to_list, data_struct)
 
 
 def size_str(size_in_bytes):
@@ -152,22 +157,38 @@ class memoized_property(property):  # pylint: disable=invalid-name
         return cached
 
 
-def map_nested(function, data_struct, dict_only=False, map_tuple=False):
+def map_nested(function, data_struct, dict_only=False, map_list=True, map_tuple=False, map_numpy=False):
     """Apply a function recursively to each element of a nested data struct."""
 
     # Could add support for more exotic data_struct, like OrderedDict
     if isinstance(data_struct, dict):
-        return {k: map_nested(function, v, dict_only, map_tuple) for k, v in data_struct.items()}
+        return {
+            k: map_nested(
+                function, v, dict_only=dict_only, map_list=map_list, map_tuple=map_tuple, map_numpy=map_numpy
+            )
+            for k, v in data_struct.items()
+        }
     elif not dict_only:
-        types = [list]
+        types = []
+        if map_list:
+            types.append(list)
         if map_tuple:
             types.append(tuple)
+        if map_numpy:
+            types.append(np.ndarray)
         if isinstance(data_struct, tuple(types)):
-            mapped = [map_nested(function, v, dict_only, map_tuple) for v in data_struct]
+            mapped = [
+                map_nested(
+                    function, v, dict_only=dict_only, map_list=map_list, map_tuple=map_tuple, map_numpy=map_numpy
+                )
+                for v in data_struct
+            ]
             if isinstance(data_struct, list):
                 return mapped
-            else:
+            elif isinstance(data_struct, tuple):
                 return tuple(mapped)
+            else:
+                return np.array(mapped)
     # Singleton
     return function(data_struct)
 
@@ -249,14 +270,29 @@ class Pickler(dill.Pickler):
 
 def dump(obj, file):
     """pickle an object to a file"""
-    Pickler(file).dump(obj)
+    Pickler(file, recurse=True).dump(obj)
     return
+
+
+@contextlib.contextmanager
+def _no_cache_fields(obj):
+    if _transformers_available:
+        import transformers as tr
+
+        if isinstance(obj, tr.PreTrainedTokenizerBase) and hasattr(obj, "cache") and isinstance(obj.cache, dict):
+            with temporary_assignment(obj, "cache", {}):
+                yield
+        else:
+            yield
+    else:
+        yield
 
 
 def dumps(obj):
     """pickle an object to a string"""
     file = StringIO()
-    dump(obj, file)
+    with _no_cache_fields(obj):
+        dump(obj, file)
     return file.getvalue()
 
 
@@ -269,7 +305,7 @@ def pklregister(t):
 
 
 @pklregister(CodeType)
-def save_code(pickler, obj):
+def _save_code(pickler, obj):
     """
     From dill._dill.save_code
     This is a modified version that removes the origin (filename + line no.)
@@ -278,9 +314,11 @@ def save_code(pickler, obj):
     dill._dill.log.info("Co: %s" % obj)
     # Filenames of functions created in notebooks or shells start with '<'
     # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
+    # Moreover lambda functions have a special name: '<lambda>'
+    # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
     # Only those two lines are different from the original implementation:
-    co_filename = "" if obj.co_filename.startswith("<") else obj.co_filename
-    co_firstlineno = 1 if obj.co_filename.startswith("<") else obj.co_firstlineno
+    co_filename = "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else obj.co_filename
+    co_firstlineno = 1 if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else obj.co_firstlineno
     # The rest is the same as in the original dill implementation
     if dill._dill.PY3:
         if hasattr(obj, "co_posonlyargcount"):
@@ -340,3 +378,26 @@ def save_code(pickler, obj):
     pickler.save_reduce(CodeType, args, obj=obj)
     dill._dill.log.info("# Co")
     return
+
+
+def copyfunc(func):
+    return types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+
+
+try:
+    import regex
+
+    @pklregister(type(regex.Regex("", 0)))
+    def _save_regex(pickler, obj):
+        dill._dill.log.info("Re: %s" % obj)
+        args = (
+            obj.pattern,
+            obj.flags,
+        )
+        pickler.save_reduce(regex.compile, args, obj=obj)
+        dill._dill.log.info("# Re")
+        return
+
+
+except ImportError:
+    pass

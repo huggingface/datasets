@@ -15,7 +15,7 @@
 """ SQuAD v2 metric. """
 
 import nlp
-from .evaluate import evaluate
+from .evaluate import make_qid_to_has_ans, get_raw_scores, apply_no_ans_threshold, make_eval_dict, merge_eval
 
 _CITATION = """\
 @inproceedings{Rajpurkar2016SQuAD10,
@@ -68,57 +68,50 @@ Returns:
     'best_f1_thresh': No-answer probability threshold associated to the best F1
 """
 
+
 class SquadV2(nlp.Metric):
     def _info(self):
         return nlp.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': {
-                    "id": nlp.Value("string"),
-                    "prediction_text": nlp.Value("string"),
-                    "no_answer_probability": nlp.Value("float32")
-                },
-                'references': {
-                    "id": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
-                    ),
-                },
-            }),
+            features=nlp.Features(
+                {
+                    "predictions": {
+                        "id": nlp.Value("string"),
+                        "prediction_text": nlp.Value("string"),
+                        "no_answer_probability": nlp.Value("float32"),
+                    },
+                    "references": {
+                        "id": nlp.Value("string"),
+                        "answers": nlp.features.Sequence(
+                            {"text": nlp.Value("string"), "answer_start": nlp.Value("int32")}
+                        ),
+                    },
+                }
+            ),
             codebase_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
-            reference_urls=["https://rajpurkar.github.io/SQuAD-explorer/"]
+            reference_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
         )
 
     def _compute(self, predictions, references, no_answer_threshold=1.0):
-        predictions = dict((p['id'], p['prediction_text']) for p in predictions)
-        dataset = [{'paragraphs': [{'qas': references}]}]
-        no_answer_probabilities = dict((p['id'], p['no_answer_probability']) for p in predictions)
+        predictions = dict((p["id"], p["prediction_text"]) for p in predictions)
+        dataset = [{"paragraphs": [{"qas": references}]}]
+        no_answer_probabilities = dict((p["id"], p["no_answer_probability"]) for p in predictions)
 
-        qid_to_has_ans = evaluate.make_qid_to_has_ans(dataset)  # maps qid to True/False
+        qid_to_has_ans = make_qid_to_has_ans(dataset)  # maps qid to True/False
         has_ans_qids = [k for k, v in qid_to_has_ans.items() if v]
         no_ans_qids = [k for k, v in qid_to_has_ans.items() if not v]
 
-        exact_raw, f1_raw = evaluate.get_raw_scores(dataset, predictions)
-        exact_thresh = evaluate.apply_no_ans_threshold(exact_raw,
-                                                       no_answer_probabilities, 
-                                                       qid_to_has_ans,
-                                                       no_answer_threshold)
-        f1_thresh = evaluate.apply_no_ans_threshold(f1_raw,
-                                                    no_answer_probabilities,
-                                                    qid_to_has_ans,
-                                                    no_answer_threshold)
-        out_eval = evaluate.make_eval_dict(exact_thresh, f1_thresh)
+        exact_raw, f1_raw = get_raw_scores(dataset, predictions)
+        exact_thresh = apply_no_ans_threshold(exact_raw, no_answer_probabilities, qid_to_has_ans, no_answer_threshold)
+        f1_thresh = apply_no_ans_threshold(f1_raw, no_answer_probabilities, qid_to_has_ans, no_answer_threshold)
+        out_eval = make_eval_dict(exact_thresh, f1_thresh)
 
         if has_ans_qids:
-            has_ans_eval = evaluate.make_eval_dict(exact_thresh,
-                                                   f1_thresh,
-                                                   qid_list=has_ans_qids)
-            evaluate.merge_eval(out_eval, has_ans_eval, 'HasAns')
+            has_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=has_ans_qids)
+            merge_eval(out_eval, has_ans_eval, "HasAns")
         if no_ans_qids:
-            no_ans_eval = evaluate.make_eval_dict(exact_thresh,
-                                                  f1_thresh,
-                                                  qid_list=no_ans_qids)
-            evaluate.merge_eval(out_eval, no_ans_eval, 'NoAns')
+            no_ans_eval = make_eval_dict(exact_thresh, f1_thresh, qid_list=no_ans_qids)
+            merge_eval(out_eval, no_ans_eval, "NoAns")
         return out_eval

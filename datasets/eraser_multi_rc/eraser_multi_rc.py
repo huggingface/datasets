@@ -98,7 +98,7 @@ class EraserMultiRc(nlp.GeneratorBasedBuilder):
         """Yields examples."""
 
         multirc_dir = os.path.join(data_dir, "docs")
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             for line in f:
                 row = json.loads(line)
                 evidences = []
@@ -108,7 +108,7 @@ class EraserMultiRc(nlp.GeneratorBasedBuilder):
                     evidences.append(evidence["text"])
 
                 passage_file = os.path.join(multirc_dir, docid)
-                with open(passage_file) as f1:
+                with open(passage_file, encoding="utf-8") as f1:
                     passage_text = f1.read()
 
                 yield row["annotation_id"], {

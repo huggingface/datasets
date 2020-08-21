@@ -22,8 +22,6 @@ import json
 import logging
 import os
 
-import apache_beam as beam
-
 import nlp
 
 from .c4_utils import (
@@ -126,15 +124,6 @@ class C4Config(nlp.BuilderConfig):
 class C4(nlp.BeamBasedBuilder):
     """C4 dataset based on Common Crawl."""
 
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-    For the WebText-like config, you must manually download 'OpenWebText.zip'
-    (from https://mega.nz/#F!EZZD0YwJ!9_PlEQzdMVLaNdKv_ICNVQ) and the Common Crawl
-    WET files from August 2018 to July 2019
-    (https://commoncrawl.org/the-data/get-started/) and place them in the
-    `manual_dir`.
-
-    """
-
     BUILDER_CONFIGS = [
         C4Config(language="en", description="English C4 dataset."),
         C4Config(
@@ -156,6 +145,15 @@ class C4(nlp.BeamBasedBuilder):
         ),
     ]
 
+    def manual_download_instructions(self):
+        return """\
+    For the WebText-like config, you must manually download 'OpenWebText.zip'
+    (from https://mega.nz/#F!EZZD0YwJ!9_PlEQzdMVLaNdKv_ICNVQ) and the Common Crawl
+    WET files from August 2018 to July 2019
+    (https://commoncrawl.org/the-data/get-started/) and place them in the
+    `data_dir`.
+        """
+
     def _info(self):
         features = {
             "text": nlp.Value("string"),
@@ -172,6 +170,7 @@ class C4(nlp.BeamBasedBuilder):
         )
 
     def _split_generators(self, dl_manager, pipeline):
+        import apache_beam as beam
 
         # We will automatically down the default CC version(s), but others need to
         # be manually downloaded.
@@ -193,15 +192,15 @@ class C4(nlp.BeamBasedBuilder):
             owt_path = os.path.join(dl_manager.manual_dir, _OPENWEBTEXT_URLS_ZIP)
             if not os.path.exists(owt_path):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load('c4', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                        owt_path, _OPENWEBTEXT_URLS_ZIP, self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('c4', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
+                        owt_path, _OPENWEBTEXT_URLS_ZIP, self.manual_download_instructions
                     )
                 )
             file_paths["openwebtext_urls_zip"] = dl_manager.extract(owt_path)
 
         wet_urls = []
         for wet_path_url in file_paths["wet_path_urls"]:
-            with open(wet_path_url, "r") as f:
+            with open(wet_path_url, "r", encoding="utf-8") as f:
                 wet_urls.extend(["%s/%s" % (_DOWNLOAD_HOST, l.strip()) for l in f])
         file_paths["wet_urls"] = wet_urls
         file_paths["wet_files"] = []
@@ -211,8 +210,8 @@ class C4(nlp.BeamBasedBuilder):
             wet_files = beam.io.filesystems.FileSystems.match(os.path.join(cc_dir, "*.warc.wet.gz"))
             if not os.path.exists(cc_dir):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load('c4', data_dir=...)` that includes the files {}. Manual download instructions: {})".format(
-                        cc_dir, "*.warc.wet.gz", self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('c4', data_dir=...)` that includes the files {}. Manual download instructions: {})".format(
+                        cc_dir, "*.warc.wet.gz", self.manual_download_instructions
                     )
                 )
             logging.info("Adding %d WET files for manually downloaded version %s.", len(wet_files), cc_version)
@@ -240,6 +239,7 @@ class C4(nlp.BeamBasedBuilder):
 
     def _get_page_content(self, pipeline, file_paths, dl_manager):
         """Build PCollection of un-split page content."""
+        import apache_beam as beam
 
         wet_file_paths = pipeline | "create_wet_files" >> beam.Create(file_paths["wet_files"])
         if "wet_urls" in file_paths:
@@ -264,7 +264,7 @@ class C4(nlp.BeamBasedBuilder):
         # Optionally filter for RealNews domains.
         # Output: url, text
         if self.config.realnewslike:
-            with open(file_paths["realnews_domains"], "r") as f:
+            with open(file_paths["realnews_domains"], "r", encoding="utf-8") as f:
                 realnews_domains = json.load(f)
             page_content = page_content | beam.Filter(is_realnews_domain, realnews_domains)
 
@@ -299,7 +299,7 @@ class C4(nlp.BeamBasedBuilder):
         # spans of sentences.
         # Output: url, text
         if self.config.clean:
-            with open(file_paths["badwords"], "r") as f:
+            with open(file_paths["badwords"], "r", encoding="utf-8") as f:
                 badwords = [l.strip() for l in f]
             page_content = page_content | "clean_pages" >> beam.FlatMap(get_clean_page_fn(badwords))
             page_content = remove_duplicate_text(page_content)
@@ -312,6 +312,8 @@ class C4(nlp.BeamBasedBuilder):
         return page_content
 
     def _build_pcollection(self, unused_pipeline, split, page_content, hashed_url_predicate):
+        import apache_beam as beam
+
         def _emit_examples(el):
             get_counter_inc_fn(split)("examples")
             _, features = el

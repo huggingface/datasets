@@ -43,7 +43,7 @@ class Wiqa(nlp.GeneratorBasedBuilder):
                 {
                     # These are the features of your dataset like images, labels ...
                     "question_stem": nlp.Value("string"),
-                    "question_para_step": nlp.features.Sequence({"steps": nlp.Value("string")}),
+                    "question_para_step": nlp.features.Sequence(nlp.Value("string")),
                     "answer_label": nlp.Value("string"),
                     "answer_label_as_choice": nlp.Value("string"),
                     "choices": nlp.features.Sequence({"text": nlp.Value("string"), "label": nlp.Value("string")}),
@@ -91,13 +91,13 @@ class Wiqa(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(wiqa): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
 
                 yield id_, {
                     "question_stem": data["question"]["stem"],
-                    "question_para_step": {"steps": data["question"]["para_steps"]},
+                    "question_para_step": data["question"]["para_steps"],
                     "answer_label": data["question"]["answer_label"],
                     "answer_label_as_choice": data["question"]["answer_label_as_choice"],
                     "choices": {

@@ -170,7 +170,7 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
                     "document": {
                         "title": ex_json["document_title"],
                         "url": ex_json["document_url"],
-                        "html": html_bytes,
+                        "html": ex_json["document_html"],
                         "tokens": [
                             {"token": t["token"], "is_html": t["html_token"]} for t in ex_json["document_tokens"]
                         ],

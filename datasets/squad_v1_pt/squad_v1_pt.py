@@ -81,7 +81,7 @@ class SquadV1Pt(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(squad_v1_pt): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for example in data["data"]:
                 title = example.get("title", "").strip()

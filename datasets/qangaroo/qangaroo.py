@@ -75,8 +75,8 @@ class Qangaroo(nlp.GeneratorBasedBuilder):
                 {
                     # These are the features of your dataset like images, labels ...
                     "query": nlp.Value("string"),
-                    "supports": nlp.features.Sequence({"support": nlp.Value("string")}),
-                    "candidates": nlp.features.Sequence({"candidate": nlp.Value("string")}),
+                    "supports": nlp.features.Sequence(nlp.Value("string")),
+                    "candidates": nlp.features.Sequence(nlp.Value("string")),
                     "answer": nlp.Value("string"),
                     "id": nlp.Value("string")
                     # These are the features of your dataset like images, labels ...
@@ -116,14 +116,14 @@ class Qangaroo(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(quangaroo): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for example in data:
                 id_ = example["id"]
                 yield id_, {
                     "id": example["id"],
                     "query": example["query"],
-                    "supports": {"support": example["supports"]},
-                    "candidates": {"candidate": example["candidates"]},
+                    "supports": example["supports"],
+                    "candidates": example["candidates"],
                     "answer": example["answer"],
                 }

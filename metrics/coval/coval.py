@@ -12,15 +12,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""" ROUGE metric. """
+""" CoVal metric. """
 
-import nlp
 import numpy
-import scipy
 
-from .coval_backend.conll import reader  # From: https://github.com/ns-moosavi/coval
-from .coval_backend.conll import util
-from .coval_backend.eval import evaluator
+import coval  # From: git+https://github.com/ns-moosavi/coval.git
+import nlp
+import scipy
+from coval.conll import reader, util
+from coval.eval import evaluator
+
 
 _CITATION = """\
 @InProceedings{moosavi2019minimum,
@@ -124,7 +125,7 @@ Args:
         Each prediction is a word with its annotations as a string made of columns joined with spaces.
         Only columns 4, 5, 6 and the last column are used (word, POS, Pars and coreference annotation)
         See the details on the format in the description of the metric.
-    predictions: list of references for scoring in the CoNLL format.
+    references: list of references for scoring in the CoNLL format.
         Each reference is a word with its annotations as a string made of columns joined with spaces.
         Only columns 4, 5, 6 and the last column are used (word, POS, Pars and coreference annotation)
         See the details on the format in the description of the metric.
@@ -270,8 +271,6 @@ def check_gold_parse_annotation(key_lines):
 
 
 class Coval(nlp.Metric):
-    def __init__(self, **kwargs):
-        raise NotImplementedError("CoVal is currently under construction.")
 
     def _info(self):
         return nlp.MetricInfo(
@@ -301,7 +300,14 @@ class Coval(nlp.Metric):
                 # util.parse_key_file(key_file)
                 # key_file = key_file + ".parsed"
 
-        score = evaluate(references, predictions, allmetrics, NP_only, remove_nested,
-                keep_singletons, min_spans)
+        score = evaluate(
+            key_lines=references,
+            sys_lines=predictions,
+            metrics=allmetrics,
+            NP_only=NP_only,
+            remove_nested=remove_nested,
+            keep_singletons=keep_singletons,
+            min_spans=min_spans
+        )
 
         return score

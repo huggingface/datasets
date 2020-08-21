@@ -29,19 +29,19 @@ import nlp
 
 _CITATION = """\
 @InProceedings{conneau2018xnli,
-  author = "Conneau, Alexis
+  author = {Conneau, Alexis
                  and Rinott, Ruty
                  and Lample, Guillaume
                  and Williams, Adina
                  and Bowman, Samuel R.
                  and Schwenk, Holger
-                 and Stoyanov, Veselin",
-  title = "XNLI: Evaluating Cross-lingual Sentence Representations",
-  booktitle = "Proceedings of the 2018 Conference on Empirical Methods
-               in Natural Language Processing",
-  year = "2018",
-  publisher = "Association for Computational Linguistics",
-  location = "Brussels, Belgium",
+                 and Stoyanov, Veselin},
+  title = {XNLI: Evaluating Cross-lingual Sentence Representations},
+  booktitle = {Proceedings of the 2018 Conference on Empirical Methods
+               in Natural Language Processing},
+  year = {2018},
+  publisher = {Association for Computational Linguistics},
+  location = {Brussels, Belgium},
 }"""
 
 _DESCRIPTION = """\
@@ -99,7 +99,7 @@ class Xnli(nlp.GeneratorBasedBuilder):
         """This function returns the examples in the raw (text) form."""
         rows_per_pair_id = collections.defaultdict(list)
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for row in reader:
                 rows_per_pair_id[row["pairID"]].append(row)

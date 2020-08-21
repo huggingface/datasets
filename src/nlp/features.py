@@ -16,15 +16,26 @@
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
 import logging
-from dataclasses import dataclass
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
+import numpy as np
+import pandas as pd
 import pyarrow as pa
 
 from . import utils
+from .utils.file_utils import _tf_available, _torch_available
 
 
 logger = logging.getLogger(__name__)
+
+
+if _torch_available:
+    import torch
+
+if _tf_available:
+    import tensorflow as tf
 
 
 def string_to_arrow(type_str: str):
@@ -42,6 +53,24 @@ def string_to_arrow(type_str: str):
     return pa.__dict__[arrow_data_type_str]()
 
 
+def _cast_to_python_objects(obj):
+    """ Cast numpy/pytorch/tensorflow/pandas objects to python lists. """
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif _torch_available and isinstance(obj, torch.Tensor):
+        return obj.detach().cpu().numpy().tolist()
+    elif _tf_available and isinstance(obj, tf.Tensor):
+        return obj.numpy().tolist()
+    elif isinstance(obj, pd.DataFrame):
+        return obj.values.tolist()
+    else:
+        return obj
+
+
+def cast_to_python_objects(obj):
+    return utils.map_nested(_cast_to_python_objects, obj, map_list=True, map_tuple=True, map_numpy=False)
+
+
 @dataclass
 class Value:
     """ Encapsulate an Arrow datatype for easy serialization.
@@ -51,9 +80,13 @@ class Value:
     id: Optional[str] = None
     # Automatically constructed
     pa_type: ClassVar[Any] = None
-    _type: str = "Value"
+    _type: str = field(default="Value", init=False, repr=False)
 
     def __post_init__(self):
+        if self.dtype == "double":  # fix inferred type
+            self.dtype = "float64"
+        if self.dtype == "float":  # fix inferred type
+            self.dtype = "float32"
         self.pa_type = string_to_arrow(self.dtype)
 
     def __call__(self):
@@ -82,7 +115,7 @@ class Tensor:
     id: Optional[str] = None
     # Automatically constructed
     pa_type: ClassVar[Any] = None
-    _type: str = "Tensor"
+    _type: str = field(default="Tensor", init=False, repr=False)
 
     def __post_init__(self):
         assert len(self.shape) < 2, "Tensor can only take 0 or 1 dimensional shapes ."
@@ -125,7 +158,7 @@ class ClassLabel:
     pa_type: ClassVar[Any] = pa.int64()
     _str2int: ClassVar[Dict[str, int]] = None
     _int2str: ClassVar[Dict[int, int]] = None
-    _type: str = "ClassLabel"
+    _type: str = field(default="ClassLabel", init=False, repr=False)
 
     def __post_init__(self):
         # The label is explicitly set as undefined (no label defined)
@@ -166,39 +199,53 @@ class ClassLabel:
     def __call__(self):
         return self.pa_type
 
-    def str2int(self, str_value):
+    def str2int(self, values: Union[str, Iterable]):
         """Conversion class name string => integer."""
-        str_value = str(str_value)
+        assert isinstance(values, str) or isinstance(values, Iterable), (
+            f"Values {values} should be a string " f"or an Iterable (list, numpy array, pytorch, tensorflow tensors"
+        )
+        return_list = True
+        if isinstance(values, str):
+            values = [values]
+            return_list = False
 
-        if self._str2int:
-            # strip key if not in dict
-            if str_value not in self._str2int:
-                str_value = str_value.strip()
-            return self._str2int[str_value]
+        output = []
+        for value in values:
+            if self._str2int:
+                # strip key if not in dict
+                if value not in self._str2int:
+                    value = value.strip()
+                output.append(self._str2int[str(value)])
+            else:
+                # No names provided, try to integerize
+                failed_parse = False
+                try:
+                    output.append(int(value))
+                except ValueError:
+                    failed_parse = True
+                if failed_parse or not 0 <= value < self.num_classes:
+                    raise ValueError("Invalid string class label %s" % value)
+        return output if return_list else output[0]
 
-        # No names provided, try to integerize
-        failed_parse = False
-        try:
-            int_value = int(str_value)
-        except ValueError:
-            failed_parse = True
-        if failed_parse or not 0 <= int_value < self._num_classes:
-            raise ValueError("Invalid string class label %s" % str_value)
-        return int_value
-
-    def int2str(self, int_value):
+    def int2str(self, values: Union[int, Iterable]):
         """Conversion integer => class name string."""
-        if self._int2str:
-            # Maybe should support batched np array/eager tensors, to allow things
-            # like
-            # out_ids = model(inputs)
-            # labels = cifar10.info.features['label'].int2str(out_ids)
-            return self._int2str[int_value]
+        assert isinstance(values, int) or isinstance(values, Iterable), (
+            f"Values {values} should be an integer " f"or an Iterable (list, numpy array, pytorch, tensorflow tensors"
+        )
+        return_list = True
+        if isinstance(values, int):
+            values = [values]
+            return_list = False
 
-        # No names provided, return str(int)
-        if not 0 <= int_value < self._num_classes:
-            raise ValueError("Invalid integer class label %d" % int_value)
-        return str(int_value)
+        if any(not 0 <= v < self.num_classes for v in values):
+            raise ValueError("Invalid integer class label %d" % values)
+
+        if self._int2str:
+            output = [self._int2str[int(v)] for v in values]
+        else:
+            # No names provided, return str(values)
+            output = [str(v) for v in values]
+        return output if return_list else output[0]
 
     def encode_example(self, example_data):
         if self.num_classes is None:
@@ -227,7 +274,7 @@ class ClassLabel:
 @dataclass
 class Translation:
     """`FeatureConnector` for translations with fixed languages per example.
-        Here for compatiblity with tfds.
+    Here for compatiblity with tfds.
 
     Input: The Translate feature accepts a dictionary for each example mapping
         string language codes to string translations.
@@ -235,32 +282,19 @@ class Translation:
     Output: A dictionary mapping string language codes to translations as `Text`
         features.
 
-    Example:
-    At construction time:
+    Example::
 
-    ```
-    nlp.features.Translation(languages=['en', 'fr', 'de'])
-    ```
+        # At construction time:
 
-    During data generation:
+        nlp.features.Translation(languages=['en', 'fr', 'de'])
 
-    ```
-    yield {
-            'en': 'the cat',
-            'fr': 'le chat',
-            'de': 'die katze'
-    }
-    ```
+        # During data generation:
 
-    Tensor returned by `.as_dataset()`:
-
-    ```
-    {
-            'en': 'the cat',
-            'fr': 'le chat',
-            'de': 'die katze',
-    }
-    ```
+        yield {
+                'en': 'the cat',
+                'fr': 'le chat',
+                'de': 'die katze'
+        }
     """
 
     languages: List[str]
@@ -268,16 +302,16 @@ class Translation:
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = None
-    _type: str = "Translation"
+    _type: str = field(default="Translation", init=False, repr=False)
 
     def __call__(self):
-        return pa.struct({lang: pa.string() for lang in self.languages})
+        return pa.struct({lang: pa.string() for lang in sorted(self.languages)})
 
 
 @dataclass
 class TranslationVariableLanguages:
     """`FeatureConnector` for translations with variable languages per example.
-        Here for compatiblity with tfds.
+    Here for compatiblity with tfds.
 
     Input: The TranslationVariableLanguages feature accepts a dictionary for each
         example mapping string language codes to one or more string translations.
@@ -289,31 +323,26 @@ class TranslationVariableLanguages:
         translation: variable-length 1D tf.Tensor of tf.string plain text
             translations, sorted to align with language codes.
 
-    Example (fixed language list):
-    At construction time:
+    Example::
 
-    ```
-    nlp.features.Translation(languages=['en', 'fr', 'de'])
-    ```
+        # At construction time:
 
-    During data generation:
+        nlp.features.Translation(languages=['en', 'fr', 'de'])
 
-    ```
-    yield {
-            'en': 'the cat',
-            'fr': ['le chat', 'la chatte,']
-            'de': 'die katze'
-    }
-    ```
+        # During data generation:
 
-    Tensor returned :
+        yield {
+                'en': 'the cat',
+                'fr': ['le chat', 'la chatte,']
+                'de': 'die katze'
+        }
 
-    ```
-    {
-            'language': ['en', 'de', 'fr', 'fr'],
-            'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
-    }
-    ```
+        # Tensor returned :
+
+        {
+                'language': ['en', 'de', 'fr', 'fr'],
+                'translation': ['the cat', 'die katze', 'la chatte', 'le chat'],
+        }
     """
 
     languages: List = None
@@ -322,7 +351,7 @@ class TranslationVariableLanguages:
     # Automatically constructed
     dtype: ClassVar[str] = "dict"
     pa_type: ClassVar[Any] = None
-    _type: str = "TranslationVariableLanguages"
+    _type: str = field(default="TranslationVariableLanguages", init=False, repr=False)
 
     def __post_init__(self):
         self.languages = list(sorted(list(set(self.languages)))) if self.languages else None
@@ -367,7 +396,7 @@ class Sequence:
     # Automatically constructed
     dtype: ClassVar[str] = "list"
     pa_type: ClassVar[Any] = None
-    _type: str = "Sequence"
+    _type: str = field(default="Sequence", init=False, repr=False)
 
 
 FeatureType = Union[dict, list, tuple, Value, Tensor, ClassLabel, Translation, TranslationVariableLanguages, Sequence]
@@ -377,7 +406,9 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
     """ Convert our Feature nested object in an Apache Arrow type """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
-        return pa.struct({key: get_nested_type(value) for key, value in schema.items()})
+        return pa.struct(
+            {key: get_nested_type(schema[key]) for key in sorted(schema)}
+        )  # sort to make the type deterministic
     elif isinstance(schema, (list, tuple)):
         assert len(schema) == 1, "We defining list feature, you should just provide one example of the inner type"
         inner_type = get_nested_type(schema[0])
@@ -386,7 +417,7 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         inner_type = get_nested_type(schema.feature)
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
         if isinstance(inner_type, pa.StructType):
-            return pa.struct(dict((f.name, pa.list_(f.type, schema.length)) for f in inner_type))
+            return pa.struct(dict(sorted((f.name, pa.list_(f.type, schema.length)) for f in inner_type)))
         return pa.list_(inner_type, schema.length)
 
     # Other objects are callable which returns their data type (ClassLabel, Tensor, Translation, Arrow datatype creation methods)
@@ -421,6 +452,8 @@ def encode_nested_example(schema, obj):
                     list_dict[k] = [encode_nested_example(sub_schema, o) for o in sub_objs]
                 return list_dict
         # schema.feature is not a dict
+        if isinstance(obj, str):  # don't interpret a string as a list
+            raise ValueError("Got a string but expected a list instead: '{}'".format(obj))
         return [encode_nested_example(schema.feature, o) for o in obj]
 
     # Object with special encoding:
@@ -449,19 +482,22 @@ def generate_from_dict(obj: Any):
     return class_type(**obj)
 
 
-def generate_from_arrow(pa_type: pa.DataType):
+def generate_from_arrow_type(pa_type: pa.DataType):
     if isinstance(pa_type, pa.StructType):
-        return {field.name: generate_from_arrow(field.type) for field in pa_type}
+        return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):
-        return Sequence(feature=generate_from_arrow(pa_type.value_type), length=pa_type.list_size)
+        return Sequence(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
     elif isinstance(pa_type, pa.ListType):
-        return [generate_from_arrow(pa_type.value_type)]
+        feature = generate_from_arrow_type(pa_type.value_type)
+        if isinstance(feature, (dict, tuple, list)):
+            return [feature]
+        return Sequence(feature=feature)
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
         return Value(dtype=str(pa_type))
     else:
-        return ValueError(f"Cannot convert {pa_type} to a Feature type.")
+        raise ValueError(f"Cannot convert {pa_type} to a Feature type.")
 
 
 class Features(dict):
@@ -470,14 +506,23 @@ class Features(dict):
         return get_nested_type(self)
 
     @classmethod
-    def from_pyarrow_type(cls, pa_type: pa.DataType):
-        obj = generate_from_arrow(pa_type)
+    def from_arrow_schema(cls, pa_schema: pa.Schema) -> "Features":
+        obj = {field.name: generate_from_arrow_type(field.type) for field in pa_schema}
         return cls(**obj)
 
     @classmethod
-    def from_dict(cls, dic):
+    def from_dict(cls, dic) -> "Features":
         obj = generate_from_dict(dic)
         return cls(**obj)
 
     def encode_example(self, example):
+        example = cast_to_python_objects(example)
         return encode_nested_example(self, example)
+
+    def encode_batch(self, batch):
+        encoded_batch = {}
+        if set(batch) != set(self):
+            raise ValueError("Column mismatch between batch {} and features {}".format(set(batch), set(self)))
+        for key, column in batch.items():
+            encoded_batch[key] = [encode_nested_example(self[key], cast_to_python_objects(obj)) for obj in column]
+        return encoded_batch

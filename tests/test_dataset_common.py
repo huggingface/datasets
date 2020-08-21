@@ -47,9 +47,9 @@ class DatasetTester(object):
     def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
         if is_local is True:
-            module_path = prepare_module("./datasets/" + dataset_name)
+            module_path, _ = prepare_module("./datasets/" + dataset_name)
         else:
-            module_path = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
+            module_path, _ = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
         # Get dataset builder class
         builder_cls = import_main_class(module_path)
         # Instantiate dataset builder
@@ -111,6 +111,23 @@ class DatasetTester(object):
                         "test": os.path.join(path_to_dummy_data, "test.json"),
                         "dev": os.path.join(path_to_dummy_data, "dev.json"),
                     }
+                elif dataset_builder.__class__.__name__ == "Pandas":
+                    # need slight adoption for json dataset
+                    mock_dl_manager.download_dummy_data()
+                    path_to_dummy_data = mock_dl_manager.dummy_file
+                    dataset_builder.config.data_files = {
+                        "train": os.path.join(path_to_dummy_data, "train.pkl"),
+                        "test": os.path.join(path_to_dummy_data, "test.pkl"),
+                        "dev": os.path.join(path_to_dummy_data, "dev.pkl"),
+                    }
+                elif dataset_builder.__class__.__name__ == "Text":
+                    mock_dl_manager.download_dummy_data()
+                    path_to_dummy_data = mock_dl_manager.dummy_file
+                    dataset_builder.config.data_files = {
+                        "train": os.path.join(path_to_dummy_data, "train.txt"),
+                        "test": os.path.join(path_to_dummy_data, "test.txt"),
+                        "dev": os.path.join(path_to_dummy_data, "dev.txt"),
+                    }
 
                 # mock size needed for dummy data instead of actual dataset
                 if dataset_builder.info is not None:
@@ -122,7 +139,10 @@ class DatasetTester(object):
 
                 # generate examples from dummy data
                 dataset_builder.download_and_prepare(
-                    dl_manager=mock_dl_manager, download_mode=GenerateMode.FORCE_REDOWNLOAD, ignore_verifications=True
+                    dl_manager=mock_dl_manager,
+                    download_mode=GenerateMode.FORCE_REDOWNLOAD,
+                    ignore_verifications=True,
+                    try_from_hf_gcs=False,
                 )
 
                 # get dataset
@@ -172,12 +192,10 @@ class LocalDatasetTest(parameterized.TestCase):
 
     @slow
     def test_load_real_dataset(self, dataset_name):
-        with tempfile.TemporaryDirectory() as temp_data_dir:
-            download_config = DownloadConfig()
-            download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
+        with tempfile.TemporaryDirectory() as temp_cache_dir:
 
             dataset = load_dataset(
-                "./datasets/" + dataset_name, data_dir=temp_data_dir, download_config=download_config
+                "./datasets/" + dataset_name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
@@ -186,7 +204,7 @@ class LocalDatasetTest(parameterized.TestCase):
 def get_aws_dataset_names():
     api = hf_api.HfApi()
     # fetch all dataset names
-    datasets = [x.id for x in api.dataset_list()]
+    datasets = [x.id for x in api.dataset_list(with_community_datasets=False)]
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
@@ -237,10 +255,8 @@ class AWSDatasetTest(parameterized.TestCase):
 
     @slow
     def test_load_real_dataset(self, dataset_name):
-        with tempfile.TemporaryDirectory() as temp_data_dir:
-            download_config = DownloadConfig()
-            download_config.download_mode = GenerateMode.FORCE_REDOWNLOAD
+        with tempfile.TemporaryDirectory() as temp_cache_dir:
 
-            dataset = load_dataset(dataset_name, data_dir=temp_data_dir, download_config=download_config)
+            dataset = load_dataset(dataset_name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD)
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)

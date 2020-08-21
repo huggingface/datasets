@@ -117,10 +117,10 @@ def get_entities(seq, suffix=False):
     for i, chunk in enumerate(seq + ['O']):
         if suffix:
             tag = chunk[-1]
-            type_ = chunk.split('-')[0]
+            type_ = chunk[:-1].rsplit('-', maxsplit=1)[0] or '_'
         else:
             tag = chunk[0]
-            type_ = chunk.split('-')[-1]
+            type_ = chunk[1:].split('-', maxsplit=1)[-1] or '_'
 
         if end_of_chunk(prev_tag, tag, prev_type, type_):
             chunks.append((prev_type, begin_offset, i-1))
@@ -158,7 +158,7 @@ class Seqeval(nlp.Metric):
 
         for e in pred_entities:
             d2[e[0]].add((e[1], e[2]))
-        
+
         for type_name, true_entities in d1.items():
             scores[type_name] = {}
             pred_entities = d2[type_name]

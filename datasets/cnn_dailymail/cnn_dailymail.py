@@ -117,6 +117,12 @@ def _get_url_hashes(path):
     return {url_hash(u): True for u in urls}
 
 
+def _get_hash_from_path(p):
+    """Extract hash from path."""
+    basename = os.path.basename(p)
+    return basename[0 : basename.find(".story")]
+
+
 def _find_files(dl_paths, publisher, url_dict):
     """Find files corresponding to urls."""
     if publisher == "cnn":
@@ -129,8 +135,7 @@ def _find_files(dl_paths, publisher, url_dict):
 
     ret_files = []
     for p in files:
-        basename = os.path.basename(p)
-        if basename[0 : basename.find(".story")] in url_dict:
+        if _get_hash_from_path(p) in url_dict:
             ret_files.append(os.path.join(top_dir, p))
     return ret_files
 
@@ -160,7 +165,7 @@ END_TOKENS = [".", "!", "?", "...", "'", "`", '"', DM_SINGLE_CLOSE_QUOTE, DM_DOU
 
 def _read_text_file(text_file):
     lines = []
-    with open(text_file, "r") as f:
+    with open(text_file, "r", encoding="utf-8") as f:
         for line in f:
             lines.append(line.strip())
     return lines
@@ -228,7 +233,9 @@ class CnnDailymail(nlp.GeneratorBasedBuilder):
         # Should return a nlp.DatasetInfo object
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({_ARTICLE: nlp.Value("string"), _HIGHLIGHTS: nlp.Value("string")}),
+            features=nlp.Features(
+                {_ARTICLE: nlp.Value("string"), _HIGHLIGHTS: nlp.Value("string"), "id": nlp.Value("string"),}
+            ),
             supervised_keys=None,
             homepage="https://github.com/abisee/cnn-dailymail",
             citation=_CITATION,
@@ -257,4 +264,8 @@ class CnnDailymail(nlp.GeneratorBasedBuilder):
             if not article or not highlights:
                 continue
             fname = os.path.basename(p)
-            yield fname, {_ARTICLE: article, _HIGHLIGHTS: highlights}
+            yield fname, {
+                _ARTICLE: article,
+                _HIGHLIGHTS: highlights,
+                "id": _get_hash_from_path(fname),
+            }

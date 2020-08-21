@@ -11,24 +11,23 @@ import nlp
 # TODO(cmrc2018): BibTeX citation
 _CITATION = """\
 @inproceedings{cui-emnlp2019-cmrc2018,
-    title = "A Span-Extraction Dataset for {C}hinese Machine Reading Comprehension",
-    author = "Cui, Yiming  and
+    title = {A Span-Extraction Dataset for {C}hinese Machine Reading Comprehension},
+    author = {Cui, Yiming  and
       Liu, Ting  and
       Che, Wanxiang  and
       Xiao, Li  and
       Chen, Zhipeng  and
       Ma, Wentao  and
       Wang, Shijin  and
-      Hu, Guoping",
-    booktitle = "Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)",
-    month = nov,
-    year = "2019",
-    address = "Hong Kong, China",
-    publisher = "Association for Computational Linguistics",
-    url = "https://www.aclweb.org/anthology/D19-1600",
-    doi = "10.18653/v1/D19-1600",
-    pages = "5886--5891",
-}
+      Hu, Guoping},
+    booktitle = {Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)},
+    month = {nov},
+    year = {2019},
+    address = {Hong Kong, China},
+    publisher = {Association for Computational Linguistics},
+    url = {https://www.aclweb.org/anthology/D19-1600},
+    doi = {10.18653/v1/D19-1600},
+    pages = {5886--5891}}
 """
 
 # TODO(cmrc2018):
@@ -94,7 +93,7 @@ class Cmrc2018(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(cmrc2018): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for example in data["data"]:
                 for paragraph in example["paragraphs"]:

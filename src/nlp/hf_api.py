@@ -37,12 +37,18 @@ class S3Obj:
         self.ETag = ETag
         self.Size = Size
 
+    def __repr__(self):
+        return f"nlp.S3Obj(filename='{self.filename}')"
+
 
 class PresignedUrl:
     def __init__(self, write: str, access: str, type: str, **kwargs):
         self.write = write
         self.access = access
         self.type = type  # mime-type to send to S3.
+
+    def __repr__(self):
+        return f"nlp.PresignedUrl(write='{self.write}', access='{self.access}', type='{self.type}')"
 
 
 class S3Object:
@@ -66,6 +72,9 @@ class S3Object:
         self.rfilename = rfilename
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def __repr__(self):
+        return f"nlp.S3Object('{self.rfilename}')"
 
 
 class ObjectInfo:
@@ -98,6 +107,10 @@ class ObjectInfo:
         self.siblings = [S3Object(**x) for x in self.siblings] if self.siblings else None
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def __repr__(self):
+        single_line_description = self.description.replace("\n", "") if self.description is not None else ""
+        return f"nlp.ObjectInfo(\n\tid='{self.id}',\n\tdescription='{single_line_description}',\n\tfiles={self.siblings}\n)"
 
 
 class HfApi:
@@ -222,7 +235,7 @@ class HfApi:
         )
         r.raise_for_status()
 
-    def dataset_list(self) -> List[ObjectInfo]:
+    def dataset_list(self, with_community_datasets=True, id_only=False) -> List[ObjectInfo]:
         """
         Get the public list of all the datasets on huggingface, including the community datasets
         """
@@ -230,9 +243,14 @@ class HfApi:
         r = requests.get(path)
         r.raise_for_status()
         d = r.json()
-        return [ObjectInfo(**x) for x in d]
+        datasets = [ObjectInfo(**x) for x in d]
+        if not with_community_datasets:
+            datasets = [d for d in datasets if "/" not in d.id]
+        if id_only:
+            datasets = [d.id for d in datasets]
+        return datasets
 
-    def metric_list(self) -> List[ObjectInfo]:
+    def metric_list(self, with_community_metrics=True, id_only=False) -> List[ObjectInfo]:
         """
         Get the public list of all the metrics on huggingface, including the community metrics
         """
@@ -240,7 +258,12 @@ class HfApi:
         r = requests.get(path)
         r.raise_for_status()
         d = r.json()
-        return [ObjectInfo(**x) for x in d]
+        metrics = [ObjectInfo(**x) for x in d]
+        if not with_community_metrics:
+            metrics = [m for m in metrics if "/" not in m.id]
+        if id_only:
+            metrics = [m.id for m in metrics]
+        return metrics
 
 
 class TqdmProgressFileReader:

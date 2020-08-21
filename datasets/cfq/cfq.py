@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""CFQ (Compositional Freebase Question) dataset."""
+"""CFQ (Compositional Freebase Questions) dataset."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -132,8 +132,8 @@ class Cfq(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         samples_path = os.path.join(base_directory, "dataset.json")
         splits_path = os.path.join(base_directory, splits_file)
-        with open(samples_path) as samples_file:
-            with open(splits_path) as splits_file:
+        with open(samples_path, encoding="utf-8") as samples_file:
+            with open(splits_path, encoding="utf-8") as splits_file:
                 logging.info("Reading json from %s into memory...", samples_path)
                 samples = json.loads(self._scrub_json(samples_file.read()))
                 logging.info("%d samples loaded", len(samples))

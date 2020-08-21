@@ -29,9 +29,9 @@ _BENCHMARK_URL = "https://paracrawl.eu/releases.html"
 
 _CITATION = """\
 @misc {paracrawl,
-    title  = "ParaCrawl",
-    year   = "2018",
-    url    = "http://paracrawl.eu/download.html."
+    title  = {ParaCrawl},
+    year   = {2018},
+    url    = {http://paracrawl.eu/download.html.}
 }
 """
 
@@ -143,7 +143,7 @@ class ParaCrawl(nlp.GeneratorBasedBuilder):
         """This function returns the examples in the raw (text) form."""
         target_language = self.config.target_language
 
-        with open(data_file) as f:
+        with open(data_file, encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 line_parts = line.strip().split("\t")
                 if len(line_parts) != 2:

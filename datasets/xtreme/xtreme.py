@@ -38,7 +38,7 @@ Niger-Congo languages Swahili and Yoruba, spoken in Africa.
 """
 _MLQA_LANG = ["ar", "de", "vi", "zh", "en", "es", "hi"]
 _XQUAD_LANG = ["ar", "de", "vi", "zh", "en", "es", "hi", "el", "ru", "th", "tr"]
-_PAWSX_LANG = ["de", "en", "fr", "ja", "ko", "zh"]
+_PAWSX_LANG = ["de", "en", "es", "fr", "ja", "ko", "zh"]
 _BUCC_LANG = ["de", "fr", "zh", "ru"]
 _TATOEBA_LANG = [
     "afr",
@@ -272,19 +272,19 @@ _CITATIONS = {
     "XNLI": textwrap.dedent(
         """\
           @InProceedings{conneau2018xnli,
-          author = "Conneau, Alexis
+          author = {Conneau, Alexis
                          and Rinott, Ruty
                          and Lample, Guillaume
                          and Williams, Adina
                          and Bowman, Samuel R.
                          and Schwenk, Holger
-                         and Stoyanov, Veselin",
-          title = "XNLI: Evaluating Cross-lingual Sentence Representations",
-          booktitle = "Proceedings of the 2018 Conference on Empirical Methods
-                       in Natural Language Processing",
-          year = "2018",
-          publisher = "Association for Computational Linguistics",
-          location = "Brussels, Belgium",
+                         and Stoyanov, Veselin},
+          title = {XNLI: Evaluating Cross-lingual Sentence Representations},
+          booktitle = {Proceedings of the 2018 Conference on Empirical Methods
+                       in Natural Language Processing},
+          year = {2018},
+          publisher = {Association for Computational Linguistics},
+          location = {Brussels, Belgium},
         }"""
     ),
     "XQuAD": textwrap.dedent(
@@ -419,11 +419,6 @@ class Xtreme(nlp.GeneratorBasedBuilder):
 
     # TODO(xtreme): Set up version.
     VERSION = nlp.Version("0.1.0")
-    MANUAL_DOWNLOAD_INSTRUCTIONS = """\
-     You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
-     (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN) and save the file under <path/to/folder>AmazonPhotos.zip
-
-    """
     BUILDER_CONFIGS = [
         XtremeConfig(
             name=name,
@@ -435,6 +430,16 @@ class Xtreme(nlp.GeneratorBasedBuilder):
         )
         for name in _NAMES
     ]
+
+    @property
+    def manual_download_instructions(self):
+        if self.config.name.startswith("PAN-X"):
+            return """\
+             You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
+             (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN). The folder containing the saved file
+             can be used to load the dataset via `nlp.load_dataset("xtreme", data_dir="<path/to/folder>").
+            """
+        return None
 
     def _info(self):
         # TODO(xtreme): Specifies the nlp.DatasetInfo object
@@ -448,6 +453,14 @@ class Xtreme(nlp.GeneratorBasedBuilder):
         if self.config.name == "XNLI":
             features["gold_label"] = nlp.Value("string")
 
+        if self.config.name.startswith("PAN-X"):
+            features = nlp.Features(
+                {
+                    "words": nlp.Sequence(nlp.Value("string")),
+                    "ner_tags": nlp.Sequence(nlp.Value("string")),
+                    "langs": nlp.Sequence(nlp.Value("string")),
+                }
+            )
         return nlp.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=self.config.description + "\n" + _DESCRIPTION,
@@ -710,17 +723,16 @@ class Xtreme(nlp.GeneratorBasedBuilder):
         if self.config.name.startswith("PAN-X"):
             path_to_manual_folder = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
             panx_path = os.path.join(path_to_manual_folder, _PAN_X_FOLDER)
-
             if not os.path.exists(panx_path):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load('wikihow', data_dir=...)` that includes {}. Manual download instructions: {}".format(
-                        panx_path, _PAN_X_FOLDER, self.MANUAL_DOWNLOAD_INSTRUCTIONS
+                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('xtreme', data_dir=...)` that includes {}. Manual download instructions: {}".format(
+                        panx_path, _PAN_X_FOLDER, self.manual_download_instructions
                     )
                 )
 
             panx_dl_dir = dl_manager.extract(panx_path)
             lang = self.config.name.split(".")[1]
-            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, lang + ".tar.gz"))
+            lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, "panx_dataset", lang + ".tar.gz"))
             return [
                 nlp.SplitGenerator(
                     name=nlp.Split.VALIDATION,
@@ -747,7 +759,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
         # TODO(xtreme): Yields (key, example) tuples from the dataset
 
         if self.config.name == "tydiqa" or self.config.name.startswith("MLQA") or self.config.name == "SQuAD":
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for article in data["data"]:
                     title = article.get("title", "").strip()
@@ -770,7 +782,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                                 "answers": {"answer_start": answer_starts, "text": answers},
                             }
         if self.config.name == "XNLI":
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = csv.DictReader(f, delimiter="\t")
                 for id_, row in enumerate(data):
                     yield id_, {
@@ -780,13 +792,14 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                         "gold_label": row["gold_label"],
                     }
         if self.config.name.startswith("PAWS-X"):
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
+                next(data)  # skip header
                 for id_, row in enumerate(data):
                     if len(row) == 4:
                         yield id_, {"sentence1": row[1], "sentence2": row[2], "label": row[3]}
         if self.config.name.startswith("XQuAD"):
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 xquad = json.load(f)
                 for article in xquad["data"]:
                     for paragraph in article["paragraphs"]:
@@ -818,13 +831,13 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                     source_target_file = os.path.join(filepath, file)
                 else:
                     source_file = os.path.join(filepath, file)
-            with open(target_file) as f:
+            with open(target_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
                 target_sentences = [row for row in data]
-            with open(source_file) as f:
+            with open(source_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
                 source_sentences = [row for row in data]
-            with open(source_target_file) as f:
+            with open(source_target_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
                 source_target_ids = [row for row in data]
             for id_, pair in enumerate(source_target_ids):
@@ -853,10 +866,10 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             target_file = filepath[1]
             source_sentences = []
             target_sentences = []
-            with open(source_file) as f1:
+            with open(source_file, encoding="utf-8") as f1:
                 for row in f1:
                     source_sentences.append(row)
-            with open(target_file) as f2:
+            with open(target_file, encoding="utf-8") as f2:
                 for row in f2:
                     target_sentences.append(row)
             for i in range(len(source_sentences)):
@@ -868,16 +881,33 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                 }
         if self.config.name.startswith("udpos"):
             for id_file, file in enumerate(filepath):
-                with open(file) as f:
+                with open(file, encoding="utf-8") as f:
                     data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                     for id_row, row in enumerate(data):
                         if len(row) >= 10 and row[1] != "_":
                             yield str(id_file) + "_" + str(id_row), {"word": row[1], "pos_tag": row[3]}
         if self.config.name.startswith("PAN-X"):
-            with open(filepath) as f:
-                data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-                for id_, row in enumerate(data):
-                    if row:
-                        lang, word = row[0].split(":")[0], row[0].split(":")[1]
-                        tag = row[1]
-                        yield id_, {"word": word, "ner_tag": tag, "lang": lang}
+            guid_index = 1
+            with open(filepath, encoding="utf-8") as f:
+                words = []
+                ner_tags = []
+                langs = []
+                for line in f:
+                    if line.startswith("-DOCSTART-") or line == "" or line == "\n":
+                        if words:
+                            yield guid_index, {"words": words, "ner_tags": ner_tags, "langs": langs}
+                            guid_index += 1
+                            words = []
+                            ner_tags = []
+                            langs = []
+                    else:
+                        # pan-x data is tab separated
+                        splits = line.split("\t")
+                        # strip out en: prefix
+                        langs.append(splits[0][:2])
+                        words.append(splits[0][3:])
+                        if len(splits) > 1:
+                            ner_tags.append(splits[-1].replace("\n", ""))
+                        else:
+                            # examples have no label in test set
+                            ner_tags.append("O")

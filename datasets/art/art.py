@@ -11,17 +11,10 @@ import nlp
 # TODO(art): BibTeX citation
 _CITATION = """\
 @InProceedings{anli,
-  author = "Chandra, Bhagavatula
-    and Ronan, Le Bras
-    and Chaitanya, Malaviya
-    and Keisuke, Sakaguchi
-    and Ari, Holtzman
-    and Hannah, Rashkin
-    and Doug, Downey
-    and Scott, Wen-tau Yih
-    and Yejin, Choi",
-  title = "Abductive Commonsense Reasoning",
-  year = "2020",
+  author = {Chandra, Bhagavatula and Ronan, Le Bras and Chaitanya, Malaviya and Keisuke, Sakaguchi and Ari, Holtzman
+    and Hannah, Rashkin and Doug, Downey and Scott, Wen-tau Yih and Yejin, Choi},
+  title = {Abductive Commonsense Reasoning},
+  year = {2020}
 }"""
 
 # TODO(art):
@@ -110,10 +103,10 @@ class Art(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(art): Yields (key, example) tuples from the dataset
         data = []
-        for line in open(filepath):
+        for line in open(filepath, encoding="utf-8"):
             data.append(json.loads(line))
         labels = []
-        with open(labelpath) as f:
+        with open(labelpath, encoding="utf-8") as f:
             for word in f:
                 labels.append(word)
         for idx, row in enumerate(data):

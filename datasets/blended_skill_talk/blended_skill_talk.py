@@ -43,12 +43,12 @@ class BlendedSkillTalk(nlp.GeneratorBasedBuilder):
             # nlp.features.FeatureConnectors
             features=nlp.Features(
                 {
-                    "personas": nlp.features.Sequence({"persona": nlp.Value("string"),}),
+                    "personas": nlp.features.Sequence(nlp.Value("string")),
                     "additional_context": nlp.Value("string"),
-                    "previous_utterance": nlp.features.Sequence({"previous_utterance": nlp.Value("string"),}),
+                    "previous_utterance": nlp.features.Sequence(nlp.Value("string")),
                     "context": nlp.Value("string"),
-                    "free_messages": nlp.features.Sequence({"free_message": nlp.Value("string"),}),
-                    "guided_messgaes": nlp.features.Sequence({"guided_messgae": nlp.Value("string"),}),
+                    "free_messages": nlp.features.Sequence(nlp.Value("string")),
+                    "guided_messages": nlp.features.Sequence(nlp.Value("string")),
                     "suggestions": nlp.features.Sequence({task: nlp.Value("string") for task in _TASK})
                     # These are the features of your dataset like images, labels ...
                 }
@@ -89,7 +89,7 @@ class BlendedSkillTalk(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(blended_skill_talk): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for id_, row in enumerate(data):
                 personas = [row["personas"][1][0], row["personas"][1][1]]
@@ -112,12 +112,12 @@ class BlendedSkillTalk(nlp.GeneratorBasedBuilder):
                     empathetic_suggestions.append(suggestions[2 * i + 1]["empathetic_dialogues"])
                     wow_suggestions.append(suggestions[2 * i + 1]["wizard_of_wikipedia"])
                 yield id_, {
-                    "personas": {"persona": personas,},
+                    "personas": personas,
                     "additional_context": add_context,
-                    "previous_utterance": {"previous_utterance": previous_utterance,},
+                    "previous_utterance": previous_utterance,
                     "context": context,
-                    "free_messages": {"free_message": free_messages,},
-                    "guided_messgaes": {"guided_messgae": guided_messages,},
+                    "free_messages": free_messages,
+                    "guided_messages": guided_messages,
                     "suggestions": {
                         "convai2": convai_suggestions,
                         "empathetic_dialogues": empathetic_suggestions,

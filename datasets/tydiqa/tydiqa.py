@@ -192,7 +192,7 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(tydiqa): Yields (key, example) tuples from the dataset
         if self.config.name == "primary_task":
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
                     data = json.loads(row)
                     passages = data["passage_answer_candidates"]
@@ -236,7 +236,7 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
                         "document_url": url,
                     }
         elif self.config.name == "secondary_task":
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 for article in data["data"]:
                     title = article.get("title", "").strip()

@@ -62,7 +62,7 @@ def _gather_dump_urls(base_url, mode, dl_manager):
     from bs4 import BeautifulSoup
 
     page_path = dl_manager.download(_REDDIT_URL + mode)
-    page_f = open(page_path)
+    page_f = open(page_path, encoding="utf-8")
     page_content = page_f.read()
     page_f.close()
     soup = BeautifulSoup(page_content, "lxml")
@@ -281,9 +281,9 @@ class Eli5(nlp.GeneratorBasedBuilder):
                     "answers": nlp.features.Sequence(
                         {"a_id": nlp.Value("string"), "text": nlp.Value("string"), "score": nlp.Value("int32")}
                     ),
-                    "title_urls": nlp.features.Sequence({"url": nlp.Value("string")}),
-                    "selftext_urls": nlp.features.Sequence({"url": nlp.Value("string")}),
-                    "answers_urls": nlp.features.Sequence({"url": nlp.Value("string")}),
+                    "title_urls": nlp.features.Sequence(nlp.Value("string")),
+                    "selftext_urls": nlp.features.Sequence(nlp.Value("string")),
+                    "answers_urls": nlp.features.Sequence(nlp.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -381,7 +381,7 @@ class Eli5(nlp.GeneratorBasedBuilder):
                 "document": "",
                 "subreddit": example.get("subreddit", subreddit_name),
                 "answers": {"a_id": answer_ids, "text": answer_texts, "score": answer_scores},
-                "title_urls": {"url": title_urls},
-                "selftext_urls": {"url": selftext_urls},
-                "answers_urls": {"url": answers_urls},
+                "title_urls": title_urls,
+                "selftext_urls": selftext_urls,
+                "answers_urls": answers_urls,
             }
