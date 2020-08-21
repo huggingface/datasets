@@ -104,7 +104,7 @@ class TypedSequence:
                 except pa.lib.ArrowInvalid as e:
                     if "overflow" in str(e):
                         raise OverflowError(
-                            "There was an overflow with type {}. Try to reduce the writer batch size to have batches smaller than 2GB.\n({})".format(
+                            "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
                                 type_(self.data), e
                             )
                         )
@@ -112,7 +112,7 @@ class TypedSequence:
                         raise
             elif "overflow" in str(e):
                 raise OverflowError(
-                    "There was an overflow with type {}. Try to reduce the writer batch size to have batches smaller than 2GB.\n({})".format(
+                    "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
                         type_(self.data), e
                     )
                 )
@@ -217,7 +217,7 @@ class ArrowWriter(object):
             first_example = pa.array(TypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
                 raise OverflowError(
-                    "There was an overflow in the {}. Try to reduce the writer batch size to have batches smaller than 2GB".format(
+                    "There was an overflow in the {}. Try to reduce writer_batch_size to have batches smaller than 2GB".format(
                         type(pa_array)
                     )
                 )
