@@ -210,8 +210,14 @@ class Metric(object):
             file_paths, filelocks = self._get_all_cache_files(timeout=timeout)
 
             # Read the predictions and references
-            reader = ArrowReader(path=self.data_dir, info=None)
-            self.data = Dataset(**reader.read_files([{"filename": f} for f in file_paths]))
+            try:
+                reader = ArrowReader(path=self.data_dir, info=None)
+                self.data = Dataset(**reader.read_files([{"filename": f} for f in file_paths]))
+            except FileNotFoundError:
+                raise ValueError(
+                    "Another metric instance is already using the local cache file. "
+                    "Please specify an experiment_id to avoid colision between distributed metric instances."
+                )
 
             # Store file paths and locks and we will release/delete them after the computation.
             self.file_paths = file_paths
