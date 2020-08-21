@@ -9,17 +9,17 @@ import pandas as pd
 from absl.testing import parameterized
 
 import nlp
-import nlp.features as features
-from nlp.features import Array2D, Array3D, Array4D, Array5D
 from nlp.arrow_writer import ArrowWriter
+from nlp.features import Array2D, Array3D, Array4D, Array5D, Value, _ArrayXD
 
 
 SHAPE_TEST_1 = (30, 487)
 SHAPE_TEST_2 = (36, 1024)
-SPEED_SHAPE_TEST = (100, 100)
+SPEED_TEST_SHAPE = (100, 100)
+SPEED_TEST_N_EXAMPLES = 100
 
 DEFAULT_FEATURES = nlp.Features(
-    {"text": features.Array2D(dtype="float32"), "image": features.Array2D(dtype="float32")}
+    {"text": Array2D(SHAPE_TEST_1, dtype="float32"), "image": Array2D(SHAPE_TEST_2, dtype="float32")}
 )
 
 
@@ -35,26 +35,21 @@ def get_duration(func):
     return wrapper
 
 
-def generate_examples(
-    schema: dict, num_examples=100, columns_have_different_shapes=False, speed_test=False, ragged_array=False
-):
+def generate_examples(features: dict, num_examples=100):
     dummy_data = []
-    shapes = [SPEED_SHAPE_TEST] if speed_test else [SHAPE_TEST_1, SHAPE_TEST_2]
     for i in range(num_examples):
         example = {}
-        for col_id, (k, v) in enumerate(schema.items()):
-            shape_index = col_id % len(shapes) if columns_have_different_shapes else 0  # alternate
-            if isinstance(v, features.Array2D):
-                shape = shapes[shape_index]
-                data = np.random.rand(*shape).astype(v.dtype)
+        for col_id, (k, v) in enumerate(features.items()):
+            if isinstance(v, _ArrayXD):
+                data = np.random.rand(*v.shape).astype(v.dtype)
             elif isinstance(v, nlp.Value):
                 data = "foo"
-            elif isinstance(v, nlp.Sequence) and str(v).count("Sequence") > 1:  # nested sequence
-                shape = SPEED_SHAPE_TEST
-                data = np.random.rand(*shape).astype("float32")
-            elif isinstance(v, nlp.Sequence):  # one sequence
-                shape = SPEED_SHAPE_TEST
-                data = np.random.rand(*shape).astype("float32").flatten()
+            elif isinstance(v, nlp.Sequence):
+                shape = []
+                while isinstance(v, nlp.Sequence):
+                    shape.append(v.length)
+                    v = v.feature
+                data = np.random.rand(*shape).astype(v.dtype)
             example[k] = data
             dummy_data.append((i, example))
 
@@ -143,9 +138,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(
-                schema=DEFAULT_FEATURES, num_examples=1, columns_have_different_shapes=True
-            ):
+            for key, record in generate_examples(features=my_features, num_examples=1,):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
@@ -162,7 +155,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(schema=my_features, num_examples=1):
+            for key, record in generate_examples(features=my_features, num_examples=1):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
@@ -179,7 +172,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             my_features = DEFAULT_FEATURES.copy()
             my_features["image_id"] = nlp.Value("string")
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(schema=my_features, num_examples=1):
+            for key, record in generate_examples(features=my_features, num_examples=1):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
@@ -189,9 +182,9 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
     def test_extension_indexing(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
-            my_features["explicit_ext"] = features.Array2D(dtype="float32")
+            my_features["explicit_ext"] = Array2D((3, 3), dtype="float32")
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(schema=my_features, num_examples=1):
+            for key, record in generate_examples(features=my_features, num_examples=1):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
@@ -213,24 +206,28 @@ class SpeedBenchmarkTest(unittest.TestCase):
             read_col_formated_as_numpy,
         )
         with tempfile.TemporaryDirectory() as tmp_dir:
-            feats = nlp.Features({"image": features.Array2D(dtype="float32")})
-            data = generate_examples(schema=feats, speed_test=True)
+            feats = nlp.Features({"image": Array2D(SPEED_TEST_SHAPE, dtype="float32")})
+            data = generate_examples(features=feats, num_examples=SPEED_TEST_N_EXAMPLES)
             write_func = write_array2d
             times[write_func.__name__] = write_func(feats, data, tmp_dir)
             for read_func in read_functions:
                 times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            feats = nlp.Features({"image": nlp.Sequence(nlp.Sequence(nlp.Value("float32")))})
-            data = generate_examples(schema=feats, speed_test=True)
+            feats = nlp.Features(
+                {"image": nlp.Sequence(nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[1]), SPEED_TEST_SHAPE[0])}
+            )
+            data = generate_examples(features=feats, num_examples=SPEED_TEST_N_EXAMPLES)
             write_func = write_nested_sequence
             times[write_func.__name__] = write_func(feats, data, tmp_dir)
             for read_func in read_functions:
                 times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            feats = nlp.Features({"image": nlp.Sequence(nlp.Value("float32"))})
-            data = generate_examples(schema=feats, speed_test=True)
+            feats = nlp.Features(
+                {"image": nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[0] * SPEED_TEST_SHAPE[1])}
+            )
+            data = generate_examples(features=feats, num_examples=SPEED_TEST_N_EXAMPLES)
             write_func = write_flattened_sequence
             times[write_func.__name__] = write_func(feats, data, tmp_dir)
             for read_func in read_functions:
@@ -255,20 +252,24 @@ def get_array_feature_types():
     shape_1 = [3] * 5
     shape_2 = [3, 4, 5, 6, 7]
     return [
-        {"testcase_name": "{}d".format(d), "array_feature": array_feature, "shape_1": tuple(shape_1[:d]), "shape_2": tuple(shape_2[:d])}
+        {
+            "testcase_name": "{}d".format(d),
+            "array_feature": array_feature,
+            "shape_1": tuple(shape_1[:d]),
+            "shape_2": tuple(shape_2[:d]),
+        }
         for d, array_feature in zip(range(2, 6), [Array2D, Array3D, Array4D, Array5D])
     ]
 
 
 @parameterized.named_parameters(get_array_feature_types())
 class ArrayXDTest(unittest.TestCase):
-
-    def get_features(self, array_feature):
+    def get_features(self, array_feature, shape_1, shape_2):
         return nlp.Features(
             {
-                "matrix": array_feature(dtype="float32"),
-                "image": array_feature(dtype="float32"),
-                "source": features.Value("string"),
+                "image": array_feature(shape_1, dtype="float32"),
+                "source": Value("string"),
+                "matrix": array_feature(shape_2, dtype="float32"),
             }
         )
 
@@ -328,9 +329,12 @@ class ArrayXDTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
 
-            my_features = self.get_features(array_feature)
+            my_features = self.get_features(array_feature, shape_1, shape_2)
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            my_examples = [(0, self.get_dict_example_0(shape_1, shape_2)), (1, self.get_dict_example_1(shape_1, shape_2))]
+            my_examples = [
+                (0, self.get_dict_example_0(shape_1, shape_2)),
+                (1, self.get_dict_example_1(shape_1, shape_2)),
+            ]
             for key, record in my_examples:
                 example = my_features.encode_example(record)
                 writer.write(example)
@@ -342,7 +346,7 @@ class ArrayXDTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
 
-            my_features = self.get_features(array_feature)
+            my_features = self.get_features(array_feature, shape_1, shape_2)
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
 
             dict_examples = my_features.encode_batch(self.get_dict_examples(shape_1, shape_2))
@@ -352,7 +356,9 @@ class ArrayXDTest(unittest.TestCase):
             self._check_getitem_output_type(dataset, shape_1, shape_2)
 
     def test_from_dict(self, array_feature, shape_1, shape_2):
-        dataset = nlp.Dataset.from_dict(self.get_dict_examples(shape_1, shape_2), features=self.get_features(array_feature))
+        dataset = nlp.Dataset.from_dict(
+            self.get_dict_examples(shape_1, shape_2), features=self.get_features(array_feature, shape_1, shape_2)
+        )
         self._check_getitem_output_type(dataset, shape_1, shape_2)
 
 

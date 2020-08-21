@@ -38,19 +38,19 @@ class TypedSequenceTest(TestCase):
         self.assertEqual(arr.type, pa.string())
 
     def test_compatible_extension_type(self):
-        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType("int64")))
-        self.assertEqual(arr.type, Array2DExtensionType("int64"))
+        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType((1, 3), "int64")))
+        self.assertEqual(arr.type, Array2DExtensionType((1, 3), "int64"))
 
     def test_incompatible_extension_type(self):
         with self.assertRaises((TypeError, pa.lib.ArrowInvalid)):
-            _ = pa.array(TypedSequence(["foo", "bar"], type=Array2DExtensionType("int64")))
+            _ = pa.array(TypedSequence(["foo", "bar"], type=Array2DExtensionType((1, 3), "int64")))
 
     def test_try_compatible_extension_type(self):
-        arr = pa.array(TypedSequence([[[1, 2, 3]]], try_type=Array2DExtensionType("int64")))
-        self.assertEqual(arr.type, Array2DExtensionType("int64"))
+        arr = pa.array(TypedSequence([[[1, 2, 3]]], try_type=Array2DExtensionType((1, 3), "int64")))
+        self.assertEqual(arr.type, Array2DExtensionType((1, 3), "int64"))
 
     def test_try_incompatible_extension_type(self):
-        arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2DExtensionType("int64")))
+        arr = pa.array(TypedSequence(["foo", "bar"], try_type=Array2DExtensionType((1, 3), "int64")))
         self.assertEqual(arr.type, pa.string())
 
     def test_catch_overflow(self):

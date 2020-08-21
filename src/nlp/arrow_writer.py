@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Optional
 import pyarrow as pa
 from tqdm.auto import tqdm
 
-from .features import _ArrayXDExtensionType, Features
+from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
 
@@ -67,13 +67,13 @@ class TypedSequence:
         arr = pa.array(TypedSequence(["foo", "bar"], try_type=pa.int32()))
         assert arr.type == pa.string()
 
-        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType("int64")))
-        assert arr.type == Array2DExtensionType("int64")
+        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType((1, 3), "int64")))
+        assert arr.type == Array2DExtensionType((1, 3), "int64")
 
         table = pa.Table.from_pydict({
-            "image": TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType("int64"))
+            "image": TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType((1, 3), "int64"))
         })
-        assert table["image"].type == Array2DExtensionType("int64")
+        assert table["image"].type == Array2DExtensionType((1, 3), "int64")
 
     """
 
@@ -94,7 +94,7 @@ class TypedSequence:
             type = self.type
         try:
             if isinstance(type, _ArrayXDExtensionType):
-                return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_type_name))
+                return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
             else:
                 return pa.array(self.data, type=type)
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
@@ -217,7 +217,9 @@ class ArrowWriter(object):
             first_example = pa.array(TypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
             if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
                 raise OverflowError(
-                    "There was an overflow in the {}. Try to reduce the writer batch size to have batches smaller than 2GB".format(type(pa_array))
+                    "There was an overflow in the {}. Try to reduce the writer batch size to have batches smaller than 2GB".format(
+                        type(pa_array)
+                    )
                 )
             arrays.append(pa_array)
             inferred_types.append(inferred_type)

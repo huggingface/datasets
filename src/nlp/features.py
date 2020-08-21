@@ -158,156 +158,120 @@ class Value:
             return value
 
 
+class _ArrayXD:
+    def __post_init__(self):
+        self.shape = tuple(self.shape)
+
+    def __call__(self):
+        pa_type = globals()[self.__class__.__name__ + "ExtensionType"](self.shape, self.dtype)
+        return pa_type
+
+    def encode_example(self, value):
+        if isinstance(value, np.ndarray):
+            value = value.tolist()
+        return value
+
+
 @dataclass
-class Array2D:
+class Array2D(_ArrayXD):
+    shape: tuple
     dtype: str
     id: Optional[str] = None
     # Automatically constructed
     _type: str = field(default="Array2D", init=False, repr=False)
 
-    def __call__(self):
-        return Array2DExtensionType(self.dtype)
-
-    def encode_example(self, value):
-        if isinstance(value, np.ndarray):
-            value = value.tolist()
-        return value
-
 
 @dataclass
-class Array3D:
+class Array3D(_ArrayXD):
+    shape: tuple
     dtype: str
     id: Optional[str] = None
     # Automatically constructed
     _type: str = field(default="Array3D", init=False, repr=False)
 
-    def __call__(self):
-        return Array3DExtensionType(self.dtype)
-
-    def encode_example(self, value):
-        if isinstance(value, np.ndarray):
-            value = value.tolist()
-        return value
-
 
 @dataclass
-class Array4D:
+class Array4D(_ArrayXD):
+    shape: tuple
     dtype: str
     id: Optional[str] = None
     # Automatically constructed
     _type: str = field(default="Array4D", init=False, repr=False)
 
-    def __call__(self):
-        return Array4DExtensionType(self.dtype)
-
-    def encode_example(self, value):
-        if isinstance(value, np.ndarray):
-            value = value.tolist()
-        return value
-
 
 @dataclass
-class Array5D:
+class Array5D(_ArrayXD):
+    shape: tuple
     dtype: str
     id: Optional[str] = None
     # Automatically constructed
     _type: str = field(default="Array5D", init=False, repr=False)
 
-    def __call__(self):
-        return Array5DExtensionType(self.dtype)
-
-    def encode_example(self, value):
-        if isinstance(value, np.ndarray):
-            value = value.tolist()
-        return value
-
 
 class _ArrayXDExtensionType(pa.PyExtensionType):
 
-    dims: int = None
+    ndims: int = None
 
-    def __init__(self, dtype: str):
-        assert self.dims is not None and self.dims > 1, "You must instantiate an array type with a value for dim that is > 1"
-        self.inner_type = dtype
-        self.storage_type_name = self._generate_dtype(self.inner_type)
-        pa.PyExtensionType.__init__(self, self.storage_type_name)
+    def __init__(self, shape: tuple, dtype: str):
+        assert (
+            self.ndims is not None and self.ndims > 1
+        ), "You must instantiate an array type with a value for dim that is > 1"
+        assert len(shape) == self.ndims, "shape={} and ndims={} dom't match".format(shape, self.ndims)
+        self.shape = tuple(shape)
+        self.value_type = dtype
+        self.storage_dtype = self._generate_dtype(self.value_type)
+        pa.PyExtensionType.__init__(self, self.storage_dtype)
 
     def __reduce__(self):
-        return self.__class__, (self.inner_type,)
+        return self.__class__, (self.shape, self.value_type,)
 
     def __arrow_ext_class__(self):
         return ArrayExtensionArray
 
-    @classmethod
-    def _generate_dtype(cls, dtype):
+    def _generate_dtype(self, dtype):
         dtype = string_to_arrow(dtype)
-        for i in range(cls.dims):
-            if i == 0:
-                dtype = pa.list_(dtype, -1)
-            else:
-                dtype = pa.list_(dtype)
+        for d in reversed(self.shape):
+            dtype = pa.list_(dtype, d)
         return dtype
 
-    @classmethod
-    def _generate_flatten(cls, storage):
-        for i in range(cls.dims):
-            storage = storage.flatten()
-        return storage.to_numpy()
-
     def to_pandas_dtype(self):
-        return PandasArrayExtensionDtype(self.inner_type)
+        return PandasArrayExtensionDtype(self.value_type)
 
 
 class Array2DExtensionType(_ArrayXDExtensionType):
-    dims = 2
+    ndims = 2
 
 
 class Array3DExtensionType(_ArrayXDExtensionType):
-    dims = 3
+    ndims = 3
 
 
 class Array4DExtensionType(_ArrayXDExtensionType):
-    dims = 4
+    ndims = 4
 
 
 class Array5DExtensionType(_ArrayXDExtensionType):
-    dims = 5
+    ndims = 5
 
 
 class ArrayExtensionArray(pa.ExtensionArray):
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}:" f"{self._construct_shape(self.storage)}"
-
     def __array__(self):
         return self.to_numpy()
 
-    def __iter__(self):
-        for i in range(len(self)):
-            yield self[i]
-
     def __getitem__(self, i):
+        # ExtensionScalar is the python list object
         if isinstance(i, int):
-            return self.storage[i]
-        return pa.ExtensionArray.from_storage(self.type, self.storage[i])
-
-    def _construct_shape(self, storage):
-        if len(storage) == 0:
-            return tuple()
-        shape = []
-        for i in range(self.type.dims):
-            prev_len = len(storage)
-            storage = storage.flatten()
-            shape.append(len(storage) // prev_len)
-        return tuple(shape)
-
-    @property
-    def shape(self):
-        return self._construct_shape(self.storage)
+            return super().__getitem__(slice(i, i + 1)).to_pylist()[0]
+        return super().__getitem__(i)
 
     def to_numpy(self):
-        numpy_arr = self.type._generate_flatten(self.storage)
-        numpy_arr = numpy_arr.reshape(len(self), *self._construct_shape(self.storage))
+        storage: pa.FixedSizeListArray = self.storage
+        size = 1
+        for i in range(self.type.ndims):
+            size *= self.type.shape[i]
+            storage = storage.flatten()
+        numpy_arr = storage[self.offset * size : (self.offset + len(self)) * size].to_numpy()
+        numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
 
     def to_pylist(self):
@@ -315,10 +279,10 @@ class ArrayExtensionArray(pa.ExtensionArray):
 
 
 class PandasArrayExtensionDtype(PandasExtensionDtype):
-    _metadata = "subtype"
+    _metadata = "value_type"
 
-    def __init__(self, subtype: Union["PandasArrayExtensionDtype", np.dtype]):
-        self._subtype = subtype
+    def __init__(self, value_type: Union["PandasArrayExtensionDtype", np.dtype]):
+        self._value_type = value_type
 
     def __from_arrow__(self, array):
         if isinstance(array, pa.ChunkedArray):
@@ -341,11 +305,11 @@ class PandasArrayExtensionDtype(PandasExtensionDtype):
 
     @property
     def name(self) -> str:
-        return f"array[{self.subtype}]"
+        return f"array[{self.value_type}]"
 
     @property
-    def subtype(self) -> np.dtype:
-        return self._subtype
+    def value_type(self) -> np.dtype:
+        return self._value_type
 
 
 class PandasArrayExtensionArray(PandasExtensionArray):
@@ -360,7 +324,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
     def _from_sequence(
         cls, scalars, dtype: Optional[PandasArrayExtensionDtype] = None, copy: bool = False
     ) -> "PandasArrayExtensionArray":
-        data = np.array(scalars, dtype=dtype if dtype is None else dtype.subtype, copy=copy)
+        data = np.array(scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy)
         return PandasArrayExtensionArray(data, dtype=dtype, copy=copy)
 
     @classmethod
@@ -377,7 +341,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         return self._data.nbytes
 
     def isna(self) -> np.ndarray:
-        if np.issubdtype(self.dtype.subtype, np.floating):
+        if np.issubdtype(self.dtype.value_type, np.floating):
             return np.array(np.isnan(arr).any() for arr in self._data)
         return np.array((arr < 0).any() for arr in self._data)
 
@@ -395,7 +359,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
         indices = np.asarray(indices, dtype="int")
         if allow_fill:
             fill_value = (
-                self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.subtype)
+                self.dtype.na_value if fill_value is None else np.asarray(fill_value, dtype=self.dtype.value_type)
             )
             mask = indices == -1
             if (indices < -1).any():
@@ -405,7 +369,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
             elif not np.all(mask):
                 raise IndexError("Invalid take for empty PandasArrayExtensionArray, must be all -1.")
             else:
-                data = np.array([fill_value] * len(indices), dtype=self.dtype.subtype)
+                data = np.array([fill_value] * len(indices), dtype=self.dtype.value_type)
                 return PandasArrayExtensionArray(data, copy=False)
         took = self._data.take(indices, axis=0)
         if allow_fill and mask.any():
@@ -423,7 +387,7 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 
 def pandas_types_mapper(dtype):
     if isinstance(dtype, _ArrayXDExtensionType):
-        return PandasArrayExtensionDtype(dtype.inner_type)
+        return PandasArrayExtensionDtype(dtype.value_type)
 
 
 @dataclass
@@ -697,7 +661,20 @@ class Sequence:
     _type: str = field(default="Sequence", init=False, repr=False)
 
 
-FeatureType = Union[dict, list, tuple, Value, ClassLabel, Translation, TranslationVariableLanguages, Sequence, Array2D]
+FeatureType = Union[
+    dict,
+    list,
+    tuple,
+    Value,
+    ClassLabel,
+    Translation,
+    TranslationVariableLanguages,
+    Sequence,
+    Array2D,
+    Array3D,
+    Array4D,
+    Array5D,
+]
 
 
 def get_nested_type(schema: FeatureType) -> pa.DataType:
@@ -709,16 +686,16 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
         )  # sort to make the type deterministic
     elif isinstance(schema, (list, tuple)):
         assert len(schema) == 1, "We defining list feature, you should just provide one example of the inner type"
-        inner_type = get_nested_type(schema[0])
-        return pa.list_(inner_type)
+        value_type = get_nested_type(schema[0])
+        return pa.list_(value_type)
     elif isinstance(schema, Sequence):
-        inner_type = get_nested_type(schema.feature)
+        value_type = get_nested_type(schema.feature)
         # We allow to reverse list of dict => dict of list for compatiblity with tfds
-        if isinstance(inner_type, pa.StructType):
-            return pa.struct(dict(sorted((f.name, pa.list_(f.type, schema.length)) for f in inner_type)))
-        return pa.list_(inner_type, schema.length)
+        if isinstance(value_type, pa.StructType):
+            return pa.struct(dict(sorted((f.name, pa.list_(f.type, schema.length)) for f in value_type)))
+        return pa.list_(value_type, schema.length)
 
-    # Other objects are callable which returns their data type (ClassLabel, Array2d, Translation, Arrow datatype creation methods)
+    # Other objects are callable which returns their data type (ClassLabel, Array2D, Translation, Arrow datatype creation methods)
     return schema()
 
 
@@ -755,7 +732,7 @@ def encode_nested_example(schema, obj):
         return [encode_nested_example(schema.feature, o) for o in obj]
     # Object with special encoding:
     # ClassLabel will convert from string to int, TranslationVariableLanguages does some checks
-    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value, Array2D)):
+    elif isinstance(schema, (ClassLabel, TranslationVariableLanguages, Value, _ArrayXD)):
         return schema.encode_example(obj)
     # Other object should be directly convertible to a native Arrow type (like Translation and Translation)
     return obj
@@ -791,8 +768,8 @@ def generate_from_arrow_type(pa_type: pa.DataType):
             return [feature]
         return Sequence(feature=feature)
     elif isinstance(pa_type, _ArrayXDExtensionType):
-        array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.dims]
-        return array_feature(dtype=pa_type.inner_type)
+        array_feature = [None, None, Array2D, Array3D, Array4D, Array5D][pa_type.ndims]
+        return array_feature(shape=pa_type.shape, dtype=pa_type.value_type)
     elif isinstance(pa_type, pa.DictionaryType):
         raise NotImplementedError  # TODO(thom) this will need access to the dictionary as well (for labels). I.e. to the py_table
     elif isinstance(pa_type, pa.DataType):
