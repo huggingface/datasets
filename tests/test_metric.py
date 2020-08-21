@@ -107,6 +107,19 @@ class TestMetric(TestCase):
             metric.add(prediction=pred, reference=ref)
         self.assertDictEqual(expected_results, metric.compute())
 
+        # With keep_in_memory
+        metric = DummyMetric(keep_in_memory=True)
+        self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
+
+        metric = DummyMetric(keep_in_memory=True)
+        metric.add_batch(predictions=preds, references=refs)
+        self.assertDictEqual(expected_results, metric.compute())
+
+        metric = DummyMetric(keep_in_memory=True)
+        for pred, ref in zip(preds, refs):
+            metric.add(prediction=pred, reference=ref)
+        self.assertDictEqual(expected_results, metric.compute())
+
     def test_concurrent_metrics(self):
         preds, refs = DummyMetric.predictions_and_references()
         other_preds, other_refs = DummyMetric.other_predictions_and_references()
@@ -123,6 +136,28 @@ class TestMetric(TestCase):
 
         metric = DummyMetric()
         other_metric = DummyMetric()
+        metric.add_batch(predictions=preds, references=refs)
+        other_metric.add_batch(predictions=other_preds, references=other_refs)
+        self.assertDictEqual(expected_results, metric.compute())
+        self.assertDictEqual(other_expected_results, other_metric.compute())
+
+        for pred, ref, other_pred, other_ref in zip(preds, refs, other_preds, other_refs):
+            metric.add(prediction=pred, reference=ref)
+            other_metric.add(prediction=other_pred, reference=other_ref)
+        self.assertDictEqual(expected_results, metric.compute())
+        self.assertDictEqual(other_expected_results, other_metric.compute())
+
+        # With keep_in_memory
+        metric = DummyMetric(keep_in_memory=True)
+        other_metric = DummyMetric(keep_in_memory=True)
+
+        self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
+        self.assertDictEqual(
+            other_expected_results, other_metric.compute(predictions=other_preds, references=other_refs)
+        )
+
+        metric = DummyMetric(keep_in_memory=True)
+        other_metric = DummyMetric(keep_in_memory=True)
         metric.add_batch(predictions=preds, references=refs)
         other_metric.add_batch(predictions=other_preds, references=other_refs)
         self.assertDictEqual(expected_results, metric.compute())
@@ -182,6 +217,10 @@ class TestMetric(TestCase):
         self.assertDictEqual(expected_results, results[2])
         self.assertIsNone(results[1])
         self.assertIsNone(results[3])
+
+        # With keep_in_memory is not allowed
+        with self.assertRaises(AssertionError):
+            DummyMetric(keep_in_memory=True, num_process=2, process_id=0)
 
     def test_dummy_metric_pickle(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

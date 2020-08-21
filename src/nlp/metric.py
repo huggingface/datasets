@@ -80,8 +80,8 @@ class Metric(object):
             isinstance(num_process, int) and num_process > process_id
         ), "'num_process' should be a number greater than process_id"
         assert (
-            process_id == 0 or not keep_in_memory
-        ), "Using 'keep_in_memory' is not possible in distributed setting (process_id > 0)."
+            num_process == 1 or not keep_in_memory
+        ), "Using 'keep_in_memory' is not possible in distributed setting (num_process > 1)."
         self.num_process = num_process
         self.process_id = process_id
         self.max_concurrent_cache_files = max_concurrent_cache_files
@@ -132,33 +132,6 @@ class Metric(object):
         builder_data_dir = os.path.join(builder_data_dir, self.name, self.config_name)
         os.makedirs(builder_data_dir, exist_ok=True)
         return builder_data_dir
-
-    def cleanup_cache_files(self, override_filelocks=False):
-        """ Clean up all cache files in the metrics cache directory, excepted the currently used cache file if there is one.
-            Be carefull when running this command that no other process is currently using other cache files.
-
-            Args:
-                override_filelocks (bool, default: False):
-                    Set to True to also delete files which are filelocked (i.e. potentially used by other instances of the metric)
-
-            Return:
-                Number of removed files
-        """
-        cache_directory = self.data_dir
-        logger.info(f"Listing files in {cache_directory}")
-        files: List[str] = os.listdir(cache_directory)
-        files_to_remove = []
-        for f_name in files:
-            full_name = os.path.abspath(os.path.join(cache_directory, f_name))
-            if f_name.endswith(".arrow"):
-                if full_name == self.cache_file_name:
-                    logger.info(f"Keeping current cache file at {full_name}")
-                    continue
-                files_to_remove.append(full_name)
-        for file_path in files_to_remove:
-            logger.info(f"Removing {file_path}")
-            os.remove(file_path)
-        return len(files_to_remove)
 
     def _create_cache_file(self, timeout=1) -> Tuple[str, FileLock]:
         """ Create a new cache file. If the default cache file is used, we generated a new hash. """
@@ -224,10 +197,15 @@ class Metric(object):
         if self.writer is not None:
             self.writer.finalize()
         self.writer = None
-        self.buf_writer = None
-        self.filelock.release()
+        if self.filelock is not None:
+            self.filelock.release()
 
-        if self.process_id == 0:
+        if self.keep_in_memory:
+            # Read the predictions and references
+            reader = ArrowReader(path=self.data_dir, info=None)
+            self.data = Dataset.from_buffer(self.buf_writer.getvalue())
+
+        elif self.process_id == 0:
             # Let's acquire a lock on each node files to be sure they are finished writing
             file_paths, filelocks = self._get_all_cache_files(timeout=timeout)
 
@@ -275,11 +253,14 @@ class Metric(object):
             with temp_seed(self.seed):
                 output = self._compute(predictions=predictions, references=references, **kwargs)
 
-            # Release locks and delete all the cache files
-            for filelock, file_path in zip(self.filelocks, self.file_paths):
-                logger.info(f"Removing {file_path}")
-                os.remove(file_path)
-                filelock.release()
+            if self.buf_writer is not None:
+                self.buf_writer = None
+            elif self.process_id == 0:
+                # Release locks and delete all the cache files
+                for filelock, file_path in zip(self.filelocks, self.file_paths):
+                    logger.info(f"Removing {file_path}")
+                    os.remove(file_path)
+                    filelock.release()
 
             return output
         else:
