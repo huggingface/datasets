@@ -707,7 +707,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # but there is a bug in pyarrow that makes ignores the types_mapper in that case
                 # see https://issues.apache.org/jira/browse/ARROW-9664
                 # We build a table with one column and call to_pandas on it instead
-                one_column_table = pa.Table.from_arrays([self._data[key]], schema=pa.schema([self._data.schema.field(key)]))
+                one_column_table = pa.Table.from_arrays(
+                    [self._data[key]], schema=pa.schema([self._data.schema.field(key)])
+                )
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
                         outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key]
