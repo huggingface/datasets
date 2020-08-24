@@ -599,9 +599,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             map_nested_kwargs["map_list"] = False  # convert lists to tensors
 
             def command(x):
-                if isinstance(x, Iterable):  # add support for nested types like struct of list of struct
+                if isinstance(
+                    x, (list, tuple, np.ndarray)
+                ):  # add support for nested types like struct of list of struct
                     x = np.array(x, copy=False)
-                    if x.dtype == np.object:
+                    if x.dtype == np.object:  # pytorch tensors cannot be instantied from an array of objects
                         return [map_nested(command, i, **map_nested_kwargs) for i in x]
                 return torch.tensor(x, **format_kwargs)
 
@@ -611,14 +613,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             map_nested_kwargs["map_list"] = False  # convert lists to tensors
 
             def command(x):
-                if isinstance(x, Iterable):  # add support for nested types like struct of list of struct
+                if isinstance(
+                    x, (list, tuple, np.ndarray)
+                ):  # add support for nested types like struct of list of struct
                     x = np.array(x, copy=False)
-                    if x.dtype == np.object:
+                    if x.dtype == np.object:  # tensorflow tensors can sometimes be instantied from an array of objects
                         try:
-                            return tensorflow.ragged.constant(x)
+                            return tensorflow.ragged.constant(x, **format_kwargs)
                         except ValueError:
                             return [map_nested(command, i, **map_nested_kwargs) for i in x]
-                return tensorflow.constant(x, **format_kwargs)
+                return tensorflow.ragged.constant(x, **format_kwargs)
 
         else:
 
