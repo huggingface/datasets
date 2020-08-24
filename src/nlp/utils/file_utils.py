@@ -45,6 +45,7 @@ try:
 except ImportError:
     _torch_available = False  # pylint: disable=invalid-name
 
+
 try:
     USE_TF = os.environ.get("USE_TF", "AUTO").upper()
     USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
@@ -61,13 +62,6 @@ try:
 except (ImportError, AssertionError):
     _tf_available = False  # pylint: disable=invalid-name
 
-try:
-    import transformers
-
-    _transformers_available = True  # pylint: disable=invalid-name
-    logger.info("transformers version {} available.".format(transformers.__version__))
-except ImportError:
-    _transformers_available = False  # pylint: disable=invalid-name
 
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))

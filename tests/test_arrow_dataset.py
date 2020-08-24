@@ -1,4 +1,5 @@
 import os
+import pickle
 import tempfile
 from unittest import TestCase
 
@@ -33,6 +34,22 @@ class BaseDatasetTest(TestCase):
         self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
         self.assertEqual(dset[0]["col_1"], 3)
         self.assertEqual(dset["col_1"][0], 3)
+
+    def test_dummy_dataset_pickle(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "dset.pt")
+
+            dset = self._create_dummy_dataset()
+
+            with open(tmp_file, "wb") as f:
+                pickle.dump(dset, f)
+
+            with open(tmp_file, "rb") as f:
+                dset = pickle.load(f)
+
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertEqual(dset[0]["filename"], "my_name-train_0")
+        self.assertEqual(dset["filename"][0], "my_name-train_0")
 
     def test_from_pandas(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
