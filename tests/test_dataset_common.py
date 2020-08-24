@@ -52,7 +52,6 @@ class DatasetTester(object):
             module_path, _ = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
         # Get dataset builder class
         builder_cls = import_main_class(module_path)
-        # Instantiate dataset builder
         return builder_cls
 
     def load_all_configs(self, dataset_name, is_local=False):
@@ -192,19 +191,36 @@ class LocalDatasetTest(parameterized.TestCase):
 
     @slow
     def test_load_real_dataset(self, dataset_name):
+        path = "./datasets/" + dataset_name
+        module_path, hash = prepare_module(path, download_config=DownloadConfig(local_files_only=True), dataset=True)
+        builder_cls = import_main_class(module_path, dataset=True)
+        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
-
             dataset = load_dataset(
-                "./datasets/" + dataset_name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+
+    @slow
+    def test_load_real_dataset_all_configs(self, dataset_name):
+        path = "./datasets/" + dataset_name
+        module_path, hash = prepare_module(path, download_config=DownloadConfig(local_files_only=True), dataset=True)
+        builder_cls = import_main_class(module_path, dataset=True)
+        config_names = [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
+        for name in config_names:
+            with tempfile.TemporaryDirectory() as temp_cache_dir:
+                dataset = load_dataset(
+                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                )
+                for split in dataset.keys():
+                    self.assertTrue(len(dataset[split]) > 0)
 
 
 def get_aws_dataset_names():
     api = hf_api.HfApi()
     # fetch all dataset names
-    datasets = [x.id for x in api.dataset_list(with_community_datasets=False)]
+    datasets = api.dataset_list(with_community_datasets=False, id_only=True)
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
@@ -249,14 +265,28 @@ class AWSDatasetTest(parameterized.TestCase):
         self.dataset_tester.check_load_dataset(dataset_name, configs)
 
     @slow
-    def test_load_dataset_all_configs(self, dataset_name):
-        configs = self.dataset_tester.load_all_configs(dataset_name)
-        self.dataset_tester.check_load_dataset(dataset_name, configs)
-
-    @slow
     def test_load_real_dataset(self, dataset_name):
+        path = dataset_name
+        module_path, hash = prepare_module(path, download_config=DownloadConfig(force_download=True), dataset=True)
+        builder_cls = import_main_class(module_path, dataset=True)
+        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
-
-            dataset = load_dataset(dataset_name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD)
+            dataset = load_dataset(
+                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+            )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+
+    @slow
+    def test_load_real_dataset_all_configs(self, dataset_name):
+        path = dataset_name
+        module_path, hash = prepare_module(path, download_config=DownloadConfig(force_download=True), dataset=True)
+        builder_cls = import_main_class(module_path, dataset=True)
+        config_names = [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
+        for name in config_names:
+            with tempfile.TemporaryDirectory() as temp_cache_dir:
+                dataset = load_dataset(
+                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                )
+                for split in dataset.keys():
+                    self.assertTrue(len(dataset[split]) > 0)
