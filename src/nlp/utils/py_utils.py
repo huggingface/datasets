@@ -41,17 +41,6 @@ from .file_utils import _transformers_available
 memoize = functools.lru_cache
 
 
-def map_all_sequences_to_lists(data_struct):
-    # Could add support for more exotic data_struct, like OrderedDict
-    def sequences_to_list(seq):
-        if isinstance(seq, (tuple, np.ndarray)):
-            return list(seq)
-        else:
-            return seq
-
-    return map_nested(sequences_to_list, data_struct)
-
-
 def size_str(size_in_bytes):
     """Returns a human readable size string.
 
