@@ -207,7 +207,9 @@ class LocalDatasetTest(parameterized.TestCase):
         path = "./datasets/" + dataset_name
         module_path, hash = prepare_module(path, download_config=DownloadConfig(local_files_only=True), dataset=True)
         builder_cls = import_main_class(module_path, dataset=True)
-        config_names = [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
+        config_names = (
+            [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
+        )
         for name in config_names:
             with tempfile.TemporaryDirectory() as temp_cache_dir:
                 dataset = load_dataset(
@@ -282,7 +284,9 @@ class AWSDatasetTest(parameterized.TestCase):
         path = dataset_name
         module_path, hash = prepare_module(path, download_config=DownloadConfig(force_download=True), dataset=True)
         builder_cls = import_main_class(module_path, dataset=True)
-        config_names = [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
+        config_names = (
+            [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
+        )
         for name in config_names:
             with tempfile.TemporaryDirectory() as temp_cache_dir:
                 dataset = load_dataset(
