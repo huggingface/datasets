@@ -433,7 +433,7 @@ def load_metric(
         num_process (Optional ``int``): for distributed evaluation: total number of processes
         data_dir (Optional str): path to store the temporary predictions and references (default to `~/.nlp/`)
         experiment_id (Optional str): An optional unique id for the experiment.
-        keep_in_memory (bool): Weither to store the temporary results in memory (default: False)
+        keep_in_memory (bool): Weither to store the temporary results in memory (defaults to False)
         download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
 
     Returns: `nlp.Metric`.
