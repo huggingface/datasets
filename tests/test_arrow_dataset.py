@@ -106,7 +106,7 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(list(dset["col_1"].shape), [4])
             np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
 
-        self.assertEqual(dset.format["type"], "python")
+        self.assertEqual(dset.format["type"], None)
         self.assertEqual(dset.format["format_kwargs"], {})
         self.assertEqual(dset.format["columns"], dset.column_names)
         self.assertEqual(dset.format["output_all_columns"], False)

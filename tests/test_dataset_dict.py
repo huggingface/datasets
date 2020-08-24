@@ -48,7 +48,7 @@ class DatasetDictTest(TestCase):
                 self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         for dset_split in dset.values():
-            self.assertEqual(dset_split.format["type"], "python")
+            self.assertEqual(dset_split.format["type"], None)
             self.assertEqual(dset_split.format["format_kwargs"], {})
             self.assertEqual(dset_split.format["columns"], dset_split.column_names)
             self.assertEqual(dset_split.format["output_all_columns"], False)
