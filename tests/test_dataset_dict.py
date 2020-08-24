@@ -166,7 +166,7 @@ class DatasetDictTest(TestCase):
                 lambda ex: {"bar": ["foo"] * len(ex["filename"])}, batched=True, cache_file_names=cache_file_names
             )
             self.assertListEqual(list(dsets.keys()), list(mapped_dsets_2.keys()))
-            self.assertListEqual(mapped_dsets_2["train"].column_names, ["filename", "foo", "bar"])
+            self.assertListEqual(sorted(mapped_dsets_2["train"].column_names), sorted(["filename", "foo", "bar"]))
 
     def test_filter(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

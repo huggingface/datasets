@@ -53,15 +53,23 @@ It also has dataset transform methods like map or filter, to process all the spl
 .. autoclass:: nlp.Value
     :members:
 
-.. autoclass:: nlp.Tensor
-    :members:
-
 .. autoclass:: nlp.Translation
     :members:
 
 .. autoclass:: nlp.TranslationVariableLanguages
     :members:
 
+.. autoclass:: nlp.Array2D
+    :members:
+
+.. autoclass:: nlp.Array3D
+    :members:
+
+.. autoclass:: nlp.Array4D
+    :members:
+
+.. autoclass:: nlp.Array5D
+    :members:
 
 ``MetricInfo``
 ~~~~~~~~~~~~~~~~~~~~~

@@ -902,3 +902,12 @@ class BaseDatasetTest(TestCase):
             self.assertIsNotNone(dset[:2])
             self.assertIsInstance(dset[:2]["nested"][0]["foo"], torch.Tensor)
             self.assertIsInstance(dset["nested"][0]["foo"], torch.Tensor)
+
+    def test_format_pandas(self):
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        import pandas as pd
+
+        dset.set_format("pandas")
+        self.assertIsInstance(dset[0], pd.DataFrame)
+        self.assertIsInstance(dset[:2], pd.DataFrame)
+        self.assertIsInstance(dset["col_1"], pd.Series)

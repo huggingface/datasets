@@ -36,8 +36,8 @@ from tqdm.auto import tqdm
 
 from nlp.utils.py_utils import dumps
 
-from .arrow_writer import ArrowWriter
-from .features import Features, cast_to_python_objects
+from .arrow_writer import ArrowWriter, TypedSequence
+from .features import Features, cast_to_python_objects, pandas_types_mapper
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -258,9 +258,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             mapping = features.encode_batch(mapping)
         else:
             mapping = cast_to_python_objects(mapping)
-        pa_table: pa.Table = pa.Table.from_pydict(
-            mapping=mapping, schema=pa.schema(features.type) if features is not None else None
-        )
+        mapping = {
+            col: TypedSequence(data, type=features.type[col].type if features is not None else None)
+            for col, data in mapping.items()
+        }
+        pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
     @property
@@ -624,12 +626,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return x
 
             command = identity
-        if isinstance(outputs, (list, tuple, np.ndarray)):
+        if isinstance(outputs, (list, tuple, np.ndarray, pd.Series)):
             return command(outputs)
         elif isinstance(outputs, pd.DataFrame):
             if format_columns is not None and not output_all_columns:
                 to_remove_columns = [col for col in self.column_names if col not in format_columns]
                 output_dict = outputs.drop(to_remove_columns, axis=1)
+            else:
+                output_dict = outputs
         else:
             output_dict = {}
             for k, v in outputs.items():
@@ -661,7 +665,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         # In the following, to convert data from the arrow table to dicts or lists,
         # we use .to_pandas().to_dict() or .to_pandas().to_list() as they are
-        # significantly faster than .to_pydict() thanks to zero-copy
+        # significantly faster than .to_pydict() thanks to zero-copy and because it doesn't
+        # call `list()` on every object in sequences of sequences of objects for example
         if isinstance(key, int):
             if key < 0:
                 key = self._data.num_rows + key
@@ -669,9 +674,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 raise IndexError(f"Index ({key}) outside of table length ({self._data.num_rows}).")
             if format_type is not None:
                 if format_type == "pandas":
-                    outputs = self._data.slice(key, 1).to_pandas()
+                    outputs = self._data.slice(key, 1).to_pandas(types_mapper=pandas_types_mapper)
                 else:
-                    outputs = self._unnest(self._data.slice(key, 1).to_pandas().to_dict("list"))
+                    outputs = self._unnest(
+                        self._data.slice(key, 1).to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
+                    )
             else:
                 outputs = self._unnest(self._data.slice(key, 1).to_pydict())
         elif isinstance(key, slice):
@@ -681,12 +688,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if format_type is not None:
                 if format_type == "pandas":
                     outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas(
-                        split_blocks=True
+                        types_mapper=pandas_types_mapper
                     )
                 else:
                     outputs = (
                         self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
-                        .to_pandas(split_blocks=True)
+                        .to_pandas(types_mapper=pandas_types_mapper)
                         .to_dict("list")
                     )
             else:
@@ -695,15 +702,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if key not in self._data.column_names:
                 raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
             if format_type is not None:
+                # We should use
+                # outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper)
+                # but there is a bug in pyarrow that makes ignores the types_mapper in that case
+                # see https://issues.apache.org/jira/browse/ARROW-9664
+                # We build a table with one column and call to_pandas on it instead
+                one_column_table = pa.Table.from_arrays(
+                    [self._data[key]], schema=pa.schema([self._data.schema.field(key)])
+                )
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
-                        outputs = self._data[key].to_pandas(split_blocks=True)
-                    elif format_type in ("numpy", "torch", "tensorflow"):
-                        outputs = self._data.to_pandas(split_blocks=True).to_dict("list")[key]
+                        outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key]
                     else:
-                        outputs = self._data[key].to_pylist()
+                        outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key].to_list()
                 else:
-                    outputs = self._data[key].to_pylist()
+                    outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key].to_list()
             else:
                 outputs = self._data[key].to_pylist()
         elif isinstance(key, Iterable):
@@ -718,9 +731,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             data_subset = pa.concat_tables(self._data.slice(int(i), 1) for i in indices)
             if format_type is not None:
                 if format_type == "pandas":
-                    outputs = data_subset.to_pandas(split_blocks=True)
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper)
                 else:
-                    outputs = data_subset.to_pandas(split_blocks=True).to_dict("list")
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
             else:
                 outputs = data_subset.to_pydict()
 
@@ -805,7 +818,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
-        disable_nullable: bool = True,
+        disable_nullable: bool = False,
         verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
     ) -> "Dataset":
@@ -836,7 +849,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
                 `features` (`Optional[nlp.Features]`, default: `None`): Use a specific Features to store the cache file
                     instead of the automatically generated one.
-                `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
+                `disable_nullable` (`bool`, default: `False`): Disallow null values in the table.
                 `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
                 `fn_kwargs` (`Optional[Dict]`, default: `None`): Keyword arguments to be passed to `function`
         """

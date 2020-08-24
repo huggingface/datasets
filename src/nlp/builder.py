@@ -804,8 +804,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._cache_dir, fname)
-        examples_type = self.info.features.type
-        writer = ArrowWriter(data_type=examples_type, path=fpath, writer_batch_size=self._writer_batch_size)
+        writer = ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
         for key, record in utils.tqdm(generator, unit=" examples", total=split_info.num_examples, leave=False):
@@ -1001,8 +1000,9 @@ class BeamBasedBuilder(DatasetBuilder):
         # To write examples to disk:
         fname = "{}-{}.arrow".format(self.name, split_name)
         fpath = os.path.join(self._cache_dir, fname)
-        examples_type = self.info.features.type
-        beam_writer = BeamWriter(examples_type, path=fpath, namespace=split_name, cache_dir=self._cache_dir)
+        beam_writer = BeamWriter(
+            features=self.info.features, path=fpath, namespace=split_name, cache_dir=self._cache_dir
+        )
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example
