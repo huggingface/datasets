@@ -18,7 +18,7 @@
 import logging
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
-from typing import Any, ClassVar, Dict, List, Optional, Sequence, Union
+from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd

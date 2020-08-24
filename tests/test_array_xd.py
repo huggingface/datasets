@@ -94,7 +94,7 @@ def read_unformated(feats, tmp_dir):
 
 
 @get_duration
-def read_formated_as_numpy(feats, tmp_dir):
+def read_formatted_as_numpy(feats, tmp_dir):
     dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
     dataset.set_format("numpy")
     for _ in dataset:
@@ -110,7 +110,7 @@ def read_batch_unformated(feats, tmp_dir):
 
 
 @get_duration
-def read_batch_formated_as_numpy(feats, tmp_dir):
+def read_batch_formatted_as_numpy(feats, tmp_dir):
     batch_size = 10
     dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
     dataset.set_format("numpy")
@@ -126,7 +126,7 @@ def read_col_unformated(feats, tmp_dir):
 
 
 @get_duration
-def read_col_formated_as_numpy(feats, tmp_dir):
+def read_col_formatted_as_numpy(feats, tmp_dir):
     dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
     dataset.set_format("numpy")
     for col in feats:
@@ -199,11 +199,11 @@ class SpeedBenchmarkTest(unittest.TestCase):
         times = {}
         read_functions = (
             read_unformated,
-            read_formated_as_numpy,
+            read_formatted_as_numpy,
             read_batch_unformated,
-            read_batch_formated_as_numpy,
+            read_batch_formatted_as_numpy,
             read_col_unformated,
-            read_col_formated_as_numpy,
+            read_col_formatted_as_numpy,
         )
         with tempfile.TemporaryDirectory() as tmp_dir:
             feats = nlp.Features({"image": Array2D(SPEED_TEST_SHAPE, dtype="float32")})
@@ -239,12 +239,12 @@ class SpeedBenchmarkTest(unittest.TestCase):
             times["write_nested_sequence"], times["write_array2d"] * 10
         )  # At leasr 10 times faster (it is supposed to be ~25 times faster)
         self.assertGreater(
-            times["read_batch_formated_as_numpy after write_nested_sequence"],
-            times["read_batch_formated_as_numpy after write_array2d"],
+            times["read_batch_formatted_as_numpy after write_nested_sequence"],
+            times["read_batch_formatted_as_numpy after write_array2d"],
         )  # At least faster (it is supposed to be ~2 times faster)
         self.assertGreater(
             times["read_batch_unformated after write_nested_sequence"],
-            times["read_batch_formated_as_numpy after write_array2d"] * 5,
+            times["read_batch_formatted_as_numpy after write_array2d"] * 5,
         )  # At least 5 times faster (it is supposed to be ~10 times faster)
 
 
@@ -294,7 +294,7 @@ class ArrayXDTest(unittest.TestCase):
             "matrix": np.random.rand(2, *shape_2).astype("float32").tolist(),
         }
 
-    def _check_getitem_output_type(self, dataset, shape_1, shape_2):
+    def _check_getitem_output_type(self, dataset, shape_1, shape_2, first_matrix):
         matrix_column = dataset["matrix"]
         self.assertIsInstance(matrix_column, list)
         self.assertIsInstance(matrix_column[0], list)
@@ -305,6 +305,7 @@ class ArrayXDTest(unittest.TestCase):
         self.assertIsInstance(matrix_field_of_first_example, list)
         self.assertIsInstance(matrix_field_of_first_example, list)
         self.assertEqual(np.array(matrix_field_of_first_example).shape, shape_2)
+        np.testing.assert_array_equal(np.array(matrix_field_of_first_example), np.array(first_matrix))
 
         matrix_field_of_first_two_examples = dataset[:2]["matrix"]
         self.assertIsInstance(matrix_field_of_first_two_examples, list)
@@ -312,12 +313,12 @@ class ArrayXDTest(unittest.TestCase):
         self.assertIsInstance(matrix_field_of_first_two_examples[0][0], list)
         self.assertEqual(np.array(matrix_field_of_first_two_examples).shape, (2, *shape_2))
 
-        with dataset.formated_as("numpy"):
+        with dataset.formatted_as("numpy"):
             self.assertEqual(dataset["matrix"].shape, (2, *shape_2))
             self.assertEqual(dataset[0]["matrix"].shape, shape_2)
             self.assertEqual(dataset[:2]["matrix"].shape, (2, *shape_2))
 
-        with dataset.formated_as("pandas"):
+        with dataset.formatted_as("pandas"):
             self.assertIsInstance(dataset["matrix"], pd.Series)
             self.assertIsInstance(dataset[0]["matrix"], pd.Series)
             self.assertIsInstance(dataset[:2]["matrix"], pd.Series)
@@ -340,7 +341,7 @@ class ArrayXDTest(unittest.TestCase):
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
             dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self._check_getitem_output_type(dataset, shape_1, shape_2)
+            self._check_getitem_output_type(dataset, shape_1, shape_2, my_examples[0][1]["matrix"])
 
     def test_write_batch(self, array_feature, shape_1, shape_2):
 
@@ -349,17 +350,17 @@ class ArrayXDTest(unittest.TestCase):
             my_features = self.get_features(array_feature, shape_1, shape_2)
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
 
-            dict_examples = my_features.encode_batch(self.get_dict_examples(shape_1, shape_2))
+            dict_examples = self.get_dict_examples(shape_1, shape_2)
+            dict_examples = my_features.encode_batch(dict_examples)
             writer.write_batch(dict_examples)
             num_examples, num_bytes = writer.finalize()
             dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self._check_getitem_output_type(dataset, shape_1, shape_2)
+            self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
 
     def test_from_dict(self, array_feature, shape_1, shape_2):
-        dataset = nlp.Dataset.from_dict(
-            self.get_dict_examples(shape_1, shape_2), features=self.get_features(array_feature, shape_1, shape_2)
-        )
-        self._check_getitem_output_type(dataset, shape_1, shape_2)
+        dict_examples = self.get_dict_examples(shape_1, shape_2)
+        dataset = nlp.Dataset.from_dict(dict_examples, features=self.get_features(array_feature, shape_1, shape_2))
+        self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
 
 
 if __name__ == "__main__":  # useful to run the profiler

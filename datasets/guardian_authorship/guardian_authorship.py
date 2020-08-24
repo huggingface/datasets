@@ -20,6 +20,7 @@ import os
 
 import nlp
 
+
 _CITATION = """\
 @article{article,
     author = {Stamatatos, Efstathios},
@@ -89,104 +90,151 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = GuardianAuthorshipConfig
     BUILDER_CONFIGS = [
         # cross-topic
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(1),
-                                 version=nlp.Version("{}.0.0".format(1),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(1)),
-                                 train_folder="Politics", valid_folder="Society", test_folder="UK,World"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(2),
-                                 version=nlp.Version("{}.0.0".format(2),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(2)),
-                                 train_folder="Politics", valid_folder="UK", test_folder="Society,World"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(3),
-                                 version=nlp.Version("{}.0.0".format(3),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(3)),
-                                 train_folder="Politics", valid_folder="World", test_folder="Society,UK"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(4),
-                                 version=nlp.Version("{}.0.0".format(4),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(4)),
-                                 train_folder="Society", valid_folder="Politics", test_folder="UK,World"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(5),
-                                 version=nlp.Version("{}.0.0".format(5),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(5)),
-                                 train_folder="Society", valid_folder="UK", test_folder="Politics,World"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(6),
-                                 version=nlp.Version("{}.0.0".format(6),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(6)),
-                                 train_folder="Society", valid_folder="World", test_folder="Politics,UK"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(7),
-                                 version=nlp.Version("{}.0.0".format(7),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(7)),
-                                 train_folder="UK", valid_folder="Politics", test_folder="Society,World"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(8),
-                                 version=nlp.Version("{}.0.0".format(8),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(8)),
-                                 train_folder="UK", valid_folder="Society", test_folder="Politics,World"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(9),
-                                 version=nlp.Version("{}.0.0".format(9),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(9)),
-                                 train_folder="UK", valid_folder="World", test_folder="Politics,Society"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(10),
-                                 version=nlp.Version("{}.0.0".format(10),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(10)),
-                                 train_folder="World", valid_folder="Politics", test_folder="Society,UK"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(11),
-                                 version=nlp.Version("{}.0.0".format(11),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(11)),
-                                 train_folder="World", valid_folder="Society", test_folder="Politics,UK"),
-
-        GuardianAuthorshipConfig(name="cross_topic_{}".format(12),
-                                 version=nlp.Version("{}.0.0".format(12),
-                                                     description="The Original DS with the cross-topic scenario no.{}".
-                                                     format(
-                                                         12)),
-                                 train_folder="World", valid_folder="UK", test_folder="Politics,Society"),
-
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(1),
+            version=nlp.Version(
+                "{}.0.0".format(1), description="The Original DS with the cross-topic scenario no.{}".format(1)
+            ),
+            train_folder="Politics",
+            valid_folder="Society",
+            test_folder="UK,World",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(2),
+            version=nlp.Version(
+                "{}.0.0".format(2), description="The Original DS with the cross-topic scenario no.{}".format(2)
+            ),
+            train_folder="Politics",
+            valid_folder="UK",
+            test_folder="Society,World",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(3),
+            version=nlp.Version(
+                "{}.0.0".format(3), description="The Original DS with the cross-topic scenario no.{}".format(3)
+            ),
+            train_folder="Politics",
+            valid_folder="World",
+            test_folder="Society,UK",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(4),
+            version=nlp.Version(
+                "{}.0.0".format(4), description="The Original DS with the cross-topic scenario no.{}".format(4)
+            ),
+            train_folder="Society",
+            valid_folder="Politics",
+            test_folder="UK,World",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(5),
+            version=nlp.Version(
+                "{}.0.0".format(5), description="The Original DS with the cross-topic scenario no.{}".format(5)
+            ),
+            train_folder="Society",
+            valid_folder="UK",
+            test_folder="Politics,World",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(6),
+            version=nlp.Version(
+                "{}.0.0".format(6), description="The Original DS with the cross-topic scenario no.{}".format(6)
+            ),
+            train_folder="Society",
+            valid_folder="World",
+            test_folder="Politics,UK",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(7),
+            version=nlp.Version(
+                "{}.0.0".format(7), description="The Original DS with the cross-topic scenario no.{}".format(7)
+            ),
+            train_folder="UK",
+            valid_folder="Politics",
+            test_folder="Society,World",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(8),
+            version=nlp.Version(
+                "{}.0.0".format(8), description="The Original DS with the cross-topic scenario no.{}".format(8)
+            ),
+            train_folder="UK",
+            valid_folder="Society",
+            test_folder="Politics,World",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(9),
+            version=nlp.Version(
+                "{}.0.0".format(9), description="The Original DS with the cross-topic scenario no.{}".format(9)
+            ),
+            train_folder="UK",
+            valid_folder="World",
+            test_folder="Politics,Society",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(10),
+            version=nlp.Version(
+                "{}.0.0".format(10), description="The Original DS with the cross-topic scenario no.{}".format(10)
+            ),
+            train_folder="World",
+            valid_folder="Politics",
+            test_folder="Society,UK",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(11),
+            version=nlp.Version(
+                "{}.0.0".format(11), description="The Original DS with the cross-topic scenario no.{}".format(11)
+            ),
+            train_folder="World",
+            valid_folder="Society",
+            test_folder="Politics,UK",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_topic_{}".format(12),
+            version=nlp.Version(
+                "{}.0.0".format(12), description="The Original DS with the cross-topic scenario no.{}".format(12)
+            ),
+            train_folder="World",
+            valid_folder="UK",
+            test_folder="Politics,Society",
+        ),
         # # cross-genre
-        GuardianAuthorshipConfig(name="cross_genre_{}".format(1),
-                                 version=nlp.Version("{}.0.0".format(13),
-                                                     description="The Original DS with the cross-genre scenario no.{}".
-                                                     format(1)),
-                                 train_folder="Books", valid_folder="Politics", test_folder="Society,UK,World"),
-
-        GuardianAuthorshipConfig(name="cross_genre_{}".format(2),
-                                 version=nlp.Version("{}.0.0".format(14),
-                                                     description="The Original DS with the cross-genre scenario no.{}".
-                                                     format(2)),
-                                 train_folder="Books", valid_folder="Society", test_folder="Politics,UK,World"),
-
-        GuardianAuthorshipConfig(name="cross_genre_{}".format(3),
-                                 version=nlp.Version("{}.0.0".format(15),
-                                                     description="The Original DS with the cross-genre scenario no.{}".
-                                                     format(3)),
-
-                                 train_folder="Books", valid_folder="UK", test_folder="Politics,Society,World"),
-
-        GuardianAuthorshipConfig(name="cross_genre_{}".format(4),
-                                 version=nlp.Version("{}.0.0".format(16),
-                                                     description="The Original DS with the cross-genre scenario no.{}".
-                                                     format(4)),
-                                 train_folder="Books", valid_folder="World", test_folder="Politics,Society,UK"),
+        GuardianAuthorshipConfig(
+            name="cross_genre_{}".format(1),
+            version=nlp.Version(
+                "{}.0.0".format(13), description="The Original DS with the cross-genre scenario no.{}".format(1)
+            ),
+            train_folder="Books",
+            valid_folder="Politics",
+            test_folder="Society,UK,World",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_genre_{}".format(2),
+            version=nlp.Version(
+                "{}.0.0".format(14), description="The Original DS with the cross-genre scenario no.{}".format(2)
+            ),
+            train_folder="Books",
+            valid_folder="Society",
+            test_folder="Politics,UK,World",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_genre_{}".format(3),
+            version=nlp.Version(
+                "{}.0.0".format(15), description="The Original DS with the cross-genre scenario no.{}".format(3)
+            ),
+            train_folder="Books",
+            valid_folder="UK",
+            test_folder="Politics,Society,World",
+        ),
+        GuardianAuthorshipConfig(
+            name="cross_genre_{}".format(4),
+            version=nlp.Version(
+                "{}.0.0".format(16), description="The Original DS with the cross-genre scenario no.{}".format(4)
+            ),
+            train_folder="Books",
+            valid_folder="World",
+            test_folder="Politics,Society,UK",
+        ),
     ]
 
     def _info(self):
@@ -198,12 +246,23 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
                 {
                     # These are the features of your dataset like images, labels ...
                     # There are 13 authors in this dataset
-                    "author": nlp.features.ClassLabel(names=["catherinebennett", "georgemonbiot", "hugoyoung",
-                                                             "jonathanfreedland", "martinkettle", "maryriddell",
-                                                             "nickcohen", "peterpreston", "pollytoynbee",
-                                                             "royhattersley", "simonhoggart", "willhutton",
-                                                             "zoewilliams"]),
-
+                    "author": nlp.features.ClassLabel(
+                        names=[
+                            "catherinebennett",
+                            "georgemonbiot",
+                            "hugoyoung",
+                            "jonathanfreedland",
+                            "martinkettle",
+                            "maryriddell",
+                            "nickcohen",
+                            "peterpreston",
+                            "pollytoynbee",
+                            "royhattersley",
+                            "simonhoggart",
+                            "willhutton",
+                            "zoewilliams",
+                        ]
+                    ),
                     # There are book reviews, and articles on the following four topics
                     "topic": nlp.features.ClassLabel(names=["Politics", "Society", "UK", "World", "Books"]),
                     "article": nlp.Value("string"),
@@ -213,7 +272,6 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
             supervised_keys=[("article", "author")],
-
             # Homepage of the dataset for documentation
             homepage="http://www.icsd.aegean.gr/lecturers/stamatatos/papers/JLP2013.pdf",
             citation=_CITATION,
@@ -232,29 +290,17 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "data_dir": data_dir,
-                    "samples_folders": self.config.train_folder,
-                    "split": "train"
-                },
+                gen_kwargs={"data_dir": data_dir, "samples_folders": self.config.train_folder, "split": "train"},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "data_dir": data_dir,
-                    "samples_folders": self.config.test_folder,
-                    "split": "test"
-                },
+                gen_kwargs={"data_dir": data_dir, "samples_folders": self.config.test_folder, "split": "test"},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "data_dir": data_dir,
-                    "samples_folders": self.config.valid_folder,
-                    "split": "valid"
-                },
+                gen_kwargs={"data_dir": data_dir, "samples_folders": self.config.valid_folder, "split": "valid"},
             ),
         ]
 
@@ -264,10 +310,10 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
 
         # Training and validation are on 1 topic/genre, while testing is on multiple topics
         # We convert the sample folders into list (from string)
-        if samples_folders.count(',') == 0:
+        if samples_folders.count(",") == 0:
             samples_folders = [samples_folders]
         else:
-            samples_folders = samples_folders.split(',')
+            samples_folders = samples_folders.split(",")
 
         # the dataset is structured as:
         # |-Topic1
@@ -294,7 +340,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
                     path_2_author = os.path.join(full_path, author)
                     path_2_article = os.path.join(path_2_author, article)
 
-                    with open(path_2_article, 'r', encoding='utf8', errors='ignore') as f:
+                    with open(path_2_article, "r", encoding="utf8", errors="ignore") as f:
                         art = f.readlines()
 
                     # The whole article is stored as one line. We access the 1st element of the list
@@ -304,4 +350,3 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
                         "author": author,
                         "topic": topic,
                     }
-
