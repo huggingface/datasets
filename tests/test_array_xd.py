@@ -46,11 +46,9 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
             elif isinstance(v, nlp.Value):
                 data = "foo"
             elif isinstance(v, nlp.Sequence):
-                depth = 1
                 while isinstance(v, nlp.Sequence):
-                    depth += 1
                     v = v.feature
-                shape = seq_shapes[k][:depth]
+                shape = seq_shapes[k]
                 data = np.random.rand(*shape).astype(v.dtype)
             example[k] = data
             dummy_data.append((i, example))
