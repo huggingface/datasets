@@ -118,7 +118,7 @@ class Mlsum(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, lang):
         """Yields examples."""
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             i = 0
             for line in f: 
                 data = json.loads(line)
