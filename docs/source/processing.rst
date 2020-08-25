@@ -30,13 +30,14 @@ As always, let's start by loading a small dataset for our demonstrations:
 Selecting, sorting, shuffling, splitting rows
 --------------------------------------------------
 
-Several methods are provided to reorder rows and/or spit the dataset:
+Several methods are provided to reorder rows and/or split the dataset:
 
 - sorting the dataset according to a column (:func:`nlp.Dataset.sort`)
 - shuffling the dataset (:func:`nlp.Dataset.shuffle`)
 - filtering rows either according to a list of indices (:func:`nlp.Dataset.select`) or with a filter function returning true for the rows to keep (:func:`nlp.Dataset.filter`),
 - splitting the dataset in a (potentially shuffled) train and a test split (:func:`nlp.Dataset.train_test_split`),
-- splitting the dataset in a deterministic list of shards (:func:`nlp.Dataset.shard`).
+- splitting the dataset in a deterministic list of shards (:func:`nlp.Dataset.shard`),
+- concatenate datasets that have the same column types (:func:`nlp.concatenate_datasets`).
 
 These methods have quite simple signature and should be for the most part self-explanatory.
 
@@ -445,6 +446,23 @@ You can directly call map, filter, shuffle, and sort directly on a :obj:`nlp.Dat
     }
 
 This concludes our chapter on data processing with 🤗nlp (and 🤗transformers).
+
+Concatenate several datasets
+----------------------------
+
+When you have several :obj:`nlp.Dataset` objects that share the same column types, you can create a new :obj:`nlp.Dataset` object that is the concatenation of them:
+
+.. code-block::
+
+    >>> from nlp import concatenate_datasets, load_dataset
+    >>>
+    >>> bookcorpus = load_dataset("bookcorpus", split="train")
+    >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
+    >>> wiki.remove_column_("title")  # only keep the text
+    >>>
+    >>> assert bookcorpus.features.type == wiki.features.type
+    >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
+
 
 Controling the cache behavior
 -----------------------------------
