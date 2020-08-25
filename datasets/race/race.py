@@ -97,7 +97,7 @@ class Race(nlp.GeneratorBasedBuilder):
         # TODO(race): Yields (key, example) tuples from the dataset
         for file in files:
             filepath = os.path.join(filespath, file)
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
                 questions = data["questions"]
                 answers = data["answers"]

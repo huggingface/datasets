@@ -16,7 +16,7 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
 .. autoclass:: nlp.Dataset
     :members: from_file, from_buffer,
         drop, unique, dictionary_encode_column, flatten,
-        __len__, __iter__, formated_as, set_format, reset_format,
+        __len__, __iter__, formatted_as, set_format, reset_format,
         __getitem__, cleanup_cache_files,
         cast_, remove_column_, rename_column_,
         map, filter, select, sort, shuffle, train_test_split, shard, export,
@@ -27,6 +27,7 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version
 
+.. autofunction:: nlp.concatenate_datasets
 
 ``DatasetDict``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -35,7 +36,7 @@ Dictionary with split names as keys ('train', 'test' for example), and :obj:`nlp
 It also has dataset transform methods like map or filter, to process all the splits at once.
 
 .. autoclass:: nlp.DatasetDict
-    :members: map, filter, sort, shuffle, set_format, reset_format, formated_as, cast_, remove_column_, rename_column_
+    :members: map, filter, sort, shuffle, set_format, reset_format, formatted_as, cast_, remove_column_, rename_column_
 
 
 ``Features``
@@ -53,15 +54,23 @@ It also has dataset transform methods like map or filter, to process all the spl
 .. autoclass:: nlp.Value
     :members:
 
-.. autoclass:: nlp.Tensor
-    :members:
-
 .. autoclass:: nlp.Translation
     :members:
 
 .. autoclass:: nlp.TranslationVariableLanguages
     :members:
 
+.. autoclass:: nlp.Array2D
+    :members:
+
+.. autoclass:: nlp.Array3D
+    :members:
+
+.. autoclass:: nlp.Array4D
+    :members:
+
+.. autoclass:: nlp.Array5D
+    :members:
 
 ``MetricInfo``
 ~~~~~~~~~~~~~~~~~~~~~

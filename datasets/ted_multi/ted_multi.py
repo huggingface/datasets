@@ -153,7 +153,7 @@ class TedMultiTranslate(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_file):
         """This function returns the examples in the raw (text) form."""
-        with open(data_file) as f:
+        with open(data_file, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for idx, row in enumerate(reader):
                 # Everything in the row except for 'talk_name' will be a translation.

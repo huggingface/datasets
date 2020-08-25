@@ -82,7 +82,7 @@ class QaZre(nlp.GeneratorBasedBuilder):
         """Yields examples."""
 
         for filepath in filepaths:
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
                 for idx, row in enumerate(data):
                     yield idx, {

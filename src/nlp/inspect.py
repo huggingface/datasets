@@ -27,16 +27,16 @@ from .utils import DownloadConfig
 logger = logging.getLogger(__name__)
 
 
-def list_datasets(with_community_datasets=True):
+def list_datasets(with_community_datasets=True, id_only=False):
     """ List all the datasets scripts available on HuggingFace AWS bucket """
     api = HfApi()
-    return api.dataset_list(with_community_datasets=with_community_datasets)
+    return api.dataset_list(with_community_datasets=with_community_datasets, id_only=id_only)
 
 
-def list_metrics(with_community_metrics=True):
+def list_metrics(with_community_metrics=True, id_only=False):
     """ List all the metrics script available on HuggingFace AWS bucket """
     api = HfApi()
-    return api.metric_list(with_community_metrics=with_community_metrics)
+    return api.metric_list(with_community_metrics=with_community_metrics, id_only=id_only)
 
 
 def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):

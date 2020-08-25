@@ -78,7 +78,7 @@ class TinyShakespeare(nlp.GeneratorBasedBuilder):
             txt_path = os.path.join(download_path, "input.txt")
         else:
             txt_path = download_path
-        with open(txt_path, "r") as f:
+        with open(txt_path, "r", encoding="utf-8") as f:
             text = f.read()
 
         # 90/5/5 split

@@ -39,17 +39,6 @@ import numpy as np
 memoize = functools.lru_cache
 
 
-def map_all_sequences_to_lists(data_struct):
-    # Could add support for more exotic data_struct, like OrderedDict
-    def sequences_to_list(seq):
-        if isinstance(seq, (tuple, np.ndarray)):
-            return list(seq)
-        else:
-            return seq
-
-    return map_nested(sequences_to_list, data_struct)
-
-
 def size_str(size_in_bytes):
     """Returns a human readable size string.
 
@@ -268,14 +257,30 @@ class Pickler(dill.Pickler):
 
 def dump(obj, file):
     """pickle an object to a file"""
-    Pickler(file).dump(obj)
+    Pickler(file, recurse=True).dump(obj)
     return
+
+
+@contextlib.contextmanager
+def _no_cache_fields(obj):
+    try:
+        import transformers as tr
+
+        if isinstance(obj, tr.PreTrainedTokenizerBase) and hasattr(obj, "cache") and isinstance(obj.cache, dict):
+            with temporary_assignment(obj, "cache", {}):
+                yield
+        else:
+            yield
+
+    except ImportError:
+        yield
 
 
 def dumps(obj):
     """pickle an object to a string"""
     file = StringIO()
-    dump(obj, file)
+    with _no_cache_fields(obj):
+        dump(obj, file)
     return file.getvalue()
 
 
@@ -288,7 +293,7 @@ def pklregister(t):
 
 
 @pklregister(CodeType)
-def save_code(pickler, obj):
+def _save_code(pickler, obj):
     """
     From dill._dill.save_code
     This is a modified version that removes the origin (filename + line no.)
@@ -297,9 +302,11 @@ def save_code(pickler, obj):
     dill._dill.log.info("Co: %s" % obj)
     # Filenames of functions created in notebooks or shells start with '<'
     # ex: <ipython-input-13-9ed2afe61d25> for ipython, and <stdin> for shell
+    # Moreover lambda functions have a special name: '<lambda>'
+    # ex: (lambda x: x).__code__.co_name == "<lambda>"  # True
     # Only those two lines are different from the original implementation:
-    co_filename = "" if obj.co_filename.startswith("<") else obj.co_filename
-    co_firstlineno = 1 if obj.co_filename.startswith("<") else obj.co_firstlineno
+    co_filename = "" if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else obj.co_filename
+    co_firstlineno = 1 if obj.co_filename.startswith("<") or obj.co_name == "<lambda>" else obj.co_firstlineno
     # The rest is the same as in the original dill implementation
     if dill._dill.PY3:
         if hasattr(obj, "co_posonlyargcount"):
@@ -363,3 +370,22 @@ def save_code(pickler, obj):
 
 def copyfunc(func):
     return types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+
+
+try:
+    import regex
+
+    @pklregister(type(regex.Regex("", 0)))
+    def _save_regex(pickler, obj):
+        dill._dill.log.info("Re: %s" % obj)
+        args = (
+            obj.pattern,
+            obj.flags,
+        )
+        pickler.save_reduce(regex.compile, args, obj=obj)
+        dill._dill.log.info("# Re")
+        return
+
+
+except ImportError:
+    pass

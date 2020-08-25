@@ -80,7 +80,7 @@ class AllocineDataset(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate Allocine examples."""
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
                 review = data["review"]

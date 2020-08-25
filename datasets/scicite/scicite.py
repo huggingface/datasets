@@ -108,7 +108,7 @@ class Scicite(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, path=None):
         """Yields examples."""
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             unique_ids = {}
             for line in f:
                 d = json.loads(line)

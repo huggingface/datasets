@@ -113,7 +113,7 @@ class GermEval14(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         logging.info("⏳ Generating examples from = %s", filepath)
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             current_source = ""
             current_tokens = []

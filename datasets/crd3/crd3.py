@@ -17,9 +17,9 @@
 """CRD3  dataset"""
 
 from __future__ import absolute_import, division, print_function
-import logging
 
 import json
+import logging
 import os
 
 import nlp
@@ -46,10 +46,11 @@ and semantic ties to the previous dialogues.
 
 _URL = "https://github.com/RevanthRameshkumar/CRD3/archive/master.zip"
 
+
 def get_train_test_dev_files(files, test_split, train_split, dev_split):
     test_files = dev_files = train_files = []
     for file in files:
-        filename = os.path.split(file)[1].split('_')[0]
+        filename = os.path.split(file)[1].split("_")[0]
         if filename in test_split:
             test_files.append(file)
         elif filename in train_split:
@@ -59,25 +60,23 @@ def get_train_test_dev_files(files, test_split, train_split, dev_split):
         else:
             logging.info("skipped file {}".format(file))
     return test_files, train_files, dev_files
-    
+
 
 class CRD3(nlp.GeneratorBasedBuilder):
-    
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({
-                "chunk": nlp.Value("string"),
-                "chunk_id": nlp.Value("int32"),
-                "turn_start": nlp.Value("int32"),
-                "turn_end": nlp.Value("int32"),
-                "alignment_score": nlp.Value("float32"),
-                "turn_num": nlp.Value("int32"),
-                "turns":nlp.features.Sequence({
-                    "names": nlp.Value("string"),
-                    "utterances": nlp.Value("string"),
-            }),
-            }),
+            features=nlp.Features(
+                {
+                    "chunk": nlp.Value("string"),
+                    "chunk_id": nlp.Value("int32"),
+                    "turn_start": nlp.Value("int32"),
+                    "turn_end": nlp.Value("int32"),
+                    "alignment_score": nlp.Value("float32"),
+                    "turn_num": nlp.Value("int32"),
+                    "turns": nlp.features.Sequence({"names": nlp.Value("string"), "utterances": nlp.Value("string"),}),
+                }
+            ),
             homepage="https://github.com/RevanthRameshkumar/CRD3",
             citation=_CITATION,
         )
@@ -87,42 +86,33 @@ class CRD3(nlp.GeneratorBasedBuilder):
         test_file = os.path.join(path, "CRD3-master", "data", "aligned data", "test_files")
         train_file = os.path.join(path, "CRD3-master", "data", "aligned data", "train_files")
         dev_file = os.path.join(path, "CRD3-master", "data", "aligned data", "val_files")
-        with open(test_file) as f:
+        with open(test_file, encoding="utf-8") as f:
             test_splits = [file.replace("\n", "") for file in f.readlines()]
-            
-        with open(train_file) as f:
+
+        with open(train_file, encoding="utf-8") as f:
             train_splits = [file.replace("\n", "") for file in f.readlines()]
-        with open(dev_file) as f:
+        with open(dev_file, encoding="utf-8") as f:
             dev_splits = [file.replace("\n", "") for file in f.readlines()]
         c2 = "CRD3-master/data/aligned data/c=2"
         c3 = "CRD3-master/data/aligned data/c=3"
         c4 = "CRD3-master/data/aligned data/c=4"
         files = [os.path.join(path, c2, file) for file in sorted(os.listdir(os.path.join(path, c2)))]
-        files.extend([os.path.join(path, c3, file) for file in sorted(os.listdir(os.path.join(path, c3)))])  
-        files.extend([os.path.join(path, c4, file) for file in sorted(os.listdir(os.path.join(path, c4)))])  
-        
+        files.extend([os.path.join(path, c3, file) for file in sorted(os.listdir(os.path.join(path, c3)))])
+        files.extend([os.path.join(path, c4, file) for file in sorted(os.listdir(os.path.join(path, c4)))])
+
         test_files, train_files, dev_files = get_train_test_dev_files(files, test_splits, train_splits, dev_splits)
-    
+
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
-                gen_kwargs={"files_path": train_files},
-            ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
-                gen_kwargs={"files_path": test_files},
-            ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
-                gen_kwargs={"files_path": dev_files},
-            )
+            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files_path": train_files},),
+            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"files_path": test_files},),
+            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"files_path": dev_files},),
         ]
 
     def _generate_examples(self, files_path):
         """Yields examples."""
-        
+
         for file in files_path:
-            with open(file) as f:
+            with open(file, encoding="utf-8") as f:
                 data = json.load(f)
                 for id1, row in enumerate(data):
                     chunk = row["CHUNK"]
@@ -130,21 +120,16 @@ class CRD3(nlp.GeneratorBasedBuilder):
                     turn_start = row["ALIGNMENT"]["TURN START"]
                     turn_end = row["ALIGNMENT"]["TURN END"]
                     score = row["ALIGNMENT"]["ALIGNMENT SCORE"]
-                    for id2, turn in enumerate(row['TURNS']):
+                    for id2, turn in enumerate(row["TURNS"]):
                         turn_names = turn["NAMES"]
                         turn_utterances = turn["UTTERANCES"]
                         turn_num = turn["NUMBER"]
-                        yield str(id1)+'_'+str(id2), {
-                            "chunk":chunk,
+                        yield str(id1) + "_" + str(id2), {
+                            "chunk": chunk,
                             "chunk_id": chunk_id,
                             "turn_start": turn_start,
                             "turn_end": turn_end,
                             "alignment_score": score,
                             "turn_num": turn_num,
-                            "turns": {
-                                "names": turn_names,
-                                "utterances": turn_utterances,
-                        },
+                            "turns": {"names": turn_names, "utterances": turn_utterances,},
                         }
-                            
-

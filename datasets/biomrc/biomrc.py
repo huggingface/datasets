@@ -191,7 +191,7 @@ class Biomrc(nlp.GeneratorBasedBuilder):
         """This function returns the examples in the raw (text) form."""
         logging.info("generating examples from = %s", filepath)
         # Id for the biomrc dataset
-        with open(filepath) as fp:
+        with open(filepath, encoding="utf-8") as fp:
             biomrc = json.load(fp)
             for _id, (ab, ti, el, an) in enumerate(
                 zip(biomrc["abstracts"], biomrc["titles"], biomrc["entities_list"], biomrc["answers"])

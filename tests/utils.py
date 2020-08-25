@@ -50,6 +50,21 @@ def require_tf(test_case):
     return test_case
 
 
+def require_transformers(test_case):
+    """
+    Decorator marking a test that requires transformers.
+
+    These tests are skipped when transformers isn't installed.
+
+    """
+    try:
+        import transformers  # noqa F401
+    except ImportError:
+        return unittest.skip("test requires transformers")(test_case)
+    else:
+        return test_case
+
+
 def slow(test_case):
     """
     Decorator marking a test as slow.

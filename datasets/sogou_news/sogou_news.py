@@ -85,7 +85,7 @@ class Sogou_News(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        with open(filepath) as csv_file:
+        with open(filepath, encoding="utf-8") as csv_file:
             data = csv.reader(csv_file)
             for id_, row in enumerate(data):
                 yield id_, {"title": row[1], "content": row[2], "label": int(row[0]) - 1}

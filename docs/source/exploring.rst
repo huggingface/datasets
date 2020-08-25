@@ -28,7 +28,7 @@ An :class:`nlp.Dataset` is a python container with a length coresponding to the 
 Features and columns
 ------------------------------------------------------
 
-A :class:`nlp.Dataset` instance is more precisely a table with **rows** and **columns** in which the columns are typed. Querying an example (a single row) will thus return a python dictionnary with keys corresponding to columns names, and values corresponding to the example's value for each column.
+A :class:`nlp.Dataset` instance is more precisely a table with **rows** and **columns** in which the columns are typed. Querying an example (a single row) will thus return a python dictionary with keys corresponding to columns names, and values corresponding to the example's value for each column.
 
 You can get the number of rows and columns of the dataset with various standard attributes:
 
@@ -157,6 +157,18 @@ While you can access a single row with the ``dataset[i]`` pattern, you can also 
      'idx': [1, 3, 5]
     }
 
+Or use an iterable of type ``bool`` for boolean array indexing:
+
+.. code-block::
+
+    >>> label_mask = np.array(dataset['label']) == 0
+    >>> dataset[label_mask]['sentence1'][:3]
+    ["Yucaipa owned Dominick 's before selling the chain to Safeway in 1998 for $ 2.5 billion .",
+     'Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
+     'The Nasdaq had a weekly gain of 17.27 , or 1.2 percent , closing at 1,520.15 on Friday .']
+    >>> dataset[label_mask]['label'][:10]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
 You can also get a full columns by querying its name as a string. This will return a list of elements:
 
 .. code-block::
@@ -167,7 +179,7 @@ You can also get a full columns by querying its name as a string. This will retu
 As you can see depending on the object queried (single row, batch of rows or column), the returned object is different:
 
 - a single row like ``dataset[0]`` will be returned as a python dictionary of values,
-- a batch like ``dataset[5:10]``) will be returned as a python dictionnary of lists of values,
+- a batch like ``dataset[5:10]``) will be returned as a python dictionary of lists of values,
 - a column like ``dataset['sentence1']`` will be returned as a python lists of values.
 
 This may seems surprising at first but in our experiments it's actually easier to use these various format for data processing than returning the same format for each of these views on the dataset.
@@ -199,7 +211,7 @@ A specific format can be activated with :func:`nlp.Dataset.set_format`.
 
 - :obj:`type` (``Union[None, str]``, default to ``None``) defines the return type for the dataset :obj`__getitem__` method and is one of ``[None, 'numpy', 'pandas', 'torch', 'tensorflow']`` (``None`` means return python objects),
 - :obj:`columns` (``Union[None, str, List[str]]``, default to ``None``) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (``None`` means return all columns),
-- :obj:`output_all_columns` (``bool``, default to ``False``) controls whether the columns which cannot be formated (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
+- :obj:`output_all_columns` (``bool``, default to ``False``) controls whether the columns which cannot be formatted (e.g. a column with ``string`` cannot be cast in a PyTorch Tensor) are still outputted as python objects.
 - :obj:`format_kwargs` can be used to provide additional keywords arguments that will be forwarded to the convertiong function like ``np.array``, ``torch.tensor`` or ``tensorflow.ragged.constant``. For instance, to create ``torch.Tensor`` directly on the GPU you can specify ``device='cuda'``.
 
 .. note::

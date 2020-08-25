@@ -121,11 +121,11 @@ class WikiSQL(nlp.GeneratorBasedBuilder):
         """Yields examples."""
 
         # Build dictionary to table_ids:tables
-        with open(tables_filepath) as f:
+        with open(tables_filepath, encoding="utf-8") as f:
             tables = [json.loads(line) for line in f]
             id_to_tables = {x["id"]: x for x in tables}
 
-        with open(main_filepath) as f:
+        with open(main_filepath, encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 row = json.loads(line)
                 row["table"] = id_to_tables[row["table_id"]]

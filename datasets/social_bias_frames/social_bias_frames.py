@@ -89,7 +89,7 @@ class SocialBiasFrames(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for idx, row in enumerate(reader):
                 yield idx, row

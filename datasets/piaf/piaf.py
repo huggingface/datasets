@@ -104,7 +104,7 @@ class Piaf(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
         logging.info("generating examples from = %s", filepath)
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             dataset = json.load(f)
             for article in dataset["data"]:
                 title = article.get("title", "").strip()

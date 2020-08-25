@@ -116,7 +116,7 @@ class Qangaroo(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(quangaroo): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for example in data:
                 id_ = example["id"]

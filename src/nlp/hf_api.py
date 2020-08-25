@@ -109,8 +109,8 @@ class ObjectInfo:
             setattr(self, k, v)
 
     def __repr__(self):
-        single_line_description = self.description.replace("\n", "")
-        return f"nlp.ObjectInfo(id='{self.id}', description='{single_line_description}', files={self.siblings})"
+        single_line_description = self.description.replace("\n", "") if self.description is not None else ""
+        return f"nlp.ObjectInfo(\n\tid='{self.id}',\n\tdescription='{single_line_description}',\n\tfiles={self.siblings}\n)"
 
 
 class HfApi:
@@ -235,7 +235,7 @@ class HfApi:
         )
         r.raise_for_status()
 
-    def dataset_list(self, with_community_datasets=True) -> List[ObjectInfo]:
+    def dataset_list(self, with_community_datasets=True, id_only=False) -> List[ObjectInfo]:
         """
         Get the public list of all the datasets on huggingface, including the community datasets
         """
@@ -246,9 +246,11 @@ class HfApi:
         datasets = [ObjectInfo(**x) for x in d]
         if not with_community_datasets:
             datasets = [d for d in datasets if "/" not in d.id]
+        if id_only:
+            datasets = [d.id for d in datasets]
         return datasets
 
-    def metric_list(self, with_community_metrics=True) -> List[ObjectInfo]:
+    def metric_list(self, with_community_metrics=True, id_only=False) -> List[ObjectInfo]:
         """
         Get the public list of all the metrics on huggingface, including the community metrics
         """
@@ -259,6 +261,8 @@ class HfApi:
         metrics = [ObjectInfo(**x) for x in d]
         if not with_community_metrics:
             metrics = [m for m in metrics if "/" not in m.id]
+        if id_only:
+            metrics = [m.id for m in metrics]
         return metrics
 
 

@@ -25,8 +25,7 @@ _CITATION = """\
   note={In the Proceedings of ICLR.},
   year={2019}
 }
-Note that each GLUE dataset has its own citation. Please see the source to see
-the correct citation for each contained dataset."""
+"""
 
 _DESCRIPTION = """\
 GLUE, the General Language Understanding Evaluation benchmark
@@ -35,21 +34,18 @@ evaluating, and analyzing natural language understanding systems.
 """
 
 _KWARGS_DESCRIPTION = """
-Computes BLEU score of translated segments against one or more references.
+Compute GLUE evaluation metric associated to each GLUE dataset.
 Args:
     predictions: list of translations to score.
         Each translation should be tokenized into a list of tokens.
     references: list of lists of references for each translation.
         Each reference should be tokenized into a list of tokens.
-    max_order: Maximum n-gram order to use when computing BLEU score.
-    smooth: Whether or not to apply Lin et al. 2004 smoothing.
-Returns:
-    'bleu': bleu score,
-    'precisions': geometric mean of n-gram precisions,
-    'brevity_penalty': brevity penalty,
-    'length_ratio': ratio of lengths,
-    'translation_length': translation_length,
-    'reference_length': reference_length
+Returns: depending on the GLUE subset, one or several of:
+    "accuracy": Accuracy
+    "f1": F1
+    "pearson": Pearson Correlation
+    "spearmanr": Spearman Correlation
+    "matthews_correlation": Matthew Correlation
 """
 
 def simple_accuracy(preds, labels):
