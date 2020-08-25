@@ -70,7 +70,7 @@ def _download_and_index_cqa(dl_manager, name):
     cqa_splits = ["cqa_train", "cqa_dev"]
     cqa_complete = []
     for split in cqa_splits:
-        with open(downloaded_files[split]) as f:
+        with open(downloaded_files[split], encoding="utf-8") as f:
             for _, line in enumerate(f):
                 d = json.loads(line)
                 cqa_complete.append(d)
@@ -179,7 +179,7 @@ class CosE(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         cqa_indexed = kwargs["cqa_indexed"]
         for filepath in files:
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 for line in f:
                     cos = json.loads(line)
                     cqa = cqa_indexed[cos["id"]]

@@ -85,7 +85,7 @@ class MWSC(nlp.GeneratorBasedBuilder):
         """Yields examples."""
 
         schemas = []
-        with open(filepath) as schema_file:
+        with open(filepath, encoding="utf-8") as schema_file:
             schema = []
             for line in schema_file:
                 if len(line.split()) == 0:

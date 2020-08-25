@@ -114,7 +114,7 @@ class Scan(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        with open(filepath) as infile:
+        with open(filepath, encoding="utf-8") as infile:
             for i, line in enumerate(infile):
                 if not line.startswith("IN: "):
                     continue

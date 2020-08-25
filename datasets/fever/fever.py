@@ -138,7 +138,7 @@ class Fever(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         if self.config.name == "v1.0" or self.config.name == "v2.0":
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 for row_id, row in enumerate(f):
                     data = json.loads(row)
                     id_ = data["id"]
@@ -173,7 +173,7 @@ class Fever(nlp.GeneratorBasedBuilder):
                         }
         elif self.config.name == "wiki_pages":
             for file in filepath:
-                with open(file) as f:
+                with open(file, encoding="utf-8") as f:
                     for id_, row in enumerate(f):
                         data = json.loads(row)
                         yield id_, data

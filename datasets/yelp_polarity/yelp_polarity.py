@@ -133,7 +133,7 @@ class YelpPolarity(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate Yelp examples."""
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             for line_id, line in enumerate(f):
                 # The format of the line is:
                 # "1", "The text of the review."

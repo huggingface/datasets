@@ -216,7 +216,7 @@ class MathDataset(nlp.GeneratorBasedBuilder):
         for category in categories:
             data_file = os.path.join(directory, _DATASET_VERSION, category, config)
             if os.path.exists(data_file):
-                with open(data_file) as f:
+                with open(data_file, encoding="utf-8") as f:
                     ls = f.read().split("\n")
 
                     for l in ls[::-1]:

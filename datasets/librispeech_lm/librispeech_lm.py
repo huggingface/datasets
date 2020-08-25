@@ -64,7 +64,7 @@ class LibrispeechLm(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, archive_path):
         """Yields examples."""
-        with open(archive_path, "r") as f:
+        with open(archive_path, "r", encoding="utf-8") as f:
             for key, line in enumerate(f):
                 text = line.strip()
                 if text:  # Skip empty lines.

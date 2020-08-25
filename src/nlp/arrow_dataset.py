@@ -36,8 +36,8 @@ from tqdm.auto import tqdm
 
 from nlp.utils.py_utils import dumps
 
-from .arrow_writer import ArrowWriter
-from .features import Features
+from .arrow_writer import ArrowWriter, TypedSequence
+from .features import Features, cast_to_python_objects, pandas_types_mapper
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -293,9 +293,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if info is None:
             info = DatasetInfo()
         info.features = features
-        pa_table: pa.Table = pa.Table.from_pydict(
-            mapping=mapping, schema=pa.schema(features.type) if features is not None else None
-        )
+        if features is not None:
+            mapping = features.encode_batch(mapping)
+        else:
+            mapping = cast_to_python_objects(mapping)
+        mapping = {
+            col: TypedSequence(data, type=features.type[col].type if features is not None else None)
+            for col, data in mapping.items()
+        }
+        pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
     @property
@@ -389,8 +395,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def dictionary_encode_column(self, column: str):
         """ Dictionary encode a column.
-            Dictionnary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
-            by storing a dictionnary of the strings. This only affect the internal storage.
+            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+            by storing a dictionary of the strings. This only affect the internal storage.
 
         Args:
             column (:obj:`str`):
@@ -500,7 +506,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def __iter__(self):
         """ Iterate through the examples.
-        If a formating is set with :func:`nlp.Dataset.set_format` rows will be returned with the
+        If a formatting is set with :func:`nlp.Dataset.set_format` rows will be returned with the
         selected format.
         """
         format_type = self._format_type
@@ -522,14 +528,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @property
     def format(self):
         return {
-            "type": "python" if self._format_type is None else self._format_type,
+            "type": self._format_type,
             "format_kwargs": self._format_kwargs,
             "columns": self.column_names if self._format_columns is None else self._format_columns,
             "output_all_columns": self._output_all_columns,
         }
 
     @contextlib.contextmanager
-    def formated_as(
+    def formatted_as(
         self,
         type: Optional[str] = None,
         columns: Optional[List] = None,
@@ -543,7 +549,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     None means __getitem__ returns python objects (default)
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
-                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
                 format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         old_format_type = self._format_type
@@ -570,7 +576,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     None means __getitem__ returns python objects (default)
                 columns (Optional ``List[str]``): columns to format in the output
                     None means __getitem__ returns all columns (default)
-                output_all_columns (``bool`` default to False): keep un-formated columns as well in the output (as python objects)
+                output_all_columns (``bool`` default to False): keep un-formatted columns as well in the output (as python objects)
                 format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         # Check return type
@@ -608,7 +614,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._output_all_columns = output_all_columns
         logger.info(
             "Set __getitem__(key) output type to %s for %s columns "
-            " (when key is int or slice) and %s output other (un-formated) columns.",
+            " (when key is int or slice) and %s output other (un-formatted) columns.",
             "python objects" if type is None else type,
             "no" if columns is None else str(columns),
             "do" if output_all_columns else "don't",
@@ -644,9 +650,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             map_nested_kwargs["map_list"] = False  # convert lists to tensors
 
             def command(x):
-                if isinstance(x, Iterable):  # add support for nested types like struct of list of struct
+                if isinstance(
+                    x, (list, tuple, np.ndarray)
+                ):  # add support for nested types like struct of list of struct
                     x = np.array(x, copy=False)
-                    if x.dtype == np.object:
+                    if x.dtype == np.object:  # pytorch tensors cannot be instantied from an array of objects
                         return [map_nested(command, i, **map_nested_kwargs) for i in x]
                 return torch.tensor(x, **format_kwargs)
 
@@ -656,14 +664,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             map_nested_kwargs["map_list"] = False  # convert lists to tensors
 
             def command(x):
-                if isinstance(x, Iterable):  # add support for nested types like struct of list of struct
+                if isinstance(
+                    x, (list, tuple, np.ndarray)
+                ):  # add support for nested types like struct of list of struct
                     x = np.array(x, copy=False)
-                    if x.dtype == np.object:
+                    if x.dtype == np.object:  # tensorflow tensors can sometimes be instantied from an array of objects
                         try:
-                            return tensorflow.ragged.constant(x)
+                            return tensorflow.ragged.constant(x, **format_kwargs)
                         except ValueError:
                             return [map_nested(command, i, **map_nested_kwargs) for i in x]
-                return tensorflow.constant(x, **format_kwargs)
+                return tensorflow.ragged.constant(x, **format_kwargs)
 
         else:
 
@@ -671,12 +681,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return x
 
             command = identity
-        if isinstance(outputs, (list, tuple, np.ndarray)):
+        if isinstance(outputs, (list, tuple, np.ndarray, pd.Series)):
             return command(outputs)
         elif isinstance(outputs, pd.DataFrame):
             if format_columns is not None and not output_all_columns:
                 to_remove_columns = [col for col in self.column_names if col not in format_columns]
                 output_dict = outputs.drop(to_remove_columns, axis=1)
+            else:
+                output_dict = outputs
         else:
             output_dict = {}
             for k, v in outputs.items():
@@ -734,11 +746,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         output_all_columns=False,
         format_kwargs=None,
     ) -> Union[Dict, List]:
-        """ Can be used to index columns (by string names) or rows (by integer index or slices)
+        """
+        Can be used to index columns (by string names) or rows (by integer index, slices, or iter of indices or bools)
         """
         # In the following, to convert data from the arrow table to dicts or lists,
         # we use .to_pandas().to_dict() or .to_pandas().to_list() as they are
-        # significantly faster than .to_pydict() thanks to zero-copy
+        # significantly faster than .to_pydict() thanks to zero-copy and because it doesn't
+        # call `list()` on every object in sequences of sequences of objects for example
         if isinstance(key, int):
             if key < 0:
                 key = self.num_rows + key
@@ -750,9 +764,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
             if format_type is not None:
                 if format_type == "pandas":
-                    outputs = self._data.slice(key, 1).to_pandas()
+                    outputs = self._data.slice(key, 1).to_pandas(types_mapper=pandas_types_mapper)
                 else:
-                    outputs = self._unnest(self._data.slice(key, 1).to_pandas().to_dict("list"))
+                    outputs = self._unnest(
+                        self._data.slice(key, 1).to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
+                    )
             else:
                 outputs = self._unnest(self._data.slice(key, 1).to_pydict())
 
@@ -784,9 +800,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # Convert to the format
             if format_type is not None:
                 if format_type == "pandas":
-                    outputs = data_subset.to_pandas(split_blocks=True)
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper)
                 else:
-                    outputs = data_subset.to_pandas(split_blocks=True).to_dict("list")
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
             else:
                 outputs = data_subset.to_pydict()
 
@@ -805,20 +821,35 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 data_array = self._data.column(key)
 
             if format_type is not None:
+                # We should use
+                # outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper)
+                # but there is a bug in pyarrow that makes ignores the types_mapper in that case
+                # see https://issues.apache.org/jira/browse/ARROW-9664
+                # We build a table with one column and call to_pandas on it instead
+                one_column_table = pa.Table.from_arrays(
+                    [self._data[key]], schema=pa.schema([self._data.schema.field(key)])
+                )
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
-                        outputs = data_array.to_pandas(split_blocks=True)
-                    elif format_type in ("numpy", "torch", "tensorflow"):
-                        outputs = data_array.to_pandas(split_blocks=True).to_list()
+                        outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key]
                     else:
-                        outputs = data_array.to_pylist()
+                        outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key].to_list()
                 else:
-                    outputs = data_array.to_pylist()
+                    outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key].to_list()
             else:
                 outputs = data_array.to_pylist()
 
         elif isinstance(key, Iterable):
-            indices_array = pa.array([int(i) for i in key], type=pa.uint64())
+            if len(key) > 0 and isinstance(key[0], (bool, np.bool_)):
+                if len(key) != self.__len__():
+                    raise ValueError(
+                        f"Iterable with bool entries must be length of dataset ({self.__len__()}), " f"not {len(key)}"
+                    )
+                indices = [i for i, val in enumerate(key) if val]
+            else:
+                indices = key
+
+            indices_array = pa.array([int(i) for i in indices], type=pa.uint64())
 
             # Check if we need to convert indices
             indices_array = self._map_indices(indices_array)
@@ -835,9 +866,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
             if format_type is not None:
                 if format_type == "pandas":
-                    outputs = data_subset.to_pandas(split_blocks=True)
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper)
                 else:
-                    outputs = data_subset.to_pandas(split_blocks=True).to_dict("list")
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
             else:
                 outputs = data_subset.to_pydict()
 
@@ -855,7 +886,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return outputs
 
     def __getitem__(self, key: Union[int, slice, str]) -> Union[Dict, List]:
-        """ Can be used to index columns (by string names) or rows (by integer index)
+        """
+        Can be used to index columns (by string names) or rows (by integer index or iterable of indices or bools)
         """
         return self._getitem(
             key,
@@ -912,6 +944,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self,
         function: Optional[Callable] = None,
         with_indices: bool = False,
+        input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
         drop_last_batch: bool = False,
@@ -921,39 +954,43 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
-        disable_nullable: bool = True,
+        disable_nullable: bool = False,
         verbose: bool = True,
+        fn_kwargs: Optional[dict] = None,
     ) -> "Dataset":
         """ Apply a function to all the elements in the table (individually or in batches)
             and update the table (if function does updated examples).
 
             Args:
-                `function` (`callable`): with one of the following signature:
-                    - `function(example: Dict) -> Union[Dict, Any]` if `batched=False` and `with_indices=False`
-                    - `function(example: Dict, indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
-                    - `function(batch: Dict[List]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
-                    - `function(batch: Dict[List], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
+                function (`callable`): with one of the following signature:
+                    - `function(example: Union[Dict, Any]) -> Union[Dict, Any]` if `batched=False` and `with_indices=False`
+                    - `function(example: Union[Dict, Any], indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
+                    - `function(batch: Union[Dict[List], List[Any]]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
+                    - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
                     If no function is provided, default to identity function: lambda x: x
-                `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-                `batched` (`bool`, default: `False`): Provide batch of examples to `function`
-                `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
+                with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+                input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
+                    positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+                batched (`bool`, defaults to `False`): Provide batch of examples to `function`
+                batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-                `drop_last_batch` (`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
+                drop_last_batch (`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
                     dropped instead of being processed by the function.
-                `remove_columns` (`Optional[List[str]]`, default: `None`): Remove a selection of columns while doing the mapping.
+                remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                     Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                     columns with names in `remove_columns`, these columns will be kept.
-                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
-                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                     results of the computation instead of the automatically generated cache file name.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `features` (`Optional[nlp.Features]`, default: `None`): Use a specific Features to store the cache file
+                features (`Optional[nlp.Features]`, defaults to `None`): Use a specific Features to store the cache file
                     instead of the automatically generated one.
-                `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -974,6 +1011,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 )
             )
 
+        if isinstance(input_columns, str):
+            input_columns = [input_columns]
+
+        if input_columns is not None:
+            for input_column in input_columns:
+                if input_column not in self._data.column_names:
+                    raise ValueError(
+                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
+                            input_column, self._data.column_names
+                        )
+                    )
+
+        if fn_kwargs is None:
+            fn_kwargs = dict()
+
         # If we do batch computation but no batch sze is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
@@ -981,7 +1033,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Check if the function returns updated examples
         def does_function_return_dict(inputs, indices):
             """ Does the function returns a dict. """
-            processed_inputs = function(inputs, indices) if with_indices else function(inputs)
+            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
+            processed_inputs = (
+                function(*fn_args, indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
+            )
             does_return_dict = isinstance(processed_inputs, Mapping)
 
             if does_return_dict is False and processed_inputs is not None:
@@ -1015,7 +1070,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False):
             """ Utility to apply the function on a selection of columns. """
-            processed_inputs = function(inputs, indices) if with_indices else function(inputs)
+            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
+            processed_inputs = (
+                function(*fn_args, indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
+            )
             if not update_data:
                 return None  # Nothing to update, let's move on
             if remove_columns is not None:
@@ -1023,7 +1081,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     inputs.pop(column)
             if self._format_type is not None:
                 inputs = self._getitem(
-                    key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1])),
+                    key=(indices if isinstance(indices, int) else slice(indices[0], indices[-1] + 1)),
                     format_type=None,
                     format_columns=None,
                     format_kwargs=None,
@@ -1051,6 +1109,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "writer_batch_size": writer_batch_size,
                     "features": features,
                     "disable_nullable": disable_nullable,
+                    "input_columns": input_columns,
+                    "fn_kwargs": fn_kwargs,
                 }
                 cache_file_name = self._get_cache_file_path(function, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
@@ -1094,6 +1154,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for i, example in enumerate(tqdm(self, disable=not verbose)):
                     example = apply_function_on_filtered_inputs(example, i)
                     if update_data:
+                        example = cast_to_python_objects(example)
                         writer.write(example)
             else:
                 for i in tqdm(range(0, len(self), batch_size), disable=not verbose):
@@ -1110,6 +1171,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                             "Using `.map` in batched mode on a dataset with attached indexes is allowed only if it doesn't create or remove existing examples. You can first run `.drop_index() to remove your index and then re-add it."
                         )
                     if update_data:
+                        batch = cast_to_python_objects(batch)
                         writer.write_batch(batch)
             if update_data:
                 writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
@@ -1137,6 +1199,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self,
         function: Optional[Callable] = None,
         with_indices=False,
+        input_columns: Optional[Union[str, List[str]]] = None,
         batch_size: Optional[int] = 1000,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
@@ -1144,29 +1207,33 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
+        fn_kwargs: Optional[dict] = None,
     ) -> "Dataset":
         """ Apply a filter function to all the elements in the table in batches
             and update the table so that the dataset only includes examples according to the filter function.
 
             Args:
-                `function` (`callable`): with one of the following signature:
-                    - `function(example: Dict) -> bool` if `with_indices=False`
-                    - `function(example: Dict, indices: int) -> bool` if `with_indices=True`
+                function (`callable`): with one of the following signature:
+                    - `function(example: Union[Dict, Any]) -> bool` if `with_indices=False`
+                    - `function(example: Union[Dict, Any], indices: int) -> bool` if `with_indices=True`
                     If no function is provided, default to an always True function: lambda x: True
-                `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-                `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
+                with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+                input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
+                    positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+                batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-                `remove_columns` (`Optional[List[str]]`, default: `None`): Remove a selection of columns while doing the mapping.
+                remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                     Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                     columns with names in `remove_columns`, these columns will be kept.
-                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
-                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                     results of the computation instead of the automatically generated cache file name.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1176,20 +1243,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if function is None:
             function = lambda x: True  # noqa: E731
 
+        if isinstance(input_columns, str):
+            input_columns = [input_columns]
+
+        if input_columns is not None:
+            for input_column in input_columns:
+                if input_column not in self._data.column_names:
+                    raise ValueError(
+                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
+                            input_column, self._data.column_names
+                        )
+                    )
+
+        if fn_kwargs is None:
+            fn_kwargs = dict()
+        fn_kwargs["input_columns"] = input_columns
+
         # transforme the filter function into the map function
-        def map_function(batch, *args):
+        def map_function(batch, *args, **fn_kwargs):
             result = defaultdict(list)
             num_examples = len(batch[next(iter(batch.keys()))])
+            input_columns = fn_kwargs.pop("input_columns", None)
 
             # create single examples
             for i in range(num_examples):
                 example = map_nested(lambda x: x[i], batch, dict_only=True)
+                fn_args = [example] if input_columns is None else [example[col] for col in input_columns]
 
-                # check if example should be fildered or not
+                # check if example should be filtered or not
                 if with_indices:
-                    keep_example = function(example, args[0][i])
+                    keep_example = function(*fn_args, args[0][i], **fn_kwargs)
                 else:
-                    keep_example = function(example)
+                    keep_example = function(*fn_args, **fn_kwargs)
 
                 assert isinstance(
                     keep_example, bool
@@ -1219,6 +1304,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             verbose=verbose,
+            fn_kwargs=fn_kwargs,
         )
 
     def flatten_indices(
@@ -1234,29 +1320,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             and update the table (if function does updated examples).
 
             Args:
-                `function` (`callable`): with one of the following signature:
-                    - `function(example: Dict) -> Union[Dict, Any]` if `batched=False` and `with_indices=False`
-                    - `function(example: Dict, indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
-                    - `function(batch: Dict[List]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
-                    - `function(batch: Dict[List], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
-                `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-                `batched` (`bool`, default: `False`): Provide batch of examples to `function`
-                `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
-                    `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-                `remove_columns` (`Optional[List[str]]`, default: `None`): Remove a selection of columns while doing the mapping.
-                    Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
-                    columns with names in `remove_columns`, these columns will be kept.
-                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
-                    can be identified, use it instead of recomputing.
-                `cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                keep_in_memory (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
+                cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                     results of the computation instead of the automatically generated cache file name.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `features` (`Optional[nlp.Features]`, default: `None`): Use a specific Features to store the cache file
+                features (`Optional[nlp.Features]`, default: `None`): Use a specific Features to store the cache file
                     instead of the automatically generated one.
-                `disable_nullable` (`bool`, default: `True`): Allow null values in the table.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                disable_nullable (`bool`, default: `True`): Allow null values in the table.
+                verbose (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
 
         return self.map(
@@ -1381,19 +1453,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
             Args:
-                `column` (`str`): column name to sort by.
-                `reverse`: (`bool`, default: `False`): If True, sort by descending order rather then ascending.
-                `kind` (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
+                column (`str`): column name to sort by.
+                reverse: (`bool`, defaults to `False`): If True, sort by descending order rather then ascending.
+                kind (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                     The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                     the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
-                `keep_in_memory` (`bool`, default: `False`): Keep the sorted indices in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the sorted indices
-                    can be identified, use it instead of resorting the column.
-                `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                keep_in_memory (`bool`, defaults to `False`): Keep the sorted indices in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the sorted indices
+                    can be identified, use it instead of recomputing.
+                indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                     sorted indices instead of the automatically generated cache file name.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
-                    Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
+                    Higher value gives smaller cache files, lower value consume less temporary memory.
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1461,19 +1533,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
             Args:
-                `seed` (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``.
+                seed (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``.
                     If None, then fresh, unpredictable entropy will be pulled from the OS.
                     If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
-                `generator` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                generator (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
                     If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-                `keep_in_memory` (`bool`, default: `False`): Keep the shuffled indices in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the shuffled indices
+                keep_in_memory (`bool`, defaults to `False`): Keep the shuffled indices in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the shuffled indices
                     can be identified, use it instead of recomputing.
-                `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                     shuffled indices instead of the automatically generated cache file name.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1490,13 +1562,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator, np.random.Generator
         ), "The provided generator must be an instance of numpy.random.Generator"
 
+        if generator is None:
+            generator = np.random.default_rng(seed)
+
         # Check if we've already cached this computation (indexed by a hash)
         if self._data_files:
             if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
                 cache_kwargs = {
                     "generator": generator,
-                    "seed": seed,
                     "keep_in_memory": keep_in_memory,
                     "load_from_cache_file": load_from_cache_file,
                     "indices_cache_file_name": indices_cache_file_name,
@@ -1507,9 +1581,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if verbose:
                     logger.info("Loading cached shuffled indices for dataset at %s", indices_cache_file_name)
                 return self._new_dataset_with_indices(indices_cache_file_name=indices_cache_file_name)
-
-        if generator is None:
-            generator = np.random.default_rng(seed)
 
         permutation = generator.permutation(len(self))
 
@@ -1541,31 +1612,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             This method is similar to scikit-learn `train_test_split` with the omission of the stratified options.
 
             Args:
-                `test_size` (Optional `np.random.Generator`): Size of the test split
+                test_size (Optional `np.random.Generator`): Size of the test split
                     If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the test split.
                     If int, represents the absolute number of test samples.
                     If None, the value is set to the complement of the train size.
                     If train_size is also None, it will be set to 0.25.
-                `train_size` (Optional `np.random.Generator`): Size of the train split
+                train_size (Optional `np.random.Generator`): Size of the train split
                     If float, should be between 0.0 and 1.0 and represent the proportion of the dataset to include in the train split.
                     If int, represents the absolute number of train samples.
                     If None, the value is automatically set to the complement of the test size.
-                `shuffle` (Optional `bool`, default: `True`): Whether or not to shuffle the data before splitting.
-                `seed` (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``.
+                shuffle (Optional `bool`, defaults to `True`): Whether or not to shuffle the data before splitting.
+                seed (Optional `int`): A seed to initialize the default BitGenerator if ``generator=None``.
                     If None, then fresh, unpredictable entropy will be pulled from the OS.
                     If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
-                `generator` (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                generator (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
                     If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-                `keep_in_memory` (`bool`, default: `False`): Keep the splits indices in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the splits indices
+                keep_in_memory (`bool`, defaults to `False`): Keep the splits indices in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the splits indices
                     can be identified, use it instead of recomputing.
-                `train_indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                train_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                     train split indices instead of the automatically generated cache file name.
-                `test_indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                test_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                     test split indices instead of the automatically generated cache file name.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         from .dataset_dict import DatasetDict  # import here because of circular dependency
 
@@ -1648,6 +1719,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 "aforementioned parameters."
             )
 
+        if generator is None and shuffle is True:
+            generator = np.random.default_rng(seed)
+
         # Check if we've already cached this computation (indexed by a hash)
         if self._data_files:
             if train_indices_cache_file_name is None or test_indices_cache_file_name is None:
@@ -1657,7 +1731,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     "train_size": train_size,
                     "shuffle": shuffle,
                     "generator": generator,
-                    "seed": seed,
                     "keep_in_memory": keep_in_memory,
                     "load_from_cache_file": load_from_cache_file,
                     "train_indices_cache_file_name": train_indices_cache_file_name,
@@ -1695,9 +1768,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             train_indices = np.arange(n_train)
             test_indices = np.arange(n_train, n_train + n_test)
         else:
-            if generator is None:
-                generator = np.random.default_rng(seed)
-
             # random partition
             permutation = generator.permutation(len(self))
             test_indices = permutation[:n_test]
@@ -1746,15 +1816,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
 
             Args:
-                `num_shards` (`int`): How many shards to split the dataset into.
-                `index` (`int`): Which shard to select and return.
-                `contiguous`: (`bool`, default: `False`): Whether to select contiguous blocks of indices for shards.
-                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-                `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                num_shards (`int`): How many shards to split the dataset into.
+                index (`int`): Which shard to select and return.
+                contiguous: (`bool`, defaults to `False`): Whether to select contiguous blocks of indices for shards.
+                keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+                    can be identified, use it instead of recomputing.
+                indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                     indices of each shard instead of the automatically generated cache file name.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         assert 0 <= index < num_shards, "index should be in [0, num_shards-1]"
         if contiguous:
@@ -1912,7 +1984,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # query
             scores, retrieved_examples = ds.get_nearest_examples('embeddings', embed('my new query'), k=10)
     """
-        with self.formated_as(type="numpy", columns=[column], dtype=dtype):
+        with self.formatted_as(type="numpy", columns=[column], dtype=dtype):
             super().add_faiss_index(
                 column=column,
                 index_name=index_name,
@@ -2032,7 +2104,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             scores, retrieved_examples = ds.get_nearest_examples('line', 'my new query', k=10)
 
         """
-        with self.formated_as(type=None, columns=[column]):
+        with self.formatted_as(type=None, columns=[column]):
             super().add_elasticsearch_index(
                 column=column, host=host, port=port, es_client=es_client, index_name=index_name
             )

@@ -178,7 +178,7 @@ class Discofuse(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(discofuse): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = csv.DictReader(f, delimiter="\t")
             for id_, row in enumerate(data):
                 co_first_sent = row["coherent_first_sentence"]

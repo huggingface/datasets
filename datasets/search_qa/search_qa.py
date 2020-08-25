@@ -166,7 +166,7 @@ class SearchQa(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(searchQa): Yields (key, example) tuples from the dataset
         for i, filepath in enumerate(filepaths):
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
 
                 data = json.load(f)
                 category = data["category"]

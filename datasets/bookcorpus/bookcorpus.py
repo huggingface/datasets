@@ -92,7 +92,7 @@ class Bookcorpus(nlp.GeneratorBasedBuilder):
         ]
         _id = 0
         for txt_file in files:
-            with open(txt_file, mode="r") as f:
+            with open(txt_file, mode="r", encoding="utf-8") as f:
                 for line in f:
                     yield _id, {"text": line.strip()}
                     _id += 1

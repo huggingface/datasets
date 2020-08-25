@@ -71,7 +71,7 @@ def main(args):
             "The file 'dataset_info.json' doesn't exists. Make sure that you run the dataset tests via nlp-cli."
         )
 
-    with open(dataset_info_path) as in_file:
+    with open(dataset_info_path, encoding="utf-8") as in_file:
         dataset_info = json.load(in_file)
 
     dataset_version = dataset_info["default"]["version"]["version_str"]

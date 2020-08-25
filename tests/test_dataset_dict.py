@@ -40,7 +40,7 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         dset.reset_format()
-        with dset.formated_as(type="numpy", columns=["col_1"]):
+        with dset.formatted_as(type="numpy", columns=["col_1"]):
             for dset_split in dset.values():
                 self.assertEqual(len(dset_split[0]), 1)
                 self.assertIsInstance(dset_split[0]["col_1"], np.ndarray)
@@ -48,7 +48,7 @@ class DatasetDictTest(TestCase):
                 self.assertEqual(dset_split[0]["col_1"].item(), 3)
 
         for dset_split in dset.values():
-            self.assertEqual(dset_split.format["type"], "python")
+            self.assertEqual(dset_split.format["type"], None)
             self.assertEqual(dset_split.format["format_kwargs"], {})
             self.assertEqual(dset_split.format["columns"], dset_split.column_names)
             self.assertEqual(dset_split.format["output_all_columns"], False)
@@ -166,7 +166,7 @@ class DatasetDictTest(TestCase):
                 lambda ex: {"bar": ["foo"] * len(ex["filename"])}, batched=True, cache_file_names=cache_file_names
             )
             self.assertListEqual(list(dsets.keys()), list(mapped_dsets_2.keys()))
-            self.assertListEqual(mapped_dsets_2["train"].column_names, ["filename", "foo", "bar"])
+            self.assertListEqual(sorted(mapped_dsets_2["train"].column_names), sorted(["filename", "foo", "bar"]))
 
     def test_filter(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

@@ -62,7 +62,7 @@ def _gather_dump_urls(base_url, mode, dl_manager):
     from bs4 import BeautifulSoup
 
     page_path = dl_manager.download(_REDDIT_URL + mode)
-    page_f = open(page_path)
+    page_f = open(page_path, encoding="utf-8")
     page_content = page_f.read()
     page_f.close()
     soup = BeautifulSoup(page_content, "lxml")

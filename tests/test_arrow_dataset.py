@@ -1,4 +1,5 @@
 import os
+import pickle
 import tempfile
 from unittest import TestCase
 
@@ -33,6 +34,22 @@ class BaseDatasetTest(TestCase):
         self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
         self.assertEqual(dset[0]["col_1"], 3)
         self.assertEqual(dset["col_1"][0], 3)
+
+    def test_dummy_dataset_pickle(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "dset.pt")
+
+            dset = self._create_dummy_dataset()
+
+            with open(tmp_file, "wb") as f:
+                pickle.dump(dset, f)
+
+            with open(tmp_file, "rb") as f:
+                dset = pickle.load(f)
+
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertEqual(dset[0]["filename"], "my_name-train_0")
+        self.assertEqual(dset["filename"][0], "my_name-train_0")
 
     def test_from_pandas(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
@@ -97,7 +114,7 @@ class BaseDatasetTest(TestCase):
         np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
 
         dset.reset_format()
-        with dset.formated_as(type="numpy", columns=["col_1"]):
+        with dset.formatted_as(type="numpy", columns=["col_1"]):
             self.assertEqual(len(dset[0]), 1)
             self.assertIsInstance(dset[0]["col_1"], np.ndarray)
             self.assertListEqual(list(dset[0]["col_1"].shape), [])
@@ -106,7 +123,7 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(list(dset["col_1"].shape), [4])
             np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
 
-        self.assertEqual(dset.format["type"], "python")
+        self.assertEqual(dset.format["type"], None)
         self.assertEqual(dset.format["format_kwargs"], {})
         self.assertEqual(dset.format["columns"], dset.column_names)
         self.assertEqual(dset.format["output_all_columns"], False)
@@ -326,6 +343,17 @@ class BaseDatasetTest(TestCase):
                 dset_test_batched.features, Features({"filename": Value("string"), "filename_new": Value("string")})
             )
 
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with dset.formatted_as("numpy", columns=["filename"]):
+                tmp_file = os.path.join(tmp_dir, "test.arrow")
+                dset_test_batched = dset.map(map_batched, batched=True, cache_file_name=tmp_file)
+                self.assertEqual(len(dset_test_batched), 30)
+                self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+                self.assertDictEqual(
+                    dset_test_batched.features,
+                    Features({"filename": Value("string"), "filename_new": Value("string")}),
+                )
+
         def map_batched_with_indices(example, idx):
             return {"filename_new": [x + "_extension_" + str(idx) for x in example["filename"]]}
 
@@ -340,6 +368,57 @@ class BaseDatasetTest(TestCase):
                 dset_test_with_indices_batched.features,
                 Features({"filename": Value("string"), "filename_new": Value("string")}),
             )
+
+    @require_torch
+    def test_map_torch(self):
+        import torch
+
+        dset = self._create_dummy_dataset()
+
+        def func(example):
+            return {"tensor": torch.Tensor([1.0, 2, 3])}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test = dset.map(func, cache_file_name=tmp_file)
+            self.assertEqual(len(dset_test), 30)
+            self.assertDictEqual(
+                dset_test.features, Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
+            )
+            self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
+
+    @require_tf
+    def test_map_tf(self):
+        import tensorflow as tf
+
+        dset = self._create_dummy_dataset()
+
+        def func(example):
+            return {"tensor": tf.constant([1.0, 2, 3])}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test = dset.map(func, cache_file_name=tmp_file)
+            self.assertEqual(len(dset_test), 30)
+            self.assertDictEqual(
+                dset_test.features, Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
+            )
+            self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
+
+    def test_map_numpy(self):
+        dset = self._create_dummy_dataset()
+
+        def func(example):
+            return {"tensor": np.array([1.0, 2, 3])}
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "test.arrow")
+            dset_test = dset.map(func, cache_file_name=tmp_file)
+            self.assertEqual(len(dset_test), 30)
+            self.assertDictEqual(
+                dset_test.features, Features({"filename": Value("string"), "tensor": Sequence(Value("float64"))})
+            )
+            self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
     def test_remove_colums(self):
         dset = self._create_dummy_dataset()
@@ -760,8 +839,8 @@ class BaseDatasetTest(TestCase):
                 self.assertIsInstance(dset[0][col], (tf.Tensor, tf.RaggedTensor))
                 self.assertIsInstance(dset[:2][col], (tf.Tensor, tf.RaggedTensor))
                 self.assertIsInstance(dset[col], (tf.Tensor, tf.RaggedTensor))
-            self.assertEqual(dset[:2]["vec"].shape, (2, 3))
-            self.assertEqual(dset["vec"][:2].shape, (2, 3))
+            self.assertEqual(tuple(dset[:2]["vec"].shape), (2, None))
+            self.assertEqual(tuple(dset["vec"][:2].shape), (2, None))
 
             dset.set_format("numpy")
             self.assertIsNotNone(dset[0])
@@ -873,3 +952,12 @@ class BaseDatasetTest(TestCase):
             self.assertIsNotNone(dset[:2])
             self.assertIsInstance(dset[:2]["nested"][0]["foo"], torch.Tensor)
             self.assertIsInstance(dset["nested"][0]["foo"], torch.Tensor)
+
+    def test_format_pandas(self):
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        import pandas as pd
+
+        dset.set_format("pandas")
+        self.assertIsInstance(dset[0], pd.DataFrame)
+        self.assertIsInstance(dset[:2], pd.DataFrame)
+        self.assertIsInstance(dset["col_1"], pd.Series)
