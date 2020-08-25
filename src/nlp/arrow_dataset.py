@@ -354,7 +354,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         for depth in range(1, max_depth):
             if any(isinstance(field.type, pa.StructType) for field in self._data.schema):
-                self._data = self._data.flatten_()
+                self._data = self._data.flatten()
             else:
                 break
         if self.info is not None:
