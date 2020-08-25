@@ -27,6 +27,7 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version
 
+.. autofunction:: nlp.concatenate_datasets
 
 ``DatasetDict``
 ~~~~~~~~~~~~~~~~~~~~~
