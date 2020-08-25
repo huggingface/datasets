@@ -562,7 +562,6 @@ def concatenate_datasets(
 
     Args:
         dsets (:obj:``List[nlp.Dataset]``): A list of Datasets to concatenate
-        features (:obj:``nlp.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
         info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
             description, citation, etc.
         split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
