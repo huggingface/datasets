@@ -16,23 +16,26 @@
 # Lint as: python3
 """CheckList helper class"""
 
+import logging
 import os
 
 import numpy as np
-
 
 from .arrow_dataset import Dataset
 from .load import import_main_class, load_dataset, prepare_module
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig
-import logging
+
 
 logger = logging.getLogger(__name__)
 
 try:
     from checklist.test_suite import TestSuite
 except ImportError:
-    logger.error("ImportError: To be able to use this module, you need to install the following dependencies ['checklist'] using 'pip install checklist' for instance.")
+    logger.error(
+        "ImportError: To be able to use this module, you need to install the following dependencies ['checklist'] using 'pip install checklist' for instance."
+    )
+
 
 def aggr_testcases(dataset):
     """Aggregates all test cases of a specific test in a dataset
