@@ -26,24 +26,13 @@ _URL = "https://gitlab.lip6.fr/scialom/mlsum_data/-/raw/master/MLSUM/"
 _LANG = ["de", "es", "fr", "ru", "tu"]
 
 
-class MlsumConfig(nlp.BuilderConfig):
-    def __init__(self, **kwargs):
-        """BuilderConfig for MLSQUM
-
-        Args:
-          data_url: `string`, url to the dataset
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(MlsumConfig, self).__init__(version=nlp.Version("1.0.0",), **kwargs)
-
-
 class Mlsum(nlp.GeneratorBasedBuilder):
 
-    VERSION = nlp.Version("1.0.0")
     BUILDER_CONFIGS = (
         [
-            MlsumConfig(
+            nlp.BuilderConfig(
                 name=lang,
+                version=nlp.Version("1.0.0"),
                 description="",
             )
             for lang in _LANG
