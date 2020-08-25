@@ -53,8 +53,8 @@ DOCLINES = __doc__.split('\n')
 
 REQUIRED_PKGS = [
     'numpy',
-    # Backend and serialization
-    'pyarrow>=0.16.0',
+    # Backend and serialization. Minimum 0.17.1 to support extension array
+    'pyarrow>=0.17.1',
     # For smart caching dataset processing
     'dill',
     # For performance gains with apache arrow
