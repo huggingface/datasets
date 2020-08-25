@@ -9,7 +9,6 @@ import pandas as pd
 from nlp import Features, Sequence, Value
 from nlp.arrow_dataset import Dataset
 from nlp.dataset_dict import DatasetDict
-from nlp.features import Value
 
 from .utils import require_tf, require_torch
 
