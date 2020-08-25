@@ -154,33 +154,33 @@ class DatasetDict(dict):
             The transformation is applied to all the datasets of the dataset dictionary.
 
             Args:
-                `function` (`callable`): with one of the following signature:
+                function (`callable`): with one of the following signature:
                     - `function(example: Dict) -> Union[Dict, Any]` if `batched=False` and `with_indices=False`
                     - `function(example: Dict, indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
                     - `function(batch: Dict[List]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
                     - `function(batch: Dict[List], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
-                `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-                `input_columns` (`Optional[Union[str, List[str]]]`, default: `None`): The columns to be passed into `function` as
+                with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+                input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                     positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-                `batched` (`bool`, default: `False`): Provide batch of examples to `function`
-                `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
+                batched (`bool`, defaults to `False`): Provide batch of examples to `function`
+                batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-                `remove_columns` (`Optional[List[str]]`, default: `None`): Remove a selection of columns while doing the mapping.
+                remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                     Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                     columns with names in `remove_columns`, these columns will be kept.
-                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
-                `cache_file_names` (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
+                cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
                     results of the computation instead of the automatically generated cache file name.
                     You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `features` (`Optional[nlp.Features]`, default: `None`): Use a specific Features to store the cache file
+                features (`Optional[nlp.Features]`, defaults to `None`): Use a specific Features to store the cache file
                     instead of the automatically generated one.
-                `disable_nullable` (`bool`, default: `False`): Disallow null values in the table.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
-                `fn_kwargs` (`Optional[Dict]`, default: `None`): Keyword arguments to be passed to `function`
+                disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -226,27 +226,27 @@ class DatasetDict(dict):
             The transformation is applied to all the datasets of the dataset dictionary.
 
             Args:
-                `function` (`callable`): with one of the following signature:
+                function (`callable`): with one of the following signature:
                     - `function(example: Dict) -> bool` if `with_indices=False`
                     - `function(example: Dict, indices: int) -> bool` if `with_indices=True`
-                `with_indices` (`bool`, default: `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
-                `input_columns` (`Optional[Union[str, List[str]]]`, default: `None`): The columns to be passed into `function` as
+                with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+                input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                     positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
-                `batch_size` (`Optional[int]`, default: `1000`): Number of examples per batch provided to `function` if `batched=True`
+                batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                     `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
-                `remove_columns` (`Optional[List[str]]`, default: `None`): Remove a selection of columns while doing the mapping.
+                remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                     Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                     columns with names in `remove_columns`, these columns will be kept.
-                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
-                `cache_file_names` (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
+                cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
                     results of the computation instead of the automatically generated cache file name.
                     You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
-                `fn_kwargs` (`Optional[Dict]`, default: `None`): Keyword arguments to be passed to `function`
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -289,20 +289,20 @@ class DatasetDict(dict):
             This also means that the column used for sorting is fully loaded in memory (which should be fine in most cases).
 
             Args:
-                `column` (`str`): column name to sort by.
-                `reverse`: (`bool`, default: `False`): If True, sort by descending order rather then ascending.
-                `kind` (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
+                column (`str`): column name to sort by.
+                reverse: (`bool`, defaults to `False`): If True, sort by descending order rather then ascending.
+                kind (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                     The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                     the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
-                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
-                `cache_file_names` (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
+                cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
                     results of the computation instead of the automatically generated cache file name.
                     You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -340,22 +340,22 @@ class DatasetDict(dict):
             You can either supply a NumPy BitGenerator to use, or a seed to initiate NumPy's default random generator (PCG64).
 
             Args:
-                `seeds` (Optional `Dict[str, int]`): A seed to initialize the default BitGenerator if ``generator=None``.
+                seeds (Optional `Dict[str, int]`): A seed to initialize the default BitGenerator if ``generator=None``.
                     If None, then fresh, unpredictable entropy will be pulled from the OS.
                     If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
                     You have to provide one :obj:`seed` per dataset in the dataset dictionary.
-                `generators` (Optional `Dict[str, np.random.Generator]`): Numpy random Generator to use to compute the permutation of the dataset rows.
+                generators (Optional `Dict[str, np.random.Generator]`): Numpy random Generator to use to compute the permutation of the dataset rows.
                     If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
                     You have to provide one :obj:`generator` per dataset in the dataset dictionary.
-                `keep_in_memory` (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
-                `load_from_cache_file` (`bool`, default: `True`): If a cache file storing the current computation from `function`
+                keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+                load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                     can be identified, use it instead of recomputing.
-                `cache_file_names` (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
+                cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
                     results of the computation instead of the automatically generated cache file name.
                     You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
-                `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                     Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-                `verbose` (`bool`, default: `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         self._check_values_type()
         if seeds is None:
