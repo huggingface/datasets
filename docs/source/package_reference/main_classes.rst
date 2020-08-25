@@ -38,7 +38,7 @@ It also has dataset transform methods like map or filter, to process all the spl
 
 .. autoclass:: nlp.DatasetDict
     :members: data, cache_files, num_columns, num_rows, column_names, shape,
-        drop_, unique, dictionary_encode_column_, flatten_,
+        drop_, unique, flatten_,
         cleanup_cache_files,
         map, filter, sort, shuffle, set_format, reset_format, formatted_as,
         cast_, remove_column_, rename_column_
