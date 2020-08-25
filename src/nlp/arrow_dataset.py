@@ -295,23 +295,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Shape of the dataset (number of columns, number of rows)."""
         return self._data.shape
 
-    def drop_(self, columns: Union[str, List[str]]):
-        """ Drop one or more columns.
-
-        Args:
-            columns (:obj:`str` or :obj:`List[str]`):
-                Column or list of columns to remove from the dataset.
-        """
-        if isinstance(columns, str):
-            columns = [columns]
-        if any(col not in self._data.column_names for col in columns):
-            raise ValueError(
-                "Columns {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
-                )
-            )
-        self._data = self._data.drop(columns)
-
     def unique(self, column: str) -> List[Any]:
         """ Return a list of the unique elements in a column.
 
@@ -330,6 +313,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def dictionary_encode_column_(self, column: str):
         """ Dictionary encode a column.
+
             Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
             by storing a dictionary of the strings. This only affect the internal storage.
 
@@ -386,27 +370,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema(features.type)
         self._data = self._data.cast(schema)
 
-    def remove_column_(self, column_name: str):
+    def remove_columns_(self, column_names: Union[str, List[str]]):
         """
-        Remove a column in the dataset and the features associated to the column.
+        Remove one or several column(s) in the dataset and
+        the features associated to them.
 
         You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
 
         Args:
-            column_name (:obj:`str`): Name of the column to remove.
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
         """
-        if column_name not in self._data.column_names:
-            raise ValueError(
-                f"Column name {column_name} not in the dataset. "
-                f"Current columns in the dataset: {self._data.column_names}"
-            )
+        if isinstance(column_names, str):
+            column_names = [column_names]
 
-        column_index = (self._data.column_names).index(column_name)
+        for column_name in column_names:
+            if column_name not in self._data.column_names:
+                raise ValueError(
+                    f"Column name {column_name} not in the dataset. "
+                    f"Current columns in the dataset: {self._data.column_names}"
+                )
 
-        del self._info.features[column_name]
+        for column_name in column_names:
+            del self._info.features[column_name]
 
-        self._data = self._data.remove_column(column_index)
+        self._data = self._data.drop(column_names)
 
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """

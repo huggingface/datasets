@@ -54,17 +54,19 @@ class DatasetDict(dict):
         self._check_values_type()
         return {k: dataset.shape for k, dataset in self.items()}
 
-    def drop_(self, columns: Union[str, List[str]]):
-        """ Drop one or more columns.
-            The transformation is applied to all the datasets of the dataset dictionary.
+    def dictionary_encode_column_(self, column: str):
+        """ Dictionary encode a column in each split.
+
+            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+            by storing a dictionary of the strings. This only affect the internal storage.
 
         Args:
-            columns (:obj:`str` or :obj:`List[str]`):
-                Column or list of columns to remove from the dataset.
+            column (:obj:`str`):
+
         """
         self._check_values_type()
         for dataset in self.values():
-            dataset.drop_(columns=columns)
+            dataset.dictionary_encode_column_(column=column)
 
     def flatten_(self, max_depth=16):
         """ Flatten the Apache Arrow Table of each split (nested features are flatten).
@@ -122,20 +124,22 @@ class DatasetDict(dict):
         for dataset in self.values():
             dataset.cast_(features=features)
 
-    def remove_column_(self, column_name: str):
+    def remove_columns_(self, column_names: Union[str, List[str]]):
         """
-        Remove a column in the dataset and the features associated to the column.
-        The transformation is applied to all the datasets of the dataset dictionary.
+        Remove one or several column(s) from each split in the dataset
+        and the features associated to the column(s).
+
+        The transformation is applied to all the splits of the dataset dictionary.
 
         You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
 
         Args:
-            column_name (:obj:`str`): Name of the column to remove.
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
         """
         self._check_values_type()
         for dataset in self.values():
-            dataset.remove_column_(column_name=column_name)
+            dataset.remove_columns_(column_names=column_names)
 
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """

@@ -39,7 +39,9 @@ class DatasetDictTest(TestCase):
         dset.flatten_()
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
         self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
-        self.assertDictEqual(dset["train"].features, Features({"a.b.c": [Value("string")], "foo": Value("int64")}))
+        self.assertDictEqual(
+            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+        )
 
     def test_set_format_numpy(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
@@ -145,12 +147,17 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split.features["col_1"], Value("float64"))
             self.assertIsInstance(dset_split[0]["col_1"], float)
 
-    def test_remove_column_(self):
+    def test_remove_columns_(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
-        dset.remove_column_(column_name="col_1")
+        dset.remove_columns_(column_names="col_1")
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 1)
             self.assertListEqual(list(dset_split.column_names), ["col_2"])
+
+        dset = self._create_dummy_dataset_dict(multiple_columns=True)
+        dset.remove_columns_(column_names=["col_1", "col_2"])
+        for dset_split in dset.values():
+            self.assertEqual(dset_split.num_columns, 0)
 
     def test_rename_column_(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)

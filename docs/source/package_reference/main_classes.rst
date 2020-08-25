@@ -16,8 +16,8 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
 .. autoclass:: nlp.Dataset
     :members: from_file, from_buffer, from_pandas, from_dict,
         data, cache_files, num_columns, num_rows, column_names, shape,
-        drop_, unique, dictionary_encode_column_, flatten_,
-        cast_, remove_column_, rename_column_,
+        unique, flatten_,
+        cast_, remove_columns_, rename_column_,
         __len__, __iter__, formatted_as, set_format, reset_format,
         __getitem__, cleanup_cache_files,
         map, filter, select, sort, shuffle, train_test_split, shard, export,
@@ -38,10 +38,10 @@ It also has dataset transform methods like map or filter, to process all the spl
 
 .. autoclass:: nlp.DatasetDict
     :members: data, cache_files, num_columns, num_rows, column_names, shape,
-        drop_, unique, flatten_,
+        unique, flatten_,
         cleanup_cache_files,
         map, filter, sort, shuffle, set_format, reset_format, formatted_as,
-        cast_, remove_column_, rename_column_
+        cast_, remove_columns_, rename_column_
 
 
 ``Features``
