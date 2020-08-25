@@ -176,12 +176,12 @@ class DatasetDictTest(TestCase):
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_1.keys()))
             self.assertEqual(len(filtered_dsets_1["train"]), 10)
 
-            cache_file_names = {
+            index_cache_file_names = {
                 "train": os.path.join(tmp_dir, "train.arrow"),
                 "test": os.path.join(tmp_dir, "test.arrow"),
             }
             filtered_dsets_2: Dict[str, Dataset] = filtered_dsets_1.filter(
-                lambda ex: int(ex["filename"].split("_")[-1]) < 5, cache_file_names=cache_file_names
+                lambda ex: int(ex["filename"].split("_")[-1]) < 5, index_cache_file_names=index_cache_file_names
             )
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_2.keys()))
             self.assertEqual(len(filtered_dsets_2["train"]), 5)
@@ -196,12 +196,12 @@ class DatasetDictTest(TestCase):
                 [f.split("_")[-1] for f in sorted_dsets_1["train"]["filename"]], sorted(str(x) for x in range(30))
             )
 
-            cache_file_names = {
+            index_cache_file_names = {
                 "train": os.path.join(tmp_dir, "train.arrow"),
                 "test": os.path.join(tmp_dir, "test.arrow"),
             }
             sorted_dsets_2: Dict[str, Dataset] = sorted_dsets_1.sort(
-                "filename", cache_file_names=cache_file_names, reverse=True
+                "filename", index_cache_file_names=index_cache_file_names, reverse=True
             )
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_2.keys()))
             self.assertListEqual(

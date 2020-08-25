@@ -109,6 +109,7 @@ INCOMPLETE_SUFFIX = ".incomplete"
 def is_beam_available():
     return _beam_available
 
+
 @contextmanager
 def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
     np_state = np.random.get_state()

@@ -1431,9 +1431,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             shutil.move(tmp_file.name, indices_cache_file_name)
 
         # Return new Dataset object
-        return self._new_dataset_with_indices(
-            indices_cache_file_name=indices_cache_file_name, indices_buffer=buf_writer.getvalue()
-        )
+        if buf_writer is None:
+            return self._new_dataset_with_indices(indices_cache_file_name=indices_cache_file_name)
+        else:
+            return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue())
 
     def sort(
         self,
