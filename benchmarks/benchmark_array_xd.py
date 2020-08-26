@@ -3,9 +3,9 @@ import os
 import tempfile
 
 import nlp
-from utils import generate_examples, get_duration
 from nlp.arrow_writer import ArrowWriter
 from nlp.features import Array2D
+from utils import generate_examples, get_duration
 
 
 SHAPE_TEST_1 = (30, 487)
