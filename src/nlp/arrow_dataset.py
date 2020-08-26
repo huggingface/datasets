@@ -410,7 +410,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if original_column_name not in self._data.column_names:
             raise ValueError(
-                f"Orignal column name {original_column_name} not in the dataset. "
+                f"Original column name {original_column_name} not in the dataset. "
+                f"Current columns in the dataset: {self._data.column_names}"
+            )
+        if new_column_name in self._data.column_names:
+            raise ValueError(
+                f"New column name {original_column_name} already in the dataset. "
+                f"Please choose a column name which is not already in the dataset. "
                 f"Current columns in the dataset: {self._data.column_names}"
             )
         if not new_column_name:
