@@ -1,6 +1,6 @@
 version: 2
 jobs:
-    run_dataset_script_tests_pyarrow_0p16:
+    run_dataset_script_tests_pyarrow_0p17:
         working_directory: ~/nlp
         docker:
             - image: circleci/python:3.6
@@ -10,7 +10,7 @@ jobs:
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
-            - run: pip install pyarrow==0.16.0
+            - run: pip install pyarrow==0.17.1
             - run: python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1:
