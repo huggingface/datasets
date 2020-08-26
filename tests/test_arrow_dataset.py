@@ -591,6 +591,42 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_select_even.features, Features({"filename": Value("string")}))
 
+    def test_select_then_map(self):
+        dset = self._create_dummy_dataset()
+
+        d1 = dset.select([0])
+        d2 = dset.select([1])
+        d1 = d1.map(lambda x: {"id": int(x["filename"][-1])})
+        d2 = d2.map(lambda x: {"id": int(x["filename"][-1])})
+        self.assertEqual(d1[0]["id"], 0)
+        self.assertEqual(d2[0]["id"], 1)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            d1 = dset.select([0], indices_cache_file_name=os.path.join(tmp_dir, "i1.arrow"))
+            d2 = dset.select([1], indices_cache_file_name=os.path.join(tmp_dir, "i2.arrow"))
+            d1 = d1.map(lambda x: {"id": int(x["filename"][-1])})
+            d2 = d2.map(lambda x: {"id": int(x["filename"][-1])})
+            self.assertEqual(d1[0]["id"], 0)
+            self.assertEqual(d2[0]["id"], 1)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dataset = dset.map(cache_file_name=os.path.join(tmp_dir, "test.arrow"))
+            d1 = dataset.select([0])
+            d2 = dataset.select([1])
+            d1 = d1.map(lambda x: {"id": int(x["filename"][-1])})
+            d2 = d2.map(lambda x: {"id": int(x["filename"][-1])})
+            self.assertEqual(d1[0]["id"], 0)
+            self.assertEqual(d2[0]["id"], 1)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dataset = dset.map(cache_file_name=os.path.join(tmp_dir, "test.arrow"))
+            d1 = dataset.select([0], indices_cache_file_name=os.path.join(tmp_dir, "i1.arrow"))
+            d2 = dataset.select([1], indices_cache_file_name=os.path.join(tmp_dir, "i2.arrow"))
+            d1 = d1.map(lambda x: {"id": int(x["filename"][-1])})
+            d2 = d2.map(lambda x: {"id": int(x["filename"][-1])})
+            self.assertEqual(d1[0]["id"], 0)
+            self.assertEqual(d2[0]["id"], 1)
+
     def test_shuffle(self):
         dset = self._create_dummy_dataset()
 

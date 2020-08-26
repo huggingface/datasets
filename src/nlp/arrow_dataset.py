@@ -915,13 +915,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """ Find a unique name from the filenames, kwargs and the function """
         if not self._data_files or "filename" not in self._data_files[0]:
             return None
-        previous_files_string = "-".join(
+        previous_files_string = "previous_files: " + "-".join(
             "-".join(str(k) + "-" + str(v) for k, v in f.items()) for f in self._data_files
         )
+        if self._indices_data_files:
+            indices_string = "indices: " + "-".join(
+                "-".join(str(k) + "-" + str(v) for k, v in f.items()) for f in self._indices_data_files
+            )
+        elif self._indices is not None:
+            indices_string = self._indices["indices"].to_string()
+        else:
+            indices_string = ""
         cache_kwargs_string = "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items())
         function_bytes = dumps(function)
         output_hash = hashlib.md5(
-            previous_files_string.encode("utf-8") + cache_kwargs_string.encode("utf-8") + function_bytes
+            previous_files_string.encode("utf-8")
+            + indices_string.encode("utf-8")
+            + cache_kwargs_string.encode("utf-8")
+            + function_bytes
         ).hexdigest()
         cache_file_name = "cache-" + output_hash + ".arrow"
         cache_directory = os.path.dirname(self._data_files[0]["filename"])
@@ -1342,15 +1353,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_mmap = pa.memory_map(indices_cache_file_name)
             if data_files is None:
                 data_files = []
-            data_files.append({"filename": indices_cache_file_name})
+            indices_data_files = [{"filename": indices_cache_file_name}]
         else:
             indices_mmap = pa.BufferReader(indices_buffer)
+            indices_data_files = None
         indices_f = pa.ipc.open_stream(indices_mmap)
         indices_pa_table = indices_f.read_all()
 
         # Return new Dataset object
         return Dataset(
-            self._data, data_files=data_files, info=self.info, split=self.split, indices_table=indices_pa_table
+            self._data,
+            data_files=data_files,
+            info=self.info,
+            split=self.split,
+            indices_table=indices_pa_table,
+            indices_data_files=indices_data_files,
         )
 
     def select(
