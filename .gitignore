@@ -58,3 +58,5 @@ docs/source/_build/
 # Benchmark results
 /benchmarks/results/*
 !/benchmarks/results/.gitkeep
+report.json
+report.md

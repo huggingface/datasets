@@ -15,6 +15,8 @@ jobs:
           dvc repro
 
           git fetch --prune
-          dvc metrics diff --show-md master > report.md
+          dvc metrics diff --show-json master > report.json
+
+          python ./benchmarks/format_benchmark.py report.json report.md
 
           cml-send-comment report.md
