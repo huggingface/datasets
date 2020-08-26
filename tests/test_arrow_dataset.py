@@ -199,11 +199,15 @@ class BaseDatasetTest(TestCase):
         self.assertEqual(dset.features["col_1"], Value("float64"))
         self.assertIsInstance(dset[0]["col_1"], float)
 
-    def test_remove_column_(self):
+    def test_remove_columns_(self):
         dset = self._create_dummy_dataset(multiple_columns=True)
-        dset.remove_column_(column_name="col_1")
+        dset.remove_columns_(column_names="col_1")
         self.assertEqual(dset.num_columns, 1)
         self.assertListEqual(list(dset.column_names), ["col_2"])
+
+        dset = self._create_dummy_dataset(multiple_columns=True)
+        dset.remove_columns_(column_names=["col_1", "col_2"])
+        self.assertEqual(dset.num_columns, 0)
 
     def test_rename_column_(self):
         dset = self._create_dummy_dataset(multiple_columns=True)
@@ -230,7 +234,7 @@ class BaseDatasetTest(TestCase):
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
             features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
         )
-        dset.flatten()
+        dset.flatten_()
         self.assertListEqual(dset.column_names, ["a.b.c", "foo"])
         self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}))
@@ -420,7 +424,7 @@ class BaseDatasetTest(TestCase):
             )
             self.assertListEqual(dset_test[0]["tensor"], [1, 2, 3])
 
-    def test_remove_colums(self):
+    def test_map_remove_colums(self):
         dset = self._create_dummy_dataset()
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -655,7 +659,7 @@ class BaseDatasetTest(TestCase):
                 remove_columns=["filename"],
                 cache_file_name=tmp_file,
             )
-            dset.flatten()
+            dset.flatten_()
             dset.set_format("numpy")
             dset.export(filename=tfrecord_path, format="tfrecord")
 

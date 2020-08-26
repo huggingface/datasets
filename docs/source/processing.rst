@@ -458,7 +458,7 @@ When you have several :obj:`nlp.Dataset` objects that share the same column type
     >>>
     >>> bookcorpus = load_dataset("bookcorpus", split="train")
     >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
-    >>> wiki.remove_column_("title")  # only keep the text
+    >>> wiki.remove_columns_("title")  # only keep the text
     >>>
     >>> assert bookcorpus.features.type == wiki.features.type
     >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
