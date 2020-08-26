@@ -35,8 +35,9 @@ def get_duration(func):
     return wrapper
 
 
-def generate_examples(features: dict, num_examples=100):
+def generate_examples(features: dict, num_examples=100, seq_shapes=None):
     dummy_data = []
+    seq_shapes = seq_shapes or {}
     for i in range(num_examples):
         example = {}
         for col_id, (k, v) in enumerate(features.items()):
@@ -45,10 +46,9 @@ def generate_examples(features: dict, num_examples=100):
             elif isinstance(v, nlp.Value):
                 data = "foo"
             elif isinstance(v, nlp.Sequence):
-                shape = []
                 while isinstance(v, nlp.Sequence):
-                    shape.append(v.length)
                     v = v.feature
+                shape = seq_shapes[k]
                 data = np.random.rand(*shape).astype(v.dtype)
             example[k] = data
             dummy_data.append((i, example))
@@ -214,20 +214,30 @@ class SpeedBenchmarkTest(unittest.TestCase):
                 times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            feats = nlp.Features(
-                {"image": nlp.Sequence(nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[1]), SPEED_TEST_SHAPE[0])}
+            # don't use fixed length for fair comparison
+            # feats = nlp.Features(
+            #     {"image": nlp.Sequence(nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[1]), SPEED_TEST_SHAPE[0])}
+            # )
+            feats = nlp.Features({"image": nlp.Sequence(nlp.Sequence(nlp.Value("float32")))})
+            data = generate_examples(
+                features=feats, num_examples=SPEED_TEST_N_EXAMPLES, seq_shapes={"image": SPEED_TEST_SHAPE}
             )
-            data = generate_examples(features=feats, num_examples=SPEED_TEST_N_EXAMPLES)
             write_func = write_nested_sequence
             times[write_func.__name__] = write_func(feats, data, tmp_dir)
             for read_func in read_functions:
                 times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            feats = nlp.Features(
-                {"image": nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[0] * SPEED_TEST_SHAPE[1])}
+            # don't use fixed length for fair comparison
+            # feats = nlp.Features(
+            #     {"image": nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[0] * SPEED_TEST_SHAPE[1])}
+            # )
+            feats = nlp.Features({"image": nlp.Sequence(nlp.Value("float32"))})
+            data = generate_examples(
+                features=feats,
+                num_examples=SPEED_TEST_N_EXAMPLES,
+                seq_shapes={"image": [SPEED_TEST_SHAPE[0] * SPEED_TEST_SHAPE[1]]},
             )
-            data = generate_examples(features=feats, num_examples=SPEED_TEST_N_EXAMPLES)
             write_func = write_flattened_sequence
             times[write_func.__name__] = write_func(feats, data, tmp_dir)
             for read_func in read_functions:
