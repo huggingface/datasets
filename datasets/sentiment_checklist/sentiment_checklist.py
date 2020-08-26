@@ -76,6 +76,8 @@ class SentimentCheckList(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = SentimentCheckListConfig
     BUILDER_CONFIGS = [SentimentCheckListConfig(_URL, _SUITE_NAME, version=VERSION, name="sentiment_checklist_config")]
 
+    test_dummy_data = False
+
     def _info(self):
         return nlp.DatasetInfo(
             # This is the description that will appear on the datasets page.
