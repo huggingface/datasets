@@ -54,3 +54,6 @@ venv.bak/
 # Sphinx documentation
 docs/_build/
 docs/source/_build/
+
+# Benchmark results
+benchmarks/results/*
