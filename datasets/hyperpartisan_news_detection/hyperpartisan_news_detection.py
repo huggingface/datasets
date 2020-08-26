@@ -18,10 +18,10 @@
 
 from __future__ import absolute_import, division, print_function
 
+import glob
 import os
 import textwrap
 import xml.etree.ElementTree as ET
-import glob
 
 import nlp
 
@@ -78,7 +78,6 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
         ),
     ]
 
-
     def _info(self):
         features = {
             "text": nlp.Value("string"),
@@ -100,11 +99,10 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
-
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         urls = {
-            nlp.Split.TRAIN:{
+            nlp.Split.TRAIN: {
                 "articles_file": _URL_BASE + "articles-training-" + self.config.name + "-20181122.zip?download=1",
                 "labels_file": _URL_BASE + "ground-truth-training-" + self.config.name + "-20181122.zip?download=1",
             },
@@ -122,18 +120,9 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
         splits = []
         for split in data_dir:
             for key in data_dir[split]:
-                data_dir[split][key] = os.path.join(
-                        data_dir[split][key],
-                        os.listdir(data_dir[split][key])[0]
-                    )
-            splits.append(
-                nlp.SplitGenerator(
-                    name=split,
-                    gen_kwargs = data_dir[split]
-                )
-            )
+                data_dir[split][key] = os.path.join(data_dir[split][key], os.listdir(data_dir[split][key])[0])
+            splits.append(nlp.SplitGenerator(name=split, gen_kwargs=data_dir[split]))
         return splits
-
 
     def _generate_examples(self, articles_file=None, labels_file=None):
         """Yields examples."""
