@@ -3,7 +3,7 @@ import os
 import tempfile
 
 import nlp
-from benchmark_utils import generate_examples, get_duration
+from utils import generate_examples, get_duration
 from nlp.arrow_writer import ArrowWriter
 from nlp.features import Array2D
 

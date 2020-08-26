@@ -17,6 +17,6 @@ jobs:
           git fetch --prune
           dvc metrics diff --show-json master > report.json
 
-          python ./benchmarks/format_benchmark.py report.json report.md
+          python ./benchmarks/format.py report.json report.md
 
           cml-send-comment report.md
