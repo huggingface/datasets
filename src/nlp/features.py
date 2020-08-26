@@ -231,7 +231,9 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
     def _generate_dtype(self, dtype):
         dtype = string_to_arrow(dtype)
         for d in reversed(self.shape):
-            dtype = pa.list_(dtype, d)
+            dtype = pa.list_(dtype)
+            # Don't specify the size of the list, since fixed length list arrays have issues
+            # being validated after slicing in pyarrow 0.17.1
         return dtype
 
     def to_pandas_dtype(self):
@@ -259,10 +261,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
         return self.to_numpy()
 
     def __getitem__(self, i):
-        # ExtensionScalar is the python list object
-        if isinstance(i, int):
-            return super().__getitem__(slice(i, i + 1)).to_pylist()[0]
-        return super().__getitem__(i)
+        return self.storage[i]
 
     def to_numpy(self):
         storage: pa.FixedSizeListArray = self.storage
@@ -270,7 +269,7 @@ class ArrayExtensionArray(pa.ExtensionArray):
         for i in range(self.type.ndims):
             size *= self.type.shape[i]
             storage = storage.flatten()
-        numpy_arr = storage[self.offset * size : (self.offset + len(self)) * size].to_numpy()
+        numpy_arr = storage.to_numpy()
         numpy_arr = numpy_arr.reshape(len(self), *self.type.shape)
         return numpy_arr
 
