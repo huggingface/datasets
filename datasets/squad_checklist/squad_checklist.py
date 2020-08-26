@@ -72,6 +72,8 @@ class SquadCheckList(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = SquadCheckListConfig
     BUILDER_CONFIGS = [SquadCheckListConfig(_URL, _SUITE_NAME, version=VERSION, name="squad_checklist_config")]
 
+    test_dummy_data = False
+
     def _info(self):
         return nlp.DatasetInfo(
             # This is the description that will appear on the datasets page.
