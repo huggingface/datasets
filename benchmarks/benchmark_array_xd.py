@@ -22,28 +22,7 @@ RESULTS_FILE_PATH = os.path.join(RESULTS_BASEPATH, "results", RESULTS_FILENAME.r
 
 
 @get_duration
-def write_array2d(feats, dummy_data, tmp_dir):
-    my_features = nlp.Features(feats)
-    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-    for key, record in dummy_data:
-        example = my_features.encode_example(record)
-        writer.write(example)
-    num_examples, num_bytes = writer.finalize()
-
-
-@get_duration
-def write_nested_sequence(feats, dummy_data, tmp_dir):
-    my_features = nlp.Features(feats)
-    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-    for key, record in dummy_data:
-        example = my_features.encode_example(record)
-        writer.write(example)
-    num_examples, num_bytes = writer.finalize()
-
-
-@get_duration
-def write_flattened_sequence(feats, dummy_data, tmp_dir):
-    my_features = nlp.Features(feats)
+def write(my_features, dummy_data, tmp_dir):
     writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
     for key, record in dummy_data:
         example = my_features.encode_example(record)
@@ -111,10 +90,9 @@ def benchmark_array_xd():
     with tempfile.TemporaryDirectory() as tmp_dir:
         feats = nlp.Features({"image": Array2D(SPEED_TEST_SHAPE, dtype="float32")})
         data = generate_examples(features=feats, num_examples=SPEED_TEST_N_EXAMPLES)
-        write_func = write_array2d
-        times[write_func.__name__] = write_func(feats, data, tmp_dir)
+        times["write_array2d"] = write(feats, data, tmp_dir)
         for read_func in read_functions:
-            times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
+            times[read_func.__name__ + " after write_array2d"] = read_func(feats, tmp_dir)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # don't use fixed length for fair comparison
@@ -125,10 +103,9 @@ def benchmark_array_xd():
         data = generate_examples(
             features=feats, num_examples=SPEED_TEST_N_EXAMPLES, seq_shapes={"image": SPEED_TEST_SHAPE}
         )
-        write_func = write_nested_sequence
-        times[write_func.__name__] = write_func(feats, data, tmp_dir)
+        times["write_nested_sequence"] = write(feats, data, tmp_dir)
         for read_func in read_functions:
-            times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
+            times[read_func.__name__ + " after write_nested_sequence"] = read_func(feats, tmp_dir)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # don't use fixed length for fair comparison
@@ -141,29 +118,12 @@ def benchmark_array_xd():
             num_examples=SPEED_TEST_N_EXAMPLES,
             seq_shapes={"image": [SPEED_TEST_SHAPE[0] * SPEED_TEST_SHAPE[1]]},
         )
-        write_func = write_flattened_sequence
-        times[write_func.__name__] = write_func(feats, data, tmp_dir)
+        times["write_flattened_sequence"] = write(feats, data, tmp_dir)
         for read_func in read_functions:
-            times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
-
-    # benchmark_df = pd.DataFrame.from_dict(times, orient="index", columns=["time"]).sort_index()
+            times[read_func.__name__ + " after write_flattened_sequence"] = read_func(feats, tmp_dir)
 
     with open(RESULTS_FILE_PATH, "wb") as f:
-        # Dump info in `file` file-like object open in bytes mode (to support remote files)
         f.write(json.dumps(times).encode("utf-8"))
-
-    # warn("Speed benchmark:\n" + str(benchmark_df))
-    # self.assertGreater(
-    #     times["write_nested_sequence"], times["write_array2d"] * 10
-    # )  # At leasr 10 times faster (it is supposed to be ~25 times faster)
-    # self.assertGreater(
-    #     times["read_batch_formatted_as_numpy after write_nested_sequence"],
-    #     times["read_batch_formatted_as_numpy after write_array2d"],
-    # )  # At least faster (it is supposed to be ~2 times faster)
-    # self.assertGreater(
-    #     times["read_batch_unformated after write_nested_sequence"],
-    #     times["read_batch_formatted_as_numpy after write_array2d"] * 5,
-    # )  # At least 5 times faster (it is supposed to be ~10 times faster)
 
 
 if __name__ == "__main__":  # useful to run the profiler
