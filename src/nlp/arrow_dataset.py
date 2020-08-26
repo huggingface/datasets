@@ -142,6 +142,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_table: Optional[pa.Table] = None,
+        indices_data_files: Optional[List[dict]] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
@@ -149,6 +150,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data: pa.Table = arrow_table
         self._indices: Optional[pa.Table] = indices_table
         self._data_files: List[dict] = data_files if data_files is not None else []
+        self._indices_data_files: List[dict] = indices_data_files if indices_data_files is not None else []
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
         self._format_columns: Optional[list] = None
@@ -196,11 +198,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_mmap = pa.memory_map(indices_filename)
             indices_f = pa.ipc.open_stream(indices_mmap)
             indices_pa_table = indices_f.read_all()
-            data_files.append({"filename": indices_filename})
+            indices_data_files = [{"filename": indices_filename}]
         else:
             indices_pa_table = None
+            indices_data_files = None
 
-        return cls(arrow_table=pa_table, data_files=data_files, info=info, split=split, indices_table=indices_pa_table)
+        return cls(
+            arrow_table=pa_table,
+            data_files=data_files,
+            info=info,
+            split=split,
+            indices_table=indices_pa_table,
+            indices_data_files=indices_data_files,
+        )
 
     @classmethod
     def from_buffer(
