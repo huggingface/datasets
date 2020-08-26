@@ -10,11 +10,11 @@ jobs:
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
-
           # Your ML workflow goes here
           pip install -e .[tests]
-          python ./benchmarks/run.py
+          dvc repro
 
-          # Write your CML report
-          cat results.txt >> report.md
+          git fetch --prune
+          dvc metrics diff --show-md master > report.md
+
           cml-send-comment report.md
