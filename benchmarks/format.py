@@ -18,7 +18,8 @@ def format_json_to_md(input_json_file, output_md_file):
         new = "| new    |"
         old = "| old    |"
         dif = "| diff   |"
-        for metric_name, metric_vals in benchmark_res.items():
+        for metric_name in sorted(benchmark_res):
+            metric_vals = benchmark_res[metric_name]
             new_val = metric_vals["new"]
             old_val = metric_vals["old"]
             dif_val = metric_vals.get("diff", None)
