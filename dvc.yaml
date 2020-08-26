@@ -1,0 +1,8 @@
+stages:
+  benchmarks:
+    cmd: python ./benchmarks/benchmark_array_xd.py
+    deps:
+    - ./benchmarks/benchmark_array_xd.py
+    metrics:
+    - ./benchmarks/results/benchmark_array_xd.json:
+        cache: false
