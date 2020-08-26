@@ -151,23 +151,22 @@ class BaseReader:
         """Returns a Dataset instance from given (filename, skip, take)."""
         raise NotImplementedError
 
-    def _read_files(self, files, info, original_instructions) -> dict:
+    def _read_files(self, files) -> pa.Table:
         """Returns Dataset for given file instructions.
 
         Args:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contain the absolute path, not relative.
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
-            original_instructions: store the original instructions used to build the dataset split in the dataset
         """
+        assert len(files) > 0 and all(isinstance(f, dict) for f in files), "please provide valid file informations"
         pa_batches = []
         for f_dict in files:
             pa_table: pa.Table = self._get_dataset_from_filename(f_dict)
             pa_batches.extend(pa_table.to_batches())
-        if pa_batches:
-            pa_table = pa.Table.from_batches(pa_batches)
-        dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=info, split=original_instructions)
-        return dataset_kwargs
+        assert len(pa_batches) > 0, "tried to read an empty arrow table"
+        pa_table = pa.Table.from_batches(pa_batches)
+        return pa_table
 
     def get_file_instructions(self, name, instruction, split_infos):
         """Return list of dict {'filename': str, 'skip': int, 'take': int}"""
@@ -222,7 +221,8 @@ class BaseReader:
         files = copy.deepcopy(files)
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
-        dataset_kwargs = self._read_files(files=files, info=self._info, original_instructions=original_instructions)
+        pa_table = self._read_files(files)
+        dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=self._info, split=original_instructions)
         return dataset_kwargs
 
     def download_from_hf_gcs(self, cache_dir, relative_data_dir):

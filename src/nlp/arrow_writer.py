@@ -129,6 +129,7 @@ class ArrowWriter(object):
         features: Optional[Features] = None,
         path: Optional[str] = None,
         stream: Optional[pa.NativeFile] = None,
+        fingerprint: Optional[str] = None,
         writer_batch_size: Optional[int] = None,
         disable_nullable: bool = False,
         update_features: bool = False,
@@ -155,6 +156,7 @@ class ArrowWriter(object):
         else:
             self.stream = stream
 
+        self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
         self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
@@ -183,17 +185,23 @@ class ArrowWriter(object):
         if self.disable_nullable:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
         if self.with_metadata:
-            self._schema = self._schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features)))
+            self._schema = self._schema.with_metadata(
+                self._build_metadata(DatasetInfo(features=self._features), self.fingerprint)
+            )
         self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
 
     @property
     def schema(self):
         return self._schema if self._schema is not None else []
 
-    def _build_metadata(self, info) -> Dict[str, str]:
-        keys = ["features"]  # we can add support for more DatasetInfo keys in the future
+    def _build_metadata(self, info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
+        info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
-        return {"huggingface": json.dumps({key: info_as_dict[key] for key in keys})}
+        metadata = {}
+        metadata["info"] = {key: info_as_dict[key] for key in info_keys}
+        if fingerprint is not None:
+            metadata["fingerprint"] = fingerprint
+        return {"huggingface": json.dumps(metadata)}
 
     def write_on_file(self):
         """Write stored examples"""
