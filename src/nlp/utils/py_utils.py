@@ -104,7 +104,10 @@ class NonMutableDict(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        self._error_msg = kwargs.pop("error_msg", "Try to overwrite existing key: {key}",)
+        self._error_msg = kwargs.pop(
+            "error_msg",
+            "Try to overwrite existing key: {key}",
+        )
         if kwargs:
             raise ValueError("NonMutableDict cannot be initialized with kwargs.")
         super(NonMutableDict, self).__init__(*args, **kwargs)

@@ -57,15 +57,15 @@ class BaseIndex:
         raise NotImplementedError
 
     def search_batch(self, queries, k: int = 10) -> BatchedSearchResults:
-        """ Find the nearest examples indices to the query.
+        """Find the nearest examples indices to the query.
 
-            Args:
-                queries (`Union[List[str], np.ndarray]`): The queries as a list of strings if `column` is a text index or as a numpy array if `column` is a vector index.
-                k (`int`): The number of examples to retrieve per query.
+        Args:
+            queries (`Union[List[str], np.ndarray]`): The queries as a list of strings if `column` is a text index or as a numpy array if `column` is a vector index.
+            k (`int`): The number of examples to retrieve per query.
 
-            Ouput:
-                total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-                total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
+        Ouput:
+            total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+            total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         total_scores, total_indices = [], []
         for query in queries:
@@ -151,7 +151,9 @@ class ElasticSearchIndex(BaseIndex):
 
         # create the ES index
         for ok, action in es.helpers.streaming_bulk(
-            client=self.es_client, index=index_name, actions=passage_generator(),
+            client=self.es_client,
+            index=index_name,
+            actions=passage_generator(),
         ):
             progress.update(1)
             successes += ok
@@ -162,15 +164,15 @@ class ElasticSearchIndex(BaseIndex):
         logger.info("Indexed %d documents" % (successes,))
 
     def search(self, query: str, k=10) -> SearchResults:
-        """ Find the nearest examples indices to the query.
+        """Find the nearest examples indices to the query.
 
-            Args:
-                query (`str`): The query as a string.
-                k (`int`): The number of examples to retrieve.
+        Args:
+            query (`str`): The query as a string.
+            k (`int`): The number of examples to retrieve.
 
-            Ouput:
-                scores (`List[List[float]`): The retrieval scores of the retrieved examples.
-                indices (`List[List[int]]`): The indices of the retrieved examples.
+        Ouput:
+            scores (`List[List[float]`): The retrieval scores of the retrieved examples.
+            indices (`List[List[int]]`): The indices of the retrieved examples.
         """
         response = self.es_client.search(
             index=self.es_index_name,
@@ -270,15 +272,15 @@ class FaissIndex(BaseIndex):
             self.faiss_index.add(vecs)
 
     def search(self, query: np.array, k=10) -> SearchResults:
-        """ Find the nearest examples indices to the query.
+        """Find the nearest examples indices to the query.
 
-            Args:
-                query (`np.array`): The query as a numpy array.
-                k (`int`): The number of examples to retrieve.
+        Args:
+            query (`np.array`): The query as a numpy array.
+            k (`int`): The number of examples to retrieve.
 
-            Ouput:
-                scores (`List[List[float]`): The retrieval scores of the retrieved examples.
-                indices (`List[List[int]]`): The indices of the retrieved examples.
+        Ouput:
+            scores (`List[List[float]`): The retrieval scores of the retrieved examples.
+            indices (`List[List[int]]`): The indices of the retrieved examples.
         """
         assert len(query.shape) == 1 or (len(query.shape) == 2 and query.shape[0] == 1)
         queries = query.reshape(1, -1)
@@ -288,15 +290,15 @@ class FaissIndex(BaseIndex):
         return SearchResults(scores[0], indices[0].astype(int))
 
     def search_batch(self, queries: np.array, k=10) -> BatchedSearchResults:
-        """ Find the nearest examples indices to the queries.
+        """Find the nearest examples indices to the queries.
 
-            Args:
-                queries (`np.array`): The queries as a numpy array.
-                k (`int`): The number of examples to retrieve.
+        Args:
+            queries (`np.array`): The queries as a numpy array.
+            k (`int`): The number of examples to retrieve.
 
-            Ouput:
-                total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-                total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
+        Ouput:
+            total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+            total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         assert len(queries.shape) == 2
         if not queries.flags.c_contiguous:
@@ -317,7 +319,11 @@ class FaissIndex(BaseIndex):
         faiss.write_index(index, file)
 
     @classmethod
-    def load(cls, file: str, device: Optional[int] = None,) -> "FaissIndex":
+    def load(
+        cls,
+        file: str,
+        device: Optional[int] = None,
+    ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         faiss_index = cls(device=device)
         index = faiss.read_index(file)
@@ -369,22 +375,22 @@ class IndexableMixin:
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
     ):
-        """ Add a dense index using Faiss for fast retrieval.
-            The index is created using the vectors of the specified column.
-            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
-            You can find more information about Faiss here:
-            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+        """Add a dense index using Faiss for fast retrieval.
+        The index is created using the vectors of the specified column.
+        You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+        You can find more information about Faiss here:
+        - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
 
-            Args:
-                column (`str`): The column of the vectors to add to the index.
-                index_name (Optional `str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                    By defaul it corresponds to `column`.
-                device (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
-                string_factory (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                metric_type (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
-                custom_index (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
-                train_size (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
-                faiss_verbose (`bool`, defaults to False): Enable the verbosity of the Faiss index.
+        Args:
+            column (`str`): The column of the vectors to add to the index.
+            index_name (Optional `str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
+                By defaul it corresponds to `column`.
+            device (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            string_factory (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
+            metric_type (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+            custom_index (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
+            train_size (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
+            faiss_verbose (`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         index_name = index_name if index_name is not None else column
         self._indexes[index_name] = FaissIndex(
@@ -403,22 +409,22 @@ class IndexableMixin:
         train_size: Optional[int] = None,
         faiss_verbose: bool = False,
     ):
-        """ Add a dense index using Faiss for fast retrieval.
-            The index is created using the vectors of `external_arrays`.
-            You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
-            You can find more information about Faiss here:
-            - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
+        """Add a dense index using Faiss for fast retrieval.
+        The index is created using the vectors of `external_arrays`.
+        You can specify `device` if you want to run it on GPU (`device` must be the GPU index).
+        You can find more information about Faiss here:
+        - For `string factory`: https://github.com/facebookresearch/faiss/wiki/The-index-factory
 
-            Args:
-                external_arrays (`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
-                    It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
-                index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                device (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
-                string_factory (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
-                metric_type (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
-                custom_index (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
-                train_size (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
-                faiss_verbose (`bool`, defaults to False): Enable the verbosity of the Faiss index.
+        Args:
+            external_arrays (`np.array`): If you want to use arrays from outside the lib for the index, you can set `external_arrays`.
+                It will use `external_arrays` to create the Faiss index instead of the arrays in the given `column`.
+            index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
+            device (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+            string_factory (Optional `str`): This is passed to the index factory of Faiss to create the index. Default index class is IndexFlatIP.
+            metric_type (Optional `int`): Type of metric. Ex: faiss.faiss.METRIC_INNER_PRODUCT or faiss.METRIC_L2.
+            custom_index (Optional `faiss.Index`): Custom Faiss index that you already have instantiated and configured for your needs.
+            train_size (Optional `int`): If the index needs a training step, specifies how many vectors will be used to train the index.
+            faiss_verbose (`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         self._indexes[index_name] = FaissIndex(
             device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
@@ -430,9 +436,9 @@ class IndexableMixin:
     def save_faiss_index(self, index_name: str, file: str):
         """Save a FaissIndex on disk
 
-            Args:
-                index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                file (`str`): The path to the serialized faiss index on disk.
+        Args:
+            index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
+            file (`str`): The path to the serialized faiss index on disk.
         """
         index = self.get_index(index_name)
         if not isinstance(index, FaissIndex):
@@ -441,15 +447,18 @@ class IndexableMixin:
         logger.info("Saved FaissIndex {} at {}".format(index_name, file))
 
     def load_faiss_index(
-        self, index_name: str, file: str, device: Optional[int] = None,
+        self,
+        index_name: str,
+        file: str,
+        device: Optional[int] = None,
     ):
         """Load a FaissIndex from disk.
-            If you want to do additional configurations, you can have access to the faiss index object by doing `.get_index(index_name).faiss_index` to make it fit your needs
+        If you want to do additional configurations, you can have access to the faiss index object by doing `.get_index(index_name).faiss_index` to make it fit your needs
 
-            Args:
-                index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
-                file (`str`): The path to the serialized faiss index on disk.
-                device (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
+        Args:
+            index_name (`str`): The index_name/identifier of the index. This is the index_name that is used to call `.get_nearest` or `.search`.
+            file (`str`): The path to the serialized faiss index on disk.
+            device (Optional `int`): If not None, this is the index of the GPU to use. By default it uses the CPU.
         """
         index = FaissIndex.load(file, device=device)
         assert index.faiss_index.ntotal == len(
@@ -470,67 +479,67 @@ class IndexableMixin:
         es_index_name: Optional[str] = None,
         es_index_config: Optional[dict] = None,
     ):
-        """ Add a text index using ElasticSearch for fast retrieval.
+        """Add a text index using ElasticSearch for fast retrieval.
 
-            Args:
-                column (`str`): The column of the documents to add to the index.
-                index_name (Optional `str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
-                    By defaul it corresponds to `column`.
-                documents (`Union[List[str], nlp.Dataset]`): The documents to index. It can be a `nlp.Dataset`.
-                es_client (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
-                es_index_name (Optional `str`): The elasticsearch index name used to create the index.
-                es_index_config (Optional `dict`): The configuration of the elasticsearch index.
-                    Default config is
-                    {
-                        "settings": {
-                            "number_of_shards": 1,
-                            "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
-                        },
-                        "mappings": {
-                            "properties": {
-                                "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
-                            }
-                        },
-                    }
+        Args:
+            column (`str`): The column of the documents to add to the index.
+            index_name (Optional `str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
+                By defaul it corresponds to `column`.
+            documents (`Union[List[str], nlp.Dataset]`): The documents to index. It can be a `nlp.Dataset`.
+            es_client (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
+            es_index_name (Optional `str`): The elasticsearch index name used to create the index.
+            es_index_config (Optional `dict`): The configuration of the elasticsearch index.
+                Default config is
+                {
+                    "settings": {
+                        "number_of_shards": 1,
+                        "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                    },
+                    "mappings": {
+                        "properties": {
+                            "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
+                        }
+                    },
+                }
         """
         index_name = index_name if index_name is not None else column
         self._indexes[index_name] = ElasticSearchIndex(host, port, es_client, es_index_name, es_index_config)
         self._indexes[index_name].add_documents(self, column=column)
 
     def drop_index(self, index_name: str):
-        """ Drop the index with the specified column.
+        """Drop the index with the specified column.
 
-            Args:
-                index_name (`str`): The index_name/identifier of the index.
+        Args:
+            index_name (`str`): The index_name/identifier of the index.
         """
         del self._indexes[index_name]
 
     def search(self, index_name: str, query: Union[str, np.array], k: int = 10) -> SearchResults:
-        """ Find the nearest examples indices in the dataset to the query.
+        """Find the nearest examples indices in the dataset to the query.
 
-            Args:
-                index_name (`str`): The name/identifier of the index.
-                query (`Union[str, np.ndarray]`): The query as a string if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
-                k (`int`): The number of examples to retrieve.
+        Args:
+            index_name (`str`): The name/identifier of the index.
+            query (`Union[str, np.ndarray]`): The query as a string if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
+            k (`int`): The number of examples to retrieve.
 
-            Ouput:
-                scores (`List[List[float]`): The retrieval scores of the retrieved examples.
-                indices (`List[List[int]]`): The indices of the retrieved examples.
+        Ouput:
+            scores (`List[List[float]`): The retrieval scores of the retrieved examples.
+            indices (`List[List[int]]`): The indices of the retrieved examples.
         """
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name].search(query, k)
 
     def search_batch(self, index_name: str, queries: Union[List[str], np.array], k: int = 10) -> BatchedSearchResults:
-        """ Find the nearest examples indices in the dataset to the query.
+        """Find the nearest examples indices in the dataset to the query.
 
-            Args:
-                index_name (`str`): The index_name/identifier of the index.
-                queries (`Union[List[str], np.ndarray]`): The queries as a list of strings if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
-                k (`int`): The number of examples to retrieve per query.
+        Args:
+            index_name (`str`): The index_name/identifier of the index.
+            queries (`Union[List[str], np.ndarray]`): The queries as a list of strings if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
+            k (`int`): The number of examples to retrieve per query.
 
-            Ouput:
-                total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-                total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
+        Ouput:
+            total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+            total_indices (`List[List[int]]`): The indices of the retrieved examples per query.
         """
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name].search_batch(queries, k)
@@ -538,16 +547,16 @@ class IndexableMixin:
     def get_nearest_examples(
         self, index_name: str, query: Union[str, np.array], k: int = 10
     ) -> NearestExamplesResults:
-        """ Find the nearest examples in the dataset to the query.
+        """Find the nearest examples in the dataset to the query.
 
-            Args:
-                index_name (`str`): The index_name/identifier of the index.
-                query (`Union[str, np.ndarray]`): The query as a string if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
-                k (`int`): The number of examples to retrieve.
+        Args:
+            index_name (`str`): The index_name/identifier of the index.
+            query (`Union[str, np.ndarray]`): The query as a string if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
+            k (`int`): The number of examples to retrieve.
 
-            Ouput:
-                scores (`List[float]`): The retrieval scores of the retrieved examples.
-                examples (`dict`): The retrieved examples.
+        Ouput:
+            scores (`List[float]`): The retrieval scores of the retrieved examples.
+            examples (`dict`): The retrieved examples.
         """
         self._check_index_is_initialized(index_name)
         scores, indices = self.search(index_name, query, k)
@@ -556,16 +565,16 @@ class IndexableMixin:
     def get_nearest_examples_batch(
         self, index_name: str, queries: Union[List[str], np.array], k: int = 10
     ) -> BatchedNearestExamplesResults:
-        """ Find the nearest examples in the dataset to the query.
+        """Find the nearest examples in the dataset to the query.
 
-            Args:
-                index_name (`str`): The index_name/identifier of the index.
-                queries (`Union[List[str], np.ndarray]`): The queries as a list of strings if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
-                k (`int`): The number of examples to retrieve per query.
+        Args:
+            index_name (`str`): The index_name/identifier of the index.
+            queries (`Union[List[str], np.ndarray]`): The queries as a list of strings if `index_name` is a text index or as a numpy array if `index_name` is a vector index.
+            k (`int`): The number of examples to retrieve per query.
 
-            Ouput:
-                total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
-                total_examples (`List[dict]`): The retrieved examples per query.
+        Ouput:
+            total_scores (`List[List[float]`): The retrieval scores of the retrieved examples per query.
+            total_examples (`List[dict]`): The retrieved examples per query.
         """
         self._check_index_is_initialized(index_name)
         total_scores, total_indices = self.search_batch(index_name, queries, k)

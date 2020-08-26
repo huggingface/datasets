@@ -187,7 +187,7 @@ def hash_url_to_filename(url, etag=None):
 
 @dataclass
 class DownloadConfig:
-    """ Configuration for our cached path manager
+    """Configuration for our cached path manager
     Args:
         cache_dir: specify a cache directory to save the file to (overwrite the default cache dir).
         force_download: if True, re-dowload the file even if it's already cached in the cache dir.
@@ -214,7 +214,11 @@ class DownloadConfig:
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
-def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Optional[str]:
+def cached_path(
+    url_or_filename,
+    download_config=None,
+    **download_kwargs,
+) -> Optional[str]:
     """
     Given something that might be a URL (or might be a local path),
     determine which. If it's a URL, download the file and cache it, and

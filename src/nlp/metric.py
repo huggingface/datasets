@@ -51,21 +51,21 @@ class Metric(object):
         max_concurrent_cache_files: int = 10000,
         **kwargs,
     ):
-        """ A Metrics is the base class and common API for all metrics.
-            Args:
-                keep_in_memory (``bool``): keep all predictions and references in memory. Not possible in distributed settings.
-                data_dir (``str``): Path to a directory in which temporary prediction/references data will be stored.
-                    The data directory should be located on a shared file-system in distributed setups.
-                num_process (``int``): specify the total number of nodes in a distributed settings.
-                    This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-                process_id (``int``): specify the id of the current process in a distributed setup (between 0 and num_process-1)
-                    This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-                seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`nlp.Metric.compute` is run.
-                config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
-                    to be overridden when the metric loading script is modified.
-                experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
-                    This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-                max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
+        """A Metrics is the base class and common API for all metrics.
+        Args:
+            keep_in_memory (``bool``): keep all predictions and references in memory. Not possible in distributed settings.
+            data_dir (``str``): Path to a directory in which temporary prediction/references data will be stored.
+                The data directory should be located on a shared file-system in distributed setups.
+            num_process (``int``): specify the total number of nodes in a distributed settings.
+                This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
+            process_id (``int``): specify the id of the current process in a distributed setup (between 0 and num_process-1)
+                This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
+            seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`nlp.Metric.compute` is run.
+            config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
+                to be overridden when the metric loading script is modified.
+            experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
+                This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
+            max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
         """
         # Metric name
         self.name = camelcase_to_snakecase(self.__class__.__name__)
@@ -123,10 +123,10 @@ class Metric(object):
         self.filelocks = None
 
     def _build_data_dir(self):
-        """ Path of this metric in cache_dir:
-            Will be:
-                self._data_dir_root/self.name/self.config_name/self.hash (if not none)/
-            If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
+        """Path of this metric in cache_dir:
+        Will be:
+            self._data_dir_root/self.name/self.config_name/self.hash (if not none)/
+        If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
         builder_data_dir = self._data_dir_root
         builder_data_dir = os.path.join(builder_data_dir, self.name, self.config_name)
@@ -166,8 +166,8 @@ class Metric(object):
         return file_path, filelock
 
     def _get_all_cache_files(self, timeout=100) -> Tuple[List[str], List[FileLock]]:
-        """ Get a lock on all the cache files in a distributed setup.
-            We wait for timeout second to let all the distributed node finish their tasks (default is 100 seconds).
+        """Get a lock on all the cache files in a distributed setup.
+        We wait for timeout second to let all the distributed node finish their tasks (default is 100 seconds).
         """
         if self.num_process == 1:
             file_paths = [self.cache_file_name]
@@ -191,8 +191,8 @@ class Metric(object):
         return file_paths, filelocks
 
     def finalize(self, timeout=120):
-        """ Close all the writing process and load/gather the data
-            from all the nodes if main node or all_process is True.
+        """Close all the writing process and load/gather the data
+        from all the nodes if main node or all_process is True.
         """
         if self.writer is not None:
             self.writer.finalize()
@@ -224,7 +224,7 @@ class Metric(object):
             self.filelocks = filelocks
 
     def compute(self, *args, **kwargs) -> Optional[dict]:
-        """ Compute the metrics.
+        """Compute the metrics.
 
         Args:
             We disallow the usage of positional arguments to prevent mistakes
@@ -283,8 +283,7 @@ class Metric(object):
         self.writer.write_batch(batch)
 
     def add(self, *, prediction=None, reference=None):
-        """ Add one prediction and reference for the metric's stack.
-        """
+        """Add one prediction and reference for the metric's stack."""
         example = {"predictions": prediction, "references": reference}
         example = self.info.features.encode_example(example)
         if self.writer is None:

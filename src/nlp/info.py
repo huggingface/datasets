@@ -142,8 +142,8 @@ class DatasetInfo:
         return os.path.join(dataset_info_dir, LICENSE_FILENAME)
 
     def write_to_directory(self, dataset_info_dir):
-        """ Write `DatasetInfo` as JSON to `dataset_info_dir`.
-            Also save the license separately in LICENCE.
+        """Write `DatasetInfo` as JSON to `dataset_info_dir`.
+        Also save the license separately in LICENCE.
         """
         with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f)
@@ -280,8 +280,8 @@ class MetricInfo:
                     )
 
     def write_to_directory(self, metric_info_dir):
-        """ Write `MetricInfo` as JSON to `metric_info_dir`.
-            Also save the license separately in LICENCE.
+        """Write `MetricInfo` as JSON to `metric_info_dir`.
+        Also save the license separately in LICENCE.
         """
         with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "w") as f:
             json.dump(asdict(self), f)
