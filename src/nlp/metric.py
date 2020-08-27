@@ -146,8 +146,9 @@ class Metric(object):
                 # We raise an error
                 if self.num_process != 1:
                     raise ValueError(
-                        "Another metric instance is already using the local cache file. "
-                        "Please specify an experiment_id to avoid colision between distributed metric instances."
+                        f"Another metric instance is already using the local cache file at {file_path}. "
+                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
+                        f"between distributed metric instances."
                     )
                 if i == self.max_concurrent_cache_files - 1:
                     raise ValueError(
@@ -190,7 +191,7 @@ class Metric(object):
 
         return file_paths, filelocks
 
-    def finalize(self, timeout=120):
+    def finalize(self, timeout=100):
         """Close all the writing process and load/gather the data
         from all the nodes if main node or all_process is True.
         """
@@ -261,7 +262,7 @@ class Metric(object):
 
             if self.buf_writer is not None:
                 self.buf_writer = None
-            elif self.process_id == 0:
+            else:
                 # Release locks and delete all the cache files
                 for filelock, file_path in zip(self.filelocks, self.file_paths):
                     logger.info(f"Removing {file_path}")

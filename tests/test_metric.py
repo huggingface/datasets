@@ -53,8 +53,8 @@ def metric_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id)
+    process_id, preds, refs, exp_id, data_dir = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
     return metric.compute(predictions=preds, references=refs)
 
 
@@ -62,8 +62,8 @@ def metric_add_batch_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id)
+    process_id, preds, refs, exp_id, data_dir = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
     metric.add_batch(predictions=preds, references=refs)
     return metric.compute()
 
@@ -72,8 +72,8 @@ def metric_add_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id)
+    process_id, preds, refs, exp_id, data_dir = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
     return metric.compute()
@@ -83,8 +83,8 @@ def metric_add_and_compute_exp_id(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id)
+    process_id, preds, refs, exp_id, data_dir = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
     return metric.compute()
@@ -176,71 +176,87 @@ class TestMetric(TestCase):
         self.assertDictEqual(other_expected_results, other_metric.compute())
 
     def test_distributed_metrics(self):
-        (preds_0, refs_0), (preds_1, refs_1) = DummyMetric.distributed_predictions_and_references()
-        expected_results = DummyMetric.distributed_expected_results()
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            (preds_0, refs_0), (preds_1, refs_1) = DummyMetric.distributed_predictions_and_references()
+            expected_results = DummyMetric.distributed_expected_results()
 
-        pool = Pool()
+            pool = Pool()
 
-        results = pool.map(
-            metric_compute,
-            [(0, preds_0, refs_0, "test_distributed_metrics_0"), (1, preds_1, refs_1, "test_distributed_metrics_0")],
-        )
-        self.assertDictEqual(expected_results, results[0])
-        self.assertIsNone(results[1])
+            results = pool.map(
+                metric_compute,
+                [
+                    (0, preds_0, refs_0, "test_distributed_metrics_0", tmp_dir),
+                    (1, preds_1, refs_1, "test_distributed_metrics_0", tmp_dir),
+                ],
+            )
+            self.assertDictEqual(expected_results, results[0])
+            self.assertIsNone(results[1])
 
-        results = pool.map(
-            metric_add_and_compute,
-            [(0, preds_0, refs_0, "test_distributed_metrics_1"), (1, preds_1, refs_1, "test_distributed_metrics_1")],
-        )
-        self.assertDictEqual(expected_results, results[0])
-        self.assertIsNone(results[1])
-
-        results = pool.map(
-            metric_add_batch_and_compute,
-            [(0, preds_0, refs_0, "test_distributed_metrics_2"), (1, preds_1, refs_1, "test_distributed_metrics_2")],
-        )
-        self.assertDictEqual(expected_results, results[0])
-        self.assertIsNone(results[1])
-
-        # To use several distributed metrics on the same local file system, need to specify an experiment_id
-        try:
             results = pool.map(
                 metric_add_and_compute,
                 [
-                    (0, preds_0, refs_0, "test_distributed_metrics_3"),
-                    (1, preds_1, refs_1, "test_distributed_metrics_3"),
-                    (0, preds_0, refs_0, "test_distributed_metrics_3"),
-                    (1, preds_1, refs_1, "test_distributed_metrics_3"),
+                    (0, preds_0, refs_0, "test_distributed_metrics_1", tmp_dir),
+                    (1, preds_1, refs_1, "test_distributed_metrics_1", tmp_dir),
                 ],
             )
-        except ValueError:
-            # We are fine with either raising a ValueError or computing well the metric
-            # Being sure we raise the error would means making the dummy dataset bigger
-            # and the test longer...
-            pass
-        else:
+            self.assertDictEqual(expected_results, results[0])
+            self.assertIsNone(results[1])
+
+            results = pool.map(
+                metric_add_batch_and_compute,
+                [
+                    (0, preds_0, refs_0, "test_distributed_metrics_2", tmp_dir),
+                    (1, preds_1, refs_1, "test_distributed_metrics_2", tmp_dir),
+                ],
+            )
+            self.assertDictEqual(expected_results, results[0])
+            self.assertIsNone(results[1])
+
+            # To use several distributed metrics on the same local file system, need to specify an experiment_id
+            try:
+                results = pool.map(
+                    metric_add_and_compute,
+                    [
+                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir),
+                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir),
+                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir),
+                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir),
+                    ],
+                )
+            except ValueError:
+                # We are fine with either raising a ValueError or computing well the metric
+                # Being sure we raise the error would means making the dummy dataset bigger
+                # and the test longer...
+                pass
+            else:
+                self.assertDictEqual(expected_results, results[0])
+                self.assertDictEqual(expected_results, results[2])
+                self.assertIsNone(results[1])
+                self.assertIsNone(results[3])
+
+            results = pool.map(
+                metric_add_and_compute_exp_id,
+                [
+                    (0, preds_0, refs_0, "exp_0", tmp_dir),
+                    (1, preds_1, refs_1, "exp_0", tmp_dir),
+                    (0, preds_0, refs_0, "exp_1", tmp_dir),
+                    (1, preds_1, refs_1, "exp_1", tmp_dir),
+                ],
+            )
             self.assertDictEqual(expected_results, results[0])
             self.assertDictEqual(expected_results, results[2])
             self.assertIsNone(results[1])
             self.assertIsNone(results[3])
 
-        results = pool.map(
-            metric_add_and_compute_exp_id,
-            [
-                (0, preds_0, refs_0, "exp_0"),
-                (1, preds_1, refs_1, "exp_0"),
-                (0, preds_0, refs_0, "exp_1"),
-                (1, preds_1, refs_1, "exp_1"),
-            ],
-        )
-        self.assertDictEqual(expected_results, results[0])
-        self.assertDictEqual(expected_results, results[2])
-        self.assertIsNone(results[1])
-        self.assertIsNone(results[3])
-
-        # With keep_in_memory is not allowed
-        with self.assertRaises(AssertionError):
-            DummyMetric(experiment_id="test_distributed_metrics_4", keep_in_memory=True, num_process=2, process_id=0)
+            # With keep_in_memory is not allowed
+            with self.assertRaises(AssertionError):
+                DummyMetric(
+                    experiment_id="test_distributed_metrics_4",
+                    keep_in_memory=True,
+                    num_process=2,
+                    process_id=0,
+                    data_dir=tmp_dir,
+                )
 
     def test_dummy_metric_pickle(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
