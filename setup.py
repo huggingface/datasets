@@ -86,6 +86,7 @@ TESTS_REQUIRE = [
     'tensorflow',
     'torch',
     'tldextract',
+    'transformers',
     'zstandard'
 ]
 
