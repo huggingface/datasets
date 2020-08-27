@@ -50,8 +50,8 @@ class DummyMetric(Metric):
 
 
 def metric_compute(arg):
-    """ Thread worker function for distributed evaluation testing.
-        On base level to be pickable.
+    """Thread worker function for distributed evaluation testing.
+    On base level to be pickable.
     """
     process_id, preds, refs = arg
     metric = DummyMetric(num_process=2, process_id=process_id)
@@ -59,8 +59,8 @@ def metric_compute(arg):
 
 
 def metric_add_batch_and_compute(arg):
-    """ Thread worker function for distributed evaluation testing.
-        On base level to be pickable.
+    """Thread worker function for distributed evaluation testing.
+    On base level to be pickable.
     """
     process_id, preds, refs = arg
     metric = DummyMetric(num_process=2, process_id=process_id)
@@ -69,8 +69,8 @@ def metric_add_batch_and_compute(arg):
 
 
 def metric_add_and_compute(arg):
-    """ Thread worker function for distributed evaluation testing.
-        On base level to be pickable.
+    """Thread worker function for distributed evaluation testing.
+    On base level to be pickable.
     """
     process_id, preds, refs = arg
     metric = DummyMetric(num_process=2, process_id=process_id)
@@ -80,8 +80,8 @@ def metric_add_and_compute(arg):
 
 
 def metric_add_and_compute_exp_id(arg):
-    """ Thread worker function for distributed evaluation testing.
-        On base level to be pickable.
+    """Thread worker function for distributed evaluation testing.
+    On base level to be pickable.
     """
     process_id, preds, refs, exp_id = arg
     metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id)

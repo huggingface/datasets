@@ -249,7 +249,8 @@ class BaseDatasetTest(TestCase):
         self.assertEqual(len(dset_test), 30)
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
         self.assertDictEqual(
-            dset_test.features, Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
+            dset_test.features,
+            Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
         )
 
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
@@ -257,7 +258,8 @@ class BaseDatasetTest(TestCase):
         self.assertEqual(len(dset_test), 30)
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
         self.assertDictEqual(
-            dset_test.features, Features({"filename": Value("string")}),
+            dset_test.features,
+            Features({"filename": Value("string")}),
         )
 
     def test_map_cached(self):
@@ -329,7 +331,8 @@ class BaseDatasetTest(TestCase):
             )
             self.assertEqual(len(dset_test_with_indices), 30)
             self.assertDictEqual(
-                dset_test_with_indices.features, features,
+                dset_test_with_indices.features,
+                features,
             )
 
     def test_map_batched(self):

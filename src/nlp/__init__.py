@@ -25,7 +25,8 @@ from pyarrow import total_allocated_bytes
 
 from . import datasets
 from .arrow_dataset import Dataset
-from .arrow_reader import ReadInstruction
+from .arrow_reader import ArrowReader, ReadInstruction
+from .arrow_writer import ArrowWriter
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .dataset_dict import DatasetDict
 from .features import (
