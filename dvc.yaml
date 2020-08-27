@@ -22,3 +22,11 @@ stages:
     metrics:
     - ./benchmarks/results/benchmark_map_filter.json:
         cache: false
+
+  benchmark_iterating:
+    cmd: python ./benchmarks/benchmark_iterating.py
+    deps:
+    - ./benchmarks/benchmark_iterating.py
+    metrics:
+    - ./benchmarks/results/benchmark_iterating.json:
+        cache: false
