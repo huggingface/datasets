@@ -39,7 +39,7 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "dset.pt")
 
-            dset = self._create_dummy_dataset()
+            dset = self._create_dummy_dataset().select(range(10))
 
             with open(tmp_file, "wb") as f:
                 pickle.dump(dset, f)
@@ -47,9 +47,56 @@ class BaseDatasetTest(TestCase):
             with open(tmp_file, "rb") as f:
                 dset = pickle.load(f)
 
+        self.assertEqual(len(dset), 10)
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
         self.assertEqual(dset[0]["filename"], "my_name-train_0")
         self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+    def test_dummy_dataset_pickle_memory_mapped(self):
+        class Unpicklable:
+            def __getstate__(self):
+                raise pickle.PicklingError()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "dset.pt")
+
+            dset = (
+                self._create_dummy_dataset().map(cache_file_name=os.path.join(tmp_dir, "test.arrow")).select(range(10))
+            )
+            dset._data = Unpicklable()
+
+            with open(tmp_file, "wb") as f:
+                pickle.dump(dset, f)
+
+            with open(tmp_file, "rb") as f:
+                dset = pickle.load(f)
+
+            self.assertEqual(len(dset), 10)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertEqual(dset[0]["filename"], "my_name-train_0")
+            self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, "dset.pt")
+
+            dset = (
+                self._create_dummy_dataset()
+                .map(cache_file_name=os.path.join(tmp_dir, "test.arrow"))
+                .select(range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow"))
+            )
+            dset._data = Unpicklable()
+            dset._indices = Unpicklable()
+
+            with open(tmp_file, "wb") as f:
+                pickle.dump(dset, f)
+
+            with open(tmp_file, "rb") as f:
+                dset = pickle.load(f)
+
+            self.assertEqual(len(dset), 10)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertEqual(dset[0]["filename"], "my_name-train_0")
+            self.assertEqual(dset["filename"][0], "my_name-train_0")
 
     def test_from_pandas(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
