@@ -1314,7 +1314,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         disable_nullable: bool = True,
         verbose: bool = True,
     ) -> "Dataset":
-        """ Create and cache a new Dataset by flattening the indices mapping.
+        """Create and cache a new Dataset by flattening the indices mapping.
 
         Args:
             keep_in_memory (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
