@@ -54,7 +54,7 @@ def metric_compute(arg):
     On base level to be pickable.
     """
     process_id, preds, refs, exp_id = arg
-    metric = DummyMetric(num_process=2, process_id=process_id)
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id)
     return metric.compute(predictions=preds, references=refs)
 
 
@@ -63,7 +63,7 @@ def metric_add_batch_and_compute(arg):
     On base level to be pickable.
     """
     process_id, preds, refs, exp_id = arg
-    metric = DummyMetric(num_process=2, process_id=process_id)
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id)
     metric.add_batch(predictions=preds, references=refs)
     return metric.compute()
 
@@ -73,7 +73,7 @@ def metric_add_and_compute(arg):
     On base level to be pickable.
     """
     process_id, preds, refs, exp_id = arg
-    metric = DummyMetric(num_process=2, process_id=process_id)
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
     return metric.compute()
