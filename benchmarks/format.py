@@ -6,7 +6,7 @@ def format_json_to_md(input_json_file, output_md_file):
     with open(input_json_file, "r", encoding="utf-8") as f:
         results = json.load(f)
 
-    output_md = []
+    output_md = ["<details>", "<summary>Show updated benchmarks!</summary>", " "]
 
     for benchmark_name in sorted(results):
 
@@ -36,6 +36,8 @@ def format_json_to_md(input_json_file, output_md_file):
             value += val_str + " |"
 
         output_md += [title, lines, value, " "]
+
+    output_md.append("</details>")
 
     with open(output_md_file, "w", encoding="utf-8") as f:
         f.writelines("\n".join(output_md))

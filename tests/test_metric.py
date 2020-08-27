@@ -183,21 +183,21 @@ class TestMetric(TestCase):
 
         results = pool.map(
             metric_compute,
-            [(0, preds_0, refs_0, "test_distributed_metrics"), (1, preds_1, refs_1, "test_distributed_metrics")],
+            [(0, preds_0, refs_0, "test_distributed_metrics_0"), (1, preds_1, refs_1, "test_distributed_metrics_0")],
         )
         self.assertDictEqual(expected_results, results[0])
         self.assertIsNone(results[1])
 
         results = pool.map(
             metric_add_and_compute,
-            [(0, preds_0, refs_0, "test_distributed_metrics"), (1, preds_1, refs_1, "test_distributed_metrics")],
+            [(0, preds_0, refs_0, "test_distributed_metrics_1"), (1, preds_1, refs_1, "test_distributed_metrics_1")],
         )
         self.assertDictEqual(expected_results, results[0])
         self.assertIsNone(results[1])
 
         results = pool.map(
             metric_add_batch_and_compute,
-            [(0, preds_0, refs_0, "test_distributed_metrics"), (1, preds_1, refs_1, "test_distributed_metrics")],
+            [(0, preds_0, refs_0, "test_distributed_metrics_2"), (1, preds_1, refs_1, "test_distributed_metrics_2")],
         )
         self.assertDictEqual(expected_results, results[0])
         self.assertIsNone(results[1])
@@ -207,10 +207,10 @@ class TestMetric(TestCase):
             results = pool.map(
                 metric_add_and_compute,
                 [
-                    (0, preds_0, refs_0, "test_distributed_metrics"),
-                    (1, preds_1, refs_1, "test_distributed_metrics"),
-                    (0, preds_0, refs_0, "test_distributed_metrics"),
-                    (1, preds_1, refs_1, "test_distributed_metrics"),
+                    (0, preds_0, refs_0, "test_distributed_metrics_3"),
+                    (1, preds_1, refs_1, "test_distributed_metrics_3"),
+                    (0, preds_0, refs_0, "test_distributed_metrics_3"),
+                    (1, preds_1, refs_1, "test_distributed_metrics_3"),
                 ],
             )
         except ValueError:
@@ -240,7 +240,7 @@ class TestMetric(TestCase):
 
         # With keep_in_memory is not allowed
         with self.assertRaises(AssertionError):
-            DummyMetric(experiment_id="test_distributed_metrics", keep_in_memory=True, num_process=2, process_id=0)
+            DummyMetric(experiment_id="test_distributed_metrics_4", keep_in_memory=True, num_process=2, process_id=0)
 
     def test_dummy_metric_pickle(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
