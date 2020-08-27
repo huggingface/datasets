@@ -138,7 +138,10 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(features=my_features, num_examples=1,):
+            for key, record in generate_examples(
+                features=my_features,
+                num_examples=1,
+            ):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()

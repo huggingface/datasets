@@ -249,7 +249,8 @@ class BaseDatasetTest(TestCase):
         self.assertEqual(len(dset_test), 30)
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
         self.assertDictEqual(
-            dset_test.features, Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
+            dset_test.features,
+            Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
         )
 
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
@@ -257,7 +258,8 @@ class BaseDatasetTest(TestCase):
         self.assertEqual(len(dset_test), 30)
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
         self.assertDictEqual(
-            dset_test.features, Features({"filename": Value("string")}),
+            dset_test.features,
+            Features({"filename": Value("string")}),
         )
 
     def test_map_cached(self):
@@ -329,7 +331,8 @@ class BaseDatasetTest(TestCase):
             )
             self.assertEqual(len(dset_test_with_indices), 30)
             self.assertDictEqual(
-                dset_test_with_indices.features, features,
+                dset_test_with_indices.features,
+                features,
             )
 
     def test_map_batched(self):
@@ -580,10 +583,18 @@ class BaseDatasetTest(TestCase):
             bad_indices[3] = "foo"
             tmp_file = os.path.join(tmp_dir, "test.arrow")
             self.assertRaises(
-                Exception, dset.select, indices=bad_indices, indices_cache_file_name=tmp_file, writer_batch_size=2,
+                Exception,
+                dset.select,
+                indices=bad_indices,
+                indices_cache_file_name=tmp_file,
+                writer_batch_size=2,
             )
             self.assertFalse(os.path.exists(tmp_file))
-            dset_select_five = dset.select(range(5), indices_cache_file_name=tmp_file, writer_batch_size=2,)
+            dset_select_five = dset.select(
+                range(5),
+                indices_cache_file_name=tmp_file,
+                writer_batch_size=2,
+            )
             self.assertTrue(os.path.exists(tmp_file))
             self.assertEqual(len(dset_select_five), 5)
             for i, row in enumerate(dset_select_five):

@@ -122,7 +122,12 @@ class DatasetBuilder:
     # displayed in the dataset documentation.
 
     def __init__(
-        self, cache_dir=None, name=None, hash=None, features=None, **config_kwargs,
+        self,
+        cache_dir=None,
+        name=None,
+        hash=None,
+        features=None,
+        **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
 
@@ -147,7 +152,10 @@ class DatasetBuilder:
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
-        self.config = self._create_builder_config(name, **config_kwargs,)
+        self.config = self._create_builder_config(
+            name,
+            **config_kwargs,
+        )
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
@@ -193,9 +201,9 @@ class DatasetBuilder:
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
     def _create_builder_config(self, name=None, **config_kwargs):
-        """ Create and validate BuilderConfig object.
-            Uses the first configuration in self.BUILDER_CONFIGS if name is None
-            config_kwargs override the defaults kwargs in config
+        """Create and validate BuilderConfig object.
+        Uses the first configuration in self.BUILDER_CONFIGS if name is None
+        config_kwargs override the defaults kwargs in config
         """
         builder_config = None
         if name is None and self.BUILDER_CONFIGS and not config_kwargs:
@@ -280,10 +288,10 @@ class DatasetBuilder:
         return self._cache_dir
 
     def _relative_data_dir(self, with_version=True, with_hash=True):
-        """ Relative path of this dataset in cache_dir:
-            Will be:
-                self.name/self.config.version/self.hash/
-            If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
+        """Relative path of this dataset in cache_dir:
+        Will be:
+            self.name/self.config.version/self.hash/
+        If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
         builder_data_dir = self.name
         builder_config = self.config
@@ -575,8 +583,7 @@ class DatasetBuilder:
     def as_dataset(
         self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False
     ) -> Union[Dataset, DatasetDict]:
-        """ Return a Dataset for the specified split.
-        """
+        """Return a Dataset for the specified split."""
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
                 (
@@ -616,7 +623,9 @@ class DatasetBuilder:
             split = Split(split)
 
         # Build base dataset
-        ds = self._as_dataset(split=split,)
+        ds = self._as_dataset(
+            split=split,
+        )
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
                 if "/" in resource_file_name:
@@ -678,7 +687,9 @@ class DatasetBuilder:
         """
 
         dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
-            name=self.name, instructions=split, split_infos=self.info.splits.values(),
+            name=self.name,
+            instructions=split,
+            split_infos=self.info.splits.values(),
         )
         return Dataset(**dataset_kwargs)
 
@@ -818,9 +829,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
 
 class ArrowBasedBuilder(DatasetBuilder):
-    """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet).
-
-    """
+    """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet)."""
 
     # ArrowBasedBuilder should have dummy data for tests by default
     test_dummy_data = True
@@ -961,9 +970,14 @@ class BeamBasedBuilder(DatasetBuilder):
         # are better without it.
         beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
-        pipeline = beam_utils.BeamPipeline(runner=beam_runner, options=beam_options,)
+        pipeline = beam_utils.BeamPipeline(
+            runner=beam_runner,
+            options=beam_options,
+        )
         super(BeamBasedBuilder, self)._download_and_prepare(
-            dl_manager, verify_infos=False, pipeline=pipeline,
+            dl_manager,
+            verify_infos=False,
+            pipeline=pipeline,
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()

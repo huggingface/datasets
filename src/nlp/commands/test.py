@@ -28,7 +28,10 @@ class TestCommand(BaseTransformersCLICommand):
         test_parser = parser.add_parser("test")
         test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         test_parser.add_argument(
-            "--cache_dir", type=str, default=None, help="Cache directory where the datasets are stored.",
+            "--cache_dir",
+            type=str,
+            default=None,
+            help="Cache directory where the datasets are stored.",
         )
         test_parser.add_argument(
             "--data_dir",
