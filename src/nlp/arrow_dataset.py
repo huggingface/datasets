@@ -1314,8 +1314,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         disable_nullable: bool = True,
         verbose: bool = True,
     ) -> "Dataset":
-        """Apply a function to all the elements in the table (individually or in batches)
-        and update the table (if function does updated examples).
+        """ Create and cache a new Dataset by flattening the indices mapping.
 
         Args:
             keep_in_memory (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.

@@ -1,8 +1,6 @@
 import os
 import tempfile
-import timeit
 import unittest
-from warnings import warn
 
 import numpy as np
 import pandas as pd
@@ -21,18 +19,6 @@ SPEED_TEST_N_EXAMPLES = 100
 DEFAULT_FEATURES = nlp.Features(
     {"text": Array2D(SHAPE_TEST_1, dtype="float32"), "image": Array2D(SHAPE_TEST_2, dtype="float32")}
 )
-
-
-def get_duration(func):
-    def wrapper(*args, **kwargs):
-        starttime = timeit.default_timer()
-        _ = func(*args, **kwargs)
-        delta = timeit.default_timer() - starttime
-        return delta
-
-    wrapper.__name__ = func.__name__
-
-    return wrapper
 
 
 def generate_examples(features: dict, num_examples=100, seq_shapes=None):
@@ -54,83 +40,6 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
             dummy_data.append((i, example))
 
     return dummy_data
-
-
-@get_duration
-def write_array2d(feats, dummy_data, tmp_dir):
-    my_features = nlp.Features(feats)
-    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-    for key, record in dummy_data:
-        example = my_features.encode_example(record)
-        writer.write(example)
-    num_examples, num_bytes = writer.finalize()
-
-
-@get_duration
-def write_nested_sequence(feats, dummy_data, tmp_dir):
-    my_features = nlp.Features(feats)
-    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-    for key, record in dummy_data:
-        example = my_features.encode_example(record)
-        writer.write(example)
-    num_examples, num_bytes = writer.finalize()
-
-
-@get_duration
-def write_flattened_sequence(feats, dummy_data, tmp_dir):
-    my_features = nlp.Features(feats)
-    writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-    for key, record in dummy_data:
-        example = my_features.encode_example(record)
-        writer.write(example)
-    num_examples, num_bytes = writer.finalize()
-
-
-@get_duration
-def read_unformated(feats, tmp_dir):
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
-    for _ in dataset:
-        pass
-
-
-@get_duration
-def read_formatted_as_numpy(feats, tmp_dir):
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
-    dataset.set_format("numpy")
-    for _ in dataset:
-        pass
-
-
-@get_duration
-def read_batch_unformated(feats, tmp_dir):
-    batch_size = 10
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
-    for i in range(0, len(dataset), batch_size):
-        _ = dataset[i : i + batch_size]
-
-
-@get_duration
-def read_batch_formatted_as_numpy(feats, tmp_dir):
-    batch_size = 10
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
-    dataset.set_format("numpy")
-    for i in range(0, len(dataset), batch_size):
-        _ = dataset[i : i + batch_size]
-
-
-@get_duration
-def read_col_unformated(feats, tmp_dir):
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
-    for col in feats:
-        _ = dataset[col]
-
-
-@get_duration
-def read_col_formatted_as_numpy(feats, tmp_dir):
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
-    dataset.set_format("numpy")
-    for col in feats:
-        _ = dataset[col]
 
 
 class ExtensionTypeCompatibilityTest(unittest.TestCase):
@@ -195,70 +104,6 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             dataset.set_format("numpy")
             data = dataset[0]["explicit_ext"]
             self.assertIsInstance(data, np.ndarray, "indexed extension must return numpy.ndarray")
-
-
-class SpeedBenchmarkTest(unittest.TestCase):
-    def test_benchmark_speed(self):
-        times = {}
-        read_functions = (
-            read_unformated,
-            read_formatted_as_numpy,
-            read_batch_unformated,
-            read_batch_formatted_as_numpy,
-            read_col_unformated,
-            read_col_formatted_as_numpy,
-        )
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            feats = nlp.Features({"image": Array2D(SPEED_TEST_SHAPE, dtype="float32")})
-            data = generate_examples(features=feats, num_examples=SPEED_TEST_N_EXAMPLES)
-            write_func = write_array2d
-            times[write_func.__name__] = write_func(feats, data, tmp_dir)
-            for read_func in read_functions:
-                times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # don't use fixed length for fair comparison
-            # feats = nlp.Features(
-            #     {"image": nlp.Sequence(nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[1]), SPEED_TEST_SHAPE[0])}
-            # )
-            feats = nlp.Features({"image": nlp.Sequence(nlp.Sequence(nlp.Value("float32")))})
-            data = generate_examples(
-                features=feats, num_examples=SPEED_TEST_N_EXAMPLES, seq_shapes={"image": SPEED_TEST_SHAPE}
-            )
-            write_func = write_nested_sequence
-            times[write_func.__name__] = write_func(feats, data, tmp_dir)
-            for read_func in read_functions:
-                times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            # don't use fixed length for fair comparison
-            # feats = nlp.Features(
-            #     {"image": nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[0] * SPEED_TEST_SHAPE[1])}
-            # )
-            feats = nlp.Features({"image": nlp.Sequence(nlp.Value("float32"))})
-            data = generate_examples(
-                features=feats,
-                num_examples=SPEED_TEST_N_EXAMPLES,
-                seq_shapes={"image": [SPEED_TEST_SHAPE[0] * SPEED_TEST_SHAPE[1]]},
-            )
-            write_func = write_flattened_sequence
-            times[write_func.__name__] = write_func(feats, data, tmp_dir)
-            for read_func in read_functions:
-                times[read_func.__name__ + " after " + write_func.__name__] = read_func(feats, tmp_dir)
-
-        benchmark_df = pd.DataFrame.from_dict(times, orient="index", columns=["time"]).sort_index()
-        warn("Speed benchmark:\n" + str(benchmark_df))
-        self.assertGreater(
-            times["write_nested_sequence"], times["write_array2d"] * 10
-        )  # At leasr 10 times faster (it is supposed to be ~25 times faster)
-        self.assertGreater(
-            times["read_batch_formatted_as_numpy after write_nested_sequence"],
-            times["read_batch_formatted_as_numpy after write_array2d"],
-        )  # At least faster (it is supposed to be ~2 times faster)
-        self.assertGreater(
-            times["read_batch_unformated after write_nested_sequence"],
-            times["read_batch_formatted_as_numpy after write_array2d"] * 5,
-        )  # At least 5 times faster (it is supposed to be ~10 times faster)
 
 
 def get_array_feature_types():
@@ -374,7 +219,3 @@ class ArrayXDTest(unittest.TestCase):
         dict_examples = self.get_dict_examples(shape_1, shape_2)
         dataset = nlp.Dataset.from_dict(dict_examples, features=self.get_features(array_feature, shape_1, shape_2))
         self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
-
-
-if __name__ == "__main__":  # useful to run the profiler
-    SpeedBenchmarkTest().test_benchmark_speed()
