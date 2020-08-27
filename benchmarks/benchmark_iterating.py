@@ -2,8 +2,6 @@ import json
 import os
 import tempfile
 
-from tqdm import tqdm
-
 import nlp
 from utils import generate_example_dataset, get_duration
 
