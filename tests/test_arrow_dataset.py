@@ -215,7 +215,7 @@ class BaseDatasetTest(TestCase):
         self.assertEqual(dset.num_columns, 2)
         self.assertListEqual(list(dset.column_names), ["new_name", "col_2"])
 
-    def test_concatenate(self):
+    def test_concatenate_from_memory(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
         info1 = DatasetInfo(description="Dataset1")
         info2 = DatasetInfo(description="Dataset2")
@@ -226,8 +226,91 @@ class BaseDatasetTest(TestCase):
         )
 
         dset_concat = concatenate_datasets([dset1, dset2, dset3])
+        self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
         self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
+        self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
+        self.assertEqual(len(dset_concat._data_files), 0)
+        self.assertEqual(len(dset_concat._indices_data_files), 0)
         self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
+
+    def test_concatenate_from_disk(self):
+        data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
+        info1 = DatasetInfo(description="Dataset1")
+        info2 = DatasetInfo(description="Dataset2")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset1, dset2, dset3 = (
+                Dataset.from_dict(data1, info=info1).map(cache_file_name=os.path.join(tmp_dir, "d1.arrow")),
+                Dataset.from_dict(data2, info=info2).map(cache_file_name=os.path.join(tmp_dir, "d2.arrow")),
+                Dataset.from_dict(data3),
+            )
+            with self.assertRaises(ValueError):
+                dset_concat = concatenate_datasets([dset1, dset2, dset3])
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset1, dset2, dset3 = (
+                Dataset.from_dict(data1, info=info1).map(cache_file_name=os.path.join(tmp_dir, "d1.arrow")),
+                Dataset.from_dict(data2, info=info2).map(cache_file_name=os.path.join(tmp_dir, "d2.arrow")),
+                Dataset.from_dict(data3).map(cache_file_name=os.path.join(tmp_dir, "d3.arrow")),
+            )
+            dset_concat = concatenate_datasets([dset1, dset2, dset3])
+            self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
+            self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
+            self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
+            self.assertEqual(len(dset_concat._data_files), 3)
+            self.assertEqual(len(dset_concat._indices_data_files), 0)
+            self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
+
+    def test_concatenate_with_indices(self):
+        data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7]}
+        info1 = DatasetInfo(description="Dataset1")
+        info2 = DatasetInfo(description="Dataset2")
+        dset1, dset2, dset3 = (
+            Dataset.from_dict(data1, info=info1).select([0, 1, 2]),
+            Dataset.from_dict(data2, info=info2).select([0, 1, 2]),
+            Dataset.from_dict(data3),
+        )
+
+        dset_concat = concatenate_datasets([dset1, dset2, dset3])
+        self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
+        self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
+        self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
+        self.assertEqual(len(dset_concat._data_files), 0)
+        self.assertEqual(len(dset_concat._indices_data_files), 0)
+        self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset1, dset2, dset3 = (
+                Dataset.from_dict(data1, info=info1).select(
+                    [0, 1, 2], indices_cache_file_name=os.path.join(tmp_dir, "i.arrow")
+                ),
+                Dataset.from_dict(data2, info=info2).select([0, 1, 2]),
+                Dataset.from_dict(data3),
+            )
+            with self.assertRaises(ValueError):
+                dset_concat = concatenate_datasets([dset1, dset2, dset3])
+
+    def test_concatenate_with_indices_from_disk(self):
+        data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7]}
+        info1 = DatasetInfo(description="Dataset1")
+        info2 = DatasetInfo(description="Dataset2")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset1, dset2, dset3 = (
+                Dataset.from_dict(data1, info=info1).select(
+                    [0, 1, 2], indices_cache_file_name=os.path.join(tmp_dir, "i1.arrow")
+                ),
+                Dataset.from_dict(data2, info=info2).select(
+                    [0, 1, 2], indices_cache_file_name=os.path.join(tmp_dir, "i2.arrow")
+                ),
+                Dataset.from_dict(data3).select([0, 1], indices_cache_file_name=os.path.join(tmp_dir, "i3.arrow")),
+            )
+
+            dset_concat = concatenate_datasets([dset1, dset2, dset3])
+            self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
+            self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
+            self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
+            self.assertEqual(len(dset_concat._data_files), 0)
+            self.assertEqual(len(dset_concat._indices_data_files), 3)
+            self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
 
     def test_flatten(self):
         dset = Dataset.from_dict(
