@@ -717,7 +717,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # We can do a slice
         if array_indices is None:
-            return self._indices.column(0).slice(array_indices[0], array_indices[1] - array_indices[0])
+            return self._indices.column(0).slice(slice_indices[0], slice_indices[1] - slice_indices[0])
 
         # We cannot do a slice, we need to do a take or some concatenation on pyarrow < 1.0.0
         if PYARROW_V0:  # pre-1.0.0 backward compatibility
