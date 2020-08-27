@@ -46,8 +46,6 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
 def generate_example_dataset(dataset_path, features, num_examples=100, seq_shapes=None):
     dummy_data = generate_examples(features, num_examples=num_examples, seq_shapes=seq_shapes)
 
-    print(len(dummy_data))
-
     writer = nlp.ArrowWriter(features=features, path=dataset_path)
     for key, record in dummy_data:
         example = features.encode_example(record)

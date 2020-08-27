@@ -8,45 +8,34 @@ def format_json_to_md(input_json_file, output_md_file):
 
     output_md = []
 
-    for benchmark_name, benchmark_res in results.items():
+    for benchmark_name in sorted(results):
+
+        benchmark_res = results[benchmark_name]
 
         benchmark_file_name = benchmark_name.split("/")[-1]
-        output_md.append(f"## Benchmark: {benchmark_file_name}")
+        output_md.append(f"### Benchmark: {benchmark_file_name}")
 
         title = "| metric |"
         lines = "|--------|"
-        new = "| new    |"
-        old = "| old    |"
-        dif = "| diff   |"
-        has_old = False
-        has_dif = False
+        value = "| new / old (diff) |"
         for metric_name in sorted(benchmark_res):
             metric_vals = benchmark_res[metric_name]
             new_val = metric_vals["new"]
             old_val = metric_vals.get("old", None)
             dif_val = metric_vals.get("diff", None)
 
-            if old_val is not None and not has_old:
-                has_old = True
-            if dif_val is not None and not has_dif:
-                has_dif = True
+            val_str = " {:f}".format(new_val) if isinstance(new_val, (int, float)) else "None"
 
-            new_val_str = " {:f} ".format(new_val) if isinstance(new_val, (int, float)) else "None"
-            old_val_str = " {:f} ".format(old_val) if isinstance(old_val, (int, float)) else "None"
-            dif_val_str = " {:f} ".format(dif_val) if isinstance(dif_val, (int, float)) else "None"
+            if old_val is not None:
+                val_str += " / {:f}".format(old_val) if isinstance(old_val, (int, float)) else "None"
+            if dif_val is not None:
+                val_str += " ({:f})".format(dif_val) if isinstance(dif_val, (int, float)) else "None"
 
             title += " " + metric_name + " |"
             lines += "---|"
-            new += new_val_str + "|"
-            old += old_val_str + "|"
-            dif += dif_val_str + "|"
+            value += val_str + " |"
 
-        output_md += [title, lines, new]
-        if has_old:
-            output_md.append(old)
-        if has_dif:
-            output_md.append(dif)
-        output_md.append(" ")
+        output_md += [title, lines, value, " "]
 
     with open(output_md_file, "w", encoding="utf-8") as f:
         f.writelines("\n".join(output_md))
