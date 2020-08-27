@@ -14,3 +14,11 @@ stages:
     metrics:
     - ./benchmarks/results/benchmark_indices_mapping.json:
         cache: false
+
+  benchmark_iterating:
+    cmd: python ./benchmarks/benchmark_iterating.py
+    deps:
+    - ./benchmarks/benchmark_iterating.py
+    metrics:
+    - ./benchmarks/results/benchmark_iterating.json:
+        cache: false
