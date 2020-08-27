@@ -72,6 +72,12 @@ REQUIRED_PKGS = [
     "xxhash"
 ]
 
+BENCHMARKS_REQUIRE = [
+    'tensorflow',
+    'torch',
+    'transformers',
+]
+
 TESTS_REQUIRE = [
     'apache-beam',
     'absl-py',
@@ -107,6 +113,7 @@ EXTRAS_REQUIRE = {
     'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE,
     'quality': QUALITY_REQUIRE,
+    'benchmarks': BENCHMARKS_REQUIRE,
     'docs': ["recommonmark", "sphinx==3.1.2", "sphinx-markdown-tables", "sphinx-rtd-theme==0.4.3", "sphinx-copybutton"]
 }
 
