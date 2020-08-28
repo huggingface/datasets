@@ -23,7 +23,7 @@ jobs:
 
           python ./benchmarks/format.py report.json report.md
 
-          echo "<details>\n<summary>Show benchmarks</summary>\n\nPyarrow==0.17.1\n" > final_report.md
+          echo "<details>\n<summary>Show benchmarks</summary>\n\nPyArrow==0.17.1\n" > final_report.md
           cat report.md >> final_report.md
 
           # pyarrow
@@ -36,7 +36,7 @@ jobs:
 
           python ./benchmarks/format.py report.json report.md
 
-          echo "\n<details>\n<summary>Show benchmarks</summary>\n\nPyarrow==1.0\n" >> final_report.md
+          echo "\nPyArrow==1.0\n" >> final_report.md
           cat report.md >> final_report.md
           echo "\n</details>" >> final_report.md
 
