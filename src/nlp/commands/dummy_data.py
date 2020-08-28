@@ -1,4 +1,3 @@
-import logging
 import os
 from argparse import ArgumentParser
 
@@ -6,8 +5,10 @@ from nlp.commands import BaseTransformersCLICommand
 from nlp.load import import_main_class, prepare_module
 from nlp.utils import MockDownloadManager
 
+from .utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+
+logger = get_logger(__name__)
 
 
 def test_command_factory(args):

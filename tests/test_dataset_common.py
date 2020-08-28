@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import glob
-import logging
 import os
 import tempfile
 
@@ -31,13 +30,14 @@ from nlp import (
     hf_bucket_url,
     import_main_class,
     load_dataset,
+    logging,
     prepare_module,
 )
 
 from .utils import aws, local, slow
 
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.get_logger(__name__)
 
 
 class DatasetTester(object):
@@ -75,7 +75,7 @@ class DatasetTester(object):
 
                 # TODO: skip Beam datasets and datasets that lack dummy data for now
                 if not dataset_builder.test_dummy_data:
-                    logging.info("Skip tests for this dataset for now")
+                    logger.info("Skip tests for this dataset for now")
                     return
 
                 if config is not None:

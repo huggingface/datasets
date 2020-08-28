@@ -15,7 +15,6 @@
 
 # Lint as: python3
 """ Metrics base class."""
-import logging
 import os
 import types
 import uuid
@@ -33,9 +32,10 @@ from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig
+from .utils.logging import get_logger
 
 
-logger = logging.getLogger(__file__)
+logger = get_logger(__file__)
 
 
 class Metric(object):

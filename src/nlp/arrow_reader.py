@@ -17,7 +17,6 @@
 """ Arrow ArrowReader."""
 
 import copy
-import logging
 import math
 import os
 import re
@@ -29,14 +28,14 @@ import pyarrow as pa
 import pyarrow.parquet
 
 from .naming import filename_for_dataset_split
-from .utils import cached_path
+from .utils import cached_path, logging
 
 
 if TYPE_CHECKING:
     from .info import DatasetInfo  # noqa: F401
 
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 _BUFFER_SIZE = 8 << 20  # 8 MiB per file.
 HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"

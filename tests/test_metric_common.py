@@ -15,7 +15,6 @@
 
 import glob
 import inspect
-import logging
 import tempfile
 
 from absl.testing import parameterized
@@ -23,9 +22,6 @@ from absl.testing import parameterized
 from nlp import DownloadConfig, hf_api, load_metric
 
 from .utils import aws, local, slow
-
-
-logging.basicConfig(level=logging.INFO)
 
 
 def get_aws_metric_names():

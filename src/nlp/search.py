@@ -1,10 +1,11 @@
-import logging
 import os
 import tempfile
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 
 import numpy as np
 from tqdm.auto import tqdm
+
+from .utils.logging import INFO, get_logger
 
 
 if TYPE_CHECKING:
@@ -28,7 +29,7 @@ except ImportError:
     _has_faiss = False
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MissingIndex(Exception):
@@ -138,7 +139,8 @@ class ElasticSearchIndex(BaseIndex):
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
-        progress = tqdm(unit="docs", total=number_of_docs)
+        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        progress = tqdm(unit="docs", total=number_of_docs, disable=not_verbose)
         successes = 0
 
         def passage_generator():
@@ -158,7 +160,7 @@ class ElasticSearchIndex(BaseIndex):
             progress.update(1)
             successes += ok
         if successes != len(documents):
-            logging.warning(
+            logger.warning(
                 f"Some documents failed to be added to ElasticSearch. Failures: {len(documents)-successes}/{len(documents)}"
             )
         logger.info("Indexed %d documents" % (successes,))
@@ -267,7 +269,8 @@ class FaissIndex(BaseIndex):
 
         # Add vectors
         logger.info("Adding {} vectors to the faiss index".format(len(vectors)))
-        for i in tqdm(range(0, len(vectors), batch_size)):
+        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        for i in tqdm(range(0, len(vectors), batch_size), disable=not_verbose):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
 

@@ -19,7 +19,6 @@ import filecmp
 import importlib
 import inspect
 import json
-import logging
 import os
 import re
 import shutil
@@ -41,9 +40,10 @@ from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import DownloadConfig, cached_path, hf_bucket_url
+from .utils.logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "datasets")

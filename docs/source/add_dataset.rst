@@ -216,7 +216,7 @@ Here again, let's take the simple example of the `squad dataset loading script <
 
     def _generate_examples(self, filepath):
         """This function returns the examples in the raw (text) form."""
-        logging.info("generating examples from = %s", filepath)
+        logger.info("generating examples from = %s", filepath)
         with open(filepath) as f:
             squad = json.load(f)
             for article in squad["data"]:
