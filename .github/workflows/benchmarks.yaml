@@ -37,7 +37,7 @@ jobs:
           python ./benchmarks/format.py report.json report.md
 
           echo "<details>\n<summary>Show benchmarks</summary>\n\nPyarrow==1.0\n" > final_report.md
-          cat report2.md > final_report.md
+          cat report.md > final_report.md
           echo "</details>" > final_report.md
 
           cml-send-comment final_report.md
