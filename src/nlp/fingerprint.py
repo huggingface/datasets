@@ -1,6 +1,8 @@
 import json
 from dataclasses import asdict
+from functools import wraps
 
+import numpy as np
 import pyarrow as pa
 import xxhash
 
@@ -92,3 +94,53 @@ def update_fingerprint(fingerprint, transform, transform_args):
         hasher.update(key)
         hasher.update(transform_args[key])
     return hasher.hexdigest()
+
+
+def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=None, randomized_function=None):
+    assert use_kwargs is None or isinstance(use_kwargs, list), "use_kwargs is supposed to be a list, not {}".format(
+        type(use_kwargs)
+    )
+    assert ignore_kwargs is None or isinstance(
+        ignore_kwargs, list
+    ), "ignore_kwargs is supposed to be a list, not {}".format(type(use_kwargs))
+    assert not inplace or not fingerprint_names, "fingerprint_names are only used when inplace is False"
+    fingerprint_names = fingerprint_names if fingerprint_names is not None else ["new_fingerprint"]
+
+    def _fingerprint(func):
+
+        assert inplace or all(
+            name in func.__code__.co_varnames for name in fingerprint_names
+        ), "function {} is missing parameters {} in signature".format(func, fingerprint_names)
+        if randomized_function:
+            assert "seed" in func.__code__.co_varnames, "'seed' must be in {}'s signature".format(func)
+            assert "generator" in func.__code__.co_varnames, "'generator' must be in {}'s signature".format(func)
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            self, *args = args
+            kwargs_for_fingerprint = dict(kwargs)
+            kwargs_for_fingerprint.update(zip(func.__code__.co_varnames, args))
+
+            # keep the right kwargs to be hashed to generate the fingerprint
+
+            if use_kwargs:
+                kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k in use_kwargs}
+            if ignore_kwargs:
+                kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
+            if randomized_function:  # randomized functions have `seed` and `generator` parameters
+                if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
+                    kwargs_for_fingerprint["generator"] = np.random.default_rng(None)
+            if not inplace:
+                for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
+                    if fingerprint_name not in kwargs:
+                        kwargs_for_fingerprint["fingerprint_name"] = fingerprint_name
+                        kwargs[fingerprint_name] = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
+            out = func(self, *args, **kwargs)
+            if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
+                self._fingerprint = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
+            return out
+
+        wrapper._decorator_name_ = "fingerprint"
+        return wrapper
+
+    return _fingerprint

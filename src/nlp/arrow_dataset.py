@@ -36,7 +36,7 @@ from tqdm.auto import tqdm
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
 from .features import Features, cast_to_python_objects, pandas_types_mapper
-from .fingerprint import generate_fingerprint, update_fingerprint
+from .fingerprint import fingerprint, generate_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
@@ -405,6 +405,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         return self._data.column(column).unique().to_pylist()
 
+    @fingerprint(inplace=True)
     def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
 
@@ -424,10 +425,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         casted_schema.set(field_index, casted_field)
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
-        self._fingerprint = update_fingerprint(
-            self._fingerprint, self.__class__.dictionary_encode_column_, {"column": column}
-        )
 
+    @fingerprint(inplace=True)
     def flatten_(self, max_depth=16):
         """Flatten the Table.
         Each column with a struct type is flattened into one column per struct field.
@@ -443,8 +442,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
-        self._fingerprint = update_fingerprint(self._fingerprint, self.__class__.flatten_, {"max_depth": max_depth})
 
+    @fingerprint(inplace=True)
     def cast_(self, features: Features):
         """
         Cast the dataset to a new set of features.
@@ -467,8 +466,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._info.features = features
         schema = pa.schema(features.type)
         self._data = self._data.cast(schema)
-        self._fingerprint = update_fingerprint(self._fingerprint, self.__class__.cast_, {"features": features})
 
+    @fingerprint(inplace=True)
     def remove_columns_(self, column_names: Union[str, List[str]]):
         """
         Remove one or several column(s) in the dataset and
@@ -494,10 +493,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             del self._info.features[column_name]
 
         self._data = self._data.drop(column_names)
-        self._fingerprint = update_fingerprint(
-            self._fingerprint, self.__class__.remove_columns_, {"column_names": column_names}
-        )
 
+    @fingerprint(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
         Rename a column in the dataset and move the features associated to the original column under the new column name.
@@ -530,11 +527,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         del self._info.features[original_column_name]
 
         self._data = self._data.rename_columns(new_column_names)
-        self._fingerprint = update_fingerprint(
-            self._fingerprint,
-            self.__class__.rename_column_,
-            {"original_column_name": original_column_name, "new_column_name": new_column_name},
-        )
 
     def __len__(self):
         """ Number of rows in the dataset """
@@ -598,6 +590,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         finally:
             self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
 
+    @fingerprint(inplace=True)
     def set_format(
         self,
         type: Optional[str] = None,
@@ -654,16 +647,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "python objects" if type is None else type,
             "no" if columns is None else str(columns),
             "do" if output_all_columns else "don't",
-        )
-        self._fingerprint = update_fingerprint(
-            self._fingerprint,
-            self.__class__.set_format,
-            {
-                "type": type,
-                "columns": columns,
-                "output_all_columns": output_all_columns,
-                "format_kwargs": format_kwargs,
-            },
         )
 
     def reset_format(self):
@@ -973,6 +956,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
+    @fingerprint(inplace=False)
     def map(
         self,
         function: Optional[Callable] = None,
@@ -990,6 +974,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         disable_nullable: bool = False,
         verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does updated examples).
@@ -1128,25 +1113,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return inputs
 
         # Check if we've already cached this computation (indexed by a hash)
-        cache_kwargs = {
-            "with_indices": with_indices,
-            "batched": batched,
-            "batch_size": batch_size,
-            "remove_columns": remove_columns,
-            "keep_in_memory": keep_in_memory,
-            "load_from_cache_file": load_from_cache_file,
-            "cache_file_name": cache_file_name,
-            "writer_batch_size": writer_batch_size,
-            "features": features,
-            "disable_nullable": disable_nullable,
-            "input_columns": input_columns,
-            "fn_kwargs": fn_kwargs,
-        }
-        fingerprint = update_fingerprint(self._fingerprint, function, cache_kwargs)
         if update_data and self._data_files:
             if cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
-                cache_file_name = self._get_cache_file_path(fingerprint)
+                cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(cache_file_name) and load_from_cache_file:
                 if verbose:
                     logger.info("Loading cached processed dataset at %s", cache_file_name)
@@ -1169,7 +1139,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     stream=buf_writer,
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
-                    fingerprint=fingerprint,
+                    fingerprint=new_fingerprint,
                 )
             else:
                 buf_writer = None
@@ -1181,7 +1151,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     path=tmp_file.name,
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
-                    fingerprint=fingerprint,
+                    fingerprint=new_fingerprint,
                 )
 
         try:
@@ -1231,6 +1201,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             return self
 
+    @fingerprint(inplace=False)
     def filter(
         self,
         function: Optional[Callable] = None,
@@ -1244,6 +1215,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
@@ -1341,8 +1313,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer_batch_size=writer_batch_size,
             verbose=verbose,
             fn_kwargs=fn_kwargs,
+            new_fingerprint=new_fingerprint,
         )
 
+    @fingerprint(inplace=False)
     def flatten_indices(
         self,
         keep_in_memory: bool = False,
@@ -1351,6 +1325,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         features: Optional[Features] = None,
         disable_nullable: bool = True,
         verbose: bool = True,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Create and cache a new Dataset by flattening the indices mapping.
 
@@ -1373,6 +1348,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             features=features,
             disable_nullable=disable_nullable,
             verbose=verbose,
+            new_fingerprint=new_fingerprint,
         )
 
     def _new_dataset_with_indices(
@@ -1387,6 +1363,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_cache_file_name is not None or indices_buffer is not None
         ), "At least one of indices_cache_file_name or indices_buffer must be provided."
 
+        assert fingerprint is not None, "please specify a fingerprint for the dataset with indices"
         data_files = self._data_files
         if indices_cache_file_name is not None:
             indices_mmap = pa.memory_map(indices_cache_file_name)
@@ -1399,11 +1376,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_f = pa.ipc.open_stream(indices_mmap)
         indices_pa_table = indices_f.read_all()
 
-        if fingerprint is None:
-            fingerprint = update_fingerprint(
-                self._fingerprint, self.__class__._new_dataset_with_indices, {"indices_pa_table": indices_pa_table}
-            )
-
         # Return new Dataset object
         return Dataset(
             self._data,
@@ -1415,6 +1387,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fingerprint=fingerprint,
         )
 
+    @fingerprint(inplace=False)
     def select(
         self,
         indices: Iterable,
@@ -1422,6 +1395,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Create a new dataset with rows selected following the list/array of indices.
 
@@ -1450,19 +1424,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if keep_in_memory or indices_cache_file_name is None:
             buf_writer = pa.BufferOutputStream()
             tmp_file = None
-            writer = ArrowWriter(
-                stream=buf_writer,
-                writer_batch_size=writer_batch_size,
-            )
+            writer = ArrowWriter(stream=buf_writer, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint)
         else:
             buf_writer = None
             if verbose:
                 logger.info("Caching indices mapping at %s", indices_cache_file_name)
             tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(indices_cache_file_name), delete=False)
-            writer = ArrowWriter(
-                path=tmp_file.name,
-                writer_batch_size=writer_batch_size,
-            )
+            writer = ArrowWriter(path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint)
 
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
@@ -1488,10 +1456,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Return new Dataset object
         if buf_writer is None:
-            return self._new_dataset_with_indices(indices_cache_file_name=indices_cache_file_name)
+            return self._new_dataset_with_indices(
+                indices_cache_file_name=indices_cache_file_name, fingerprint=new_fingerprint
+            )
         else:
-            return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue())
+            return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
 
+    @fingerprint(inplace=False)
     def sort(
         self,
         column: str,
@@ -1502,6 +1473,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Create a new dataset sorted according to a column.
 
@@ -1542,25 +1514,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         # Check if we've already cached this computation (indexed by a hash)
-        cache_kwargs = {
-            "column": column,
-            "reverse": reverse,
-            "kind": kind,
-            "keep_in_memory": keep_in_memory,
-            "load_from_cache_file": load_from_cache_file,
-            "indices_cache_file_name": indices_cache_file_name,
-            "writer_batch_size": writer_batch_size,
-        }
-        fingerprint = update_fingerprint(self._fingerprint, self.__class__.sort, cache_kwargs)
         if self._data_files:
             if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
-                indices_cache_file_name = self._get_cache_file_path(fingerprint)
+                indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
                 if verbose:
                     logger.info("Loading cached sorted indices for dataset at %s", indices_cache_file_name)
                 return self._new_dataset_with_indices(
-                    fingerprint=fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
 
         column_data = self._getitem(
@@ -1576,8 +1538,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_cache_file_name=indices_cache_file_name,
             writer_batch_size=writer_batch_size,
             verbose=verbose,
+            new_fingerprint=new_fingerprint,
         )
 
+    @fingerprint(inplace=False, randomized_function=True)
     def shuffle(
         self,
         seed: Optional[int] = None,
@@ -1587,6 +1551,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Create a new Dataset where the rows are shuffled.
 
@@ -1627,23 +1592,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
-        cache_kwargs = {
-            "generator": generator,
-            "keep_in_memory": keep_in_memory,
-            "load_from_cache_file": load_from_cache_file,
-            "indices_cache_file_name": indices_cache_file_name,
-            "writer_batch_size": writer_batch_size,
-        }
-        fingerprint = update_fingerprint(self._fingerprint, self.__class__.shuffle, cache_kwargs)
         if self._data_files:
             if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
-                indices_cache_file_name = self._get_cache_file_path(fingerprint)
+                indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
                 if verbose:
                     logger.info("Loading cached shuffled indices for dataset at %s", indices_cache_file_name)
                 return self._new_dataset_with_indices(
-                    fingerprint=fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
                 )
 
         permutation = generator.permutation(len(self))
@@ -1654,8 +1611,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_cache_file_name=indices_cache_file_name,
             writer_batch_size=writer_batch_size,
             verbose=verbose,
+            new_fingerprint=new_fingerprint,
         )
 
+    @fingerprint(
+        inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"]
+    )
     def train_test_split(
         self,
         test_size: Union[float, int, None] = None,
@@ -1669,6 +1630,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         test_indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         verbose: bool = True,
+        train_new_fingerprint: Optional[str] = None,
+        test_new_fingerprint: Optional[str] = None,
     ) -> "DatasetDict":
         """Return a dictionary (:obj:`nlp.DatsetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
         Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
@@ -1787,31 +1750,14 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
-        cache_kwargs = {
-            "test_size": test_size,
-            "train_size": train_size,
-            "shuffle": shuffle,
-            "generator": generator,
-            "keep_in_memory": keep_in_memory,
-            "load_from_cache_file": load_from_cache_file,
-            "train_indices_cache_file_name": train_indices_cache_file_name,
-            "test_indices_cache_file_name": test_indices_cache_file_name,
-            "writer_batch_size": writer_batch_size,
-        }
-        train_kwargs = cache_kwargs.copy()
-        train_kwargs["split"] = "train"
-        test_kwargs = cache_kwargs.copy()
-        test_kwargs["split"] = "test"
-        train_fingerprint = update_fingerprint(self._fingerprint, self.__class__.train_test_split, train_kwargs)
-        test_fingerprint = update_fingerprint(self._fingerprint, self.__class__.train_test_split, test_kwargs)
         if self._data_files:
             if train_indices_cache_file_name is None or test_indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
 
                 if train_indices_cache_file_name is None:
-                    train_indices_cache_file_name = self._get_cache_file_path(train_fingerprint)
+                    train_indices_cache_file_name = self._get_cache_file_path(train_new_fingerprint)
                 if test_indices_cache_file_name is None:
-                    test_indices_cache_file_name = self._get_cache_file_path(test_fingerprint)
+                    test_indices_cache_file_name = self._get_cache_file_path(test_new_fingerprint)
             if (
                 os.path.exists(train_indices_cache_file_name)
                 and os.path.exists(test_indices_cache_file_name)
@@ -1826,10 +1772,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return DatasetDict(
                     {
                         "train": self._new_dataset_with_indices(
-                            fingerprint=train_fingerprint, indices_cache_file_name=train_indices_cache_file_name
+                            fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name
                         ),
                         "test": self._new_dataset_with_indices(
-                            fingerprint=test_fingerprint, indices_cache_file_name=test_indices_cache_file_name
+                            fingerprint=test_new_fingerprint, indices_cache_file_name=test_indices_cache_file_name
                         ),
                     }
                 )
@@ -1849,6 +1795,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_cache_file_name=train_indices_cache_file_name,
             writer_batch_size=writer_batch_size,
             verbose=verbose,
+            new_fingerprint=train_new_fingerprint,
         )
         test_split = self.select(
             indices=test_indices,
@@ -1856,6 +1803,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_cache_file_name=test_indices_cache_file_name,
             writer_batch_size=writer_batch_size,
             verbose=verbose,
+            new_fingerprint=test_new_fingerprint,
         )
 
         return DatasetDict({"train": train_split, "test": test_split})
