@@ -63,6 +63,20 @@ except (ImportError, AssertionError):
     _tf_available = False  # pylint: disable=invalid-name
 
 
+try:
+    USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
+    if USE_BEAM in ("1", "ON", "YES", "AUTO"):
+        import apache_beam  # noqa: F401
+
+        _beam_available = True  # pylint: disable=invalid-name
+        logger.info("Apache Beam available.")
+    else:
+        logger.info("Disabling Apache Beam because USE_BEAM is set to False")
+        _beam_available = False
+except ImportError:
+    _beam_available = False  # pylint: disable=invalid-name
+
+
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
 )
@@ -90,6 +104,10 @@ S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/metric"
 
 INCOMPLETE_SUFFIX = ".incomplete"
+
+
+def is_beam_available():
+    return _beam_available
 
 
 @contextmanager

@@ -24,6 +24,7 @@ from .file_utils import (
     DownloadConfig,
     cached_path,
     hf_bucket_url,
+    is_beam_available,
     is_remote_url,
     is_tf_available,
     is_torch_available,

@@ -15,6 +15,14 @@ stages:
     - ./benchmarks/results/benchmark_indices_mapping.json:
         cache: false
 
+  benchmark_map_filter:
+    cmd: python ./benchmarks/benchmark_map_filter.py
+    deps:
+    - ./benchmarks/benchmark_map_filter.py
+    metrics:
+    - ./benchmarks/results/benchmark_map_filter.json:
+        cache: false
+
   benchmark_iterating:
     cmd: python ./benchmarks/benchmark_iterating.py
     deps:

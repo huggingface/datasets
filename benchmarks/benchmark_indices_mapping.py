@@ -39,14 +39,17 @@ def shard(dataset: nlp.Dataset, num_shards=10):
 
 
 def benchmark_indices_mapping():
-    times = {}
+    times = {"num examples": SPEED_TEST_N_EXAMPLES}
     functions = (select, sort, shuffle, train_test_split, shard)
     with tempfile.TemporaryDirectory() as tmp_dir:
+        print("generating dataset")
         features = nlp.Features({"text": nlp.Value("string"), "numbers": nlp.Value("float32")})
         dataset = generate_example_dataset(
             os.path.join(tmp_dir, "dataset.arrow"), features, num_examples=SPEED_TEST_N_EXAMPLES
         )
+        print("Functions")
         for func in functions:
+            print(func.__name__)
             times[func.__name__] = func(dataset)
 
     with open(RESULTS_FILE_PATH, "wb") as f:

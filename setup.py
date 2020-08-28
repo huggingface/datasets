@@ -52,7 +52,8 @@ from setuptools import setup
 DOCLINES = __doc__.split('\n')
 
 REQUIRED_PKGS = [
-    'numpy',
+    # We use numpy>=1.17 to have np.random.Generator (Dataset shuffling)
+    'numpy>=1.17',
     # Backend and serialization. Minimum 0.17.1 to support extension array
     'pyarrow>=0.17.1',
     # For smart caching dataset processing
@@ -71,6 +72,12 @@ REQUIRED_PKGS = [
     "xxhash"
 ]
 
+BENCHMARKS_REQUIRE = [
+    'tensorflow',
+    'torch',
+    'transformers',
+]
+
 TESTS_REQUIRE = [
     'apache-beam',
     'absl-py',
@@ -85,6 +92,7 @@ TESTS_REQUIRE = [
     'tensorflow',
     'torch',
     'tldextract',
+    'transformers',
     'zstandard'
 ]
 
@@ -105,6 +113,7 @@ EXTRAS_REQUIRE = {
     'dev': TESTS_REQUIRE + QUALITY_REQUIRE,
     'tests': TESTS_REQUIRE,
     'quality': QUALITY_REQUIRE,
+    'benchmarks': BENCHMARKS_REQUIRE,
     'docs': ["recommonmark", "sphinx==3.1.2", "sphinx-markdown-tables", "sphinx-rtd-theme==0.4.3", "sphinx-copybutton"]
 }
 
