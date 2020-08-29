@@ -88,7 +88,7 @@ In the rest of this quick-tour we will use this dataset to fine-tune a Bert mode
 
 As you can see from the above features, the labels are a :class:`nlp.ClassLabel` instance with two classes: ``not_equivalent`` and ``equivalent``. 
 
-We can print one example of each class using :func:`nlp.Dataset.filter`and a name-to-integer conversion method of the feature :class:`nlp.ClassLabel` called :func:`nlp.ClassLabel.str2int` (that we detail these methods in :doc:`processing </processing>` and :doc:`exploring </exploring>`):
+We can print one example of each class using :func:`nlp.Dataset.filter` and a name-to-integer conversion method of the feature :class:`nlp.ClassLabel` called :func:`nlp.ClassLabel.str2int` (that we detail these methods in :doc:`processing </processing>` and :doc:`exploring </exploring>`):
 
 .. code-block::
 
@@ -111,12 +111,22 @@ Let's import a pretrained Bert model and its tokenizer using 🤗transformers.
 
 .. code-block::
 
+    >>> ## PYTORCH CODE
     >>> from transformers import AutoModelForSequenceClassification, AutoTokenizer
     >>> model = AutoModelForSequenceClassification.from_pretrained('bert-base-cased')
     Some weights of the model checkpoint at bert-base-cased were not used when initializing BertForSequenceClassification: ['cls.predictions.bias', 'cls.predictions.transform.dense.weight', 'cls.predictions.transform.dense.bias', 'cls.predictions.decoder.weight', 'cls.seq_relationship.weight', 'cls.seq_relationship.bias', 'cls.predictions.transform.LayerNorm.weight', 'cls.predictions.transform.LayerNorm.bias']
     - This IS expected if you are initializing BertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPretraining model).
     - This IS NOT expected if you are initializing BertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
     Some weights of BertForSequenceClassification were not initialized from the model checkpoint at bert-base-cased and are newly initialized: ['classifier.weight', 'classifier.bias']
+    You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+    >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
+    >>> ## TENSORFLOW CODE
+    >>> from transformers import TFAutoModelForSequenceClassification, AutoTokenizer
+    >>> model = TFAutoModelForSequenceClassification.from_pretrained("bert-base-cased")
+    Some weights of the model checkpoint at bert-base-cased were not used when initializing TFBertForSequenceClassification: ['nsp___cls', 'mlm___cls']
+    - This IS expected if you are initializing TFBertForSequenceClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPretraining model).
+    - This IS NOT expected if you are initializing TFBertForSequenceClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
+    Some weights of TFBertForSequenceClassification were not initialized from the model checkpoint at bert-base-cased and are newly initialized: ['dropout_37', 'classifier']
     You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
     >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
@@ -172,8 +182,8 @@ Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`
 
 To be able to train our model with this dataset and PyTorch, we will need to do three modifications:
 
-- rename our ``label`` column in ``labels`` which is the `expected input name for labels in BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__,
-- get pytorch tensors out of our :class:`nlp.Dataset`, instead of python objects, and
+- rename our ``label`` column in ``labels`` which is the expected input name for labels in `BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__ or `TFBertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#tfbertforsequenceclassification>`__,
+- get pytorch (or tensorflow) tensors out of our :class:`nlp.Dataset`, instead of python objects, and
 - filter the columns to return only the subset of the columns that we need for our model inputs (``input_ids``, ``token_type_ids`` and ``attention_mask``).
 
 .. note::
@@ -188,10 +198,11 @@ The first modification is just a matter of renaming the column as follow (we cou
 
 The two other modifications can be handled by the :func:`nlp.Dataset.set_format` method which will convert, on the fly, the returned output from :func:`nlp.Dataset.__getitem__` to filter the unwanted columns and convert python objects in PyTorch tensors.
 
-Here is how we can apply the right format to our dataset using :func:`nlp.Dataset.set_format` and wrap it in a ``torch.utils.data.DataLoader``:
+Here is how we can apply the right format to our dataset using :func:`nlp.Dataset.set_format` and wrap it in a ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``:
 
 .. code-block::
 
+    >>> ## CODE PYTORCH
     >>> import torch
     >>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
     >>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
@@ -218,11 +229,43 @@ Here is how we can apply the right format to our dataset using :func:`nlp.Datase
                               [0, 0, 0,  ..., 0, 0, 0],
                               [0, 0, 0,  ..., 0, 0, 0],
                               [0, 0, 0,  ..., 0, 0, 0]])}
+    >>> ## CODE TENSORFLOW
+    >>> import tensorflow as tf
+    >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
+    >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.max_len]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
+    >>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["labels"])).batch(32)
+    >>> next(iter(tfdataset))
+    ({'input_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
+    array([[  101,  7277,  2180, ...,     0,     0,     0],
+           [  101, 10684,  2599, ...,     0,     0,     0],
+           [  101,  1220,  1125, ...,     0,     0,     0],
+           ...,
+           [  101,  1109,  2026, ...,     0,     0,     0],
+           [  101, 22263,  1107, ...,     0,     0,     0],
+           [  101,   142,  1813, ...,     0,     0,     0]], dtype=int32)>, 'token_type_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
+    array([[0, 0, 0, ..., 0, 0, 0],
+           [0, 0, 0, ..., 0, 0, 0],
+           [0, 0, 0, ..., 0, 0, 0],
+           ...,
+           [0, 0, 0, ..., 0, 0, 0],
+           [0, 0, 0, ..., 0, 0, 0],
+           [0, 0, 0, ..., 0, 0, 0]], dtype=int32)>, 'attention_mask': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
+    array([[1, 1, 1, ..., 0, 0, 0],
+           [1, 1, 1, ..., 0, 0, 0],
+           [1, 1, 1, ..., 0, 0, 0],
+           ...,
+           [1, 1, 1, ..., 0, 0, 0],
+           [1, 1, 1, ..., 0, 0, 0],
+           [1, 1, 1, ..., 0, 0, 0]], dtype=int32)>}, <tf.Tensor: shape=(32,), dtype=int64, numpy=
+    array([1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
+           0, 1, 1, 1, 0, 0, 1, 1, 1, 0])>)
+
 
 We are now ready to train our model. Let's write a simple training loop and a start the training
 
 .. code-block::
 
+    >>> ## CODE PYTORCH
     >>> from tqdm import tqdm
     >>> device = 'cuda' if torch.cuda.is_available() else 'cpu' 
     >>> model.train().to(device)
@@ -237,6 +280,12 @@ We are now ready to train our model. Let's write a simple training loop and a st
     >>>         optimizer.zero_grad()
     >>>         if i % 10 == 0:
     >>>             print(f"loss: {loss}")
+    >>> ## CODE TENSORFLOW
+    >>> loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE, from_logits=True)
+    >>> opt = tf.keras.optimizers.Adam(learning_rate=3e-5)
+    >>> model.compile(optimizer=opt, loss=loss_fn, metrics=["accuracy"])
+    >>> model.fit(tfdataset, epochs=3)
+
 
 Now this was a very simple tour, you should continue with either the detailled notebook which is `here <https://colab.research.google.com/github/huggingface/nlp/blob/master/notebooks/Overview.ipynb#scrollTo=my95uHbLyjwR>`__ or the in-depth guides on
 
