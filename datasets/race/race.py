@@ -8,7 +8,6 @@ import os
 import datasets
 
 
-# TODO(race): BibTeX citation
 _CITATION = """\
 @article{lai2017large,
     title={RACE: Large-scale ReAding Comprehension Dataset From Examinations},
@@ -30,10 +29,9 @@ _URL = "http://www.cs.cmu.edu/~glai1/data/race/RACE.tar.gz"
 
 
 class Race(datasets.GeneratorBasedBuilder):
-    """TODO(race): Short description of my dataset."""
+    """ReAding Comprehension Dataset From Examination dataset from CMU"""
 
-    # TODO(race): Set up version.
-    VERSION = datasets.Version("0.1.0")
+    VERSION = datasets.Version("0.2.0")
 
     def _info(self):
         # TODO(race): Specifies the datasets.DatasetInfo object
@@ -43,6 +41,7 @@ class Race(datasets.GeneratorBasedBuilder):
             # datasets.features.FeatureConnectors
             features=datasets.Features(
                 {
+                    "example_id": datasets.Value("string"),
                     "article": datasets.Value("string"),
                     "answer": datasets.Value("string"),
                     "question": datasets.Value("string"),
@@ -61,54 +60,47 @@ class Race(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO(race): Downloads the data and defines the splits
+        #Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
-        # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "files": sorted(os.listdir(os.path.join(dl_dir, "RACE/test/high"))),
-                    "filespath": os.path.join(dl_dir, "RACE/test/high"),
-                },
+                gen_kwargs={"train_test_or_eval": os.path.join(dl_dir, "RACE/test")},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "files": sorted(os.listdir(os.path.join(dl_dir, "RACE/train/high"))),
-                    "filespath": os.path.join(dl_dir, "RACE/train/high"),
-                },
+                gen_kwargs={"train_test_or_eval": os.path.join(dl_dir, "RACE/train")},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "files": sorted(os.listdir(os.path.join(dl_dir, "RACE/dev/high"))),
-                    "filespath": os.path.join(dl_dir, "RACE/dev/high"),
-                },
+                gen_kwargs={"train_test_or_eval": os.path.join(dl_dir, "RACE/dev")},
             ),
         ]
 
-    def _generate_examples(self, files, filespath):
+    def _generate_examples(self, train_test_or_eval):
         """Yields examples."""
-        # TODO(race): Yields (key, example) tuples from the dataset
-        for file in files:
-            filepath = os.path.join(filespath, file)
-            with open(filepath, encoding="utf-8") as f:
-                data = json.load(f)
-                questions = data["questions"]
-                answers = data["answers"]
-                options = data["options"]
-                for i in range(len(questions)):
-                    question = questions[i]
-                    answer = answers[i]
-                    option = options[i]
-                    yield i, {
-                        "article": data["article"],
-                        "question": question,
-                        "answer": answer,
-                        "options": option,
-                    }
+        middle_or_high = os.listdir(train_test_or_eval)
+        for case in middle_or_high:
+            files_dir = os.path.join(train_test_or_eval, case)
+            for file in sorted(os.listdir(files_dir)):
+                filepath = os.path.join(files_dir, file)
+                with open(filepath, encoding="utf-8") as f:
+                    data = json.load(f)
+                    questions = data["questions"]
+                    answers = data["answers"]
+                    options = data["options"]
+                    for i in range(len(questions)):
+                        question = questions[i]
+                        answer = answers[i]
+                        option = options[i]
+                        yield i, {
+                            "example_id": data["id"],
+                            "article": data["article"],
+                            "question": question,
+                            "answer": answer,
+                            "options": option,
+                        }
