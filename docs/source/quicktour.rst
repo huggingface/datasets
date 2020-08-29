@@ -202,7 +202,7 @@ Here is how we can apply the right format to our dataset using :func:`nlp.Datase
 
 .. code-block::
 
-    >>> ## CODE PYTORCH
+    >>> ## PYTORCH CODE
     >>> import torch
     >>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
     >>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
@@ -229,7 +229,7 @@ Here is how we can apply the right format to our dataset using :func:`nlp.Datase
                               [0, 0, 0,  ..., 0, 0, 0],
                               [0, 0, 0,  ..., 0, 0, 0],
                               [0, 0, 0,  ..., 0, 0, 0]])}
-    >>> ## CODE TENSORFLOW
+    >>> ## TENSORFLOW CODE
     >>> import tensorflow as tf
     >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
     >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.max_len]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
@@ -265,7 +265,7 @@ We are now ready to train our model. Let's write a simple training loop and a st
 
 .. code-block::
 
-    >>> ## CODE PYTORCH
+    >>> ## PYTORCH CODE
     >>> from tqdm import tqdm
     >>> device = 'cuda' if torch.cuda.is_available() else 'cpu' 
     >>> model.train().to(device)
@@ -280,7 +280,7 @@ We are now ready to train our model. Let's write a simple training loop and a st
     >>>         optimizer.zero_grad()
     >>>         if i % 10 == 0:
     >>>             print(f"loss: {loss}")
-    >>> ## CODE TENSORFLOW
+    >>> ## TENSORFLOW CODE
     >>> loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE, from_logits=True)
     >>> opt = tf.keras.optimizers.Adam(learning_rate=3e-5)
     >>> model.compile(optimizer=opt, loss=loss_fn, metrics=["accuracy"])
