@@ -32,18 +32,17 @@ processed the dataset as well:
 import copy
 import dataclasses
 import json
-import logging
 import os
 from dataclasses import asdict, dataclass, field
 from typing import List, Optional, Union
 
-from nlp.utils.version import Version
-
 from .features import Features, Value
 from .splits import SplitDict
+from .utils import Version
+from .utils.logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Name of the file to output the DatasetInfo p rotobuf object.
 DATASET_INFO_FILENAME = "dataset_info.json"

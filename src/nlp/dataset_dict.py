@@ -237,7 +237,6 @@ class DatasetDict(dict):
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
         disable_nullable: bool = False,
-        verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
     ) -> "DatasetDict":
         """Apply a function to all the elements in the table (individually or in batches)
@@ -270,7 +269,6 @@ class DatasetDict(dict):
             features (`Optional[nlp.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
         """
         self._check_values_type()
@@ -291,7 +289,6 @@ class DatasetDict(dict):
                     writer_batch_size=writer_batch_size,
                     features=features,
                     disable_nullable=disable_nullable,
-                    verbose=verbose,
                     fn_kwargs=fn_kwargs,
                 )
                 for k, dataset in self.items()
@@ -309,7 +306,6 @@ class DatasetDict(dict):
         load_from_cache_file: bool = True,
         cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
     ) -> "DatasetDict":
         """Apply a filter function to all the elements in the table in batches
@@ -336,7 +332,6 @@ class DatasetDict(dict):
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
         """
         self._check_values_type()
@@ -354,7 +349,6 @@ class DatasetDict(dict):
                     load_from_cache_file=load_from_cache_file,
                     cache_file_name=cache_file_names[k],
                     writer_batch_size=writer_batch_size,
-                    verbose=verbose,
                     fn_kwargs=fn_kwargs,
                 )
                 for k, dataset in self.items()
@@ -370,7 +364,6 @@ class DatasetDict(dict):
         load_from_cache_file: bool = True,
         indices_cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
     ) -> "DatasetDict":
         """Create a new dataset sorted according to a column.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -393,7 +386,6 @@ class DatasetDict(dict):
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         self._check_values_type()
         if indices_cache_file_names is None:
@@ -408,7 +400,6 @@ class DatasetDict(dict):
                     load_from_cache_file=load_from_cache_file,
                     indices_cache_file_name=indices_cache_file_names[k],
                     writer_batch_size=writer_batch_size,
-                    verbose=verbose,
                 )
                 for k, dataset in self.items()
             }
@@ -422,7 +413,6 @@ class DatasetDict(dict):
         load_from_cache_file: bool = True,
         indices_cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
     ):
         """Create a new Dataset where the rows are shuffled.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -446,7 +436,6 @@ class DatasetDict(dict):
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         self._check_values_type()
         if seeds is None:
@@ -464,7 +453,6 @@ class DatasetDict(dict):
                     load_from_cache_file=load_from_cache_file,
                     indices_cache_file_name=indices_cache_file_names[k],
                     writer_batch_size=writer_batch_size,
-                    verbose=verbose,
                 )
                 for k, dataset in self.items()
             }

@@ -16,15 +16,15 @@
 # Lint as: python3
 """ List and inspect datasets and metrics."""
 
-import logging
 from typing import Optional
 
 from .hf_api import HfApi
 from .load import prepare_module
 from .utils import DownloadConfig
+from .utils.logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def list_datasets(with_community_datasets=True, id_only=False):

@@ -22,6 +22,10 @@ from typing import Dict, List, Optional, Tuple
 import requests
 from tqdm import tqdm
 
+from .utils.logging import INFO, get_logger
+
+
+logger = get_logger(__name__)
 
 ENDPOINT = "https://huggingface.co"
 
@@ -278,7 +282,8 @@ class TqdmProgressFileReader:
     def __init__(self, f: io.BufferedReader):
         self.f = f
         self.total_size = os.fstat(f.fileno()).st_size
-        self.pbar = tqdm(total=self.total_size, leave=False)
+        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        self.pbar = tqdm(total=self.total_size, leave=False, disable=not_verbose)
         self.read = f.read
         f.read = self._read
 
