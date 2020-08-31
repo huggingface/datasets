@@ -76,7 +76,7 @@ def _reset_library_root_logger() -> None:
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """Return a logger with the specified name.
-    This function is not supposed to be directly accessed by library users.
+    This function can be used in dataset and metrics scripts.
     """
 
     if name is None:
@@ -115,18 +115,42 @@ def set_verbosity(verbosity: int) -> None:
 
 
 def set_verbosity_info():
+    """Set the level for the HuggingFace Transformers's root logger to INFO.
+
+    This will display most of the logging information and tqdm bars.
+
+    Shortcut to ``nlp.logging.set_verbosity(nlp.logging.INFO)``
+    """
     return set_verbosity(INFO)
 
 
 def set_verbosity_warning():
+    """Set the level for the HuggingFace Transformers's root logger to WARNING.
+
+    This will display only the warning and errors logging information (no tqdm bars).
+
+    Shortcut to ``nlp.logging.set_verbosity(nlp.logging.WARNING)``
+    """
     return set_verbosity(WARNING)
 
 
 def set_verbosity_debug():
+    """Set the level for the HuggingFace Transformers's root logger to DEBUG.
+
+    This will display all the logging information and tqdm bars.
+
+    Shortcut to ``nlp.logging.set_verbosity(nlp.logging.DEBUG)``
+    """
     return set_verbosity(DEBUG)
 
 
 def set_verbosity_error():
+    """Set the level for the HuggingFace Transformers's root logger to ERROR.
+
+    This will display only the errors logging information (no tqdm bars).
+
+    Shortcut to ``nlp.logging.set_verbosity(nlp.logging.ERROR)``
+    """
     return set_verbosity(ERROR)
 
 
