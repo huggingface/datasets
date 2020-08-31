@@ -116,7 +116,7 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
         assert inplace or all(
             name in func.__code__.co_varnames for name in fingerprint_names
         ), "function {} is missing parameters {} in signature".format(func, fingerprint_names)
-        if randomized_function:
+        if randomized_function:  # randomized function have seed and generator parameters
             assert "seed" in func.__code__.co_varnames, "'seed' must be in {}'s signature".format(func)
             assert "generator" in func.__code__.co_varnames, "'generator' must be in {}'s signature".format(func)
 
@@ -136,12 +136,21 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
             if randomized_function:  # randomized functions have `seed` and `generator` parameters
                 if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
                     kwargs_for_fingerprint["generator"] = np.random.default_rng(None)
+
+            # add new_fingerprint arg to not in-place transforms
+
             if not inplace:
                 for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
                     if fingerprint_name not in kwargs:
                         kwargs_for_fingerprint["fingerprint_name"] = fingerprint_name
                         kwargs[fingerprint_name] = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
+
+            # Call actual function
+
             out = func(self, *args, **kwargs)
+
+            # Update fingerprint of in-place transforms + update in-place history of transforms
+
             if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
                 self._fingerprint = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
                 for inplace_hist_per_file in self._inplace_history:

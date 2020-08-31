@@ -152,6 +152,7 @@ class BaseDatasetTest(TestCase):
 
     def test_set_format_numpy_multiple_columns(self):
         dset = self._create_dummy_dataset(multiple_columns=True)
+        fingerprint = dset._fingerprint
         dset.set_format(type="numpy", columns=["col_1"])
         self.assertEqual(len(dset[0]), 1)
         self.assertIsInstance(dset[0]["col_1"], np.ndarray)
@@ -160,6 +161,7 @@ class BaseDatasetTest(TestCase):
         self.assertIsInstance(dset["col_1"], np.ndarray)
         self.assertListEqual(list(dset["col_1"].shape), [4])
         np.testing.assert_array_equal(dset["col_1"], np.array([3, 2, 1, 0]))
+        self.assertNotEqual(dset._fingerprint, fingerprint)
 
         dset.reset_format()
         with dset.formatted_as(type="numpy", columns=["col_1"]):
@@ -242,13 +244,16 @@ class BaseDatasetTest(TestCase):
         dset = self._create_dummy_dataset(multiple_columns=True)
         features = dset.features
         features["col_1"] = Value("float64")
+        fingerprint = dset._fingerprint
         dset.cast_(features)
         self.assertEqual(dset.num_columns, 2)
         self.assertEqual(dset.features["col_1"], Value("float64"))
         self.assertIsInstance(dset[0]["col_1"], float)
+        self.assertNotEqual(dset._fingerprint, fingerprint)
 
     def test_remove_columns_(self):
         dset = self._create_dummy_dataset(multiple_columns=True)
+        fingerprint = dset._fingerprint
         dset.remove_columns_(column_names="col_1")
         self.assertEqual(dset.num_columns, 1)
         self.assertListEqual(list(dset.column_names), ["col_2"])
@@ -256,12 +261,15 @@ class BaseDatasetTest(TestCase):
         dset = self._create_dummy_dataset(multiple_columns=True)
         dset.remove_columns_(column_names=["col_1", "col_2"])
         self.assertEqual(dset.num_columns, 0)
+        self.assertNotEqual(dset._fingerprint, fingerprint)
 
     def test_rename_column_(self):
         dset = self._create_dummy_dataset(multiple_columns=True)
+        fingerprint = dset._fingerprint
         dset.rename_column_(original_column_name="col_1", new_column_name="new_name")
         self.assertEqual(dset.num_columns, 2)
         self.assertListEqual(list(dset.column_names), ["new_name", "col_2"])
+        self.assertNotEqual(dset._fingerprint, fingerprint)
 
     def test_concatenate_from_memory(self):
         data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
@@ -393,15 +401,18 @@ class BaseDatasetTest(TestCase):
             {"a": [{"b": {"c": ["text"]}}] * 10, "foo": [1] * 10},
             features=Features({"a": {"b": Sequence({"c": Value("string")})}, "foo": Value("int64")}),
         )
+        fingerprint = dset._fingerprint
         dset.flatten_()
         self.assertListEqual(dset.column_names, ["a.b.c", "foo"])
         self.assertListEqual(list(dset.features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(dset.features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}))
+        self.assertNotEqual(dset._fingerprint, fingerprint)
 
     def test_map_not_cached(self):
         dset = self._create_dummy_dataset()
 
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        fingerprint = dset._fingerprint
         dset_test = dset.map(
             lambda x: {"name": x["filename"][:-2], "id": int(x["filename"][-1])}, cache_file_name=None
         )
@@ -411,6 +422,7 @@ class BaseDatasetTest(TestCase):
             dset_test.features,
             Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
         )
+        self.assertNotEqual(dset_test._fingerprint, fingerprint)
 
         self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
         dset_test = dset.map(lambda x: None, cache_file_name=None)
@@ -426,6 +438,7 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            fingerprint = dset._fingerprint
             dset_test = dset.map(
                 lambda x: {"name": x["filename"][:-2], "id": int(x["filename"][-1])}, cache_file_name=tmp_file
             )
@@ -435,6 +448,7 @@ class BaseDatasetTest(TestCase):
                 dset_test.features,
                 Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
             )
+            self.assertNotEqual(dset_test._fingerprint, fingerprint)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
@@ -611,18 +625,22 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
+            fingerprint = dset._fingerprint
             dset_filter_first_five = dset.filter(lambda x, i: i < 5, with_indices=True, cache_file_name=tmp_file)
             self.assertEqual(len(dset_filter_first_five), 5)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_first_five.features, Features({"filename": Value("string")}))
+            self.assertNotEqual(dset_filter_first_five._fingerprint, fingerprint)
 
         # filter filenames with even id at the end
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
+            fingerprint = dset._fingerprint
             dset_filter_even_num = dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0), cache_file_name=tmp_file)
             self.assertEqual(len(dset_filter_even_num), 15)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
+            self.assertNotEqual(dset_filter_even_num._fingerprint, fingerprint)
 
     def test_keep_features_after_transform_specified(self):
         features = Features(
@@ -730,12 +748,14 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
+            fingerprint = dset._fingerprint
             dset_select_even = dset.select(indices, indices_cache_file_name=tmp_file)
             self.assertEqual(len(dset_select_even), 15)
             for row in dset_select_even:
                 self.assertEqual(int(row["filename"][-1]) % 2, 0)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_select_even.features, Features({"filename": Value("string")}))
+            self.assertNotEqual(dset_select_even._fingerprint, fingerprint)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             bad_indices = list(range(5))
@@ -853,12 +873,14 @@ class BaseDatasetTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
+            fingerprint = dset._fingerprint
             dset_shuffled = dset.shuffle(seed=1234, indices_cache_file_name=tmp_file)
             self.assertEqual(len(dset_shuffled), 30)
             self.assertEqual(dset_shuffled[0]["filename"], "my_name-train_28")
             self.assertEqual(dset_shuffled[2]["filename"], "my_name-train_10")
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_shuffled.features, Features({"filename": Value("string")}))
+            self.assertNotEqual(dset_shuffled._fingerprint, fingerprint)
 
             # Reproducibility
             tmp_file = os.path.join(tmp_dir, "test_2.arrow")
@@ -879,18 +901,22 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[1]["filename"], "my_name-train_9")
             # Sort
             tmp_file = os.path.join(tmp_dir, "test_3.arrow")
+            fingerprint = dset._fingerprint
             dset_sorted = dset.sort("filename", indices_cache_file_name=tmp_file)
             for i, row in enumerate(dset_sorted):
                 self.assertEqual(int(row["filename"][-1]), i)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_sorted.features, Features({"filename": Value("string")}))
+            self.assertNotEqual(dset_sorted._fingerprint, fingerprint)
             # Sort reversed
             tmp_file = os.path.join(tmp_dir, "test_4.arrow")
+            fingerprint = dset._fingerprint
             dset_sorted = dset.sort("filename", indices_cache_file_name=tmp_file, reverse=True)
             for i, row in enumerate(dset_sorted):
                 self.assertEqual(int(row["filename"][-1]), len(dset_sorted) - 1 - i)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_sorted.features, Features({"filename": Value("string")}))
+            self.assertNotEqual(dset_sorted._fingerprint, fingerprint)
 
     def test_export(self):
         dset = self._create_dummy_dataset()
@@ -938,6 +964,7 @@ class BaseDatasetTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "test.arrow")
             tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
+            fingerprint = dset._fingerprint
             dset_dict = dset.train_test_split(
                 test_size=10,
                 shuffle=False,
@@ -957,6 +984,9 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_train.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
+            self.assertNotEqual(dset_train._fingerprint, fingerprint)
+            self.assertNotEqual(dset_test._fingerprint, fingerprint)
+            self.assertNotEqual(dset_train._fingerprint, dset_test._fingerprint)
 
             tmp_file = os.path.join(tmp_dir, "test_3.arrow")
             tmp_file_2 = os.path.join(tmp_dir, "test_4.arrow")
@@ -1030,11 +1060,13 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset), 10)
             # Shard
             tmp_file_1 = os.path.join(tmp_dir, "test_1.arrow")
+            fingerprint = dset._fingerprint
             dset_sharded = dset.shard(num_shards=8, index=1, indices_cache_file_name=tmp_file_1)
             self.assertEqual(2, len(dset_sharded))
             self.assertEqual(["my_name-train_1", "my_name-train_9"], dset_sharded["filename"])
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_sharded.features, Features({"filename": Value("string")}))
+            self.assertNotEqual(dset_sharded._fingerprint, fingerprint)
             # Shard contiguous
             tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
             dset_sharded_contiguous = dset.shard(
@@ -1066,10 +1098,12 @@ class BaseDatasetTest(TestCase):
                 dset.unique(dset.column_names[0])
 
             tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
+            fingerprint = dset._fingerprint
             dset = dset.flatten_indices(cache_file_name=tmp_file_2)
 
             self.assertEqual(len(dset), 10)
             self.assertEqual(dset._indices, None)
+            self.assertNotEqual(dset._fingerprint, fingerprint)
             # Test unique works
             dset.unique(dset.column_names[0])
 
