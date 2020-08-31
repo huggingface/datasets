@@ -173,17 +173,19 @@ class DatasetBuilder:
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
         self._cache_dir = self._build_cache_dir()
-        if os.path.exists(self._cache_dir):  # check if data exist
-            if len(os.listdir(self._cache_dir)) > 0:
-                logger.info("Overwrite dataset info from restored data version.")
-                self.info = DatasetInfo.from_directory(self._cache_dir)
-            else:  # dir exists but no data, remove the empty dir as data aren't available anymore
-                logger.warning(
-                    "Old caching folder {} for dataset {} exists but not data were found. Removing it. ".format(
-                        self._cache_dir, self.name
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        with FileLock(lock_path):
+            if os.path.exists(self._cache_dir):  # check if data exist
+                if len(os.listdir(self._cache_dir)) > 0:
+                    logger.info("Overwrite dataset info from restored data version.")
+                    self.info = DatasetInfo.from_directory(self._cache_dir)
+                else:  # dir exists but no data, remove the empty dir as data aren't available anymore
+                    logger.warning(
+                        "Old caching folder {} for dataset {} exists but not data were found. Removing it. ".format(
+                            self._cache_dir, self.name
+                        )
                     )
-                )
-                os.rmdir(self._cache_dir)
+                    os.rmdir(self._cache_dir)
 
     @property
     def manual_download_instructions(self) -> Optional[str]:
@@ -574,10 +576,14 @@ class DatasetBuilder:
                         shutil.move(downloaded_resource_path, resource_path)
 
     def _save_info(self):
-        self.info.write_to_directory(self._cache_dir)
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        with FileLock(lock_path):
+            self.info.write_to_directory(self._cache_dir)
 
     def _save_infos(self):
-        DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        with FileLock(lock_path):
+            DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
