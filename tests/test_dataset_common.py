@@ -17,6 +17,8 @@ import glob
 import logging
 import os
 import tempfile
+from multiprocessing import Pool
+from unittest import TestCase
 
 import requests
 from absl.testing import parameterized
@@ -42,7 +44,7 @@ logging.basicConfig(level=logging.INFO)
 
 class DatasetTester(object):
     def __init__(self, parent):
-        self.parent = parent
+        self.parent = parent if parent is not None else TestCase()
 
     def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
@@ -217,6 +219,30 @@ class LocalDatasetTest(parameterized.TestCase):
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
+
+
+def distributed_load_dataset(tmp_dir):
+    data_name = "./datasets/csv"
+    data_base_path = os.path.join(data_name, "dummy/0.0.0/dummy_data-zip-extracted/dummy_data/")
+    datafiles = {
+        "train": os.path.join(data_base_path, "train.csv"),
+        "dev": os.path.join(data_base_path, "dev.csv"),
+        "test": os.path.join(data_base_path, "test.csv"),
+    }
+    dataset = load_dataset("./datasets/csv", cache_dir=tmp_dir, data_files=datafiles)
+    return dataset
+
+
+class DistributedDatasetTest(TestCase):
+    def test_load_dataset_distributed(self):
+        num_workers = 5
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with Pool(processes=num_workers) as pool:  # start 4 worker processes
+                result = pool.apply_async(
+                    distributed_load_dataset, (tmp_dir,)
+                )  # evaluate "f(10)" asynchronously in a single process
+                _ = result.get(timeout=20)
+                _ = pool.map(distributed_load_dataset, [tmp_dir] * num_workers)
 
 
 def get_aws_dataset_names():
