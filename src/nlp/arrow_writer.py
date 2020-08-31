@@ -15,7 +15,6 @@
 """To write records into Parquet files."""
 import errno
 import json
-import logging
 import os
 import socket
 from dataclasses import asdict
@@ -27,9 +26,10 @@ from tqdm.auto import tqdm
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
+from .utils.logging import INFO, get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
@@ -393,9 +393,10 @@ def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
     writer = ArrowWriter(path=destination, stream=stream)
-    for source in tqdm(sources, unit="sources"):
+    not_verbose = bool(logger.getEffectiveLevel() > INFO)
+    for source in tqdm(sources, unit="sources", disable=not_verbose):
         pf = pa.parquet.ParquetFile(source)
-        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False):
+        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
             df = pf.read_row_group(i).to_pandas()
             for col in df.columns:
                 df[col] = df[col].apply(json.loads)

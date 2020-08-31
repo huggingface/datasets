@@ -7,7 +7,6 @@ Copyright by the AllenNLP authors.
 import copy
 import gzip
 import json
-import logging
 import os
 import shutil
 import sys
@@ -27,9 +26,10 @@ from filelock import FileLock
 from tqdm.auto import tqdm
 
 from .. import __version__
+from .logging import INFO, get_logger
 
 
-logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+logger = get_logger(__name__)  # pylint: disable=invalid-name
 
 try:
     USE_TF = os.environ.get("USE_TF", "AUTO").upper()
@@ -343,13 +343,14 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
+    not_verbose = bool(logger.getEffectiveLevel() > INFO)
     progress = tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc="Downloading",
-        disable=bool(logger.getEffectiveLevel() == logging.NOTSET),
+        disable=not_verbose,
     )
     for chunk in response.iter_content(chunk_size=1024):
         if chunk:  # filter out keep-alive new chunks

@@ -15,7 +15,6 @@
 
 # Lint as: python3
 """ This class handle features definition in datasets and some utilities to display table type."""
-import logging
 from collections.abc import Iterable
 from dataclasses import dataclass, field, fields
 from typing import Any, ClassVar, Dict, List, Optional, Sequence, Tuple, Union
@@ -28,9 +27,10 @@ from pandas.api.extensions import ExtensionDtype as PandasExtensionDtype
 
 from . import utils
 from .utils.file_utils import _tf_available, _torch_available
+from .utils.logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 if _torch_available:
