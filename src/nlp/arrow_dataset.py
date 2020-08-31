@@ -142,6 +142,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_table: Optional[pa.Table] = None,
         indices_data_files: Optional[List[dict]] = None,
         fingerprint: Optional[str] = None,
+        inplace_history: Optional[List[dict]] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
@@ -150,6 +151,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._indices: Optional[pa.Table] = indices_table
         self._data_files: List[dict] = data_files if data_files is not None else []
         self._indices_data_files: List[dict] = indices_data_files if indices_data_files is not None else []
+        self._inplace_history: List[dict] = (
+            inplace_history
+            if inplace_history is not None
+            else [{"transforms": []} for _ in range(len(self._data_files))]
+        )
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
         self._format_columns: Optional[list] = None
@@ -343,7 +349,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self.__dict__ = state
         reader = ArrowReader("", self.info)
         if self._data is None and self._data_files:
-            self._data = reader._read_files(self._data_files)
+            tables = []
+            for data_file, inplace_hist_per_file in zip(self._data_files, self._inplace_history):
+                # Replay in-place history of transforms (cast_, rename_column_, etc.)
+                pa_table = reader._read_files([data_file])
+                sub_dataset = Dataset(pa_table, fingerprint="")
+                for inplace_transform_name, args, kwargs in inplace_hist_per_file["transforms"]:
+                    getattr(sub_dataset, inplace_transform_name)(*args, **kwargs)
+                tables.append(sub_dataset._data)
+            self._data = pa.concat_tables(tables)
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
 
@@ -1385,6 +1399,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_table=indices_pa_table,
             indices_data_files=indices_data_files,
             fingerprint=fingerprint,
+            inplace_history=self._inplace_history,  # in-place transforms have to be kept as we kept the same data_files
         )
 
     @fingerprint(inplace=False)

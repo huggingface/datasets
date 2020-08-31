@@ -1,6 +1,7 @@
 import json
 from dataclasses import asdict
 from functools import wraps
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pyarrow as pa
@@ -8,6 +9,10 @@ import xxhash
 
 from .info import DatasetInfo
 from .utils.py_utils import dumps
+
+
+if TYPE_CHECKING:
+    from .arrow_dataset import Dataset
 
 
 def hashregister(t):
@@ -117,7 +122,8 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            self, *args = args
+            self: "Dataset" = args[0]
+            args = args[1:]
             kwargs_for_fingerprint = dict(kwargs)
             kwargs_for_fingerprint.update(zip(func.__code__.co_varnames, args))
 
@@ -138,6 +144,9 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
             out = func(self, *args, **kwargs)
             if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
                 self._fingerprint = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
+                for inplace_hist_per_file in self._inplace_history:
+                    inplace_hist_per_file["transforms"].append((func.__name__, args, kwargs))
+
             return out
 
         wrapper._decorator_name_ = "fingerprint"

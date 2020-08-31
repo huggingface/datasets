@@ -15,6 +15,11 @@ from nlp.info import DatasetInfo
 from .utils import require_tf, require_torch
 
 
+class Unpicklable:
+    def __getstate__(self):
+        raise pickle.PicklingError()
+
+
 class BaseDatasetTest(TestCase):
     def _create_dummy_dataset(self, multiple_columns=False):
         if multiple_columns:
@@ -53,17 +58,13 @@ class BaseDatasetTest(TestCase):
         self.assertEqual(dset["filename"][0], "my_name-train_0")
 
     def test_dummy_dataset_pickle_memory_mapped(self):
-        class Unpicklable:
-            def __getstate__(self):
-                raise pickle.PicklingError()
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "dset.pt")
 
             dset = (
                 self._create_dummy_dataset().map(cache_file_name=os.path.join(tmp_dir, "test.arrow")).select(range(10))
             )
-            dset._data = Unpicklable()
+            dset._data = Unpicklable()  # check that we don't pickle the entire table
 
             with open(tmp_file, "wb") as f:
                 pickle.dump(dset, f)
@@ -357,6 +358,34 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
             self.assertEqual(len(dset_concat._data_files), 0)
             self.assertEqual(len(dset_concat._indices_data_files), 3)
+            self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
+
+    def test_concatenate_pickle_with_history(self):
+        data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7], "foo": ["bar", "bar"]}
+        info1 = DatasetInfo(description="Dataset1")
+        info2 = DatasetInfo(description="Dataset2")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset1, dset2, dset3 = (
+                Dataset.from_dict(data1, info=info1)
+                .select([0, 1, 2])
+                .map(cache_file_name=os.path.join(tmp_dir, "d1.arrow")),
+                Dataset.from_dict(data2, info=info2)
+                .select([0, 1, 2])
+                .map(cache_file_name=os.path.join(tmp_dir, "d2.arrow")),
+                Dataset.from_dict(data3).map(cache_file_name=os.path.join(tmp_dir, "d3.arrow")),
+            )
+            dset3.remove_columns_("foo")
+            dset1._data, dset2._data, dset3._data = Unpicklable(), Unpicklable(), Unpicklable()
+            dset1, dset2, dset3 = [pickle.loads(pickle.dumps(d)) for d in (dset1, dset2, dset3)]
+            dset_concat = concatenate_datasets([dset1, dset2, dset3])
+            dset_concat._data = Unpicklable()
+            dset_concat = pickle.loads(pickle.dumps(dset_concat))
+            self.assertEqual((len(dset1), len(dset2), len(dset3)), (3, 3, 2))
+            self.assertEqual(len(dset_concat), len(dset1) + len(dset2) + len(dset3))
+            self.assertListEqual(dset_concat["id"], [0, 1, 2, 3, 4, 5, 6, 7])
+            self.assertEqual(len(dset_concat._data_files), 3)
+            self.assertEqual(len(dset_concat._inplace_history), 3)
+            self.assertEqual(len(dset_concat._indices_data_files), 0)
             self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
 
     def test_flatten(self):
@@ -767,6 +796,57 @@ class BaseDatasetTest(TestCase):
             d2 = d2.map(lambda x: {"id": int(x["filename"][-1])})
             self.assertEqual(d1[0]["id"], 0)
             self.assertEqual(d2[0]["id"], 1)
+
+    def test_pickle_after_many_transforms_on_disk(self):
+        dset = self._create_dummy_dataset()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = dset.map(cache_file_name=os.path.join(tmp_dir, "d.arrow"))
+            self.assertEqual(len(dset._data_files), 1)
+            dset.rename_column_("filename", "file")
+            self.assertListEqual(dset.column_names, ["file"])
+            dset = dset.select(range(5))
+            self.assertEqual(len(dset), 5)
+            dset = dset.map(lambda x: {"id": int(x["file"][-1])})
+            self.assertListEqual(sorted(dset.column_names), ["file", "id"])
+            dset.rename_column_("id", "number")
+            self.assertListEqual(sorted(dset.column_names), ["file", "number"])
+            dset = dset.select([1])
+            self.assertEqual(dset[0]["file"], "my_name-train_1")
+            self.assertEqual(dset[0]["number"], 1)
+
+            self.assertEqual(dset._indices["indices"].to_pylist(), [1])
+            self.assertEqual(dset._inplace_history, [{"transforms": [("rename_column_", ("id", "number"), {})]}])
+            dset._data = Unpicklable()  # check that we don't pickle the entire table
+
+            pickled = pickle.dumps(dset)
+            loaded = pickle.loads(pickled)
+            self.assertEqual(loaded[0]["file"], "my_name-train_1")
+            self.assertEqual(loaded[0]["number"], 1)
+
+    def test_pickle_after_many_transforms_in_memory(self):
+        dset = self._create_dummy_dataset()
+
+        self.assertEqual(len(dset._data_files), 0)
+        dset.rename_column_("filename", "file")
+        self.assertListEqual(dset.column_names, ["file"])
+        dset = dset.select(range(5))
+        self.assertEqual(len(dset), 5)
+        dset = dset.map(lambda x: {"id": int(x["file"][-1])})
+        self.assertListEqual(sorted(dset.column_names), ["file", "id"])
+        dset.rename_column_("id", "number")
+        self.assertListEqual(sorted(dset.column_names), ["file", "number"])
+        dset = dset.select([1])
+        self.assertEqual(dset[0]["file"], "my_name-train_1")
+        self.assertEqual(dset[0]["number"], 1)
+
+        self.assertEqual(dset._indices["indices"].to_pylist(), [1])
+        self.assertEqual(dset._inplace_history, [])
+
+        pickled = pickle.dumps(dset)
+        loaded = pickle.loads(pickled)
+        self.assertEqual(loaded[0]["file"], "my_name-train_1")
+        self.assertEqual(loaded[0]["number"], 1)
 
     def test_shuffle(self):
         dset = self._create_dummy_dataset()

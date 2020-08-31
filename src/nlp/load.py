@@ -595,6 +595,7 @@ def concatenate_datasets(
 
     table = pa.concat_tables([dset._data for dset in dsets])
     data_files = [f for dset in dsets for f in dset._data_files]
+    inplace_history = [h for dset in dsets for h in dset._inplace_history]
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
@@ -664,4 +665,5 @@ def concatenate_datasets(
         indices_table=indices_table,
         indices_data_files=indices_data_files,
         fingerprint=fingerprint,
+        inplace_history=inplace_history,
     )
