@@ -29,6 +29,7 @@ from nlp import (
     DownloadConfig,
     GenerateMode,
     MockDownloadManager,
+    cached_path,
     hf_api,
     hf_bucket_url,
     import_main_class,
@@ -221,15 +222,9 @@ class LocalDatasetTest(parameterized.TestCase):
                     self.assertTrue(len(dataset[split]) > 0)
 
 
-def distributed_load_dataset(tmp_dir):
-    data_name = "./datasets/csv"
-    data_base_path = os.path.join(data_name, "dummy/0.0.0/dummy_data-zip-extracted/dummy_data/")
-    datafiles = {
-        "train": os.path.join(data_base_path, "train.csv"),
-        "dev": os.path.join(data_base_path, "dev.csv"),
-        "test": os.path.join(data_base_path, "test.csv"),
-    }
-    dataset = load_dataset("./datasets/csv", cache_dir=tmp_dir, data_files=datafiles)
+def distributed_load_dataset(args):
+    data_name, tmp_dir, datafiles = args
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, data_files=datafiles)
     return dataset
 
 
@@ -237,12 +232,21 @@ class DistributedDatasetTest(TestCase):
     def test_load_dataset_distributed(self):
         num_workers = 5
         with tempfile.TemporaryDirectory() as tmp_dir:
-            with Pool(processes=num_workers) as pool:  # start 4 worker processes
-                result = pool.apply_async(
-                    distributed_load_dataset, (tmp_dir,)
-                )  # evaluate "f(10)" asynchronously in a single process
+            data_name = "./datasets/csv"
+            data_base_path = os.path.join(data_name, "dummy/0.0.0/dummy_data.zip")
+            local_path = cached_path(
+                data_base_path, cache_dir=tmp_dir, extract_compressed_file=True, force_extract=True
+            )
+            datafiles = {
+                "train": os.path.join(local_path, "dummy_data/train.csv"),
+                "dev": os.path.join(local_path, "dummy_data/dev.csv"),
+                "test": os.path.join(local_path, "dummy_data/test.csv"),
+            }
+            args = data_name, tmp_dir, datafiles
+            with Pool(processes=num_workers) as pool:  # start num_workers processes
+                result = pool.apply_async(distributed_load_dataset, (args,))
                 _ = result.get(timeout=20)
-                _ = pool.map(distributed_load_dataset, [tmp_dir] * num_workers)
+                _ = pool.map(distributed_load_dataset, [args] * num_workers)
 
 
 def get_aws_dataset_names():
