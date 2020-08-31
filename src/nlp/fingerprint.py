@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 from dataclasses import asdict
 from functools import wraps
 from typing import TYPE_CHECKING
@@ -137,9 +138,12 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
                 if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
                     kwargs_for_fingerprint["generator"] = np.random.default_rng(None)
 
-            # add new_fingerprint arg to not in-place transforms
+            # compute new_fingerprint and add it to the args of not in-place transforms
 
-            if not inplace:
+            if inplace:
+                new_fingerprint = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
+                new_inplace_history_item = (func.__name__, deepcopy(args), deepcopy(kwargs))
+            else:
                 for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
                     if fingerprint_name not in kwargs:
                         kwargs_for_fingerprint["fingerprint_name"] = fingerprint_name
@@ -152,9 +156,9 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
             # Update fingerprint of in-place transforms + update in-place history of transforms
 
             if inplace:  # update after calling func so that the fingerprint doesn't change if the function fails
-                self._fingerprint = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
+                self._fingerprint = new_fingerprint
                 for inplace_hist_per_file in self._inplace_history:
-                    inplace_hist_per_file["transforms"].append((func.__name__, args, kwargs))
+                    inplace_hist_per_file["transforms"].append(new_inplace_history_item)
 
             return out
 
