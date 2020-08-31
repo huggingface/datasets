@@ -87,11 +87,11 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
 
 
 def get_verbosity() -> int:
-    """Return the current level for the HuggingFace Transformers's root logger.
+    """Return the current level for the HuggingFace nlp library's root logger.
     Returns:
         Logging level, e.g., ``nlp.logging.DEBUG`` and ``nlp.logging.INFO``.
     .. note::
-        HuggingFace Transformers has following logging levels:
+        HuggingFace nlp library has following logging levels:
         - ``nlp.logging.CRITICAL``, ``nlp.logging.FATAL``
         - ``nlp.logging.ERROR``
         - ``nlp.logging.WARNING``, ``nlp.logging.WARN``
@@ -104,7 +104,7 @@ def get_verbosity() -> int:
 
 
 def set_verbosity(verbosity: int) -> None:
-    """Set the level for the HuggingFace Transformers's root logger.
+    """Set the level for the HuggingFace nlp library's root logger.
     Args:
         verbosity:
             Logging level, e.g., ``nlp.logging.DEBUG`` and ``nlp.logging.INFO``.
@@ -115,7 +115,7 @@ def set_verbosity(verbosity: int) -> None:
 
 
 def set_verbosity_info():
-    """Set the level for the HuggingFace Transformers's root logger to INFO.
+    """Set the level for the HuggingFace nlp library's root logger to INFO.
 
     This will display most of the logging information and tqdm bars.
 
@@ -125,7 +125,7 @@ def set_verbosity_info():
 
 
 def set_verbosity_warning():
-    """Set the level for the HuggingFace Transformers's root logger to WARNING.
+    """Set the level for the HuggingFace nlp library's root logger to WARNING.
 
     This will display only the warning and errors logging information (no tqdm bars).
 
@@ -135,7 +135,7 @@ def set_verbosity_warning():
 
 
 def set_verbosity_debug():
-    """Set the level for the HuggingFace Transformers's root logger to DEBUG.
+    """Set the level for the HuggingFace nlp library's root logger to DEBUG.
 
     This will display all the logging information and tqdm bars.
 
@@ -145,7 +145,7 @@ def set_verbosity_debug():
 
 
 def set_verbosity_error():
-    """Set the level for the HuggingFace Transformers's root logger to ERROR.
+    """Set the level for the HuggingFace nlp library's root logger to ERROR.
 
     This will display only the errors logging information (no tqdm bars).
 
@@ -155,7 +155,7 @@ def set_verbosity_error():
 
 
 def disable_default_handler() -> None:
-    """Disable the default handler of the HuggingFace Transformers's root logger."""
+    """Disable the default handler of the HuggingFace nlp library's root logger."""
 
     _configure_library_root_logger()
 
@@ -164,7 +164,7 @@ def disable_default_handler() -> None:
 
 
 def enable_default_handler() -> None:
-    """Enable the default handler of the HuggingFace Transformers's root logger."""
+    """Enable the default handler of the HuggingFace nlp library's root logger."""
 
     _configure_library_root_logger()
 
@@ -183,7 +183,7 @@ def disable_propagation() -> None:
 
 def enable_propagation() -> None:
     """Enable propagation of the library log outputs.
-    Please disable the HuggingFace Transformers's default handler to prevent double logging if the root logger has
+    Please disable the HuggingFace nlp library's default handler to prevent double logging if the root logger has
     been configured.
     """
 

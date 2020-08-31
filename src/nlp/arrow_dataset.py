@@ -1112,7 +1112,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 cache_file_name = self._get_cache_file_path(function, cache_kwargs)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                logger.warn("Loading cached processed dataset at %s", cache_file_name)
+                logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
@@ -1496,7 +1496,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 indices_cache_file_name = self._get_cache_file_path(self.sort, cache_kwargs)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warn("Loading cached sorted indices for dataset at %s", indices_cache_file_name)
+                logger.warning("Loading cached sorted indices for dataset at %s", indices_cache_file_name)
                 return self._new_dataset_with_indices(indices_cache_file_name=indices_cache_file_name)
 
         column_data = self._getitem(
@@ -1572,7 +1572,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 }
                 indices_cache_file_name = self._get_cache_file_path(self.shuffle, cache_kwargs)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warn("Loading cached shuffled indices for dataset at %s", indices_cache_file_name)
+                logger.warning("Loading cached shuffled indices for dataset at %s", indices_cache_file_name)
                 return self._new_dataset_with_indices(indices_cache_file_name=indices_cache_file_name)
 
         permutation = generator.permutation(len(self))
@@ -1741,7 +1741,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 and os.path.exists(test_indices_cache_file_name)
                 and load_from_cache_file
             ):
-                logger.warn(
+                logger.warning(
                     "Loading cached split indices for dataset at %s and %s",
                     train_indices_cache_file_name,
                     test_indices_cache_file_name,
