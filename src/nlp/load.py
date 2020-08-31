@@ -35,6 +35,7 @@ from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
+from .fingerprint import update_fingerprint
 from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo
 from .metric import Metric
 from .splits import Split
@@ -594,6 +595,7 @@ def concatenate_datasets(
 
     table = pa.concat_tables([dset._data for dset in dsets])
     data_files = [f for dset in dsets for f in dset._data_files]
+    inplace_history = [h for dset in dsets for h in dset._inplace_history]
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
@@ -652,6 +654,9 @@ def concatenate_datasets(
         indices_data_files = None
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
+    fingerprint = update_fingerprint(
+        "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
+    )
     return Dataset(
         table,
         info=info,
@@ -659,4 +664,6 @@ def concatenate_datasets(
         data_files=data_files,
         indices_table=indices_table,
         indices_data_files=indices_data_files,
+        fingerprint=fingerprint,
+        inplace_history=inplace_history,
     )
