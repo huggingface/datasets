@@ -27,6 +27,7 @@ from functools import partial
 from typing import Dict, List, Optional, Union
 
 import xxhash
+from filelock import FileLock
 
 from . import utils
 from .arrow_dataset import Dataset
@@ -391,100 +392,103 @@ class DatasetBuilder:
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
             )
 
-        data_exists = os.path.exists(self._cache_dir)
-        if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
-            logger.info("Reusing dataset %s (%s)", self.name, self._cache_dir)
-            self.download_post_processing_resources(dl_manager)
-            return
+        # Prevent parallel disk operations
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        with FileLock(lock_path):
+            data_exists = os.path.exists(self._cache_dir)
+            if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
+                logger.info("Reusing dataset %s (%s)", self.name, self._cache_dir)
+                self.download_post_processing_resources(dl_manager)
+                return
 
-        # Currently it's not possible to overwrite the data because it would
-        # conflict with versioning: If the last version has already been generated,
-        # it will always be reloaded and cache_dir will be set at construction.
-        if data_exists and download_mode != REUSE_CACHE_IF_EXISTS:
-            raise ValueError(
-                "Trying to overwrite an existing dataset {} at {}. A dataset with "
-                "the same version {} already exists. If the dataset has changed, "
-                "please update the version number.".format(self.name, self._cache_dir, self.config.version)
-            )
-
-        logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
-        if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
-            os.makedirs(self._cache_dir_root, exist_ok=True)
-            if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
-                raise IOError(
-                    "Not enough disk space. Needed: {} (download: {}, generated: {}, post-processed: {})".format(
-                        utils.size_str(self.info.size_in_bytes or 0),
-                        utils.size_str(self.info.download_size or 0),
-                        utils.size_str(self.info.dataset_size or 0),
-                        utils.size_str(self.info.post_processing_size or 0),
-                    )
+            # Currently it's not possible to overwrite the data because it would
+            # conflict with versioning: If the last version has already been generated,
+            # it will always be reloaded and cache_dir will be set at construction.
+            if data_exists and download_mode != REUSE_CACHE_IF_EXISTS:
+                raise ValueError(
+                    "Trying to overwrite an existing dataset {} at {}. A dataset with "
+                    "the same version {} already exists. If the dataset has changed, "
+                    "please update the version number.".format(self.name, self._cache_dir, self.config.version)
                 )
 
-        @contextlib.contextmanager
-        def incomplete_dir(dirname):
-            """Create temporary dir for dirname and rename on exit."""
-            if is_remote_url(dirname):
-                yield dirname
-            else:
-                tmp_dir = dirname + ".incomplete"
-                os.makedirs(tmp_dir)
-                try:
-                    yield tmp_dir
-                    if os.path.isdir(dirname):
-                        shutil.rmtree(dirname)
-                    os.rename(tmp_dir, dirname)
-                finally:
-                    if os.path.exists(tmp_dir):
-                        shutil.rmtree(tmp_dir)
+            logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
+            if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
+                os.makedirs(self._cache_dir_root, exist_ok=True)
+                if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
+                    raise IOError(
+                        "Not enough disk space. Needed: {} (download: {}, generated: {}, post-processed: {})".format(
+                            utils.size_str(self.info.size_in_bytes or 0),
+                            utils.size_str(self.info.download_size or 0),
+                            utils.size_str(self.info.dataset_size or 0),
+                            utils.size_str(self.info.post_processing_size or 0),
+                        )
+                    )
 
-        # Print is intentional: we want this to always go to stdout so user has
-        # information needed to cancel download/preparation if needed.
-        # This comes right before the progress bar.
-        print(
-            f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
-            f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
-            f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
-            f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
-        )
+            @contextlib.contextmanager
+            def incomplete_dir(dirname):
+                """Create temporary dir for dirname and rename on exit."""
+                if is_remote_url(dirname):
+                    yield dirname
+                else:
+                    tmp_dir = dirname + ".incomplete"
+                    os.makedirs(tmp_dir)
+                    try:
+                        yield tmp_dir
+                        if os.path.isdir(dirname):
+                            shutil.rmtree(dirname)
+                        os.rename(tmp_dir, dirname)
+                    finally:
+                        if os.path.exists(tmp_dir):
+                            shutil.rmtree(tmp_dir)
 
-        if self.manual_download_instructions is not None:
-            assert (
-                dl_manager.manual_dir is not None
-            ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load_dataset({}, data_dir='<path/to/manual/data>')".format(
-                self.name, self.config.name, self.manual_download_instructions, self.name
+            # Print is intentional: we want this to always go to stdout so user has
+            # information needed to cancel download/preparation if needed.
+            # This comes right before the progress bar.
+            print(
+                f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
+                f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
+                f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
+                f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
             )
 
-        # Create a tmp dir and rename to self._cache_dir on successful exit.
-        with incomplete_dir(self._cache_dir) as tmp_data_dir:
-            # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
-            # it to every sub function.
-            with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
-                # Try to download the already prepared dataset files
-                downloaded_from_gcs = False
-                if try_from_hf_gcs:
-                    try:
-                        self._download_prepared_from_hf_gcs()
-                        downloaded_from_gcs = True
-                    except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
-                        logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
-                if not downloaded_from_gcs:
-                    self._download_and_prepare(
-                        dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
-                    )
-                # Sync info
-                self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
-                self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
-                self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
-                # Save info
-                self._save_info()
+            if self.manual_download_instructions is not None:
+                assert (
+                    dl_manager.manual_dir is not None
+                ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load_dataset({}, data_dir='<path/to/manual/data>')".format(
+                    self.name, self.config.name, self.manual_download_instructions, self.name
+                )
 
-        # Download post processing resources
-        self.download_post_processing_resources(dl_manager)
+            # Create a tmp dir and rename to self._cache_dir on successful exit.
+            with incomplete_dir(self._cache_dir) as tmp_data_dir:
+                # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
+                # it to every sub function.
+                with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
+                    # Try to download the already prepared dataset files
+                    downloaded_from_gcs = False
+                    if try_from_hf_gcs:
+                        try:
+                            self._download_prepared_from_hf_gcs()
+                            downloaded_from_gcs = True
+                        except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
+                            logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
+                    if not downloaded_from_gcs:
+                        self._download_and_prepare(
+                            dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
+                        )
+                    # Sync info
+                    self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
+                    self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
+                    self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
+                    # Save info
+                    self._save_info()
 
-        print(
-            f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
-            f"Subsequent calls will reuse this data."
-        )
+            # Download post processing resources
+            self.download_post_processing_resources(dl_manager)
+
+            print(
+                f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
+                f"Subsequent calls will reuse this data."
+            )
 
     def _download_prepared_from_hf_gcs(self):
         relative_data_dir = self._relative_data_dir(with_version=True, with_hash=False)
