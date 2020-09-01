@@ -35,7 +35,7 @@ from tqdm.auto import tqdm
 
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
-from .features import Features, cast_to_python_objects, pandas_types_mapper
+from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
 from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
@@ -358,7 +358,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 for inplace_transform_name, args, kwargs in inplace_hist_per_file["transforms"]:
                     getattr(sub_dataset, inplace_transform_name)(*args, **kwargs)
                 tables.append(sub_dataset._data)
+            tables = [t for t in tables if len(t) > 0]
+            # fix all-empty tables
+            tables = tables or [pa.Table.from_batches([], schema=pa.schema(self.info.features.type))]
             self._data = pa.concat_tables(tables)
+        reader = ArrowReader("", DatasetInfo(features=Features({"indices": Value("int64")})))
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
 
@@ -1086,6 +1090,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
                 transformed_shards = [r.get() for r in results]
                 result = concatenate_datasets(transformed_shards)
+                if new_fingerprint is not None:
+                    result._fingerprint = new_fingerprint
                 return result
 
     @fingerprint(inplace=False)
@@ -1347,6 +1353,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
+        suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
         new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Apply a filter function to all the elements in the table in batches
@@ -1373,6 +1381,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
+            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing.
+            suffix_template (`str`, defaults to "_{rank:05d}_of_{num_proc:05d}"): If cache_file_name is specified, then this suffix
+                will be added at the end of the base name of each. For example, if cache_file_name is "processed.arrow", then for
+                rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
@@ -1400,41 +1413,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fn_kwargs = dict()
         fn_kwargs["input_columns"] = input_columns
 
-        # transforme the filter function into the map function
-        def map_function(batch, *args, **fn_kwargs):
-            result = defaultdict(list)
-            num_examples = len(batch[next(iter(batch.keys()))])
-            input_columns = fn_kwargs.pop("input_columns", None)
-
-            # create single examples
-            for i in range(num_examples):
-                example = map_nested(lambda x: x[i], batch, dict_only=True)
-                fn_args = [example] if input_columns is None else [example[col] for col in input_columns]
-
-                # check if example should be filtered or not
-                if with_indices:
-                    keep_example = function(*fn_args, args[0][i], **fn_kwargs)
-                else:
-                    keep_example = function(*fn_args, **fn_kwargs)
-
-                assert isinstance(
-                    keep_example, bool
-                ), f"The filter function returns a variable of type {type(keep_example)}, but should return a variable of type `bool`."
-                # if example shall be kept add to result
-                if keep_example:
-                    for key in batch.keys():
-                        result[key].append(example[key])
-
-            # if no example shall be kept, init with empty list
-            if bool(result) is False:
-                for key in batch.keys():
-                    result[key] = []
-
-            return result
-
         # return map function
         return self.map(
-            map_function,
+            partial(map_function, function=function, with_indices=with_indices),
             batched=True,
             with_indices=with_indices,
             features=self.features,
@@ -1445,6 +1426,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
             fn_kwargs=fn_kwargs,
+            num_proc=num_proc,
+            suffix_template=suffix_template,
             new_fingerprint=new_fingerprint,
         )
 
@@ -2285,7 +2268,7 @@ def concatenate_datasets(
 
     # Concatenate tables
 
-    table = pa.concat_tables([dset._data for dset in dsets])
+    table = pa.concat_tables(dset._data for dset in dsets if len(dset._data) > 0)
     data_files = [f for dset in dsets for f in dset._data_files]
     inplace_history = [h for dset in dsets for h in dset._inplace_history]
 
@@ -2339,7 +2322,11 @@ def concatenate_datasets(
 
         # Concatenate indices
 
-        indices_table = pa.concat_tables(indices_tables)
+        indices_tables = [t for t in indices_tables if len(t) > 0]
+        if indices_tables:
+            indices_table = pa.concat_tables(indices_tables)
+        else:
+            indices_table = pa.Table.from_batches([], schema=pa.schema({"indices": pa.int64()}))
         indices_data_files = None if indices_in_memory else [f for dset in dsets for f in dset._indices_data_files]
     else:
         indices_table = None
@@ -2359,3 +2346,39 @@ def concatenate_datasets(
         fingerprint=fingerprint,
         inplace_history=inplace_history,
     )
+
+
+# This is outside Dataset.filter as it needs to be picklable for multiprocessing
+
+# transform the filter function into the map function
+def map_function(batch, *args, function=None, with_indices=None, **fn_kwargs):
+    assert function is not None and with_indices is not None
+    result = defaultdict(list)
+    num_examples = len(batch[next(iter(batch.keys()))])
+    input_columns = fn_kwargs.pop("input_columns", None)
+
+    # create single examples
+    for i in range(num_examples):
+        example = map_nested(lambda x: x[i], batch, dict_only=True)
+        fn_args = [example] if input_columns is None else [example[col] for col in input_columns]
+
+        # check if example should be filtered or not
+        if with_indices:
+            keep_example = function(*fn_args, args[0][i], **fn_kwargs)
+        else:
+            keep_example = function(*fn_args, **fn_kwargs)
+
+        assert isinstance(
+            keep_example, bool
+        ), f"The filter function returns a variable of type {type(keep_example)}, but should return a variable of type `bool`."
+        # if example shall be kept add to result
+        if keep_example:
+            for key in batch.keys():
+                result[key].append(example[key])
+
+    # if no example shall be kept, init with empty list
+    if bool(result) is False:
+        for key in batch.keys():
+            result[key] = []
+
+    return result
