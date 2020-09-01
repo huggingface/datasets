@@ -46,7 +46,7 @@ KILT tasks training and evaluation data.
 - [WNED-CWEB](https://github.com/U-Alberta/wned) | Entity Linking | cweb
 - [Wizard of Wikipedia](https://parl.ai/projects/wizard_of_wikipedia) | Dialogue | wow
 """
- 
+
 
 _DATA_URLS = {
     "fever": {
@@ -104,16 +104,17 @@ _DATA_URLS = {
     },
 }
 
+
 class KILTTasksConfig(nlp.BuilderConfig):
     """BuilderConfig for KILTTasks."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for KILTTasks.
 
-    Args:
-.
-      **kwargs: keyword arguments forwarded to super.
-    """
+            Args:
+        .
+              **kwargs: keyword arguments forwarded to super.
+        """
         super(KILTTasksConfig, self).__init__(
             version=nlp.Version("1.0.0", "KILT tasks training and evaluation data"), **kwargs
         )
@@ -123,7 +124,10 @@ class KILTTasks(nlp.GeneratorBasedBuilder):
     """WikipediaKILT: Wikipedia pre-processed for KILT. Version 1.0."""
 
     BUILDER_CONFIGS = [
-        KILTTasksConfig(name="all_tasks", description="All KILT tasks traiing and evaluation data",),
+        KILTTasksConfig(
+            name="all_tasks",
+            description="All KILT tasks traiing and evaluation data",
+        ),
     ]
 
     def _info(self):
@@ -131,62 +135,61 @@ class KILTTasks(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(
                 {
-                    'id': nlp.Value("string"),
-                    'input': nlp.Value("string"),
-                    'meta': nlp.Features(
+                    "id": nlp.Value("string"),
+                    "input": nlp.Value("string"),
+                    "meta": nlp.Features(
                         {
-                            'left_context': nlp.Value("string"),
-                            'mention': nlp.Value("string"),
-                            'right_context': nlp.Value("string"),
-                            'partial_evidence': nlp.features.Sequence(
+                            "left_context": nlp.Value("string"),
+                            "mention": nlp.Value("string"),
+                            "right_context": nlp.Value("string"),
+                            "partial_evidence": nlp.features.Sequence(
                                 {
-                                    'start_paragraph_id': nlp.Value("int32"),
-                                    'end_paragraph_id': nlp.Value("int32"),
-                                    'title': nlp.Value("string"),
-                                    'section': nlp.Value("string"),
-                                    'wikipedia_id': nlp.Value("string"),
-                                    'meta': nlp.features.Sequence(
+                                    "start_paragraph_id": nlp.Value("int32"),
+                                    "end_paragraph_id": nlp.Value("int32"),
+                                    "title": nlp.Value("string"),
+                                    "section": nlp.Value("string"),
+                                    "wikipedia_id": nlp.Value("string"),
+                                    "meta": nlp.features.Sequence(
                                         {
-                                            'evidence_span': nlp.Value("string"),
+                                            "evidence_span": nlp.Value("string"),
                                         }
                                     ),
                                 }
                             ),
-                            'obj_surface': nlp.features.Sequence({'text': nlp.Value("string")}),
-                            'sub_surface': nlp.features.Sequence({'text': nlp.Value("string")}),
-                            'subj_aliases': nlp.features.Sequence({'text': nlp.Value("string")}),
-                            'template_questions': nlp.features.Sequence({'text': nlp.Value("string")}),
+                            "obj_surface": nlp.features.Sequence({"text": nlp.Value("string")}),
+                            "sub_surface": nlp.features.Sequence({"text": nlp.Value("string")}),
+                            "subj_aliases": nlp.features.Sequence({"text": nlp.Value("string")}),
+                            "template_questions": nlp.features.Sequence({"text": nlp.Value("string")}),
                         }
                     ),
-                    'output': nlp.features.Sequence(
+                    "output": nlp.features.Sequence(
                         {
-                            'answer': nlp.Value("string"),
-                            'meta': nlp.Features({'score': nlp.Value("int32")}),
-                            'provenance': nlp.features.Sequence(
+                            "answer": nlp.Value("string"),
+                            "meta": nlp.Features({"score": nlp.Value("int32")}),
+                            "provenance": nlp.features.Sequence(
                                 {
-                                    'bleu_score': nlp.Value("float32"),
-                                    'start_character': nlp.Value("int32"),
-                                    'start_paragraph_id': nlp.Value("int32"),
-                                    'end_character': nlp.Value("int32"),
-                                    'end_paragraph_id': nlp.Value("int32"),
-                                    'meta': nlp.Features(
+                                    "bleu_score": nlp.Value("float32"),
+                                    "start_character": nlp.Value("int32"),
+                                    "start_paragraph_id": nlp.Value("int32"),
+                                    "end_character": nlp.Value("int32"),
+                                    "end_paragraph_id": nlp.Value("int32"),
+                                    "meta": nlp.Features(
                                         {
-                                            'fever_page_id': nlp.Value("string"),
-                                            'fever_sentence_id': nlp.Value("int32"),
-                                            'annotation_id': nlp.Value("string"), #  int runs into overflow issues
-                                            'yes_no_answer':  nlp.Value("string"),
-                                            'evidence_span': nlp.features.Sequence({'text': nlp.Value("string")}),
+                                            "fever_page_id": nlp.Value("string"),
+                                            "fever_sentence_id": nlp.Value("int32"),
+                                            "annotation_id": nlp.Value("string"),  # int runs into overflow issues
+                                            "yes_no_answer": nlp.Value("string"),
+                                            "evidence_span": nlp.features.Sequence({"text": nlp.Value("string")}),
                                         }
                                     ),
-                                    'section': nlp.Value("string"),
-                                    'title': nlp.Value("string"),
-                                    'wikipedia_id': nlp.Value("string"),
+                                    "section": nlp.Value("string"),
+                                    "title": nlp.Value("string"),
+                                    "wikipedia_id": nlp.Value("string"),
                                 }
                             ),
                         }
                     ),
                 }
-
             ),
             # No default supervised_keys (as we have to pass both premise
             # and hypothesis as input).
@@ -195,15 +198,15 @@ class KILTTasks(nlp.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
-
     def _split_generators(self, dl_manager):
         file_paths = {}
         for task_name, task_urls in _DATA_URLS.items():
             file_paths[task_name] = dl_manager.download_and_extract(task_urls)
 
         return [
-            nlp.SplitGenerator(name=split + '_' + task, gen_kwargs={"filepath": downloaded_path})
-            for task, split_paths in file_paths.items() for split, downloaded_path in split_paths.items()
+            nlp.SplitGenerator(name=split + "_" + task, gen_kwargs={"filepath": downloaded_path})
+            for task, split_paths in file_paths.items()
+            for split, downloaded_path in split_paths.items()
         ]
 
     def _generate_examples(self, filepath):
@@ -219,58 +222,55 @@ class KILTTasks(nlp.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for idx, line in enumerate(f):
                 article = json.loads(line.strip())
-                article['input'] = article.get('input', '')
+                article["input"] = article.get("input", "")
                 # meta
-                article['meta'] = article.get('meta', {})
-                for k in ['left_context', 'mention', 'right_context']:
-                    article['meta'][k] = article['meta'].get(k, '')
-                for k in ['obj_surface', 'sub_surface', 'subj_aliases', 'template_questions']:
-                    article['meta'][k] = {'text': article['meta'].get(k, [])}
-                article['meta']['partial_evidence'] = article['meta'].get('partial_evidence', [])
-                if 'partial_evidence' in article['meta']:
+                article["meta"] = article.get("meta", {})
+                for k in ["left_context", "mention", "right_context"]:
+                    article["meta"][k] = article["meta"].get(k, "")
+                for k in ["obj_surface", "sub_surface", "subj_aliases", "template_questions"]:
+                    article["meta"][k] = {"text": article["meta"].get(k, [])}
+                article["meta"]["partial_evidence"] = article["meta"].get("partial_evidence", [])
+                if "partial_evidence" in article["meta"]:
                     dct_list = {}
-                    for k in ['start_paragraph_id', 'end_paragraph_id']:
-                        dct_list[k] = [dct.get(k, -1) for dct in article['meta']['partial_evidence']]
-                    for k in ['title', 'section', 'wikipedia_id']:
-                        dct_list[k] = [dct.get(k, '') for dct in article['meta']['partial_evidence']]
-                    if any(['meta' in dct for dct in article['meta']['partial_evidence']]):
-                        dct_list['meta'] = [dct.get('meta', {}) for dct in article['meta']['partial_evidence']]
-                        for meta in dct_list['meta']:
-                            meta['evidence_span'] = meta.get('evidence_span', [])
+                    for k in ["start_paragraph_id", "end_paragraph_id"]:
+                        dct_list[k] = [dct.get(k, -1) for dct in article["meta"]["partial_evidence"]]
+                    for k in ["title", "section", "wikipedia_id"]:
+                        dct_list[k] = [dct.get(k, "") for dct in article["meta"]["partial_evidence"]]
+                    if any(["meta" in dct for dct in article["meta"]["partial_evidence"]]):
+                        dct_list["meta"] = [dct.get("meta", {}) for dct in article["meta"]["partial_evidence"]]
+                        for meta in dct_list["meta"]:
+                            meta["evidence_span"] = meta.get("evidence_span", [])
                     else:
-                        dct_list['meta'] = []
-                    article['meta']['partial_evidence'] = dct_list
+                        dct_list["meta"] = []
+                    article["meta"]["partial_evidence"] = dct_list
                 # output
-                article['output'] = article.get('output', [])
+                article["output"] = article.get("output", [])
                 dct_list = {}
-                dct_list['answer'] = [dct.get('answer', '') for dct in article['output']]
-                if any(['meta' in dct for dct in article['output']]):
-                    dct_list['meta'] = [dct.get('meta', {'score': 0}) for dct in article['output']]
+                dct_list["answer"] = [dct.get("answer", "") for dct in article["output"]]
+                if any(["meta" in dct for dct in article["output"]]):
+                    dct_list["meta"] = [dct.get("meta", {"score": 0}) for dct in article["output"]]
                 else:
-                    dct_list['meta'] = []
-                dct_list['provenance'] = []
-                for dct in article['output']:
-                    if 'provenance' in dct:
-                        prov_list = dct['provenance']
+                    dct_list["meta"] = []
+                dct_list["provenance"] = []
+                for dct in article["output"]:
+                    if "provenance" in dct:
+                        prov_list = dct["provenance"]
                         prov_dct_list = {}
-                        prov_dct_list['bleu_score'] = [prov.get('bleu_score', 0.) for prov in prov_list]
-                        if any(['meta' in prov for prov in prov_list]):
-                            prov_dct_list['meta'] = [prov.get('meta', {}) for prov in prov_list]
-                            for meta_dct in prov_dct_list['meta']:
-                                meta_dct['fever_page_id'] = meta_dct.get('fever_page_id', '')
-                                meta_dct['fever_sentence_id'] = meta_dct.get('fever_sentence_id', -1)
-                                meta_dct['yes_no_answer'] = meta_dct.get('yes_no_answer', '')
-                                meta_dct['annotation_id'] = str(meta_dct.get('annotation_id', -1))
-                                meta_dct['evidence_span'] = {'text': meta_dct.get('evidence_span', [])}
+                        prov_dct_list["bleu_score"] = [prov.get("bleu_score", 0.0) for prov in prov_list]
+                        if any(["meta" in prov for prov in prov_list]):
+                            prov_dct_list["meta"] = [prov.get("meta", {}) for prov in prov_list]
+                            for meta_dct in prov_dct_list["meta"]:
+                                meta_dct["fever_page_id"] = meta_dct.get("fever_page_id", "")
+                                meta_dct["fever_sentence_id"] = meta_dct.get("fever_sentence_id", -1)
+                                meta_dct["yes_no_answer"] = meta_dct.get("yes_no_answer", "")
+                                meta_dct["annotation_id"] = str(meta_dct.get("annotation_id", -1))
+                                meta_dct["evidence_span"] = {"text": meta_dct.get("evidence_span", [])}
                         else:
-                            prov_dct_list['meta'] = []
-                        for k in ['start_character', 'start_paragraph_id', 'end_character', 'end_paragraph_id']:
+                            prov_dct_list["meta"] = []
+                        for k in ["start_character", "start_paragraph_id", "end_character", "end_paragraph_id"]:
                             prov_dct_list[k] = [prov.get(k, -1) for prov in prov_list]
-                        for k in ['section', 'title', 'wikipedia_id']:
-                            prov_dct_list[k] = [prov.get(k, '') for prov in prov_list]
-                        dct_list['provenance'] += [prov_dct_list]
-                article['output'] = dct_list
+                        for k in ["section", "title", "wikipedia_id"]:
+                            prov_dct_list[k] = [prov.get(k, "") for prov in prov_list]
+                        dct_list["provenance"] += [prov_dct_list]
+                article["output"] = dct_list
                 yield idx, article
-
-
-
