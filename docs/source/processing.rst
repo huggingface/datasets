@@ -298,7 +298,7 @@ Then we will import a fast tokenizer, for instance the tokenizer of the Bert mod
 
 Now let's batch tokenize the 'sentence1' fields of our dataset. The tokenizers of the 🤗transformers library can accept lists of texts as inputs and tokenize them efficiently in batch (for the fast tokenizers in particular).
 
-For more details on the tokenizers of the 🤗transformers library please refere to its `guide on processing data <https://huggingface.co/transformers/preprocessing.html>`__.
+For more details on the tokenizers of the 🤗transformers library Please refer to its `guide on processing data <https://huggingface.co/transformers/preprocessing.html>`__.
 
 This tokenizer will output a dictionary-like object with three fields: ``input_ids``, ``token_type_ids``, ``attention_mask`` corresponding to Bert model's required inputs. Each field contain a list (batch) of samples.
 

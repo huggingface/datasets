@@ -11,10 +11,11 @@ Here is a brief presentation of the various types of features which can be used 
 
 .. note::
 
-	A :class:`nlp.Sequence` with a internal dictionary feature will be automatically converted in a dictionary of lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the :class:`nlp.Sequence`.
+	A :class:`nlp.Sequence` with a internal dictionary feature will be automatically converted into a dictionary of lists. This behavior is implemented to have a compatilbity layer with the TensorFlow Datasets library but may be un-wanted in some cases. If you don't want this behavior, you can use a python :obj:`list` instead of the :class:`nlp.Sequence`.
 
-- a :class:`nlp.ClassLabel` feature specifies a field with a predefined set of classes which can have labels associated to them and will be stored as integers in the dataset. This field will be stored and retrieved as an integer value and two conversion methodes, :func:`nlp.ClassLabel.str2int` and :func:`nlp.ClassLabel.int2str` can be used to convert from the label names to the associate integer value and vice-versa.
+- a :class:`nlp.ClassLabel` feature specifies a field with a predefined set of classes which can have labels associated to them and will be stored as integers in the dataset. This field will be stored and retrieved as an integer value and two conversion methods, :func:`nlp.ClassLabel.str2int` and :func:`nlp.ClassLabel.int2str` can be used to convert from the label names to the associate integer value and vice-versa.
 
 - a :class:`nlp.Value` feature specifies a single typed value, e.g. ``int64`` or ``string``. The types supported are all the `non-nested types of Apache Arrow <https://arrow.apache.org/docs/python/api/datatypes.html#factory-functions>`__ among which the most commonly used ones are ``int64``, ``float32`` and ``string``.
-- eventually, two features are specific to Machine Translation: :class:`nlp.Translation` and :class:`nlp.TranslationVariableLanguages`. We refere to the package reference for more details on these features.
+
+- finally, two features are specific to Machine Translation: :class:`nlp.Translation` and :class:`nlp.TranslationVariableLanguages`. We refer to the package reference for more details on these features.
 

@@ -61,7 +61,7 @@ This call to :func:`nlp.load_dataset` does the following steps under the hood:
 
 .. note::
 
-    An Apache Arrow Table is the internal storing format for 🤗nlp. It allows to store arbitrarly long dataframe, typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use memory-mapping and pay effectively zero cost with O(1) random access. The default in 🤗nlp is thus to always memory-map dataset on drive.
+    An Apache Arrow Table is the internal storing format for 🤗nlp. It allows to store arbitrarily long dataframe, typed with potentially complex nested types that can be mapped to numpy/pandas/python types. Apache Arrow allows you to map blobs of data on-drive without doing any deserialization. So caching the dataset directly on disk can use memory-mapping and pay effectively zero cost with O(1) random access. The default in 🤗nlp is thus to always memory-map dataset on drive.
 
 3. Return a **dataset build from the splits** asked by the user (default: all), in the above example we create a dataset with the first 10% of the validation split.
 

@@ -16,7 +16,7 @@ Here are the main differences between these two options.
 	* are flagged as ``unsafe`` by default because a dataset contains executable code so the users need to inspect and opt-in to use the datasets
 
 - **Canonical** datasets:
-	* are solwer to add (need to go through the reviewing process on the githup repo)
+	* are slower to add (need to go through the reviewing process on the githup repo)
 	* are identified under the root namespace (``my_dataset``) so they need to select a shortname which is still free
 	* usually don't contain the data files which are retrieved from the original URLs (but this can be changed under specific request to add the files to the Hub)
 	* are flagged as ``safe`` by default since they went through the reviewing process (no need to opt-in).
@@ -120,7 +120,7 @@ Sharing a "community provided" dataset
 Adding tests and metadata to the dataset
 ---------------------------------------------
 
-It's recommended to add testing data and checksum metadata to your dataset so it's behavior can be tested and verified, and the generated dataset can be certified.
+It's recommended to add testing data and checksum metadata to your dataset so its behavior can be tested and verified, and the generated dataset can be certified.
 
 In this section we'll explain how you can add two objects to the repository for that:
 
