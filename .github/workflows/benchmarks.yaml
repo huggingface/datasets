@@ -10,30 +10,30 @@ jobs:
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip install .[benchmarks]
+          python3 -m pip install .[benchmarks]
 
           # pyarrow==0.17.1
-          pip install pyarrow==0.17.1
+          python3 -m pip install pyarrow==0.17.1
 
           dvc repro --force
 
           git fetch --prune
           dvc metrics diff --show-json master > report.json
 
-          python ./benchmarks/format.py report.json report.md
+          python3 ./benchmarks/format.py report.json report.md
 
           echo "<details>\n<summary>Show benchmarks</summary>\n\nPyArrow==0.17.1\n" > final_report.md
           cat report.md >> final_report.md
 
           # pyarrow
-          pip install pyarrow --upgrade
+          python3 -m pip install pyarrow --upgrade
 
           dvc repro --force
 
           git fetch --prune
           dvc metrics diff --show-json master > report.json
 
-          python ./benchmarks/format.py report.json report.md
+          python3 ./benchmarks/format.py report.json report.md
 
           echo "\nPyArrow==1.0\n" >> final_report.md
           cat report.md >> final_report.md
