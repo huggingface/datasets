@@ -10,6 +10,7 @@ jobs:
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          sudo apt-get install python3-venv
           python3 -m pip install --user --upgrade pip
           python3 -m pip install --user virtualenv
           python3 -m venv env
