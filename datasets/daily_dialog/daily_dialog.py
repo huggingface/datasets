@@ -43,14 +43,16 @@ benefit the research field of dialog systems.
 
 _URL = "http://yanran.li/files/ijcnlp_dailydialog.zip"
 
-act_label = {
-    "1": "inform",
-    "2": "question", 
-    "3": "directive",
-    "4": "commissive"
-}
+act_label = {"1": "inform", "2": "question", "3": "directive", "4": "commissive"}
 
-emotion_label = { "0": "no emotion", "1": "anger", "2": "disgust", "3": "fear", "4": "happiness", "5": "sadness", "6": "surprise"
+emotion_label = {
+    "0": "no emotion",
+    "1": "anger",
+    "2": "disgust",
+    "3": "fear",
+    "4": "happiness",
+    "5": "sadness",
+    "6": "surprise",
 }
 
 
@@ -67,12 +69,8 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
             features=nlp.Features(
                 {
                     "dialog": nlp.features.Sequence(nlp.Value("string")),
-                    "act": nlp.features.Sequence(
-                        nlp.ClassLabel(names=list(act_label.values()))
-                    ),
-                    "emotion": nlp.features.Sequence(
-                        nlp.ClassLabel(names=list(emotion_label.values()))
-                    ),
+                    "act": nlp.features.Sequence(nlp.ClassLabel(names=list(act_label.values()))),
+                    "emotion": nlp.features.Sequence(nlp.ClassLabel(names=list(emotion_label.values()))),
                 }
             ),
             supervised_keys=None,
@@ -86,7 +84,7 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "ijcnlp_dailydialog")
-        
+
         # The splits are nested inside the zip
         for name in ("train", "validation", "test"):
             zip_fpath = os.path.join(data_dir, f"{name}.zip")
