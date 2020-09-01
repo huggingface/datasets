@@ -57,7 +57,7 @@ class IWSLT2017Config(nlp.BuilderConfig):
         """
         self.pair = pair
         self.is_multilingual = is_multilingual
-        super(IWSLT2017Config, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 # XXX: Artificially removed DE from here, as it also exists within bilingual data
