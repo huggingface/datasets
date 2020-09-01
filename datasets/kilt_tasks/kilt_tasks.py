@@ -23,6 +23,7 @@ import logging
 
 import nlp
 
+
 _CITATION = """\
 @inproceedings{fb_kilt,
     author    = {Fabio Petroni and Angela Fan and Sebastian Riedel},
