@@ -13,6 +13,7 @@ jobs:
           # Your ML workflow goes here
 
           pip install --upgrade pip
+          pip install setuptools wheel
           pip install -e .[benchmarks]
 
           # pyarrow==0.17.1
