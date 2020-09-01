@@ -97,6 +97,7 @@ class Text(nlp.ArrowBasedBuilder):
                 parse_options=self.config.pa_parse_options,
                 convert_options=self.config.convert_options,
             )
-            logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-            logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+            # Uncomment for debugging (will print the Arrow table size and elements)
+            # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+            # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
             yield i, pa_table
