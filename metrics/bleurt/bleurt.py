@@ -17,7 +17,7 @@
 import os
 
 import nlp
-from nlp.logging import get_logger
+from nlp.utils.logging import get_logger
 from bleurt import score  # From: git+https://github.com/google-research/bleurt.git
 
 
