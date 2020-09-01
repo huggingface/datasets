@@ -10,7 +10,11 @@ jobs:
         env:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Your ML workflow goes here
+          python3 -m pip install --user --upgrade pip
+          python3 -m pip install --user virtualenv
+          python3 -m venv env
+          source env/bin/activate
+
           pip install .[benchmarks]
 
           # pyarrow==0.17.1
