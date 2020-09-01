@@ -59,7 +59,7 @@ emotion_label = {
 class DailyDialog(nlp.GeneratorBasedBuilder):
     """DailyDialog: A Manually Labelled Multi-turn Dialogue Dataset"""
 
-    VERSION = nlp.Version("1.1.0")
+    VERSION = nlp.Version("1.0.0")
 
     __EOU__ = "__eou__"
 
