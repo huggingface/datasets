@@ -11,6 +11,8 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Your ML workflow goes here
+
+          pip install --upgrade pip
           pip install -e .[benchmarks]
 
           # pyarrow==0.17.1
