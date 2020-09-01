@@ -4,8 +4,7 @@ from argparse import ArgumentParser
 from nlp.commands import BaseTransformersCLICommand
 from nlp.load import import_main_class, prepare_module
 from nlp.utils import MockDownloadManager
-
-from .utils.logging import get_logger
+from nlp.utils.logging import get_logger
 
 
 logger = get_logger(__name__)
