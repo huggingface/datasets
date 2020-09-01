@@ -1,5 +1,12 @@
+from dataclasses import dataclass
+from typing import List
+
+import pyarrow.csv as pac
+
 import nlp
 
+
+logger = nlp.utils.logging.get_logger(__name__)
 
 FEATURES = nlp.Features({"text": nlp.Value("string"),})
 
@@ -35,7 +42,7 @@ class TextConfig(nlp.BuilderConfig):
             parse_options = self.parse_options
         else:
             parse_options = pac.ParseOptions(
-                delimiter='\n',
+                delimiter='\r',
                 quote_char=False,
                 double_quote=False,
                 escape_char=False,
@@ -90,4 +97,6 @@ class Text(nlp.ArrowBasedBuilder):
                 parse_options=self.config.pa_parse_options,
                 convert_options=self.config.convert_options,
             )
+            logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+            logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
             yield i, pa_table
