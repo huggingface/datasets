@@ -1304,8 +1304,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         try:
             # Loop over single examples or batches and write to buffer/file if examples are to be updated
             pbar_iterable = self if not batched else range(0, len(self), batch_size)
+            pbar_unit = "ex" if not batched else "ba"
             pbar_desc = "#" + str(rank) if rank is not None else None
-            pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit="ba", desc=pbar_desc)
+            pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
             if not batched:
                 for i, example in enumerate(pbar):
                     example = apply_function_on_filtered_inputs(example, i)
