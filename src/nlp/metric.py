@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pyarrow as pa
-from filelock import FileLock, Timeout
+from filelock import BaseFileLock, FileLock, Timeout
 
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
@@ -36,6 +36,17 @@ from .utils.logging import get_logger
 
 
 logger = get_logger(__file__)
+
+
+class NoFileLock(BaseFileLock):
+    """Thread lock until file exists"""
+
+    def _acquire(self):
+        if os.path.exists(self._lock_file):
+            self._lock_file_fd = self._lock_file
+
+    def _release(self):
+        self._lock_file_fd = None
 
 
 class Metric(object):
@@ -181,7 +192,18 @@ class Metric(object):
         # Let's acquire a lock on each process files to be sure they are finished writing
         filelocks = []
         for process_id, file_path in enumerate(file_paths):
+            nofile_lock = NoFileLock(file_path)
             filelock = FileLock(file_path + ".lock")
+
+            # Check that writing has started
+            try:
+                nofile_lock.acquire(timeout=timeout)
+            except Timeout:
+                raise ValueError(f"Expected to find file {file_path} but it doesn't for process {process_id}, .")
+            else:
+                nofile_lock.release()
+
+            # Check that writing has finished
             try:
                 filelock.acquire(timeout=timeout)
             except Timeout:
