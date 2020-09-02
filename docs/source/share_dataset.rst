@@ -30,7 +30,7 @@ Sharing a "canonical" dataset
 
 To add a "canonical" dataset to the library, you need to go through the following steps:
 
-**1. Fork the `🤗nlp repository <https://github.com/huggingface/nlp>`__** by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
+**1. Fork the** `🤗nlp repository <https://github.com/huggingface/nlp>`__ by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
 
 **2. Clone your fork** to your local disk, and add the base repository as a remote:
 
