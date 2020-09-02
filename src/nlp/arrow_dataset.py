@@ -1165,6 +1165,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Reduce logging to keep things readable in multiprocessing with tqdm
         if rank is not None and get_verbosity() < WARNING:
             set_verbosity_warning()
+        # Print at least one thing to fix tqdm in notebooks in multiprocessing
+        # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
+        if rank is not None and "notebook" in tqdm.__name__:
+            print(" ", end="", flush=True)
 
         if function is None:
             function = lambda x: x  # noqa: E731
