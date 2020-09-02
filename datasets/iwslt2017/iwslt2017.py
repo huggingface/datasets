@@ -167,7 +167,7 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
         source, target = self.config.pair.split("-")
         for source_file, target_file in zip(source_files, target_files):
             with open(source_file, "r", encoding="utf-8") as sf:
-                with open(target_file, "w", encoding="utf-8") as tf:
+                with open(target_file, "r", encoding="utf-8") as tf:
                     for source_row, target_row in zip(sf, tf):
                         source_row = source_row.strip()
                         target_row = target_row.strip()
