@@ -1303,28 +1303,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         try:
             # Loop over single examples or batches and write to buffer/file if examples are to be updated
+            pbar_iterable = self if not batched else range(0, len(self), batch_size)
+            pbar_desc = "#" + str(rank) if rank is not None else None
+            pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit="ba", desc=pbar_desc)
             if not batched:
-                for i, example in enumerate(
-                    tqdm(
-                        self,
-                        disable=not_verbose,
-                        position=rank,
-                        unit="ex",
-                        desc="#" + str(rank) if rank is not None else None,
-                    )
-                ):
+                for i, example in enumerate(pbar):
                     example = apply_function_on_filtered_inputs(example, i)
                     if update_data:
                         example = cast_to_python_objects(example)
                         writer.write(example)
             else:
-                for i in tqdm(
-                    range(0, len(self), batch_size),
-                    disable=not_verbose,
-                    position=rank,
-                    unit="ba",
-                    desc="#" + str(rank) if rank is not None else None,
-                ):
+                for i in pbar:
                     if drop_last_batch and i + batch_size > self.num_rows:
                         continue
                     batch = self[i : i + batch_size]
@@ -1561,12 +1550,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if keep_in_memory or indices_cache_file_name is None:
             buf_writer = pa.BufferOutputStream()
             tmp_file = None
-            writer = ArrowWriter(stream=buf_writer, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint)
+            writer = ArrowWriter(
+                stream=buf_writer, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+            )
         else:
             buf_writer = None
             logger.info("Caching indices mapping at %s", indices_cache_file_name)
             tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(indices_cache_file_name), delete=False)
-            writer = ArrowWriter(path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint)
+            writer = ArrowWriter(
+                path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+            )
 
         indices_array = pa.array(indices, type=pa.uint64())
         # Check if we need to convert indices
