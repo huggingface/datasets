@@ -18,6 +18,7 @@
 
 import enum
 import os
+from datetime import datetime
 from functools import partial
 from typing import Dict, Union
 
@@ -163,14 +164,28 @@ class DownloadManager(object):
         """
         download_config = self._download_config.copy()
         download_config.extract_compressed_file = False
+        # Default to using 16 parallel thread for downloading
+        # Note that if we have less than 16 files, multi-processing is not activated
+        if download_config.num_proc is None:
+            download_config.num_proc = 16
+
         download_func = partial(cached_path, download_config=download_config)
+
+        start_time = datetime.now()
         downloaded_path_or_paths = map_nested(
             download_func,
             url_or_urls,
             map_tuple=True,
             num_proc=download_config.num_proc,
         )
+        duration = datetime.now() - start_time
+        logger.info("Downloading took {} min".format(duration.total_seconds() // 60))
+
+        start_time = datetime.now()
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
+        duration = datetime.now() - start_time
+        logger.info("Checksum Computation took {} min".format(duration.total_seconds() // 60))
+
         return downloaded_path_or_paths
 
     def iter_archive(self, path):

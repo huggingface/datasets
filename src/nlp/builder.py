@@ -434,7 +434,7 @@ class DatasetBuilder:
                     yield dirname
                 else:
                     tmp_dir = dirname + ".incomplete"
-                    os.makedirs(tmp_dir)
+                    os.makedirs(tmp_dir, exist_ok=True)
                     try:
                         yield tmp_dir
                         if os.path.isdir(dirname):

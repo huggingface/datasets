@@ -243,7 +243,7 @@ class DownloadConfig:
     extract_compressed_file: bool = False
     force_extract: bool = False
     use_etag: bool = True
-    num_proc: int = 1
+    num_proc: Optional[int] = None
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -450,7 +450,7 @@ def get_from_cache(
             return cache_path
         if local_files_only:
             raise FileNotFoundError(
-                "Cannot find the requested files in the cached path and outgoing traffic has been"
+                f"Cannot find the requested files in the cached path at {cache_path} and outgoing traffic has been"
                 " disabled. To enable file online look-ups, set 'local_files_only' to False."
             )
         raise ConnectionError("Couldn't reach {}".format(url))

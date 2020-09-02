@@ -23,17 +23,17 @@ import functools
 import itertools
 import os
 import types
-from functools import partial
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
 from types import CodeType
+from typing import Optional
 
 import dill
 import numpy as np
 from tqdm import tqdm
 
-from .logging import INFO, get_logger
+from .logging import INFO, WARNING, get_logger, get_verbosity, set_verbosity_warning
 
 
 # NOTE: When used on an instance method, the cache is shared across all
@@ -154,41 +154,37 @@ class memoized_property(property):  # pylint: disable=invalid-name
         return cached
 
 
-def _parallel_map_nested(
-    args, dict_only=False, map_list=True, map_tuple=False, map_numpy=False, disable_tqdm=True
-):
+def _single_map_nested(args):
     """Apply a function recursively to each element of a nested data struct."""
-    function, data_struct = args
+    function, data_struct, types, rank, disable_tqdm = args
+
+    # Singleton first to spare some computation
+    if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
+        return function(data_struct)
+
+    # Reduce logging to keep things readable in multiprocessing with tqdm
+    if rank is not None and get_verbosity() < WARNING:
+        set_verbosity_warning()
+    # Print at least one thing to fix tqdm in notebooks in multiprocessing
+    # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
+    if rank is not None and "notebook" in tqdm.__name__:
+        print(" ", end="", flush=True)
+
+    # Loop over single examples or batches and write to buffer/file if examples are to be updated
+    pbar_iterable = data_struct.items() if isinstance(data_struct, dict) else data_struct
+    pbar_desc = "#" + str(rank) if rank is not None else None
+    pbar = tqdm(pbar_iterable, disable=disable_tqdm, position=rank, unit="obj", desc=pbar_desc)
+
     if isinstance(data_struct, dict):
-        return {
-            k: _parallel_map_nested(
-                (function, v), dict_only=dict_only, map_list=map_list, map_tuple=map_tuple, map_numpy=map_numpy
-            )
-            for k, v in tqdm(data_struct.items(), disable=disable_tqdm)
-        }
-    elif not dict_only:
-        types = []
-        if map_list:
-            types.append(list)
-        if map_tuple:
-            types.append(tuple)
-        if map_numpy:
-            types.append(np.ndarray)
-        if isinstance(data_struct, tuple(types)):
-            mapped = [
-                _parallel_map_nested(
-                    (function, v), dict_only=dict_only, map_list=map_list, map_tuple=map_tuple, map_numpy=map_numpy
-                )
-                for v in tqdm(data_struct, disable=disable_tqdm)
-            ]
-            if isinstance(data_struct, list):
-                return mapped
-            elif isinstance(data_struct, tuple):
-                return tuple(mapped)
-            else:
-                return np.array(mapped)
-    # Singleton
-    return function(data_struct)
+        return {k: _single_map_nested((function, v, types, None, True)) for k, v in pbar}
+    else:
+        mapped = [_single_map_nested((function, v, types, None, True)) for v in pbar]
+        if isinstance(data_struct, list):
+            return mapped
+        elif isinstance(data_struct, tuple):
+            return tuple(mapped)
+        else:
+            return np.array(mapped)
 
 
 def map_nested(
@@ -198,62 +194,69 @@ def map_nested(
     map_list: bool = True,
     map_tuple: bool = False,
     map_numpy: bool = False,
-    num_proc: int = 1,
+    num_proc: Optional[int] = None,
+    types=None,
 ):
-    """Apply a function recursively to each element of a nested data struct."""
-    disable_tqdm = bool(logger.getEffectiveLevel() > INFO)
-    if num_proc <= 1:
-        map_func = partial(
-            map_nested,
-            dict_only=dict_only,
-            map_list=map_list,
-            map_tuple=map_tuple,
-            map_numpy=map_numpy,
-            num_proc=num_proc,
-        )
-    else:
-        map_func = partial(
-            _parallel_map_nested,
-            dict_only=dict_only,
-            map_list=map_list,
-            map_tuple=map_tuple,
-            map_numpy=map_numpy,
-            disable_tqdm=disable_tqdm,
-        )
-
-    # Could add support for more exotic data_struct, like OrderedDict
-    if isinstance(data_struct, dict):
-        if num_proc <= 1:
-            return {k: map_func(function, v) for k, v in tqdm(data_struct.items(), disable=disable_tqdm)}
-        else:
-            kwds = [(function, data_struct) for sub_struct in data_struct.values()]
-            with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
-                results = pool.map(map_func, kwds)
-            return {k: v for k, v in zip(data_struct.keys(), results)}
-
-    elif not dict_only:
+    """Apply a function recursively to each element of a nested data struct.
+    If num_proc > 1 and the length of data_struct is longer than num_proc: use multi-processing
+    """
+    if types is None:
         types = []
-        if map_list:
-            types.append(list)
-        if map_tuple:
-            types.append(tuple)
-        if map_numpy:
-            types.append(np.ndarray)
-        if isinstance(data_struct, tuple(types)):
-            if num_proc <= 1:
-                mapped = [map_func(function, v) for v in tqdm(data_struct, disable=disable_tqdm)]
-            else:
-                kwds = [(function, data_struct) for sub_struct in data_struct]
-                with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
-                    results = pool.map(map_func, kwds)
-            if isinstance(data_struct, list):
-                return mapped
-            elif isinstance(data_struct, tuple):
-                return tuple(mapped)
-            else:
-                return np.array(mapped)
+        if not dict_only:
+            if map_list:
+                types.append(list)
+            if map_tuple:
+                types.append(tuple)
+            if map_numpy:
+                types.append(np.ndarray)
+        types = tuple(types)
+
     # Singleton
-    return function(data_struct)
+    if not isinstance(data_struct, dict) and not isinstance(data_struct, types):
+        return function(data_struct)
+
+    disable_tqdm = bool(logger.getEffectiveLevel() > INFO)
+    iterable = list(data_struct.values()) if isinstance(data_struct, dict) else data_struct
+
+    if num_proc is None:
+        num_proc = 1
+    if num_proc <= 1 or len(iterable) <= num_proc:
+        mapped = [
+            _single_map_nested((function, obj, types, None, True)) for obj in tqdm(iterable, disable=disable_tqdm)
+        ]
+    else:
+        split_kwds = []  # We organize the splits ourselve (contiguous splits)
+        for index in range(num_proc):
+            div = len(iterable) // num_proc
+            mod = len(iterable) % num_proc
+            start = div * index + min(index, mod)
+            end = start + div + (1 if index < mod else 0)
+            split_kwds.append((function, iterable[start:end], types, index, disable_tqdm))
+        assert len(iterable) == sum(len(i[1]) for i in split_kwds), (
+            f"Error dividing inputs iterable among processes. "
+            f"Total number of objects {len(iterable)}, "
+            f"length: {sum(len(i[1]) for i in split_kwds)}"
+        )
+        logger.info(
+            "Spawning {} processes for {} objects in slices of {}".format(
+                num_proc, len(iterable), [len(i[1]) for i in split_kwds]
+            )
+        )
+        with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+            mapped = pool.map(_single_map_nested, split_kwds)
+        logger.info("Finished {} processes".format(num_proc))
+        mapped = [obj for proc_res in mapped for obj in proc_res]
+        logger.info("Unpacked {} objects".format(len(mapped)))
+
+    if isinstance(data_struct, dict):
+        return dict(zip(data_struct.keys(), mapped))
+    else:
+        if isinstance(data_struct, list):
+            return mapped
+        elif isinstance(data_struct, tuple):
+            return tuple(mapped)
+        else:
+            return np.array(mapped)
 
 
 def zip_nested(arg0, *args, **kwargs):
