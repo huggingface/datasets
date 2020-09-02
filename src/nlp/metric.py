@@ -192,18 +192,7 @@ class Metric(object):
         # Let's acquire a lock on each process files to be sure they are finished writing
         filelocks = []
         for process_id, file_path in enumerate(file_paths):
-            nofile_lock = NoFileLock(file_path)
             filelock = FileLock(file_path + ".lock")
-
-            # Check that writing has started
-            try:
-                nofile_lock.acquire(timeout=timeout)
-            except Timeout:
-                raise ValueError(f"Expected to find file {file_path} but it doesn't for process {process_id}, .")
-            else:
-                nofile_lock.release()
-
-            # Check that writing has finished
             try:
                 filelock.acquire(timeout=timeout)
             except Timeout:
@@ -213,10 +202,28 @@ class Metric(object):
 
         return file_paths, filelocks
 
+    def _check_all_processes_locks(self, timeout=100):
+        expected_lock_file_names = [
+            os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{process_id}.arrow.lock")
+            for process_id in range(self.num_process)
+        ]
+        for expected_lock_file_name in expected_lock_file_names:
+            nofilelock = NoFileLock(expected_lock_file_name)
+            try:
+                nofilelock.acquire(timeout=timeout)
+            except Timeout:
+                raise ValueError(
+                    f"Expeced to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
+                )
+            else:
+                nofilelock.release()
+
     def finalize(self, timeout=100):
         """Close all the writing process and load/gather the data
         from all the nodes if main node or all_process is True.
         """
+        if self.num_process > 1:
+            self._check_all_processes_locks(timeout=timeout)
         if self.writer is not None:
             self.writer.finalize()
         self.writer = None
