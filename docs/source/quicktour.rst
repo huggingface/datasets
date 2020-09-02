@@ -3,7 +3,7 @@ Quick tour
 
 Let's have a quick look at the 🤗nlp library. This library has three main features:
 
-- It provides a very **efficient way to load and process data** from raw files (CSV/JSON/text) or in-memory data (python dict, pandas dataframe) with a special focus on memory efficency and speed. As a matter of example, loading a 18GB dataset like English Wikipedia allocate 9 MB in RAM and you can iterate over the dataset at 1-2 GBit/s in python.
+- It provides a very **efficient way to load and process data** from raw files (CSV/JSON/text) or in-memory data (python dict, pandas dataframe) with a special focus on memory efficiency and speed. As a matter of example, loading a 18GB dataset like English Wikipedia allocate 9 MB in RAM and you can iterate over the dataset at 1-2 GBit/s in python.
 - It provides a very **simple way to access and share datasets** with the research and practitioner communities (over 130 NLP datasets are already accessible in one line with the library as we'll see below).
 - It was designed with a particular focus on interoperabilty with frameworks like **pandas, NumPy, PyTorch and TensorFlow**.
 
@@ -33,7 +33,7 @@ All these datasets can also be browsed on the `HuggingFace Hub <https://huggingf
 Loading a dataset
 --------------------
 
-Now let's load a simple dataset for classification, we'll use the MRPC dataset provided in the GLUE banchmark which is small enought for quick prototyping. You can explore this dataset and read more details `on the online viewer here <https://huggingface.co/nlp/viewer/?dataset=glue&config=mrpc>`__:
+Now let's load a simple dataset for classification, we'll use the MRPC dataset provided in the GLUE banchmark which is small enough for quick prototyping. You can explore this dataset and read more details `on the online viewer here <https://huggingface.co/nlp/viewer/?dataset=glue&config=mrpc>`__:
 
 .. code-block::
 
@@ -69,7 +69,7 @@ Now let's have a look at our newly created :class:`nlp.Dataset` object. It basic
      'idx': 0}
 
 A lot of metadata are available in the dataset attributes (description, citation, split sizes, etc) and we'll dive in this in the :doc:`exploring </exploring>` page.
-We'll just say here that :class:`nlp.Dataset` have columns which are typed with types which can be arbitrarly nested complex types (e.g. list of strings or list of lists of int64 values).
+We'll just say here that :class:`nlp.Dataset` have columns which are typed with types which can be arbitrarily nested complex types (e.g. list of strings or list of lists of int64 values).
 
 Let's take a look at the column in our dataset by printing its :func:`nlp.Dataset.features`:
 

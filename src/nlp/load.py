@@ -24,19 +24,16 @@ import re
 import shutil
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
-import numpy as np
-import pyarrow as pa
 from filelock import FileLock
 
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
-from .fingerprint import update_fingerprint
-from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo
+from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
@@ -175,7 +172,7 @@ def get_imports(file_path: str):
                 # We already have this import
                 continue
             if match.group(3):
-                # The import has a comment with 'From:', we'll retreive it from the given url
+                # The import has a comment with 'From:', we'll retrieve it from the given url
                 url_path = match.group(3)
                 url_path, sub_directory = convert_github_url(url_path)
                 imports.append(("external", match.group(2), url_path, sub_directory))
@@ -493,7 +490,7 @@ def load_dataset(
             * Download the dataset file from the original URL (see the script) if it's not already downloaded and cached.
             * Process and cache the dataset in typed Arrow tables for caching.
 
-                Arrow table are arbitrarly long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
+                Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
                 They can be directly access from drive, loaded in RAM or even streamed over the web.
 
         3. Return a dataset build from the requested splits in ``split`` (default: all).
@@ -504,7 +501,7 @@ def load_dataset(
             path to the dataset processing script with the dataset builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                     e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-                - a datatset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
+                - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         name (Optional ``str``): defining the name of the dataset configuration
         version (Optional ``str``): defining the version of the dataset configuration
@@ -560,110 +557,3 @@ def load_dataset(
         builder_instance._save_infos()
 
     return ds
-
-
-def concatenate_datasets(
-    dsets: List["Dataset"],
-    info: Optional[Any] = None,
-    split: Optional[Any] = None,
-):
-    """
-    Converts a list of :obj:``nlp.Dataset`` with the same schema into a single :obj:``nlp.Dataset``.
-
-    Args:
-        dsets (:obj:``List[nlp.Dataset]``): A list of Datasets to concatenate
-        info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
-            description, citation, etc.
-        split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
-    """
-    if not all([dset.features.type == dsets[0].features.type for dset in dsets]):
-        raise ValueError("Features must match for all datasets")
-
-    # Datasets tables should all come from disk or memory, but not a mix
-
-    dsets_in_memory = [not dset._data_files for dset in dsets]
-    if any(dset_in_memory != dsets_in_memory[0] for dset_in_memory in dsets_in_memory):
-        raise ValueError(
-            "Datasets should ALL come from memory, or should ALL come from disk.\n"
-            "However datasets {} come from memory and datasets {} come from disk.".format(
-                [i for i in range(len(dsets)) if dsets_in_memory[i]],
-                [i for i in range(len(dsets)) if not dsets_in_memory[i]],
-            )
-        )
-
-    # Concatenate tables
-
-    table = pa.concat_tables([dset._data for dset in dsets])
-    data_files = [f for dset in dsets for f in dset._data_files]
-    inplace_history = [h for dset in dsets for h in dset._inplace_history]
-
-    def apply_offset_to_indices_table(table, offset):
-        if offset == 0:
-            return table
-        else:
-            array = table["indices"]
-            if isinstance(array, pa.ChunkedArray):
-                new_array = pa.array(np.concatenate([c.to_numpy() for c in array.chunks]) + offset, pa.uint64())
-            else:
-                new_array = pa.array(array.to_numpy() + offset, pa.uint64())
-            return pa.Table.from_arrays([new_array], names=["indices"])
-
-    # Concatenate indices if they exist
-
-    if any(dset._indices is not None for dset in dsets):
-
-        # Datasets indices tables should all come from disk or memory, but not a mix
-        # Datasets with no indices tables are replaced with a dataset with an indicies table in memory
-
-        indices_mappings_in_memory = [not dset._indices_data_files for dset in dsets]
-        if any(
-            indices_mapping_in_memory != indices_mappings_in_memory[0]
-            for indices_mapping_in_memory in indices_mappings_in_memory
-        ):
-            raise ValueError(
-                "Datasets' indices should ALL come from memory, or should ALL come from disk.\n"
-                "However datasets' indices {} come from memory and datasets' indices {} come from disk.".format(
-                    [i for i in range(len(dsets)) if indices_mappings_in_memory[i]],
-                    [i for i in range(len(dsets)) if not indices_mappings_in_memory[i]],
-                )
-            )
-        indices_in_memory = indices_mappings_in_memory[0]
-
-        # Create missing indices tables in memory
-
-        if indices_in_memory:
-            for i in range(len(dsets)):
-                if dsets[i]._indices is None:
-                    dsets[i] = dsets[i].select(range(len(dsets[i])))
-        assert all(dset._indices is not None for dset in dsets), "each dataset should have an indices table"
-
-        # An offset needs to be applied to the indices before concatenating
-
-        indices_tables = []
-        offset = 0
-        for dset in dsets:
-            indices_tables.append(apply_offset_to_indices_table(dset._indices, offset))
-            offset += len(dset._data)
-
-        # Concatenate indices
-
-        indices_table = pa.concat_tables(indices_tables)
-        indices_data_files = None if indices_in_memory else [f for dset in dsets for f in dset._indices_data_files]
-    else:
-        indices_table = None
-        indices_data_files = None
-    if info is None:
-        info = DatasetInfo.from_merge([dset.info for dset in dsets])
-    fingerprint = update_fingerprint(
-        "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
-    )
-    return Dataset(
-        table,
-        info=info,
-        split=split,
-        data_files=data_files,
-        indices_table=indices_table,
-        indices_data_files=indices_data_files,
-        fingerprint=fingerprint,
-        inplace_history=inplace_history,
-    )
