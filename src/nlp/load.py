@@ -42,7 +42,7 @@ from .splits import Split
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import DownloadConfig, cached_path, hf_bucket_url
 from .utils.logging import get_logger
-
+from .utils.version import Version
 
 logger = get_logger(__name__)
 
@@ -196,6 +196,7 @@ def get_imports(file_path: str):
 def prepare_module(
     path: str,
     download_config: Optional[DownloadConfig] = None,
+    version: Optional[Union[str, Version]] = None,
     dataset: bool = True,
     force_local_path: Optional[str] = None,
     **download_kwargs,
@@ -255,12 +256,13 @@ def prepare_module(
     # Load the module in two steps:
     # 1. get the processing file on the local filesystem if it's not there (download to cache dir)
     # 2. copy from the local file system inside the library to import it
-    local_path = cached_path(file_path, download_config=download_config)
+    local_path = cached_path(file_path, version=version, download_config=download_config)
 
     # Download the dataset infos file if available
     try:
         local_dataset_infos_path = cached_path(
             dataset_infos,
+            version=version,
             download_config=download_config,
         )
     except (FileNotFoundError, ConnectionError):
@@ -417,6 +419,7 @@ def prepare_module(
 def load_metric(
     path: str,
     config_name: Optional[str] = None,
+    version: Optional[Union[str, Version]] = None,
     process_id: int = 0,
     num_process: int = 1,
     data_dir: Optional[str] = None,
@@ -444,7 +447,7 @@ def load_metric(
 
     Returns: `nlp.Metric`.
     """
-    module_path, hash = prepare_module(path, download_config=download_config, dataset=False)
+    module_path, hash = prepare_module(path, download_config=download_config, dataset=False, version=version)
     metric_cls = import_main_class(module_path, dataset=False)
     metric = metric_cls(
         config_name=config_name,
@@ -452,6 +455,7 @@ def load_metric(
         num_process=num_process,
         data_dir=data_dir,
         keep_in_memory=keep_in_memory,
+        version=version,
         **metric_init_kwargs,
     )
 
@@ -464,7 +468,7 @@ def load_metric(
 def load_dataset(
     path: str,
     name: Optional[str] = None,
-    version: Optional[str] = None,
+    version: Optional[Union[str, Version]] = None,
     data_dir: Optional[str] = None,
     data_files: Union[Dict, List] = None,
     split: Optional[Union[str, Split]] = None,
@@ -530,7 +534,7 @@ def load_dataset(
     """
     ignore_verifications = ignore_verifications or save_infos
     # Download/copy dataset processing script
-    module_path, hash = prepare_module(path, download_config=download_config, dataset=True)
+    module_path, hash = prepare_module(path, download_config=download_config, version=version, dataset=True)
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)

@@ -88,10 +88,6 @@ try:
 except (AttributeError, ImportError):
     HF_DATASETS_CACHE = os.getenv(os.getenv("HF_DATASETS_CACHE", default_datasets_cache_path))
 
-S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets"
-CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/datasets"
-
-
 default_metrics_cache_path = os.path.join(hf_cache_home, "metrics")
 try:
     from pathlib import Path
@@ -100,8 +96,11 @@ try:
 except (AttributeError, ImportError):
     HF_METRICS_CACHE = os.getenv(os.getenv("HF_METRICS_CACHE", default_metrics_cache_path))
 
+S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets"
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/metrics"
+CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/datasets"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/metric"
+REPO_VERSIONING_GITHUB = "https://raw.githubusercontent.com/huggingface/nlp/{}/{}/{}/{}"
 
 INCOMPLETE_SUFFIX = ".incomplete"
 
@@ -179,6 +178,21 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     return "/".join((endpoint, identifier, filename))
 
 
+def hf_bucket_to_version(hf_bucket_url: str, version) -> str:
+    version = str(version)
+    assert len(version.split('.')) == 3, f"Version {version} should have the pattern MAJOR.MINOR.PATCH, e.g. 1.2.0"
+
+    split_hf_bucket_url = hf_bucket_url.split('/')
+
+    if len(split_hf_bucket_url) < 3:
+        return None
+
+    type_str, path, name = split_hf_bucket_url[-3:]
+
+    endpoint = REPO_VERSIONING_GITHUB.format(version, type_str, path, name)
+    return endpoint
+
+
 def hash_url_to_filename(url, etag=None):
     """
     Convert `url` into a hashed filename in a repeatable way.
@@ -235,6 +249,7 @@ class DownloadConfig:
 def cached_path(
     url_or_filename,
     download_config=None,
+    version=None,
     **download_kwargs,
 ) -> Optional[str]:
     """
@@ -272,6 +287,7 @@ def cached_path(
             resume_download=download_config.resume_download,
             user_agent=download_config.user_agent,
             local_files_only=download_config.local_files_only,
+            version=version,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -368,6 +384,7 @@ def get_from_cache(
     resume_download=False,
     user_agent=None,
     local_files_only=False,
+    version=None,
 ) -> Optional[str]:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -387,10 +404,15 @@ def get_from_cache(
     if isinstance(cache_dir, Path):
         cache_dir = str(cache_dir)
 
+    versioned_url = None
+    if version is not None:
+        versioned_url = hf_bucket_to_version(url, version)
+
     os.makedirs(cache_dir, exist_ok=True)
 
     original_url = url  # Some parameters may be added
     connected = False
+    versioned_found = False
     cookies = None
     etag = None
     if not local_files_only:
@@ -414,7 +436,20 @@ def get_from_cache(
             # not connected
             pass
 
-    filename = hash_url_to_filename(original_url, etag)
+        if connected and versioned_url is not None:
+            try:
+                versioned_response = requests.head(versioned_url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
+                if versioned_response.status_code == 200:  # ok
+                    versioned_found = True
+            except (EnvironmentError, requests.exceptions.Timeout):
+                # not connected
+                pass
+
+    if versioned_url is not None:
+        filename = hash_url_to_filename(versioned_url)
+        url = versioned_url
+    else:
+        filename = hash_url_to_filename(original_url, etag)
 
     # get cache path to put the file
     cache_path = os.path.join(cache_dir, filename)
@@ -430,7 +465,7 @@ def get_from_cache(
                 " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
                 " to False."
             )
-        raise ConnectionError("Couldn't reach {}".format(url))
+        raise ConnectionError("Couldn't reach {}".format(original_url))
 
     # From now on, connected is True.
     if os.path.exists(cache_path) and not force_download:

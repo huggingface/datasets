@@ -262,6 +262,7 @@ class MetricInfo:
     reference_urls: List[str] = field(default_factory=list)
     streamable: bool = False
     format: Optional[str] = None
+    version: Optional[Union[str, Version]] = None,
 
     # Set later by the builder
     metric_name: Optional[str] = None
@@ -277,6 +278,11 @@ class MetricInfo:
                         f"When using 'numpy' format, all features should be a `nlp.Value` feature. "
                         f"Here {key} is an instance of {value.__class__.__name__}"
                     )
+        if self.version is not None and not isinstance(self.version, Version):
+            if isinstance(self.version, str):
+                self.version = Version(self.version)
+            else:
+                self.version = Version.from_dict(self.version)
 
     def write_to_directory(self, metric_info_dir):
         """Write `MetricInfo` as JSON to `metric_info_dir`.
