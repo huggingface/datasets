@@ -97,7 +97,7 @@ Here are the features of the SQuAD dataset for instance, which is taken from the
                 }
             )
 
-These features should be mostly self-explanatory given the above introduction. One specific behavior here is the fact that the ``Sequence`` field in ``"answers"`` is given a dictionary of sub-fields. As mentioned in the above note, in this case, this feature is actually **converted in a dictionary of lists** (instead of the list of dictionary that we read in the feature here).
+These features should be mostly self-explanatory given the above introduction. One specific behavior here is the fact that the ``Sequence`` field in ``"answers"`` is given a dictionary of sub-fields. As mentioned in the above note, in this case, this feature is actually **converted into a dictionary of lists** (instead of the list of dictionary that we read in the feature here).
 
 We can see a confirmation of that in the structure of the examples yield by the generation method at the very end of the `squad dataset loading script <https://github.com/huggingface/nlp/tree/master/datasets/squad/squad.py>`__:
 
@@ -156,7 +156,7 @@ Downloading data files and organizing splits
 
 The :func:`nlp.DatasetBuilder._split_generator` method is in charge of downloading (or retrieving locally the data files), organizing them according to the splits and defining specific arguments for the generation process if needed.
 
-This method **takes as input** a :class:`nlp.DownloadManager` which is a utility which can be used to download files (or to retreive them from the local filesystem if they are local files or are already in the cache) and return a list of :class:`nlp.SplitGenerator`. A :class:`nlp.SplitGenerator` is a simple dataclass containing the name of the split and keywords arguments to be provided to the :func:`nlp.DatasetBuilder._generate_examples` method that we detail in the next section. These arguments can be specific to each splits and typically comprise at least the local path to the data files to load for each split.
+This method **takes as input** a :class:`nlp.DownloadManager` which is a utility which can be used to download files (or to retrieve them from the local filesystem if they are local files or are already in the cache) and return a list of :class:`nlp.SplitGenerator`. A :class:`nlp.SplitGenerator` is a simple dataclass containing the name of the split and keywords arguments to be provided to the :func:`nlp.DatasetBuilder._generate_examples` method that we detail in the next section. These arguments can be specific to each splits and typically comprise at least the local path to the data files to load for each split.
 
 .. note::
 
@@ -185,7 +185,7 @@ Let's have a look at a simple example of a :func:`nlp.DatasetBuilder._split_gene
 				nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
 			]
 
-As you can see this method first prepare a dict of URL to the original data files for SQuAD. This dict is then provided to the :func:`nlp.DownloadManager.download_and_extract` method which will take care of downloading or retriving from the local file system these files and returning a object of the same type and organization (here a dictionary) with the path to the local version of the requetsed files. :func:`nlp.DownloadManager.download_and_extract` can take as input a single URL/path or a list or dictionary of URLs/paths and will return an object of the same structure (single URL/path, list or dictionary of URLs/paths) with the path to the local files.
+As you can see this method first prepare a dict of URL to the original data files for SQuAD. This dict is then provided to the :func:`nlp.DownloadManager.download_and_extract` method which will take care of downloading or retrieving from the local file system these files and returning a object of the same type and organization (here a dictionary) with the path to the local version of the requested files. :func:`nlp.DownloadManager.download_and_extract` can take as input a single URL/path or a list or dictionary of URLs/paths and will return an object of the same structure (single URL/path, list or dictionary of URLs/paths) with the path to the local files.
 
 This method also takes care of extracting compressed tar, gzip and zip archives.
 
@@ -193,7 +193,7 @@ This method also takes care of extracting compressed tar, gzip and zip archives.
 
 .. note::
 
-	In addition to :func:`nlp.DownloadManager.download_and_extract` and :func:`nlp.DownloadManager.download_custom`, the :class:`nlp.DownloadManager` class also provide more fine-grained control on the download and extraction process through several methods including: :func:`nlp.DownloadManager.download`, :func:`nlp.DownloadManager.extract` and :func:`nlp.DownloadManager.iter_archive`. Please refere to the package reference on :class:`nlp.DownloadManager` for details on these methods.
+	In addition to :func:`nlp.DownloadManager.download_and_extract` and :func:`nlp.DownloadManager.download_custom`, the :class:`nlp.DownloadManager` class also provide more fine-grained control on the download and extraction process through several methods including: :func:`nlp.DownloadManager.download`, :func:`nlp.DownloadManager.extract` and :func:`nlp.DownloadManager.iter_archive`. Please refer to the package reference on :class:`nlp.DownloadManager` for details on these methods.
 
 Once the data files are downloaded, the next mission for the :func:`nlp.DatasetBuilder._split_generator` method is to prepare the :class:`nlp.SplitGenerator` for each split which will be used to call the :func:`nlp.DatasetBuilder._generate_examples` method that we detail in the next session.
 
@@ -261,7 +261,7 @@ The base :class:`nlp.BuilderConfig` class is very simple and only comprises the 
 - :obj:`data_files` (``Union[Dict, List]`` can be used to store paths to a local data files
 - :obj:`description` (``str``) can be used to give a long description of the configuration
 
-:class:`nlp.BuilderConfig` is only used as a containiner of informations which can be used in the :class:`nlp.DatasetBuilder` to build the dataset by being access in the ``self.config`` attribute of the :class:`nlp.DatasetBuilder` instance.
+:class:`nlp.BuilderConfig` is only used as a container of informations which can be used in the :class:`nlp.DatasetBuilder` to build the dataset by being access in the ``self.config`` attribute of the :class:`nlp.DatasetBuilder` instance.
 
 You can sub-class the base :class:`nlp.BuilderConfig` class to add additional attributes that you may wan to use to control the generation of a dataset. The specific configuration class that will be used by the dataset is set in the :attr:`nlp.DatasetBuilder.BUILDER_CONFIG_CLASS`.
 

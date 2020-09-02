@@ -175,7 +175,7 @@ def get_imports(file_path: str):
                 # We already have this import
                 continue
             if match.group(3):
-                # The import has a comment with 'From:', we'll retreive it from the given url
+                # The import has a comment with 'From:', we'll retrieve it from the given url
                 url_path = match.group(3)
                 url_path, sub_directory = convert_github_url(url_path)
                 imports.append(("external", match.group(2), url_path, sub_directory))
@@ -493,7 +493,7 @@ def load_dataset(
             * Download the dataset file from the original URL (see the script) if it's not already downloaded and cached.
             * Process and cache the dataset in typed Arrow tables for caching.
 
-                Arrow table are arbitrarly long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
+                Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
                 They can be directly access from drive, loaded in RAM or even streamed over the web.
 
         3. Return a dataset build from the requested splits in ``split`` (default: all).
@@ -504,7 +504,7 @@ def load_dataset(
             path to the dataset processing script with the dataset builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                     e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-                - a datatset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
+                - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         name (Optional ``str``): defining the name of the dataset configuration
         version (Optional ``str``): defining the version of the dataset configuration
