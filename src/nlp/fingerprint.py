@@ -123,8 +123,11 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            self: "Dataset" = args[0]
-            args = args[1:]
+            if args:
+                self: "Dataset" = args[0]
+                args = args[1:]
+            else:
+                self: "Dataset" = kwargs.pop("self")
             kwargs_for_fingerprint = dict(kwargs)
             kwargs_for_fingerprint.update(zip(func.__code__.co_varnames, args))
 
@@ -145,7 +148,7 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
                 new_inplace_history_item = (func.__name__, deepcopy(args), deepcopy(kwargs))
             else:
                 for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
-                    if fingerprint_name not in kwargs:
+                    if kwargs.get(fingerprint_name) is None:
                         kwargs_for_fingerprint["fingerprint_name"] = fingerprint_name
                         kwargs[fingerprint_name] = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
 

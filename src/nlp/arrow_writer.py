@@ -134,6 +134,7 @@ class ArrowWriter(object):
         disable_nullable: bool = False,
         update_features: bool = False,
         with_metadata: bool = True,
+        unit: str = "examples",
     ):
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
@@ -161,6 +162,7 @@ class ArrowWriter(object):
         self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
         self.with_metadata = with_metadata
+        self.unit = unit
 
         self._num_examples = 0
         self._num_bytes = 0
@@ -290,8 +292,9 @@ class ArrowWriter(object):
         if close_stream:
             self.stream.close()
         logger.info(
-            "Done writing %s examples in %s bytes %s.",
+            "Done writing %s %s in %s bytes %s.",
             self._num_examples,
+            self.unit,
             self._num_bytes,
             self._path if self._path else "",
         )

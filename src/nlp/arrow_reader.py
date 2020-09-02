@@ -159,12 +159,13 @@ class BaseReader:
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
         """
         assert len(files) > 0 and all(isinstance(f, dict) for f in files), "please provide valid file informations"
-        pa_batches = []
+        pa_tables = []
         for f_dict in files:
             pa_table: pa.Table = self._get_dataset_from_filename(f_dict)
-            pa_batches.extend(pa_table.to_batches())
-        assert len(pa_batches) > 0, "tried to read an empty arrow table"
-        pa_table = pa.Table.from_batches(pa_batches)
+            pa_tables.append(pa_table)
+        pa_tables = [t for t in pa_tables if len(t) > 0]
+        pa_tables = pa_tables or [pa.Table.from_batches([], schema=pa.schema(self._info.features.type))]
+        pa_table = pa.concat_tables(pa_tables)
         return pa_table
 
     def get_file_instructions(self, name, instruction, split_infos):

@@ -20,6 +20,14 @@ class Unpicklable:
         raise pickle.PicklingError()
 
 
+def picklable_map_function(x):
+    return {"id": int(x["filename"].split("_")[-1])}
+
+
+def picklable_filter_function(x):
+    return int(x["filename"].split("_")[-1]) < 10
+
+
 class BaseDatasetTest(TestCase):
     def _create_dummy_dataset(self, multiple_columns=False):
         if multiple_columns:
@@ -493,6 +501,34 @@ class BaseDatasetTest(TestCase):
                 Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
             )
 
+    def test_map_multiprocessing(self):
+        dset = self._create_dummy_dataset()
+
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        fingerprint = dset._fingerprint
+        dset_test = dset.map(picklable_map_function, num_proc=2)
+        self.assertEqual(len(dset_test), 30)
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertDictEqual(
+            dset_test.features,
+            Features({"filename": Value("string"), "id": Value("int64")}),
+        )
+        self.assertEqual(len(dset_test._data_files), 0)
+        self.assertNotEqual(dset_test._fingerprint, fingerprint)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = dset.map(cache_file_name=os.path.join(tmp_dir, "test.arrow"))
+            fingerprint = dset._fingerprint
+            dset_test = dset.map(picklable_map_function, num_proc=3)
+            self.assertEqual(len(dset_test), 30)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertDictEqual(
+                dset_test.features,
+                Features({"filename": Value("string"), "id": Value("int64")}),
+            )
+            self.assertEqual(len(dset_test._data_files), 3)
+            self.assertNotEqual(dset_test._fingerprint, fingerprint)
+
     def test_new_features(self):
         dset = self._create_dummy_dataset()
 
@@ -641,6 +677,27 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
             self.assertNotEqual(dset_filter_even_num._fingerprint, fingerprint)
+
+    def test_filter_multiprocessing(self):
+        dset = self._create_dummy_dataset()
+
+        fingerprint = dset._fingerprint
+        dset_filter_first_ten = dset.filter(picklable_filter_function, num_proc=2)
+        self.assertEqual(len(dset_filter_first_ten), 10)
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
+        self.assertEqual(len(dset_filter_first_ten._data_files), 0)
+        self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = dset.map(cache_file_name=os.path.join(tmp_dir, "test.arrow"))
+            fingerprint = dset._fingerprint
+            dset_filter_first_ten = dset.filter(picklable_filter_function, num_proc=2)
+            self.assertEqual(len(dset_filter_first_ten), 10)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertDictEqual(dset_filter_first_ten.features, Features({"filename": Value("string")}))
+            self.assertEqual(len(dset_filter_first_ten._data_files), 2)
+            self.assertNotEqual(dset_filter_first_ten._fingerprint, fingerprint)
 
     def test_keep_features_after_transform_specified(self):
         features = Features(
