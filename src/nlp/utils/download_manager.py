@@ -18,6 +18,7 @@
 
 import enum
 import os
+from functools import partial
 from typing import Dict, Union
 
 from .file_utils import HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
@@ -139,13 +140,13 @@ class DownloadManager(object):
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
         for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
             try:
-                get_from_cache(url, cache_dir=cache_dir, local_files_only=True)
+                get_from_cache(url, cache_dir=cache_dir, local_files_only=True, use_etag=False)
                 cached = True
             except FileNotFoundError:
                 cached = False
             if not cached or self._download_config.force_download:
                 custom_download(url, path)
-                get_from_cache(url, cache_dir=cache_dir, local_files_only=True)
+                get_from_cache(url, cache_dir=cache_dir, local_files_only=True, use_etag=False)
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
 
@@ -162,9 +163,12 @@ class DownloadManager(object):
         """
         download_config = self._download_config.copy()
         download_config.extract_compressed_file = False
+        download_func = partial(cached_path, download_config=download_config)
         downloaded_path_or_paths = map_nested(
-            lambda url: cached_path(url, download_config=download_config),
+            download_func,
             url_or_urls,
+            map_tuple=True,
+            num_proc=download_config.num_proc,
         )
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
