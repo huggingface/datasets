@@ -180,9 +180,9 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
 
 def hf_bucket_to_version(hf_bucket_url: str, version) -> str:
     version = str(version)
-    assert len(version.split('.')) == 3, f"Version {version} should have the pattern MAJOR.MINOR.PATCH, e.g. 1.2.0"
+    assert len(version.split(".")) == 3, f"Version {version} should have the pattern MAJOR.MINOR.PATCH, e.g. 1.2.0"
 
-    split_hf_bucket_url = hf_bucket_url.split('/')
+    split_hf_bucket_url = hf_bucket_url.split("/")
 
     if len(split_hf_bucket_url) < 3:
         return None
@@ -436,9 +436,11 @@ def get_from_cache(
             # not connected
             pass
 
-        if connected and versioned_url is not None:
+        if versioned_url is not None:
             try:
-                versioned_response = requests.head(versioned_url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
+                versioned_response = requests.head(
+                    versioned_url, allow_redirects=True, proxies=proxies, timeout=etag_timeout
+                )
                 if versioned_response.status_code == 200:  # ok
                     versioned_found = True
             except (EnvironmentError, requests.exceptions.Timeout):
@@ -470,6 +472,15 @@ def get_from_cache(
     # From now on, connected is True.
     if os.path.exists(cache_path) and not force_download:
         return cache_path
+
+    # We cannot reach the versioned version of the file and we have no local storage
+    if not os.path.exists(cache_path) and versioned_url is not None and not versioned_found:
+        raise FileNotFoundError(
+            f"The specific version {version} of the dataset/metric script was requested "
+            f"but the versioned URL at {versioned_url} cannot be reached and "
+            f"no local version was found. Check connectivity or remove request "
+            f"for a specific version of the dataset/metric script."
+        )
 
     # Prevent parallel downloads of the same file with a lock.
     lock_path = cache_path + ".lock"

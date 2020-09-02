@@ -262,7 +262,7 @@ class MetricInfo:
     reference_urls: List[str] = field(default_factory=list)
     streamable: bool = False
     format: Optional[str] = None
-    version: Optional[Union[str, Version]] = None,
+    version: Optional[Union[str, Version]] = None
 
     # Set later by the builder
     metric_name: Optional[str] = None

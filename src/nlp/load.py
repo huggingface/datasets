@@ -44,6 +44,7 @@ from .utils.file_utils import DownloadConfig, cached_path, hf_bucket_url
 from .utils.logging import get_logger
 from .utils.version import Version
 
+
 logger = get_logger(__name__)
 
 CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
