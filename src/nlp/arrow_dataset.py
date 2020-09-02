@@ -41,7 +41,7 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .utils import map_nested
-from .utils.logging import INFO, get_logger
+from .utils.logging import INFO, WARNING, get_logger, get_verbosity, set_verbosity_warning
 
 
 if TYPE_CHECKING:
@@ -1059,7 +1059,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             def format_cache_file_name(cache_file_name, rank):
                 sep = cache_file_name.rindex(".")
                 base_name, extension = cache_file_name[:sep], cache_file_name[sep:]
-                return base_name + suffix_template.format(rank=rank, num_proc=num_proc) + extension
+                cache_file_name = base_name + suffix_template.format(rank=rank, num_proc=num_proc) + extension
+                logger.info("Process #{} will write at {}".format(rank, cache_file_name))
+                return cache_file_name
 
             with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
                 kwds_per_shard = [
@@ -1087,8 +1089,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
                     for rank in range(num_proc)
                 ]
+                logger.info("Spawning {} processes".format(num_proc))
                 results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
                 transformed_shards = [r.get() for r in results]
+                logger.info("Concatenating {} shards from multiprocessing".format(num_proc))
                 result = concatenate_datasets(transformed_shards)
                 if new_fingerprint is not None:
                     result._fingerprint = new_fingerprint
@@ -1157,6 +1161,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return self
 
         not_verbose = bool(logger.getEffectiveLevel() > INFO)
+
+        # Reduce logging to keep things readable in multiprocessing with tqdm
+        if rank is not None and get_verbosity() < WARNING:
+            set_verbosity_warning()
 
         if function is None:
             function = lambda x: x  # noqa: E731
@@ -1296,13 +1304,27 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         try:
             # Loop over single examples or batches and write to buffer/file if examples are to be updated
             if not batched:
-                for i, example in enumerate(tqdm(self, disable=not_verbose, position=rank, unit="ex")):
+                for i, example in enumerate(
+                    tqdm(
+                        self,
+                        disable=not_verbose,
+                        position=rank,
+                        unit="ex",
+                        desc="#" + str(rank) if rank is not None else None,
+                    )
+                ):
                     example = apply_function_on_filtered_inputs(example, i)
                     if update_data:
                         example = cast_to_python_objects(example)
                         writer.write(example)
             else:
-                for i in tqdm(range(0, len(self), batch_size), disable=not_verbose, position=rank, unit="ba"):
+                for i in tqdm(
+                    range(0, len(self), batch_size),
+                    disable=not_verbose,
+                    position=rank,
+                    unit="ba",
+                    desc="#" + str(rank) if rank is not None else None,
+                ):
                     if drop_last_batch and i + batch_size > self.num_rows:
                         continue
                     batch = self[i : i + batch_size]
