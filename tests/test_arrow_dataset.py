@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 
+import nlp.arrow_dataset
 from nlp import concatenate_datasets
 from nlp.arrow_dataset import Dataset
 from nlp.features import ClassLabel, Features, Sequence, Value
@@ -29,6 +30,14 @@ def picklable_filter_function(x):
 
 
 class BaseDatasetTest(TestCase):
+    def setUp(self):
+        # google colab doesn't allow to pickle loggers
+        # so we want to make sure each tests passes without pickling the logger
+        def reduce_ex(self):
+            raise pickle.PicklingError()
+
+        nlp.arrow_dataset.logger.__reduce_ex__ = reduce_ex
+
     def _create_dummy_dataset(self, multiple_columns=False):
         if multiple_columns:
             data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}

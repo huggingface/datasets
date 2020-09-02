@@ -142,15 +142,17 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
                     kwargs_for_fingerprint["generator"] = np.random.default_rng(None)
 
             # compute new_fingerprint and add it to the args of not in-place transforms
-
+            transform = func.__module__ + "." + func.__qualname__
             if inplace:
-                new_fingerprint = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
+                new_fingerprint = update_fingerprint(self._fingerprint, transform, kwargs_for_fingerprint)
                 new_inplace_history_item = (func.__name__, deepcopy(args), deepcopy(kwargs))
             else:
                 for fingerprint_name in fingerprint_names:  # transforms like `train_test_split` have several hashes
                     if kwargs.get(fingerprint_name) is None:
                         kwargs_for_fingerprint["fingerprint_name"] = fingerprint_name
-                        kwargs[fingerprint_name] = update_fingerprint(self._fingerprint, func, kwargs_for_fingerprint)
+                        kwargs[fingerprint_name] = update_fingerprint(
+                            self._fingerprint, transform, kwargs_for_fingerprint
+                        )
 
             # Call actual function
 
