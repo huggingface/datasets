@@ -19,10 +19,12 @@
 import contextlib
 import json
 import os
+import pickle
 import shutil
 import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
+from dataclasses import asdict
 from functools import partial
 from math import ceil, floor
 from multiprocessing import Pool, RLock
@@ -337,18 +339,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def __getstate__(self):
         state = dict(self.__dict__)
+        state["_info"] = json.dumps(asdict(state["_info"]))
+        state["_split"] = str(state["_split"]) if state["_split"] is not None else None
         if self._data_files:
             state["_data"] = None
         if self._indices_data_files:
             state["_indices"] = None
         return state
 
-    def __setstate__(self, state):
+    def __setstate__(self, state, root_dir=""):
         assert (
             state.get("_data") is not None or state.get("_data_files") is not None
         ), "tried to unpickle a dataset without arrow_table or data_files"
+        state = dict(state)
+        state["_info"] = DatasetInfo.from_dict(json.loads(state["_info"]))
+        state["_split"] = NamedSplit(state["_split"]) if state["_split"] is not None else None
         self.__dict__ = state
-        reader = ArrowReader("", self.info)
+        reader = ArrowReader(root_dir, self.info)
+        # Read arrow tables
         if self._data is None and self._data_files:
             tables = []
             for data_file, inplace_hist_per_file in zip(self._data_files, self._inplace_history):
@@ -362,9 +370,64 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # fix all-empty tables
             tables = tables or [pa.Table.from_batches([], schema=pa.schema(self.info.features.type))]
             self._data = pa.concat_tables(tables)
-        reader = ArrowReader("", DatasetInfo(features=Features({"indices": Value("int64")})))
+        reader = ArrowReader(root_dir, DatasetInfo(features=Features({"indices": Value("int64")})))
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
+
+    def save(self, dataset_path: str):
+        """Save the dataset in a datasetdirectory"""
+        assert (
+            not self.list_indexes()
+        ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
+        self = pickle.loads(pickle.dumps(self))
+        os.makedirs(dataset_path, exist_ok=True)
+        # Write indices if needed
+        if self._indices is not None:
+            if not self._indices_data_files:
+                cache_file_name = os.path.join(dataset_path, "indices.arrow")
+                writer = ArrowWriter(path=cache_file_name)
+                writer.write_table(self._indices)
+                writer.finalize()
+                self._indices_data_files = [{"filename": cache_file_name}]
+        # Write dataset if needed
+        if not self._data_files or any(len(h["transforms"]) > 0 for h in self._inplace_history):
+            cache_file_name = os.path.join(dataset_path, "dataset.arrow")
+            writer = ArrowWriter(path=cache_file_name)
+            writer.write_table(self._data)
+            writer.finalize()
+            self._data_files = [{"filename": cache_file_name}]
+            self._inplace_history = [{"transforms": []}]
+        # Copy all files into the dataset directory
+        for data_file in self._data_files + self._indices_data_files:
+            # Copy file to destination directory
+            src = data_file["filename"]
+            filename = src.split("/")[-1]
+            dest = os.path.join(dataset_path, filename)
+            if src != dest:
+                shutil.copy(src, dest)
+            # Change path to relative path from inside the destination directory
+            data_file["filename"] = filename
+        # Get state
+        state = self.__getstate__()
+        assert state.get("_data") is None, "arrow table needs to be memory mapped"
+        assert state.get("_indices") is None, "arrow table needs to be memory mapped"
+        assert all(
+            len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
+        ), "in-place history needs to be empty"
+        # Serialize state
+        with open(os.path.join(dataset_path, "state.json"), "w") as state_file:
+            json.dump(state, state_file)
+        logger.info("Dataset saved in {}".format(dataset_path))
+
+    @staticmethod
+    def load(dataset_path: str):
+        """Load the dataset from a dataset directory"""
+        with open(os.path.join(dataset_path, "state.json"), "r") as state_file:
+            state = json.load(state_file)
+        dataset = Dataset.from_dict({})
+        state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
+        dataset.__setstate__(state, root_dir=dataset_path)
+        return dataset
 
     @property
     def data(self) -> pa.Table:
@@ -1473,6 +1536,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
 
         return self.map(
+            batched=True,  # for speed
             keep_in_memory=keep_in_memory,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
