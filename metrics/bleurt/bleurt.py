@@ -17,11 +17,11 @@
 import os
 
 import nlp
-from nlp.logging import get_logger
+from logging import getLogger
 from bleurt import score  # From: git+https://github.com/google-research/bleurt.git
 
 
-logger = get_logger(__name__)
+logger = getLogger(__name__)
 
 _CITATION = """\
 @inproceedings{bleurt,
