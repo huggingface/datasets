@@ -69,15 +69,12 @@ class Doqa(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         DoqaConfig(
             name="cooking",
-            description=""
         ),
         DoqaConfig(
             name="movies",
-            description=""
         ),
         DoqaConfig(
             name="travel",
-            description=""
         )
     ]
     
@@ -136,11 +133,13 @@ class Doqa(nlp.GeneratorBasedBuilder):
                     gen_kwargs={"filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-travel-test-v2.1.json")},
                 )
             ]
+        else:
+            raise ValueError("Unknown config name")
 
     def _generate_examples(self, filepath):
         """Yields examples."""
         
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for row in data["data"]:
                 title = row["title"]
