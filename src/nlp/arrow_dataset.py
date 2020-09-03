@@ -409,6 +409,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             data_file["filename"] = filename
         # Get state
         state = self.__getstate__()
+        state["_info"] = json.loads(state["_info"])
         assert state.get("_data") is None, "arrow table needs to be memory mapped"
         assert state.get("_indices") is None, "arrow table needs to be memory mapped"
         assert all(
@@ -424,6 +425,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """Load the dataset from a dataset directory"""
         with open(os.path.join(dataset_path, "state.json"), "r") as state_file:
             state = json.load(state_file)
+        state["_info"] = json.dumps(state["_info"])
         dataset = Dataset.from_dict({})
         state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
         dataset.__setstate__(state, root_dir=dataset_path)
