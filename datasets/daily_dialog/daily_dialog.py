@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
 import os
 from zipfile import ZipFile
 
@@ -68,9 +66,15 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(
                 {
-                    "dialog": nlp.features.Sequence(nlp.Value("string")),
-                    "act": nlp.features.Sequence(nlp.ClassLabel(names=list(act_label.values()))),
-                    "emotion": nlp.features.Sequence(nlp.ClassLabel(names=list(emotion_label.values()))),
+                    "dialog": nlp.features.Sequence(
+                        nlp.Value("string")
+                    ),
+                    "act": nlp.features.Sequence(
+                        nlp.ClassLabel(names=list(act_label.values()))
+                    ),
+                    "emotion": nlp.features.Sequence(
+                        nlp.ClassLabel(names=list(emotion_label.values()))
+                    ),
                 }
             ),
             supervised_keys=None,
@@ -128,7 +132,9 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, file_path, act_path, emotion_path, split):
         """ Yields examples. """
         # Yields (key, example) tuples from the dataset
-        with open(file_path) as f, open(act_path) as act, open(emotion_path) as emotion:
+        with open(file_path, "r", encoding="utf-8") as f, open(act_path, "r", encoding="utf-8") as act, open(
+            emotion_path, "r", encoding="utf-8"
+        ) as emotion:
             for i, (line_f, line_act, line_emotion) in enumerate(zip(f, act, emotion)):
                 if len(line_f.strip()) == 0:
                     break
