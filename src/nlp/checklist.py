@@ -83,7 +83,10 @@ class CheckListSuite(object):
         download_config = load_dataset_kwargs.get("download_config")
         module_path, hash = prepare_module(path, download_config=download_config, dataset=True)
         builder_cls = import_main_class(module_path, dataset=True)
-        builder_instance = builder_cls(hash=hash, **load_dataset_kwargs,)
+        builder_instance = builder_cls(
+            hash=hash,
+            **load_dataset_kwargs,
+        )
         if download_config is None:
             download_config = DownloadConfig()
             download_config.cache_dir = os.path.join(builder_instance._cache_dir_root, "downloads")
@@ -98,7 +101,11 @@ class CheckListSuite(object):
         self.suite = TestSuite.from_file(suite_file)
         self.fail_rate = {}
 
-    def get_test(self, test_name: str, aggregate_testcases: bool = False,) -> "Dataset":
+    def get_test(
+        self,
+        test_name: str,
+        aggregate_testcases: bool = False,
+    ) -> "Dataset":
         """Returns a dataset corresponding to one specific test
 
         Args:
@@ -115,7 +122,9 @@ class CheckListSuite(object):
         return d
 
     def compute(
-        self, prediction_key: str, confidence_key: str = None,
+        self,
+        prediction_key: str,
+        confidence_key: str = None,
     ):
         """Runs the tests in the checklist for a specific set of predictions and confidences
 

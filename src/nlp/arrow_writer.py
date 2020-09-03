@@ -121,8 +121,7 @@ class TypedSequence:
 
 
 class ArrowWriter(object):
-    """Shuffles and writes Examples to Arrow files.
-    """
+    """Shuffles and writes Examples to Arrow files."""
 
     def __init__(
         self,
@@ -197,8 +196,7 @@ class ArrowWriter(object):
         return {"huggingface": json.dumps({key: info_as_dict[key] for key in keys})}
 
     def write_on_file(self):
-        """ Write stored examples
-        """
+        """Write stored examples"""
         if not self.current_rows:
             return
         cols = sorted(self.current_rows[0].keys())
@@ -229,7 +227,7 @@ class ArrowWriter(object):
         self.current_rows = []
 
     def write(self, example: Dict[str, Any], writer_batch_size: Optional[int] = None):
-        """ Add a given Example to the write-pool which is written to file.
+        """Add a given Example to the write-pool which is written to file.
 
         Args:
             example: the Example to add.
@@ -241,9 +239,11 @@ class ArrowWriter(object):
             self.write_on_file()
 
     def write_batch(
-        self, batch_examples: Dict[str, List[Any]], writer_batch_size: Optional[int] = None,
+        self,
+        batch_examples: Dict[str, List[Any]],
+        writer_batch_size: Optional[int] = None,
     ):
-        """ Write a batch of Example to file.
+        """Write a batch of Example to file.
 
         Args:
             example: the Example to add.
@@ -260,7 +260,7 @@ class ArrowWriter(object):
         self.write_table(pa_table)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
-        """ Write a batch of Example to file.
+        """Write a batch of Example to file.
 
         Args:
             example: the Example to add.

@@ -53,9 +53,9 @@ METRICS_MODULE = "nlp.metrics"
 
 
 def import_main_class(module_path, dataset=True) -> Union[DatasetBuilder, Metric]:
-    """ Import a module at module_path and return its main class:
-        - a DatasetBuilder if dataset is True
-        - a Metric if dataset is False
+    """Import a module at module_path and return its main class:
+    - a DatasetBuilder if dataset is True
+    - a Metric if dataset is False
     """
     importlib.invalidate_caches()
     module = importlib.import_module(module_path)
@@ -113,8 +113,7 @@ def files_to_hash(file_paths: List[str]) -> str:
 
 
 def convert_github_url(url_path: str) -> Tuple[str, str]:
-    """ Convert a link to a file on a github repo in a link to the raw github object.
-    """
+    """Convert a link to a file on a github repo in a link to the raw github object."""
     parsed = urlparse(url_path)
     sub_directory = None
     if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
@@ -259,7 +258,10 @@ def prepare_module(
 
     # Download the dataset infos file if available
     try:
-        local_dataset_infos_path = cached_path(dataset_infos, download_config=download_config,)
+        local_dataset_infos_path = cached_path(
+            dataset_infos,
+            download_config=download_config,
+        )
     except (FileNotFoundError, ConnectionError):
         local_dataset_infos_path = None
 
@@ -286,7 +288,10 @@ def prepare_module(
         else:
             raise ValueError("Wrong import_type")
 
-        local_import_path = cached_path(url_or_filename, download_config=download_config,)
+        local_import_path = cached_path(
+            url_or_filename,
+            download_config=download_config,
+        )
         if sub_directory is not None:
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
@@ -543,7 +548,9 @@ def load_dataset(
 
     # Download and prepare data
     builder_instance.download_and_prepare(
-        download_config=download_config, download_mode=download_mode, ignore_verifications=ignore_verifications,
+        download_config=download_config,
+        download_mode=download_mode,
+        ignore_verifications=ignore_verifications,
     )
 
     # Build dataset for splits
@@ -555,7 +562,9 @@ def load_dataset(
 
 
 def concatenate_datasets(
-    dsets: List["Dataset"], info: Optional[Any] = None, split: Optional[Any] = None,
+    dsets: List["Dataset"],
+    info: Optional[Any] = None,
+    split: Optional[Any] = None,
 ):
     """
     Converts a list of :obj:``nlp.Dataset`` with the same schema into a single :obj:``nlp.Dataset``.

@@ -128,8 +128,7 @@ def cast_to_python_objects(obj: Any) -> Any:
 
 @dataclass
 class Value:
-    """ Encapsulate an Arrow datatype for easy serialization.
-    """
+    """Encapsulate an Arrow datatype for easy serialization."""
 
     dtype: str
     id: Optional[str] = None
@@ -223,7 +222,10 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
         pa.PyExtensionType.__init__(self, self.storage_dtype)
 
     def __reduce__(self):
-        return self.__class__, (self.shape, self.value_type,)
+        return self.__class__, (
+            self.shape,
+            self.value_type,
+        )
 
     def __arrow_ext_class__(self):
         return ArrayExtensionArray
@@ -392,23 +394,23 @@ def pandas_types_mapper(dtype):
 
 @dataclass
 class ClassLabel:
-    """ Handle integer class labels. Here for compatiblity with tfds.
+    """Handle integer class labels. Here for compatiblity with tfds.
 
-        There are 3 ways to define a ClassLabel, which correspond to the 3
-        arguments:
+    There are 3 ways to define a ClassLabel, which correspond to the 3
+    arguments:
 
-         * `num_classes`: create 0 to (num_classes-1) labels
-         * `names`: a list of label strings
-         * `names_file`: a file containing the list of labels.
+     * `num_classes`: create 0 to (num_classes-1) labels
+     * `names`: a list of label strings
+     * `names_file`: a file containing the list of labels.
 
-        Note: On python2, the strings are encoded as utf-8.
+    Note: On python2, the strings are encoded as utf-8.
 
-        Args:
-            num_classes: `int`, number of classes. All labels must be < num_classes.
-            names: `list<str>`, string names for the integer classes. The
-                order in which the names are provided is kept.
-            names_file: `str`, path to a file with names for the integer
-                classes, one per line.
+    Args:
+        num_classes: `int`, number of classes. All labels must be < num_classes.
+        names: `list<str>`, string names for the integer classes. The
+            order in which the names are provided is kept.
+        names_file: `str`, path to a file with names for the integer
+            classes, one per line.
     """
 
     num_classes: int = None
@@ -648,8 +650,8 @@ class TranslationVariableLanguages:
 
 @dataclass
 class Sequence:
-    """ Construct a list of feature from a single type or a dict of types.
-        Mostly here for compatiblity with tfds.
+    """Construct a list of feature from a single type or a dict of types.
+    Mostly here for compatiblity with tfds.
     """
 
     feature: Any
@@ -700,8 +702,8 @@ def get_nested_type(schema: FeatureType) -> pa.DataType:
 
 
 def encode_nested_example(schema, obj):
-    """ Encode a nested example.
-        This is used since some features (in particular ClassLabel) have some logic during encoding.
+    """Encode a nested example.
+    This is used since some features (in particular ClassLabel) have some logic during encoding.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(schema, dict):
@@ -739,8 +741,8 @@ def encode_nested_example(schema, obj):
 
 
 def generate_from_dict(obj: Any):
-    """ Regenerate the nested feature object from a serialized dict.
-        We use the '_type' fields to get the dataclass name to load.
+    """Regenerate the nested feature object from a serialized dict.
+    We use the '_type' fields to get the dataclass name to load.
     """
     # Nested structures: we allow dict, list/tuples, sequences
     if isinstance(obj, list):
