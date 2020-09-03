@@ -293,7 +293,7 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """This function returns the examples in the raw (text) form."""
         for file in filepath:
-            with open(file,  errors='ignore') as f: # only the file reut2-017 has one line non UTF-8 encoded so we can ignore it
+            with open(file, encoding="utf-8",  errors='ignore') as f: # only the file reut2-017 has one line non UTF-8 encoded so we can ignore it
                 line = f.readline()
                 lewis_split = ''
                 cgis_split = ''
