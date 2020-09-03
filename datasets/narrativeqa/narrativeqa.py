@@ -77,7 +77,7 @@ class NarrativeQa(nlp.GeneratorBasedBuilder):
                 gen_kwargs={"repo_dir": dl_dir["repo"], "full_text_dir": dl_dir["full_text"], "split": "train"},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+                name=nlp.Split.TEST,
                 gen_kwargs={"repo_dir": dl_dir["repo"], "full_text_dir": dl_dir["full_text"], "split": "test"},
             )
         ]
