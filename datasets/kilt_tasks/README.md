@@ -13,7 +13,7 @@ kilt_tasks = load_sataset("kilt_tasks")
 
 # Most tasks in KILT already have all required data, but KILT-TriviaQA
 # only provides the question IDs, not the questions themselves.
-# Thankfully, we can get the otiginal TriviaQA data with:
+# Thankfully, we can get the original TriviaQA data with:
 trivia_qa = load_dataset('trivia_qa', 'unfiltered.nocontext')
 
 # The KILT IDs can then be mapped to the TriviaQA questions with:

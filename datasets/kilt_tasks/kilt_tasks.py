@@ -26,9 +26,20 @@ import nlp
 
 _CITATION = """\
 @inproceedings{fb_kilt,
-    author    = {Fabio Petroni and Angela Fan and Sebastian Riedel},
-    title     = {{KILT:} Knowledge Intensive Language Tasks},
-    booktitle = {ArXiv},
+    author    = {Fabio Petroni and
+                 Aleksandra Piktus and
+                 Angela Fan and
+                 Patrick Lewis and
+                 Majid Yazdani and
+                 Nicola De Cao and
+                 James Thorne and
+                 Yacine Jernite and
+                 Vassilis Plachouras and
+                 Tim Rockt\"aschel and
+                 Sebastian Riedel},
+    title     = {{KILT:} a {B}enchmark for {K}nowledge {I}ntensive {L}anguage {T}asks},
+    journal   = {CoRR},
+    archivePrefix = {arXiv},
     year      = {2020},
 """
 
