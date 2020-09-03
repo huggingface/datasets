@@ -150,7 +150,7 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
 
                 assert len(dialog) == len(act) == len(emotion), "Different turns btw dialogue & emotion & action"
 
-                yield f"{split}-i", {
+                yield f"{split}-{i}", {
                     "dialog": dialog,
                     "act": [act_label[x] for x in act],
                     "emotion": [emotion_label[x] for x in emotion],
