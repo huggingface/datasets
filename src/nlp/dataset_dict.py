@@ -1,7 +1,8 @@
 import contextlib
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+import pyarrow as pa
 
 from .arrow_dataset import Dataset
 from .features import Features
@@ -16,6 +17,94 @@ class DatasetDict(dict):
                 raise TypeError(
                     "Values in `DatasetDict` should of type `Dataset` but got type '{}'".format(type(dataset))
                 )
+
+    @property
+    def data(self) -> Dict[str, pa.Table]:
+        """The Apache Arrow tables backing each split."""
+        self._check_values_type()
+        return {k: dataset.data for k, dataset in self.items()}
+
+    @property
+    def cache_files(self) -> Dict[str, Dict]:
+        """The cache files containing the Apache Arrow table backing each split."""
+        self._check_values_type()
+        return {k: dataset.cache_files for k, dataset in self.items()}
+
+    @property
+    def num_columns(self) -> Dict[str, int]:
+        """Number of columns in each split of the dataset."""
+        self._check_values_type()
+        return {k: dataset.num_columns for k, dataset in self.items()}
+
+    @property
+    def num_rows(self) -> Dict[str, int]:
+        """Number of rows in each split of the dataset (same as :func:`nlp.Dataset.__len__`)."""
+        self._check_values_type()
+        return {k: dataset.num_rows for k, dataset in self.items()}
+
+    @property
+    def column_names(self) -> Dict[str, List[str]]:
+        """Names of the columns in each split of the dataset. """
+        self._check_values_type()
+        return {k: dataset.column_names for k, dataset in self.items()}
+
+    @property
+    def shape(self) -> Dict[str, Tuple[int]]:
+        """Shape of each split of the dataset (number of columns, number of rows)."""
+        self._check_values_type()
+        return {k: dataset.shape for k, dataset in self.items()}
+
+    def dictionary_encode_column_(self, column: str):
+        """Dictionary encode a column in each split.
+
+            Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
+            by storing a dictionary of the strings. This only affect the internal storage.
+
+        Args:
+            column (:obj:`str`):
+
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.dictionary_encode_column_(column=column)
+
+    def flatten_(self, max_depth=16):
+        """Flatten the Apache Arrow Table of each split (nested features are flatten).
+        Each column with a struct type is flattened into one column per struct field.
+        Other columns are left unchanged.
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.flatten_(max_depth=max_depth)
+
+    def unique(self, column: str) -> Dict[str, List[Any]]:
+        """Return a list of the unique elements in a column for each split.
+
+        This is implemented in the low-level backend and as such, very fast.
+
+        Args:
+            column (:obj:`str`):
+                column name (list all the column names with :func:`nlp.Dataset.column_names`)
+
+        Returns: Dict[:obj: `str`, :obj:`list`] of unique elements in the given column.
+
+        """
+        self._check_values_type()
+        return {k: dataset.unique(column) for k, dataset in self.items()}
+
+    def cleanup_cache_files(self) -> Dict[str, int]:
+        """Clean up all cache files in the dataset cache directory, excepted the currently used cache file if there is one.
+        Be carefull when running this command that no other process is currently using other cache files.
+
+        Return:
+            Dict with the number of removed files for each split
+        """
+        self._check_values_type()
+        for dataset in self.values():
+            dataset.cleanup_cache_files()
+
+    def __repr__(self):
+        return f"DatasetDict({super().__repr__()})"
 
     def cast_(self, features: Features):
         """
@@ -35,20 +124,22 @@ class DatasetDict(dict):
         for dataset in self.values():
             dataset.cast_(features=features)
 
-    def remove_column_(self, column_name: str):
+    def remove_columns_(self, column_names: Union[str, List[str]]):
         """
-        Remove a column in the dataset and the features associated to the column.
-        The transformation is applied to all the datasets of the dataset dictionary.
+        Remove one or several column(s) from each split in the dataset
+        and the features associated to the column(s).
+
+        The transformation is applied to all the splits of the dataset dictionary.
 
         You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
 
         Args:
-            column_name (:obj:`str`): Name of the column to remove.
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
         """
         self._check_values_type()
         for dataset in self.values():
-            dataset.remove_column_(column_name=column_name)
+            dataset.remove_columns_(column_names=column_names)
 
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
@@ -146,7 +237,6 @@ class DatasetDict(dict):
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
         disable_nullable: bool = False,
-        verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
     ) -> "DatasetDict":
         """Apply a function to all the elements in the table (individually or in batches)
@@ -179,7 +269,6 @@ class DatasetDict(dict):
             features (`Optional[nlp.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
         """
         self._check_values_type()
@@ -200,7 +289,6 @@ class DatasetDict(dict):
                     writer_batch_size=writer_batch_size,
                     features=features,
                     disable_nullable=disable_nullable,
-                    verbose=verbose,
                     fn_kwargs=fn_kwargs,
                 )
                 for k, dataset in self.items()
@@ -218,7 +306,6 @@ class DatasetDict(dict):
         load_from_cache_file: bool = True,
         cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
     ) -> "DatasetDict":
         """Apply a filter function to all the elements in the table in batches
@@ -245,7 +332,6 @@ class DatasetDict(dict):
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
         """
         self._check_values_type()
@@ -263,7 +349,6 @@ class DatasetDict(dict):
                     load_from_cache_file=load_from_cache_file,
                     cache_file_name=cache_file_names[k],
                     writer_batch_size=writer_batch_size,
-                    verbose=verbose,
                     fn_kwargs=fn_kwargs,
                 )
                 for k, dataset in self.items()
@@ -277,9 +362,8 @@ class DatasetDict(dict):
         kind: str = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_names: Optional[Dict[str, str]] = None,
+        indices_cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
     ) -> "DatasetDict":
         """Create a new dataset sorted according to a column.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -297,16 +381,15 @@ class DatasetDict(dict):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
-                results of the computation instead of the automatically generated cache file name.
+            indices_cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
+                indices mapping instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         self._check_values_type()
-        if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+        if indices_cache_file_names is None:
+            indices_cache_file_names = {k: None for k in self}
         return DatasetDict(
             {
                 k: dataset.sort(
@@ -315,9 +398,8 @@ class DatasetDict(dict):
                     kind=kind,
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
-                    cache_file_name=cache_file_names[k],
+                    indices_cache_file_name=indices_cache_file_names[k],
                     writer_batch_size=writer_batch_size,
-                    verbose=verbose,
                 )
                 for k, dataset in self.items()
             }
@@ -329,9 +411,8 @@ class DatasetDict(dict):
         generators: Optional[Dict[str, np.random.Generator]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_names: Optional[Dict[str, str]] = None,
+        indices_cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
     ):
         """Create a new Dataset where the rows are shuffled.
         The transformation is applied to all the datasets of the dataset dictionary.
@@ -350,20 +431,19 @@ class DatasetDict(dict):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_names (`Optional[Dict[str, str]]`, defaults to `None`): Provide the name of a cache file to use to store the
-                results of the computation instead of the automatically generated cache file name.
+            indices_cache_file_names (`Optional[Dict[str, str]]`, default: `None`): Provide the name of a cache file to use to store the
+                indices mappings instead of the automatically generated cache file name.
                 You have to provide one :obj:`cache_file_name` per dataset in the dataset dictionary.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         self._check_values_type()
         if seeds is None:
             seeds = {k: None for k in self}
         if generators is None:
             generators = {k: None for k in self}
-        if cache_file_names is None:
-            cache_file_names = {k: None for k in self}
+        if indices_cache_file_names is None:
+            indices_cache_file_names = {k: None for k in self}
         return DatasetDict(
             {
                 k: dataset.shuffle(
@@ -371,9 +451,8 @@ class DatasetDict(dict):
                     generator=generators[k],
                     keep_in_memory=keep_in_memory,
                     load_from_cache_file=load_from_cache_file,
-                    cache_file_name=cache_file_names[k],
+                    indices_cache_file_name=indices_cache_file_names[k],
                     writer_batch_size=writer_batch_size,
-                    verbose=verbose,
                 )
                 for k, dataset in self.items()
             }

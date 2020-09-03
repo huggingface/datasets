@@ -7,7 +7,6 @@ Copyright by the AllenNLP authors.
 import copy
 import gzip
 import json
-import logging
 import os
 import shutil
 import sys
@@ -27,9 +26,10 @@ from filelock import FileLock
 from tqdm.auto import tqdm
 
 from .. import __version__
+from .logging import INFO, get_logger
 
 
-logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+logger = get_logger(__name__)  # pylint: disable=invalid-name
 
 try:
     USE_TF = os.environ.get("USE_TF", "AUTO").upper()
@@ -63,6 +63,20 @@ except (ImportError, AssertionError):
     _tf_available = False  # pylint: disable=invalid-name
 
 
+try:
+    USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
+    if USE_BEAM in ("1", "ON", "YES", "AUTO"):
+        import apache_beam  # noqa: F401
+
+        _beam_available = True  # pylint: disable=invalid-name
+        logger.info("Apache Beam available.")
+    else:
+        logger.info("Disabling Apache Beam because USE_BEAM is set to False")
+        _beam_available = False
+except ImportError:
+    _beam_available = False  # pylint: disable=invalid-name
+
+
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
 )
@@ -90,6 +104,10 @@ S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/metric"
 
 INCOMPLETE_SUFFIX = ".incomplete"
+
+
+def is_beam_available():
+    return _beam_available
 
 
 @contextmanager
@@ -325,13 +343,14 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
+    not_verbose = bool(logger.getEffectiveLevel() > INFO)
     progress = tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc="Downloading",
-        disable=bool(logger.getEffectiveLevel() == logging.NOTSET),
+        disable=not_verbose,
     )
     for chunk in response.iter_content(chunk_size=1024):
         if chunk:  # filter out keep-alive new chunks

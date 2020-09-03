@@ -17,15 +17,15 @@
 """Download manager interface."""
 
 import enum
-import logging
 import os
 
 from .file_utils import HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
+from .logging import get_logger
 from .py_utils import flatten_nested, map_nested, size_str
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GenerateMode(enum.Enum):

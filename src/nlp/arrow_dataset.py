@@ -17,9 +17,7 @@
 """ Simple Dataset wrapping an Arrow Table."""
 
 import contextlib
-import hashlib
 import json
-import logging
 import os
 import shutil
 import tempfile
@@ -27,27 +25,34 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from functools import partial
 from math import ceil, floor
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from multiprocessing import Pool, RLock
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 from tqdm.auto import tqdm
 
-from nlp.utils.py_utils import dumps
-
+from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter, TypedSequence
-from .features import Features, cast_to_python_objects, pandas_types_mapper
+from .features import Features, Value, cast_to_python_objects, pandas_types_mapper
+from .fingerprint import fingerprint, generate_fingerprint, update_fingerprint
 from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .utils import map_nested
+from .utils.logging import INFO, WARNING, get_logger, get_verbosity, set_verbosity_warning
 
 
 if TYPE_CHECKING:
     from .dataset_dict import DatasetDict
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
+if int(pa.__version__.split(".")[0]) == 0:
+    PYARROW_V0 = True
+else:
+    PYARROW_V0 = False
 
 
 class DatasetInfoMixin(object):
@@ -135,54 +140,120 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         data_files: Optional[List[dict]] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        indices_table: Optional[pa.Table] = None,
+        indices_data_files: Optional[List[dict]] = None,
+        fingerprint: Optional[str] = None,
+        inplace_history: Optional[List[dict]] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
         IndexableMixin.__init__(self)
         self._data: pa.Table = arrow_table
+        self._indices: Optional[pa.Table] = indices_table
         self._data_files: List[dict] = data_files if data_files is not None else []
+        self._indices_data_files: List[dict] = indices_data_files if indices_data_files is not None else []
+        self._inplace_history: List[dict] = (
+            inplace_history
+            if inplace_history is not None
+            else [{"transforms": []} for _ in range(len(self._data_files))]
+        )
         self._format_type: Optional[str] = None
         self._format_kwargs: dict = {}
         self._format_columns: Optional[list] = None
         self._output_all_columns: bool = False
+        self._fingerprint: str = fingerprint
+
+        # Read metadata
+
+        if self._data.schema.metadata is not None and "huggingface".encode("utf-8") in self._data.schema.metadata:
+            metadata = json.loads(self._data.schema.metadata["huggingface".encode("utf-8")].decode())
+            if "info" in metadata and self.info.features is None:  # try to load features from the arrow file metadata
+                self._info.features = DatasetInfo.from_dict(metadata["info"]).features
+            if (
+                "fingerprint" in metadata and self._fingerprint is None
+            ):  # try to load fingerprint from the arrow file metadata
+                self._fingerprint = metadata["fingerprint"]
+
+        # Infer features if None
+
         inferred_features = Features.from_arrow_schema(arrow_table.schema)
-        if self.info.features is None:  # try to load features from the arrow file metadata
-            if self._data.schema.metadata is not None and "huggingface".encode("utf-8") in self._data.schema.metadata:
-                self.info.features = DatasetInfo.from_dict(
-                    json.loads(self._data.schema.metadata["huggingface".encode("utf-8")].decode())
-                ).features
-        if self.info.features is not None:  # make sure features in self.info match the data
-            if self.info.features.type != inferred_features.type:
-                raise ValueError(
-                    "External features info don't match the dataset:\nGot\n{}\nwith type\n{}\n\nbut expected something like\n{}\nwith type\n{}".format(
-                        self.info.features, self.info.features.type, inferred_features, inferred_features.type
-                    )
-                )
-            else:
-                pass  # keep the original features
-        else:
+        if self.info.features is None:
             self.info.features = inferred_features
+
+        # Infer fingerprint if None
+
+        if self._fingerprint is None:
+            self._fingerprint = generate_fingerprint(self)
+
+        # Sanity checks
+
         assert self.features is not None, "Features can't be None in a Dataset object"
+        assert self._fingerprint is not None, "Fingerprint can't be None in a Dataset object"
+        if self.info.features.type != inferred_features.type:
+            raise ValueError(
+                "External features info don't match the dataset:\nGot\n{}\nwith type\n{}\n\nbut expected something like\n{}\nwith type\n{}".format(
+                    self.info.features, self.info.features.type, inferred_features, inferred_features.type
+                )
+            )
+
+        if self._indices is not None:
+            assert pa.types.is_unsigned_integer(
+                self._indices.column(0)[0].type
+            ), f"indices must be an Arrow table of unsigned integers, current type is {self._indices.column(0)[0].type}"
 
     @classmethod
     def from_file(
-        cls, filename: str, info: Optional[DatasetInfo] = None, split: Optional[NamedSplit] = None
+        cls,
+        filename: str,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+        indices_filename: Optional[str] = None,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow table at filename """
         mmap = pa.memory_map(filename)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
-        return cls(arrow_table=pa_table, data_files=[{"filename": filename}], info=info, split=split)
+        data_files = [{"filename": filename}]
+
+        if indices_filename is not None:
+            indices_mmap = pa.memory_map(indices_filename)
+            indices_f = pa.ipc.open_stream(indices_mmap)
+            indices_pa_table = indices_f.read_all()
+            indices_data_files = [{"filename": indices_filename}]
+        else:
+            indices_pa_table = None
+            indices_data_files = None
+
+        return cls(
+            arrow_table=pa_table,
+            data_files=data_files,
+            info=info,
+            split=split,
+            indices_table=indices_pa_table,
+            indices_data_files=indices_data_files,
+        )
 
     @classmethod
     def from_buffer(
-        cls, buffer: pa.Buffer, info: Optional[DatasetInfo] = None, split: Optional[NamedSplit] = None
+        cls,
+        buffer: pa.Buffer,
+        info: Optional[DatasetInfo] = None,
+        split: Optional[NamedSplit] = None,
+        indices_buffer: Optional[pa.Buffer] = None,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow buffer """
         mmap = pa.BufferReader(buffer)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
-        return cls(pa_table, info=info, split=split)
+
+        if indices_buffer is not None:
+            indices_mmap = pa.BufferReader(indices_buffer)
+            indices_f = pa.ipc.open_stream(indices_mmap)
+            indices_pa_table = indices_f.read_all()
+        else:
+            indices_pa_table = None
+
+        return cls(pa_table, info=info, split=split, indices_table=indices_pa_table)
 
     @classmethod
     def from_pandas(
@@ -264,6 +335,37 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
+    def __getstate__(self):
+        state = dict(self.__dict__)
+        if self._data_files:
+            state["_data"] = None
+        if self._indices_data_files:
+            state["_indices"] = None
+        return state
+
+    def __setstate__(self, state):
+        assert (
+            state.get("_data") is not None or state.get("_data_files") is not None
+        ), "tried to unpickle a dataset without arrow_table or data_files"
+        self.__dict__ = state
+        reader = ArrowReader("", self.info)
+        if self._data is None and self._data_files:
+            tables = []
+            for data_file, inplace_hist_per_file in zip(self._data_files, self._inplace_history):
+                # Replay in-place history of transforms (cast_, rename_column_, etc.)
+                pa_table = reader._read_files([data_file])
+                sub_dataset = Dataset(pa_table, fingerprint="")
+                for inplace_transform_name, args, kwargs in inplace_hist_per_file["transforms"]:
+                    getattr(sub_dataset, inplace_transform_name)(*args, **kwargs)
+                tables.append(sub_dataset._data)
+            tables = [t for t in tables if len(t) > 0]
+            # fix all-empty tables
+            tables = tables or [pa.Table.from_batches([], schema=pa.schema(self.info.features.type))]
+            self._data = pa.concat_tables(tables)
+        reader = ArrowReader("", DatasetInfo(features=Features({"indices": Value("int64")})))
+        if self._indices is None and self._indices_data_files:
+            self._indices = reader._read_files(self._indices_data_files)
+
     @property
     def data(self) -> pa.Table:
         """The Apache Arrow table backing the dataset."""
@@ -275,20 +377,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self._data_files
 
     @property
-    def columns(self):
-        """The Arrow columns of the Apache Arrow table backing the dataset.
-        You probably don't need to access directly these and can rather use
-        :func:`nlp.Dataset.column_names` or :func:`nlp.Dataset.__getitem__`
-        to access them as python or numpy objects.
-        """
-        return self._data.columns
-
-    @property
-    def nbytes(self) -> int:
-        """Number of columns in the dataset."""
-        return self._data.nbytes
-
-    @property
     def num_columns(self) -> int:
         """Number of columns in the dataset."""
         return self._data.num_columns
@@ -296,6 +384,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     @property
     def num_rows(self) -> int:
         """Number of rows in the dataset (same as :func:`nlp.Dataset.__len__`)."""
+        if self._indices is not None:
+            return self._indices.num_rows
         return self._data.num_rows
 
     @property
@@ -304,28 +394,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self._data.column_names
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int]:
         """Shape of the dataset (number of columns, number of rows)."""
+        if self._indices is not None:
+            return tuple(self._indices.num_rows, self._data.num_columns)
         return self._data.shape
 
-    def drop(self, columns: Union[str, List[str]]):
-        """Drop one or more columns.
-
-        Args:
-            columns (:obj:`str` or :obj:`List[str]`):
-                Column or list of columns to remove from the dataset.
-        """
-        if isinstance(columns, str):
-            columns = [columns]
-        if any(col not in self._data.column_names for col in columns):
-            raise ValueError(
-                "Columns {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
-                )
-            )
-        self._data = self._data.drop(columns)
-
-    def unique(self, column: str) -> List:
+    def unique(self, column: str) -> List[Any]:
         """Return a list of the unique elements in a column.
 
         This is implemented in the low-level backend and as such, very fast.
@@ -339,10 +414,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if column not in self._data.column_names:
             raise ValueError(f"Column ({column}) not in table columns ({self._data.column_names}).")
+
+        if self._indices is not None and self._indices.num_rows != self._data.num_rows:
+            raise ValueError(
+                f"This dataset is a shallow copy using an indices mapping of another Datset {self._data.num_rows}."
+                f"The `Dataset.unique()` method is currently not handled on shallow copy. Please use `Dataset.flatten_indices()` "
+                f"to create a deep copy of the dataset and be able to use `Dataset.unique()`."
+            )
+
         return self._data.column(column).unique().to_pylist()
 
-    def dictionary_encode_column(self, column: str):
+    @fingerprint(inplace=True)
+    def dictionary_encode_column_(self, column: str):
         """Dictionary encode a column.
+
             Dictionary encode can reduce the size of a column with many repetitions (e.g. string labels columns)
             by storing a dictionary of the strings. This only affect the internal storage.
 
@@ -360,7 +445,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self._data = self._data.cast(casted_schema)
         self.info.features = Features.from_arrow_schema(self._data.schema)
 
-    def flatten(self, max_depth=16):
+    @fingerprint(inplace=True)
+    def flatten_(self, max_depth=16):
         """Flatten the Table.
         Each column with a struct type is flattened into one column per struct field.
         Other columns are left unchanged.
@@ -376,6 +462,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             "Flattened dataset from depth {} to depth {}.".format(depth, 1 if depth + 1 < max_depth else "unknown")
         )
 
+    @fingerprint(inplace=True)
     def cast_(self, features: Features):
         """
         Cast the dataset to a new set of features.
@@ -399,28 +486,34 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         schema = pa.schema(features.type)
         self._data = self._data.cast(schema)
 
-    def remove_column_(self, column_name: str):
+    @fingerprint(inplace=True)
+    def remove_columns_(self, column_names: Union[str, List[str]]):
         """
-        Remove a column in the dataset and the features associated to the column.
+        Remove one or several column(s) in the dataset and
+        the features associated to them.
 
         You can also remove a column using :func:`Dataset.map` with `remove_columns` but the present method
         is in-place (doesn't copy the data to a new dataset) and is thus faster.
 
         Args:
-            column_name (:obj:`str`): Name of the column to remove.
+            column_names (:obj:`Union[str, List[str]]`): Name of the column(s) to remove.
         """
-        if column_name not in self._data.column_names:
-            raise ValueError(
-                f"Column name {column_name} not in the dataset. "
-                f"Current columns in the dataset: {self._data.column_names}"
-            )
+        if isinstance(column_names, str):
+            column_names = [column_names]
 
-        column_index = (self._data.column_names).index(column_name)
+        for column_name in column_names:
+            if column_name not in self._data.column_names:
+                raise ValueError(
+                    f"Column name {column_name} not in the dataset. "
+                    f"Current columns in the dataset: {self._data.column_names}"
+                )
 
-        del self._info.features[column_name]
+        for column_name in column_names:
+            del self._info.features[column_name]
 
-        self._data = self._data.remove_column(column_index)
+        self._data = self._data.drop(column_names)
 
+    @fingerprint(inplace=True)
     def rename_column_(self, original_column_name: str, new_column_name: str):
         """
         Rename a column in the dataset and move the features associated to the original column under the new column name.
@@ -435,7 +528,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if original_column_name not in self._data.column_names:
             raise ValueError(
-                f"Orignal column name {original_column_name} not in the dataset. "
+                f"Original column name {original_column_name} not in the dataset. "
+                f"Current columns in the dataset: {self._data.column_names}"
+            )
+        if new_column_name in self._data.column_names:
+            raise ValueError(
+                f"New column name {original_column_name} already in the dataset. "
+                f"Please choose a column name which is not already in the dataset. "
                 f"Current columns in the dataset: {self._data.column_names}"
             )
         if not new_column_name:
@@ -450,7 +549,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     def __len__(self):
         """ Number of rows in the dataset """
-        return self._data.num_rows
+        return self.num_rows
 
     def __iter__(self):
         """Iterate through the examples.
@@ -461,7 +560,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         format_kwargs = self._format_kwargs
         format_columns = self._format_columns
         output_all_columns = self._output_all_columns
-        for index in range(self._data.num_rows):
+        for index in range(self.num_rows):
             yield self._getitem(
                 index,
                 format_type=format_type,
@@ -510,6 +609,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         finally:
             self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
 
+    @fingerprint(inplace=True)
     def set_format(
         self,
         type: Optional[str] = None,
@@ -655,6 +755,37 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
     def _nest(py_dict):
         return dict((key, [elem]) for key, elem in py_dict.items())
 
+    def _map_indices(self, indices: Union[int, slice, pa.Array, Iterable]):
+        if self._indices is None:
+            return indices
+
+        if isinstance(indices, int):
+            return self._indices.column(0)[indices].as_py()
+
+        slice_indices = None
+        array_indices = None
+        if isinstance(indices, slice):
+            slice_indices = indices.indices(self.num_rows)
+            # Check if the slice is a contiguous slice - else build an indices array
+            if slice_indices[2] != 1 or slice_indices[1] < slice_indices[0]:
+                array_indices = pa.array(list(range(*slice_indices)), type=pa.uint64())
+        elif isinstance(indices, pa.Array):
+            array_indices = indices
+        elif isinstance(indices, Iterable):
+            array_indices = pa.array([int(i) for i in indices], type=pa.uint64())
+
+        # We can do a slice
+        if array_indices is None:
+            return self._indices.column(0).slice(slice_indices[0], slice_indices[1] - slice_indices[0])
+
+        # We cannot do a slice, we need to do a take or some concatenation on pyarrow < 1.0.0
+        if PYARROW_V0:  # pre-1.0.0 backward compatibility
+            data_array = pa.concat_tables(self._indices.slice(i.as_py(), 1) for i in array_indices).column(0)
+        else:
+            data_array = self._indices.column(0).take(array_indices)
+
+        return data_array
+
     def _getitem(
         self,
         key: Union[int, slice, str],
@@ -672,9 +803,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # call `list()` on every object in sequences of sequences of objects for example
         if isinstance(key, int):
             if key < 0:
-                key = self._data.num_rows + key
-            if key >= self._data.num_rows:
-                raise IndexError(f"Index ({key}) outside of table length ({self._data.num_rows}).")
+                key = self.num_rows + key
+            if key >= self.num_rows or key < 0:
+                raise IndexError(f"Index ({key}) outside of table length ({self.num_rows}).")
+
+            # Check if we need to convert indices
+            key = self._map_indices(key)
+
             if format_type is not None:
                 if format_type == "pandas":
                     outputs = self._data.slice(key, 1).to_pandas(types_mapper=pandas_types_mapper)
@@ -684,35 +819,62 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     )
             else:
                 outputs = self._unnest(self._data.slice(key, 1).to_pydict())
+
         elif isinstance(key, slice):
-            key_indices = key.indices(self._data.num_rows)
+            indices_array = None
+            key_indices = key.indices(self.num_rows)
+
+            # Check if the slice is a contiguous slice - else build an indices array
             if key_indices[2] != 1 or key_indices[1] < key_indices[0]:
-                raise ValueError("Slicing can only take contiguous and ordered slices.")
-            if format_type is not None:
-                if format_type == "pandas":
-                    outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pandas(
-                        types_mapper=pandas_types_mapper
+                indices_array = pa.array(list(range(*key)), type=pa.uint64())
+
+            # Check if we need to convert indices
+            if self._indices is not None:
+                indices_array = self._map_indices(indices_array if indices_array else key)
+                # TODO: here we could add a check that the resulting indices are a contiguous slice
+                # to avoid using 'take' instead of 'slice'
+
+            # Get the subset of the table
+            if indices_array is not None:
+                if PYARROW_V0:
+                    data_subset = pa.concat_tables(
+                        self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
                     )
                 else:
-                    outputs = (
-                        self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
-                        .to_pandas(types_mapper=pandas_types_mapper)
-                        .to_dict("list")
-                    )
+                    data_subset = self._data.take(indices_array)
             else:
-                outputs = self._data.slice(key_indices[0], key_indices[1] - key_indices[0]).to_pydict()
+                data_subset = self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
+
+            # Convert to the format
+            if format_type is not None:
+                if format_type == "pandas":
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper)
+                else:
+                    outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper).to_dict("list")
+            else:
+                outputs = data_subset.to_pydict()
+
         elif isinstance(key, str):
             if key not in self._data.column_names:
                 raise ValueError(f"Column ({key}) not in table columns ({self._data.column_names}).")
+
+            # Check if we need to convert indices
+            if self._indices is not None:
+                indices_array = self._indices.column(0)
+                if PYARROW_V0:
+                    data_array = pa.concat_tables(self._data.slice(i.as_py(), 1) for i in indices_array).column(key)
+                else:
+                    data_array = self._data.column(key).take(indices_array)
+            else:
+                data_array = self._data.column(key)
+
             if format_type is not None:
                 # We should use
                 # outputs = self._data[key].to_pandas(types_mapper=pandas_types_mapper)
                 # but there is a bug in pyarrow that makes ignores the types_mapper in that case
                 # see https://issues.apache.org/jira/browse/ARROW-9664
                 # We build a table with one column and call to_pandas on it instead
-                one_column_table = pa.Table.from_arrays(
-                    [self._data[key]], schema=pa.schema([self._data.schema.field(key)])
-                )
+                one_column_table = pa.Table.from_arrays([data_array], schema=pa.schema([self._data.schema.field(key)]))
                 if format_columns is None or key in format_columns:
                     if format_type == "pandas":
                         outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key]
@@ -721,7 +883,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 else:
                     outputs = one_column_table.to_pandas(types_mapper=pandas_types_mapper)[key].to_list()
             else:
-                outputs = self._data[key].to_pylist()
+                outputs = data_array.to_pylist()
+
         elif isinstance(key, Iterable):
             if len(key) > 0 and isinstance(key[0], (bool, np.bool_)):
                 if len(key) != self.__len__():
@@ -731,7 +894,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 indices = [i for i, val in enumerate(key) if val]
             else:
                 indices = key
-            data_subset = pa.concat_tables(self._data.slice(int(i), 1) for i in indices)
+
+            indices_array = pa.array([int(i) for i in indices], type=pa.uint64())
+
+            # Check if we need to convert indices
+            indices_array = self._map_indices(indices_array)
+
+            # TODO: here we could add a check that the resulting indices are a contiguous slice
+            # to avoid using 'take' instead of 'slice'
+
+            if PYARROW_V0:
+                data_subset = pa.concat_tables(
+                    self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
+                )
+            else:
+                data_subset = self._data.take(indices_array)
+
             if format_type is not None:
                 if format_type == "pandas":
                     outputs = data_subset.to_pandas(types_mapper=pandas_types_mapper)
@@ -774,16 +952,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         if not self._data_files or "filename" not in self._data_files[0]:
             return None
-        current_cache_file = os.path.abspath(self._data_files[0]["filename"])
-        cache_directory = os.path.dirname(current_cache_file)
+        current_cache_files = [os.path.abspath(cache_file["filename"]) for cache_file in self._data_files]
+        cache_directory = os.path.dirname(current_cache_files[0])
         logger.info(f"Listing files in {cache_directory}")
         files: List[str] = os.listdir(cache_directory)
         files_to_remove = []
         for f_name in files:
             full_name = os.path.abspath(os.path.join(cache_directory, f_name))
             if f_name.startswith("cache-") and f_name.endswith(".arrow"):
-                if full_name == current_cache_file:
-                    logger.info(f"Keeping current cache file at {full_name}")
+                if full_name in current_cache_files:
+                    logger.info(f"Keeping currently used cache file at {full_name}")
                     continue
                 files_to_remove.append(full_name)
         for file_path in files_to_remove:
@@ -791,30 +969,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             os.remove(file_path)
         return len(files_to_remove)
 
-    def _get_cache_file_path(self, function, cache_kwargs):
-        """ Find a unique name from the filenames, kwargs and the function """
-        if not self._data_files or "filename" not in self._data_files[0]:
-            return None
-        previous_files_string = "-".join(
-            "-".join(str(k) + "-" + str(v) for k, v in f.items()) for f in self._data_files
-        )
-        cache_kwargs_string = "-".join(str(k) + "-" + str(v) for k, v in cache_kwargs.items())
-        function_bytes = dumps(function)
-        output_hash = hashlib.md5(
-            previous_files_string.encode("utf-8") + cache_kwargs_string.encode("utf-8") + function_bytes
-        ).hexdigest()
-        cache_file_name = "cache-" + output_hash + ".arrow"
+    def _get_cache_file_path(self, fingerprint):
+        cache_file_name = "cache-" + fingerprint + ".arrow"
         cache_directory = os.path.dirname(self._data_files[0]["filename"])
         cache_file_path = os.path.join(cache_directory, cache_file_name)
         return cache_file_path
 
     def map(
         self,
-        function,
+        function: Optional[Callable] = None,
         with_indices: bool = False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batched: bool = False,
         batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
         remove_columns: Optional[List[str]] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
@@ -822,8 +990,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         writer_batch_size: Optional[int] = 1000,
         features: Optional[Features] = None,
         disable_nullable: bool = False,
-        verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
+        suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does updated examples).
@@ -834,12 +1004,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 - `function(example: Union[Dict, Any], indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
                 - `function(batch: Union[Dict[List], List[Any]]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
                 - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
+                If no function is provided, default to identity function: lambda x: x
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
             batched (`bool`, defaults to `False`): Provide batch of examples to `function`
             batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
                 `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
+            drop_last_batch (`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
+                dropped instead of being processed by the function.
             remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
                 Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
                 columns with names in `remove_columns`, these columns will be kept.
@@ -853,8 +1026,132 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             features (`Optional[nlp.Features]`, defaults to `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
+            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing.
+            suffix_template (`str`, defaults to "_{rank:05d}_of_{num_proc:05d}"): If cache_file_name is specified, then this suffix
+                will be added at the end of the base name of each. For example, if cache_file_name is "processed.arrow", then for
+                rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
+            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+        """
+        assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
+        if num_proc is None or num_proc == 1:
+            return self._map_single(
+                function=function,
+                with_indices=with_indices,
+                input_columns=input_columns,
+                batched=batched,
+                batch_size=batch_size,
+                drop_last_batch=drop_last_batch,
+                remove_columns=remove_columns,
+                keep_in_memory=keep_in_memory,
+                load_from_cache_file=load_from_cache_file,
+                cache_file_name=cache_file_name,
+                writer_batch_size=writer_batch_size,
+                features=features,
+                disable_nullable=disable_nullable,
+                fn_kwargs=fn_kwargs,
+                new_fingerprint=new_fingerprint,
+            )
+        else:
+
+            def format_cache_file_name(cache_file_name, rank):
+                sep = cache_file_name.rindex(".")
+                base_name, extension = cache_file_name[:sep], cache_file_name[sep:]
+                cache_file_name = base_name + suffix_template.format(rank=rank, num_proc=num_proc) + extension
+                logger.info("Process #{} will write at {}".format(rank, cache_file_name))
+                return cache_file_name
+
+            with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+                kwds_per_shard = [
+                    dict(
+                        self=self.shard(
+                            num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory
+                        ),
+                        function=function,
+                        with_indices=with_indices,
+                        input_columns=input_columns,
+                        batched=batched,
+                        batch_size=batch_size,
+                        drop_last_batch=drop_last_batch,
+                        remove_columns=remove_columns,
+                        keep_in_memory=keep_in_memory,
+                        load_from_cache_file=load_from_cache_file,
+                        cache_file_name=format_cache_file_name(cache_file_name, rank)
+                        if cache_file_name is not None
+                        else None,
+                        writer_batch_size=writer_batch_size,
+                        features=features.copy() if features is not None else None,
+                        disable_nullable=disable_nullable,
+                        fn_kwargs=fn_kwargs,
+                        rank=rank,
+                    )
+                    for rank in range(num_proc)
+                ]
+                logger.info("Spawning {} processes".format(num_proc))
+                results = [pool.apply_async(self.__class__._map_single, kwds=kwds) for kwds in kwds_per_shard]
+                transformed_shards = [r.get() for r in results]
+                logger.info("Concatenating {} shards from multiprocessing".format(num_proc))
+                result = concatenate_datasets(transformed_shards)
+                if new_fingerprint is not None:
+                    result._fingerprint = new_fingerprint
+                return result
+
+    @fingerprint(inplace=False)
+    def _map_single(
+        self,
+        function: Optional[Callable] = None,
+        with_indices: bool = False,
+        input_columns: Optional[Union[str, List[str]]] = None,
+        batched: bool = False,
+        batch_size: Optional[int] = 1000,
+        drop_last_batch: bool = False,
+        remove_columns: Optional[List[str]] = None,
+        keep_in_memory: bool = False,
+        load_from_cache_file: bool = True,
+        cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+        features: Optional[Features] = None,
+        disable_nullable: bool = False,
+        fn_kwargs: Optional[dict] = None,
+        new_fingerprint: Optional[str] = None,
+        rank: Optional[int] = None,
+    ) -> "Dataset":
+        """Apply a function to all the elements in the table (individually or in batches)
+        and update the table (if function does updated examples).
+
+        Args:
+            function (`callable`): with one of the following signature:
+                - `function(example: Union[Dict, Any]) -> Union[Dict, Any]` if `batched=False` and `with_indices=False`
+                - `function(example: Union[Dict, Any], indices: int) -> Union[Dict, Any]` if `batched=False` and `with_indices=True`
+                - `function(batch: Union[Dict[List], List[Any]]) -> Union[Dict, Any]` if `batched=True` and `with_indices=False`
+                - `function(batch: Union[Dict[List], List[Any]], indices: List[int]) -> Union[Dict, Any]` if `batched=True` and `with_indices=True`
+                If no function is provided, default to identity function: lambda x: x
+            with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
+            input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
+                positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
+            batched (`bool`, defaults to `False`): Provide batch of examples to `function`
+            batch_size (`Optional[int]`, defaults to `1000`): Number of examples per batch provided to `function` if `batched=True`
+                `batch_size <= 0` or `batch_size == None`: Provide the full dataset as a single batch to `function`
+            drop_last_batch (`bool`, default: `False`): Whether a last batch smaller than the batch_size should be
+                dropped instead of being processed by the function.
+            remove_columns (`Optional[List[str]]`, defaults to `None`): Remove a selection of columns while doing the mapping.
+                Columns will be removed before updating the examples with the output of `function`, i.e. if `function` is adding
+                columns with names in `remove_columns`, these columns will be kept.
+            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+                can be identified, use it instead of recomputing.
+            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+                results of the computation instead of the automatically generated cache file name.
+            writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
+                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+            features (`Optional[nlp.Features]`, defaults to `None`): Use a specific Features to store the cache file
+                instead of the automatically generated one.
+            disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
+            fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
+            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         assert (
             not keep_in_memory or cache_file_name is None
@@ -862,6 +1159,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
+
+        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+
+        # Reduce logging to keep things readable in multiprocessing with tqdm
+        if rank is not None and get_verbosity() < WARNING:
+            set_verbosity_warning()
+        # Print at least one thing to fix tqdm in notebooks in multiprocessing
+        # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
+        if rank is not None and "notebook" in tqdm.__name__:
+            print(" ", end="", flush=True)
+
+        if function is None:
+            function = lambda x: x  # noqa: E731
 
         # Select the columns (arrow columns) to process
         if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
@@ -889,7 +1199,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # If we do batch computation but no batch sze is provided, default to the full dataset
         if batched and (batch_size is None or batch_size <= 0):
-            batch_size = self._data.num_rows
+            batch_size = self.num_rows
 
         # Check if the function returns updated examples
         def does_function_return_dict(inputs, indices):
@@ -956,27 +1266,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             return inputs
 
         # Check if we've already cached this computation (indexed by a hash)
-        if self._data_files and update_data:
+        if update_data and self._data_files:
             if cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
-                cache_kwargs = {
-                    "with_indices": with_indices,
-                    "batched": batched,
-                    "batch_size": batch_size,
-                    "remove_columns": remove_columns,
-                    "keep_in_memory": keep_in_memory,
-                    "load_from_cache_file": load_from_cache_file,
-                    "cache_file_name": cache_file_name,
-                    "writer_batch_size": writer_batch_size,
-                    "features": features,
-                    "disable_nullable": disable_nullable,
-                    "input_columns": input_columns,
-                    "fn_kwargs": fn_kwargs,
-                }
-                cache_file_name = self._get_cache_file_path(function, cache_kwargs)
+                cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(cache_file_name) and load_from_cache_file:
-                if verbose:
-                    logger.info("Loading cached processed dataset at %s", cache_file_name)
+                logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
                 return Dataset.from_file(cache_file_name, info=info, split=self.split)
@@ -996,33 +1291,38 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     stream=buf_writer,
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
+                    fingerprint=new_fingerprint,
                 )
             else:
                 buf_writer = None
-                if verbose:
-                    logger.info("Caching processed dataset at %s", cache_file_name)
+                logger.info("Caching processed dataset at %s", cache_file_name)
                 tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
                 writer = ArrowWriter(
                     features=features,
                     path=tmp_file.name,
                     writer_batch_size=writer_batch_size,
                     update_features=update_features,
+                    fingerprint=new_fingerprint,
                 )
 
         try:
             # Loop over single examples or batches and write to buffer/file if examples are to be updated
+            pbar_iterable = self if not batched else range(0, len(self), batch_size)
+            pbar_unit = "ex" if not batched else "ba"
+            pbar_desc = "#" + str(rank) if rank is not None else None
+            pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
             if not batched:
-                for i, example in enumerate(tqdm(self, disable=not verbose)):
+                for i, example in enumerate(pbar):
                     example = apply_function_on_filtered_inputs(example, i)
                     if update_data:
                         example = cast_to_python_objects(example)
                         writer.write(example)
             else:
-                for i in tqdm(range(0, len(self), batch_size), disable=not verbose):
+                for i in pbar:
+                    if drop_last_batch and i + batch_size > self.num_rows:
+                        continue
                     batch = self[i : i + batch_size]
-                    indices = list(
-                        range(*(slice(i, i + batch_size).indices(self._data.num_rows)))
-                    )  # Something simpler?
+                    indices = list(range(*(slice(i, i + batch_size).indices(self.num_rows))))  # Something simpler?
                     try:
                         batch = apply_function_on_filtered_inputs(
                             batch, indices, check_same_num_examples=len(self.list_indexes()) > 0
@@ -1056,9 +1356,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             return self
 
+    @fingerprint(inplace=False)
     def filter(
         self,
-        function,
+        function: Optional[Callable] = None,
         with_indices=False,
         input_columns: Optional[Union[str, List[str]]] = None,
         batch_size: Optional[int] = 1000,
@@ -1067,8 +1368,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
         fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
+        suffix_template: str = "_{rank:05d}_of_{num_proc:05d}",
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
@@ -1077,6 +1380,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             function (`callable`): with one of the following signature:
                 - `function(example: Union[Dict, Any]) -> bool` if `with_indices=False`
                 - `function(example: Union[Dict, Any], indices: int) -> bool` if `with_indices=True`
+                If no function is provided, default to an always True function: lambda x: True
             with_indices (`bool`, defaults to `False`): Provide example indices to `function`. Note that in this case the signature of `function` should be `def function(example, idx): ...`.
             input_columns (`Optional[Union[str, List[str]]]`, defaults to `None`): The columns to be passed into `function` as
                 positional arguments. If `None`, a dict mapping to all formatted columns is passed as one argument.
@@ -1092,13 +1396,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
+            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing.
+            suffix_template (`str`, defaults to "_{rank:05d}_of_{num_proc:05d}"): If cache_file_name is specified, then this suffix
+                will be added at the end of the base name of each. For example, if cache_file_name is "processed.arrow", then for
+                rank=1 and num_proc=4, the resulting file would be "processed_00001_of_00004.arrow" for the default suffix.
+            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.filter` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it.`"
             )
+
+        if function is None:
+            function = lambda x: True  # noqa: E731
 
         if isinstance(input_columns, str):
             input_columns = [input_columns]
@@ -1116,41 +1429,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fn_kwargs = dict()
         fn_kwargs["input_columns"] = input_columns
 
-        # transforme the filter function into the map function
-        def map_function(batch, *args, **fn_kwargs):
-            result = defaultdict(list)
-            num_examples = len(batch[next(iter(batch.keys()))])
-            input_columns = fn_kwargs.pop("input_columns", None)
-
-            # create single examples
-            for i in range(num_examples):
-                example = map_nested(lambda x: x[i], batch, dict_only=True)
-                fn_args = [example] if input_columns is None else [example[col] for col in input_columns]
-
-                # check if example should be filtered or not
-                if with_indices:
-                    keep_example = function(*fn_args, args[0][i], **fn_kwargs)
-                else:
-                    keep_example = function(*fn_args, **fn_kwargs)
-
-                assert isinstance(
-                    keep_example, bool
-                ), f"The filter function returns a variable of type {type(keep_example)}, but should return a variable of type `bool`."
-                # if example shall be kept add to result
-                if keep_example:
-                    for key in batch.keys():
-                        result[key].append(example[key])
-
-            # if no example shall be kept, init with empty list
-            if bool(result) is False:
-                for key in batch.keys():
-                    result[key] = []
-
-            return result
-
         # return map function
         return self.map(
-            map_function,
+            partial(map_function, function=function, with_indices=with_indices),
             batched=True,
             with_indices=with_indices,
             features=self.features,
@@ -1160,85 +1441,142 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             load_from_cache_file=load_from_cache_file,
             cache_file_name=cache_file_name,
             writer_batch_size=writer_batch_size,
-            verbose=verbose,
             fn_kwargs=fn_kwargs,
+            num_proc=num_proc,
+            suffix_template=suffix_template,
+            new_fingerprint=new_fingerprint,
         )
 
-    def select(
+    @fingerprint(inplace=False)
+    def flatten_indices(
         self,
-        indices: Union[List[int], np.ndarray],
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
         cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        reader_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
-    ):
-        """Create a new dataset with rows selected following the list/array of indices.
+        features: Optional[Features] = None,
+        disable_nullable: bool = True,
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
+        """Create and cache a new Dataset by flattening the indices mapping.
 
         Args:
-            indices (`Union[List[int], np.ndarray]`): List or 1D-NumPy array of integer indices for indexing.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
-                can be identified, use it instead of recomputing.
+            keep_in_memory (`bool`, default: `False`): Keep the dataset in memory instead of writing it to a cache file.
             cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            reader_batch_size (`int`, defaults to `1000`): Number of rows per __getitem__ operation when reading from disk.
-                Higher values may make reading faster but will also consume more temporary memory and make the progress bar less responsive.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                instead of the automatically generated one.
+            disable_nullable (`bool`, default: `True`): Allow null values in the table.
+            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+        """
+
+        return self.map(
+            keep_in_memory=keep_in_memory,
+            cache_file_name=cache_file_name,
+            writer_batch_size=writer_batch_size,
+            features=features,
+            disable_nullable=disable_nullable,
+            new_fingerprint=new_fingerprint,
+        )
+
+    def _new_dataset_with_indices(
+        self,
+        indices_cache_file_name: Optional[str] = None,
+        indices_buffer: Optional[pa.Buffer] = None,
+        fingerprint: Optional[str] = None,
+    ) -> "Dataset":
+        """ Return a new Dataset obtained by adding indices (provided in indices_cache_file_name or in a buffer) to the current Dataset. """
+
+        assert (
+            indices_cache_file_name is not None or indices_buffer is not None
+        ), "At least one of indices_cache_file_name or indices_buffer must be provided."
+
+        assert fingerprint is not None, "please specify a fingerprint for the dataset with indices"
+        data_files = self._data_files
+        if indices_cache_file_name is not None:
+            indices_mmap = pa.memory_map(indices_cache_file_name)
+            if data_files is None:
+                data_files = []
+            indices_data_files = [{"filename": indices_cache_file_name}]
+        else:
+            indices_mmap = pa.BufferReader(indices_buffer)
+            indices_data_files = None
+        indices_f = pa.ipc.open_stream(indices_mmap)
+        indices_pa_table = indices_f.read_all()
+
+        # Return new Dataset object
+        return Dataset(
+            self._data,
+            data_files=data_files,
+            info=self.info,
+            split=self.split,
+            indices_table=indices_pa_table,
+            indices_data_files=indices_data_files,
+            fingerprint=fingerprint,
+            inplace_history=self._inplace_history,  # in-place transforms have to be kept as we kept the same data_files
+        )
+
+    @fingerprint(inplace=False)
+    def select(
+        self,
+        indices: Iterable,
+        keep_in_memory: bool = False,
+        indices_cache_file_name: Optional[str] = None,
+        writer_batch_size: Optional[int] = 1000,
+        new_fingerprint: Optional[str] = None,
+    ) -> "Dataset":
+        """Create a new dataset with rows selected following the list/array of indices.
+
+        Args:
+            `indices` (sequence, iterable, ndarray or Series): List or 1D-array of integer indices for indexing.
+            `keep_in_memory` (`bool`, default: `False`): Keep the indices mapping in memory instead of writing it to a cache file.
+            `indices_cache_file_name` (`Optional[str]`, default: `None`): Provide the name of a cache file to use to store the
+                indices mapping instead of the automatically generated cache file name.
+            `writer_batch_size` (`int`, default: `1000`): Number of rows per write operation for the cache file writer.
+                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         assert (
-            not keep_in_memory or cache_file_name is None
-        ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
+            not keep_in_memory or indices_cache_file_name is None
+        ), "Please use either `keep_in_memory` or `indices_cache_file_name` but not both."
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
                 "Using `.select` on a dataset with attached indexes is not allowed. You can first run `.drop_index() to remove your index and then re-add it."
             )
+
         # If the array is empty we do nothing
         if len(self) == 0:
             return self
 
-        # Check if we've already cached this computation (indexed by a hash)
-        if self._data_files:
-            if cache_file_name is None:
-                # we create a unique hash from the function, current dataset file and the mapping args
-                cache_kwargs = {
-                    "indices": indices,
-                    "keep_in_memory": keep_in_memory,
-                    "load_from_cache_file": load_from_cache_file,
-                    "cache_file_name": cache_file_name,
-                    "writer_batch_size": writer_batch_size,
-                }
-                cache_file_name = self._get_cache_file_path(self.__class__.select, cache_kwargs)
-            if os.path.exists(cache_file_name) and load_from_cache_file:
-                if verbose:
-                    logger.info("Loading cached selected dataset at %s", cache_file_name)
-                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
-
-        # Prepare output buffer and batched writer in memory or on file if we update the table
-        if keep_in_memory or cache_file_name is None:
+        # Prepare the writer for our indices arrow table
+        if keep_in_memory or indices_cache_file_name is None:
             buf_writer = pa.BufferOutputStream()
             tmp_file = None
-            writer = ArrowWriter(features=self.features, stream=buf_writer, writer_batch_size=writer_batch_size)
+            writer = ArrowWriter(
+                stream=buf_writer, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+            )
         else:
             buf_writer = None
-            if verbose:
-                logger.info("Caching processed dataset at %s", cache_file_name)
-            tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(cache_file_name), delete=False)
-            writer = ArrowWriter(features=self.features, path=tmp_file.name, writer_batch_size=writer_batch_size)
+            logger.info("Caching indices mapping at %s", indices_cache_file_name)
+            tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(indices_cache_file_name), delete=False)
+            writer = ArrowWriter(
+                path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+            )
+
+        indices_array = pa.array(indices, type=pa.uint64())
+        # Check if we need to convert indices
+        if self._indices is not None:
+            if PYARROW_V0:
+                indices_array = self._indices.column(0).chunk(0).take(indices_array)
+            else:
+                indices_array = self._indices.column(0).take(indices_array)
+
+        indices_table = pa.Table.from_arrays([indices_array], names=["indices"])
 
         try:
-            # Loop over batches and write to buffer/file if examples are to be updated
-            for i in tqdm(range(0, len(indices), reader_batch_size), disable=not verbose):
-                batch = self._getitem(
-                    key=indices[i : min(len(indices), i + reader_batch_size)],
-                    format_type=None,
-                    format_columns=None,
-                    format_kwargs=None,
-                )
-                writer.write_batch(batch)
+            writer.write_table(indices_table)
             writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
             if tmp_file is not None:
@@ -1247,14 +1585,17 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             raise
 
         if tmp_file is not None:
-            shutil.move(tmp_file.name, cache_file_name)
+            shutil.move(tmp_file.name, indices_cache_file_name)
 
-        # Create new Dataset from buffer or file
+        # Return new Dataset object
         if buf_writer is None:
-            return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+            return self._new_dataset_with_indices(
+                indices_cache_file_name=indices_cache_file_name, fingerprint=new_fingerprint
+            )
         else:
-            return Dataset.from_buffer(buf_writer.getvalue(), info=self.info, split=self.split)
+            return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
 
+    @fingerprint(inplace=False)
     def sort(
         self,
         column: str,
@@ -1262,9 +1603,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         kind: str = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_name: Optional[str] = None,
+        indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Create a new dataset sorted according to a column.
 
@@ -1278,14 +1619,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             kind (Optional `str`): Numpy algorithm for sorting selected in {‘quicksort’, ‘mergesort’, ‘heapsort’, ‘stable’},
                 The default is ‘quicksort’. Note that both ‘stable’ and ‘mergesort’ use timsort under the covers and, in general,
                 the actual implementation will vary with data type. The ‘mergesort’ option is retained for backwards compatibility.
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            keep_in_memory (`bool`, defaults to `False`): Keep the sorted indices in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the sorted indices
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
-                results of the computation instead of the automatically generated cache file name.
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+                sorted indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
-                Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+                Higher value gives smaller cache files, lower value consume less temporary memory.
+            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1306,48 +1648,40 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Check if we've already cached this computation (indexed by a hash)
         if self._data_files:
-            if cache_file_name is None:
+            if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
-                cache_kwargs = {
-                    "column": column,
-                    "reverse": reverse,
-                    "kind": kind,
-                    "keep_in_memory": keep_in_memory,
-                    "load_from_cache_file": load_from_cache_file,
-                    "cache_file_name": cache_file_name,
-                    "writer_batch_size": writer_batch_size,
-                }
-                cache_file_name = self._get_cache_file_path(self.sort, cache_kwargs)
-            if os.path.exists(cache_file_name) and load_from_cache_file:
-                if verbose:
-                    logger.info("Loading cached sorted dataset at %s", cache_file_name)
-                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+                indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
+            if os.path.exists(indices_cache_file_name) and load_from_cache_file:
+                logger.warning("Loading cached sorted indices for dataset at %s", indices_cache_file_name)
+                return self._new_dataset_with_indices(
+                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                )
 
-        indices = self._getitem(
+        column_data = self._getitem(
             column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
         )
-        indices = np.argsort(indices, kind=kind)
+        indices = np.argsort(column_data, kind=kind)
         if reverse:
             indices = indices[::-1]
 
         return self.select(
             indices=indices,
             keep_in_memory=keep_in_memory,
-            load_from_cache_file=load_from_cache_file,
-            cache_file_name=cache_file_name,
+            indices_cache_file_name=indices_cache_file_name,
             writer_batch_size=writer_batch_size,
-            verbose=verbose,
+            new_fingerprint=new_fingerprint,
         )
 
+    @fingerprint(inplace=False, randomized_function=True)
     def shuffle(
         self,
         seed: Optional[int] = None,
         generator: Optional[np.random.Generator] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        cache_file_name: Optional[str] = None,
+        indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
+        new_fingerprint: Optional[str] = None,
     ) -> "Dataset":
         """Create a new Dataset where the rows are shuffled.
 
@@ -1360,14 +1694,15 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
             generator (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
                 If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            keep_in_memory (`bool`, defaults to `False`): Keep the shuffled indices in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the shuffled indices
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
-                results of the computation instead of the automatically generated cache file name.
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+                shuffled indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+            new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -1389,113 +1724,28 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Check if we've already cached this computation (indexed by a hash)
         if self._data_files:
-            if cache_file_name is None:
+            if indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
-                cache_kwargs = {
-                    "generator": generator,
-                    "keep_in_memory": keep_in_memory,
-                    "load_from_cache_file": load_from_cache_file,
-                    "cache_file_name": cache_file_name,
-                    "writer_batch_size": writer_batch_size,
-                }
-                cache_file_name = self._get_cache_file_path(self.shuffle, cache_kwargs)
-            if os.path.exists(cache_file_name) and load_from_cache_file:
-                if verbose:
-                    logger.info("Loading cached shuffled dataset at %s", cache_file_name)
-                return Dataset.from_file(cache_file_name, info=self.info, split=self.split)
+                indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
+            if os.path.exists(indices_cache_file_name) and load_from_cache_file:
+                logger.warning("Loading cached shuffled indices for dataset at %s", indices_cache_file_name)
+                return self._new_dataset_with_indices(
+                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                )
 
         permutation = generator.permutation(len(self))
 
         return self.select(
             indices=permutation,
             keep_in_memory=keep_in_memory,
-            load_from_cache_file=load_from_cache_file,
-            cache_file_name=cache_file_name,
+            indices_cache_file_name=indices_cache_file_name,
             writer_batch_size=writer_batch_size,
-            verbose=verbose,
+            new_fingerprint=new_fingerprint,
         )
 
-    def export(
-        self,
-        filename: str,
-        format: str = "tfrecord",
-    ):
-        """Writes the Arrow dataset to a TFRecord file.
-
-        The dataset must already be in tensorflow format. The records will be written with
-        keys from `dataset._format_columns`.
-
-        Args:
-            filename (`str`): The filename, including the .tfrecord extension, to write to.
-            format (`Optional[str]`, defaults to `"tfrecord"`): The type of output file. Currently this is a no-op, as
-                TFRecords are the only option. This enables a more flexible function signature
-                later.
-        """
-        try:
-            import tensorflow as tf  # noqa: F401
-        except ImportError:
-            logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
-
-        # From https://www.tensorflow.org/tutorials/load_data/tfrecord
-        def _bytes_feature(values):
-            """Returns a bytes_list from a list of string / byte."""
-            return tf.train.Feature(bytes_list=tf.train.BytesList(value=values))
-
-        def _float_feature(values):
-            """Returns a float_list from a list of float / double."""
-            return tf.train.Feature(float_list=tf.train.FloatList(value=values))
-
-        def _int64_feature(values):
-            """Returns an int64_list from a list of bool / enum / int / uint."""
-            return tf.train.Feature(int64_list=tf.train.Int64List(value=values))
-
-        def _feature(values: np.ndarray) -> "tf.train.Feature":
-            """Typechecks `values` and returns the corresponding tf.train.Feature."""
-            if values.ndim == 0:
-                values = values.item()
-            if isinstance(values, np.ndarray):
-                if values.dtype == np.dtype(float):
-                    return _float_feature(values)
-                elif values.dtype == np.dtype(int):
-                    return _int64_feature(values)
-                elif values.dtype == np.dtype(str) or (
-                    values.dtype == np.dtype(object) and len(values) > 0 and isinstance(values[0], str)
-                ):
-                    return _bytes_feature([v.encode() for v in values])
-                else:
-                    raise ValueError(
-                        f"values={values} is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
-                    )
-            elif isinstance(values, float):
-                return _float_feature([values])
-            elif isinstance(values, int):
-                return _int64_feature([values])
-            elif isinstance(values, str):
-                return _bytes_feature([values.encode()])
-            else:
-                raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
-
-        def serialize_example(ex):
-            feature = {key: _feature(value) for key, value in ex.items()}
-            example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
-            return example_proto.SerializeToString()
-
-        def tf_serialize_example(ex):
-            tf_string = tf.py_function(serialize_example, (ex,), tf.string)
-            return tf.reshape(tf_string, ())
-
-        def generator():
-            for ex in self:
-                yield serialize_example(ex)
-
-        assert self._format_type == "numpy", "Dataset format must be numpy before exporting"
-        assert filename.endswith(".tfrecord")
-        tf_dataset = tf.data.Dataset.from_generator(generator, output_types=tf.string, output_shapes=())
-        writer = tf.data.experimental.TFRecordWriter(filename)
-        logger.info(f"Writing TFRecord to {filename}")
-        writer.write(tf_dataset)
-        logger.info(f"Finished writing TFRecord to {filename}")
-
+    @fingerprint(
+        inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"]
+    )
     def train_test_split(
         self,
         test_size: Union[float, int, None] = None,
@@ -1505,10 +1755,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         generator: Optional[np.random.Generator] = None,
         keep_in_memory: bool = False,
         load_from_cache_file: bool = True,
-        train_cache_file_name: Optional[str] = None,
-        test_cache_file_name: Optional[str] = None,
+        train_indices_cache_file_name: Optional[str] = None,
+        test_indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
+        train_new_fingerprint: Optional[str] = None,
+        test_new_fingerprint: Optional[str] = None,
     ) -> "DatasetDict":
         """Return a dictionary (:obj:`nlp.DatsetDict`) with two random train and test subsets (`train` and `test` ``Dataset`` splits).
         Splits are created from the dataset according to `test_size`, `train_size` and `shuffle`.
@@ -1531,16 +1782,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If an int or array_like[ints] is passed, then it will be passed to SeedSequence to derive the initial BitGenerator state.
             generator (Optional `np.random.Generator`): Numpy random Generator to use to compute the permutation of the dataset rows.
                 If ``generator=None`` (default), uses np.random.default_rng (the default BitGenerator (PCG64) of NumPy).
-            keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
-            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
+            keep_in_memory (`bool`, defaults to `False`): Keep the splits indices in memory instead of writing it to a cache file.
+            load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the splits indices
                 can be identified, use it instead of recomputing.
             train_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
-                train split calche file instead of the automatically generated cache file name.
+                train split indices instead of the automatically generated cache file name.
             test_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
-                test split calche file instead of the automatically generated cache file name.
+                test split indices instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
+            train_new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the train set after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+            test_new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the test set after transform.
+                If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         from .dataset_dict import DatasetDict  # import here because of circular dependency
 
@@ -1628,37 +1882,31 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         # Check if we've already cached this computation (indexed by a hash)
         if self._data_files:
-            if train_cache_file_name is None or test_cache_file_name is None:
+            if train_indices_cache_file_name is None or test_indices_cache_file_name is None:
                 # we create a unique hash from the function, current dataset file and the mapping args
-                cache_kwargs = {
-                    "test_size": test_size,
-                    "train_size": train_size,
-                    "shuffle": shuffle,
-                    "generator": generator,
-                    "keep_in_memory": keep_in_memory,
-                    "load_from_cache_file": load_from_cache_file,
-                    "train_cache_file_name": train_cache_file_name,
-                    "test_cache_file_name": test_cache_file_name,
-                    "writer_batch_size": writer_batch_size,
-                }
-                train_kwargs = cache_kwargs.copy()
-                train_kwargs["split"] = "train"
-                test_kwargs = cache_kwargs.copy()
-                test_kwargs["split"] = "test"
 
-                if train_cache_file_name is None:
-                    train_cache_file_name = self._get_cache_file_path(self.train_test_split, train_kwargs)
-                if test_cache_file_name is None:
-                    test_cache_file_name = self._get_cache_file_path(self.train_test_split, test_kwargs)
-            if os.path.exists(train_cache_file_name) and os.path.exists(test_cache_file_name) and load_from_cache_file:
-                if verbose:
-                    logger.info(
-                        "Loading cached split dataset at %s and %s", train_cache_file_name, test_cache_file_name
-                    )
+                if train_indices_cache_file_name is None:
+                    train_indices_cache_file_name = self._get_cache_file_path(train_new_fingerprint)
+                if test_indices_cache_file_name is None:
+                    test_indices_cache_file_name = self._get_cache_file_path(test_new_fingerprint)
+            if (
+                os.path.exists(train_indices_cache_file_name)
+                and os.path.exists(test_indices_cache_file_name)
+                and load_from_cache_file
+            ):
+                logger.warning(
+                    "Loading cached split indices for dataset at %s and %s",
+                    train_indices_cache_file_name,
+                    test_indices_cache_file_name,
+                )
                 return DatasetDict(
                     {
-                        "train": Dataset.from_file(train_cache_file_name, info=self.info, split=self.split),
-                        "test": Dataset.from_file(test_cache_file_name, info=self.info, split=self.split),
+                        "train": self._new_dataset_with_indices(
+                            fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name
+                        ),
+                        "test": self._new_dataset_with_indices(
+                            fingerprint=test_new_fingerprint, indices_cache_file_name=test_indices_cache_file_name
+                        ),
                     }
                 )
 
@@ -1674,18 +1922,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         train_split = self.select(
             indices=train_indices,
             keep_in_memory=keep_in_memory,
-            load_from_cache_file=load_from_cache_file,
-            cache_file_name=train_cache_file_name,
+            indices_cache_file_name=train_indices_cache_file_name,
             writer_batch_size=writer_batch_size,
-            verbose=verbose,
+            new_fingerprint=train_new_fingerprint,
         )
         test_split = self.select(
             indices=test_indices,
             keep_in_memory=keep_in_memory,
-            load_from_cache_file=load_from_cache_file,
-            cache_file_name=test_cache_file_name,
+            indices_cache_file_name=test_indices_cache_file_name,
             writer_batch_size=writer_batch_size,
-            verbose=verbose,
+            new_fingerprint=test_new_fingerprint,
         )
 
         return DatasetDict({"train": train_split, "test": test_split})
@@ -1696,10 +1942,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         index: int,
         contiguous: bool = False,
         keep_in_memory: bool = False,
-        load_from_cache_file: bool = True,
-        cache_file_name: Optional[str] = None,
+        indices_cache_file_name: Optional[str] = None,
         writer_batch_size: Optional[int] = 1000,
-        verbose: bool = True,
     ) -> "Dataset":
         """Return the `index`-nth shard from dataset split into `num_shards` pieces.
 
@@ -1723,11 +1967,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             keep_in_memory (`bool`, defaults to `False`): Keep the dataset in memory instead of writing it to a cache file.
             load_from_cache_file (`bool`, defaults to `True`): If a cache file storing the current computation from `function`
                 can be identified, use it instead of recomputing.
-            cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
-                results of the computation instead of the automatically generated cache file name.
+            indices_cache_file_name (`Optional[str]`, defaults to `None`): Provide the name of a cache file to use to store the
+                indices of each shard instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
-            verbose (`bool`, defaults to `True`): Set to `False` to deactivate the tqdm progress bar and informations.
         """
         assert 0 <= index < num_shards, "index should be in [0, num_shards-1]"
         if contiguous:
@@ -1742,11 +1985,90 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         return self.select(
             indices=indices,
             keep_in_memory=keep_in_memory,
-            load_from_cache_file=load_from_cache_file,
-            cache_file_name=cache_file_name,
+            indices_cache_file_name=indices_cache_file_name,
             writer_batch_size=writer_batch_size,
-            verbose=verbose,
         )
+
+    def export(
+        self,
+        filename: str,
+        format: str = "tfrecord",
+    ):
+        """Writes the Arrow dataset to a TFRecord file.
+
+        The dataset must already be in tensorflow format. The records will be written with
+        keys from `dataset._format_columns`.
+
+        Args:
+            `filename` (`str`): The filename, including the .tfrecord extension, to write to.
+            `format` (`Optional[str]`, default: `"tfrecord"`): The type of output file. Currently this is a no-op, as
+                TFRecords are the only option. This enables a more flexible function signature
+                later.
+        """
+        try:
+            import tensorflow as tf  # noqa: F401
+        except ImportError:
+            logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
+
+        # From https://www.tensorflow.org/tutorials/load_data/tfrecord
+        def _bytes_feature(values):
+            """Returns a bytes_list from a list of string / byte."""
+            return tf.train.Feature(bytes_list=tf.train.BytesList(value=values))
+
+        def _float_feature(values):
+            """Returns a float_list from a list of float / double."""
+            return tf.train.Feature(float_list=tf.train.FloatList(value=values))
+
+        def _int64_feature(values):
+            """Returns an int64_list from a list of bool / enum / int / uint."""
+            return tf.train.Feature(int64_list=tf.train.Int64List(value=values))
+
+        def _feature(values: np.ndarray) -> "tf.train.Feature":
+            """Typechecks `values` and returns the corresponding tf.train.Feature."""
+            if values.ndim == 0:
+                values = values.item()
+            if isinstance(values, np.ndarray):
+                if values.dtype == np.dtype(float):
+                    return _float_feature(values)
+                elif values.dtype == np.dtype(int):
+                    return _int64_feature(values)
+                elif values.dtype == np.dtype(str) or (
+                    values.dtype == np.dtype(object) and len(values) > 0 and isinstance(values[0], str)
+                ):
+                    return _bytes_feature([v.encode() for v in values])
+                else:
+                    raise ValueError(
+                        f"values={values} is an np.ndarray with items of dtype {values[0].dtype}, which cannot be serialized"
+                    )
+            elif isinstance(values, float):
+                return _float_feature([values])
+            elif isinstance(values, int):
+                return _int64_feature([values])
+            elif isinstance(values, str):
+                return _bytes_feature([values.encode()])
+            else:
+                raise ValueError(f"values={values} has dtype {values.dtype}, which cannot be serialized")
+
+        def serialize_example(ex):
+            feature = {key: _feature(value) for key, value in ex.items()}
+            example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+            return example_proto.SerializeToString()
+
+        def tf_serialize_example(ex):
+            tf_string = tf.py_function(serialize_example, (ex,), tf.string)
+            return tf.reshape(tf_string, ())
+
+        def generator():
+            for ex in self:
+                yield serialize_example(ex)
+
+        assert self._format_type == "numpy", "Dataset format must be numpy before exporting"
+        assert filename.endswith(".tfrecord")
+        tf_dataset = tf.data.Dataset.from_generator(generator, output_types=tf.string, output_shapes=())
+        writer = tf.data.experimental.TFRecordWriter(filename)
+        logger.info(f"Writing TFRecord to {filename}")
+        writer.write(tf_dataset)
+        logger.info(f"Finished writing TFRecord to {filename}")
 
     def add_faiss_index(
         self,
@@ -1932,3 +2254,150 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 column=column, host=host, port=port, es_client=es_client, index_name=index_name
             )
         return self
+
+
+def concatenate_datasets(
+    dsets: List[Dataset],
+    info: Optional[Any] = None,
+    split: Optional[Any] = None,
+):
+    """
+    Converts a list of :obj:``nlp.Dataset`` with the same schema into a single :obj:``nlp.Dataset``.
+
+    Args:
+        dsets (:obj:``List[nlp.Dataset]``): A list of Datasets to concatenate
+        info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
+            description, citation, etc.
+        split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+    """
+    if not all([dset.features.type == dsets[0].features.type for dset in dsets]):
+        raise ValueError("Features must match for all datasets")
+
+    # Datasets tables should all come from disk or memory, but not a mix
+
+    dsets_in_memory = [not dset._data_files for dset in dsets]
+    if any(dset_in_memory != dsets_in_memory[0] for dset_in_memory in dsets_in_memory):
+        raise ValueError(
+            "Datasets should ALL come from memory, or should ALL come from disk.\n"
+            "However datasets {} come from memory and datasets {} come from disk.".format(
+                [i for i in range(len(dsets)) if dsets_in_memory[i]],
+                [i for i in range(len(dsets)) if not dsets_in_memory[i]],
+            )
+        )
+
+    # Concatenate tables
+
+    table = pa.concat_tables(dset._data for dset in dsets if len(dset._data) > 0)
+    data_files = [f for dset in dsets for f in dset._data_files]
+    inplace_history = [h for dset in dsets for h in dset._inplace_history]
+
+    def apply_offset_to_indices_table(table, offset):
+        if offset == 0:
+            return table
+        else:
+            array = table["indices"]
+            if isinstance(array, pa.ChunkedArray):
+                new_array = pa.array(np.concatenate([c.to_numpy() for c in array.chunks]) + offset, pa.uint64())
+            else:
+                new_array = pa.array(array.to_numpy() + offset, pa.uint64())
+            return pa.Table.from_arrays([new_array], names=["indices"])
+
+    # Concatenate indices if they exist
+
+    if any(dset._indices is not None for dset in dsets):
+
+        # Datasets indices tables should all come from disk or memory, but not a mix
+        # Datasets with no indices tables are replaced with a dataset with an indicies table in memory
+
+        indices_mappings_in_memory = [not dset._indices_data_files for dset in dsets]
+        if any(
+            indices_mapping_in_memory != indices_mappings_in_memory[0]
+            for indices_mapping_in_memory in indices_mappings_in_memory
+        ):
+            raise ValueError(
+                "Datasets' indices should ALL come from memory, or should ALL come from disk.\n"
+                "However datasets' indices {} come from memory and datasets' indices {} come from disk.".format(
+                    [i for i in range(len(dsets)) if indices_mappings_in_memory[i]],
+                    [i for i in range(len(dsets)) if not indices_mappings_in_memory[i]],
+                )
+            )
+        indices_in_memory = indices_mappings_in_memory[0]
+
+        # Create missing indices tables in memory
+
+        if indices_in_memory:
+            for i in range(len(dsets)):
+                if dsets[i]._indices is None:
+                    dsets[i] = dsets[i].select(range(len(dsets[i])))
+        assert all(dset._indices is not None for dset in dsets), "each dataset should have an indices table"
+
+        # An offset needs to be applied to the indices before concatenating
+
+        indices_tables = []
+        offset = 0
+        for dset in dsets:
+            indices_tables.append(apply_offset_to_indices_table(dset._indices, offset))
+            offset += len(dset._data)
+
+        # Concatenate indices
+
+        indices_tables = [t for t in indices_tables if len(t) > 0]
+        if indices_tables:
+            indices_table = pa.concat_tables(indices_tables)
+        else:
+            indices_table = pa.Table.from_batches([], schema=pa.schema({"indices": pa.int64()}))
+        indices_data_files = None if indices_in_memory else [f for dset in dsets for f in dset._indices_data_files]
+    else:
+        indices_table = None
+        indices_data_files = None
+    if info is None:
+        info = DatasetInfo.from_merge([dset.info for dset in dsets])
+    fingerprint = update_fingerprint(
+        "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
+    )
+    return Dataset(
+        table,
+        info=info,
+        split=split,
+        data_files=data_files,
+        indices_table=indices_table,
+        indices_data_files=indices_data_files,
+        fingerprint=fingerprint,
+        inplace_history=inplace_history,
+    )
+
+
+# This is outside Dataset.filter as it needs to be picklable for multiprocessing
+
+# transform the filter function into the map function
+def map_function(batch, *args, function=None, with_indices=None, **fn_kwargs):
+    assert function is not None and with_indices is not None
+    result = defaultdict(list)
+    num_examples = len(batch[next(iter(batch.keys()))])
+    input_columns = fn_kwargs.pop("input_columns", None)
+
+    # create single examples
+    for i in range(num_examples):
+        example = map_nested(lambda x: x[i], batch, dict_only=True)
+        fn_args = [example] if input_columns is None else [example[col] for col in input_columns]
+
+        # check if example should be filtered or not
+        if with_indices:
+            keep_example = function(*fn_args, args[0][i], **fn_kwargs)
+        else:
+            keep_example = function(*fn_args, **fn_kwargs)
+
+        assert isinstance(
+            keep_example, bool
+        ), f"The filter function returns a variable of type {type(keep_example)}, but should return a variable of type `bool`."
+        # if example shall be kept add to result
+        if keep_example:
+            for key in batch.keys():
+                result[key].append(example[key])
+
+    # if no example shall be kept, init with empty list
+    if bool(result) is False:
+        for key in batch.keys():
+            result[key] = []
+
+    return result

@@ -15,7 +15,6 @@
 """To write records into Parquet files."""
 import errno
 import json
-import logging
 import os
 import socket
 from dataclasses import asdict
@@ -27,9 +26,10 @@ from tqdm.auto import tqdm
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
+from .utils.logging import INFO, get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
@@ -129,10 +129,12 @@ class ArrowWriter(object):
         features: Optional[Features] = None,
         path: Optional[str] = None,
         stream: Optional[pa.NativeFile] = None,
+        fingerprint: Optional[str] = None,
         writer_batch_size: Optional[int] = None,
         disable_nullable: bool = False,
         update_features: bool = False,
         with_metadata: bool = True,
+        unit: str = "examples",
     ):
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
@@ -155,10 +157,12 @@ class ArrowWriter(object):
         else:
             self.stream = stream
 
+        self.fingerprint = fingerprint
         self.disable_nullable = disable_nullable
         self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
         self.with_metadata = with_metadata
+        self.unit = unit
 
         self._num_examples = 0
         self._num_bytes = 0
@@ -183,17 +187,23 @@ class ArrowWriter(object):
         if self.disable_nullable:
             self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
         if self.with_metadata:
-            self._schema = self._schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features)))
+            self._schema = self._schema.with_metadata(
+                self._build_metadata(DatasetInfo(features=self._features), self.fingerprint)
+            )
         self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
 
     @property
     def schema(self):
         return self._schema if self._schema is not None else []
 
-    def _build_metadata(self, info) -> Dict[str, str]:
-        keys = ["features"]  # we can add support for more DatasetInfo keys in the future
+    def _build_metadata(self, info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
+        info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
-        return {"huggingface": json.dumps({key: info_as_dict[key] for key in keys})}
+        metadata = {}
+        metadata["info"] = {key: info_as_dict[key] for key in info_keys}
+        if fingerprint is not None:
+            metadata["fingerprint"] = fingerprint
+        return {"huggingface": json.dumps(metadata)}
 
     def write_on_file(self):
         """Write stored examples"""
@@ -282,8 +292,9 @@ class ArrowWriter(object):
         if close_stream:
             self.stream.close()
         logger.info(
-            "Done writing %s examples in %s bytes %s.",
+            "Done writing %s %s in %s bytes %s.",
             self._num_examples,
+            self.unit,
             self._num_bytes,
             self._path if self._path else "",
         )
@@ -393,9 +404,10 @@ def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
     writer = ArrowWriter(path=destination, stream=stream)
-    for source in tqdm(sources, unit="sources"):
+    not_verbose = bool(logger.getEffectiveLevel() > INFO)
+    for source in tqdm(sources, unit="sources", disable=not_verbose):
         pf = pa.parquet.ParquetFile(source)
-        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False):
+        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
             df = pf.read_row_group(i).to_pandas()
             for col in df.columns:
                 df[col] = df[col].apply(json.loads)

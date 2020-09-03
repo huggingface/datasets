@@ -18,32 +18,30 @@
 import filecmp
 import importlib
 import inspect
-import itertools
 import json
-import logging
 import os
 import re
 import shutil
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
-import pyarrow as pa
 from filelock import FileLock
 
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
-from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo
+from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import DownloadConfig, cached_path, hf_bucket_url
+from .utils.logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "datasets")
@@ -174,7 +172,7 @@ def get_imports(file_path: str):
                 # We already have this import
                 continue
             if match.group(3):
-                # The import has a comment with 'From:', we'll retreive it from the given url
+                # The import has a comment with 'From:', we'll retrieve it from the given url
                 url_path = match.group(3)
                 url_path, sub_directory = convert_github_url(url_path)
                 imports.append(("external", match.group(2), url_path, sub_directory))
@@ -492,7 +490,7 @@ def load_dataset(
             * Download the dataset file from the original URL (see the script) if it's not already downloaded and cached.
             * Process and cache the dataset in typed Arrow tables for caching.
 
-                Arrow table are arbitrarly long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
+                Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
                 They can be directly access from drive, loaded in RAM or even streamed over the web.
 
         3. Return a dataset build from the requested splits in ``split`` (default: all).
@@ -503,7 +501,7 @@ def load_dataset(
             path to the dataset processing script with the dataset builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                     e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-                - a datatset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
+                - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         name (Optional ``str``): defining the name of the dataset configuration
         version (Optional ``str``): defining the version of the dataset configuration
@@ -559,26 +557,3 @@ def load_dataset(
         builder_instance._save_infos()
 
     return ds
-
-
-def concatenate_datasets(
-    dsets: List["Dataset"],
-    info: Optional[Any] = None,
-    split: Optional[Any] = None,
-):
-    """
-    Converts a list of :obj:``nlp.Dataset`` with the same schema into a single :obj:``nlp.Dataset``.
-
-    Args:
-        dsets (:obj:``List[nlp.Dataset]``): A list of Datasets to concatenate
-        info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
-            description, citation, etc.
-        split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
-    """
-    if not all([dset.features.type == dsets[0].features.type for dset in dsets]):
-        raise ValueError("Features must match for all datasets")
-    table = pa.concat_tables([dset._data for dset in dsets])
-    data_files = list(itertools.chain.from_iterable([dset._data_files for dset in dsets]))
-    if info is None:
-        info = DatasetInfo.from_merge([dset.info for dset in dsets])
-    return Dataset(table, info=info, split=split, data_files=data_files)

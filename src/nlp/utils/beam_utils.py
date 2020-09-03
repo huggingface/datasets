@@ -1,4 +1,3 @@
-import logging
 import os
 
 import pyarrow as pa
@@ -10,9 +9,11 @@ from apache_beam.io.iobase import Write
 from apache_beam.pipeline import Pipeline
 from apache_beam.transforms import PTransform
 
+from .logging import get_logger
+
 
 CHUNK_SIZE = 2 << 20  # 2mb
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class BeamPipeline(Pipeline):

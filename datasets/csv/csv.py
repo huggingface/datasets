@@ -56,15 +56,16 @@ class Csv(nlp.ArrowBasedBuilder):
     def _split_generators(self, dl_manager):
         """ We handle string, list and dicts in datafiles
         """
-        if isinstance(self.config.data_files, (str, list, tuple)):
-            files = self.config.data_files
+        data_files = dl_manager.download_and_extract(self.config.data_files)
+        if isinstance(data_files, (str, list, tuple)):
+            files = data_files
             if isinstance(files, str):
                 files = [files]
             return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
         for split_name in [nlp.Split.TRAIN, nlp.Split.VALIDATION, nlp.Split.TEST]:
-            if split_name in self.config.data_files:
-                files = self.config.data_files[split_name]
+            if split_name in data_files:
+                files = data_files[split_name]
                 if isinstance(files, str):
                     files = [files]
                 splits.append(nlp.SplitGenerator(name=split_name, gen_kwargs={"files": files}))

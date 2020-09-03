@@ -74,7 +74,7 @@ class ArrowWriterTest(TestCase):
         self.assertEqual(num_examples, 2)
         self.assertGreater(num_bytes, 0)
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
-        self.assertEqual(writer._schema, pa.schema(fields))
+        self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
         self._check_output(output.getvalue())
 
     def test_write_schema(self):
@@ -86,7 +86,7 @@ class ArrowWriterTest(TestCase):
         num_examples, num_bytes = writer.finalize()
         self.assertEqual(num_examples, 2)
         self.assertGreater(num_bytes, 0)
-        self.assertEqual(writer._schema, pa.schema(fields))
+        self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
         self._check_output(output.getvalue())
 
     def test_write_batch_no_schema(self):
@@ -97,7 +97,7 @@ class ArrowWriterTest(TestCase):
         self.assertEqual(num_examples, 2)
         self.assertGreater(num_bytes, 0)
         fields = {"col_1": pa.string(), "col_2": pa.int64()}
-        self.assertEqual(writer._schema, pa.schema(fields))
+        self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
         self._check_output(output.getvalue())
 
     def test_write_batch_schema(self):
@@ -108,7 +108,7 @@ class ArrowWriterTest(TestCase):
         num_examples, num_bytes = writer.finalize()
         self.assertEqual(num_examples, 2)
         self.assertGreater(num_bytes, 0)
-        self.assertEqual(writer._schema, pa.schema(fields))
+        self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
         self._check_output(output.getvalue())
 
     def test_write_file(self):
@@ -120,5 +120,5 @@ class ArrowWriterTest(TestCase):
             num_examples, num_bytes = writer.finalize()
             self.assertEqual(num_examples, 2)
             self.assertGreater(num_bytes, 0)
-            self.assertEqual(writer._schema, pa.schema(fields))
+            self.assertEqual(writer._schema, pa.schema(fields, metadata=writer._schema.metadata))
             self._check_output(output)

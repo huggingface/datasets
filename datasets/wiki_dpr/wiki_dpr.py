@@ -181,7 +181,6 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
                     dataset.add_faiss_index(
                         "embeddings",
                         train_size=train_size,
-                        faiss_verbose=logging.getLogger().level <= logging.DEBUG,
                         custom_index=ivf_index,
                     )
                 logging.info("Saving wiki_dpr faiss index")

@@ -16,15 +16,15 @@
 # Lint as: python3
 """ List and inspect datasets and metrics."""
 
-import logging
 from typing import Optional
 
 from .hf_api import HfApi
 from .load import prepare_module
 from .utils import DownloadConfig
+from .utils.logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def list_datasets(with_community_datasets=True, id_only=False):
@@ -47,7 +47,7 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
         path (``str``): path to the dataset processing script with the dataset builder. Can be either:
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a datatset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
+            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (``str``): path to the local folder to copy the datset script to.
         download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
@@ -71,7 +71,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
         path (``str``): path to the dataset processing script with the dataset builder. Can be either:
             - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                 e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-            - a datatset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
+            - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         local_path (``str``): path to the local folder to copy the datset script to.
         download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.

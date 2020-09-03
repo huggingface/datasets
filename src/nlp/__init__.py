@@ -24,8 +24,9 @@ import pyarrow
 from pyarrow import total_allocated_bytes
 
 from . import datasets
-from .arrow_dataset import Dataset
-from .arrow_reader import ReadInstruction
+from .arrow_dataset import Dataset, concatenate_datasets
+from .arrow_reader import ArrowReader, ReadInstruction
+from .arrow_writer import ArrowWriter
 from .builder import ArrowBasedBuilder, BeamBasedBuilder, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from .dataset_dict import DatasetDict
 from .features import (
@@ -42,7 +43,7 @@ from .features import (
 )
 from .info import DatasetInfo, MetricInfo
 from .inspect import inspect_dataset, inspect_metric, list_datasets, list_metrics
-from .load import concatenate_datasets, import_main_class, load_dataset, load_metric, prepare_module
+from .load import import_main_class, load_dataset, load_metric, prepare_module
 from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *

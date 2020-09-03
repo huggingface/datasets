@@ -298,7 +298,7 @@ Then we will import a fast tokenizer, for instance the tokenizer of the Bert mod
 
 Now let's batch tokenize the 'sentence1' fields of our dataset. The tokenizers of the 🤗transformers library can accept lists of texts as inputs and tokenize them efficiently in batch (for the fast tokenizers in particular).
 
-For more details on the tokenizers of the 🤗transformers library please refere to its `guide on processing data <https://huggingface.co/transformers/preprocessing.html>`__.
+For more details on the tokenizers of the 🤗transformers library Please refer to its `guide on processing data <https://huggingface.co/transformers/preprocessing.html>`__.
 
 This tokenizer will output a dictionary-like object with three fields: ``input_ids``, ``token_type_ids``, ``attention_mask`` corresponding to Bert model's required inputs. Each field contain a list (batch) of samples.
 
@@ -458,7 +458,7 @@ When you have several :obj:`nlp.Dataset` objects that share the same column type
     >>>
     >>> bookcorpus = load_dataset("bookcorpus", split="train")
     >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
-    >>> wiki.remove_column_("title")  # only keep the text
+    >>> wiki.remove_columns_("title")  # only keep the text
     >>>
     >>> assert bookcorpus.features.type == wiki.features.type
     >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
