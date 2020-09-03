@@ -82,6 +82,7 @@ TESTS_REQUIRE = [
     'apache-beam',
     'absl-py',
     'bs4',
+    'checklist',
     'elasticsearch',
     'faiss-cpu',
     'langdetect',
