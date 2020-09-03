@@ -958,7 +958,6 @@ class BeamBasedBuilder(DatasetBuilder):
     def _download_and_prepare(self, dl_manager, verify_infos):
         # Create the Beam pipeline and forward it to _prepare_split
         import apache_beam as beam
-
         import nlp.utils.beam_utils as beam_utils
 
         beam_runner = self._beam_runner
