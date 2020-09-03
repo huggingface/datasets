@@ -1465,6 +1465,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 results of the computation instead of the automatically generated cache file name.
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
+            features (`Optional[nlp.Features]`, default: `None`): Use a specific Features to store the cache file
                 instead of the automatically generated one.
             disable_nullable (`bool`, default: `True`): Allow null values in the table.
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
