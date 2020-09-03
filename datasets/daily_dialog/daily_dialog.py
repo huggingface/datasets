@@ -41,7 +41,13 @@ benefit the research field of dialog systems.
 
 _URL = "http://yanran.li/files/ijcnlp_dailydialog.zip"
 
-act_label = {"1": "inform", "2": "question", "3": "directive", "4": "commissive"}
+act_label = {
+    "0": "__dummy__",  # Added to be compatible out-of-the-box with nlp.ClassLabel
+    "1": "inform",
+    "2": "question",
+    "3": "directive",
+    "4": "commissive",
+}
 
 emotion_label = {
     "0": "no emotion",
