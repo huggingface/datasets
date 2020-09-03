@@ -36,13 +36,17 @@ class MissingIndex(Exception):
     pass
 
 
-SearchResults = NamedTuple("SearchResults", [("scores", List[float]), ("indices", List[int])])
+SearchResults = NamedTuple(
+    "SearchResults", [("scores", List[float]), ("indices", List[int])]
+)
 BatchedSearchResults = NamedTuple(
     "BatchedSearchResults",
     [("total_scores", List[List[float]]), ("total_indices", List[List[int]])],
 )
 
-NearestExamplesResults = NamedTuple("NearestExamplesResults", [("scores", List[float]), ("examples", dict)])
+NearestExamplesResults = NamedTuple(
+    "NearestExamplesResults", [("scores", List[float]), ("examples", dict)]
+)
 BatchedNearestExamplesResults = NamedTuple(
     "BatchedNearestExamplesResults",
     [("total_scores", List[List[float]]), ("total_examples", List[dict])],
@@ -113,11 +117,16 @@ class ElasticSearchIndex(BaseIndex):
         ), "Please specify either `es_client` or `(host, port)`, but not both."
         host = host or "localhost"
         port = port or 9200
-        self.es_client = es_client if es_client is not None else Elasticsearch([{"host": host, "port": str(port)}])
+        self.es_client = (
+            es_client
+            if es_client is not None
+            else Elasticsearch([{"host": host, "port": str(port)}])
+        )
         self.es_index_name = (
             es_index_name
             if es_index_name is not None
-            else "huggingface_nlp_" + os.path.basename(tempfile.NamedTemporaryFile().name)
+            else "huggingface_nlp_"
+            + os.path.basename(tempfile.NamedTemporaryFile().name)
         )
         self.es_index_config = (
             es_index_config
@@ -146,7 +155,9 @@ class ElasticSearchIndex(BaseIndex):
             }
         )
 
-    def add_documents(self, documents: Union[List[str], "Dataset"], column: Optional[str] = None):
+    def add_documents(
+        self, documents: Union[List[str], "Dataset"], column: Optional[str] = None
+    ):
         """
         Add documents to the index.
         If the documents are inside a certain column, you can specify it using the `column` argument.
@@ -207,7 +218,9 @@ class ElasticSearchIndex(BaseIndex):
             },
         )
         hits = response["hits"]["hits"]
-        return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
+        return SearchResults(
+            [hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits]
+        )
 
 
 class FaissIndex(BaseIndex):
@@ -263,7 +276,9 @@ class FaissIndex(BaseIndex):
                 if self.metric_type is None:
                     index = faiss.index_factory(size, self.string_factory)
                 else:
-                    index = faiss.index_factory(size, self.string_factory, self.metric_type)
+                    index = faiss.index_factory(
+                        size, self.string_factory, self.metric_type
+                    )
             else:
                 if self.metric_type is None:
                     index = faiss.IndexFlat(size)
@@ -278,26 +293,45 @@ class FaissIndex(BaseIndex):
         # Set verbosity level
         if faiss_verbose is not None:
             self.faiss_index.verbose = faiss_verbose
-            if hasattr(self.faiss_index, "index") and self.faiss_index.index is not None:
+            if (
+                hasattr(self.faiss_index, "index")
+                and self.faiss_index.index is not None
+            ):
                 self.faiss_index.index.verbose = faiss_verbose
-            if hasattr(self.faiss_index, "quantizer") and self.faiss_index.quantizer is not None:
+            if (
+                hasattr(self.faiss_index, "quantizer")
+                and self.faiss_index.quantizer is not None
+            ):
                 self.faiss_index.quantizer.verbose = faiss_verbose
-            if hasattr(self.faiss_index, "clustering_index") and self.faiss_index.clustering_index is not None:
+            if (
+                hasattr(self.faiss_index, "clustering_index")
+                and self.faiss_index.clustering_index is not None
+            ):
                 self.faiss_index.clustering_index.verbose = faiss_verbose
 
         # Train
         if train_size is not None:
-            logger.info("Training the index with the first {} vectors".format(train_size))
-            train_vecs = vectors[:train_size] if column is None else vectors[:train_size][column]
+            logger.info(
+                "Training the index with the first {} vectors".format(train_size)
+            )
+            train_vecs = (
+                vectors[:train_size] if column is None else vectors[:train_size][column]
+            )
             self.faiss_index.train(train_vecs)
         else:
-            logger.info("Ignored the training step of the faiss index as `train_size` is None.")
+            logger.info(
+                "Ignored the training step of the faiss index as `train_size` is None."
+            )
 
         # Add vectors
         logger.info("Adding {} vectors to the faiss index".format(len(vectors)))
         not_verbose = bool(logger.getEffectiveLevel() > INFO)
         for i in tqdm(range(0, len(vectors), batch_size), disable=not_verbose):
-            vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
+            vecs = (
+                vectors[i : i + batch_size]
+                if column is None
+                else vectors[i : i + batch_size][column]
+            )
             self.faiss_index.add(vecs)
 
     def search(self, query: np.array, k=10) -> SearchResults:
@@ -358,7 +392,9 @@ class FaissIndex(BaseIndex):
         index = faiss.read_index(file)
         if faiss_index.device is not None and faiss_index.device > -1:
             faiss_index.faiss_res = faiss.StandardGpuResources()
-            index = faiss.index_cpu_to_gpu(faiss_index.faiss_res, faiss_index.device, index)
+            index = faiss.index_cpu_to_gpu(
+                faiss_index.faiss_res, faiss_index.device, index
+            )
         faiss_index.faiss_index = index
         return faiss_index
 
@@ -428,7 +464,9 @@ class IndexableMixin:
             metric_type=metric_type,
             custom_index=custom_index,
         )
-        self._indexes[index_name].add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
+        self._indexes[index_name].add_vectors(
+            self, column=column, train_size=train_size, faiss_verbose=faiss_verbose
+        )
 
     def add_faiss_index_from_external_arrays(
         self,
@@ -480,7 +518,11 @@ class IndexableMixin:
         """
         index = self.get_index(index_name)
         if not isinstance(index, FaissIndex):
-            raise ValueError("Index '{}' is not a FaissIndex but a '{}'".format(index_name, type(index)))
+            raise ValueError(
+                "Index '{}' is not a FaissIndex but a '{}'".format(
+                    index_name, type(index)
+                )
+            )
         index.save(file)
         logger.info("Saved FaissIndex {} at {}".format(index_name, file))
 
@@ -541,7 +583,9 @@ class IndexableMixin:
                 }
         """
         index_name = index_name if index_name is not None else column
-        self._indexes[index_name] = ElasticSearchIndex(host, port, es_client, es_index_name, es_index_config)
+        self._indexes[index_name] = ElasticSearchIndex(
+            host, port, es_client, es_index_name, es_index_config
+        )
         self._indexes[index_name].add_documents(self, column=column)
 
     def drop_index(self, index_name: str):
@@ -552,7 +596,9 @@ class IndexableMixin:
         """
         del self._indexes[index_name]
 
-    def search(self, index_name: str, query: Union[str, np.array], k: int = 10) -> SearchResults:
+    def search(
+        self, index_name: str, query: Union[str, np.array], k: int = 10
+    ) -> SearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
         Args:
@@ -567,7 +613,9 @@ class IndexableMixin:
         self._check_index_is_initialized(index_name)
         return self._indexes[index_name].search(query, k)
 
-    def search_batch(self, index_name: str, queries: Union[List[str], np.array], k: int = 10) -> BatchedSearchResults:
+    def search_batch(
+        self, index_name: str, queries: Union[List[str], np.array], k: int = 10
+    ) -> BatchedSearchResults:
         """Find the nearest examples indices in the dataset to the query.
 
         Args:
