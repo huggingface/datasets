@@ -119,7 +119,7 @@ class KILTWikipedia(nlp.GeneratorBasedBuilder):
             # No default supervised_keys (as we have to pass both premise
             # and hypothesis as input).
             supervised_keys=None,
-            homepage="https://facebookresearch.github.io/KILT/",
+            homepage="https://github.com/facebookresearch/KILT",
             citation=_CITATION,
         )
 

@@ -46,16 +46,18 @@ _CITATION = """\
 _DESCRIPTION = """\
 KILT tasks training and evaluation data.
 - [FEVER](https://fever.ai) | Fact Checking | fever
+- [AIDA CoNLL-YAGO](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/ambiverse-nlu/aida/downloads) | Entity Linking | aidayago2
+- [WNED-WIKI](https://github.com/U-Alberta/wned) | Entity Linking | wned
+- [WNED-CWEB](https://github.com/U-Alberta/wned) | Entity Linking | cweb
+- [T-REx](https://hadyelsahar.github.io/t-rex) | Slot Filling | trex
+- [Zero-Shot RE](http://nlp.cs.washington.edu/zeroshot) | Slot Filling | structured_zeroshot
 - [Natural Questions](https://ai.google.com/research/NaturalQuestions) | Open Domain QA  | nq
 - [HotpotQA](https://hotpotqa.github.io) | Open Domain QA | hotpotqa
 - [TriviaQA](http://nlp.cs.washington.edu/triviaqa) | Open Domain QA | triviaqa
 - [ELI5](https://facebookresearch.github.io/ELI5/explore.html) | Open Domain QA | eli5
-- [T-REx](https://hadyelsahar.github.io/t-rex) | Slot Filling | trex
-- [Zero-Shot RE](http://nlp.cs.washington.edu/zeroshot) | Slot Filling | structured_zeroshot
-- [AIDA CoNLL-YAGO](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/ambiverse-nlu/aida/downloads) | Entity Linking | aidayago2
-- [WNED-WIKI](https://github.com/U-Alberta/wned) | Entity Linking | wned
-- [WNED-CWEB](https://github.com/U-Alberta/wned) | Entity Linking | cweb
 - [Wizard of Wikipedia](https://parl.ai/projects/wizard_of_wikipedia) | Dialogue | wow
+
+To finish linking TriviaQA questions to the IDs provided, follow the instructions [here](http://github.com/huggingface/nlp/datasets/kilt_tasks/README.md).
 """
 
 
@@ -64,6 +66,29 @@ _DATA_URLS = {
         "train": "http://dl.fbaipublicfiles.com/KILT/fever-train-kilt.jsonl",
         "validation": "http://dl.fbaipublicfiles.com/KILT/fever-dev-kilt.jsonl",
         "test": "http://dl.fbaipublicfiles.com/KILT/fever-test_without_answers-kilt.jsonl",
+    },
+    "aidayago2": {
+        "train": "http://dl.fbaipublicfiles.com/KILT/aidayago2-train-kilt.jsonl",
+        "validation": "http://dl.fbaipublicfiles.com/KILT/aidayago2-dev-kilt.jsonl",
+        "test": "http://dl.fbaipublicfiles.com/KILT/aidayago2-test_without_answers-kilt.jsonl",
+    },
+    "wned": {
+        "validation": "http://dl.fbaipublicfiles.com/KILT/wned-dev-kilt.jsonl",
+        "test": "http://dl.fbaipublicfiles.com/KILT/wned-test_without_answers-kilt.jsonl",
+    },
+    "cweb": {
+        "validation": "http://dl.fbaipublicfiles.com/KILT/cweb-dev-kilt.jsonl",
+        "test": "http://dl.fbaipublicfiles.com/KILT/cweb-test_without_answers-kilt.jsonl",
+    },
+    "trex": {
+        "train": "http://dl.fbaipublicfiles.com/KILT/trex-train-kilt.jsonl",
+        "validation": "http://dl.fbaipublicfiles.com/KILT/trex-dev-kilt.jsonl",
+        "test": "http://dl.fbaipublicfiles.com/KILT/trex-test_without_answers-kilt.jsonl",
+    },
+    "structured_zeroshot": {
+        "train": "http://dl.fbaipublicfiles.com/KILT/structured_zeroshot-train-kilt.jsonl",
+        "validation": "http://dl.fbaipublicfiles.com/KILT/structured_zeroshot-dev-kilt.jsonl",
+        "test": "http://dl.fbaipublicfiles.com/KILT/structured_zeroshot-test_without_answers-kilt.jsonl",
     },
     "nq": {
         "train": "http://dl.fbaipublicfiles.com/KILT/nq-train-kilt.jsonl",
@@ -84,29 +109,6 @@ _DATA_URLS = {
         "train": "http://dl.fbaipublicfiles.com/KILT/eli5-train-kilt.jsonl",
         "validation": "http://dl.fbaipublicfiles.com/KILT/eli5-dev-kilt.jsonl",
         "test": "http://dl.fbaipublicfiles.com/KILT/eli5-test_without_answers-kilt.jsonl",
-    },
-    "trex": {
-        "train": "http://dl.fbaipublicfiles.com/KILT/trex-train-kilt.jsonl",
-        "validation": "http://dl.fbaipublicfiles.com/KILT/trex-dev-kilt.jsonl",
-        "test": "http://dl.fbaipublicfiles.com/KILT/trex-test_without_answers-kilt.jsonl",
-    },
-    "structured_zeroshot": {
-        "train": "http://dl.fbaipublicfiles.com/KILT/structured_zeroshot-train-kilt.jsonl",
-        "validation": "http://dl.fbaipublicfiles.com/KILT/structured_zeroshot-dev-kilt.jsonl",
-        "test": "http://dl.fbaipublicfiles.com/KILT/structured_zeroshot-test_without_answers-kilt.jsonl",
-    },
-    "aidayago2": {
-        "train": "http://dl.fbaipublicfiles.com/KILT/aidayago2-train-kilt.jsonl",
-        "validation": "http://dl.fbaipublicfiles.com/KILT/aidayago2-dev-kilt.jsonl",
-        "test": "http://dl.fbaipublicfiles.com/KILT/aidayago2-test_without_answers-kilt.jsonl",
-    },
-    "wned": {
-        "validation": "http://dl.fbaipublicfiles.com/KILT/wned-dev-kilt.jsonl",
-        "test": "http://dl.fbaipublicfiles.com/KILT/wned-test_without_answers-kilt.jsonl",
-    },
-    "cweb": {
-        "validation": "http://dl.fbaipublicfiles.com/KILT/cweb-dev-kilt.jsonl",
-        "test": "http://dl.fbaipublicfiles.com/KILT/cweb-test_without_answers-kilt.jsonl",
     },
     "wow": {
         "train": "http://dl.fbaipublicfiles.com/KILT/wow-train-kilt.jsonl",
@@ -205,7 +207,7 @@ class KILTTasks(nlp.GeneratorBasedBuilder):
             # No default supervised_keys (as we have to pass both premise
             # and hypothesis as input).
             supervised_keys=None,
-            homepage="https://facebookresearch.github.io/KILT/",
+            homepage="https://github.com/facebookresearch/KILT",
             citation=_CITATION,
         )
 

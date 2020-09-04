@@ -1,6 +1,6 @@
 # Loading the KILT knowledge source and task data
 
-The original KILT [release]() only provides question IDs for the TriviaQA task. Using the full dataset requires mapping those back to the TriviaQA questions, which can be done as follows: 
+The original KILT [release](https://github.com/facebookresearch/KILT) only provides question IDs for the TriviaQA task. Using the full dataset requires mapping those back to the TriviaQA questions, which can be done as follows: 
 
 ```python
 from nlp import load_dataset
