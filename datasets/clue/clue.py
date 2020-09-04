@@ -398,7 +398,7 @@ class Clue(nlp.GeneratorBasedBuilder):
 
         return split_list
 
-    def _generate_examples(self, data_file, split, mrpc_files=None):
+    def _generate_examples(self, data_file, split):
         process_label = self.config.process_label
         label_classes = self.config.label_classes
 
