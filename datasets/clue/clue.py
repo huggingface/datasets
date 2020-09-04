@@ -225,9 +225,8 @@ class Clue(nlp.GeneratorBasedBuilder):
             name="chid",
             description=textwrap.dedent(
                 """\
-            Delta Reading Comprehension Dataset (DRCD) belongs to the general field of traditional
-            Chinese machine reading comprehension data set. This data set is expected to become a
-            standard Chinese reading comprehension data set suitable for transfer learning.
+            Chinese IDiom Dataset for Cloze Test (CHID) contains many masked idioms in the text.
+            The candidates contain similar idioms to the real ones.
             """
             ),
             text_features={"candidates": "candidates", "content": "content"},
@@ -249,9 +248,10 @@ class Clue(nlp.GeneratorBasedBuilder):
             name="c3",
             description=textwrap.dedent(
                 """\
-            Delta Reading Comprehension Dataset (DRCD) belongs to the general field of traditional
-            Chinese machine reading comprehension data set. This data set is expected to become a
-            standard Chinese reading comprehension data set suitable for transfer learning.
+            Multiple-Choice Chinese Machine Reading Comprehension (C3, or C^3) is a Chinese 
+            multi-choice reading comprehension data set, including mixed type data sets 
+            such as dialogue and long text. Both the training and validation sets are 
+            the concatenation of the dialogue and long-text subsets.
             """
             ),
             text_features={"candidates": "candidates", "content": "content"},
@@ -362,7 +362,7 @@ class Clue(nlp.GeneratorBasedBuilder):
         test_split = nlp.SplitGenerator(
             name=nlp.Split.TEST,
             gen_kwargs={
-                "data_file": os.path.join(data_dir or "", "test.json" if self.config.name != "diagnostics" else "diagnostics_test.json"),
+                "data_file": os.path.join(data_dir, "test.json" if self.config.name != "diagnostics" else "diagnostics_test.json"),
                 "split": "test",
             },
         )
@@ -472,7 +472,6 @@ class Clue(nlp.GeneratorBasedBuilder):
                             # For some tasks, the label is represented as 0 and 1 in the tsv
                             # files and needs to be cast to integer to work with the feature.
                             if label_classes and label not in label_classes:
-                                print(label, label_classes)
                                 label = int(label) if label else None
                             example["label"] = process_label(label)
                         else:
