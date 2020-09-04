@@ -578,4 +578,6 @@ def load_from_disk(dataset_path: str) -> Union[Dataset, DatasetDict]:
     elif os.path.exists(os.path.join(dataset_path, "dataset_dict.json")):
         return DatasetDict.load_from_disk(dataset_path)
     else:
-        raise FileNotFoundError("Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path))
+        raise FileNotFoundError(
+            "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)
+        )
