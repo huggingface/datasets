@@ -276,3 +276,21 @@ class DatasetDictTest(TestCase):
         self.assertRaises(TypeError, dsets.filter, lambda x: True)
         self.assertRaises(TypeError, dsets.shuffle)
         self.assertRaises(TypeError, dsets.sort, "filename")
+
+    def test_serialization(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save(tmp_dir)
+            dsets = DatasetDict.load(tmp_dir)
+            self.assertListEqual(sorted(dsets), ["test", "train"])
+            self.assertEqual(len(dsets["train"]), 30)
+            self.assertListEqual(dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(dsets["test"]), 30)
+            self.assertListEqual(dsets["test"].column_names, ["filename"])
+
+            del dsets["test"]
+            dsets.save(tmp_dir)
+            dsets = DatasetDict.load(tmp_dir)
+            self.assertListEqual(sorted(dsets), ["train"])
+            self.assertEqual(len(dsets["train"]), 30)
+            self.assertListEqual(dsets["train"].column_names, ["filename"])

@@ -347,7 +347,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             state["_indices"] = None
         return state
 
-    def __setstate__(self, state, root_dir=""):
+    def __setstate__(self, state):
         assert (
             state.get("_data") is not None or state.get("_data_files") is not None
         ), "tried to unpickle a dataset without arrow_table or data_files"
@@ -355,7 +355,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         state["_info"] = DatasetInfo.from_dict(json.loads(state["_info"]))
         state["_split"] = NamedSplit(state["_split"]) if state["_split"] is not None else None
         self.__dict__ = state
-        reader = ArrowReader(root_dir, self.info)
+        reader = ArrowReader("", self.info)
         # Read arrow tables
         if self._data is None and self._data_files:
             tables = []
@@ -370,12 +370,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # fix all-empty tables
             tables = tables or [pa.Table.from_batches([], schema=pa.schema(self.info.features.type))]
             self._data = pa.concat_tables(tables)
-        reader = ArrowReader(root_dir, DatasetInfo(features=Features({"indices": Value("int64")})))
+        reader = ArrowReader("", DatasetInfo(features=Features({"indices": Value("int64")})))
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
 
     def save(self, dataset_path: str):
-        """Save the dataset in a datasetdirectory"""
+        """Save the dataset in a dataset directory"""
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
@@ -432,7 +432,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})
         state = {k: state[k] for k in dataset.__dict__.keys()}  # in case we add new fields
-        dataset.__setstate__(state, root_dir=dataset_path)
+        # Change path to absolute path
+        for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
+            data_file["filename"] = os.path.join(dataset_path, data_file["filename"])
+        dataset.__setstate__(state)
         return dataset
 
     @property

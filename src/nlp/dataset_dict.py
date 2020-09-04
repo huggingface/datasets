@@ -1,4 +1,6 @@
 import contextlib
+import json
+import os
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -457,3 +459,18 @@ class DatasetDict(dict):
                 for k, dataset in self.items()
             }
         )
+
+    def save(self, dataset_dict_path: str):
+        """Save the dataset dict in a dataset dict directory"""
+        os.makedirs(dataset_dict_path, exist_ok=True)
+        json.dump({"splits": list(self)}, open(os.path.join(dataset_dict_path, "dataset_dict.json"), "w"))
+        for k, dataset in self.items():
+            dataset.save(os.path.join(dataset_dict_path, k))
+
+    @staticmethod
+    def load(dataset_dict_path: str):
+        """Load the dataset dict from a dataset dict directory"""
+        dataset_dict = DatasetDict()
+        for k in json.load(open(os.path.join(dataset_dict_path, "dataset_dict.json"), "r"))["splits"]:
+            dataset_dict[k] = Dataset.load(os.path.join(dataset_dict_path, k))
+        return dataset_dict
