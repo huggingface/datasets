@@ -460,17 +460,17 @@ class DatasetDict(dict):
             }
         )
 
-    def save(self, dataset_dict_path: str):
+    def save_to_disk(self, dataset_dict_path: str):
         """Save the dataset dict in a dataset dict directory"""
         os.makedirs(dataset_dict_path, exist_ok=True)
         json.dump({"splits": list(self)}, open(os.path.join(dataset_dict_path, "dataset_dict.json"), "w"))
         for k, dataset in self.items():
-            dataset.save(os.path.join(dataset_dict_path, k))
+            dataset.save_to_disk(os.path.join(dataset_dict_path, k))
 
     @staticmethod
-    def load(dataset_dict_path: str):
+    def load_from_disk(dataset_dict_path: str) -> "DatasetDict":
         """Load the dataset dict from a dataset dict directory"""
         dataset_dict = DatasetDict()
         for k in json.load(open(os.path.join(dataset_dict_path, "dataset_dict.json"), "r"))["splits"]:
-            dataset_dict[k] = Dataset.load(os.path.join(dataset_dict_path, k))
+            dataset_dict[k] = Dataset.load_from_disk(os.path.join(dataset_dict_path, k))
         return dataset_dict

@@ -374,7 +374,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._indices is None and self._indices_data_files:
             self._indices = reader._read_files(self._indices_data_files)
 
-    def save(self, dataset_path: str):
+    def save_to_disk(self, dataset_path: str):
         """Save the dataset in a dataset directory"""
         assert (
             not self.list_indexes()
@@ -423,7 +423,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info("Dataset saved in {}".format(dataset_path))
 
     @staticmethod
-    def load(dataset_path: str):
+    def load_from_disk(dataset_path: str) -> "Dataset":
         """Load the dataset from a dataset directory"""
         with open(os.path.join(dataset_path, "state.json"), "r") as state_file:
             state = json.load(state_file)
