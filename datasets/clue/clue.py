@@ -18,13 +18,11 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 import re
 import textwrap
 
-import numpy as np
 import six
 
 import nlp
@@ -47,45 +45,6 @@ CLUE, A Chinese Language Understanding Evaluation Benchmark
 evaluating, and analyzing Chinese language understanding systems.
 
 """
-
-_MRPC_DEV_IDS = "https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2Fmrpc_dev_ids.tsv?alt=media&token=ec5c0836-31d5-48f4-b431-7480817f1adc"
-_MRPC_TRAIN = "https://dl.fbaipublicfiles.com/senteval/senteval_data/msr_paraphrase_train.txt"
-_MRPC_TEST = "https://dl.fbaipublicfiles.com/senteval/senteval_data/msr_paraphrase_test.txt"
-
-_MNLI_BASE_KWARGS = dict(
-    text_features={"premise": "sentence1", "hypothesis": "sentence2", },
-    label_classes=["entailment", "neutral", "contradiction"],
-    label_column="gold_label",
-    data_url="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FMNLI.zip?alt=media&token=50329ea1-e339-40e2-809c-10c40afff3ce",
-    data_dir="MNLI",
-    citation=textwrap.dedent(
-        """\
-      @InProceedings{N18-1101,
-        author = "Williams, Adina
-                  and Nangia, Nikita
-                  and Bowman, Samuel",
-        title = "A Broad-Coverage Challenge Corpus for
-                 Sentence Understanding through Inference",
-        booktitle = "Proceedings of the 2018 Conference of
-                     the North American Chapter of the
-                     Association for Computational Linguistics:
-                     Human Language Technologies, Volume 1 (Long
-                     Papers)",
-        year = "2018",
-        publisher = "Association for Computational Linguistics",
-        pages = "1112--1122",
-        location = "New Orleans, Louisiana",
-        url = "http://aclweb.org/anthology/N18-1101"
-      }
-      @article{bowman2015large,
-        title={A large annotated corpus for learning natural language inference},
-        author={Bowman, Samuel R and Angeli, Gabor and Potts, Christopher and Manning, Christopher D},
-        journal={arXiv preprint arXiv:1508.05326},
-        year={2015}
-      }"""
-    ),
-    url="http://www.nyu.edu/projects/bowman/multinli/",
-)
 
 
 class ClueConfig(nlp.BuilderConfig):
@@ -328,7 +287,6 @@ class Clue(nlp.GeneratorBasedBuilder):
             label_classes=["neutral", "entailment", "contradiction"],
             label_column="label",
             data_url="https://storage.googleapis.com/cluebenchmark/tasks/clue_diagnostics_public.zip",
-            data_dir="",
         ),
     ]
 
@@ -526,47 +484,3 @@ class Clue(nlp.GeneratorBasedBuilder):
                                 break
                         else:
                             yield example["idx"], example
-        # if self.config.name == "mrpc":
-        #     # We have to prepare the MRPC dataset from the original sources ourselves.
-        #     examples = self._generate_example_mrpc_files(mrpc_files=mrpc_files, split=split)
-        #     for example in examples:
-        #         yield example["idx"], example
-        # else:
-        #     process_label = self.config.process_label
-        #     label_classes = self.config.label_classes
-        #
-        #     # The train and dev files for CoLA are the only tsv files without a
-        #     # header.
-        #     is_cola_non_test = self.config.name == "cola" and split != "test"
-        #
-        #     with open(data_file, encoding="utf8") as f:
-        #         reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-        #         if is_cola_non_test:
-        #             reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-        #
-        #         for n, row in enumerate(reader):
-        #             if is_cola_non_test:
-        #                 row = {
-        #                     "sentence": row[3],
-        #                     "is_acceptable": row[1],
-        #                 }
-        #
-        #             example = {feat: row[col] for feat, col in six.iteritems(self.config.text_features)}
-        #             example["idx"] = n
-        #
-        #             if self.config.label_column in row:
-        #                 label = row[self.config.label_column]
-        #                 # For some tasks, the label is represented as 0 and 1 in the tsv
-        #                 # files and needs to be cast to integer to work with the feature.
-        #                 if label_classes and label not in label_classes:
-        #                     label = int(label) if label else None
-        #                 example["label"] = process_label(label)
-        #             else:
-        #                 example["label"] = process_label(-1)
-        #
-        #             # Filter out corrupted rows.
-        #             for value in six.itervalues(example):
-        #                 if value is None:
-        #                     break
-        #             else:
-        #                 yield example["idx"], example
