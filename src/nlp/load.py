@@ -37,7 +37,7 @@ from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
-from .utils.file_utils import DownloadConfig, cached_path, hf_bucket_url, HF_MODULES_CACHE
+from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, hf_bucket_url
 from .utils.logging import get_logger
 
 
