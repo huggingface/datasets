@@ -199,7 +199,7 @@ class BaseReader:
         if not files:
             msg = 'Instruction "%s" corresponds to no data!' % instructions
             raise AssertionError(msg)
-        return self.read_files(files=tuple(files), original_instructions=instructions)
+        return self.read_files(files=files, original_instructions=instructions)
 
     def read_files(
         self,

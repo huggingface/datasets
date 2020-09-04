@@ -1,4 +1,5 @@
 import json
+import os
 from copy import deepcopy
 from dataclasses import asdict
 from functools import wraps
@@ -78,7 +79,7 @@ def _hash_pa_table(hasher, value):
 
 @hashregister(DatasetInfo)
 def _hash_dataset_info(hasher, value):
-    return hasher.hash_bytes(json.dumps(asdict(value)).encode("utf-8"))
+    return hasher.hash_bytes(json.dumps(asdict(value), sort_keys=True).encode("utf-8"))
 
 
 def generate_fingerprint(dataset):
@@ -89,6 +90,9 @@ def generate_fingerprint(dataset):
             continue
         hasher.update(key)
         hasher.update(state[key])
+    # hash data files last modification timestamps as well
+    for data_file in state.get("_data_files", []) + state.get("_indices_data_files", []):
+        hasher.update(os.path.getmtime(data_file["filename"]))
     return hasher.hexdigest()
 
 

@@ -324,3 +324,26 @@ class AWSDatasetTest(parameterized.TestCase):
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
+
+
+class TextTest(TestCase):
+    def test_caching(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("foo" for _ in range(10)))
+            ds = load_dataset(
+                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
+            )
+            data_file = ds._data_files[0]
+            fingerprint = ds._fingerprint
+            ds = load_dataset(
+                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
+            )
+            self.assertEqual(ds._data_files[0], data_file)
+            self.assertEqual(ds._fingerprint, fingerprint)
+
+            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("bar" for _ in range(10)))
+            ds = load_dataset(
+                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
+            )
+            self.assertNotEqual(ds._data_files[0], data_file)
+            self.assertNotEqual(ds._fingerprint, fingerprint)
