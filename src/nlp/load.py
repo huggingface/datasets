@@ -37,17 +37,24 @@ from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
-from .utils.file_utils import DownloadConfig, cached_path, hf_bucket_url
+from .utils.file_utils import DownloadConfig, cached_path, hf_bucket_url, HF_MODULES_CACHE
 from .utils.logging import get_logger
 
 
 logger = get_logger(__name__)
 
-CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "datasets")
-DATASETS_MODULE = "nlp.datasets"
-METRICS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "metrics")
-METRICS_MODULE = "nlp.metrics"
+DYNAMIC_MODULES_PATH = os.path.join(HF_MODULES_CACHE, "nlp_modules")
+DATASETS_PATH = os.path.join(DYNAMIC_MODULES_PATH, "datasets")
+DATASETS_MODULE = "nlp_modules.datasets"
+METRICS_PATH = os.path.join(DYNAMIC_MODULES_PATH, "metrics")
+METRICS_MODULE = "nlp_modules.metrics"
+
+
+def init_dynamic_modules():
+    os.makedirs(DYNAMIC_MODULES_PATH, exist_ok=True)
+    if not os.path.exists(os.path.join(DYNAMIC_MODULES_PATH, "__init__.py")):
+        with open(os.path.join(DYNAMIC_MODULES_PATH, "__init__.py"), "w"):
+            pass
 
 
 def import_main_class(module_path, dataset=True) -> Union[DatasetBuilder, Metric]:
@@ -221,6 +228,7 @@ def prepare_module(
             - the local path to the dataset/metric file if force_local_path is True: e.g. '/User/huggingface/nlp/datasets/squad/squad.py'
         2. A hash string computed from the content of the dataset loading script.
     """
+    init_dynamic_modules()
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
     download_config.extract_compressed_file = True
