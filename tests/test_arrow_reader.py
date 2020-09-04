@@ -1,8 +1,8 @@
-from unittest import TestCase
 import os
+import tempfile
+from unittest import TestCase
 
 import pyarrow as pa
-import tempfile
 
 from nlp.arrow_dataset import Dataset
 from nlp.arrow_reader import BaseReader
@@ -71,7 +71,10 @@ class BaseReaderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             reader = ReaderTest(tmp_dir, info)
 
-            files = [{"filename": os.path.join(tmp_dir, "train")}, {"filename": os.path.join(tmp_dir, "test"), "skip": 10, "take": 10}]
+            files = [
+                {"filename": os.path.join(tmp_dir, "train")},
+                {"filename": os.path.join(tmp_dir, "test"), "skip": 10, "take": 10},
+            ]
             dset = Dataset(**reader.read_files(files, original_instructions=""))
             self.assertEqual(dset.num_rows, 110)
             self.assertEqual(dset.num_columns, 1)
