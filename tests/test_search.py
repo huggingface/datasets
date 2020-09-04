@@ -5,14 +5,10 @@ from unittest.mock import patch
 
 import faiss
 import numpy as np
-import pyarrow as pa
 from elasticsearch import Elasticsearch
 
 from nlp.arrow_dataset import Dataset
-from nlp.arrow_reader import BaseReader
-from nlp.info import DatasetInfo
 from nlp.search import ElasticSearchIndex, FaissIndex, MissingIndex
-from nlp.splits import SplitDict, SplitInfo
 
 
 class IndexableDatasetTest(TestCase):
