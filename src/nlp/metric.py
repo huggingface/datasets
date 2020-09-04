@@ -18,7 +18,7 @@
 import os
 import types
 import uuid
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
@@ -38,12 +38,23 @@ from .utils.logging import get_logger
 logger = get_logger(__file__)
 
 
-class NoFileLock(BaseFileLock):
-    """Thread lock until file exists"""
+class FileFreeLock(BaseFileLock):
+    """Thread lock until a file **cannot** be locked"""
+
+    def __init__(self, lock_file, *args, **kwargs):
+        self.filelock = FileLock(lock_file)
+        super().__init__(lock_file, *args, **kwargs)
 
     def _acquire(self):
-        if os.path.exists(self._lock_file):
-            self._lock_file_fd = self._lock_file
+        try:
+            self.filelock.acquire(timeout=0.01, poll_intervall=0.02)  # Try to lock once
+        except Timeout:
+            # We couldn't acquire the lock, the file is locked!
+            self._lock_file_fd = self.filelock.lock_file
+        else:
+            # We were able to acquire the lock, the file is not yet locked!
+            self.filelock.release()
+            self._lock_file_fd = None
 
     def _release(self):
         self._lock_file_fd = None
@@ -60,6 +71,7 @@ class Metric(object):
         config_name: Optional[str] = None,
         experiment_id: Optional[str] = None,
         max_concurrent_cache_files: int = 10000,
+        timeout: Union[int, float] = 100,
         **kwargs,
     ):
         """A Metrics is the base class and common API for all metrics.
@@ -77,6 +89,7 @@ class Metric(object):
             experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
                 This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
             max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
+            timeout (``Union[int, float]``): Timeout in second for distributed setting synchronization.
         """
         # Metric name
         self.name = camelcase_to_snakecase(self.__class__.__name__)
@@ -101,6 +114,7 @@ class Metric(object):
         self._data_dir_root = os.path.expanduser(data_dir or HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
         self.seed: int = seed or np.random.get_state()[1][0]
+        self.timeout: Union[int, float] = 100
 
         # prepare info
         info = self._info()
@@ -147,7 +161,7 @@ class Metric(object):
     def _create_cache_file(self, timeout=1) -> Tuple[str, FileLock]:
         """ Create a new cache file. If the default cache file is used, we generated a new hash. """
         file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{self.process_id}.arrow")
-
+        filelock = None
         for i in range(self.max_concurrent_cache_files):
             filelock = FileLock(file_path + ".lock")
             try:
@@ -177,7 +191,7 @@ class Metric(object):
 
         return file_path, filelock
 
-    def _get_all_cache_files(self, timeout=100) -> Tuple[List[str], List[FileLock]]:
+    def _get_all_cache_files(self) -> Tuple[List[str], List[FileLock]]:
         """Get a lock on all the cache files in a distributed setup.
         We wait for timeout second to let all the distributed node finish their tasks (default is 100 seconds).
         """
@@ -194,7 +208,7 @@ class Metric(object):
         for process_id, file_path in enumerate(file_paths):
             filelock = FileLock(file_path + ".lock")
             try:
-                filelock.acquire(timeout=timeout)
+                filelock.acquire(timeout=self.timeout)
             except Timeout:
                 raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
             else:
@@ -202,15 +216,15 @@ class Metric(object):
 
         return file_paths, filelocks
 
-    def _check_all_processes_locks(self, timeout=100):
+    def _check_all_processes_locks(self):
         expected_lock_file_names = [
             os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{process_id}.arrow.lock")
             for process_id in range(self.num_process)
         ]
         for expected_lock_file_name in expected_lock_file_names:
-            nofilelock = NoFileLock(expected_lock_file_name)
+            nofilelock = FileFreeLock(expected_lock_file_name)
             try:
-                nofilelock.acquire(timeout=timeout)
+                nofilelock.acquire(timeout=self.timeout)
             except Timeout:
                 raise ValueError(
                     f"Expeced to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
@@ -218,12 +232,10 @@ class Metric(object):
             else:
                 nofilelock.release()
 
-    def finalize(self, timeout=100):
+    def finalize(self):
         """Close all the writing process and load/gather the data
         from all the nodes if main node or all_process is True.
         """
-        if self.num_process > 1:
-            self._check_all_processes_locks(timeout=timeout)
         if self.writer is not None:
             self.writer.finalize()
         self.writer = None
@@ -237,7 +249,7 @@ class Metric(object):
 
         elif self.process_id == 0:
             # Let's acquire a lock on each node files to be sure they are finished writing
-            file_paths, filelocks = self._get_all_cache_files(timeout=timeout)
+            file_paths, filelocks = self._get_all_cache_files()
 
             # Read the predictions and references
             try:
@@ -272,11 +284,10 @@ class Metric(object):
 
         predictions = kwargs.pop("predictions", None)
         references = kwargs.pop("references", None)
-        timeout = kwargs.pop("timeout", 120)
 
         if predictions is not None:
             self.add_batch(predictions=predictions, references=references)
-        self.finalize(timeout=timeout)
+        self.finalize()
 
         self.cache_file_name = None
         self.filelock = None
@@ -338,6 +349,9 @@ class Metric(object):
             self.writer = ArrowWriter(
                 features=self.info.features, path=self.cache_file_name, writer_batch_size=self.writer_batch_size
             )
+        # Setup rendez-vous here if
+        if self.num_process > 1:
+            self._check_all_processes_locks()
 
     def _info(self) -> MetricInfo:
         """Construct the MetricInfo object. See `MetricInfo` for details.
