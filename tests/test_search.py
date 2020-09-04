@@ -15,37 +15,9 @@ from nlp.search import ElasticSearchIndex, FaissIndex, MissingIndex
 from nlp.splits import SplitDict, SplitInfo
 
 
-class ReaderTester(BaseReader):
-    """
-    Build a Dataset object out of Instruction instance(s).
-    This reader is made for testing. It mocks file reads.
-    """
-
-    def _get_dataset_from_filename(self, filename_skip_take):
-        """Returns a Dataset instance from given (filename, skip, take)."""
-        filename, skip, take = (
-            filename_skip_take["filename"],
-            filename_skip_take["skip"] if "skip" in filename_skip_take else None,
-            filename_skip_take["take"] if "take" in filename_skip_take else None,
-        )
-        pa_table = pa.Table.from_pydict({"filename": [filename + "_" + str(x) for x in np.arange(30).tolist()]})
-        if skip is not None and take is not None:
-            pa_table = pa_table.slice(skip, take)
-        return pa_table
-
-
 class IndexableDatasetTest(TestCase):
     def _create_dummy_dataset(self):
-        name = "my_name"
-        train_info = SplitInfo(name="train", num_examples=30)
-        test_info = SplitInfo(name="test", num_examples=30)
-        split_infos = [train_info, test_info]
-        split_dict = SplitDict()
-        split_dict.add(train_info)
-        split_dict.add(test_info)
-        info = DatasetInfo(splits=split_dict)
-        reader = ReaderTester("", info)
-        dset = Dataset(**reader.read(name, "train", split_infos))
+        dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
         return dset
 
     def test_add_faiss_index(self):
