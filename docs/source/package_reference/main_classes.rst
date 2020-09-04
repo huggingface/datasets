@@ -21,6 +21,7 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
         __len__, __iter__, formatted_as, set_format, reset_format,
         __getitem__, cleanup_cache_files,
         map, filter, select, sort, shuffle, train_test_split, shard, export,
+        save_to_disk, load_from_disk,
         add_faiss_index, add_faiss_index_from_external_arrays, save_faiss_index, load_faiss_index,
         add_elasticsearch_index,
         list_indexes, get_index, drop_index, search, search_batch, get_nearest_examples, get_nearest_examples_batch,
@@ -41,7 +42,8 @@ It also has dataset transform methods like map or filter, to process all the spl
         unique, flatten_,
         cleanup_cache_files,
         map, filter, sort, shuffle, set_format, reset_format, formatted_as,
-        cast_, remove_columns_, rename_column_
+        cast_, remove_columns_, rename_column_,
+        save_to_disk, load_from_disk,
 
 
 ``Features``

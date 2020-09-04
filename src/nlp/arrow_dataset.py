@@ -375,7 +375,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             self._indices = reader._read_files(self._indices_data_files)
 
     def save_to_disk(self, dataset_path: str):
-        """Save the dataset in a dataset directory"""
+        """
+        Save the dataset in a dataset directory
+
+        Args:
+            dataset_path (``str``): path of the dataset directory where the dataset will be saved to
+        """
         assert (
             not self.list_indexes()
         ), "please remove all the indexes using `dataset.drop_index` before saving a dataset"
@@ -424,7 +429,11 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @staticmethod
     def load_from_disk(dataset_path: str) -> "Dataset":
-        """Load the dataset from a dataset directory"""
+        """Load the dataset from a dataset directory
+
+        Args:
+            dataset_path (``str``): path of the dataset directory where the dataset will be loaded from
+        """
         with open(os.path.join(dataset_path, "state.json"), "r") as state_file:
             state = json.load(state_file)
         with open(os.path.join(dataset_path, "dataset_info.json"), "r") as dataset_info_file:

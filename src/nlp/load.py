@@ -564,12 +564,12 @@ def load_from_disk(dataset_path: str) -> Union[Dataset, DatasetDict]:
     Load a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)``.
 
     Args:
-        dataset_path (``str``): path to a Dataset directory or a DatasetDict directory
+        dataset_path (``str``): path of a Dataset directory or a DatasetDict directory
 
     Returns:
         ``nlp.Dataset`` or ``nlp.DatasetDict``
-            if `dataset_path` is a path to a dataset directory: the dataset requested,
-            if `dataset_path` is a path to a dataset dict directory: a ``nlp.DatasetDict`` with each split.
+            if `dataset_path` is a path of a dataset directory: the dataset requested,
+            if `dataset_path` is a path of a dataset dict directory: a ``nlp.DatasetDict`` with each split.
     """
     if not os.path.isdir(dataset_path):
         raise FileNotFoundError("Directory {} not found".format(dataset_path))
