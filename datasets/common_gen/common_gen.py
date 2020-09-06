@@ -14,7 +14,7 @@ _CITATION = """\
      title = {CommonGen: A Constrained Text Generation Challenge for Generative Commonsense Reasoning},
      journal = {CoRR},
      volume = {abs/1911.03705},
-    year = {2019}
+     year = {2019}
 }
 """
 
