@@ -240,9 +240,8 @@ Now test that both the real data and the dummy data work correctly. Go back to t
 
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_real_dataset_<your-dataset-name>
 
-	and 
 
-*For the dummy data*:
+and *For the dummy data*:
 
 .. code-block::
 
