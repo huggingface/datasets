@@ -114,7 +114,7 @@ class Metric(object):
         self._data_dir_root = os.path.expanduser(data_dir or HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
         self.seed: int = seed or np.random.get_state()[1][0]
-        self.timeout: Union[int, float] = 100
+        self.timeout: Union[int, float] = timeout
 
         # prepare info
         info = self._info()
@@ -142,6 +142,7 @@ class Metric(object):
         # Keep it None for now so we can (cloud)pickle the object
         self.cache_file_name = None
         self.filelock = None
+        self.rendez_vous_lock = None
 
         # This is all the cache files on which we have a lock when we are in a distributed setting
         self.file_paths = None
@@ -232,6 +233,26 @@ class Metric(object):
             else:
                 nofilelock.release()
 
+    def _check_rendez_vous(self):
+        expected_lock_file_name = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-0.arrow.lock")
+        nofilelock = FileFreeLock(expected_lock_file_name)
+        try:
+            nofilelock.acquire(timeout=self.timeout)
+        except Timeout:
+            raise ValueError(
+                f"Expeced to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
+            )
+        else:
+            nofilelock.release()
+        lock_file_name = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock")
+        renndez_vous_lock = FileLock(lock_file_name)
+        try:
+            renndez_vous_lock.acquire(timeout=self.timeout)
+        except Timeout:
+            raise ValueError(f"Couldn't acquire lock on {lock_file_name} from process {self.process_id}.")
+        else:
+            renndez_vous_lock.release()
+
     def finalize(self):
         """Close all the writing process and load/gather the data
         from all the nodes if main node or all_process is True.
@@ -257,7 +278,7 @@ class Metric(object):
                 self.data = Dataset(**reader.read_files([{"filename": f} for f in file_paths]))
             except FileNotFoundError:
                 raise ValueError(
-                    "Another metric instance is already using the local cache file. "
+                    "Error in finalize: another metric instance is already using the local cache file. "
                     "Please specify an experiment_id to avoid colision between distributed metric instances."
                 )
 
@@ -331,7 +352,20 @@ class Metric(object):
             self._init_writer()
         self.writer.write(example)
 
-    def _init_writer(self):
+    def _init_writer(self, timeout=1):
+        if self.num_process > 1:
+            if self.process_id == 0:
+                file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock")
+                self.rendez_vous_lock = FileLock(file_path)
+                try:
+                    self.rendez_vous_lock.acquire(timeout=timeout)
+                except TimeoutError:
+                    raise ValueError(
+                        f"Another metric instance is already using the local cache file at {file_path}. "
+                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
+                        f"between distributed metric instances."
+                    )
+
         if self.keep_in_memory:
             self.buf_writer = pa.BufferOutputStream()
             self.writer = ArrowWriter(
@@ -342,7 +376,7 @@ class Metric(object):
 
             # Get cache file name and lock it
             if self.cache_file_name is None or self.filelock is None:
-                cache_file_name, filelock = self._create_cache_file()
+                cache_file_name, filelock = self._create_cache_file()  # get ready
                 self.cache_file_name = cache_file_name
                 self.filelock = filelock
 
@@ -351,7 +385,11 @@ class Metric(object):
             )
         # Setup rendez-vous here if
         if self.num_process > 1:
-            self._check_all_processes_locks()
+            if self.process_id == 0:
+                self._check_all_processes_locks()  # wait for everyone to be ready
+                self.rendez_vous_lock.release()  # let everyone go
+            else:
+                self._check_rendez_vous()  # wait for master to be ready and to let everyone go
 
     def _info(self) -> MetricInfo:
         """Construct the MetricInfo object. See `MetricInfo` for details.
