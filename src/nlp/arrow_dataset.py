@@ -1652,7 +1652,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Check if we need to convert indices
         if self._indices is not None:
             if PYARROW_V0:
-                indices_array = self._indices.column(0).chunk(0).take(indices_array)
+                indices_array = pa.concat_tables(self._indices.slice(i.as_py(), 1) for i in indices_array).column(0)
             else:
                 indices_array = self._indices.column(0).take(indices_array)
 
