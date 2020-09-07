@@ -30,10 +30,10 @@ on unseen concept combinations. Our dataset, constructed through a combination o
 crowd-sourcing from AMT and existing caption corpora, consists of 30k concept-sets and 
 50k sentences in total.
 """
-_URL = "/Users/canwenxu/Downloads/commongen_data/commongen_data.zip"
+_URL = "https://storage.googleapis.com/huggingface-nlp/datasets/common_gen/commongen_data.zip"
 
 
-class CommonsenseQa(nlp.GeneratorBasedBuilder):
+class CommonGen(nlp.GeneratorBasedBuilder):
     VERSION = nlp.Version("2020.5.30")
 
     def _info(self):
