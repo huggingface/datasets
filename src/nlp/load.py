@@ -218,11 +218,13 @@ def prepare_module(
             path to the dataset or metric script, can be either:
                 - a path to a local directory containing the dataset processing python script
                 - an url to a S3 directory with a dataset processing python script
-            download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
-            dataset (bool): True if the script to load is a dataset, False if the script is a metric.
-            force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
-                Used to inspect or modify the script folder.
-            **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
+        version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
+            at this version. By default it is set to the local version fo the lib
+        download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
+        dataset (bool): True if the script to load is a dataset, False if the script is a metric.
+        force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
+            Used to inspect or modify the script folder.
+        download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
 
     Return: Tuple[``str``, ``str``] with
         1. The module path being
@@ -460,6 +462,8 @@ def load_metric(
                 - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
+        version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
+            at this version. By default it is set to the local version fo the lib
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
         data_dir (Optional str): path to store the temporary predictions and references (default to `~/.nlp/`)
@@ -532,7 +536,8 @@ def load_dataset(
                 - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         name (Optional ``str``): defining the name of the dataset configuration
-        version (Optional ``str``): defining the version of the dataset configuration
+        version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
+            at this version. By default it is set to the local version fo the lib
         data_files (Optional ``str``): defining the data_files of the dataset configuration
         data_dir (Optional ``str``): defining the data_dir of the dataset configuration
         split (`nlp.Split` or `str`): which split of the data to load.
