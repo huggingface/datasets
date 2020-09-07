@@ -103,6 +103,21 @@ except (AttributeError, ImportError):
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/metrics"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/metric"
 
+
+default_modules_cache_path = os.path.join(hf_cache_home, "modules")
+try:
+    from pathlib import Path
+
+    HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
+except (AttributeError, ImportError):
+    HF_MODULES_CACHE = os.getenv(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
+sys.path.append(str(HF_MODULES_CACHE))
+
+os.makedirs(HF_MODULES_CACHE, exist_ok=True)
+if not os.path.exists(os.path.join(HF_MODULES_CACHE, "__init__.py")):
+    with open(os.path.join(HF_MODULES_CACHE, "__init__.py"), "w"):
+        pass
+
 INCOMPLETE_SUFFIX = ".incomplete"
 
 
