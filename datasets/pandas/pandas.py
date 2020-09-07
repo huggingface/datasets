@@ -13,6 +13,7 @@ class Pandas(nlp.ArrowBasedBuilder):
     def _split_generators(self, dl_manager):
         """ We handle string, list and dicts in datafiles
         """
+        assert bool(self.config.data_files), "At least one data file must be specified, but got data_files={}".format(self.config.data_files)
         data_files = dl_manager.download_and_extract(self.config.data_files)
         if isinstance(data_files, (str, list, tuple)):
             files = data_files
