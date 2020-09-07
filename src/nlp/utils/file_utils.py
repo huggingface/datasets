@@ -90,6 +90,7 @@ except (AttributeError, ImportError):
 
 S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets"
 CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/datasets"
+REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/nlp/{version}/datasets/{path}/{name}"
 
 
 default_metrics_cache_path = os.path.join(hf_cache_home, "metrics")
@@ -102,6 +103,7 @@ except (AttributeError, ImportError):
 
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/metrics"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/metric"
+REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/nlp/{version}/metrics/{path}/{name}"
 
 
 default_modules_cache_path = os.path.join(hf_cache_home, "modules")
@@ -192,6 +194,20 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     else:
         endpoint = CLOUDFRONT_METRICS_DISTRIB_PREFIX if use_cdn else S3_METRICS_BUCKET_PREFIX
     return "/".join((endpoint, identifier, filename))
+
+
+def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True) -> requests.models.Response:
+    return requests.head(hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset))
+
+
+def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
+    from .. import __version__
+
+    version = version or os.getenv("HF_NLP_VERSION", None) or __version__
+    if dataset:
+        return REPO_DATASETS_URL.format(version=version, path=path, name=name)
+    else:
+        return REPO_METRICS_URL.format(version=version, path=path, name=name)
 
 
 def hash_url_to_filename(url, etag=None):

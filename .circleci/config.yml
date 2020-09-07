@@ -11,7 +11,7 @@ jobs:
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install pyarrow==0.17.1
-            - run: python -m pytest -sv ./tests/
+            - run: HF_NLP_VERSION=master python -m pytest -sv ./tests/
 
     run_dataset_script_tests_pyarrow_1:
         working_directory: ~/nlp
@@ -24,7 +24,7 @@ jobs:
             - run: source venv/bin/activate
             - run: pip install .[tests]
             - run: pip install pyarrow==1.0.0
-            - run: python -m pytest -sv ./tests/
+            - run: HF_NLP_VERSION=master python -m pytest -sv ./tests/
 
     check_code_quality:
         working_directory: ~/nlp

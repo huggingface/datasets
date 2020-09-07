@@ -37,8 +37,9 @@ from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
-from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, hf_bucket_url
+from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, head_hf_s3, hf_bucket_url, hf_github_url
 from .utils.logging import get_logger
+from .utils.version import Version
 
 
 logger = get_logger(__name__)
@@ -199,6 +200,7 @@ def get_imports(file_path: str):
 
 def prepare_module(
     path: str,
+    version: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     dataset: bool = True,
     force_local_path: Optional[str] = None,
@@ -249,18 +251,35 @@ def prepare_module(
     combined_path = os.path.join(path, name)
     if os.path.isfile(combined_path):
         file_path = combined_path
+        local_path = file_path
     elif os.path.isfile(path):
         file_path = path
+        local_path = path
     else:
-        file_path = hf_bucket_url(path, filename=name, dataset=dataset)
-
-    base_path = os.path.dirname(file_path)  # remove the filename
-    dataset_infos = os.path.join(base_path, DATASET_INFOS_DICT_FILE_NAME)
+        # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
+        head_hf_s3(path, filename=name, dataset=dataset)
+        version = str(version) if version is not None else None
+        file_path = hf_github_url(path=path, name=name, dataset=dataset, version=version)
+        try:
+            local_path = cached_path(file_path, download_config=download_config)
+        except FileNotFoundError:
+            github_file_path = file_path
+            file_path = hf_bucket_url(path, filename=name, dataset=dataset)
+            try:
+                local_path = cached_path(file_path, download_config=download_config)
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    "Couldn't find file locally at {}, or remotely at {} or {}".format(
+                        combined_path, github_file_path, file_path
+                    )
+                )
 
     # Load the module in two steps:
     # 1. get the processing file on the local filesystem if it's not there (download to cache dir)
-    # 2. copy from the local file system inside the library to import it
-    local_path = cached_path(file_path, download_config=download_config)
+    # 2. copy from the local file system inside the modules cache to import it
+
+    base_path = os.path.dirname(file_path)  # remove the filename
+    dataset_infos = os.path.join(base_path, DATASET_INFOS_DICT_FILE_NAME)
 
     # Download the dataset infos file if available
     try:
@@ -422,6 +441,7 @@ def prepare_module(
 def load_metric(
     path: str,
     config_name: Optional[str] = None,
+    version: Optional[Union[str, Version]] = None,
     process_id: int = 0,
     num_process: int = 1,
     data_dir: Optional[str] = None,
@@ -449,7 +469,7 @@ def load_metric(
 
     Returns: `nlp.Metric`.
     """
-    module_path, hash = prepare_module(path, download_config=download_config, dataset=False)
+    module_path, hash = prepare_module(path, version=version, download_config=download_config, dataset=False)
     metric_cls = import_main_class(module_path, dataset=False)
     metric = metric_cls(
         config_name=config_name,
@@ -469,7 +489,7 @@ def load_metric(
 def load_dataset(
     path: str,
     name: Optional[str] = None,
-    version: Optional[str] = None,
+    version: Optional[Union[str, Version]] = None,
     data_dir: Optional[str] = None,
     data_files: Union[Dict, List] = None,
     split: Optional[Union[str, Split]] = None,
@@ -535,7 +555,7 @@ def load_dataset(
     """
     ignore_verifications = ignore_verifications or save_infos
     # Download/copy dataset processing script
-    module_path, hash = prepare_module(path, download_config=download_config, dataset=True)
+    module_path, hash = prepare_module(path, version=version, download_config=download_config, dataset=True)
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)
