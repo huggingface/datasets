@@ -41,28 +41,28 @@ logger = get_logger(__file__)
 class Metric(object):
     def __init__(
         self,
+        config_name: Optional[str] = None,
         keep_in_memory: bool = False,
-        data_dir: Optional[str] = None,
+        cache_dir: Optional[str] = None,
         num_process: int = 1,
         process_id: int = 0,
         seed: Optional[int] = None,
-        config_name: Optional[str] = None,
         experiment_id: Optional[str] = None,
         max_concurrent_cache_files: int = 10000,
         **kwargs,
     ):
         """A Metrics is the base class and common API for all metrics.
         Args:
+            config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
+                to be overridden when the metric loading script is modified.
             keep_in_memory (``bool``): keep all predictions and references in memory. Not possible in distributed settings.
-            data_dir (``str``): Path to a directory in which temporary prediction/references data will be stored.
+            cache_dir (``str``): Path to a directory in which temporary prediction/references data will be stored.
                 The data directory should be located on a shared file-system in distributed setups.
             num_process (``int``): specify the total number of nodes in a distributed settings.
                 This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
             process_id (``int``): specify the id of the current process in a distributed setup (between 0 and num_process-1)
                 This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
             seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`nlp.Metric.compute` is run.
-            config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
-                to be overridden when the metric loading script is modified.
             experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
                 This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
             max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
@@ -87,7 +87,7 @@ class Metric(object):
         self.max_concurrent_cache_files = max_concurrent_cache_files
 
         self.keep_in_memory = keep_in_memory
-        self._data_dir_root = os.path.expanduser(data_dir or HF_METRICS_CACHE)
+        self._data_dir_root = os.path.expanduser(cache_dir or HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
         self.seed: int = seed or np.random.get_state()[1][0]
 
