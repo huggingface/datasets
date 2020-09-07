@@ -160,6 +160,9 @@ class BaseReader:
         """
         assert len(files) > 0 and all(isinstance(f, dict) for f in files), "please provide valid file informations"
         pa_tables = []
+        files = copy.deepcopy(files)
+        for f in files:
+            f.update(filename=os.path.join(self._path, f["filename"]))
         for f_dict in files:
             pa_table: pa.Table = self._get_dataset_from_filename(f_dict)
             pa_tables.append(pa_table)
@@ -218,10 +221,10 @@ class BaseReader:
             kwargs to build a Dataset instance.
         """
         # Prepend path to filename
+        pa_table = self._read_files(files)
         files = copy.deepcopy(files)
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
-        pa_table = self._read_files(files)
         dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=self._info, split=original_instructions)
         return dataset_kwargs
 

@@ -464,6 +464,25 @@ When you have several :obj:`nlp.Dataset` objects that share the same column type
     >>> bert_dataset = concatenate_datasets([bookcorpus, wiki])
 
 
+Saving a processed dataset on disk and reload it
+------------------------------------------------
+
+Once you have your final dataset you can save it on your disk and reuse it later using :obj:`nlp.load_from_disk`.
+Saving a dataset creates a directory with various files:
+
+- arrow files: they contain your dataset's data
+- dataset_info.json: contains the description, citations, etc. of the dataset
+- state.json: contains the list of the arrow files and other informations like the dataset format type, if any (torch or tensorflow for example)
+
+.. code-block::
+
+    >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
+    >>> ...
+    >>> from nlp import load_from_disk
+    >>> reloaded_encoded_dataset = load_from_disk("path/of/my/dataset/directory")
+
+Both :obj:`nlp.Dataset` and :obj:`nlp.DatasetDict` objects can be saved on disk, by using respectively :func:`nlp.Dataset.save_to_disk` and :func:`nlp.DatasetDict.save_to_disk`.
+
 Controling the cache behavior
 -----------------------------------
 

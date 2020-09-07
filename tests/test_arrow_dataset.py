@@ -8,7 +8,7 @@ import pandas as pd
 import pyarrow as pa
 
 import nlp.arrow_dataset
-from nlp import concatenate_datasets
+from nlp import concatenate_datasets, load_from_disk
 from nlp.arrow_dataset import Dataset
 from nlp.features import ClassLabel, Features, Sequence, Value
 from nlp.info import DatasetInfo
@@ -115,6 +115,68 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertEqual(dset[0]["filename"], "my_name-train_0")
             self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+    def test_dummy_dataset_serialize(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            dset = self._create_dummy_dataset().select(range(10))
+            dataset_path = os.path.join(tmp_dir, "my_dataset")
+            dset.save_to_disk(dataset_path)
+            dset = dset.load_from_disk(dataset_path)
+
+        self.assertEqual(len(dset), 10)
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertEqual(dset[0]["filename"], "my_name-train_0")
+        self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+    def test_dummy_dataset_serialize_memory_mapped(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            dset = (
+                self._create_dummy_dataset().map(cache_file_name=os.path.join(tmp_dir, "test.arrow")).select(range(10))
+            )
+            dset._data = Unpicklable()  # check that we don't pickle the entire table
+
+            dataset_path = os.path.join(tmp_dir, "my_dataset")
+            dset.save_to_disk(dataset_path)
+            dset = dset.load_from_disk(dataset_path)
+
+            self.assertEqual(len(dset), 10)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertEqual(dset[0]["filename"], "my_name-train_0")
+            self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            dset = (
+                self._create_dummy_dataset()
+                .map(cache_file_name=os.path.join(tmp_dir, "test.arrow"))
+                .select(range(10), indices_cache_file_name=os.path.join(tmp_dir, "ind.arrow"))
+            )
+            dset._data = Unpicklable()
+            dset._indices = Unpicklable()
+
+            dataset_path = os.path.join(tmp_dir, "my_dataset")
+            dset.save_to_disk(dataset_path)
+            dset = dset.load_from_disk(dataset_path)
+
+            self.assertEqual(len(dset), 10)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertEqual(dset[0]["filename"], "my_name-train_0")
+            self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+    def test_dummy_dataset_load_from_dick(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            dset = self._create_dummy_dataset().select(range(10))
+            dataset_path = os.path.join(tmp_dir, "my_dataset")
+            dset.save_to_disk(dataset_path)
+            dset = load_from_disk(dataset_path)
+
+        self.assertEqual(len(dset), 10)
+        self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+        self.assertEqual(dset[0]["filename"], "my_name-train_0")
+        self.assertEqual(dset["filename"][0], "my_name-train_0")
 
     def test_from_pandas(self):
         data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}

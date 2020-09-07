@@ -5,7 +5,7 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 
-from nlp import Features, Sequence, Value
+from nlp import Features, Sequence, Value, load_from_disk
 from nlp.arrow_dataset import Dataset
 from nlp.dataset_dict import DatasetDict
 
@@ -276,3 +276,32 @@ class DatasetDictTest(TestCase):
         self.assertRaises(TypeError, dsets.filter, lambda x: True)
         self.assertRaises(TypeError, dsets.shuffle)
         self.assertRaises(TypeError, dsets.sort, "filename")
+
+    def test_serialization(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_dir)
+            dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(dsets), ["test", "train"])
+            self.assertEqual(len(dsets["train"]), 30)
+            self.assertListEqual(dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(dsets["test"]), 30)
+            self.assertListEqual(dsets["test"].column_names, ["filename"])
+
+            del dsets["test"]
+            dsets.save_to_disk(tmp_dir)
+            dsets = DatasetDict.load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(dsets), ["train"])
+            self.assertEqual(len(dsets["train"]), 30)
+            self.assertListEqual(dsets["train"].column_names, ["filename"])
+
+    def test_load_from_disk(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dsets = self._create_dummy_dataset_dict()
+            dsets.save_to_disk(tmp_dir)
+            dsets = load_from_disk(tmp_dir)
+            self.assertListEqual(sorted(dsets), ["test", "train"])
+            self.assertEqual(len(dsets["train"]), 30)
+            self.assertListEqual(dsets["train"].column_names, ["filename"])
+            self.assertEqual(len(dsets["test"]), 30)
+            self.assertListEqual(dsets["test"].column_names, ["filename"])
