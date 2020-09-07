@@ -6,6 +6,7 @@ import random
 
 import nlp
 
+
 random.seed(42)  # This is important, to ensure the same order for concept sets as the official script.
 
 _CITATION = """\

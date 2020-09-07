@@ -20,9 +20,10 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import os
+from textwrap import dedent
 
 import nlp
-from textwrap import dedent
+
 
 _CITATION = """\
 @article{APTE94,
@@ -387,4 +388,3 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
                         
                     else:
                         line = f.readline()
-                            
