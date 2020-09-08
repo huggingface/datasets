@@ -265,6 +265,12 @@ def prepare_module(
         try:
             local_path = cached_path(file_path, download_config=download_config)
         except FileNotFoundError:
+            if version is not None:
+                raise ValueError(
+                    "Couldn't find remote file with version {} at {}\nPlease provide a valid version and a valid {} name".format(
+                        version, file_path, "dataset" if dataset else "metric"
+                    )
+                )
             github_file_path = file_path
             file_path = hf_bucket_url(path, filename=name, dataset=dataset)
             try:
