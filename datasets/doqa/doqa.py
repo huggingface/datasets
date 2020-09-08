@@ -17,9 +17,9 @@
 """CRD3  dataset"""
 
 from __future__ import absolute_import, division, print_function
-import logging
 
 import json
+import logging
 import os
 
 import nlp
@@ -177,7 +177,3 @@ class Doqa(nlp.GeneratorBasedBuilder):
                                 "answer_start": orig_answer_start,
                         },
                         }
-                        
-                        
-                
-
