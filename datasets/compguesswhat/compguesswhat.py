@@ -88,14 +88,27 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
                         "timestamp": nlp.Value("string"),
                         "status": nlp.Value("string"),
                         "image": {
+                            # this is the image ID in GuessWhat?! which corresponds to the MSCOCO id
                             "id": nlp.Value("int32"),
                             "file_name": nlp.Value("string"),
                             "flickr_url": nlp.Value("string"),
                             "coco_url": nlp.Value("string"),
                             "height": nlp.Value("int32"),
                             "width": nlp.Value("int32"),
-                            "vg_id": nlp.Value("int32"),
-                            "vg_url": nlp.Value("string"),
+                            # this field represents the corresponding image metadata that can be found in VisualGenome
+                            # in the file image_data.json
+                            # We copy it over so that we avoid any confusion or possible wrong URL
+                            # Please use the original image files to resolve photos
+                            "visual_genome": {
+                                "width": nlp.Value("int32"),
+                                "height": nlp.Value("int32"),
+                                "url": nlp.Value("string"),
+                                "coco_id": nlp.Value("int32"),
+                                # this is the actual VisualGenome image ID
+                                # because we can't rely store it as an integer we same it as string
+                                "flickr_id": nlp.Value("string"),
+                                "image_id": nlp.Value("string")
+                            }
                         },
                         "qas": nlp.features.Sequence(
                             {"question": nlp.Value("string"), "answer": nlp.Value("string"), "id": nlp.Value("int32")}
@@ -217,6 +230,11 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
             if "questioner_id" in game:
                 del game["questioner_id"]
             ###
+
+            if "visual_genome" in game["image"]:
+                # We need to cast it to string so that we avoid issues with int size
+                game["image"]["visual_genome"]["image_id"] = str(game["image"]["visual_genome"]["image_id"])
+                game["image"]["visual_genome"]["flickr_id"] = str(game["image"]["visual_genome"]["flickr_id"])
 
             return game["id"], game
 
