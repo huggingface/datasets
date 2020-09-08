@@ -73,9 +73,10 @@ REQUIRED_PKGS = [
 ]
 
 BENCHMARKS_REQUIRE = [
-    'tensorflow',
-    'torch',
-    'transformers',
+    'numpy==1.18.5',
+    'tensorflow==2.3.0',
+    'torch==1.6.0',
+    'transformers==3.0.2',
 ]
 
 TESTS_REQUIRE = [

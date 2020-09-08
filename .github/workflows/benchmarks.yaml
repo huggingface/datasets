@@ -15,7 +15,6 @@ jobs:
           pip install --upgrade pip
           pip install setuptools wheel
           pip install -e .[benchmarks]
-          pip install -e .
 
           # pyarrow==0.17.1
           pip install pyarrow==0.17.1
