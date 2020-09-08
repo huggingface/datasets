@@ -387,8 +387,8 @@ class DatasetBuilder:
             if download_config is None:
                 download_config = DownloadConfig(
                     cache_dir=os.path.join(self._cache_dir_root, "downloads"),
-                    force_download = bool(download_mode == FORCE_REDOWNLOAD),
-                    use_etag=False
+                    force_download=bool(download_mode == FORCE_REDOWNLOAD),
+                    use_etag=False,
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(

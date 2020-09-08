@@ -93,16 +93,20 @@ class PyUtilsTest(TestCase):
 
         sn1 = {"a": np.eye(2), "b": np.zeros(3), "c": np.ones(2)}
         expected_map_nested_sn1_sum = {"a": 2, "b": 0, "c": 2}
-        expected_map_nested_sn1_int = {"a": np.eye(2).astype(int), "b": np.zeros(3).astype(int), "c": np.ones(2).astype(int)}
+        expected_map_nested_sn1_int = {
+            "a": np.eye(2).astype(int),
+            "b": np.zeros(3).astype(int),
+            "c": np.ones(2).astype(int),
+        }
         self.assertEqual(map_nested(np_sum, sn1, map_numpy=False), expected_map_nested_sn1_sum)
         self.assertEqual(
             {k: v.tolist() for k, v in map_nested(int, sn1, map_numpy=True).items()},
-            {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()}
+            {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()},
         )
         self.assertEqual(map_nested(np_sum, sn1, map_numpy=False, num_proc=num_proc), expected_map_nested_sn1_sum)
         self.assertEqual(
             {k: v.tolist() for k, v in map_nested(int, sn1, map_numpy=True, num_proc=num_proc).items()},
-            {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()}
+            {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()},
         )
         with self.assertRaises(AttributeError):  # can't pickle a local lambda
             map_nested(lambda x: x + 1, sn1, num_proc=num_proc)
