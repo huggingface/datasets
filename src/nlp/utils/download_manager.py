@@ -18,6 +18,7 @@
 
 import enum
 import os
+from typing import Dict, Union
 
 from .file_utils import HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
@@ -69,7 +70,7 @@ class DownloadManager(object):
         self._data_dir = data_dir
         self._download_config = download_config
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
-        self._recorded_sizes_checksums = {}
+        self._recorded_sizes_checksums: Dict[str, Dict[str, Union[int, str]]] = {}
 
     @property
     def manual_dir(self):
@@ -111,7 +112,8 @@ class DownloadManager(object):
         flattened_urls_or_urls = flatten_nested(url_or_urls)
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
         for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
-            self._recorded_sizes_checksums[url] = get_size_checksum_dict(path)
+            # call str to support PathLike objects
+            self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(path)
 
     def download_custom(self, url_or_urls, custom_download):
         """
