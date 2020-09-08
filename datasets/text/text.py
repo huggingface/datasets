@@ -11,7 +11,8 @@ class Text(nlp.GeneratorBasedBuilder):
             If str or List[str], then the dataset returns only the 'train' split.
             If dict, then keys should be from the `nlp.Split` enum.
         """
-        assert bool(self.config.data_files), "At least one data file must be specified, but got data_files={}".format(self.config.data_files)
+        if not self.config.data_files:
+            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         data_files = dl_manager.download_and_extract(self.config.data_files)
         if isinstance(data_files, (str, list, tuple)):
             files = data_files
