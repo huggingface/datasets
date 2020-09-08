@@ -14,14 +14,14 @@
 # limitations under the License.
 """ BLEURT metric. """
 
-import logging
 import os
 
 import nlp
+from logging import getLogger
 from bleurt import score  # From: git+https://github.com/google-research/bleurt.git
 
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 _CITATION = """\
 @inproceedings{bleurt,

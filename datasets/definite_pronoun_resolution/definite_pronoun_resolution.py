@@ -83,7 +83,7 @@ class DefinitePronounResolution(nlp.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             line_num = -1
             while True:
                 line_num += 1

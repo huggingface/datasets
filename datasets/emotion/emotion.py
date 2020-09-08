@@ -61,7 +61,7 @@ class Emotion(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate examples."""
-        with open(filepath) as csv_file:
+        with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=";")
             for id_, row in enumerate(csv_reader):
                 text, label = row

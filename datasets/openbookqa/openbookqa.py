@@ -151,7 +151,7 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Yields examples."""
         # TODO(openBookQA): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             for row in f:
                 data = json.loads(row)
                 yield data["id"], {

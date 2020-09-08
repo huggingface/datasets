@@ -93,7 +93,7 @@ class Fquad(nlp.GeneratorBasedBuilder):
 
         """Yields examples."""
         # TODO(fquad): Yields (key, example) tuples from the dataset
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for id1, examples in enumerate(data["data"]):
                 for id2, example in enumerate(examples["paragraphs"]):

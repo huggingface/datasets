@@ -1,0 +1,32 @@
+stages:
+  benchmark_array_xd:
+    cmd: python ./benchmarks/benchmark_array_xd.py
+    deps:
+    - ./benchmarks/benchmark_array_xd.py
+    metrics:
+    - ./benchmarks/results/benchmark_array_xd.json:
+        cache: false
+
+  benchmark_indices_mapping:
+    cmd: python ./benchmarks/benchmark_indices_mapping.py
+    deps:
+    - ./benchmarks/benchmark_indices_mapping.py
+    metrics:
+    - ./benchmarks/results/benchmark_indices_mapping.json:
+        cache: false
+
+  benchmark_map_filter:
+    cmd: python ./benchmarks/benchmark_map_filter.py
+    deps:
+    - ./benchmarks/benchmark_map_filter.py
+    metrics:
+    - ./benchmarks/results/benchmark_map_filter.json:
+        cache: false
+
+  benchmark_iterating:
+    cmd: python ./benchmarks/benchmark_iterating.py
+    deps:
+    - ./benchmarks/benchmark_iterating.py
+    metrics:
+    - ./benchmarks/results/benchmark_iterating.json:
+        cache: false

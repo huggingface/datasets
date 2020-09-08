@@ -1,10 +1,11 @@
-import logging
 import os
 from hashlib import sha256
 from typing import Optional
 
+from .logging import get_logger
 
-logger = logging.getLogger(__name__)
+
+logger = get_logger(__name__)
 
 
 class ChecksumVerificationException(Exception):

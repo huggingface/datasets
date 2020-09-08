@@ -105,7 +105,7 @@ class ScientificPapers(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, path=None):
         """Yields examples."""
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 # Possible keys are:
                 # "article_id": str

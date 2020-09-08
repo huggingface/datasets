@@ -19,7 +19,6 @@
 import abc
 import contextlib
 import inspect
-import logging
 import os
 import shutil
 from dataclasses import dataclass
@@ -27,6 +26,7 @@ from functools import partial
 from typing import Dict, List, Optional, Union
 
 import xxhash
+from filelock import FileLock
 
 from . import utils
 from .arrow_dataset import Dataset
@@ -46,9 +46,10 @@ from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig, is_remote_url
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
+from .utils.logging import INFO, get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 FORCE_REDOWNLOAD = GenerateMode.FORCE_REDOWNLOAD
 REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
@@ -122,7 +123,12 @@ class DatasetBuilder:
     # displayed in the dataset documentation.
 
     def __init__(
-        self, cache_dir=None, name=None, hash=None, features=None, **config_kwargs,
+        self,
+        cache_dir=None,
+        name=None,
+        hash=None,
+        features=None,
+        **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
 
@@ -147,7 +153,10 @@ class DatasetBuilder:
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
-        self.config = self._create_builder_config(name, **config_kwargs,)
+        self.config = self._create_builder_config(
+            name,
+            **config_kwargs,
+        )
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
@@ -164,17 +173,19 @@ class DatasetBuilder:
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
         self._cache_dir = self._build_cache_dir()
-        if os.path.exists(self._cache_dir):  # check if data exist
-            if len(os.listdir(self._cache_dir)) > 0:
-                logger.info("Overwrite dataset info from restored data version.")
-                self.info = DatasetInfo.from_directory(self._cache_dir)
-            else:  # dir exists but no data, remove the empty dir as data aren't available anymore
-                logger.warning(
-                    "Old caching folder {} for dataset {} exists but not data were found. Removing it. ".format(
-                        self._cache_dir, self.name
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        with FileLock(lock_path):
+            if os.path.exists(self._cache_dir):  # check if data exist
+                if len(os.listdir(self._cache_dir)) > 0:
+                    logger.info("Overwrite dataset info from restored data version.")
+                    self.info = DatasetInfo.from_directory(self._cache_dir)
+                else:  # dir exists but no data, remove the empty dir as data aren't available anymore
+                    logger.warning(
+                        "Old caching folder {} for dataset {} exists but not data were found. Removing it. ".format(
+                            self._cache_dir, self.name
+                        )
                     )
-                )
-                os.rmdir(self._cache_dir)
+                    os.rmdir(self._cache_dir)
 
     @property
     def manual_download_instructions(self) -> Optional[str]:
@@ -193,9 +204,9 @@ class DatasetBuilder:
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
     def _create_builder_config(self, name=None, **config_kwargs):
-        """ Create and validate BuilderConfig object.
-            Uses the first configuration in self.BUILDER_CONFIGS if name is None
-            config_kwargs override the defaults kwargs in config
+        """Create and validate BuilderConfig object.
+        Uses the first configuration in self.BUILDER_CONFIGS if name is None
+        config_kwargs override the defaults kwargs in config
         """
         builder_config = None
         if name is None and self.BUILDER_CONFIGS and not config_kwargs:
@@ -258,9 +269,8 @@ class DatasetBuilder:
             for key in sorted(data_files.keys()):
                 m.update(key.encode("utf-8"))
                 for data_file in data_files[key]:
-                    with open(data_file, "rb") as f:
-                        for chunk in iter(lambda: f.read(1 << 20), b""):
-                            m.update(chunk)
+                    m.update(os.path.abspath(data_file).encode("utf-8"))
+                    m.update(str(os.path.getmtime(data_file)).encode("utf-8"))
             builder_config.name += "-" + m.hexdigest()
         return builder_config
 
@@ -280,10 +290,10 @@ class DatasetBuilder:
         return self._cache_dir
 
     def _relative_data_dir(self, with_version=True, with_hash=True):
-        """ Relative path of this dataset in cache_dir:
-            Will be:
-                self.name/self.config.version/self.hash/
-            If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
+        """Relative path of this dataset in cache_dir:
+        Will be:
+            self.name/self.config.version/self.hash/
+        If any of these element is missing or if ``with_version=False`` the corresponding subfolders are dropped.
         """
         builder_data_dir = self.name
         builder_config = self.config
@@ -383,99 +393,103 @@ class DatasetBuilder:
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
             )
 
-        data_exists = os.path.exists(self._cache_dir)
-        if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
-            logger.info("Reusing dataset %s (%s)", self.name, self._cache_dir)
-            self.download_post_processing_resources(dl_manager)
-            return
+        # Prevent parallel disk operations
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        with FileLock(lock_path):
+            data_exists = os.path.exists(self._cache_dir)
+            if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
+                logger.info("Reusing dataset %s (%s)", self.name, self._cache_dir)
+                self.download_post_processing_resources(dl_manager)
+                return
 
-        # Currently it's not possible to overwrite the data because it would
-        # conflict with versioning: If the last version has already been generated,
-        # it will always be reloaded and cache_dir will be set at construction.
-        if data_exists and download_mode != REUSE_CACHE_IF_EXISTS:
-            raise ValueError(
-                "Trying to overwrite an existing dataset {} at {}. A dataset with "
-                "the same version {} already exists. If the dataset has changed, "
-                "please update the version number.".format(self.name, self._cache_dir, self.config.version)
-            )
-
-        logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
-        if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
-            os.makedirs(self._cache_dir_root, exist_ok=True)
-            if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
-                raise IOError(
-                    "Not enough disk space. Needed: {} (download: {}, generated: {}, post-processed: {})".format(
-                        utils.size_str(self.info.size_in_bytes or 0),
-                        utils.size_str(self.info.download_size or 0),
-                        utils.size_str(self.info.dataset_size or 0),
-                        utils.size_str(self.info.post_processing_size or 0),
-                    )
+            # Currently it's not possible to overwrite the data because it would
+            # conflict with versioning: If the last version has already been generated,
+            # it will always be reloaded and cache_dir will be set at construction.
+            if data_exists and download_mode != REUSE_CACHE_IF_EXISTS:
+                raise ValueError(
+                    "Trying to overwrite an existing dataset {} at {}. A dataset with "
+                    "the same version {} already exists. If the dataset has changed, "
+                    "please update the version number.".format(self.name, self._cache_dir, self.config.version)
                 )
 
-        @contextlib.contextmanager
-        def incomplete_dir(dirname):
-            """Create temporary dir for dirname and rename on exit."""
-            if is_remote_url(dirname):
-                yield dirname
-            else:
-                tmp_dir = dirname + ".incomplete"
-                os.makedirs(tmp_dir)
-                try:
-                    yield tmp_dir
-                    if os.path.isdir(dirname):
-                        shutil.rmtree(dirname)
-                    os.rename(tmp_dir, dirname)
-                finally:
-                    if os.path.exists(tmp_dir):
-                        shutil.rmtree(tmp_dir)
+            logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
+            if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
+                os.makedirs(self._cache_dir_root, exist_ok=True)
+                if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
+                    raise IOError(
+                        "Not enough disk space. Needed: {} (download: {}, generated: {}, post-processed: {})".format(
+                            utils.size_str(self.info.size_in_bytes or 0),
+                            utils.size_str(self.info.download_size or 0),
+                            utils.size_str(self.info.dataset_size or 0),
+                            utils.size_str(self.info.post_processing_size or 0),
+                        )
+                    )
 
-        # Print is intentional: we want this to always go to stdout so user has
-        # information needed to cancel download/preparation if needed.
-        # This comes right before the progress bar.
-        print(
-            f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
-            f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, post-processed: {utils.size_str(self.info.post_processing_size)}"
-            f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
-        )
+            @contextlib.contextmanager
+            def incomplete_dir(dirname):
+                """Create temporary dir for dirname and rename on exit."""
+                if is_remote_url(dirname):
+                    yield dirname
+                else:
+                    tmp_dir = dirname + ".incomplete"
+                    os.makedirs(tmp_dir)
+                    try:
+                        yield tmp_dir
+                        if os.path.isdir(dirname):
+                            shutil.rmtree(dirname)
+                        os.rename(tmp_dir, dirname)
+                    finally:
+                        if os.path.exists(tmp_dir):
+                            shutil.rmtree(tmp_dir)
 
-        if self.manual_download_instructions is not None:
-            assert (
-                dl_manager.manual_dir is not None
-            ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load_dataset({}, data_dir='<path/to/manual/data>')".format(
-                self.name, self.config.name, self.manual_download_instructions, self.name
+            # Print is intentional: we want this to always go to stdout so user has
+            # information needed to cancel download/preparation if needed.
+            # This comes right before the progress bar.
+            print(
+                f"Downloading and preparing dataset {self.info.builder_name}/{self.info.config_name} "
+                f"(download: {utils.size_str(self.info.download_size)}, generated: {utils.size_str(self.info.dataset_size)}, "
+                f"post-processed: {utils.size_str(self.info.post_processing_size)}, "
+                f"total: {utils.size_str(self.info.size_in_bytes)}) to {self._cache_dir}..."
             )
 
-        # Create a tmp dir and rename to self._cache_dir on successful exit.
-        with incomplete_dir(self._cache_dir) as tmp_data_dir:
-            # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
-            # it to every sub function.
-            with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
-                # Try to download the already prepared dataset files
-                downloaded_from_gcs = False
-                if try_from_hf_gcs:
-                    try:
-                        self._download_prepared_from_hf_gcs()
-                        downloaded_from_gcs = True
-                    except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
-                        logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
-                if not downloaded_from_gcs:
-                    self._download_and_prepare(
-                        dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
-                    )
-                # Sync info
-                self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
-                self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
-                self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
-                # Save info
-                self._save_info()
+            if self.manual_download_instructions is not None:
+                assert (
+                    dl_manager.manual_dir is not None
+                ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `nlp.load_dataset({}, data_dir='<path/to/manual/data>')".format(
+                    self.name, self.config.name, self.manual_download_instructions, self.name
+                )
 
-        # Download post processing resources
-        self.download_post_processing_resources(dl_manager)
+            # Create a tmp dir and rename to self._cache_dir on successful exit.
+            with incomplete_dir(self._cache_dir) as tmp_data_dir:
+                # Temporarily assign _cache_dir to tmp_data_dir to avoid having to forward
+                # it to every sub function.
+                with utils.temporary_assignment(self, "_cache_dir", tmp_data_dir):
+                    # Try to download the already prepared dataset files
+                    downloaded_from_gcs = False
+                    if try_from_hf_gcs:
+                        try:
+                            self._download_prepared_from_hf_gcs()
+                            downloaded_from_gcs = True
+                        except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
+                            logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
+                    if not downloaded_from_gcs:
+                        self._download_and_prepare(
+                            dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
+                        )
+                    # Sync info
+                    self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
+                    self.info.download_checksums = dl_manager.get_recorded_sizes_checksums()
+                    self.info.size_in_bytes = self.info.dataset_size + self.info.download_size
+                    # Save info
+                    self._save_info()
 
-        print(
-            f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
-            f"Subsequent calls will reuse this data."
-        )
+            # Download post processing resources
+            self.download_post_processing_resources(dl_manager)
+
+            print(
+                f"Dataset {self.name} downloaded and prepared to {self._cache_dir}. "
+                f"Subsequent calls will reuse this data."
+            )
 
     def _download_prepared_from_hf_gcs(self):
         relative_data_dir = self._relative_data_dir(with_version=True, with_hash=False)
@@ -561,10 +575,14 @@ class DatasetBuilder:
                         shutil.move(downloaded_resource_path, resource_path)
 
     def _save_info(self):
-        self.info.write_to_directory(self._cache_dir)
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        with FileLock(lock_path):
+            self.info.write_to_directory(self._cache_dir)
 
     def _save_infos(self):
-        DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        with FileLock(lock_path):
+            DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
     def _make_split_generators_kwargs(self, prepare_split_kwargs):
         """Get kwargs for `self._split_generators()` from `prepare_split_kwargs`."""
@@ -574,8 +592,7 @@ class DatasetBuilder:
     def as_dataset(
         self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False
     ) -> Union[Dataset, DatasetDict]:
-        """ Return a Dataset for the specified split.
-        """
+        """Return a Dataset for the specified split."""
         if not os.path.exists(self._cache_dir):
             raise AssertionError(
                 (
@@ -615,7 +632,9 @@ class DatasetBuilder:
             split = Split(split)
 
         # Build base dataset
-        ds = self._as_dataset(split=split,)
+        ds = self._as_dataset(
+            split=split,
+        )
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
                 if "/" in resource_file_name:
@@ -624,41 +643,46 @@ class DatasetBuilder:
                 resource_name: os.path.join(self._cache_dir, resource_file_name)
                 for resource_name, resource_file_name in self._post_processing_resources(split).items()
             }
-            ds = self._post_process(ds, resources_paths)
-            if self.info.post_processed is not None and self.info.post_processed.features is not None:
-                if self.info.post_processed.features.type != ds.features.type:
-                    raise ValueError(
-                        "Post-processed features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
-                            self.info.post_processed.features, ds.features
-                        )
-                    )
-                else:
-                    ds.info.features = self.info.post_processed.features
-            recorded_checksums = {}
-            for resource_name, resource_path in resources_paths.items():
-                size_checksum = get_size_checksum_dict(resource_path)
-                recorded_checksums[resource_name] = size_checksum
-            if verify_infos:
-                if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
-                    expected_checksums = None
-                else:
-                    expected_checksums = self.info.post_processed.resources_checksums.get(split)
-                verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
-            if self.info.post_processed is None:
-                self.info.post_processed = PostProcessedInfo()
-            if self.info.post_processed.resources_checksums is None:
-                self.info.post_processed.resources_checksums = {}
-            self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
-            self.info.post_processing_size = sum(
-                checksums_dict["num_bytes"]
-                for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
-                for checksums_dict in split_checksums_dicts.values()
-            )
-            if self.info.dataset_size is not None and self.info.download_size is not None:
-                self.info.size_in_bytes = (
-                    self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+            post_processed = self._post_process(ds, resources_paths)
+            if post_processed is not None:
+                ds = post_processed
+                recorded_checksums = {}
+                for resource_name, resource_path in resources_paths.items():
+                    size_checksum = get_size_checksum_dict(resource_path)
+                    recorded_checksums[resource_name] = size_checksum
+                if verify_infos:
+                    if self.info.post_processed is None or self.info.post_processed.resources_checksums is None:
+                        expected_checksums = None
+                    else:
+                        expected_checksums = self.info.post_processed.resources_checksums.get(split)
+                    verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
+                if self.info.post_processed is None:
+                    self.info.post_processed = PostProcessedInfo()
+                if self.info.post_processed.resources_checksums is None:
+                    self.info.post_processed.resources_checksums = {}
+                self.info.post_processed.resources_checksums[str(split)] = recorded_checksums
+                self.info.post_processing_size = sum(
+                    checksums_dict["num_bytes"]
+                    for split_checksums_dicts in self.info.post_processed.resources_checksums.values()
+                    for checksums_dict in split_checksums_dicts.values()
                 )
-            self._save_info()
+                if self.info.dataset_size is not None and self.info.download_size is not None:
+                    self.info.size_in_bytes = (
+                        self.info.dataset_size + self.info.download_size + self.info.post_processing_size
+                    )
+                self._save_info()
+                ds._info.post_processed = self.info.post_processed
+                ds._info.post_processing_size = self.info.post_processing_size
+                ds._info.size_in_bytes = self.info.size_in_bytes
+                if self.info.post_processed.features is not None:
+                    if self.info.post_processed.features.type != ds.features.type:
+                        raise ValueError(
+                            "Post-processed features info don't match the dataset:\nGot\n{}\nbut expected something like\n{}".format(
+                                self.info.post_processed.features, ds.features
+                            )
+                        )
+                    else:
+                        ds.info.features = self.info.post_processed.features
 
         return ds
 
@@ -677,13 +701,15 @@ class DatasetBuilder:
         """
 
         dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
-            name=self.name, instructions=split, split_infos=self.info.splits.values(),
+            name=self.name,
+            instructions=split,
+            split_infos=self.info.splits.values(),
         )
         return Dataset(**dataset_kwargs)
 
     def _post_process(self, dataset: Dataset, resources_paths: Dict[str, str]) -> Dataset:
         """Run dataset transforms or add indexes"""
-        return dataset
+        return None
 
     def _post_processing_resources(self, split: str) -> Dict[str, str]:
         """Mapping resource_name -> resource_file_name"""
@@ -803,11 +829,13 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._cache_dir, fname)
-        examples_type = self.info.features.type
-        writer = ArrowWriter(data_type=examples_type, path=fpath, writer_batch_size=self._writer_batch_size)
+        writer = ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
-        for key, record in utils.tqdm(generator, unit=" examples", total=split_info.num_examples, leave=False):
+        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        for key, record in utils.tqdm(
+            generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
+        ):
             example = self.info.features.encode_example(record)
             writer.write(example)
         num_examples, num_bytes = writer.finalize()
@@ -818,9 +846,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
 
 class ArrowBasedBuilder(DatasetBuilder):
-    """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet).
-
-    """
+    """Base class for datasets with data generation based on Arrow loading functions (CSV/JSON/Parquet)."""
 
     # ArrowBasedBuilder should have dummy data for tests by default
     test_dummy_data = True
@@ -862,7 +888,8 @@ class ArrowBasedBuilder(DatasetBuilder):
         writer = ArrowWriter(path=fpath)
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
-        for key, table in utils.tqdm(generator, unit=" tables", leave=False):
+        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
             writer.write_table(table)
         num_examples, num_bytes = writer.finalize()
 
@@ -961,9 +988,14 @@ class BeamBasedBuilder(DatasetBuilder):
         # are better without it.
         beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
-        pipeline = beam_utils.BeamPipeline(runner=beam_runner, options=beam_options,)
+        pipeline = beam_utils.BeamPipeline(
+            runner=beam_runner,
+            options=beam_options,
+        )
         super(BeamBasedBuilder, self)._download_and_prepare(
-            dl_manager, verify_infos=False, pipeline=pipeline,
+            dl_manager,
+            verify_infos=False,
+            pipeline=pipeline,
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()
@@ -979,13 +1011,16 @@ class BeamBasedBuilder(DatasetBuilder):
             split_info.num_bytes = num_bytes
 
     def _save_info(self):
-        import apache_beam as beam
+        if os.path.exists(self._cache_dir):
+            super()._save_info()
+        else:
+            import apache_beam as beam
 
-        fs = beam.io.filesystems.FileSystems
-        with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
-            self.info._dump_info(f)
-        with fs.create(os.path.join(self._cache_dir, LICENSE_FILENAME)) as f:
-            self.info._dump_license(f)
+            fs = beam.io.filesystems.FileSystems
+            with fs.create(os.path.join(self._cache_dir, DATASET_INFO_FILENAME)) as f:
+                self.info._dump_info(f)
+            with fs.create(os.path.join(self._cache_dir, LICENSE_FILENAME)) as f:
+                self.info._dump_license(f)
 
     def _prepare_split(self, split_generator, pipeline):
         import apache_beam as beam
@@ -997,8 +1032,9 @@ class BeamBasedBuilder(DatasetBuilder):
         # To write examples to disk:
         fname = "{}-{}.arrow".format(self.name, split_name)
         fpath = os.path.join(self._cache_dir, fname)
-        examples_type = self.info.features.type
-        beam_writer = BeamWriter(examples_type, path=fpath, namespace=split_name, cache_dir=self._cache_dir)
+        beam_writer = BeamWriter(
+            features=self.info.features, path=fpath, namespace=split_name, cache_dir=self._cache_dir
+        )
         self._beam_writers[split_name] = beam_writer
 
         encode_example = self.info.features.encode_example

@@ -99,9 +99,9 @@ class Xsum(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, source, target):
         """Yields examples."""
-        with open(source) as f1:
+        with open(source, encoding="utf-8") as f1:
             source = f1.readlines()
-        with open(target) as f2:
+        with open(target, encoding="utf-8") as f2:
             target = f2.readlines()
         assert len(source) == len(target)
         for i in range(len(target)):

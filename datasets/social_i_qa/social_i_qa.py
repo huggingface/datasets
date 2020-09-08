@@ -80,9 +80,9 @@ class SocialIQa(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, labelpath):
         """Yields examples."""
         # TODO(social_i_qa): Yields (key, example) tuples from the dataset
-        with open(labelpath) as f:
+        with open(labelpath, encoding="utf-8") as f:
             labels = [label for label in f]
-        with open(filepath) as f1:
+        with open(filepath, encoding="utf-8") as f1:
             for id_, row in enumerate(f1):
                 data = json.loads(row)
                 label = labels[id_]

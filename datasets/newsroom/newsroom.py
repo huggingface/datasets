@@ -128,7 +128,7 @@ class Newsroom(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, input_file=None):
         """Yields examples."""
-        with open(input_file) as f:
+        with open(input_file, encoding="utf-8") as f:
             for i, line in enumerate(f):
                 d = json.loads(line)
                 # fields are "url", "archive", "title", "date", "text",

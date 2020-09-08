@@ -24,9 +24,11 @@ from .file_utils import (
     DownloadConfig,
     cached_path,
     hf_bucket_url,
+    is_beam_available,
     is_remote_url,
     is_tf_available,
     is_torch_available,
+    temp_seed,
 )
 from .mock_download_manager import MockDownloadManager
 from .py_utils import *

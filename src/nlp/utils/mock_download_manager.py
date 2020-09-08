@@ -16,14 +16,14 @@
 # Lint as: python3
 """Mock download manager interface."""
 
-import logging
 import os
 import urllib.parse
 
 from .file_utils import cached_path, hf_bucket_url
+from .logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MockDownloadManager(object):

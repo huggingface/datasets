@@ -117,9 +117,9 @@ class Flores(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, source_file, target_file):
         """This function returns the examples in the raw (text) form."""
-        with open(source_file) as f:
+        with open(source_file, encoding="utf-8") as f:
             source_sentences = f.read().split("\n")
-        with open(target_file) as f:
+        with open(target_file, encoding="utf-8") as f:
             target_sentences = f.read().split("\n")
 
         assert len(target_sentences) == len(source_sentences), "Sizes do not match: %d vs %d for %s vs %s." % (

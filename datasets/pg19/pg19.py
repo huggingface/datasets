@@ -110,7 +110,7 @@ class Pg19(nlp.GeneratorBasedBuilder):
             return local_filepath
 
         def filepath_to_json(path):
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
 
         splits = ["train", "validation", "test"]
@@ -162,7 +162,7 @@ class Pg19(nlp.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(pg19): Yields (key, example) tuples from the dataset
 
-        with open(metadata_filepath) as f:
+        with open(metadata_filepath, encoding="utf-8") as f:
             metadata_dict = csv.DictReader(f, fieldnames=["_id", "short_book_title", "publication_date", "url"])
             indexed_metadata = {row["_id"]: row for row in metadata_dict}
 
@@ -170,7 +170,7 @@ class Pg19(nlp.GeneratorBasedBuilder):
             data = indexed_metadata[_id]
             filepath = filepaths[_id]
 
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 text = f.read()
 
             _id = data["_id"]

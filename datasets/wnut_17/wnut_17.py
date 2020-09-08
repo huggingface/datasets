@@ -124,7 +124,7 @@ class WNUT_17(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         logging.info("⏳ Generating examples from = %s", filepath)
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             current_tokens = []
             current_labels = []
             sentence_counter = 0

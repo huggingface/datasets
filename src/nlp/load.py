@@ -18,44 +18,49 @@
 import filecmp
 import importlib
 import inspect
-import itertools
 import json
-import logging
 import os
 import re
 import shutil
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
-import pyarrow as pa
 from filelock import FileLock
 
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
 from .features import Features
-from .info import DATASET_INFOS_DICT_FILE_NAME, DatasetInfo
+from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
-from .utils.file_utils import DownloadConfig, cached_path, hf_bucket_url
+from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, hf_bucket_url
+from .utils.logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
-CURRENT_FILE_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-DATASETS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "datasets")
-DATASETS_MODULE = "nlp.datasets"
-METRICS_PATH = os.path.join(CURRENT_FILE_DIRECTORY, "metrics")
-METRICS_MODULE = "nlp.metrics"
+DYNAMIC_MODULES_PATH = os.path.join(HF_MODULES_CACHE, "nlp_modules")
+DATASETS_PATH = os.path.join(DYNAMIC_MODULES_PATH, "datasets")
+DATASETS_MODULE = "nlp_modules.datasets"
+METRICS_PATH = os.path.join(DYNAMIC_MODULES_PATH, "metrics")
+METRICS_MODULE = "nlp_modules.metrics"
+
+
+def init_dynamic_modules():
+    os.makedirs(DYNAMIC_MODULES_PATH, exist_ok=True)
+    if not os.path.exists(os.path.join(DYNAMIC_MODULES_PATH, "__init__.py")):
+        with open(os.path.join(DYNAMIC_MODULES_PATH, "__init__.py"), "w"):
+            pass
 
 
 def import_main_class(module_path, dataset=True) -> Union[DatasetBuilder, Metric]:
-    """ Import a module at module_path and return its main class:
-        - a DatasetBuilder if dataset is True
-        - a Metric if dataset is False
+    """Import a module at module_path and return its main class:
+    - a DatasetBuilder if dataset is True
+    - a Metric if dataset is False
     """
     importlib.invalidate_caches()
     module = importlib.import_module(module_path)
@@ -113,8 +118,7 @@ def files_to_hash(file_paths: List[str]) -> str:
 
 
 def convert_github_url(url_path: str) -> Tuple[str, str]:
-    """ Convert a link to a file on a github repo in a link to the raw github object.
-    """
+    """Convert a link to a file on a github repo in a link to the raw github object."""
     parsed = urlparse(url_path)
     sub_directory = None
     if parsed.scheme in ("http", "https", "s3") and parsed.netloc == "github.com":
@@ -175,7 +179,7 @@ def get_imports(file_path: str):
                 # We already have this import
                 continue
             if match.group(3):
-                # The import has a comment with 'From:', we'll retreive it from the given url
+                # The import has a comment with 'From:', we'll retrieve it from the given url
                 url_path = match.group(3)
                 url_path, sub_directory = convert_github_url(url_path)
                 imports.append(("external", match.group(2), url_path, sub_directory))
@@ -224,6 +228,7 @@ def prepare_module(
             - the local path to the dataset/metric file if force_local_path is True: e.g. '/User/huggingface/nlp/datasets/squad/squad.py'
         2. A hash string computed from the content of the dataset loading script.
     """
+    init_dynamic_modules()
     if download_config is None:
         download_config = DownloadConfig(**download_kwargs)
     download_config.extract_compressed_file = True
@@ -259,7 +264,10 @@ def prepare_module(
 
     # Download the dataset infos file if available
     try:
-        local_dataset_infos_path = cached_path(dataset_infos, download_config=download_config,)
+        local_dataset_infos_path = cached_path(
+            dataset_infos,
+            download_config=download_config,
+        )
     except (FileNotFoundError, ConnectionError):
         local_dataset_infos_path = None
 
@@ -286,7 +294,10 @@ def prepare_module(
         else:
             raise ValueError("Wrong import_type")
 
-        local_import_path = cached_path(url_or_filename, download_config=download_config,)
+        local_import_path = cached_path(
+            url_or_filename,
+            download_config=download_config,
+        )
         if sub_directory is not None:
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
@@ -410,12 +421,11 @@ def prepare_module(
 
 def load_metric(
     path: str,
-    name: Optional[str] = None,
+    config_name: Optional[str] = None,
     process_id: int = 0,
     num_process: int = 1,
     data_dir: Optional[str] = None,
-    experiment_id: Optional[str] = None,
-    in_memory: bool = False,
+    keep_in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
     **metric_init_kwargs,
 ) -> Metric:
@@ -429,12 +439,12 @@ def load_metric(
                     e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
                 - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
-        name (Optional ``str``): defining the name of the dataset configuration
+        config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
         data_dir (Optional str): path to store the temporary predictions and references (default to `~/.nlp/`)
         experiment_id (Optional str): An optional unique id for the experiment.
-        in_memory (bool): Weither to store the temporary results in memory (default: False)
+        keep_in_memory (bool): Weither to store the temporary results in memory (defaults to False)
         download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
 
     Returns: `nlp.Metric`.
@@ -442,13 +452,11 @@ def load_metric(
     module_path, hash = prepare_module(path, download_config=download_config, dataset=False)
     metric_cls = import_main_class(module_path, dataset=False)
     metric = metric_cls(
-        name=name,
-        hash=hash,
+        config_name=config_name,
         process_id=process_id,
         num_process=num_process,
         data_dir=data_dir,
-        experiment_id=experiment_id,
-        in_memory=in_memory,
+        keep_in_memory=keep_in_memory,
         **metric_init_kwargs,
     )
 
@@ -490,7 +498,7 @@ def load_dataset(
             * Download the dataset file from the original URL (see the script) if it's not already downloaded and cached.
             * Process and cache the dataset in typed Arrow tables for caching.
 
-                Arrow table are arbitrarly long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
+                Arrow table are arbitrarily long, typed tables which can store nested objects and be mapped to numpy/pandas/python standard types.
                 They can be directly access from drive, loaded in RAM or even streamed over the web.
 
         3. Return a dataset build from the requested splits in ``split`` (default: all).
@@ -501,7 +509,7 @@ def load_dataset(
             path to the dataset processing script with the dataset builder. Can be either:
                 - a local path to processing script or the directory containing the script (if the script has the same name as the directory),
                     e.g. ``'./dataset/squad'`` or ``'./dataset/squad/squad.py'``
-                - a datatset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
+                - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         name (Optional ``str``): defining the name of the dataset configuration
         version (Optional ``str``): defining the version of the dataset configuration
@@ -546,7 +554,9 @@ def load_dataset(
 
     # Download and prepare data
     builder_instance.download_and_prepare(
-        download_config=download_config, download_mode=download_mode, ignore_verifications=ignore_verifications,
+        download_config=download_config,
+        download_mode=download_mode,
+        ignore_verifications=ignore_verifications,
     )
 
     # Build dataset for splits
@@ -557,23 +567,25 @@ def load_dataset(
     return ds
 
 
-def concatenate_datasets(
-    dsets: List["Dataset"], info: Optional[Any] = None, split: Optional[Any] = None,
-):
+def load_from_disk(dataset_path: str) -> Union[Dataset, DatasetDict]:
     """
-    Converts a list of :obj:``nlp.Dataset`` with the same schema into a single :obj:``nlp.Dataset``.
+    Load a dataset that was previously saved using ``dataset.save_to_disk(dataset_path)``.
 
     Args:
-        dsets (:obj:``List[nlp.Dataset]``): A list of Datasets to concatenate
-        features (:obj:``nlp.Features``, `optional`, defaults to :obj:``None``): If specified, the features types of the dataset
-        info (:obj:``nlp.DatasetInfo``, `optional`, defaults to :obj:``None``): If specified, the dataset info containing info like
-            description, citation, etc.
-        split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
+        dataset_path (``str``): path of a Dataset directory or a DatasetDict directory
+
+    Returns:
+        ``nlp.Dataset`` or ``nlp.DatasetDict``
+            if `dataset_path` is a path of a dataset directory: the dataset requested,
+            if `dataset_path` is a path of a dataset dict directory: a ``nlp.DatasetDict`` with each split.
     """
-    if not all([dset.features.type == dsets[0].features.type for dset in dsets]):
-        raise ValueError("Features must match for all datasets")
-    table = pa.concat_tables([dset._data for dset in dsets])
-    data_files = list(itertools.chain.from_iterable([dset._data_files for dset in dsets]))
-    if info is None:
-        info = DatasetInfo.from_merge([dset.info for dset in dsets])
-    return Dataset(table, info=info, split=split, data_files=data_files)
+    if not os.path.isdir(dataset_path):
+        raise FileNotFoundError("Directory {} not found".format(dataset_path))
+    if os.path.exists(os.path.join(dataset_path, "dataset_info.json")):
+        return Dataset.load_from_disk(dataset_path)
+    elif os.path.exists(os.path.join(dataset_path, "dataset_dict.json")):
+        return DatasetDict.load_from_disk(dataset_path)
+    else:
+        raise FileNotFoundError(
+            "Directory {} is neither a dataset directory nor a dataset dict directory.".format(dataset_path)
+        )

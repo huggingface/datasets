@@ -423,7 +423,7 @@ class Wikipedia(nlp.BeamBasedBuilder):
 
         xml_urls = []
         total_bytes = 0
-        with open(downloaded_files["info"]) as f:
+        with open(downloaded_files["info"], encoding="utf-8") as f:
             dump_info = json.load(f)
         multistream_dump_info = dump_info["jobs"]["articlesmultistreamdump"]
         assert multistream_dump_info["status"] == "done", (

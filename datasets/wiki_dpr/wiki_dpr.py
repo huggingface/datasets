@@ -69,7 +69,7 @@ class WikiDprConfig(nlp.BuilderConfig):
         super(WikiDprConfig, self).__init__(**kwargs)
 
         if self.index_name == "exact":
-            self.index_file = "psgs_w100.nq.IndexFlatIP-{split}.faiss"
+            self.index_file = "psgs_w100.nq.IndexHNSWFlat-IP-{split}.faiss"
         else:
             self.index_file = "psgs_w100.nq.IVFPQ4096_HNSW32_PQ64-IP-{split}.faiss"
         if self.dummy:
@@ -112,7 +112,7 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, data_file, vectors_files=None):
         vec_idx = 0
         vecs = []
-        lines = open(data_file, "r")
+        lines = open(data_file, "r", encoding="utf-8")
         next(lines)  # skip headers
         for i, line in enumerate(lines):
             if self.config.dummy and i == 10000:
@@ -169,9 +169,9 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
                 train_size = self.config.index_train_size
                 logging.info("Building wiki_dpr faiss index")
                 if self.config.index_name == "exact":
-                    dataset.add_faiss_index(
-                        "embeddings", string_factory="Flat", metric_type=faiss.METRIC_INNER_PRODUCT,
-                    )
+                    d = 768
+                    index = faiss.IndexHNSWFlat(d, 512, faiss.METRIC_INNER_PRODUCT)
+                    dataset.add_faiss_index("embeddings", custom_index=index)
                 else:
                     d = 768
                     quantizer = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
@@ -181,7 +181,6 @@ class WikiDpr(nlp.GeneratorBasedBuilder):
                     dataset.add_faiss_index(
                         "embeddings",
                         train_size=train_size,
-                        faiss_verbose=logging.getLogger().level <= logging.DEBUG,
                         custom_index=ivf_index,
                     )
                 logging.info("Saving wiki_dpr faiss index")

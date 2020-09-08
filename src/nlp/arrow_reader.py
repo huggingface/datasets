@@ -17,7 +17,6 @@
 """ Arrow ArrowReader."""
 
 import copy
-import logging
 import math
 import os
 import re
@@ -29,14 +28,14 @@ import pyarrow as pa
 import pyarrow.parquet
 
 from .naming import filename_for_dataset_split
-from .utils import cached_path
+from .utils import cached_path, logging
 
 
 if TYPE_CHECKING:
     from .info import DatasetInfo  # noqa: F401
 
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 _BUFFER_SIZE = 8 << 20  # 8 MiB per file.
 HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"
@@ -125,7 +124,10 @@ def _make_file_instructions_from_absolutes(name, name2len, absolute_instructions
         num_examples += to - from_
         single_file_instructions = [{"filename": filename, "skip": from_, "take": to - from_}]
         file_instructions.extend(single_file_instructions)
-    return FileInstructions(num_examples=num_examples, file_instructions=file_instructions,)
+    return FileInstructions(
+        num_examples=num_examples,
+        file_instructions=file_instructions,
+    )
 
 
 class BaseReader:
@@ -148,23 +150,26 @@ class BaseReader:
         """Returns a Dataset instance from given (filename, skip, take)."""
         raise NotImplementedError
 
-    def _read_files(self, files, info, original_instructions) -> dict:
+    def _read_files(self, files) -> pa.Table:
         """Returns Dataset for given file instructions.
 
         Args:
             files: List[dict(filename, skip, take)], the files information.
                 The filenames contain the absolute path, not relative.
                 skip/take indicates which example read in the file: `ds.slice(skip, take)`
-            original_instructions: store the original instructions used to build the dataset split in the dataset
         """
-        pa_batches = []
+        assert len(files) > 0 and all(isinstance(f, dict) for f in files), "please provide valid file informations"
+        pa_tables = []
+        files = copy.deepcopy(files)
+        for f in files:
+            f.update(filename=os.path.join(self._path, f["filename"]))
         for f_dict in files:
             pa_table: pa.Table = self._get_dataset_from_filename(f_dict)
-            pa_batches.extend(pa_table.to_batches())
-        if pa_batches:
-            pa_table = pa.Table.from_batches(pa_batches)
-        dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=info, split=original_instructions)
-        return dataset_kwargs
+            pa_tables.append(pa_table)
+        pa_tables = [t for t in pa_tables if len(t) > 0]
+        pa_tables = pa_tables or [pa.Table.from_batches([], schema=pa.schema(self._info.features.type))]
+        pa_table = pa.concat_tables(pa_tables)
+        return pa_table
 
     def get_file_instructions(self, name, instruction, split_infos):
         """Return list of dict {'filename': str, 'skip': int, 'take': int}"""
@@ -175,7 +180,10 @@ class BaseReader:
         return files
 
     def read(
-        self, name, instructions, split_infos,
+        self,
+        name,
+        instructions,
+        split_infos,
     ):
         """Returns Dataset instance(s).
 
@@ -194,10 +202,12 @@ class BaseReader:
         if not files:
             msg = 'Instruction "%s" corresponds to no data!' % instructions
             raise AssertionError(msg)
-        return self.read_files(files=tuple(files), original_instructions=instructions)
+        return self.read_files(files=files, original_instructions=instructions)
 
     def read_files(
-        self, files, original_instructions=None,
+        self,
+        files,
+        original_instructions=None,
     ):
         """Returns single Dataset instance for the set of file instructions.
 
@@ -211,10 +221,11 @@ class BaseReader:
             kwargs to build a Dataset instance.
         """
         # Prepend path to filename
+        pa_table = self._read_files(files)
         files = copy.deepcopy(files)
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
-        dataset_kwargs = self._read_files(files=files, info=self._info, original_instructions=original_instructions)
+        dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=self._info, split=original_instructions)
         return dataset_kwargs
 
     def download_from_hf_gcs(self, cache_dir, relative_data_dir):
@@ -239,7 +250,9 @@ class BaseReader:
         try:
             for split in self._info.splits:
                 file_instructions = self.get_file_instructions(
-                    name=self._info.builder_name, instruction=split, split_infos=self._info.splits.values(),
+                    name=self._info.builder_name,
+                    instruction=split,
+                    split_infos=self._info.splits.values(),
                 )
                 for file_instruction in file_instructions:
                     remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
@@ -259,7 +272,7 @@ class ArrowReader(BaseReader):
         """Initializes ArrowReader.
 
         Args:
-            path (str): path where tfrecords are stored.
+            path (str): path where Arrow files are stored.
             info (DatasetInfo): info about the dataset.
         """
         super().__init__(path, info)

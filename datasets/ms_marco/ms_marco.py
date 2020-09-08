@@ -142,7 +142,7 @@ class MsMarco(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             if self.config.name == "v2.1":
                 data = json.load(f)
                 questions = data["query"]

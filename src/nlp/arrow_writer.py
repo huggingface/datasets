@@ -5,8 +5,6 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +15,6 @@
 """To write records into Parquet files."""
 import errno
 import json
-import logging
 import os
 import socket
 from dataclasses import asdict
@@ -26,57 +23,133 @@ from typing import Any, Dict, List, Optional
 import pyarrow as pa
 from tqdm.auto import tqdm
 
-from .features import Features
+from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
-from .utils.py_utils import map_all_sequences_to_lists
+from .utils.logging import INFO, get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Batch size constants. For more info, see:
 # https://github.com/apache/arrow/blob/master/docs/source/cpp/arrays.rst#size-limitations-and-recommendations)
 DEFAULT_MAX_BATCH_SIZE = 10_000  # hopefully it doesn't write too much at once (max is 2GB)
+type_ = type  # keep python's type function
+
+
+class TypedSequence:
+    """
+    This data container generalizes the typing when instantiating pyarrow arrays, tabels or batches.
+
+    More specifically it add several features:
+    - Support extension types like ``nlp.features.Array2DExtensionType``:
+        By default pyarrow arrays don't return extension arrays. One has to call
+        ``pa.ExtensionArray.from_storage(type, pa.array(data, type.storage_type_name))``
+        in order to get an extension array.
+    - Support for ``try_type`` parameter that can be used instead of ``type``:
+        When an array is transformed, we like to keep the same type as before if possible.
+        For example when calling :func:`nlp.Dataset.map`, we don't want to change the type
+        of each column by default.
+    - Better error message when a pyarrow array overflows.
+
+    Example::
+
+        from nlp.features import Array2DExtensionType
+        from nlp.arrow_writer import TypedSequence
+        import pyarrow as pa
+
+        arr = pa.array(TypedSequence([1, 2, 3], type=pa.int32()))
+        assert arr.type == pa.int32()
+
+        arr = pa.array(TypedSequence([1, 2, 3], try_type=pa.int32()))
+        assert arr.type == pa.int32()
+
+        arr = pa.array(TypedSequence(["foo", "bar"], try_type=pa.int32()))
+        assert arr.type == pa.string()
+
+        arr = pa.array(TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType((1, 3), "int64")))
+        assert arr.type == Array2DExtensionType((1, 3), "int64")
+
+        table = pa.Table.from_pydict({
+            "image": TypedSequence([[[1, 2, 3]]], type=Array2DExtensionType((1, 3), "int64"))
+        })
+        assert table["image"].type == Array2DExtensionType((1, 3), "int64")
+
+    """
+
+    def __init__(self, data, type=None, try_type=None):
+        assert type is None or try_type is None, "You cannot specify both type and try_type"
+        self.data = data
+        self.type = type
+        self.try_type = try_type  # is ignored if it doesn't match the data
+
+    def __arrow_array__(self, type=None):
+        """This function is called when calling pa.array(typed_sequence)"""
+        assert type is None, "TypedSequence is supposed to be used with pa.array(typed_sequence, type=None)"
+        trying_type = False
+        if type is None and self.try_type:
+            type = self.try_type
+            trying_type = True
+        else:
+            type = self.type
+        try:
+            if isinstance(type, _ArrayXDExtensionType):
+                return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
+            else:
+                return pa.array(self.data, type=type)
+        except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
+            if trying_type:
+                try:
+                    return pa.array(self.data, type=None)  # second chance
+                except pa.lib.ArrowInvalid as e:
+                    if "overflow" in str(e):
+                        raise OverflowError(
+                            "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
+                                type_(self.data), e
+                            )
+                        )
+                    else:
+                        raise
+            elif "overflow" in str(e):
+                raise OverflowError(
+                    "There was an overflow with type {}. Try to reduce writer_batch_size to have batches smaller than 2GB.\n({})".format(
+                        type_(self.data), e
+                    )
+                )
+            else:
+                raise
 
 
 class ArrowWriter(object):
-    """Shuffles and writes Examples to Arrow files.
-    """
+    """Shuffles and writes Examples to Arrow files."""
 
     def __init__(
         self,
-        data_type: Optional[pa.DataType] = None,
         schema: Optional[pa.Schema] = None,
         features: Optional[Features] = None,
         path: Optional[str] = None,
         stream: Optional[pa.NativeFile] = None,
+        fingerprint: Optional[str] = None,
         writer_batch_size: Optional[int] = None,
-        disable_nullable: bool = True,
+        disable_nullable: bool = False,
         update_features: bool = False,
         with_metadata: bool = True,
+        unit: str = "examples",
     ):
         if path is None and stream is None:
             raise ValueError("At least one of path and stream must be provided.")
         if features is not None:
             self._features = features
             self._schema = pa.schema(features.type)
-            self._type: pa.DataType = pa.struct(field for field in self._schema)
-        elif data_type is not None:
-            self._type: pa.DataType = data_type
-            self._schema: pa.Schema = pa.schema(field for field in self._type)
-            self._features = Features.from_arrow_schema(self._schema)
         elif schema is not None:
             self._schema: pa.Schema = schema
-            self._type: pa.DataType = pa.struct(field for field in self._schema)
             self._features = Features.from_arrow_schema(self._schema)
         else:
             self._features = None
             self._schema = None
-            self._type = None
 
         if disable_nullable and self._schema is not None:
-            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._type)
-            self._type = pa.struct(pa.field(field.name, field.type, nullable=False) for field in self._type)
+            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
 
         self._path = path
         if stream is None:
@@ -84,9 +157,12 @@ class ArrowWriter(object):
         else:
             self.stream = stream
 
+        self.fingerprint = fingerprint
+        self.disable_nullable = disable_nullable
         self.writer_batch_size = writer_batch_size or DEFAULT_MAX_BATCH_SIZE
         self.update_features = update_features
         self.with_metadata = with_metadata
+        self.unit = unit
 
         self._num_examples = 0
         self._num_bytes = 0
@@ -96,7 +172,7 @@ class ArrowWriter(object):
     def _build_writer(self, inferred_schema: pa.Schema):
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:
-            if self.update_features:
+            if self.update_features:  # keep original features it they match, or update them
                 fields = {field.name: field for field in self._features.type}
                 for inferred_field in inferred_features.type:
                     name = inferred_field.name
@@ -105,99 +181,96 @@ class ArrowWriter(object):
                             inferred_features[name] = self._features[name]
                 self._features = inferred_features
                 self._schema: pa.Schema = inferred_schema
-                self._type: pa.DataType = pa.struct(field for field in self._schema)
         else:
             self._features = inferred_features
             self._schema: pa.Schema = inferred_schema
-            self._type: pa.DataType = pa.struct(field for field in self._schema)
+        if self.disable_nullable:
+            self._schema = pa.schema(pa.field(field.name, field.type, nullable=False) for field in self._schema)
         if self.with_metadata:
-            self._schema = self._schema.with_metadata(self._build_metadata(DatasetInfo(features=self._features)))
+            self._schema = self._schema.with_metadata(
+                self._build_metadata(DatasetInfo(features=self._features), self.fingerprint)
+            )
         self.pa_writer = pa.RecordBatchStreamWriter(self.stream, self._schema)
 
     @property
     def schema(self):
         return self._schema if self._schema is not None else []
 
-    def _build_metadata(self, info) -> Dict[str, str]:
-        keys = ["features"]  # we can add support for more DatasetInfo keys in the future
+    def _build_metadata(self, info: DatasetInfo, fingerprint: Optional[str] = None) -> Dict[str, str]:
+        info_keys = ["features"]  # we can add support for more DatasetInfo keys in the future
         info_as_dict = asdict(info)
-        return {"huggingface": json.dumps({key: info_as_dict[key] for key in keys})}
-
-    def _write_array_on_file(self, pa_array):
-        """Write a PyArrow Array"""
-        pa_batch = pa.RecordBatch.from_struct_array(pa_array)
-        self._num_bytes += pa_array.nbytes
-        if self.pa_writer is None:
-            pa_table = pa.Table.from_batches([pa_batch])
-            self._build_writer(inferred_schema=pa_table.schema)
-        self.pa_writer.write_batch(pa_batch)
+        metadata = {}
+        metadata["info"] = {key: info_as_dict[key] for key in info_keys}
+        if fingerprint is not None:
+            metadata["fingerprint"] = fingerprint
+        return {"huggingface": json.dumps(metadata)}
 
     def write_on_file(self):
-        """ Write stored examples
-        """
-        # infer type on first write
-        type = None if self.update_features and self.pa_writer is None else self._type
-        if self.current_rows:
-            pa_array = pa.array(self.current_rows, type=type)
-            first_example = pa.array(self.current_rows[0:1], type=type)[0]
-            # Sanity check
-            if pa_array[0] != first_example:
-                # There was an Overflow in StructArray. Let's reduce the batch_size
-                while pa_array[0] != first_example:
-                    new_batch_size = self.writer_batch_size // 2
-                    pa_array = pa.array(self.current_rows[:new_batch_size], type=type)
-                logger.warning(
-                    "Batch size is too big (>2GB). Reducing it from {} to {}".format(
-                        self.writer_batch_size, new_batch_size
+        """Write stored examples"""
+        if not self.current_rows:
+            return
+        cols = sorted(self.current_rows[0].keys())
+        schema = None if self.pa_writer is None and self.update_features else self._schema
+        try_schema = self._schema if self.pa_writer is None and self.update_features else None
+        arrays = []
+        inferred_types = []
+        for col in cols:
+            col_type = schema.field(col).type if schema is not None else None
+            col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
+            typed_sequence = TypedSequence(
+                [row[col] for row in self.current_rows], type=col_type, try_type=col_try_type
+            )
+            pa_array = pa.array(typed_sequence)
+            inferred_type = pa_array.type
+            first_example = pa.array(TypedSequence(typed_sequence.data[:1], type=inferred_type))[0]
+            if pa_array[0] != first_example:  # Sanity check (check for overflow in StructArray or ListArray)
+                raise OverflowError(
+                    "There was an overflow in the {}. Try to reduce writer_batch_size to have batches smaller than 2GB".format(
+                        type(pa_array)
                     )
                 )
-                self.writer_batch_size = new_batch_size
-                n_batches = len(self.current_rows) // new_batch_size
-                n_batches += int(len(self.current_rows) % new_batch_size != 0)
-                for i in range(n_batches):
-                    pa_array = pa.array(self.current_rows[i * new_batch_size : (i + 1) * new_batch_size], type=type,)
-                    self._write_array_on_file(pa_array)
-            else:
-                # All good
-                self._write_array_on_file(pa_array)
-            self.current_rows = []
+            arrays.append(pa_array)
+            inferred_types.append(inferred_type)
+        schema = pa.schema(zip(cols, inferred_types)) if self.pa_writer is None else self._schema
+        table = pa.Table.from_arrays(arrays, schema=schema)
+        self.write_table(table)
+        self.current_rows = []
 
     def write(self, example: Dict[str, Any], writer_batch_size: Optional[int] = None):
-        """ Add a given Example to the write-pool which is written to file.
+        """Add a given Example to the write-pool which is written to file.
 
         Args:
             example: the Example to add.
         """
-        example = map_all_sequences_to_lists(example)
         self.current_rows.append(example)
-        self._num_examples += 1
         if writer_batch_size is None:
             writer_batch_size = self.writer_batch_size
         if writer_batch_size is not None and len(self.current_rows) >= writer_batch_size:
             self.write_on_file()
 
     def write_batch(
-        self, batch_examples: Dict[str, List[Any]], writer_batch_size: Optional[int] = None,
+        self,
+        batch_examples: Dict[str, List[Any]],
+        writer_batch_size: Optional[int] = None,
     ):
-        """ Write a batch of Example to file.
+        """Write a batch of Example to file.
 
         Args:
             example: the Example to add.
         """
-        batch_examples = map_all_sequences_to_lists(batch_examples)
-        if self.pa_writer is None:
-            self._build_writer(inferred_schema=pa.Table.from_pydict(batch_examples).schema)
-        pa_table: pa.Table = pa.Table.from_pydict(batch_examples, schema=self._schema)
-        if writer_batch_size is None:
-            writer_batch_size = self.writer_batch_size
-        batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
-        self._num_bytes += sum(batch.nbytes for batch in batches)
-        self._num_examples += pa_table.num_rows
-        for batch in batches:
-            self.pa_writer.write_batch(batch)
+        schema = None if self.pa_writer is None and self.update_features else self._schema
+        try_schema = self._schema if self.pa_writer is None and self.update_features else None
+        typed_sequence_examples = {}
+        for col in sorted(batch_examples.keys()):
+            col_type = schema.field(col).type if schema is not None else None
+            col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
+            typed_sequence = TypedSequence(batch_examples[col], type=col_type, try_type=col_try_type)
+            typed_sequence_examples[col] = typed_sequence
+        pa_table = pa.Table.from_pydict(typed_sequence_examples)
+        self.write_table(pa_table)
 
     def write_table(self, pa_table: pa.Table, writer_batch_size: Optional[int] = None):
-        """ Write a batch of Example to file.
+        """Write a batch of Example to file.
 
         Args:
             example: the Example to add.
@@ -206,6 +279,7 @@ class ArrowWriter(object):
             writer_batch_size = self.writer_batch_size
         if self.pa_writer is None:
             self._build_writer(inferred_schema=pa_table.schema)
+        pa_table = pa_table.cast(self._schema)
         batches: List[pa.RecordBatch] = pa_table.to_batches(max_chunksize=writer_batch_size)
         self._num_bytes += sum(batch.nbytes for batch in batches)
         self._num_examples += pa_table.num_rows
@@ -218,8 +292,9 @@ class ArrowWriter(object):
         if close_stream:
             self.stream.close()
         logger.info(
-            "Done writing %s examples in %s bytes %s.",
+            "Done writing %s %s in %s bytes %s.",
             self._num_examples,
+            self.unit,
             self._num_bytes,
             self._path if self._path else "",
         )
@@ -234,23 +309,23 @@ class BeamWriter(object):
 
     def __init__(
         self,
-        data_type: Optional[pa.DataType] = None,
+        features: Optional[Features] = None,
         schema: Optional[pa.Schema] = None,
         path: Optional[str] = None,
         namespace: Optional[str] = None,
         cache_dir: Optional[str] = None,
     ):
-        if data_type is None and schema is None:
-            raise ValueError("At least one of data_type and schema must be provided.")
+        if features is None and schema is None:
+            raise ValueError("At least one of features and schema must be provided.")
         if path is None:
             raise ValueError("Path must be provided.")
 
-        if data_type is not None:
-            self._type: pa.DataType = data_type
-            self._schema: pa.Schema = pa.schema(field for field in self._type)
+        if features is not None:
+            self._features: Features = features
+            self._schema: pa.Schema = pa.schema(features.type)
         else:
             self._schema: pa.Schema = schema
-            self._type: pa.DataType = pa.struct(field for field in self._schema)
+            self._features: Features = Features.from_arrow_schema(schema)
 
         self._path = path
         self._parquet_path = os.path.splitext(path)[0]  # remove extension
@@ -329,9 +404,10 @@ def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
     writer = ArrowWriter(path=destination, stream=stream)
-    for source in tqdm(sources, unit="sources"):
+    not_verbose = bool(logger.getEffectiveLevel() > INFO)
+    for source in tqdm(sources, unit="sources", disable=not_verbose):
         pf = pa.parquet.ParquetFile(source)
-        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False):
+        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
             df = pf.read_row_group(i).to_pandas()
             for col in df.columns:
                 df[col] = df[col].apply(json.loads)

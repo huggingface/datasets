@@ -92,7 +92,7 @@ class Billsum(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, path=None, key=None):
         """Yields examples."""
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 # in us bills, json has fields:
                 #   text, summary, title, bill_id, text_len, sum_len

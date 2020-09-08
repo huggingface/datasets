@@ -99,7 +99,7 @@ class Gap(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Yields examples."""
-        with open(filepath) as tsvfile:
+        with open(filepath, encoding="utf-8") as tsvfile:
             reader = csv.DictReader(tsvfile, dialect="excel-tab")
             for i, row in enumerate(reader):
                 row["A-coref"] = bool(row["A-coref"])

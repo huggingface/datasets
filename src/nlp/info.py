@@ -32,18 +32,17 @@ processed the dataset as well:
 import copy
 import dataclasses
 import json
-import logging
 import os
 from dataclasses import asdict, dataclass, field
 from typing import List, Optional, Union
 
-from nlp.utils.version import Version
-
 from .features import Features, Value
 from .splits import SplitDict
+from .utils import Version
+from .utils.logging import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Name of the file to output the DatasetInfo p rotobuf object.
 DATASET_INFO_FILENAME = "dataset_info.json"
@@ -142,8 +141,8 @@ class DatasetInfo:
         return os.path.join(dataset_info_dir, LICENSE_FILENAME)
 
     def write_to_directory(self, dataset_info_dir):
-        """ Write `DatasetInfo` as JSON to `dataset_info_dir`.
-            Also save the license separately in LICENCE.
+        """Write `DatasetInfo` as JSON to `dataset_info_dir`.
+        Also save the license separately in LICENCE.
         """
         with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "wb") as f:
             self._dump_info(f)
@@ -267,7 +266,7 @@ class MetricInfo:
     # Set later by the builder
     metric_name: Optional[str] = None
     config_name: Optional[str] = None
-    version: Optional[str] = None
+    experiment_id: Optional[str] = None
 
     def __post_init__(self):
         assert "predictions" in self.features, "Need to have at least a 'predictions' field in 'features'."
@@ -280,8 +279,8 @@ class MetricInfo:
                     )
 
     def write_to_directory(self, metric_info_dir):
-        """ Write `MetricInfo` as JSON to `metric_info_dir`.
-            Also save the license separately in LICENCE.
+        """Write `MetricInfo` as JSON to `metric_info_dir`.
+        Also save the license separately in LICENCE.
         """
         with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "w") as f:
             json.dump(asdict(self), f)

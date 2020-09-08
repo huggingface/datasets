@@ -4,9 +4,9 @@ This file is adapted from the AllenNLP library at https://github.com/allenai/all
 Copyright by the AllenNLP authors.
 """
 
+import copy
 import gzip
 import json
-import logging
 import os
 import shutil
 import sys
@@ -20,14 +20,16 @@ from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
+import numpy as np
 import requests
 from filelock import FileLock
 from tqdm.auto import tqdm
 
 from .. import __version__
+from .logging import INFO, get_logger
 
 
-logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+logger = get_logger(__name__)  # pylint: disable=invalid-name
 
 try:
     USE_TF = os.environ.get("USE_TF", "AUTO").upper()
@@ -42,6 +44,7 @@ try:
         _torch_available = False
 except ImportError:
     _torch_available = False  # pylint: disable=invalid-name
+
 
 try:
     USE_TF = os.environ.get("USE_TF", "AUTO").upper()
@@ -58,6 +61,20 @@ try:
         _tf_available = False
 except (ImportError, AssertionError):
     _tf_available = False  # pylint: disable=invalid-name
+
+
+try:
+    USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
+    if USE_BEAM in ("1", "ON", "YES", "AUTO"):
+        import apache_beam  # noqa: F401
+
+        _beam_available = True  # pylint: disable=invalid-name
+        logger.info("Apache Beam available.")
+    else:
+        logger.info("Disabling Apache Beam because USE_BEAM is set to False")
+        _beam_available = False
+except ImportError:
+    _beam_available = False  # pylint: disable=invalid-name
 
 
 hf_cache_home = os.path.expanduser(
@@ -86,7 +103,74 @@ except (AttributeError, ImportError):
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/metrics"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/metric"
 
+
+default_modules_cache_path = os.path.join(hf_cache_home, "modules")
+try:
+    from pathlib import Path
+
+    HF_MODULES_CACHE = Path(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
+except (AttributeError, ImportError):
+    HF_MODULES_CACHE = os.getenv(os.getenv("HF_MODULES_CACHE", default_modules_cache_path))
+sys.path.append(str(HF_MODULES_CACHE))
+
+os.makedirs(HF_MODULES_CACHE, exist_ok=True)
+if not os.path.exists(os.path.join(HF_MODULES_CACHE, "__init__.py")):
+    with open(os.path.join(HF_MODULES_CACHE, "__init__.py"), "w"):
+        pass
+
 INCOMPLETE_SUFFIX = ".incomplete"
+
+
+def is_beam_available():
+    return _beam_available
+
+
+@contextmanager
+def temp_seed(seed: int, set_pytorch=False, set_tensorflow=False):
+    np_state = np.random.get_state()
+    np.random.seed(seed)
+
+    if set_pytorch and _torch_available:
+        torch_state = torch.random.get_rng_state()
+        torch.random.manual_seed(seed)
+
+        if torch.cuda.is_available():
+            torch_cuda_states = torch.cuda.get_rng_state_all()
+            torch.cuda.manual_seed_all(seed)
+
+    if set_tensorflow and _tf_available:
+        tf_state = tf.random.get_global_generator()
+        temp_gen = tf.random.Generator.from_seed(seed)
+        tf.random.set_global_generator(temp_gen)
+
+        if not tf.executing_eagerly():
+            raise ValueError("Setting random seed for TensorFlow is only available in eager mode")
+
+        tf_context = tf.python.context.context()  # eager mode context
+        tf_seed = tf_context._seed
+        tf_rng_initialized = hasattr(tf_context, "_rng")
+        if tf_rng_initialized:
+            tf_rng = tf_context._rng
+        tf_context._set_global_seed(seed)
+
+    try:
+        yield
+    finally:
+        np.random.set_state(np_state)
+
+        if set_pytorch and _torch_available:
+            torch.random.set_rng_state(torch_state)
+            if torch.cuda.is_available():
+                torch.cuda.set_rng_state_all(torch_cuda_states)
+
+        if set_tensorflow and _tf_available:
+            tf.random.set_global_generator(tf_state)
+
+            tf_context._seed = tf_seed
+            if tf_rng_initialized:
+                tf_context._rng = tf_rng
+            else:
+                delattr(tf_context, "_rng")
 
 
 def is_torch_available():
@@ -136,7 +220,7 @@ def hash_url_to_filename(url, etag=None):
 
 @dataclass
 class DownloadConfig:
-    """ Configuration for our cached path manager
+    """Configuration for our cached path manager
     Args:
         cache_dir: specify a cache directory to save the file to (overwrite the default cache dir).
         force_download: if True, re-dowload the file even if it's already cached in the cache dir.
@@ -159,8 +243,15 @@ class DownloadConfig:
     extract_compressed_file: bool = False
     force_extract: bool = False
 
+    def copy(self) -> "DownloadConfig":
+        return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
-def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Optional[str]:
+
+def cached_path(
+    url_or_filename,
+    download_config=None,
+    **download_kwargs,
+) -> Optional[str]:
     """
     Given something that might be a URL (or might be a local path),
     determine which. If it's a URL, download the file and cache it, and
@@ -267,13 +358,14 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
+    not_verbose = bool(logger.getEffectiveLevel() > INFO)
     progress = tqdm(
         unit="B",
         unit_scale=True,
         total=total,
         initial=resume_size,
         desc="Downloading",
-        disable=bool(logger.getEffectiveLevel() == logging.NOTSET),
+        disable=not_verbose,
     )
     for chunk in response.iter_content(chunk_size=1024):
         if chunk:  # filter out keep-alive new chunks

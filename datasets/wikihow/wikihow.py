@@ -126,7 +126,7 @@ class Wikihow(nlp.GeneratorBasedBuilder):
         dl_path = dl_manager.download_and_extract(_URLS)
         titles = {k: set() for k in dl_path}
         for k, path in dl_path.items():
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 for line in f:
                     titles[k].add(line.strip())
 
@@ -155,7 +155,7 @@ class Wikihow(nlp.GeneratorBasedBuilder):
 
     def _generate_examples(self, path=None, title_set=None):
         """Yields examples."""
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             reader = csv.reader(f)
             headers = next(reader)
             if self.config.name == "all" and headers != ["headline", "title", "text"]:

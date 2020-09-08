@@ -17,15 +17,16 @@
 """Download manager interface."""
 
 import enum
-import logging
 import os
+from typing import Dict, Union
 
 from .file_utils import HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
+from .logging import get_logger
 from .py_utils import flatten_nested, map_nested, size_str
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GenerateMode(enum.Enum):
@@ -50,7 +51,10 @@ class GenerateMode(enum.Enum):
 
 class DownloadManager(object):
     def __init__(
-        self, dataset_name=None, data_dir=None, download_config=None,
+        self,
+        dataset_name=None,
+        data_dir=None,
+        download_config=None,
     ):
         """Download manager constructor.
 
@@ -66,7 +70,7 @@ class DownloadManager(object):
         self._data_dir = data_dir
         self._download_config = download_config
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
-        self._recorded_sizes_checksums = {}
+        self._recorded_sizes_checksums: Dict[str, Dict[str, Union[int, str]]] = {}
 
     @property
     def manual_dir(self):
@@ -97,7 +101,10 @@ class DownloadManager(object):
             upload_local_to_remote(local_file_path, remote_file_path)
             return remote_file_path
 
-        uploaded_path_or_paths = map_nested(lambda local_file_path: upload(local_file_path), downloaded_path_or_paths,)
+        uploaded_path_or_paths = map_nested(
+            lambda local_file_path: upload(local_file_path),
+            downloaded_path_or_paths,
+        )
         return uploaded_path_or_paths
 
     def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
@@ -105,7 +112,8 @@ class DownloadManager(object):
         flattened_urls_or_urls = flatten_nested(url_or_urls)
         flattened_downloaded_path_or_paths = flatten_nested(downloaded_path_or_paths)
         for url, path in zip(flattened_urls_or_urls, flattened_downloaded_path_or_paths):
-            self._recorded_sizes_checksums[url] = get_size_checksum_dict(path)
+            # call str to support PathLike objects
+            self._recorded_sizes_checksums[str(url)] = get_size_checksum_dict(path)
 
     def download_custom(self, url_or_urls, custom_download):
         """
@@ -152,8 +160,11 @@ class DownloadManager(object):
             downloaded_path(s): `str`, The downloaded paths matching the given input
                 url_or_urls.
         """
+        download_config = self._download_config.copy()
+        download_config.extract_compressed_file = False
         downloaded_path_or_paths = map_nested(
-            lambda url: cached_path(url, download_config=self._download_config,), url_or_urls,
+            lambda url: cached_path(url, download_config=download_config),
+            url_or_urls,
         )
         self._record_sizes_checksums(url_or_urls, downloaded_path_or_paths)
         return downloaded_path_or_paths
@@ -194,10 +205,11 @@ class DownloadManager(object):
             extracted_path(s): `str`, The extracted paths matching the given input
                 path_or_paths.
         """
+        download_config = self._download_config.copy()
+        download_config.extract_compressed_file = True
+        download_config.force_extract = False
         return map_nested(
-            lambda path: cached_path(
-                path, cache_dir=self._download_config.cache_dir, extract_compressed_file=True, force_extract=False
-            ),
+            lambda path: cached_path(path, download_config=download_config),
             path_or_paths,
         )
 

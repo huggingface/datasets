@@ -165,7 +165,7 @@ END_TOKENS = [".", "!", "?", "...", "'", "`", '"', DM_SINGLE_CLOSE_QUOTE, DM_DOU
 
 def _read_text_file(text_file):
     lines = []
-    with open(text_file, "r") as f:
+    with open(text_file, "r", encoding="utf-8") as f:
         for line in f:
             lines.append(line.strip())
     return lines

@@ -1,0 +1,46 @@
+name: benchmarks
+on: [push]
+jobs:
+  run:
+    runs-on: [ubuntu-latest]
+    container: docker://dvcorg/cml-py3:latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: cml_run
+        env:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Your ML workflow goes here
+
+          pip install --upgrade pip
+          pip install setuptools wheel
+          pip install -e .[benchmarks]
+
+          # pyarrow==0.17.1
+          pip install pyarrow==0.17.1
+
+          dvc repro --force
+
+          git fetch --prune
+          dvc metrics diff --show-json master > report.json
+
+          python ./benchmarks/format.py report.json report.md
+
+          echo "<details>\n<summary>Show benchmarks</summary>\n\nPyArrow==0.17.1\n" > final_report.md
+          cat report.md >> final_report.md
+
+          # pyarrow
+          pip install pyarrow --upgrade
+
+          dvc repro --force
+
+          git fetch --prune
+          dvc metrics diff --show-json master > report.json
+
+          python ./benchmarks/format.py report.json report.md
+
+          echo "\nPyArrow==1.0\n" >> final_report.md
+          cat report.md >> final_report.md
+          echo "\n</details>" >> final_report.md
+
+          cml-send-comment final_report.md

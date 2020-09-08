@@ -10,6 +10,8 @@ Datasets
 
 .. autofunction:: nlp.load_dataset
 
+.. autofunction:: nlp.load_from_disk
+
 Metrics
 ~~~~~~~~~~~~~~~~~~~~~
 

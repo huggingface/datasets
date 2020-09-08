@@ -2,9 +2,9 @@ import os
 import re
 import shutil
 from argparse import ArgumentParser, Namespace
-from logging import getLogger
 
 from nlp.commands import BaseTransformersCLICommand
+from nlp.utils.logging import get_logger
 
 
 HIGHLIGHT_MESSAGE_PRE = """<<<<<<< This should probably be modified because it mentions: """
@@ -56,7 +56,8 @@ class ConvertCommand(BaseTransformersCLICommand):
         :return:
         """
         train_parser = parser.add_parser(
-            "convert", help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
+            "convert",
+            help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
         )
         train_parser.add_argument(
             "--tfds_path",
@@ -70,7 +71,7 @@ class ConvertCommand(BaseTransformersCLICommand):
         train_parser.set_defaults(func=convert_command_factory)
 
     def __init__(self, tfds_path: str, nlp_directory: str, *args):
-        self._logger = getLogger("nlp-cli/converting")
+        self._logger = get_logger("nlp-cli/converting")
 
         self._tfds_path = tfds_path
         self._nlp_directory = nlp_directory
@@ -129,7 +130,9 @@ class ConvertCommand(BaseTransformersCLICommand):
                     out_line = ""
                     continue
                 elif "from absl import logging" in out_line:
-                    out_line = "import logging\n"
+                    out_line = "from nlp import logging\n"
+                elif "getLogger" in out_line:
+                    out_line = out_line.replace("getLogger", "get_logger")
                 elif any(expression in out_line for expression in TO_HIGHLIGHT):
                     needs_manual_update = True
                     to_remove = list(filter(lambda e: e in out_line, TO_HIGHLIGHT))
