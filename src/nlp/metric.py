@@ -27,8 +27,8 @@ from filelock import BaseFileLock, FileLock, Timeout
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
-from .info import MetricInfo
 from .features import Features
+from .info import MetricInfo
 from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
@@ -209,9 +209,11 @@ class Metric(MetricInfoMixin):
         self.filelocks = None
 
     def __repr__(self):
-        return (f'Metric(name: "{self.name}", features: {self.features}, '
-                f'usage: """{self.inputs_description}""", '
-                f'stored examples: {0 if self.writer is None else len(self.writer)})')
+        return (
+            f'Metric(name: "{self.name}", features: {self.features}, '
+            f'usage: """{self.inputs_description}""", '
+            f"stored examples: {0 if self.writer is None else len(self.writer)})"
+        )
 
     def _build_data_dir(self):
         """Path of this metric in cache_dir:
@@ -410,10 +412,12 @@ class Metric(MetricInfoMixin):
         try:
             self.writer.write_batch(batch)
         except pa.ArrowInvalid:
-            raise ValueError(f"Predictions and/or references don't match the expected format.\n"
-                            f"Expected format: {self.features},\n"
-                            f"Input predictions: {predictions},\n"
-                            f"Input references: {references}")
+            raise ValueError(
+                f"Predictions and/or references don't match the expected format.\n"
+                f"Expected format: {self.features},\n"
+                f"Input predictions: {predictions},\n"
+                f"Input references: {references}"
+            )
 
     def add(self, *, prediction=None, reference=None):
         """Add one prediction and reference for the metric's stack."""
@@ -424,10 +428,12 @@ class Metric(MetricInfoMixin):
         try:
             self.writer.write(example)
         except pa.ArrowInvalid:
-            raise ValueError(f"Prediction and/or reference don't match the expected format.\n"
-                            f"Expected format: {self.features},\n"
-                            f"Input predictions: {prediction},\n"
-                            f"Input references: {reference}")
+            raise ValueError(
+                f"Prediction and/or reference don't match the expected format.\n"
+                f"Expected format: {self.features},\n"
+                f"Input predictions: {prediction},\n"
+                f"Input references: {reference}"
+            )
 
     def _init_writer(self, timeout=1):
         if self.num_process > 1:

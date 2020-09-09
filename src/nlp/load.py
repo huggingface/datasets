@@ -491,7 +491,13 @@ def load_metric(
 
     Returns: `nlp.Metric`.
     """
-    module_path, hash = prepare_module(path, script_version=script_version, download_config=download_config, download_mode=download_mode, dataset=False)
+    module_path, hash = prepare_module(
+        path,
+        script_version=script_version,
+        download_config=download_config,
+        download_mode=download_mode,
+        dataset=False,
+    )
     metric_cls = import_main_class(module_path, dataset=False)
     metric = metric_cls(
         config_name=config_name,
@@ -580,7 +586,9 @@ def load_dataset(
     """
     ignore_verifications = ignore_verifications or save_infos
     # Download/copy dataset processing script
-    module_path, hash = prepare_module(path, script_version=script_version, download_config=download_config, download_mode=download_mode, dataset=True)
+    module_path, hash = prepare_module(
+        path, script_version=script_version, download_config=download_config, download_mode=download_mode, dataset=True
+    )
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)
