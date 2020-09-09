@@ -183,7 +183,9 @@ class Metric(MetricInfoMixin):
         self.filelocks = None
 
     def __repr__(self):
-        return f'Metric(name: "{self.name}", features: {self.features}, usage: """{self.inputs_description}""")'
+        return (f'Metric(name: "{self.name}", features: {self.features}, '
+                f'usage: """{self.inputs_description}""", '
+                f'stored examples: {0 if self.writer is None else len(self.writer)})')
 
     def _build_data_dir(self):
         """Path of this metric in cache_dir:
@@ -344,7 +346,13 @@ class Metric(MetricInfoMixin):
         batch = self.info.features.encode_batch(batch)
         if self.writer is None:
             self._init_writer()
-        self.writer.write_batch(batch)
+        try:
+            self.writer.write_batch(batch)
+        except pa.ArrowInvalid:
+            raise ValueError(f"Predictions and/or references don't match the expected format.\n"
+                            f"Expected format: {self.features},\n"
+                            f"Input predictions: {predictions},\n"
+                            f"Input references: {references}")
 
     def add(self, *, prediction=None, reference=None):
         """Add one prediction and reference for the metric's stack."""
@@ -352,7 +360,13 @@ class Metric(MetricInfoMixin):
         example = self.info.features.encode_example(example)
         if self.writer is None:
             self._init_writer()
-        self.writer.write(example)
+        try:
+            self.writer.write(example)
+        except pa.ArrowInvalid:
+            raise ValueError(f"Prediction and/or reference don't match the expected format.\n"
+                            f"Expected format: {self.features},\n"
+                            f"Input predictions: {prediction},\n"
+                            f"Input references: {reference}")
 
     def _init_writer(self):
         if self.keep_in_memory:

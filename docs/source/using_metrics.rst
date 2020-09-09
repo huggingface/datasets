@@ -49,4 +49,123 @@ Adding model predictions and references can be done using either one of the :fun
 
 The model predictions and references can be provided in a wide number of formats (python lists, numpy arrays, pytorch tensors, tensorflow tensors), the metric object will take care of converting them to a suitable format for temporary storage and computation (as well as bringing them back to cpu and detaching them from gradients for PyTorch tensors).
 
-The exact format of the inputs is specific to each metric script and can be read in the 
+The exact format of the inputs is specific to each metric script and can be found in :obj:`nlp.Metric.features`, :obj:`nlp.Metric.inputs_descriptions` and the string representation of the :class:`nlp.Metric` object:
+
+.. code-block::
+
+    >>> import nlp
+
+    >>> metric = nlp.load_metric('./metrics/sacrebleu')
+
+    >>> print(metric)
+    Metric(name: "sacrebleu", features: {'predictions': Value(dtype='string', id='sequence'), 'references': Sequence(feature=Value(dtype='string', id='sequence'), length=-1, id='references')}, usage: """
+        Produces BLEU scores along with its sufficient statistics
+        from a source against one or more references.
+
+        Args:
+            predictions: The system stream (a sequence of segments)
+            references: A list of one or more reference streams (each a sequence of segments)
+            smooth: The smoothing method to use
+            smooth_value: For 'floor' smoothing, the floor to use
+            force: Ignore data that looks already tokenized
+            lowercase: Lowercase the data
+            tokenize: The tokenizer to use
+        Returns:
+            'score': BLEU score,
+            'counts': Counts,
+            'totals': Totals,
+            'precisions': Precisions,
+            'bp': Brevity penalty,
+            'sys_len': predictions length,
+            'ref_len': reference length,
+        """)
+
+    >>> print(metric.features)
+    {'predictions': Value(dtype='string', id='sequence'), 'references': Sequence(feature=Value(dtype='string', id='sequence'), length=-1, id='references')}
+
+    >>> print(metric.inputs_description)
+
+    Produces BLEU scores along with its sufficient statistics
+    from a source against one or more references.
+
+    Args:
+        predictions: The system stream (a sequence of segments)
+        references: A list of one or more reference streams (each a sequence of segments)
+        smooth: The smoothing method to use
+        smooth_value: For 'floor' smoothing, the floor to use
+        force: Ignore data that looks already tokenized
+        lowercase: Lowercase the data
+        tokenize: The tokenizer to use
+    Returns:
+        'score': BLEU score,
+        'counts': Counts,
+        'totals': Totals,
+        'precisions': Precisions,
+        'bp': Brevity penalty,
+        'sys_len': predictions length,
+        'ref_len': reference length,
+
+Here we can see that the ``sacrebleu`` metric expect a sequence of segments as predictions and a list of one or several sequences of segments as references.
+
+You can find more information on the segments in the description, homepage and publication of ``sacrebleu`` which can be access with the respective attributes on the metric:
+
+.. code-block::
+    >>> print(metric.description)
+    SacreBLEU provides hassle-free computation of shareable, comparable, and reproducible BLEU scores.
+    Inspired by Rico Sennrich's `multi-bleu-detok.perl`, it produces the official WMT scores but works with plain text.
+    It also knows all the standard test sets and handles downloading, processing, and tokenization for you.
+
+    See the [README.md] file at https://github.com/mjpost/sacreBLEU for more information.
+
+    >>> print(metric.homepage)
+    https://github.com/mjpost/sacreBLEU
+    >>> print(metric.citation)
+    @inproceedings{post-2018-call,
+        title = "A Call for Clarity in Reporting {BLEU} Scores",
+        author = "Post, Matt",
+        booktitle = "Proceedings of the Third Conference on Machine Translation: Research Papers",
+        month = oct,
+        year = "2018",
+        address = "Belgium, Brussels",
+        publisher = "Association for Computational Linguistics",
+        url = "https://www.aclweb.org/anthology/W18-6319",
+        pages = "186--191",
+    }
+
+Let's use ``sacrebleu`` with the official quick-start example on its homepage at https://github.com/mjpost/sacreBLEU:
+
+.. code-block::
+
+    >>> reference_batch = [['The dog bit the man.', 'The dog had bit the man.'],
+    ...                    ['It was not unexpected.', 'No one was surprised.'],
+    ...                    ['The man bit him first.', 'The man had bitten the dog.']]
+    >>> sys_batch = ['The dog bit the man.', "It wasn't surprising.", 'The man had just bitten him.']
+    >>> score = metric.add_batch(predictions=sys_batch, references=reference_batch)
+    >>> print(metric)
+    Metric(name: "sacrebleu", features: {'predictions': Value(dtype='string', id='sequence'), 'references': Sequence(feature=Value(dtype='string', id='sequence'), length=-1, id='references')}, usage: """
+    Produces BLEU scores along with its sufficient statistics
+    from a source against one or more references.
+
+    Args:
+        predictions: The system stream (a sequence of segments)
+        references: A list of one or more reference streams (each a sequence of segments)
+        smooth: The smoothing method to use
+        smooth_value: For 'floor' smoothing, the floor to use
+        force: Ignore data that looks already tokenized
+        lowercase: Lowercase the data
+        tokenize: The tokenizer to use
+    Returns:
+        'score': BLEU score,
+        'counts': Counts,
+        'totals': Totals,
+        'precisions': Precisions,
+        'bp': Brevity penalty,
+        'sys_len': predictions length,
+        'ref_len': reference length,
+    """, stored examples: 3)
+
+We have stored three evaluation examples in our metric, now let's compute the score.
+
+Conmputing the metric scores
+-----------------------------------------
+
