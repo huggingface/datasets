@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import List
 
@@ -6,7 +7,7 @@ import pyarrow.csv as pac
 import nlp
 
 
-logger = nlp.utils.logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 FEATURES = nlp.Features({"text": nlp.Value("string"),})
 
