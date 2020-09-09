@@ -67,64 +67,60 @@ class MetricInfoMixin(object):
     """
 
     def __init__(self, info: MetricInfo):
-        self._info = info
+        self._metric_info = info
 
     @property
     def info(self):
         """ :class:`nlp.MetricInfo` object containing all the metadata in the metric."""
-        return self._info
+        return self._metric_info
 
     @property
     def name(self) -> str:
-        return self._info.metric_name
-
-    @property
-    def config_name(self) -> str:
-        return self._info.config_name
+        return self._metric_info.metric_name
 
     @property
     def experiment_id(self) -> Optional[str]:
-        return self._info.experiment_id
+        return self._metric_info.experiment_id
 
     @property
     def description(self) -> str:
-        return self._info.description
+        return self._metric_info.description
 
     @property
     def citation(self) -> str:
-        return self._info.citation
+        return self._metric_info.citation
 
     @property
     def features(self) -> Features:
-        return self._info.features
+        return self._metric_info.features
 
     @property
     def inputs_description(self) -> str:
-        return self._info.inputs_description
+        return self._metric_info.inputs_description
 
     @property
     def homepage(self) -> Optional[str]:
-        return self._info.homepage
+        return self._metric_info.homepage
 
     @property
     def license(self) -> str:
-        return self._info.license
+        return self._metric_info.license
 
     @property
     def codebase_urls(self) -> Optional[List[str]]:
-        return self._info.codebase_urls
+        return self._metric_info.codebase_urls
 
     @property
     def reference_urls(self) -> Optional[List[str]]:
-        return self._info.reference_urls
+        return self._metric_info.reference_urls
 
     @property
     def streamable(self) -> bool:
-        return self._info.streamable
+        return self._metric_info.streamable
 
     @property
     def format(self) -> Optional[str]:
-        return self._info.format
+        return self._metric_info.format
 
 
 class Metric(MetricInfoMixin):
@@ -159,11 +155,12 @@ class Metric(MetricInfoMixin):
             timeout (``Union[int, float]``): Timeout in second for distributed setting synchronization.
         """
         # prepare info
+        self.config_name = config_name or "default"
         info = self._info()
         info.metric_name = camelcase_to_snakecase(self.__class__.__name__)
-        info.config_name = config_name or "default_config"
+        info.config_name = self.config_name
         info.experiment_id = experiment_id or "default_experiment"
-        super().__init__(info)  # For easy access on low level
+        MetricInfoMixin.__init__(self, info)  # For easy access on low level
 
         # Safety checks on num_process and process_id
         assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
