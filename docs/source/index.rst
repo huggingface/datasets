@@ -57,6 +57,7 @@ The documentation is organized in five parts:
 
     loading_metrics
     using_metrics
+    add_metric
 
 .. toctree::
     :maxdepth: 2

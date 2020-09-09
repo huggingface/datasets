@@ -110,6 +110,7 @@ Here we can see that the ``sacrebleu`` metric expect a sequence of segments as p
 You can find more information on the segments in the description, homepage and publication of ``sacrebleu`` which can be access with the respective attributes on the metric:
 
 .. code-block::
+
     >>> print(metric.description)
     SacreBLEU provides hassle-free computation of shareable, comparable, and reproducible BLEU scores.
     Inspired by Rico Sennrich's `multi-bleu-detok.perl`, it produces the official WMT scores but works with plain text.

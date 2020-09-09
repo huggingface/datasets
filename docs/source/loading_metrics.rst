@@ -25,7 +25,7 @@ A range of metrics are provided on the `HuggingFace Hub <https://huggingface.co/
 
 .. note::
 
-    You can also add new metric to the Hub to share with the community as detailed in the guide on :doc:`adding a new metric </add_metric>`.
+    You can also add new metric to the Hub to share with the community as detailed in the guide on :doc:`adding a new metric<add_metric>`.
 
 All the metrics currently available on the `Hub <https://huggingface.co/metrics>`__ can be listed using :func:`nlp.list_metrics`:
 
@@ -137,7 +137,7 @@ Here is how we can instantiate the metric in such a distributed script:
     >>> from nlp import load_metric
     >>> metric = load_metric('glue', 'mrpc', num_process=num_process, process_id=process_id)
 
-And that's it, you can use the metric on each node as described in :doc:`using_metric` without taking special care for the distributed setting. In particular, the predictions and references can be computed and provided to the metric separately on each process. By default, the final evaluation of the metric will be done on the first node (rank 0) only when calling :func:`nlp.Metric.compute` after gathering the predictions and references from all the nodes. Computing on other processes (rank > 0) returns ``None``.
+And that's it, you can use the metric on each node as described in :doc:`using_metrics` without taking special care for the distributed setting. In particular, the predictions and references can be computed and provided to the metric separately on each process. By default, the final evaluation of the metric will be done on the first node (rank 0) only when calling :func:`nlp.Metric.compute` after gathering the predictions and references from all the nodes. Computing on other processes (rank > 0) returns ``None``.
 
 Under the hood :class:`nlp.Metric` use an Apache Arrow table to store (temporarly) predictions and references for each node on the hard-drive thereby avoiding to cluter the GPU or CPU memory. Once the final metric evalution is requested with :func:`nlp.Metric.compute`, the first node get access to all the nodes temp files and read them to compute the metric in one time.
 
@@ -155,7 +155,7 @@ In this situation you should provide an ``experiment_id`` to :func:`nlp.load_met
 
 This identifier will be added to the cache file used by each process of this evaluation to avoid conflicting access to the same cache files for storing predictions and references for each node.
 
-.. node::
+.. note::
     Specifying an ``experiment_id`` to :func:`nlp.load_metric` is only required in the specific situation where you have **independant (i.e. not related) distributed** evaluations running on the same file system at the same time.
 
 Here is an example:
@@ -166,7 +166,7 @@ Here is an example:
 Cache file and in-memory
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-As detailed in :doc:`using_metric`, each time you call :func:`nlp.Metric.add_batch` or :func:`nlp.Metric.add` in a typical setup as illustrated below, the new predictions and references are added to a temporary storing table.
+As detailed in :doc:`using_metrics`, each time you call :func:`nlp.Metric.add_batch` or :func:`nlp.Metric.add` in a typical setup as illustrated below, the new predictions and references are added to a temporary storing table.
 
 .. code-block::
 
