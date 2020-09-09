@@ -410,6 +410,7 @@ def get_from_cache(
 
     original_url = url  # Some parameters may be added
     connected = False
+    response = None
     cookies = None
     etag = None
 
@@ -453,6 +454,8 @@ def get_from_cache(
                 f"Cannot find the requested files in the cached path at {cache_path} and outgoing traffic has been"
                 " disabled. To enable file online look-ups, set 'local_files_only' to False."
             )
+        elif response is not None and response.status_code == 404:
+            raise FileNotFoundError("Couldn't find file at {}".format(url))
         raise ConnectionError("Couldn't reach {}".format(url))
 
     # Try a second time
