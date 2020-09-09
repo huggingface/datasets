@@ -242,6 +242,8 @@ class DownloadConfig:
     user_agent: Optional[str] = None
     extract_compressed_file: bool = False
     force_extract: bool = False
+    use_etag: bool = True
+    num_proc: Optional[int] = None
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -287,6 +289,7 @@ def cached_path(
             resume_download=download_config.resume_download,
             user_agent=download_config.user_agent,
             local_files_only=download_config.local_files_only,
+            use_etag=download_config.use_etag,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -383,6 +386,7 @@ def get_from_cache(
     resume_download=False,
     user_agent=None,
     local_files_only=False,
+    use_etag=True,
 ) -> Optional[str]:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -408,11 +412,21 @@ def get_from_cache(
     connected = False
     cookies = None
     etag = None
+
+    # Try a first time to file the file on the local file system without eTag (None)
+    # if we don't ask for 'force_download' then we spare a request
+    filename = hash_url_to_filename(original_url, etag=None)
+    cache_path = os.path.join(cache_dir, filename)
+
+    if os.path.exists(cache_path) and not force_download and not use_etag:
+        return cache_path
+
+    # We don't have the file locally or we need an eTag
     if not local_files_only:
         try:
             response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
             if response.status_code == 200:  # ok
-                etag = response.headers.get("ETag")
+                etag = response.headers.get("ETag") if use_etag else None
                 for k, v in response.cookies.items():
                     # In some edge cases, we need to get a confirmation token
                     if k.startswith("download_warning") and "drive.google.com" in url:
@@ -429,11 +443,6 @@ def get_from_cache(
             # not connected
             pass
 
-    filename = hash_url_to_filename(original_url, etag)
-
-    # get cache path to put the file
-    cache_path = os.path.join(cache_dir, filename)
-
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
     if not connected:
@@ -441,16 +450,19 @@ def get_from_cache(
             return cache_path
         if local_files_only:
             raise FileNotFoundError(
-                "Cannot find the requested files in the cached path and outgoing traffic has been"
-                " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
-                " to False."
+                f"Cannot find the requested files in the cached path at {cache_path} and outgoing traffic has been"
+                " disabled. To enable file online look-ups, set 'local_files_only' to False."
             )
         raise ConnectionError("Couldn't reach {}".format(url))
 
-    # From now on, connected is True.
+    # Try a second time
+    filename = hash_url_to_filename(original_url, etag)
+    cache_path = os.path.join(cache_dir, filename)
+
     if os.path.exists(cache_path) and not force_download:
         return cache_path
 
+    # From now on, connected is True.
     # Prevent parallel downloads of the same file with a lock.
     lock_path = cache_path + ".lock"
     with FileLock(lock_path):
