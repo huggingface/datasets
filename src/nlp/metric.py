@@ -240,7 +240,7 @@ class Metric(object):
             nofilelock.acquire(timeout=self.timeout)
         except Timeout:
             raise ValueError(
-                f"Expeced to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
+                f"Expected to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
             )
         else:
             nofilelock.release()
