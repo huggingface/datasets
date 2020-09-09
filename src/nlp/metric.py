@@ -28,6 +28,7 @@ from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .info import MetricInfo
+from .features import Features
 from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
@@ -60,7 +61,73 @@ class FileFreeLock(BaseFileLock):
         self._lock_file_fd = None
 
 
-class Metric(object):
+class MetricInfoMixin(object):
+    """This base class exposes some attributes of MetricInfo
+    at the base level of the Metric for easy access.
+    """
+
+    def __init__(self, info: MetricInfo):
+        self._info = info
+
+    @property
+    def info(self):
+        """ :class:`nlp.MetricInfo` object containing all the metadata in the metric."""
+        return self._info
+
+    @property
+    def name(self) -> str:
+        return self._info.metric_name
+
+    @property
+    def config_name(self) -> str:
+        return self._info.config_name
+
+    @property
+    def experiment_id(self) -> Optional[str]:
+        return self._info.experiment_id
+
+    @property
+    def description(self) -> str:
+        return self._info.description
+
+    @property
+    def citation(self) -> str:
+        return self._info.citation
+
+    @property
+    def features(self) -> Features:
+        return self._info.features
+
+    @property
+    def inputs_description(self) -> str:
+        return self._info.inputs_description
+
+    @property
+    def homepage(self) -> Optional[str]:
+        return self._info.homepage
+
+    @property
+    def license(self) -> str:
+        return self._info.license
+
+    @property
+    def codebase_urls(self) -> Optional[List[str]]:
+        return self._info.codebase_urls
+
+    @property
+    def reference_urls(self) -> Optional[List[str]]:
+        return self._info.reference_urls
+
+    @property
+    def streamable(self) -> bool:
+        return self._info.streamable
+
+    @property
+    def format(self) -> Optional[str]:
+        return self._info.format
+
+
+class Metric(MetricInfoMixin):
     def __init__(
         self,
         config_name: Optional[str] = None,
@@ -91,12 +158,12 @@ class Metric(object):
             max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
             timeout (``Union[int, float]``): Timeout in second for distributed setting synchronization.
         """
-        # Metric name
-        self.name = camelcase_to_snakecase(self.__class__.__name__)
-        # Configuration name
-        self.config_name: str = config_name or "default_config"
-        # Experiment id
-        self.experiment_id: str = experiment_id or "default_experiment"
+        # prepare info
+        info = self._info()
+        info.metric_name = camelcase_to_snakecase(self.__class__.__name__)
+        info.config_name = config_name or "default_config"
+        info.experiment_id = experiment_id or "default_experiment"
+        super().__init__(info)  # For easy access on low level
 
         # Safety checks on num_process and process_id
         assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
@@ -115,13 +182,6 @@ class Metric(object):
         self.data_dir = self._build_data_dir()
         self.seed: int = seed or np.random.get_state()[1][0]
         self.timeout: Union[int, float] = timeout
-
-        # prepare info
-        info = self._info()
-        info.metric_name = self.name
-        info.config_name = self.config_name
-        info.experiment_id = self.experiment_id
-        self.info = info
 
         # Update 'compute' and 'add' docstring
         # methods need to be copied otherwise it changes the docstrings of every instance
@@ -147,6 +207,9 @@ class Metric(object):
         # This is all the cache files on which we have a lock when we are in a distributed setting
         self.file_paths = None
         self.filelocks = None
+
+    def __repr__(self):
+        return f'Metric(name: "{self.name}", features: {self.features}, usage: """{self.inputs_description}""")'
 
     def _build_data_dir(self):
         """Path of this metric in cache_dir:
@@ -253,7 +316,7 @@ class Metric(object):
         else:
             rendez_vous_lock.release()
 
-    def finalize(self):
+    def _finalize(self):
         """Close all the writing process and load/gather the data
         from all the nodes if main node or all_process is True.
         """
@@ -308,7 +371,7 @@ class Metric(object):
 
         if predictions is not None:
             self.add_batch(predictions=predictions, references=references)
-        self.finalize()
+        self._finalize()
 
         self.cache_file_name = None
         self.filelock = None
