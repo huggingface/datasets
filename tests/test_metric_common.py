@@ -49,7 +49,9 @@ class AWSMetricTest(parameterized.TestCase):
             config_name = None
             if metric_name == "glue":
                 config_name = "sst2"
-            metric = load_metric(metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config)
+            metric = load_metric(
+                metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config
+            )
 
             parameters = inspect.signature(metric._compute).parameters
             self.assertTrue("predictions" in parameters)
@@ -70,7 +72,9 @@ class LocalMetricTest(parameterized.TestCase):
             config_name = None
             if metric_name == "glue":
                 config_name = "sst2"
-            metric = load_metric(metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config)
+            metric = load_metric(
+                metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config
+            )
 
             parameters = inspect.signature(metric._compute).parameters
             self.assertTrue("predictions" in parameters)
