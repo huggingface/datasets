@@ -200,7 +200,7 @@ def get_imports(file_path: str):
 
 def prepare_module(
     path: str,
-    version: Optional[Union[str, Version]] = None,
+    script_version: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
     dataset: bool = True,
     force_local_path: Optional[str] = None,
@@ -218,8 +218,9 @@ def prepare_module(
             path to the dataset or metric script, can be either:
                 - a path to a local directory containing the dataset processing python script
                 - an url to a S3 directory with a dataset processing python script
-        version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
-            at this version. By default it is set to the local version fo the lib
+        script_version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
+            at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
+            your local version of the lib might cause compatibility issues.
         download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
         dataset (bool): True if the script to load is a dataset, False if the script is a metric.
         force_local_path (Optional str): Optional path to a local path to download and prepare the script to.
@@ -260,15 +261,15 @@ def prepare_module(
     else:
         # Try github (canonical datasets/metrics) and then S3 (users datasets/metrics)
         head_hf_s3(path, filename=name, dataset=dataset)
-        version = str(version) if version is not None else None
-        file_path = hf_github_url(path=path, name=name, dataset=dataset, version=version)
+        script_version = str(script_version) if script_version is not None else None
+        file_path = hf_github_url(path=path, name=name, dataset=dataset, version=script_version)
         try:
             local_path = cached_path(file_path, download_config=download_config)
         except FileNotFoundError:
-            if version is not None:
+            if script_version is not None:
                 raise ValueError(
                     "Couldn't find remote file with version {} at {}\nPlease provide a valid version and a valid {} name".format(
-                        version, file_path, "dataset" if dataset else "metric"
+                        script_version, file_path, "dataset" if dataset else "metric"
                     )
                 )
             github_file_path = file_path
@@ -449,12 +450,12 @@ def prepare_module(
 def load_metric(
     path: str,
     config_name: Optional[str] = None,
-    version: Optional[Union[str, Version]] = None,
     process_id: int = 0,
     num_process: int = 1,
     data_dir: Optional[str] = None,
     keep_in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
+    script_version: Optional[Union[str, Version]] = None,
     **metric_init_kwargs,
 ) -> Metric:
     r"""Load a `nlp.Metric`.
@@ -468,18 +469,21 @@ def load_metric(
                 - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         config_name (Optional ``str``): selecting a configuration for the metric (e.g. the GLUE metric has a configuration for each subset)
-        version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
-            at this version. By default it is set to the local version fo the lib
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
         data_dir (Optional str): path to store the temporary predictions and references (default to `~/.nlp/`)
         experiment_id (Optional str): An optional unique id for the experiment.
         keep_in_memory (bool): Weither to store the temporary results in memory (defaults to False)
         download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
+        script_version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
+            at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
+            your local version of the lib might cause compatibility issues.
 
     Returns: `nlp.Metric`.
     """
-    module_path, hash = prepare_module(path, version=version, download_config=download_config, dataset=False)
+    module_path, hash = prepare_module(
+        path, script_version=script_version, download_config=download_config, dataset=False
+    )
     metric_cls = import_main_class(module_path, dataset=False)
     metric = metric_cls(
         config_name=config_name,
@@ -499,7 +503,6 @@ def load_metric(
 def load_dataset(
     path: str,
     name: Optional[str] = None,
-    version: Optional[Union[str, Version]] = None,
     data_dir: Optional[str] = None,
     data_files: Union[Dict, List] = None,
     split: Optional[Union[str, Split]] = None,
@@ -509,6 +512,7 @@ def load_dataset(
     download_mode: Optional[GenerateMode] = None,
     ignore_verifications: bool = False,
     save_infos: bool = False,
+    script_version: Optional[Union[str, Version]] = None,
     **config_kwargs,
 ) -> Union[DatasetDict, Dataset]:
     r"""Load a dataset
@@ -542,8 +546,6 @@ def load_dataset(
                 - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``nlp.list_datasets()``)
                     e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
         name (Optional ``str``): defining the name of the dataset configuration
-        version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
-            at this version. By default it is set to the local version fo the lib
         data_files (Optional ``str``): defining the data_files of the dataset configuration
         data_dir (Optional ``str``): defining the data_dir of the dataset configuration
         split (`nlp.Split` or `str`): which split of the data to load.
@@ -556,6 +558,9 @@ def load_dataset(
         download_mode (Optional `nlp.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
         ignore_verifications (bool): Ignore the verifications of the downloaded/processed dataset information (checksums/size/splits/...)
         save_infos (bool): Save the dataset information (checksums/size/splits/...)
+        script_version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
+            at this version. By default it is set to the local version fo the lib. Specifying a version that is different from
+            your local version of the lib might cause compatibility issues.
         **config_kwargs (Optional ``dict``): keyword arguments to be passed to the ``nlp.BuilderConfig`` and used in the ``nlp.DatasetBuilder``.
 
     Returns:
@@ -566,7 +571,9 @@ def load_dataset(
     """
     ignore_verifications = ignore_verifications or save_infos
     # Download/copy dataset processing script
-    module_path, hash = prepare_module(path, version=version, download_config=download_config, dataset=True)
+    module_path, hash = prepare_module(
+        path, script_version=script_version, download_config=download_config, dataset=True
+    )
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)
@@ -575,7 +582,6 @@ def load_dataset(
     builder_instance: DatasetBuilder = builder_cls(
         cache_dir=cache_dir,
         name=name,
-        version=version,
         data_dir=data_dir,
         data_files=data_files,
         hash=hash,
