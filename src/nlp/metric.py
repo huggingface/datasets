@@ -245,13 +245,13 @@ class Metric(object):
         else:
             nofilelock.release()
         lock_file_name = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock")
-        renndez_vous_lock = FileLock(lock_file_name)
+        rendez_vous_lock = FileLock(lock_file_name)
         try:
-            renndez_vous_lock.acquire(timeout=self.timeout)
+            rendez_vous_lock.acquire(timeout=self.timeout)
         except Timeout:
             raise ValueError(f"Couldn't acquire lock on {lock_file_name} from process {self.process_id}.")
         else:
-            renndez_vous_lock.release()
+            rendez_vous_lock.release()
 
     def finalize(self):
         """Close all the writing process and load/gather the data
