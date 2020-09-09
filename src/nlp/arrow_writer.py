@@ -169,6 +169,10 @@ class ArrowWriter(object):
         self.current_rows = []
         self.pa_writer: Optional[pa.RecordBatchStreamWriter] = None
 
+    def __len__(self):
+        """ Return the number of writed and staged examples """
+        return self._num_examples + len(self.current_rows)
+
     def _build_writer(self, inferred_schema: pa.Schema):
         inferred_features = Features.from_arrow_schema(inferred_schema)
         if self._features is not None:

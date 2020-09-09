@@ -202,6 +202,7 @@ def prepare_module(
     path: str,
     script_version: Optional[Union[str, Version]] = None,
     download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[GenerateMode] = None,
     dataset: bool = True,
     force_local_path: Optional[str] = None,
     **download_kwargs,
@@ -363,6 +364,9 @@ def prepare_module(
     lock_path = local_path + ".lock"
     with FileLock(lock_path):
         # Create main dataset/metrics folder if needed
+        if download_mode == GenerateMode.FORCE_REDOWNLOAD and os.path.exists(main_folder_path):
+            shutil.rmtree(main_folder_path)
+
         if not os.path.exists(main_folder_path):
             logger.info(f"Creating main folder for {module_type} {file_path} at {main_folder_path}")
             os.makedirs(main_folder_path, exist_ok=True)
@@ -456,6 +460,7 @@ def load_metric(
     experiment_id: Optional[str] = None,
     keep_in_memory: bool = False,
     download_config: Optional[DownloadConfig] = None,
+    download_mode: Optional[GenerateMode] = None,
     script_version: Optional[Union[str, Version]] = None,
     **metric_init_kwargs,
 ) -> Metric:
@@ -473,8 +478,11 @@ def load_metric(
         process_id (Optional ``int``): for distributed evaluation: id of the process
         num_process (Optional ``int``): for distributed evaluation: total number of processes
         cache_dir (Optional str): path to store the temporary predictions and references (default to `~/.nlp/`)
+        keep_in_memory (bool): Weither to store the temporary results in memory (defaults to False)
         experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
             This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
+        download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
+        download_mode (Optional `nlp.GenerateMode`): select the download/generate mode - Default to REUSE_DATASET_IF_EXISTS
         keep_in_memory (bool): Weither to store the temporary results in memory (defaults to False)
         download_config (Optional ``nlp.DownloadConfig``: specific download configuration parameters.
         script_version (Optional ``Union[str, nlp.Version]``): if specified, the module will be loaded from the nlp repository
@@ -483,9 +491,7 @@ def load_metric(
 
     Returns: `nlp.Metric`.
     """
-    module_path, hash = prepare_module(
-        path, script_version=script_version, download_config=download_config, dataset=False
-    )
+    module_path, hash = prepare_module(path, script_version=script_version, download_config=download_config, download_mode=download_mode, dataset=False)
     metric_cls = import_main_class(module_path, dataset=False)
     metric = metric_cls(
         config_name=config_name,
@@ -574,9 +580,7 @@ def load_dataset(
     """
     ignore_verifications = ignore_verifications or save_infos
     # Download/copy dataset processing script
-    module_path, hash = prepare_module(
-        path, script_version=script_version, download_config=download_config, dataset=True
-    )
+    module_path, hash = prepare_module(path, script_version=script_version, download_config=download_config, download_mode=download_mode, dataset=True)
 
     # Get dataset builder class from the processing script
     builder_cls = import_main_class(module_path, dataset=True)
