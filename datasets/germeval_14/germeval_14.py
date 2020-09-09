@@ -19,10 +19,7 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import glob
 import logging
-import os
-from pathlib import Path
 
 import nlp
 
@@ -99,12 +96,7 @@ class GermEval14(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        downloaded_files = {}
-        for dataset in _URLS.keys():
-            downloaded_files[dataset] = dl_manager.download_and_extract(_URLS[dataset])
-            #  Fix for dummy data
-            if os.path.isdir(downloaded_files[dataset]):
-                downloaded_files[dataset] = os.path.join(downloaded_files[dataset], f"NER-de-{dataset}.tsv")
+        downloaded_files = dl_manager.download_and_extract(_URLS)
 
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
