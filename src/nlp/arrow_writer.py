@@ -288,6 +288,11 @@ class ArrowWriter(object):
 
     def finalize(self, close_stream=True):
         self.write_on_file()
+        if self.pa_writer is None:
+            if self._schema is not None:
+                self._build_writer(self._schema)
+            else:
+                raise ValueError("Please pass `features` or at least one example when writing data")
         self.pa_writer.close()
         if close_stream:
             self.stream.close()
