@@ -2429,7 +2429,7 @@ def concatenate_datasets(
             indices_table = pa.concat_tables(indices_tables)
         else:
             indices_table = pa.Table.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-        indices_data_files = None if indices_in_memory else [f for dset in dsets for f in dset._indices_data_files]
+        indices_data_files = None  # can't reuse same files as an offset was applied
     else:
         indices_table = None
         indices_data_files = None
