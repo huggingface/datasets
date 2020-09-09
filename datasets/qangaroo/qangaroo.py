@@ -38,7 +38,7 @@ _URL = "https://drive.google.com/uc?export=download&id=1ytVZ4AhubFDOEL7o7XrIRIyh
 
 class QangarooConfig(nlp.BuilderConfig):
     def __init__(self, data_dir, **kwargs):
-        """ BuilderConfig for qangaroo dataset
+        """BuilderConfig for qangaroo dataset
 
         Args:
           data_dir: directory for the given dataset name

@@ -48,7 +48,10 @@ class Quoref(nlp.GeneratorBasedBuilder):
                     "title": nlp.Value("string"),
                     "url": nlp.Value("string"),
                     "answers": nlp.features.Sequence(
-                        {"answer_start": nlp.Value("int32"), "text": nlp.Value("string"),}
+                        {
+                            "answer_start": nlp.Value("int32"),
+                            "text": nlp.Value("string"),
+                        }
                     )
                     # These are the features of your dataset like images, labels ...
                 }
@@ -106,6 +109,9 @@ class Quoref(nlp.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                             "url": url,
                         }

@@ -49,7 +49,11 @@ class LibrispeechLm(nlp.GeneratorBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"text": nlp.Value("string"),}),
+            features=nlp.Features(
+                {
+                    "text": nlp.Value("string"),
+                }
+            ),
             supervised_keys=("text", "text"),
             homepage=_URL,
             citation=_CITATION,

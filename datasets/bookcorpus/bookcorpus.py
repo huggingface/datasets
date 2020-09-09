@@ -63,12 +63,21 @@ class BookcorpusConfig(nlp.BuilderConfig):
 class Bookcorpus(nlp.GeneratorBasedBuilder):
     """BookCorpus dataset."""
 
-    BUILDER_CONFIGS = [BookcorpusConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        BookcorpusConfig(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"text": nlp.Value("string"),}),
+            features=nlp.Features(
+                {
+                    "text": nlp.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage="https://yknzhu.wixsite.com/mbweb",
             citation=_CITATION,

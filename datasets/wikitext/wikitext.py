@@ -30,11 +30,16 @@ class WikitextConfig(nlp.BuilderConfig):
     def __init__(self, data_url, **kwargs):
         """BuilderConfig for Wikitext
 
-    Args:
-      data_url: `string`, url to the dataset (word or raw level)
-      **kwargs: keyword arguments forwarded to super.
-    """
-        super(WikitextConfig, self).__init__(version=nlp.Version("1.0.0",), **kwargs)
+        Args:
+          data_url: `string`, url to the dataset (word or raw level)
+          **kwargs: keyword arguments forwarded to super.
+        """
+        super(WikitextConfig, self).__init__(
+            version=nlp.Version(
+                "1.0.0",
+            ),
+            **kwargs,
+        )
         self.data_url = data_url
 
 

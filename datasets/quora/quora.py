@@ -37,7 +37,12 @@ class Quora(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(
                 {
-                    "questions": nlp.features.Sequence({"id": nlp.Value("int32"), "text": nlp.Value("string"),}),
+                    "questions": nlp.features.Sequence(
+                        {
+                            "id": nlp.Value("int32"),
+                            "text": nlp.Value("string"),
+                        }
+                    ),
                     "is_duplicate": nlp.Value("bool"),
                 }
             ),

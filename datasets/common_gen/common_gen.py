@@ -60,22 +60,16 @@ class CommonGen(nlp.GeneratorBasedBuilder):
 
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "commongen.train.jsonl"),
-                    "split": "train"
-                }
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "commongen.train.jsonl"), "split": "train"},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "commongen.dev.jsonl"),
-                    "split": "dev"
-                }
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "commongen.dev.jsonl"), "split": "dev"},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "commongen.test_noref.jsonl"),
-                    "split": "test"
-                }
+                name=nlp.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "commongen.test_noref.jsonl"), "split": "test"},
             ),
         ]
 
@@ -87,7 +81,7 @@ class CommonGen(nlp.GeneratorBasedBuilder):
                 row = row.replace(", }", "}")  # Fix possible JSON format error
                 data = json.loads(row)
 
-                rand_order = [word for word in data["concept_set"].split('#')]
+                rand_order = [word for word in data["concept_set"].split("#")]
                 random.shuffle(rand_order)
 
                 if split == "test":

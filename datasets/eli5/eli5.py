@@ -250,9 +250,9 @@ class Eli5Config(nlp.BuilderConfig):
 
     def __init__(self, **kwargs):
         """BuilderConfig for ExplainLikeImFive.
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(Eli5Config, self).__init__(**kwargs)
 
 
@@ -309,33 +309,40 @@ class Eli5(nlp.GeneratorBasedBuilder):
         self.data_split = json.load(open(fpath_splits))
         return [
             nlp.SplitGenerator(
-                name=nlp.Split("train_eli5"), gen_kwargs={"split": "train", "subreddit_name": "explainlikeimfive"},
+                name=nlp.Split("train_eli5"),
+                gen_kwargs={"split": "train", "subreddit_name": "explainlikeimfive"},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split("validation_eli5"),
                 gen_kwargs={"split": "validation", "subreddit_name": "explainlikeimfive"},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split("test_eli5"), gen_kwargs={"split": "test", "subreddit_name": "explainlikeimfive"},
+                name=nlp.Split("test_eli5"),
+                gen_kwargs={"split": "test", "subreddit_name": "explainlikeimfive"},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split("train_asks"), gen_kwargs={"split": "train", "subreddit_name": "askscience"},
+                name=nlp.Split("train_asks"),
+                gen_kwargs={"split": "train", "subreddit_name": "askscience"},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split("validation_asks"), gen_kwargs={"split": "validation", "subreddit_name": "askscience"},
+                name=nlp.Split("validation_asks"),
+                gen_kwargs={"split": "validation", "subreddit_name": "askscience"},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split("test_asks"), gen_kwargs={"split": "test", "subreddit_name": "askscience"},
+                name=nlp.Split("test_asks"),
+                gen_kwargs={"split": "test", "subreddit_name": "askscience"},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split("train_askh"), gen_kwargs={"split": "train", "subreddit_name": "AskHistorians"},
+                name=nlp.Split("train_askh"),
+                gen_kwargs={"split": "train", "subreddit_name": "AskHistorians"},
             ),
             nlp.SplitGenerator(
                 name=nlp.Split("validation_askh"),
                 gen_kwargs={"split": "validation", "subreddit_name": "AskHistorians"},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split("test_askh"), gen_kwargs={"split": "test", "subreddit_name": "AskHistorians"},
+                name=nlp.Split("test_askh"),
+                gen_kwargs={"split": "test", "subreddit_name": "AskHistorians"},
             ),
         ]
 

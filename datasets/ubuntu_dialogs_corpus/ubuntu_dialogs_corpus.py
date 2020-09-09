@@ -41,10 +41,10 @@ class UbuntuDialogsCorpusConfig(nlp.BuilderConfig):
     def __init__(self, features, **kwargs):
         """BuilderConfig for UbuntuDialogsCorpus.
 
-    Args:
+        Args:
 
-      **kwargs: keyword arguments forwarded to super.
-    """
+          **kwargs: keyword arguments forwarded to super.
+        """
 
         super(UbuntuDialogsCorpusConfig, self).__init__(version=nlp.Version("2.0.0"), **kwargs)
         self.features = features

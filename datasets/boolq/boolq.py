@@ -75,7 +75,10 @@ class Boolq(nlp.GeneratorBasedBuilder):
 
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]},),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_files["dev"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):

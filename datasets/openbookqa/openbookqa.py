@@ -35,13 +35,13 @@ _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/OpenBookQA-V1-Sep201
 
 class OpenbookqaConfig(nlp.BuilderConfig):
     def __init__(self, data_dir, **kwargs):
-        """ BuilderConfig for openBookQA dataset 
+        """BuilderConfig for openBookQA dataset
 
-      Args:
-        data_dir: directory for the given dataset name
-        **kwargs: keyword arguments forwarded to super.
+        Args:
+          data_dir: directory for the given dataset name
+          **kwargs: keyword arguments forwarded to super.
 
-      """
+        """
 
         super(OpenbookqaConfig, self).__init__(
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs

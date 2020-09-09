@@ -52,13 +52,13 @@ class FloresConfig(nlp.BuilderConfig):
     def __init__(self, language_pair=(None, None), **kwargs):
         """BuilderConfig for FLoRes.
 
-    Args:
-        for the `nlp.features.text.TextEncoder` used for the features feature.
-      language_pair: pair of languages that will be used for translation. Should
-        contain 2-letter coded strings. First will be used at source and second
-        as target in supervised mode. For example: ("se", "en").
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+            for the `nlp.features.text.TextEncoder` used for the features feature.
+          language_pair: pair of languages that will be used for translation. Should
+            contain 2-letter coded strings. First will be used at source and second
+            as target in supervised mode. For example: ("se", "en").
+          **kwargs: keyword arguments forwarded to super.
+        """
         name = "%s%s" % (language_pair[0], language_pair[1])
 
         description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
@@ -82,8 +82,12 @@ class Flores(nlp.GeneratorBasedBuilder):
     """FLoRes machine translation dataset."""
 
     BUILDER_CONFIGS = [
-        FloresConfig(language_pair=("ne", "en"),),
-        FloresConfig(language_pair=("si", "en"),),
+        FloresConfig(
+            language_pair=("ne", "en"),
+        ),
+        FloresConfig(
+            language_pair=("si", "en"),
+        ),
     ]
 
     def _info(self):

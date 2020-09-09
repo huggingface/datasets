@@ -112,7 +112,11 @@ class Newsgroups(nlp.GeneratorBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION + "\n" + self.config.description,
-            features=nlp.Features({"text": nlp.Value("string"),}),
+            features=nlp.Features(
+                {
+                    "text": nlp.Value("string"),
+                }
+            ),
             homepage="http://qwone.com/~jason/20Newsgroups/",
             citation=_CITATION,
         )

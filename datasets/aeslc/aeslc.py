@@ -69,13 +69,16 @@ class Aeslc(nlp.GeneratorBasedBuilder):
         input_path = os.path.join(dl_path, "AESLC-master", "enron_subject_line")
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"pattern": os.path.join(input_path, "train", "*.subject")},
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"pattern": os.path.join(input_path, "train", "*.subject")},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"pattern": os.path.join(input_path, "dev", "*.subject")},
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"pattern": os.path.join(input_path, "dev", "*.subject")},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"pattern": os.path.join(input_path, "test", "*.subject")},
+                name=nlp.Split.TEST,
+                gen_kwargs={"pattern": os.path.join(input_path, "test", "*.subject")},
             ),
         ]
 

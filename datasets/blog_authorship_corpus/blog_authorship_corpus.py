@@ -51,7 +51,12 @@ class BlogAuthorshipCorpusConfig(nlp.BuilderConfig):
           data_url: `string`, url to the dataset (word or raw level)
           **kwargs: keyword arguments forwarded to super.
         """
-        super(BlogAuthorshipCorpusConfig, self).__init__(version=nlp.Version("1.0.0",), **kwargs)
+        super(BlogAuthorshipCorpusConfig, self).__init__(
+            version=nlp.Version(
+                "1.0.0",
+            ),
+            **kwargs,
+        )
         self.data_url = data_url
 
 
@@ -108,9 +113,13 @@ class BlogAuthorshipCorpus(nlp.GeneratorBasedBuilder):
                     train_files.append(file_path)
 
             return [
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": train_files, "split": "train"},),
                 nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION, gen_kwargs={"files": validation_files, "split": "validation"},
+                    name=nlp.Split.TRAIN,
+                    gen_kwargs={"files": train_files, "split": "train"},
+                ),
+                nlp.SplitGenerator(
+                    name=nlp.Split.VALIDATION,
+                    gen_kwargs={"files": validation_files, "split": "validation"},
                 ),
             ]
         else:

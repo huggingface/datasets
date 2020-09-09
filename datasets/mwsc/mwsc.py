@@ -59,9 +59,18 @@ class MWSC(nlp.GeneratorBasedBuilder):
             schemas_file = os.path.join(schemas_file, "schema.txt")
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": schemas_file, "split": "train"},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": schemas_file, "split": "test"},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": schemas_file, "split": "dev"},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"filepath": schemas_file, "split": "train"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"filepath": schemas_file, "split": "test"},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"filepath": schemas_file, "split": "dev"},
+            ),
         ]
 
     def _get_both_schema(self, context):

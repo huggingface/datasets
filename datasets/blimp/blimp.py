@@ -51,10 +51,10 @@ class BlimpConfig(nlp.BuilderConfig):
     def __init__(self, paradigm_uid, **kwargs):
         """BuilderConfig for Blimp.
 
-    Args:
-      paradigm_uid: string, UID of the linguistic paradigm
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          paradigm_uid: string, UID of the linguistic paradigm
+          **kwargs: keyword arguments forwarded to super.
+        """
         name = paradigm_uid
 
         description = _DESCRIPTION

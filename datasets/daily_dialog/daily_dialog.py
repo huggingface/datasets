@@ -72,15 +72,9 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(
                 {
-                    "dialog": nlp.features.Sequence(
-                        nlp.Value("string")
-                    ),
-                    "act": nlp.features.Sequence(
-                        nlp.ClassLabel(names=list(act_label.values()))
-                    ),
-                    "emotion": nlp.features.Sequence(
-                        nlp.ClassLabel(names=list(emotion_label.values()))
-                    ),
+                    "dialog": nlp.features.Sequence(nlp.Value("string")),
+                    "act": nlp.features.Sequence(nlp.ClassLabel(names=list(act_label.values()))),
+                    "emotion": nlp.features.Sequence(nlp.ClassLabel(names=list(emotion_label.values()))),
                 }
             ),
             supervised_keys=None,

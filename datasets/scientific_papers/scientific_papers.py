@@ -65,10 +65,10 @@ class ScientificPapersConfig(nlp.BuilderConfig):
     def __init__(self, filename=None, **kwargs):
         """BuilderConfig for Wikihow.
 
-    Args:
-      filename: filename of different configs for the dataset.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          filename: filename of different configs for the dataset.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # 1.1.0 remove sentence breaker <S> and </S> in summary.
         super(ScientificPapersConfig, self).__init__(version=nlp.Version("1.1.1"), **kwargs)
         self.filename = filename
@@ -86,7 +86,11 @@ class ScientificPapers(nlp.GeneratorBasedBuilder):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(
-                {_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string"), "section_names": nlp.Value("string"),}
+                {
+                    _DOCUMENT: nlp.Value("string"),
+                    _SUMMARY: nlp.Value("string"),
+                    "section_names": nlp.Value("string"),
+                }
             ),
             supervised_keys=None,
             homepage="https://github.com/armancohan/long-summarization",
@@ -98,9 +102,18 @@ class ScientificPapers(nlp.GeneratorBasedBuilder):
         dl_paths = dl_manager.download_and_extract(_URLS)
         path = os.path.join(dl_paths[self.config.name], self.config.name + "-dataset")
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"path": os.path.join(path, "train.txt")},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"path": os.path.join(path, "val.txt")},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"path": os.path.join(path, "test.txt")},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(path, "train.txt")},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"path": os.path.join(path, "val.txt")},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"path": os.path.join(path, "test.txt")},
+            ),
         ]
 
     def _generate_examples(self, path=None):

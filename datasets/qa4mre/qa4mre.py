@@ -80,18 +80,18 @@ PATHS = {
 def _get_question(topic_id, topic_name, test_id, document_id, document_str, question):
     """Gets instance ID and features for every question.
 
-  Args:
-    topic_id: string
-    topic_name: string
-    test_id: string
-    document_id: string
-    document_str: string
-    question: XML element for question
+    Args:
+      topic_id: string
+      topic_name: string
+      test_id: string
+      document_id: string
+      document_str: string
+      question: XML element for question
 
-  Returns:
-    id_: string. Unique ID for instance.
-    feats: dict of instance features
-  """
+    Returns:
+      id_: string. Unique ID for instance.
+      feats: dict of instance features
+    """
 
     question_id = question.attrib["q_id"]
     for q_text in question.iter("q_str"):
@@ -130,12 +130,12 @@ class Qa4mreConfig(nlp.BuilderConfig):
     def __init__(self, year, track="main", language="EN", **kwargs):
         """BuilderConfig for Qa4Mre.
 
-    Args:
-      year: string, year of dataset
-      track: string, the task track from PATHS[year]['_TRACKS'].
-      language: string, Acronym for language in the main task.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          year: string, year of dataset
+          track: string, the task track from PATHS[year]['_TRACKS'].
+          language: string, Acronym for language in the main task.
+          **kwargs: keyword arguments forwarded to super.
+        """
         if track.lower() not in PATHS[year]["_TRACKS"]:
             raise ValueError("Incorrect track. Track should be one of the following: ", PATHS[year]["_TRACKS"])
 

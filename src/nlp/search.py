@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 
 try:
     import elasticsearch as es
-    from elasticsearch import Elasticsearch
     import elasticsearch.helpers
+    from elasticsearch import Elasticsearch
 
     _has_elasticsearch = True
 except ImportError:

@@ -70,21 +70,24 @@ class RottenTomatoesMovieReview(nlp.GeneratorBasedBuilder):
         extracted_folder_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"split_key": "validation", "data_dir": extracted_folder_path},
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"split_key": "validation", "data_dir": extracted_folder_path},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
+                name=nlp.Split.TEST,
+                gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
             ),
         ]
 
     def _get_examples_from_split(self, split_key, data_dir):
-        """ Reads Rotten Tomatoes sentences and splits into 80% train,
-            10% validation, and 10% test, as is the practice set out in Jinfeng
-            Li, ``TEXTBUGGER: Generating Adversarial Text Against Real-world 
-            Applications.''
+        """Reads Rotten Tomatoes sentences and splits into 80% train,
+        10% validation, and 10% test, as is the practice set out in Jinfeng
+        Li, ``TEXTBUGGER: Generating Adversarial Text Against Real-world
+        Applications.''
         """
         data_dir = os.path.join(data_dir, "rt-polaritydata")
 

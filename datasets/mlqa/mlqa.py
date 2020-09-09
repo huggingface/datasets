@@ -41,7 +41,12 @@ class MlqaConfig(nlp.BuilderConfig):
           data_url: `string`, url to the dataset
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MlqaConfig, self).__init__(version=nlp.Version("1.0.0",), **kwargs)
+        super(MlqaConfig, self).__init__(
+            version=nlp.Version(
+                "1.0.0",
+            ),
+            **kwargs,
+        )
         self.data_url = data_url
 
 

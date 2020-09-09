@@ -53,9 +53,9 @@ class SquadShiftsConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for SQUAD.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(SquadShiftsConfig, self).__init__(**kwargs)
 
 
@@ -101,7 +101,10 @@ class SquadShifts(nlp.GeneratorBasedBuilder):
                     "context": nlp.Value("string"),
                     "question": nlp.Value("string"),
                     "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
+                        {
+                            "text": nlp.Value("string"),
+                            "answer_start": nlp.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -163,5 +166,8 @@ class SquadShifts(nlp.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

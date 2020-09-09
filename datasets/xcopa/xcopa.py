@@ -61,7 +61,13 @@ class Xcopa(nlp.GeneratorBasedBuilder):
 
     # TODO(xcopa): Set up version.
     VERSION = nlp.Version("0.1.0")
-    BUILDER_CONFIGS = [XcopaConfig(name=lang, description="Xcopa language {}".format(lang),) for lang in _LANG]
+    BUILDER_CONFIGS = [
+        XcopaConfig(
+            name=lang,
+            description="Xcopa language {}".format(lang),
+        )
+        for lang in _LANG
+    ]
 
     def _info(self):
         # TODO(xcopa): Specifies the nlp.DatasetInfo object

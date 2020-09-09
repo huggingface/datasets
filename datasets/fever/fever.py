@@ -105,7 +105,14 @@ class Fever(nlp.GeneratorBasedBuilder):
         if self.config.name == "v2.0":
             urls = "https://s3-eu-west-1.amazonaws.com/fever.public/fever2-fixers-dev.jsonl"
             dl_path = dl_manager.download_and_extract(urls)
-            return [nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": dl_path,},)]
+            return [
+                nlp.SplitGenerator(
+                    name=nlp.Split.VALIDATION,
+                    gen_kwargs={
+                        "filepath": dl_path,
+                    },
+                )
+            ]
         elif self.config.name == "v1.0":
             urls = {
                 "train": "https://s3-eu-west-1.amazonaws.com/fever.public/train.jsonl",
@@ -117,12 +124,42 @@ class Fever(nlp.GeneratorBasedBuilder):
             }
             dl_path = dl_manager.download_and_extract(urls)
             return [
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": dl_path["train"],},),
-                nlp.SplitGenerator(name="unlabelled_test", gen_kwargs={"filepath": dl_path["unlabelled_test"],},),
-                nlp.SplitGenerator(name="unlabelled_dev", gen_kwargs={"filepath": dl_path["unlabelled_dev"],},),
-                nlp.SplitGenerator(name="labelled_dev", gen_kwargs={"filepath": dl_path["labelled_dev"],},),
-                nlp.SplitGenerator(name="paper_dev", gen_kwargs={"filepath": dl_path["paper_dev"],},),
-                nlp.SplitGenerator(name="paper_test", gen_kwargs={"filepath": dl_path["paper_test"],},),
+                nlp.SplitGenerator(
+                    name=nlp.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": dl_path["train"],
+                    },
+                ),
+                nlp.SplitGenerator(
+                    name="unlabelled_test",
+                    gen_kwargs={
+                        "filepath": dl_path["unlabelled_test"],
+                    },
+                ),
+                nlp.SplitGenerator(
+                    name="unlabelled_dev",
+                    gen_kwargs={
+                        "filepath": dl_path["unlabelled_dev"],
+                    },
+                ),
+                nlp.SplitGenerator(
+                    name="labelled_dev",
+                    gen_kwargs={
+                        "filepath": dl_path["labelled_dev"],
+                    },
+                ),
+                nlp.SplitGenerator(
+                    name="paper_dev",
+                    gen_kwargs={
+                        "filepath": dl_path["paper_dev"],
+                    },
+                ),
+                nlp.SplitGenerator(
+                    name="paper_test",
+                    gen_kwargs={
+                        "filepath": dl_path["paper_test"],
+                    },
+                ),
             ]
         elif self.config.name == "wiki_pages":
             urls = "https://s3-eu-west-1.amazonaws.com/fever.public/wiki-pages.zip"
@@ -130,7 +167,12 @@ class Fever(nlp.GeneratorBasedBuilder):
             files = sorted(os.listdir(os.path.join(dl_path, "wiki-pages")))
             file_paths = [os.path.join(dl_path, "wiki-pages", file) for file in files]
             return [
-                nlp.SplitGenerator(name="wikipedia_pages", gen_kwargs={"filepath": file_paths,},),
+                nlp.SplitGenerator(
+                    name="wikipedia_pages",
+                    gen_kwargs={
+                        "filepath": file_paths,
+                    },
+                ),
             ]
         else:
             raise ValueError("config name not found")

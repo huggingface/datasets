@@ -27,11 +27,11 @@ import nlp
 _CITATION = """\
 @InProceedings{nie2019adversarial,
     title={Adversarial NLI: A New Benchmark for Natural Language Understanding},
-    author={Nie, Yixin 
-                and Williams, Adina 
-                and Dinan, Emily 
-                and Bansal, Mohit 
-                and Weston, Jason 
+    author={Nie, Yixin
+                and Williams, Adina
+                and Dinan, Emily
+                and Bansal, Mohit
+                and Weston, Jason
                 and Kiela, Douwe},
     booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
     year = "2020",
@@ -40,7 +40,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-The Adversarial Natural Language Inference (ANLI) is a new large-scale NLI benchmark dataset, 
+The Adversarial Natural Language Inference (ANLI) is a new large-scale NLI benchmark dataset,
 The dataset is collected via an iterative, adversarial human-and-model-in-the-loop procedure.
 ANLI is much more difficult than its predecessors including SNLI and MNLI.
 It contains three rounds. Each round has train/dev/test splits.
@@ -59,10 +59,10 @@ class ANLIConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for ANLI.
 
-    Args:
-.
-      **kwargs: keyword arguments forwarded to super.
-    """
+            Args:
+        .
+              **kwargs: keyword arguments forwarded to super.
+        """
         super(ANLIConfig, self).__init__(
             version=nlp.Version("0.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
@@ -72,7 +72,10 @@ class ANLI(nlp.GeneratorBasedBuilder):
     """ANLI: The ANLI Dataset."""
 
     BUILDER_CONFIGS = [
-        ANLIConfig(name="plain_text", description="Plain text",),
+        ANLIConfig(
+            name="plain_text",
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
@@ -128,12 +131,12 @@ class ANLI(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate mnli examples.
 
-    Args:
-      filepath: a string
+        Args:
+          filepath: a string
 
-    Yields:
-      dictionaries containing "premise", "hypothesis" and "label" strings
-    """
+        Yields:
+          dictionaries containing "premise", "hypothesis" and "label" strings
+        """
         for idx, line in enumerate(open(filepath, "rb")):
             if line is not None:
                 line = line.strip().decode("utf-8")

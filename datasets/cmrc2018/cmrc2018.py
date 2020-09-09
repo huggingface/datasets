@@ -62,7 +62,10 @@ class Cmrc2018(nlp.GeneratorBasedBuilder):
                     "context": nlp.Value("string"),
                     "question": nlp.Value("string"),
                     "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
+                        {
+                            "text": nlp.Value("string"),
+                            "answer_start": nlp.Value("int32"),
+                        }
                     ),
                     # These are the features of your dataset like images, labels ...
                 }
@@ -109,5 +112,8 @@ class Cmrc2018(nlp.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

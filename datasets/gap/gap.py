@@ -57,9 +57,9 @@ _TESTURL = "https://raw.githubusercontent.com/google-research-datasets/gap-coref
 class Gap(nlp.GeneratorBasedBuilder):
     """GAP is a gender-balanced dataset.
 
-  It contains 8,908 coreference-labeled pairs
-  of (ambiguous pronoun, antecedent name), sampled from Wikipedia.
-  """
+    It contains 8,908 coreference-labeled pairs
+    of (ambiguous pronoun, antecedent name), sampled from Wikipedia.
+    """
 
     VERSION = nlp.Version("0.1.0")
 
@@ -92,9 +92,18 @@ class Gap(nlp.GeneratorBasedBuilder):
             {"train": _TRAINURL, "validation": _VALIDATIONURL, "test": _TESTURL}
         )
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": directory["train"]},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": directory["validation"]},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": directory["test"]},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"filepath": directory["train"]},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"filepath": directory["validation"]},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"filepath": directory["test"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):

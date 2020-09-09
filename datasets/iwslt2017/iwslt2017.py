@@ -126,8 +126,18 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
                 name=nlp.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "source_files": [os.path.join(data_dir, "train.tags.{}.{}".format(self.config.pair, source),)],
-                    "target_files": [os.path.join(data_dir, "train.tags.{}.{}".format(self.config.pair, target),)],
+                    "source_files": [
+                        os.path.join(
+                            data_dir,
+                            "train.tags.{}.{}".format(self.config.pair, source),
+                        )
+                    ],
+                    "target_files": [
+                        os.path.join(
+                            data_dir,
+                            "train.tags.{}.{}".format(self.config.pair, target),
+                        )
+                    ],
                     "split": "train",
                 },
             ),
@@ -136,11 +146,17 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
-                        os.path.join(data_dir, "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, source),)
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, source),
+                        )
                         for year in years
                     ],
                     "target_files": [
-                        os.path.join(data_dir, "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, target),)
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, target),
+                        )
                         for year in years
                     ],
                     "split": "test",
@@ -151,10 +167,16 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
-                        os.path.join(data_dir, "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, source),)
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, source),
+                        )
                     ],
                     "target_files": [
-                        os.path.join(data_dir, "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, target),)
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, target),
+                        )
                     ],
                     "split": "dev",
                 },

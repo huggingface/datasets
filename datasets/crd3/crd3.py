@@ -74,7 +74,12 @@ class CRD3(nlp.GeneratorBasedBuilder):
                     "turn_end": nlp.Value("int32"),
                     "alignment_score": nlp.Value("float32"),
                     "turn_num": nlp.Value("int32"),
-                    "turns": nlp.features.Sequence({"names": nlp.Value("string"), "utterances": nlp.Value("string"),}),
+                    "turns": nlp.features.Sequence(
+                        {
+                            "names": nlp.Value("string"),
+                            "utterances": nlp.Value("string"),
+                        }
+                    ),
                 }
             ),
             homepage="https://github.com/RevanthRameshkumar/CRD3",
@@ -103,9 +108,18 @@ class CRD3(nlp.GeneratorBasedBuilder):
         test_files, train_files, dev_files = get_train_test_dev_files(files, test_splits, train_splits, dev_splits)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files_path": train_files},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"files_path": test_files},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"files_path": dev_files},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"files_path": train_files},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"files_path": test_files},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"files_path": dev_files},
+            ),
         ]
 
     def _generate_examples(self, files_path):
@@ -131,5 +145,8 @@ class CRD3(nlp.GeneratorBasedBuilder):
                             "turn_end": turn_end,
                             "alignment_score": score,
                             "turn_num": turn_num,
-                            "turns": {"names": turn_names, "utterances": turn_utterances,},
+                            "turns": {
+                                "names": turn_names,
+                                "utterances": turn_utterances,
+                            },
                         }

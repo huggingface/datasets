@@ -53,7 +53,11 @@ class Esnli(nlp.GeneratorBasedBuilder):
     # splits only.
     # 0.0.1 Initial version
     BUILDER_CONFIGS = [
-        nlp.BuilderConfig(name="plain_text", version=nlp.Version("0.0.2"), description="Plain text import of e-SNLI",)
+        nlp.BuilderConfig(
+            name="plain_text",
+            version=nlp.Version("0.0.2"),
+            description="Plain text import of e-SNLI",
+        )
     ]
 
     def _info(self):
@@ -86,9 +90,18 @@ class Esnli(nlp.GeneratorBasedBuilder):
         )
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": files["train"]},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"files": files["validation"]},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"files": files["test"]},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"files": files["train"]},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"files": files["validation"]},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"files": files["test"]},
+            ),
         ]
 
     def _generate_examples(self, files):

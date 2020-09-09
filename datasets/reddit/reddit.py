@@ -73,7 +73,8 @@ class Reddit(nlp.GeneratorBasedBuilder):
         dl_path = dl_manager.download_and_extract(_URL)
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"path": os.path.join(dl_path, "corpus-webis-tldr-17.json")},
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(dl_path, "corpus-webis-tldr-17.json")},
             )
         ]
 

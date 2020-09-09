@@ -75,7 +75,10 @@ class DefinitePronounResolution(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         files = dl_manager.download_and_extract(
-            {"train": _DATA_URL_PATTERN.format("train"), "test": _DATA_URL_PATTERN.format("test"),}
+            {
+                "train": _DATA_URL_PATTERN.format("train"),
+                "test": _DATA_URL_PATTERN.format("test"),
+            }
         )
         return [
             nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": files["test"]}),

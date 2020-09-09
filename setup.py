@@ -105,8 +105,7 @@ TESTS_REQUIRE = [
 
 QUALITY_REQUIRE = [
     "black",
-    # "isort",
-    "isort @ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort",
+    "isort",
     "flake8==3.7.9",
 ]
 

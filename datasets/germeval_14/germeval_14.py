@@ -62,9 +62,9 @@ class GermEval14Config(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for GermEval 2014.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(GermEval14Config, self).__init__(**kwargs)
 
 

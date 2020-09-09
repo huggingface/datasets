@@ -53,9 +53,9 @@ class BiomrcConfig(nlp.BuilderConfig):
 
     def __init__(self, biomrc_setting="A", biomrc_version="large", **kwargs):
         """BuilderConfig for BioMRC.
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         if biomrc_setting.lower() == "b":
             self.biomrc_setting = "B"
         else:

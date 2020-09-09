@@ -9,7 +9,12 @@ import nlp
 
 logger = logging.getLogger(__name__)
 
-FEATURES = nlp.Features({"text": nlp.Value("string"),})
+FEATURES = nlp.Features(
+    {
+        "text": nlp.Value("string"),
+    }
+)
+
 
 @dataclass
 class TextConfig(nlp.BuilderConfig):
@@ -27,8 +32,7 @@ class TextConfig(nlp.BuilderConfig):
         if self.read_options is not None:
             read_options = self.read_options
         else:
-            read_options = pac.ReadOptions(
-                column_names=['text'])
+            read_options = pac.ReadOptions(column_names=["text"])
         if self.encoding is not None:
             read_options.encoding = self.encoding
         if self.block_size is not None:
@@ -43,13 +47,13 @@ class TextConfig(nlp.BuilderConfig):
             parse_options = self.parse_options
         else:
             parse_options = pac.ParseOptions(
-                delimiter='\r',
+                delimiter="\r",
                 quote_char=False,
                 double_quote=False,
                 escape_char=False,
                 newlines_in_values=False,
                 ignore_empty_lines=False,
-                )
+            )
         return parse_options
 
     @property
@@ -59,7 +63,7 @@ class TextConfig(nlp.BuilderConfig):
         else:
             convert_options = pac.ConvertOptions(
                 column_types=FEATURES.type,
-                )
+            )
         return convert_options
 
 
@@ -70,10 +74,10 @@ class Text(nlp.ArrowBasedBuilder):
         return nlp.DatasetInfo(features=FEATURES)
 
     def _split_generators(self, dl_manager):
-        """ The `datafiles` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
+        """The `datafiles` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
 
-            If str or List[str], then the dataset returns only the 'train' split.
-            If dict, then keys should be from the `nlp.Split` enum.
+        If str or List[str], then the dataset returns only the 'train' split.
+        If dict, then keys should be from the `nlp.Split` enum.
         """
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
