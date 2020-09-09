@@ -1,6 +1,11 @@
 # Lint as: python3
 """ HuggingFace/NLP is an open library of NLP datasets.
 
+Note:
+
+   VERSION needs to be formatted following the MAJOR.MINOR.PATCH convention
+   (we need to follow this convention to be able to retrieve versioned scripts)
+
 Simple check list for release from AllenNLP repo: https://github.com/allenai/allennlp/blob/master/setup.py
 
 To create the package for pypi.
