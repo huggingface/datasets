@@ -25,7 +25,7 @@ import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from dataclasses import asdict
-from functools import partial
+from functools import partial, wraps
 from math import ceil, floor
 from multiprocessing import Pool, RLock
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
@@ -131,6 +131,42 @@ class DatasetInfoMixin(object):
 
 class DatasetTransformationNotAllowedError(Exception):
     pass
+
+
+def transmit_format(func):
+    """Wrapper for dataset transforms that are not in-place to transmit the format of the original dataset to the new dataset"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if args:
+            self: "Dataset" = args[0]
+            args = args[1:]
+        else:
+            self: "Dataset" = kwargs.pop("self")
+        # don't use self.format since it returns a list of columns for 'columns' even if self_format_columns is None
+        new_format = {
+            "type": self._format_type,
+            "format_kwargs": self._format_kwargs,
+            "columns": self._format_columns,
+            "output_all_columns": self._output_all_columns,
+        }
+        out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
+        if new_format["columns"] is not None:
+            new_format["columns"] = list(set(new_format["columns"]) & set(out.column_names))
+        datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
+        for dataset in datasets:
+            out_format = {
+                "type": dataset._format_type,
+                "format_kwargs": dataset._format_kwargs,
+                "columns": dataset._format_columns,
+                "output_all_columns": dataset._output_all_columns,
+            }
+            if out_format != new_format:
+                dataset.set_format(**new_format)
+        return out
+
+    wrapper._decorator_name_ = "transmit_format"
+    return wrapper
 
 
 class Dataset(DatasetInfoMixin, IndexableMixin):
@@ -725,7 +761,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             ), "Format type 'pandas' doesn't allow the use of `output_all_columns` or `**format_kwargs`."
             assert (
                 type is None or type == "numpy" or type == "pandas"
-            ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas']."
+            ), "Return type should be None or selected in ['numpy', 'torch', 'tensorflow', 'pandas'], but got '{}'".format(
+                type
+            )
 
         # Check filter column
         if isinstance(columns, str):
@@ -737,6 +775,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 )
             )
 
+        format_kwargs.update(format_kwargs.pop("format_kwargs", {}))  # allow to use self.set_format(self.format)
         self._format_type = type
         self._format_kwargs = format_kwargs
         self._format_columns = columns
@@ -1244,6 +1283,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     result._fingerprint = new_fingerprint
                 return result
 
+    @transmit_format
     @fingerprint(inplace=False)
     def _map_single(
         self,
@@ -1470,6 +1510,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             return self
 
+    @transmit_format
     @fingerprint(inplace=False)
     def filter(
         self,
@@ -1561,6 +1602,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             new_fingerprint=new_fingerprint,
         )
 
+    @transmit_format
     @fingerprint(inplace=False)
     def flatten_indices(
         self,
@@ -1633,6 +1675,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             inplace_history=self._inplace_history,  # in-place transforms have to be kept as we kept the same data_files
         )
 
+    @transmit_format
     @fingerprint(inplace=False)
     def select(
         self,
@@ -1711,6 +1754,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
 
+    @transmit_format
     @fingerprint(inplace=False)
     def sort(
         self,
@@ -1788,6 +1832,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             new_fingerprint=new_fingerprint,
         )
 
+    @transmit_format
     @fingerprint(inplace=False, randomized_function=True)
     def shuffle(
         self,
@@ -1859,6 +1904,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             new_fingerprint=new_fingerprint,
         )
 
+    @transmit_format
     @fingerprint(
         inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"]
     )
@@ -2401,6 +2447,13 @@ def concatenate_datasets(
             )
         )
 
+    # Find common format or reset format
+
+    format = dsets[0].format
+    if any(dset.format != format for dset in dsets):
+        format = {}
+        logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
+
     # Concatenate tables
 
     table = pa.concat_tables(dset._data for dset in dsets if len(dset._data) > 0)
@@ -2471,7 +2524,7 @@ def concatenate_datasets(
     fingerprint = update_fingerprint(
         "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
     )
-    return Dataset(
+    concatenated_dataset = Dataset(
         table,
         info=info,
         split=split,
@@ -2481,6 +2534,8 @@ def concatenate_datasets(
         fingerprint=fingerprint,
         inplace_history=inplace_history,
     )
+    concatenated_dataset.set_format(**format)
+    return concatenated_dataset
 
 
 # This is outside Dataset.filter as it needs to be picklable for multiprocessing
