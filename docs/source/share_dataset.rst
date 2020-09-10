@@ -63,13 +63,6 @@ To add a "canonical" dataset to the library, you need to go through the followin
    it with ``pip uninstall nlp`` before reinstalling it in editable
    mode with the ``-e`` flag.
 
-   Right now, we need an unreleased version of ``isort`` to avoid a
-   `bug <https://github.com/timothycrosley/isort/pull/1000>`__:
-
-.. code-block::
-
-   pip install -U git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort
-
 **5. Create a new folder with your dataset name** inside the `datasets folder <https://github.com/huggingface/nlp/tree/master/datasets>`__ of the repository and add the dataset script you wrote and tested while following the instructions on the :doc:`add_dataset` page. 
 
 **6. Format your code.** Run black and isort so that your newly added files look nice with the following command:

@@ -47,11 +47,11 @@ class WikiDprConfig(nlp.BuilderConfig):
         **kwargs,
     ):
         """BuilderConfig for WikiSnippets.
-    Args:
-        with_embeddings (`bool`, defaults to `True`): Load the 768-dimensional embeddings from DPR trained on NQ.
-        with_index (`bool`, defaults to `True`): Load the faiss index trained on the embeddings.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+            with_embeddings (`bool`, defaults to `True`): Load the 768-dimensional embeddings from DPR trained on NQ.
+            with_index (`bool`, defaults to `True`): Load the faiss index trained on the embeddings.
+          **kwargs: keyword arguments forwarded to super.
+        """
         self.with_embeddings = with_embeddings
         self.with_index = with_index
         self.wiki_split = wiki_split

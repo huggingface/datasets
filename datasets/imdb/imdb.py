@@ -54,9 +54,9 @@ class IMDBReviewsConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for IMDBReviews.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(IMDBReviewsConfig, self).__init__(
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
@@ -65,7 +65,12 @@ class IMDBReviewsConfig(nlp.BuilderConfig):
 class Imdb(nlp.GeneratorBasedBuilder):
     """IMDB movie reviews dataset."""
 
-    BUILDER_CONFIGS = [IMDBReviewsConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        IMDBReviewsConfig(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return nlp.DatasetInfo(

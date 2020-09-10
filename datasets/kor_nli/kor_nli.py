@@ -30,10 +30,10 @@ class KorNLIConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for KorNLI.
 
-    Args:
+        Args:
 
-      **kwargs: keyword arguments forwarded to super.
-    """
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version 1.1.0 remove empty document and summary strings.
         super(KorNLIConfig, self).__init__(version=nlp.Version("1.0.0"), **kwargs)
 

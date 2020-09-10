@@ -2,8 +2,9 @@ import json
 import os
 import tempfile
 
-import nlp
 from utils import generate_example_dataset, get_duration
+
+import nlp
 
 
 SPEED_TEST_N_EXAMPLES = 50_000

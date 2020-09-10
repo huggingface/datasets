@@ -25,7 +25,7 @@ The two QAngaroo datasets provide a training and evaluation resource for such me
 """
 
 _MEDHOP_DESCRIPTION = """\
-  With the same format as WikiHop, this dataset is based on research paper abstracts from PubMed, and the queries are about interactions between pairs of drugs. 
+  With the same format as WikiHop, this dataset is based on research paper abstracts from PubMed, and the queries are about interactions between pairs of drugs.
   The correct answer has to be inferred by combining information from a chain of reactions of drugs and proteins.
   """
 _WIKIHOP_DESCRIPTION = """\
@@ -38,7 +38,7 @@ _URL = "https://drive.google.com/uc?export=download&id=1ytVZ4AhubFDOEL7o7XrIRIyh
 
 class QangarooConfig(nlp.BuilderConfig):
     def __init__(self, data_dir, **kwargs):
-        """ BuilderConfig for qangaroo dataset
+        """BuilderConfig for qangaroo dataset
 
         Args:
           data_dir: directory for the given dataset name

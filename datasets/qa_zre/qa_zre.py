@@ -66,15 +66,21 @@ class QaZre(nlp.GeneratorBasedBuilder):
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
-                gen_kwargs={"filepaths": [os.path.join(dl_dir, "test." + str(i)) for i in range(10)],},
+                gen_kwargs={
+                    "filepaths": [os.path.join(dl_dir, "test." + str(i)) for i in range(10)],
+                },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
-                gen_kwargs={"filepaths": [os.path.join(dl_dir, "dev." + str(i)) for i in range(10)],},
+                gen_kwargs={
+                    "filepaths": [os.path.join(dl_dir, "dev." + str(i)) for i in range(10)],
+                },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
-                gen_kwargs={"filepaths": [os.path.join(dl_dir, "train." + str(i)) for i in range(10)],},
+                gen_kwargs={
+                    "filepaths": [os.path.join(dl_dir, "train." + str(i)) for i in range(10)],
+                },
             ),
         ]
 

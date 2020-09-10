@@ -65,28 +65,28 @@ class SubDataset(object):
     def __init__(self, name, target, sources, url, path, manual_dl_files=None):
         """Sub-dataset of WMT.
 
-    Args:
-      name: `string`, a unique dataset identifier.
-      target: `string`, the target language code.
-      sources: `set<string>`, the set of source language codes.
-      url: `string` or `(string, string)`, URL(s) or URL template(s) specifying
-        where to download the raw data from. If two strings are provided, the
-        first is used for the source language and the second for the target.
-        Template strings can either contain '{src}' placeholders that will be
-        filled in with the source language code, '{0}' and '{1}' placeholders
-        that will be filled in with the source and target language codes in
-        alphabetical order, or all 3.
-      path: `string` or `(string, string)`, path(s) or path template(s)
-        specifing the path to the raw data relative to the root of the
-        downloaded archive. If two strings are provided, the dataset is assumed
-        to be made up of parallel text files, the first being the source and the
-        second the target. If one string is provided, both languages are assumed
-        to be stored within the same file and the extension is used to determine
-        how to parse it. Template strings should be formatted the same as in
-        `url`.
-      manual_dl_files: `<list>(string)` (optional), the list of files that must
-        be manually downloaded to the data directory.
-    """
+        Args:
+          name: `string`, a unique dataset identifier.
+          target: `string`, the target language code.
+          sources: `set<string>`, the set of source language codes.
+          url: `string` or `(string, string)`, URL(s) or URL template(s) specifying
+            where to download the raw data from. If two strings are provided, the
+            first is used for the source language and the second for the target.
+            Template strings can either contain '{src}' placeholders that will be
+            filled in with the source language code, '{0}' and '{1}' placeholders
+            that will be filled in with the source and target language codes in
+            alphabetical order, or all 3.
+          path: `string` or `(string, string)`, path(s) or path template(s)
+            specifing the path to the raw data relative to the root of the
+            downloaded archive. If two strings are provided, the dataset is assumed
+            to be made up of parallel text files, the first being the source and the
+            second the target. If one string is provided, both languages are assumed
+            to be stored within the same file and the extension is used to determine
+            how to parse it. Template strings should be formatted the same as in
+            `url`.
+          manual_dl_files: `<list>(string)` (optional), the list of files that must
+            be manually downloaded to the data directory.
+        """
         self._paths = (path,) if isinstance(path, six.string_types) else path
         self._urls = (url,) if isinstance(url, six.string_types) else url
         self._manual_dl_files = manual_dl_files if manual_dl_files else []
@@ -633,18 +633,18 @@ class WmtConfig(nlp.BuilderConfig):
     def __init__(self, url=None, citation=None, description=None, language_pair=(None, None), subsets=None, **kwargs):
         """BuilderConfig for WMT.
 
-    Args:
-      url: The reference URL for the dataset.
-      citation: The paper citation for the dataset.
-      description: The description of the dataset.
-      language_pair: pair of languages that will be used for translation. Should
-                 contain 2 letter coded strings. For example: ("en", "de").
-        configuration for the `nlp.features.text.TextEncoder` used for the
-        `nlp.features.text.Translation` features.
-      subsets: Dict[split, list[str]]. List of the subset to use for each of the
-        split. Note that WMT subclasses overwrite this parameter.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          url: The reference URL for the dataset.
+          citation: The paper citation for the dataset.
+          description: The description of the dataset.
+          language_pair: pair of languages that will be used for translation. Should
+                     contain 2 letter coded strings. For example: ("en", "de").
+            configuration for the `nlp.features.text.TextEncoder` used for the
+            `nlp.features.text.Translation` features.
+          subsets: Dict[split, list[str]]. List of the subset to use for each of the
+            split. Note that WMT subclasses overwrite this parameter.
+          **kwargs: keyword arguments forwarded to super.
+        """
         name = "%s-%s" % (language_pair[0], language_pair[1])
         if "name" in kwargs:  # Add name suffix for custom configs
             name += "." + kwargs.pop("name")

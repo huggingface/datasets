@@ -22,12 +22,12 @@ _CITATION = """\
 # TODO(openBookQA):
 _DESCRIPTION = textwrap.dedent(
     """\
-OpenBookQA aims to promote research in advanced question-answering, probing a deeper understanding of both the topic 
-(with salient facts summarized as an open book, also provided with the dataset) and the language it is expressed in. In 
-particular, it contains questions that require multi-step reasoning, use of additional common and commonsense knowledge, 
+OpenBookQA aims to promote research in advanced question-answering, probing a deeper understanding of both the topic
+(with salient facts summarized as an open book, also provided with the dataset) and the language it is expressed in. In
+particular, it contains questions that require multi-step reasoning, use of additional common and commonsense knowledge,
 and rich text comprehension.
 OpenBookQA is a new kind of question-answering dataset modeled after open book exams for assessing human understanding of
-a subject. 
+a subject.
 """
 )
 _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/OpenBookQA-V1-Sep2018.zip"
@@ -35,13 +35,13 @@ _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/OpenBookQA-V1-Sep201
 
 class OpenbookqaConfig(nlp.BuilderConfig):
     def __init__(self, data_dir, **kwargs):
-        """ BuilderConfig for openBookQA dataset 
+        """BuilderConfig for openBookQA dataset
 
-      Args:
-        data_dir: directory for the given dataset name
-        **kwargs: keyword arguments forwarded to super.
+        Args:
+          data_dir: directory for the given dataset name
+          **kwargs: keyword arguments forwarded to super.
 
-      """
+        """
 
         super(OpenbookqaConfig, self).__init__(
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
@@ -60,9 +60,9 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
             name="main",
             description=textwrap.dedent(
                 """
-                                  It consists of 5,957 multiple-choice elementary-level science questions (4,957 train, 500 dev, 500 test), 
-                                  which probe the understanding of a small “book” of 1,326 core science facts and the application of these facts to novel 
-                                  situations. For training, the dataset includes a mapping from each question to the core science fact it was designed to 
+                                  It consists of 5,957 multiple-choice elementary-level science questions (4,957 train, 500 dev, 500 test),
+                                  which probe the understanding of a small “book” of 1,326 core science facts and the application of these facts to novel
+                                  situations. For training, the dataset includes a mapping from each question to the core science fact it was designed to
                                   probe. Answering OpenBookQA questions requires additional broad common knowledge, not contained in the book. The questions,
                                   by design, are answered incorrectly by both a retrieval-based algorithm and a word co-occurrence algorithm. Strong neural
                                   baselines achieve around 50% on OpenBookQA, leaving a large gap to the 92% accuracy of crowd-workers.
@@ -74,8 +74,8 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
             name="additional",
             description=textwrap.dedent(
                 """
-                                  Additionally, we provide 5,167 crowd-sourced common knowledge facts, and an expanded version of the train/dev/test questions where 
-                                  each question is associated with its originating core fact, a human accuracy score, a clarity score, and an anonymized crowd-worker 
+                                  Additionally, we provide 5,167 crowd-sourced common knowledge facts, and an expanded version of the train/dev/test questions where
+                                  each question is associated with its originating core fact, a human accuracy score, a clarity score, and an anonymized crowd-worker
                                   ID (in the “Additional” folder).
                                 """
             ),

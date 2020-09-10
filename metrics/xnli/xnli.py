@@ -16,6 +16,7 @@
 
 import nlp
 
+
 _CITATION = """\
 @InProceedings{conneau2018xnli,
   author = "Conneau, Alexis
@@ -51,8 +52,10 @@ Returns:
     'accuracy': accuracy
 """
 
+
 def simple_accuracy(preds, labels):
     return (preds == labels).mean()
+
 
 class Xnli(nlp.Metric):
     def _info(self):
@@ -60,13 +63,15 @@ class Xnli(nlp.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': nlp.Value('int64' if self.config_name != 'sts-b' else 'float32'),
-                'references': nlp.Value('int64' if self.config_name != 'sts-b' else 'float32'),
-            }),
+            features=nlp.Features(
+                {
+                    "predictions": nlp.Value("int64" if self.config_name != "sts-b" else "float32"),
+                    "references": nlp.Value("int64" if self.config_name != "sts-b" else "float32"),
+                }
+            ),
             codebase_urls=[],
             reference_urls=[],
-            format='numpy'
+            format="numpy",
         )
 
     def _compute(self, predictions, references):

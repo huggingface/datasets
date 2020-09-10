@@ -20,7 +20,7 @@ _CITATION = """\
 
 # TODO(wiqa):
 _DESCRIPTION = """\
-The WIQA dataset V1 has 39705 questions containing a perturbation and a possible effect in the context of a paragraph. 
+The WIQA dataset V1 has 39705 questions containing a perturbation and a possible effect in the context of a paragraph.
 The dataset is split into 29808 train questions, 6894 dev questions and 3003 test questions.
 """
 _URL = "https://public-aristo-processes.s3-us-west-2.amazonaws.com/wiqa_dataset_no_explanation_v2/wiqa-dataset-v2-october-2019.zip"

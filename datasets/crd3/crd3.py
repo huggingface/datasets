@@ -37,10 +37,10 @@ conference = {ACL}
 
 _DESCRIPTION = """
 Storytelling with Dialogue: A Critical Role Dungeons and Dragons Dataset.
-Critical Role is an unscripted, live-streamed show where a fixed group of people play Dungeons and Dragons, an open-ended role-playing game. 
-The dataset is collected from 159 Critical Role episodes transcribed to text dialogues, consisting of 398,682 turns. It also includes corresponding 
-abstractive summaries collected from the Fandom wiki. The dataset is linguistically unique in that the narratives are generated entirely through player 
-collaboration and spoken interaction. For each dialogue, there are a large number of turns, multiple abstractive summaries with varying levels of detail, 
+Critical Role is an unscripted, live-streamed show where a fixed group of people play Dungeons and Dragons, an open-ended role-playing game.
+The dataset is collected from 159 Critical Role episodes transcribed to text dialogues, consisting of 398,682 turns. It also includes corresponding
+abstractive summaries collected from the Fandom wiki. The dataset is linguistically unique in that the narratives are generated entirely through player
+collaboration and spoken interaction. For each dialogue, there are a large number of turns, multiple abstractive summaries with varying levels of detail,
 and semantic ties to the previous dialogues.
 """
 
@@ -74,7 +74,12 @@ class CRD3(nlp.GeneratorBasedBuilder):
                     "turn_end": nlp.Value("int32"),
                     "alignment_score": nlp.Value("float32"),
                     "turn_num": nlp.Value("int32"),
-                    "turns": nlp.features.Sequence({"names": nlp.Value("string"), "utterances": nlp.Value("string"),}),
+                    "turns": nlp.features.Sequence(
+                        {
+                            "names": nlp.Value("string"),
+                            "utterances": nlp.Value("string"),
+                        }
+                    ),
                 }
             ),
             homepage="https://github.com/RevanthRameshkumar/CRD3",
@@ -103,9 +108,18 @@ class CRD3(nlp.GeneratorBasedBuilder):
         test_files, train_files, dev_files = get_train_test_dev_files(files, test_splits, train_splits, dev_splits)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files_path": train_files},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"files_path": test_files},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"files_path": dev_files},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"files_path": train_files},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"files_path": test_files},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"files_path": dev_files},
+            ),
         ]
 
     def _generate_examples(self, files_path):
@@ -131,5 +145,8 @@ class CRD3(nlp.GeneratorBasedBuilder):
                             "turn_end": turn_end,
                             "alignment_score": score,
                             "turn_num": turn_num,
-                            "turns": {"names": turn_names, "utterances": turn_utterances,},
+                            "turns": {
+                                "names": turn_names,
+                                "utterances": turn_utterances,
+                            },
                         }

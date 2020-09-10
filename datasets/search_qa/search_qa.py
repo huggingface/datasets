@@ -19,13 +19,12 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 import os
 
 import nlp
 
 
-_CITATION = """
+_CITATION = r"""
     @article{DBLP:journals/corr/DunnSHGCC17,
     author    = {Matthew Dunn and
                 Levent Sagun and
@@ -49,12 +48,12 @@ _CITATION = """
 """
 # pylint: disable=line-too-long
 _DESCRIPTION = """
-We publicly release a new large-scale dataset, called SearchQA, for machine comprehension, or question-answering. Unlike recently released datasets, such as DeepMind 
-CNN/DailyMail and SQuAD, the proposed SearchQA was constructed to reflect a full pipeline of general question-answering. That is, we start not from an existing article 
-and generate a question-answer pair, but start from an existing question-answer pair, crawled from J! Archive, and augment it with text snippets retrieved by Google. 
+We publicly release a new large-scale dataset, called SearchQA, for machine comprehension, or question-answering. Unlike recently released datasets, such as DeepMind
+CNN/DailyMail and SQuAD, the proposed SearchQA was constructed to reflect a full pipeline of general question-answering. That is, we start not from an existing article
+and generate a question-answer pair, but start from an existing question-answer pair, crawled from J! Archive, and augment it with text snippets retrieved by Google.
 Following this approach, we built SearchQA, which consists of more than 140k question-answer pairs with each pair having 49.6 snippets on average. Each question-answer-context
- tuple of the SearchQA comes with additional meta-data such as the snippet's URL, which we believe will be valuable resources for future research. We conduct human evaluation 
- as well as test two baseline methods, one simple word selection and the other deep learning based, on the SearchQA. We show that there is a meaningful gap between the human 
+ tuple of the SearchQA comes with additional meta-data such as the snippet's URL, which we believe will be valuable resources for future research. We conduct human evaluation
+ as well as test two baseline methods, one simple word selection and the other deep learning based, on the SearchQA. We show that there is a meaningful gap between the human
  and machine performances. This suggests that the proposed dataset could well serve as a benchmark for question-answering.
 """
 
@@ -96,7 +95,6 @@ class SearchQa(nlp.GeneratorBasedBuilder):
                     "value": nlp.Value("string"),
                     "answer": nlp.Value("string"),
                     "round": nlp.Value("string"),
-                    "category": nlp.Value("string"),
                     "show_number": nlp.Value("int32"),
                     "search_results": nlp.features.Sequence(
                         {

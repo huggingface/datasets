@@ -26,11 +26,11 @@ import nlp
 
 _CITATION = """\
 @inproceedings{snli:emnlp2015,
-	Author = {Bowman, Samuel R. and Angeli, Gabor and Potts, Christopher, and Manning, Christopher D.},
-	Booktitle = {Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
-	Publisher = {Association for Computational Linguistics},
-	Title = {A large annotated corpus for learning natural language inference},
-	Year = {2015}
+    Author = {Bowman, Samuel R. and Angeli, Gabor and Potts, Christopher, and Manning, Christopher D.},
+    Booktitle = {Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+    Publisher = {Association for Computational Linguistics},
+    Title = {A large annotated corpus for learning natural language inference},
+    Year = {2015}
 }
 """
 

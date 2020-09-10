@@ -25,7 +25,7 @@ archivePrefix = {arXiv},
 
 _DESCRIPTION = """\
 combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable questions written adversarially by crowdworkers
- to look similar to answerable ones. To do well on SQuAD2.0, systems must not only answer questions when possible, but 
+ to look similar to answerable ones. To do well on SQuAD2.0, systems must not only answer questions when possible, but
  also determine when no answer is supported by the paragraph and abstain from answering.
 """
 
@@ -40,9 +40,9 @@ class SquadV2Config(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for SQUADV2.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(SquadV2Config, self).__init__(**kwargs)
 
 
@@ -67,7 +67,10 @@ class SquadV2(nlp.GeneratorBasedBuilder):
                     "context": nlp.Value("string"),
                     "question": nlp.Value("string"),
                     "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
+                        {
+                            "text": nlp.Value("string"),
+                            "answer_start": nlp.Value("int32"),
+                        }
                     ),
                     # These are the features of your dataset like images, labels ...
                 }
@@ -117,5 +120,8 @@ class SquadV2(nlp.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

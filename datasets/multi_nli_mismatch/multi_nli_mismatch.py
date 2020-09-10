@@ -61,10 +61,10 @@ class MultiNLIMismatchConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for MultiNLI Mismatch.
 
-    Args:
+        Args:
 
-      **kwargs: keyword arguments forwarded to super.
-    """
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(MultiNLIMismatchConfig, self).__init__(
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
@@ -74,14 +74,21 @@ class MultiNliMismatch(nlp.GeneratorBasedBuilder):
     """MultiNLI: The Stanford Question Answering Dataset. Version 1.1."""
 
     BUILDER_CONFIGS = [
-        MultiNLIMismatchConfig(name="plain_text", description="Plain text",),
+        MultiNLIMismatchConfig(
+            name="plain_text",
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(
-                {"premise": nlp.Value("string"), "hypothesis": nlp.Value("string"), "label": nlp.Value("string"),}
+                {
+                    "premise": nlp.Value("string"),
+                    "hypothesis": nlp.Value("string"),
+                    "label": nlp.Value("string"),
+                }
             ),
             # No default supervised_keys (as we have to pass both premise
             # and hypothesis as input).
@@ -110,12 +117,12 @@ class MultiNliMismatch(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate mnli mismatch examples.
 
-    Args:
-      filepath: a string
+        Args:
+          filepath: a string
 
-    Yields:
-      dictionaries containing "premise", "hypothesis" and "label" strings
-    """
+        Yields:
+          dictionaries containing "premise", "hypothesis" and "label" strings
+        """
         for idx, line in enumerate(open(filepath, "rb")):
             if idx == 0:
                 continue

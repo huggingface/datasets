@@ -8,11 +8,13 @@ that a question is unanswerable.
 import argparse
 import collections
 import json
-import numpy as np
 import os
 import re
 import string
 import sys
+
+import numpy as np
+
 
 OPTS = None
 

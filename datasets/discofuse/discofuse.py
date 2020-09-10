@@ -5,8 +5,6 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import tensorflow as tf
-
 import nlp
 
 
@@ -26,7 +24,7 @@ _CITATION = """\
 
 # TODO(discofuse):
 _DESCRIPTION = """\
- DISCOFUSE is a large scale dataset for discourse-based sentence fusion. 
+ DISCOFUSE is a large scale dataset for discourse-based sentence fusion.
 """
 
 

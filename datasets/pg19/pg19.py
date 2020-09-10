@@ -44,7 +44,9 @@ _STORAGE_API_ROOT_URL = "https://storage.googleapis.com/storage/v1/b/deepmind-gu
 
 _METADATA_URL = os.path.join(_ASSET_ROOT_URL, "metadata.csv")
 
-flat_map = lambda fn, arr: [el for sub_arr in map(fn, arr) for el in sub_arr]
+
+def flat_map(fn, arr):
+    return [el for sub_arr in map(fn, arr) for el in sub_arr]
 
 
 class Pg19(nlp.GeneratorBasedBuilder):

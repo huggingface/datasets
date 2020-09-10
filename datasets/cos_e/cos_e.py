@@ -168,10 +168,12 @@ class CosE(nlp.GeneratorBasedBuilder):
         # We use the CoS-E/CQA dev set as our validation set.
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"files": files["train"], "cqa_indexed": cqa_indexed},
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"files": files["train"], "cqa_indexed": cqa_indexed},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"files": files["dev"], "cqa_indexed": cqa_indexed},
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"files": files["dev"], "cqa_indexed": cqa_indexed},
             ),
         ]
 

@@ -66,16 +66,16 @@ _DOWNLOAD_URL = "https://storage.googleapis.com/jigsaw-unintended-bias-in-toxici
 class CivilComments(nlp.GeneratorBasedBuilder):
     """Classification and tagging of 2M comments on news sites.
 
-  This version of the CivilComments Dataset provides access to the primary
-  seven labels that were annotated by crowd workers, the toxicity and other
-  tags are a value between 0 and 1 indicating the fraction of annotators that
-  assigned these attributes to the comment text.
+    This version of the CivilComments Dataset provides access to the primary
+    seven labels that were annotated by crowd workers, the toxicity and other
+    tags are a value between 0 and 1 indicating the fraction of annotators that
+    assigned these attributes to the comment text.
 
-  The other tags, which are only available for a fraction of the input examples
-  are currently ignored, as are all of the attributes that were part of the
-  original civil comments release. See the Kaggle documentation for more
-  details about the available features.
-  """
+    The other tags, which are only available for a fraction of the input examples
+    are currently ignored, as are all of the attributes that were part of the
+    original civil comments release. See the Kaggle documentation for more
+    details about the available features.
+    """
 
     VERSION = nlp.Version("0.9.0")
 
@@ -128,16 +128,16 @@ class CivilComments(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filename, toxicity_label):
         """Yields examples.
 
-    Each example contains a text input and then seven annotation labels.
+        Each example contains a text input and then seven annotation labels.
 
-    Args:
-      filename: the path of the file to be read for this split.
-      toxicity_label: indicates 'target' or 'toxicity' to capture the variation
-        in the released labels for this dataset.
+        Args:
+          filename: the path of the file to be read for this split.
+          toxicity_label: indicates 'target' or 'toxicity' to capture the variation
+            in the released labels for this dataset.
 
-    Yields:
-      A dictionary of features, all floating point except the input text.
-    """
+        Yields:
+          A dictionary of features, all floating point except the input text.
+        """
         with open(filename, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:

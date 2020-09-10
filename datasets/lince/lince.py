@@ -8,7 +8,6 @@ import re
 import textwrap
 from itertools import groupby
 
-import numpy as np
 import six
 
 import nlp
@@ -35,7 +34,7 @@ Note that each LinCE dataset has its own citation. Please see the source to see
 the correct citation for each contained dataset."""
 
 _DESCRIPTION = """\
-LinCE is a centralized Linguistic Code-switching Evaluation benchmark 
+LinCE is a centralized Linguistic Code-switching Evaluation benchmark
 (https://ritual.uh.edu/lince/) that contains data for training and evaluating
 NLP systems on code-switching tasks.
 """
@@ -187,7 +186,7 @@ _DATASET_CITATIONS = {
            publisher = "Association for Computational Linguistics",
            url = "https://www.aclweb.org/anthology/W18-3219",
            pages = "138--147"
-        }  
+        }
         """
     ),
     "ner_msaea": textwrap.dedent(
@@ -207,7 +206,7 @@ _DATASET_CITATIONS = {
            publisher = "Association for Computational Linguistics",
            url = "https://www.aclweb.org/anthology/W18-3219",
            pages = "138--147"
-        }  
+        }
         """
     ),
     "ner_hineng": textwrap.dedent(
@@ -240,7 +239,7 @@ _DATASET_CITATIONS = {
                   Garrette, Dan and
                   Gamb{\"a}ck, Bj{\"o}rn and
                   Chakraborty, Tanmoy and
-                  Solorio, Thamar and  
+                  Solorio, Thamar and
                   Das, Amitava",
           booktitle = "Proceedings of the 14th International Workshop on Semantic Evaluation ({S}em{E}val-2020)",
           year = 2020,
@@ -293,7 +292,9 @@ class Lince(nlp.GeneratorBasedBuilder):
             name="lid_msaea",
             data_dir="lid_msaea",
             colnames={"tokens": 0, "lid": 1},
-            classes={"lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],},
+            classes={
+                "lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],
+            },
             label_column="lid",
             description="Modern Standard Arabic-Egyptian Arabic language identification dataset (Persian script)",
         ),
@@ -301,7 +302,9 @@ class Lince(nlp.GeneratorBasedBuilder):
             name="lid_nepeng",
             data_dir="lid_nepeng",
             colnames={"tokens": 0, "lid": 1},
-            classes={"lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],},
+            classes={
+                "lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],
+            },
             label_column="lid",
             description="Nepali-English language identification dataset (Latin script)",
         ),
@@ -481,11 +484,17 @@ class Lince(nlp.GeneratorBasedBuilder):
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.conll"), "colnames": self.config.colnames,},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "train.conll"),
+                    "colnames": self.config.colnames,
+                },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir, "dev.conll"), "colnames": self.config.colnames,},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "dev.conll"),
+                    "colnames": self.config.colnames,
+                },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,

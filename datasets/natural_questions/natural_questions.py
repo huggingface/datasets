@@ -117,8 +117,14 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
             files = dl_manager.ship_files_with_pipeline(files, pipeline)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepaths": files["train"]},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepaths": files["validation"]},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"filepaths": files["train"]},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"filepaths": files["validation"]},
+            ),
         ]
 
     def _build_pcollection(self, pipeline, filepaths):

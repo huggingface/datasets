@@ -22,11 +22,11 @@ inproceedings{scitail,
 
 # TODO(sciTail):
 _DESCRIPTION = """\
-The SciTail dataset is an entailment dataset created from multiple-choice science exams and web sentences. Each question 
-and the correct answer choice are converted into an assertive statement to form the hypothesis. We use information 
-retrieval to obtain relevant text from a large text corpus of web sentences, and use these sentences as a premise P. We 
-crowdsource the annotation of such premise-hypothesis pair as supports (entails) or not (neutral), in order to create 
-the SciTail dataset. The dataset contains 27,026 examples with 10,101 examples with entails label and 16,925 examples 
+The SciTail dataset is an entailment dataset created from multiple-choice science exams and web sentences. Each question
+and the correct answer choice are converted into an assertive statement to form the hypothesis. We use information
+retrieval to obtain relevant text from a large text corpus of web sentences, and use these sentences as a premise P. We
+crowdsource the annotation of such premise-hypothesis pair as supports (entails) or not (neutral), in order to create
+the SciTail dataset. The dataset contains 27,026 examples with 10,101 examples with entails label and 16,925 examples
 with neutral label
 """
 
