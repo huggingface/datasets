@@ -217,5 +217,7 @@ class ArrayXDTest(unittest.TestCase):
 
     def test_from_dict(self, array_feature, shape_1, shape_2):
         dict_examples = self.get_dict_examples(shape_1, shape_2)
-        dataset = datasets.Dataset.from_dict(dict_examples, features=self.get_features(array_feature, shape_1, shape_2))
+        dataset = datasets.Dataset.from_dict(
+            dict_examples, features=self.get_features(array_feature, shape_1, shape_2)
+        )
         self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])

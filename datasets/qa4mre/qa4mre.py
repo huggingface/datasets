@@ -159,7 +159,9 @@ class Qa4mreConfig(datasets.BuilderConfig):
             self.track, self.lang, self.year
         )
 
-        super(Qa4mreConfig, self).__init__(name=name, description=description, version=datasets.Version("0.1.0"), **kwargs)
+        super(Qa4mreConfig, self).__init__(
+            name=name, description=description, version=datasets.Version("0.1.0"), **kwargs
+        )
 
 
 class Qa4mre(datasets.GeneratorBasedBuilder):

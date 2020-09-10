@@ -257,9 +257,12 @@ class CnnDailymail(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": train_files}),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.VALIDATION)}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.VALIDATION)},
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.TEST)}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.TEST)}
+            ),
         ]
 
     def _generate_examples(self, files):

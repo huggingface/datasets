@@ -78,9 +78,14 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         "title": datasets.Value("string"),
                         "url": datasets.Value("string"),
                         "html": datasets.Value("string"),
-                        "tokens": datasets.features.Sequence({"token": datasets.Value("string"), "is_html": datasets.Value("bool")}),
+                        "tokens": datasets.features.Sequence(
+                            {"token": datasets.Value("string"), "is_html": datasets.Value("bool")}
+                        ),
                     },
-                    "question": {"text": datasets.Value("string"), "tokens": datasets.features.Sequence(datasets.Value("string"))},
+                    "question": {
+                        "text": datasets.Value("string"),
+                        "tokens": datasets.features.Sequence(datasets.Value("string")),
+                    },
                     "annotations": datasets.features.Sequence(
                         {
                             "id": datasets.Value("string"),
@@ -99,7 +104,9 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                                     "text": datasets.Value("string"),
                                 }
                             ),
-                            "yes_no_answer": datasets.features.ClassLabel(names=["NO", "YES"]),  # Can also be -1 for NONE.
+                            "yes_no_answer": datasets.features.ClassLabel(
+                                names=["NO", "YES"]
+                            ),  # Can also be -1 for NONE.
                         }
                     ),
                 }

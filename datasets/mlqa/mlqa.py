@@ -96,7 +96,9 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                 {
                     "context": datasets.Value("string"),
                     "questions": datasets.Value("string"),
-                    "answers": datasets.features.Sequence({"start": datasets.Value("int32"), "text": datasets.Value("string")}),
+                    "answers": datasets.features.Sequence(
+                        {"start": datasets.Value("int32"), "text": datasets.Value("string")}
+                    ),
                     "ids": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }

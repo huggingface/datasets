@@ -39,7 +39,9 @@ class NestedBeamDataset(datasets.BeamBasedBuilder):
         )
 
     def _split_generators(self, dl_manager, pipeline):
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"examples": get_test_nested_examples()})]
+        return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"examples": get_test_nested_examples()})
+        ]
 
     def _build_pcollection(self, pipeline, examples):
         return pipeline | "Load Examples" >> beam.Create(examples)
@@ -100,7 +102,9 @@ class BeamBuilderTest(TestCase):
                     )
                 )
             )
-            self.assertDictEqual(builder.info.features, datasets.Features({"a": datasets.Sequence({"b": datasets.Value("string")})}))
+            self.assertDictEqual(
+                builder.info.features, datasets.Features({"a": datasets.Sequence({"b": datasets.Value("string")})})
+            )
             dset = builder.as_dataset()
             self.assertEqual(dset["train"].num_rows, expected_num_examples)
             self.assertEqual(dset["train"].info.splits["train"].num_examples, expected_num_examples)

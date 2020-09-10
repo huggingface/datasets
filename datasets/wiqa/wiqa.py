@@ -46,7 +46,9 @@ class Wiqa(datasets.GeneratorBasedBuilder):
                     "question_para_step": datasets.features.Sequence(datasets.Value("string")),
                     "answer_label": datasets.Value("string"),
                     "answer_label_as_choice": datasets.Value("string"),
-                    "choices": datasets.features.Sequence({"text": datasets.Value("string"), "label": datasets.Value("string")}),
+                    "choices": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                    ),
                     "metadata_question_id": datasets.Value("string"),
                     "metadata_graph_id": datasets.Value("string"),
                     "metadata_para_id": datasets.Value("string"),

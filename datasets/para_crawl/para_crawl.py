@@ -123,7 +123,9 @@ class ParaCrawl(datasets.GeneratorBasedBuilder):
         target_language = self.config.target_language
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"translation": datasets.features.Translation(languages=("en", target_language))}),
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=("en", target_language))}
+            ),
             supervised_keys=("en", target_language),
             homepage=_BENCHMARK_URL,
             citation=_CITATION,

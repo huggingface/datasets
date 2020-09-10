@@ -33,14 +33,18 @@ def write(my_features, dummy_data, tmp_dir):
 
 @get_duration
 def read_unformated(feats, tmp_dir):
-    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(
+        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+    )
     for _ in dataset:
         pass
 
 
 @get_duration
 def read_formatted_as_numpy(feats, tmp_dir):
-    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(
+        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+    )
     dataset.set_format("numpy")
     for _ in dataset:
         pass
@@ -49,7 +53,9 @@ def read_formatted_as_numpy(feats, tmp_dir):
 @get_duration
 def read_batch_unformated(feats, tmp_dir):
     batch_size = 10
-    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(
+        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+    )
     for i in range(0, len(dataset), batch_size):
         _ = dataset[i : i + batch_size]
 
@@ -57,7 +63,9 @@ def read_batch_unformated(feats, tmp_dir):
 @get_duration
 def read_batch_formatted_as_numpy(feats, tmp_dir):
     batch_size = 10
-    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(
+        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+    )
     dataset.set_format("numpy")
     for i in range(0, len(dataset), batch_size):
         _ = dataset[i : i + batch_size]
@@ -65,14 +73,18 @@ def read_batch_formatted_as_numpy(feats, tmp_dir):
 
 @get_duration
 def read_col_unformated(feats, tmp_dir):
-    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(
+        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+    )
     for col in feats:
         _ = dataset[col]
 
 
 @get_duration
 def read_col_formatted_as_numpy(feats, tmp_dir):
-    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(
+        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+    )
     dataset.set_format("numpy")
     for col in feats:
         _ = dataset[col]

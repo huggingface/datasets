@@ -279,7 +279,11 @@ class Eli5(datasets.GeneratorBasedBuilder):
                     "document": datasets.Value("string"),
                     "subreddit": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"a_id": datasets.Value("string"), "text": datasets.Value("string"), "score": datasets.Value("int32")}
+                        {
+                            "a_id": datasets.Value("string"),
+                            "text": datasets.Value("string"),
+                            "score": datasets.Value("int32"),
+                        }
                     ),
                     "title_urls": datasets.features.Sequence(datasets.Value("string")),
                     "selftext_urls": datasets.features.Sequence(datasets.Value("string")),

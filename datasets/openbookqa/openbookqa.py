@@ -94,7 +94,9 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     # These are the features of your dataset like images, labels ...
                     "id": datasets.Value("string"),
                     "question_stem": datasets.Value("string"),
-                    "choices": datasets.features.Sequence({"text": datasets.Value("string"), "label": datasets.Value("string")}),
+                    "choices": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                    ),
                     "answerKey": datasets.Value("string"),
                 }
             ),

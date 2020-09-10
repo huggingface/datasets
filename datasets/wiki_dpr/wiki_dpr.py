@@ -91,7 +91,9 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                 }
             )
             if self.config.with_embeddings
-            else datasets.Features({"id": datasets.Value("string"), "text": datasets.Value("string"), "title": datasets.Value("string")}),
+            else datasets.Features(
+                {"id": datasets.Value("string"), "text": datasets.Value("string"), "title": datasets.Value("string")}
+            ),
             supervised_keys=None,
             homepage="https://github.com/facebookresearch/DPR",
             citation=_CITATION,

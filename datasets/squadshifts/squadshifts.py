@@ -126,7 +126,9 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
 
         if self.config.name == "new_wiki" or self.config.name == "default":
             return [
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["new_wiki"]}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["new_wiki"]}
+                ),
             ]
         elif self.config.name == "nyt":
             return [

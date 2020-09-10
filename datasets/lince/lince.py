@@ -257,7 +257,9 @@ class LinceConfig(datasets.BuilderConfig):
 
     def __init__(self, colnames, classes, label_column, **kwargs):
         super(LinceConfig, self).__init__(
-            version=datasets.Version("1.0.0", description="The Linguistic Code-switching Evaluation (LinCE) benchmark"),
+            version=datasets.Version(
+                "1.0.0", description="The Linguistic Code-switching Evaluation (LinCE) benchmark"
+            ),
             **kwargs,
         )
         self.colnames = colnames
@@ -458,7 +460,9 @@ class Lince(datasets.GeneratorBasedBuilder):
         features = {"idx": datasets.Value("int32"), "tokens": datasets.Sequence(datasets.Value("string"))}
 
         if self.config.name != "ner_msaea":
-            features["lid"] = datasets.Sequence(datasets.Value("string"))  # excluding 'ner_msaea', all datasets have 'lid'
+            features["lid"] = datasets.Sequence(
+                datasets.Value("string")
+            )  # excluding 'ner_msaea', all datasets have 'lid'
 
         if self.config.name.startswith("pos_"):
             features["pos"] = datasets.Sequence(datasets.Value("string"))

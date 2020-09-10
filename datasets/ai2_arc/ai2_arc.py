@@ -74,7 +74,9 @@ class Ai2Arc(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "question": datasets.Value("string"),
-                    "choices": datasets.features.Sequence({"text": datasets.Value("string"), "label": datasets.Value("string")}),
+                    "choices": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                    ),
                     "answerKey": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }

@@ -93,7 +93,9 @@ class Xnli(datasets.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
         data_dir = os.path.join(dl_dir, "XNLI-1.0")
         return [
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")}
+            ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")}
             ),

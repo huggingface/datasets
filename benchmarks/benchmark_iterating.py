@@ -68,7 +68,9 @@ def benchmark_iterating():
     ]
     with tempfile.TemporaryDirectory() as tmp_dir:
         print("generating dataset")
-        features = datasets.Features({"list": datasets.Sequence(datasets.Value("float32")), "numbers": datasets.Value("float32")})
+        features = datasets.Features(
+            {"list": datasets.Sequence(datasets.Value("float32")), "numbers": datasets.Value("float32")}
+        )
         dataset = generate_example_dataset(
             os.path.join(tmp_dir, "dataset.arrow"),
             features,

@@ -60,7 +60,9 @@ class ScanConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Version history:
-        super(ScanConfig, self).__init__(name=name, version=datasets.Version("1.0.0"), description=_DESCRIPTION, **kwargs)
+        super(ScanConfig, self).__init__(
+            name=name, version=datasets.Version("1.0.0"), description=_DESCRIPTION, **kwargs
+        )
         if directory is None:
             self.directory = name + "_split"
         else:
@@ -110,10 +112,12 @@ class Scan(datasets.GeneratorBasedBuilder):
         split = self.config.name
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "tasks_train_" + split + ".txt")}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(data_dir, "tasks_train_" + split + ".txt")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "tasks_test_" + split + ".txt")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(data_dir, "tasks_test_" + split + ".txt")},
             ),
         ]
 

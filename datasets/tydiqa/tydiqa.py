@@ -97,7 +97,10 @@ class Tydiqa(datasets.GeneratorBasedBuilder):
                 features=datasets.Features(
                     {
                         "passage_answer_candidates": datasets.features.Sequence(
-                            {"plaintext_start_byte": datasets.Value("int32"), "plaintext_end_byte": datasets.Value("int32")}
+                            {
+                                "plaintext_start_byte": datasets.Value("int32"),
+                                "plaintext_end_byte": datasets.Value("int32"),
+                            }
                         ),
                         "question_text": datasets.Value("string"),
                         "document_title": datasets.Value("string"),

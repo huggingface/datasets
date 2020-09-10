@@ -54,7 +54,10 @@ class Opinosis(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {_REVIEW_SENTS: datasets.Value("string"), _SUMMARIES: datasets.features.Sequence(datasets.Value("string"))}
+                {
+                    _REVIEW_SENTS: datasets.Value("string"),
+                    _SUMMARIES: datasets.features.Sequence(datasets.Value("string")),
+                }
             ),
             supervised_keys=(_REVIEW_SENTS, _SUMMARIES),
             homepage="http://kavita-ganesan.com/opinosis/",

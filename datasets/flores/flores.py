@@ -94,7 +94,9 @@ class Flores(datasets.GeneratorBasedBuilder):
         source, target = self.config.language_pair
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"translation": datasets.features.Translation(languages=self.config.language_pair)}),
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=self.config.language_pair)}
+            ),
             supervised_keys=(source, target),
             homepage="https://github.com/facebookresearch/flores/",
             citation=_CITATION,

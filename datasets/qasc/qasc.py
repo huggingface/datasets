@@ -42,7 +42,9 @@ class Qasc(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "question": datasets.Value("string"),
-                    "choices": datasets.features.Sequence({"text": datasets.Value("string"), "label": datasets.Value("string")}),
+                    "choices": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                    ),
                     "answerKey": datasets.Value("string"),
                     "fact1": datasets.Value("string"),
                     "fact2": datasets.Value("string"),

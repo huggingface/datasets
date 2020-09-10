@@ -125,7 +125,11 @@ class Wiki40b(datasets.BeamBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"wikidata_id": datasets.Value("string"), "text": datasets.Value("string"), "version_id": datasets.Value("string")}
+                {
+                    "wikidata_id": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                    "version_id": datasets.Value("string"),
+                }
             ),
             supervised_keys=None,
             homepage=_URL,

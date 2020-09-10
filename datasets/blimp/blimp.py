@@ -60,7 +60,9 @@ class BlimpConfig(datasets.BuilderConfig):
         description = _DESCRIPTION
         description += ("This configuration includes the paradigm {}.").format(name)
 
-        super(BlimpConfig, self).__init__(name=name, description=description, version=datasets.Version("0.1.0"), **kwargs)
+        super(BlimpConfig, self).__init__(
+            name=name, description=description, version=datasets.Version("0.1.0"), **kwargs
+        )
 
 
 class Blimp(datasets.GeneratorBasedBuilder):
@@ -168,7 +170,9 @@ class Blimp(datasets.GeneratorBasedBuilder):
 
         downloaded_files = dl_manager.download_and_extract(download_urls)
 
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files[cfg.name]})]
+        return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files[cfg.name]})
+        ]
 
     def _generate_examples(self, filepath):
         """Yields examples."""

@@ -192,7 +192,9 @@ class KILTTasks(datasets.GeneratorBasedBuilder):
                                             "fever_sentence_id": datasets.Value("int32"),
                                             "annotation_id": datasets.Value("string"),  # int runs into overflow issues
                                             "yes_no_answer": datasets.Value("string"),
-                                            "evidence_span": datasets.features.Sequence({"text": datasets.Value("string")}),
+                                            "evidence_span": datasets.features.Sequence(
+                                                {"text": datasets.Value("string")}
+                                            ),
                                         }
                                     ),
                                     "section": datasets.Value("string"),

@@ -62,7 +62,9 @@ class Reddit(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({k: datasets.Value("string") for k in _ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY]}),
+            features=datasets.Features(
+                {k: datasets.Value("string") for k in _ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY]}
+            ),
             supervised_keys=None,
             homepage="https://github.com/webis-de/webis-tldr-17-corpus",
             citation=_CITATION,

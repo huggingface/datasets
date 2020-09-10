@@ -91,8 +91,12 @@ class Imdb(datasets.GeneratorBasedBuilder):
         arch_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
         data_dir = os.path.join(arch_path, "aclImdb")
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"directory": os.path.join(data_dir, "train")}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"directory": os.path.join(data_dir, "test")}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"directory": os.path.join(data_dir, "train")}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"directory": os.path.join(data_dir, "test")}
+            ),
             datasets.SplitGenerator(
                 name=datasets.Split("unsupervised"),
                 gen_kwargs={"directory": os.path.join(data_dir, "train"), "labeled": False},

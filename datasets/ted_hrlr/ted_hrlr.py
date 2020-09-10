@@ -108,7 +108,9 @@ class TedHrlr(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"translation": datasets.features.Translation(languages=self.config.language_pair)}),
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=self.config.language_pair)}
+            ),
             homepage="https://github.com/neulab/word-embeddings-for-nmt",
             supervised_keys=self.config.language_pair,
             citation=_CITATION,

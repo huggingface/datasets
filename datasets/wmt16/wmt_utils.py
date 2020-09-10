@@ -703,7 +703,9 @@ class Wmt(ABC, datasets.GeneratorBasedBuilder):
         src, target = self.config.language_pair
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"translation": datasets.features.Translation(languages=self.config.language_pair)}),
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=self.config.language_pair)}
+            ),
             supervised_keys=(src, target),
             homepage=self.config.url,
             citation=self.config.citation,

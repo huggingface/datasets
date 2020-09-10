@@ -182,7 +182,9 @@ class Biomrc(datasets.GeneratorBasedBuilder):
         else:
             return [
                 datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["val"]}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["val"]}
+                ),
                 datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
             ]
 

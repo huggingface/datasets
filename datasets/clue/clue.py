@@ -309,7 +309,9 @@ class Clue(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         if self.config.name in ["afqmc", "tnews", "iflytek", "cmnli", "diagnostics"]:
-            features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+            features = {
+                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
+            }
             if self.config.label_classes:
                 features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
             else:

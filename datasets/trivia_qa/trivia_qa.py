@@ -262,7 +262,8 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
 
             def _transpose_and_strip_dicts(dicts, field_names):
                 return {
-                    datasets.naming.camelcase_to_snakecase(k): [_strip_if_str(d[k]) for d in dicts] for k in field_names
+                    datasets.naming.camelcase_to_snakecase(k): [_strip_if_str(d[k]) for d in dicts]
+                    for k in field_names
                 }
 
             search_results = _transpose_and_strip_dicts(

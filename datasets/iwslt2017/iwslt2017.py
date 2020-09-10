@@ -99,7 +99,9 @@ class IWSLT217(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # datasets.features.FeatureConnectors
-            features=datasets.Features({"translation": datasets.features.Translation(languages=self.config.pair.split("-"))}),
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=self.config.pair.split("-"))}
+            ),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
