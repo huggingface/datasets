@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(sciQ): BibTeX citation
@@ -26,27 +26,27 @@ The SciQ dataset contains 13,679 crowdsourced science exam questions about Physi
 _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/SciQ.zip"
 
 
-class Sciq(nlp.GeneratorBasedBuilder):
+class Sciq(datasets.GeneratorBasedBuilder):
     """TODO(sciQ): Short description of my dataset."""
 
     # TODO(sciQ): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(sciQ): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(sciQ): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "question": nlp.Value("string"),
-                    "distractor3": nlp.Value("string"),
-                    "distractor1": nlp.Value("string"),
-                    "distractor2": nlp.Value("string"),
-                    "correct_answer": nlp.Value("string"),
-                    "support": nlp.Value("string"),
+                    "question": datasets.Value("string"),
+                    "distractor3": datasets.Value("string"),
+                    "distractor1": datasets.Value("string"),
+                    "distractor2": datasets.Value("string"),
+                    "correct_answer": datasets.Value("string"),
+                    "support": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -61,23 +61,23 @@ class Sciq(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(sciQ): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "SciQ dataset-2 3")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "train.json")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "valid.json")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "test.json")},
             ),

@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -31,38 +31,38 @@ _AGG_OPS = ["", "MAX", "MIN", "COUNT", "SUM", "AVG"]
 _COND_OPS = ["=", ">", "<", "OP"]
 
 
-class WikiSQL(nlp.GeneratorBasedBuilder):
+class WikiSQL(datasets.GeneratorBasedBuilder):
     """WikiSQL: A large crowd-sourced dataset for developing natural language interfaces for relational databases"""
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "phase": nlp.Value("int32"),
-                    "question": nlp.Value("string"),
+                    "phase": datasets.Value("int32"),
+                    "question": datasets.Value("string"),
                     "table": {
-                        "header": nlp.features.Sequence(nlp.Value("string")),
-                        "page_title": nlp.Value("string"),
-                        "page_id": nlp.Value("string"),
-                        "types": nlp.features.Sequence(nlp.Value("string")),
-                        "id": nlp.Value("string"),
-                        "section_title": nlp.Value("string"),
-                        "caption": nlp.Value("string"),
-                        "rows": nlp.features.Sequence(nlp.features.Sequence(nlp.Value("string"))),
-                        "name": nlp.Value("string"),
+                        "header": datasets.features.Sequence(datasets.Value("string")),
+                        "page_title": datasets.Value("string"),
+                        "page_id": datasets.Value("string"),
+                        "types": datasets.features.Sequence(datasets.Value("string")),
+                        "id": datasets.Value("string"),
+                        "section_title": datasets.Value("string"),
+                        "caption": datasets.Value("string"),
+                        "rows": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
+                        "name": datasets.Value("string"),
                     },
                     "sql": {
-                        "human_readable": nlp.Value("string"),
-                        "sel": nlp.Value("int32"),
-                        "agg": nlp.Value("int32"),
-                        "conds": nlp.features.Sequence(
+                        "human_readable": datasets.Value("string"),
+                        "sel": datasets.Value("int32"),
+                        "agg": datasets.Value("int32"),
+                        "conds": datasets.features.Sequence(
                             {
-                                "column_index": nlp.Value("int32"),
-                                "operator_index": nlp.Value("int32"),
-                                "condition": nlp.Value("string"),
+                                "column_index": datasets.Value("int32"),
+                                "operator_index": datasets.Value("int32"),
+                                "condition": datasets.Value("string"),
                             }
                         ),
                     },
@@ -83,22 +83,22 @@ class WikiSQL(nlp.GeneratorBasedBuilder):
         dl_dir = os.path.join(dl_dir, "data")
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={
                     "main_filepath": os.path.join(dl_dir, "test.jsonl"),
                     "tables_filepath": os.path.join(dl_dir, "test.tables.jsonl"),
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "main_filepath": os.path.join(dl_dir, "dev.jsonl"),
                     "tables_filepath": os.path.join(dl_dir, "dev.tables.jsonl"),
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "main_filepath": os.path.join(dl_dir, "train.jsonl"),
                     "tables_filepath": os.path.join(dl_dir, "train.tables.jsonl"),

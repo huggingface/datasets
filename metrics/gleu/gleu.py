@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import random
 import numpy as np
 import scipy.stats
 
-import nlp
+import datasets
 
 from .gec_gleu import GLEU  # From: https://github.com/cnap/gec-ranking/blob/master/scripts/gleu.py
 
@@ -80,20 +80,20 @@ def get_gleu_stats(scores):
     return {"mean": mean, "std": std, "ci": ci}
 
 
-class Gleu(nlp.Metric):
+class Gleu(datasets.Metric):
     def __init__(self, **kwargs):
         raise NotImplementedError("Gleu is currently under construction.")
 
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "predictions": nlp.Sequence(nlp.Value("string", id="token"), id="sequence"),
-                    "references": nlp.Sequence(
-                        nlp.Sequence(nlp.Value("string", id="token"), id="sequence"), id="references"
+                    "predictions": datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
+                    "references": datasets.Sequence(
+                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"), id="references"
                     ),
                 }
             ),

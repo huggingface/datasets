@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 import sacrebleu as scb
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -64,17 +64,17 @@ Returns:
 """
 
 
-class Sacrebleu(nlp.Metric):
+class Sacrebleu(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             homepage="https://github.com/mjpost/sacreBLEU",
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "predictions": nlp.Value("string", id="sequence"),
-                    "references": nlp.Sequence(nlp.Value("string", id="sequence"), id="references"),
+                    "predictions": datasets.Value("string", id="sequence"),
+                    "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
                 }
             ),
             codebase_urls=["https://github.com/mjpost/sacreBLEU"],

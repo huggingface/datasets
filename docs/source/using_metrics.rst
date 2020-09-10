@@ -1,18 +1,18 @@
 Using a Metric
 ==============================================================
 
-Evaluating a model's predictions with :class:`nlp.Metric` involves just a couple of methods:
+Evaluating a model's predictions with :class:`datasets.Metric` involves just a couple of methods:
 
-- :func:`nlp.Metric.add` and :func:`nlp.Metric.add_batch` are used to add pairs of predictions/reference (or just predictions if a metric doesn't make use of references) to a temporary and memory efficient cache table,
-- :func:`nlp.Metric.compute` then gather all the cached predictions and reference to compute the metric score.
+- :func:`datasets.Metric.add` and :func:`datasets.Metric.add_batch` are used to add pairs of predictions/reference (or just predictions if a metric doesn't make use of references) to a temporary and memory efficient cache table,
+- :func:`datasets.Metric.compute` then gather all the cached predictions and reference to compute the metric score.
 
 A typical **two-steps workflow** to compute the metric is thus as follow:
 
 .. code-block::
 
-    import nlp
+    import datasets
 
-    metric = nlp.load_metric('my_metric')
+    metric = datasets.load_metric('my_metric')
 
     for model_input, gold_references in evaluation_dataset:
         model_predictions = model(model_inputs)
@@ -20,13 +20,13 @@ A typical **two-steps workflow** to compute the metric is thus as follow:
 
     final_score = metric.compute()
 
-Alternatively, when the model predictions over the whole evaluation dataset can be computed in one step, a **single-step workflow** can be used by directly feeding the predictions/references to the :func:`nlp.Metric.compute` method as follow:
+Alternatively, when the model predictions over the whole evaluation dataset can be computed in one step, a **single-step workflow** can be used by directly feeding the predictions/references to the :func:`datasets.Metric.compute` method as follow:
 
 .. code-block::
 
-    import nlp
+    import datasets
 
-    metric = nlp.load_metric('my_metric')
+    metric = datasets.load_metric('my_metric')
 
     model_prediction = model(model_inputs)
 
@@ -35,7 +35,7 @@ Alternatively, when the model predictions over the whole evaluation dataset can 
 
 .. note::
 
-    Uner the hood, both the two-steps workflow and the single-step workflow use memory-mapped temporary cache tables to store predictions/references before computing the scores (similarly to a :class:`nlp.Dataset`). This is convenient for several reasons:
+    Uner the hood, both the two-steps workflow and the single-step workflow use memory-mapped temporary cache tables to store predictions/references before computing the scores (similarly to a :class:`datasets.Dataset`). This is convenient for several reasons:
 
     -  let us easily handle metrics whose scores depends on the evaluation set in non-additive ways, i.e. when f(A∪B) ≠ f(A) + f(B),
     - very efficient in terms of CPU/GPU memory (effectively requiring no CPU/GPU memory to use the metrics),
@@ -44,25 +44,25 @@ Alternatively, when the model predictions over the whole evaluation dataset can 
 Adding predictions and references
 -----------------------------------------
 
-Adding model predictions and references to a :class:`nlp.Metric` instance can be done using either one of :func:`nlp.Metric.add`, :func:`nlp.Metric.add_batch` and :func:`nlp.Metric.compute` methods.
+Adding model predictions and references to a :class:`datasets.Metric` instance can be done using either one of :func:`datasets.Metric.add`, :func:`datasets.Metric.add_batch` and :func:`datasets.Metric.compute` methods.
 
 There methods are pretty simple to use and only accept two arguments for predictions/references:
 
-- ``predictions`` (for :func:`nlp.Metric.add_batch`) and ``prediction`` (for :func:`nlp.Metric.add`) should contains the predictions of a model to be evaluated by mean of the metric. For :func:`nlp.Metric.add` this will be a single prediction, for :func:`nlp.Metric.add_batch` this will be a batch of predictions.
-- ``references`` (for :func:`nlp.Metric.add_batch`) and ``reference`` (for :func:`nlp.Metric.add`) should contains the references that the model predictions should be compared to (if the metric requires references). For :func:`nlp.Metric.add` this will be the reference associated to a single prediction, for :func:`nlp.Metric.add_batch` this will be references associated to a batch of predictions. Note that some metrics accept several references to compare each model prediction to.
+- ``predictions`` (for :func:`datasets.Metric.add_batch`) and ``prediction`` (for :func:`datasets.Metric.add`) should contains the predictions of a model to be evaluated by mean of the metric. For :func:`datasets.Metric.add` this will be a single prediction, for :func:`datasets.Metric.add_batch` this will be a batch of predictions.
+- ``references`` (for :func:`datasets.Metric.add_batch`) and ``reference`` (for :func:`datasets.Metric.add`) should contains the references that the model predictions should be compared to (if the metric requires references). For :func:`datasets.Metric.add` this will be the reference associated to a single prediction, for :func:`datasets.Metric.add_batch` this will be references associated to a batch of predictions. Note that some metrics accept several references to compare each model prediction to.
 
-:func:`nlp.Metric.add` and :func:`nlp.Metric.add_batch` require the use of **named arguments** to avoid the silent error of mixing predictions with references.
+:func:`datasets.Metric.add` and :func:`datasets.Metric.add_batch` require the use of **named arguments** to avoid the silent error of mixing predictions with references.
 
 The model predictions and references can be provided in a wide number of formats (python lists, numpy arrays, pytorch tensors, tensorflow tensors), the metric object will take care of converting them to a suitable format for temporary storage and computation (as well as bringing them back to cpu and detaching them from gradients for PyTorch tensors).
 
-The exact format of the inputs is specific to each metric script and can be found in :obj:`nlp.Metric.features`, :obj:`nlp.Metric.inputs_descriptions` and the string representation of the :class:`nlp.Metric` object.
+The exact format of the inputs is specific to each metric script and can be found in :obj:`datasets.Metric.features`, :obj:`datasets.Metric.inputs_descriptions` and the string representation of the :class:`datasets.Metric` object.
 
 Here is an example for the sacrebleu metric:
 
 .. code-block::
 
-    >>> import nlp
-    >>> metric = nlp.load_metric('sacrebleu')
+    >>> import datasets
+    >>> metric = datasets.load_metric('sacrebleu')
     >>> print(metric)
     Metric(name: "sacrebleu", features: {'predictions': Value(dtype='string', id='sequence'), 'references': Sequence(feature=Value(dtype='string', id='sequence'), length=-1, id='references')}, usage: """
     Produces BLEU scores along with its sufficient statistics
@@ -154,14 +154,14 @@ Now let's compute the sacrebleu score from these 3 evaluation datapoints.
 Computing the metric scores
 -----------------------------------------
 
-The evaluation of a metric scores is done by using the :func:`nlp.Metric.compute` method.
+The evaluation of a metric scores is done by using the :func:`datasets.Metric.compute` method.
 
 This method can accept several arguments:
 
-- predictions and references: you can add predictions and references (to be added at the end of the cache if you have used :func:`nlp.Metric.add` or :func:`nlp.Metric.add_batch` before)
+- predictions and references: you can add predictions and references (to be added at the end of the cache if you have used :func:`datasets.Metric.add` or :func:`datasets.Metric.add_batch` before)
 - specific arguments that can be required or can modify the behavior of some metrics (print the metric input description to see the details with ``print(metric)`` or ``print(metric.inputs_description)``).
 
-In the simplest case (when the predictions and references have already been added with ``add`` or ``add_batch`` and no specific argument need to be set to modify the default behavior of the metric, we can just call :func:`nlp.Metric.compute`:
+In the simplest case (when the predictions and references have already been added with ``add`` or ``add_batch`` and no specific argument need to be set to modify the default behavior of the metric, we can just call :func:`datasets.Metric.compute`:
 
 .. code-block::
 
@@ -171,7 +171,7 @@ In the simplest case (when the predictions and references have already been adde
     >>> print(score)
     {'score': 48.530827009929865, 'counts': [14, 7, 5, 3], 'totals': [17, 14, 11, 8], 'precisions': [82.3529411764706, 50.0, 45.45454545454545, 37.5], 'bp': 0.9428731438548749, 'sys_len': 17, 'ref_len': 18}
 
-If needed and if possible for the metric, you can pass additional arguments to the :func:`nlp.Metric.compute` method to control more precisely the behavior of the metric.
+If needed and if possible for the metric, you can pass additional arguments to the :func:`datasets.Metric.compute` method to control more precisely the behavior of the metric.
 These additional arguments are detailed in the metric information.
 
 For example ``sacrebleu`` accepts the following additional arguments:
@@ -209,7 +209,7 @@ You can list these arguments with ``print(metric)`` or ``print(metric.inputs_des
 Distributed usage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Using the metric in a distributed or multiprocessing setting is exactly identical with the only specific behavior that the metric will only be computed on the first node (``process_id=0``). On the other processes, :func:`nlp.Metric.compute` will return ``None``. You should still run :func:`nlp.Metric.compute` on each node though to finalize the prediction/reference writing.
+Using the metric in a distributed or multiprocessing setting is exactly identical with the only specific behavior that the metric will only be computed on the first node (``process_id=0``). On the other processes, :func:`datasets.Metric.compute` will return ``None``. You should still run :func:`datasets.Metric.compute` on each node though to finalize the prediction/reference writing.
 
 We detailed on the :doc:`loading_metrics` page how to load a metric in a distributed setup.
 
@@ -219,7 +219,7 @@ Here is how we can instantiate the metric in such a distributed script:
 
 .. code-block::
 
-    >>> from nlp import load_metric
+    >>> from datasets import load_metric
 
     >>> # NUM_PROCESS is the total number of processes in the pool (it CANNOT evolve dynamically at the moment)
     >>> # PROCESS_ID is the rank of rank of current process ranging from 0 to NUM_PROCESS (it also CANNOT evolve dynamically at the moment)

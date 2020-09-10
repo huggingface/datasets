@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-# Copyright 2019 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2019 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -89,7 +89,7 @@ _CITATION = """\
 _DOWNLOAD_URL = "https://s3.amazonaws.com/fast-ai-nlp/yelp_review_polarity_csv.tgz"
 
 
-class YelpPolarityReviewsConfig(nlp.BuilderConfig):
+class YelpPolarityReviewsConfig(datasets.BuilderConfig):
     """BuilderConfig for YelpPolarityReviews."""
 
     def __init__(self, **kwargs):
@@ -99,12 +99,10 @@ class YelpPolarityReviewsConfig(nlp.BuilderConfig):
 
             **kwargs: keyword arguments forwarded to super.
         """
-        super(YelpPolarityReviewsConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(YelpPolarityReviewsConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class YelpPolarity(nlp.GeneratorBasedBuilder):
+class YelpPolarity(datasets.GeneratorBasedBuilder):
     """Yelp Polarity reviews dataset."""
 
     BUILDER_CONFIGS = [
@@ -115,12 +113,12 @@ class YelpPolarity(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["1", "2"]),
+                    "text": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["1", "2"]),
                 }
             ),
             supervised_keys=None,
@@ -137,8 +135,8 @@ class YelpPolarity(nlp.GeneratorBasedBuilder):
         train_file = os.path.join(arch_path, "yelp_review_polarity_csv", "train.csv")
         test_file = os.path.join(arch_path, "yelp_review_polarity_csv", "test.csv")
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_file}),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": test_file}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_file}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_file}),
         ]
 
     def _generate_examples(self, filepath):

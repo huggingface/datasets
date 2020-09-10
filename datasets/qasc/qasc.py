@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(qasc): BibTeX citation
@@ -26,28 +26,30 @@ questions about grade school science (8,134 train, 926 dev, 920 test), and comes
 _URl = "http://data.allenai.org/downloads/qasc/qasc_dataset.tar.gz"
 
 
-class Qasc(nlp.GeneratorBasedBuilder):
+class Qasc(datasets.GeneratorBasedBuilder):
     """TODO(qasc): Short description of my dataset."""
 
     # TODO(qasc): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(qasc): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(qasc): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "choices": nlp.features.Sequence({"text": nlp.Value("string"), "label": nlp.Value("string")}),
-                    "answerKey": nlp.Value("string"),
-                    "fact1": nlp.Value("string"),
-                    "fact2": nlp.Value("string"),
-                    "combinedfact": nlp.Value("string"),
-                    "formatted_question": nlp.Value("string"),
+                    "id": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "choices": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                    ),
+                    "answerKey": datasets.Value("string"),
+                    "fact1": datasets.Value("string"),
+                    "fact2": datasets.Value("string"),
+                    "combinedfact": datasets.Value("string"),
+                    "formatted_question": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -63,23 +65,23 @@ class Qasc(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(qasc): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URl)
         data_dir = os.path.join(dl_dir, "QASC_Dataset")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "train.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "dev.jsonl")},
             ),

@@ -9,7 +9,7 @@ from operator import itemgetter
 
 import requests
 
-import nlp
+import datasets
 
 
 # TODO(pg19): BibTeX citation
@@ -49,24 +49,24 @@ def flat_map(fn, arr):
     return [el for sub_arr in map(fn, arr) for el in sub_arr]
 
 
-class Pg19(nlp.GeneratorBasedBuilder):
+class Pg19(datasets.GeneratorBasedBuilder):
     """PG-19 dataset - books as plain text extracted from the Project Gutenberg library"""
 
     # TODO(pg19): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(pg19): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(pg19): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "short_book_title": nlp.Value("string"),
-                    "publication_date": nlp.Value("int32"),
-                    "url": nlp.Value("string"),
-                    "text": nlp.Value("string"),
+                    "short_book_title": datasets.Value("string"),
+                    "publication_date": datasets.Value("int32"),
+                    "url": datasets.Value("string"),
+                    "text": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -82,7 +82,7 @@ class Pg19(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(pg19): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
 
         def fetch_all_pages(url, prefix):
@@ -134,24 +134,24 @@ class Pg19(nlp.GeneratorBasedBuilder):
         split_ids_index = dict(zip(split_paths, ids_in_split))
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "ids": split_ids_index["train"],
                     "metadata_filepath": metadata["metadata"],
                     "filepaths": downloaded_files,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "ids": split_ids_index["validation"],
                     "metadata_filepath": metadata["metadata"],
                     "filepaths": downloaded_files,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={
                     "ids": split_ids_index["test"],
                     "metadata_filepath": metadata["metadata"],

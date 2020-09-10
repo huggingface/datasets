@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors and the current dataset script contributor.
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -41,7 +41,7 @@ In this dataset, given a textual dialogue i.e. an utterance along with two previ
 """
 
 
-class EmoConfig(nlp.BuilderConfig):
+class EmoConfig(datasets.BuilderConfig):
     """BuilderConfig for EmoContext."""
 
     def __init__(self, **kwargs):
@@ -56,26 +56,26 @@ _TEST_URL = "https://drive.google.com/file/d/1Hn5ytHSSoGOC4sjm3wYy0Dh0oY_oXBbb/v
 _TRAIN_URL = "https://drive.google.com/file/d/12Uz59TYg_NtxOy7SXraYeXPMRT7oaO7X/view?usp=sharing"
 
 
-class Emo(nlp.GeneratorBasedBuilder):
+class Emo(datasets.GeneratorBasedBuilder):
     """ SemEval-2019 Task 3: EmoContext Contextual Emotion Detection in Text. Version 1.0.0 """
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
         EmoConfig(
             name="emo2019",
-            version=nlp.Version("1.0.0"),
+            version=datasets.Version("1.0.0"),
             description="Plain text",
         ),
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["others", "happy", "sad", "angry"]),
+                    "text": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["others", "happy", "sad", "angry"]),
                 }
             ),
             supervised_keys=None,
@@ -93,15 +93,15 @@ class Emo(nlp.GeneratorBasedBuilder):
         dl_train = dl_manager.download_and_extract(self._get_drive_url(_TRAIN_URL))
         dl_test = dl_manager.download_and_extract(self._get_drive_url(_TEST_URL))
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "filepath": dl_train,
                     "split": "train",
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"filepath": dl_test, "split": "test"},
             ),
         ]

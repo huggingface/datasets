@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -50,20 +50,20 @@ answers and a rationalte. Each example in this dataset has the following 5 parts
 _DOWNLOAD_URL = "http://www.eraserbenchmark.com/zipped/multirc.tar.gz"
 
 
-class EraserMultiRc(nlp.GeneratorBasedBuilder):
+class EraserMultiRc(datasets.GeneratorBasedBuilder):
     """Multi Sentence Reasoning with Explanations (Eraser Benchmark)."""
 
-    VERSION = nlp.Version("0.1.1")
+    VERSION = datasets.Version("0.1.1")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "passage": nlp.Value("string"),
-                    "query_and_answer": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["False", "True"]),
-                    "evidences": nlp.features.Sequence(nlp.Value("string")),
+                    "passage": datasets.Value("string"),
+                    "query_and_answer": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["False", "True"]),
+                    "evidences": datasets.features.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -77,18 +77,18 @@ class EraserMultiRc(nlp.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
         data_dir = os.path.join(dl_dir, "multirc")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "train.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "val.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "test.jsonl")},
             ),

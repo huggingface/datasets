@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 # TODO(wikitext): BibTeX citation
@@ -24,7 +24,7 @@ _URL = "https://blog.einstein.ai/the-wikitext-long-term-dependency-language-mode
 _DATA_URL = "https://s3.amazonaws.com/research.metamind.io/wikitext"
 
 
-class WikitextConfig(nlp.BuilderConfig):
+class WikitextConfig(datasets.BuilderConfig):
     """BuilderConfig for GLUE."""
 
     def __init__(self, data_url, **kwargs):
@@ -35,7 +35,7 @@ class WikitextConfig(nlp.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(WikitextConfig, self).__init__(
-            version=nlp.Version(
+            version=datasets.Version(
                 "1.0.0",
             ),
             **kwargs,
@@ -43,11 +43,11 @@ class WikitextConfig(nlp.BuilderConfig):
         self.data_url = data_url
 
 
-class Wikitext(nlp.GeneratorBasedBuilder):
+class Wikitext(datasets.GeneratorBasedBuilder):
     """TODO(wikitext_103): Short description of my dataset."""
 
     # TODO(wikitext_103): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         WikitextConfig(
             name="wikitext-103-raw-v1",
@@ -74,14 +74,14 @@ class Wikitext(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(wikitext): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(wikitext): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string")
+                    "text": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -97,22 +97,22 @@ class Wikitext(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(wikitext): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         if self.config.name == "wikitext-103-v1":
             data_file = dl_manager.download_and_extract(self.config.data_url)
             data_dir = os.path.join(data_file, "wikitext-103")
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={"data_file": os.path.join(data_dir, "wiki.test.tokens"), "split": "test"},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={"data_file": os.path.join(data_dir, "wiki.train.tokens"), "split": "train"},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     gen_kwargs={"data_file": os.path.join(data_dir, "wiki.valid.tokens"), "split": "valid"},
                 ),
             ]
@@ -121,16 +121,16 @@ class Wikitext(nlp.GeneratorBasedBuilder):
                 data_file = dl_manager.download_and_extract(self.config.data_url)
                 data_dir = os.path.join(data_file, "wikitext-103-raw")
                 return [
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TEST,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TEST,
                         gen_kwargs={"data_file": os.path.join(data_dir, "wiki.test.raw"), "split": "test"},
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TRAIN,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TRAIN,
                         gen_kwargs={"data_file": os.path.join(data_dir, "wiki.train.raw"), "split": "train"},
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.VALIDATION,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.VALIDATION,
                         gen_kwargs={"data_file": os.path.join(data_dir, "wiki.valid.raw"), "split": "valid"},
                     ),
                 ]
@@ -139,16 +139,16 @@ class Wikitext(nlp.GeneratorBasedBuilder):
                     data_file = dl_manager.download_and_extract(self.config.data_url)
                     data_dir = os.path.join(data_file, "wikitext-2-raw")
                     return [
-                        nlp.SplitGenerator(
-                            name=nlp.Split.TEST,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.TEST,
                             gen_kwargs={"data_file": os.path.join(data_dir, "wiki.test.raw"), "split": "test"},
                         ),
-                        nlp.SplitGenerator(
-                            name=nlp.Split.TRAIN,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.TRAIN,
                             gen_kwargs={"data_file": os.path.join(data_dir, "wiki.train.raw"), "split": "train"},
                         ),
-                        nlp.SplitGenerator(
-                            name=nlp.Split.VALIDATION,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.VALIDATION,
                             gen_kwargs={"data_file": os.path.join(data_dir, "wiki.valid.raw"), "split": "valid"},
                         ),
                     ]
@@ -157,19 +157,19 @@ class Wikitext(nlp.GeneratorBasedBuilder):
                         data_file = dl_manager.download_and_extract(self.config.data_url)
                         data_dir = os.path.join(data_file, "wikitext-2")
                         return [
-                            nlp.SplitGenerator(
-                                name=nlp.Split.TEST,
+                            datasets.SplitGenerator(
+                                name=datasets.Split.TEST,
                                 gen_kwargs={"data_file": os.path.join(data_dir, "wiki.test.tokens"), "split": "test"},
                             ),
-                            nlp.SplitGenerator(
-                                name=nlp.Split.TRAIN,
+                            datasets.SplitGenerator(
+                                name=datasets.Split.TRAIN,
                                 gen_kwargs={
                                     "data_file": os.path.join(data_dir, "wiki.train.tokens"),
                                     "split": "train",
                                 },
                             ),
-                            nlp.SplitGenerator(
-                                name=nlp.Split.VALIDATION,
+                            datasets.SplitGenerator(
+                                name=datasets.Split.VALIDATION,
                                 gen_kwargs={
                                     "data_file": os.path.join(data_dir, "wiki.valid.tokens"),
                                     "split": "valid",

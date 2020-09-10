@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -10,7 +10,7 @@ _URL = "https://www.gutenberg.org/files/2554/2554-h/2554-h.htm"
 _DATA_URL = "https://raw.githubusercontent.com/patrickvonplaten/datasets/master/crime_and_punishment.txt"
 
 
-class CrimeAndPunishConfig(nlp.BuilderConfig):
+class CrimeAndPunishConfig(datasets.BuilderConfig):
     """BuilderConfig for Crime and Punish."""
 
     def __init__(self, data_url, **kwargs):
@@ -21,7 +21,7 @@ class CrimeAndPunishConfig(nlp.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(CrimeAndPunishConfig, self).__init__(
-            version=nlp.Version(
+            version=datasets.Version(
                 "1.0.0",
             ),
             **kwargs,
@@ -29,9 +29,9 @@ class CrimeAndPunishConfig(nlp.BuilderConfig):
         self.data_url = data_url
 
 
-class CrimeAndPunish(nlp.GeneratorBasedBuilder):
+class CrimeAndPunish(datasets.GeneratorBasedBuilder):
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         CrimeAndPunishConfig(
             name="crime-and-punish",
@@ -41,13 +41,13 @@ class CrimeAndPunish(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "line": nlp.Value("string"),
+                    "line": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -64,8 +64,8 @@ class CrimeAndPunish(nlp.GeneratorBasedBuilder):
             data = dl_manager.download_and_extract(self.config.data_url)
 
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={"data_file": data, "split": "train"},
                 ),
             ]

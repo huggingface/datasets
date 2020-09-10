@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import nlp
+import datasets
 
 
 # TODO(discofuse): BibTeX citation
@@ -28,7 +28,7 @@ _DESCRIPTION = """\
 """
 
 
-class DiscofuseConfig(nlp.BuilderConfig):
+class DiscofuseConfig(datasets.BuilderConfig):
 
     """ BuilderConfig for Discofuse"""
 
@@ -39,18 +39,16 @@ class DiscofuseConfig(nlp.BuilderConfig):
             balanced: to specify if we want to load the balanced file or the full file
             **kwargs: keyword arguments forwarded to super.
         """
-        super(DiscofuseConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(DiscofuseConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.balanced = balanced
         self.data_url = data_url
 
 
-class Discofuse(nlp.GeneratorBasedBuilder):
+class Discofuse(datasets.GeneratorBasedBuilder):
     """TODO(discofuse): Short description of my dataset."""
 
     # TODO(discofuse): Set up version.
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
         DiscofuseConfig(
             name="discofuse-sport", description="sentence fusion", data_url=_URL_ + "discofuse_v1_sports.tar.gz"
@@ -61,21 +59,21 @@ class Discofuse(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(discofuse): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(discofuse): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "connective_string": nlp.Value("string"),
-                    "discourse_type": nlp.Value("string"),
-                    "coherent_second_sentence": nlp.Value("string"),
-                    "has_coref_type_pronoun": nlp.Value("float32"),
-                    "incoherent_first_sentence": nlp.Value("string"),
-                    "incoherent_second_sentence": nlp.Value("string"),
-                    "has_coref_type_nominal": nlp.Value("float32"),
-                    "coherent_first_sentence": nlp.Value("string"),
+                    "connective_string": datasets.Value("string"),
+                    "discourse_type": datasets.Value("string"),
+                    "coherent_second_sentence": datasets.Value("string"),
+                    "has_coref_type_pronoun": datasets.Value("float32"),
+                    "incoherent_first_sentence": datasets.Value("string"),
+                    "incoherent_second_sentence": datasets.Value("string"),
+                    "has_coref_type_nominal": datasets.Value("float32"),
+                    "coherent_first_sentence": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -91,43 +89,43 @@ class Discofuse(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(discofuse): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         if self.config.name == "discofuse-sport":
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             data_dir = os.path.join(dl_dir, "discofuse_v1/sports")
             if self.config.balanced:
                 return [
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TRAIN,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TRAIN,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={"filepath": os.path.join(data_dir, "train_balanced.tsv")},
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TEST,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TEST,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={"filepath": os.path.join(data_dir, "test_balanced.tsv")},
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.VALIDATION,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.VALIDATION,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={"filepath": os.path.join(data_dir, "dev_balanced.tsv")},
                     ),
                 ]
             else:
                 return [
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TRAIN,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TRAIN,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={"filepath": os.path.join(data_dir, "train.tsv")},
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TEST,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TEST,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={"filepath": os.path.join(data_dir, "test.tsv")},
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.VALIDATION,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.VALIDATION,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={"filepath": os.path.join(data_dir, "dev.tsv")},
                     ),
@@ -138,36 +136,36 @@ class Discofuse(nlp.GeneratorBasedBuilder):
                 data_dir = os.path.join(dl_dir, "discofuse_v1/wikipedia")
                 if self.config.balanced:
                     return [
-                        nlp.SplitGenerator(
-                            name=nlp.Split.TRAIN,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.TRAIN,
                             # These kwargs will be passed to _generate_examples
                             gen_kwargs={"filepath": os.path.join(data_dir, "train_balanced.tsv")},
                         ),
-                        nlp.SplitGenerator(
-                            name=nlp.Split.TEST,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.TEST,
                             # These kwargs will be passed to _generate_examples
                             gen_kwargs={"filepath": os.path.join(data_dir, "test_balanced.tsv")},
                         ),
-                        nlp.SplitGenerator(
-                            name=nlp.Split.VALIDATION,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.VALIDATION,
                             # These kwargs will be passed to _generate_examples
                             gen_kwargs={"filepath": os.path.join(data_dir, "dev_balanced.tsv")},
                         ),
                     ]
                 else:
                     return [
-                        nlp.SplitGenerator(
-                            name=nlp.Split.TRAIN,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.TRAIN,
                             # These kwargs will be passed to _generate_examples
                             gen_kwargs={"filepath": os.path.join(data_dir, "train.tsv")},
                         ),
-                        nlp.SplitGenerator(
-                            name=nlp.Split.TEST,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.TEST,
                             # These kwargs will be passed to _generate_examples
                             gen_kwargs={"filepath": os.path.join(data_dir, "test.tsv")},
                         ),
-                        nlp.SplitGenerator(
-                            name=nlp.Split.VALIDATION,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.VALIDATION,
                             # These kwargs will be passed to _generate_examples
                             gen_kwargs={"filepath": os.path.join(data_dir, "dev.tsv")},
                         ),

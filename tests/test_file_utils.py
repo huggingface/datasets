@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from nlp.utils.file_utils import temp_seed
+from datasets.utils.file_utils import temp_seed
 
 from .utils import require_tf, require_torch
 

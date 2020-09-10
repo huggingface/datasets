@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ from abc import ABC, abstractmethod
 
 import six
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -39,18 +39,18 @@ Translate dataset based on the data from statmt.org.
 
 Versions exists for the different years using a combination of multiple data
 sources. The base `wmt_translate` allows you to create your own config to choose
-your own data/language pair by creating a custom `nlp.translate.wmt.WmtConfig`.
+your own data/language pair by creating a custom `datasets.translate.wmt.WmtConfig`.
 
 ```
-config = nlp.wmt.WmtConfig(
+config = datasets.wmt.WmtConfig(
     version="0.0.1",
     language_pair=("fr", "de"),
     subsets={
-        nlp.Split.TRAIN: ["commoncrawl_frde"],
-        nlp.Split.VALIDATION: ["euelections_dev2019"],
+        datasets.Split.TRAIN: ["commoncrawl_frde"],
+        datasets.Split.VALIDATION: ["euelections_dev2019"],
     },
 )
-builder = nlp.builder("wmt_translate", config=config)
+builder = datasets.builder("wmt_translate", config=config)
 ```
 
 """
@@ -432,7 +432,7 @@ _TRAIN_SUBSETS = [
         name=ss,
         target="en",
         sources={"zh"},
-        url="ftp://cwmt-wmt:cwmt-wmt@nlp.nju.edu.cn/parallel/%s.zip" % ss,
+        url="ftp://cwmt-wmt:cwmt-wmt@datasets.nju.edu.cn/parallel/%s.zip" % ss,
         path=("%s/*_c[hn].txt" % ss, "%s/*_en.txt" % ss),
     )
     for ss in CWMT_SUBSET_NAMES
@@ -627,7 +627,7 @@ _CZENG17_FILTER = SubDataset(
 )
 
 
-class WmtConfig(nlp.BuilderConfig):
+class WmtConfig(datasets.BuilderConfig):
     """BuilderConfig for WMT."""
 
     def __init__(self, url=None, citation=None, description=None, language_pair=(None, None), subsets=None, **kwargs):
@@ -639,8 +639,8 @@ class WmtConfig(nlp.BuilderConfig):
           description: The description of the dataset.
           language_pair: pair of languages that will be used for translation. Should
                      contain 2 letter coded strings. For example: ("en", "de").
-            configuration for the `nlp.features.text.TextEncoder` used for the
-            `nlp.features.text.Translation` features.
+            configuration for the `datasets.features.text.TextEncoder` used for the
+            `datasets.features.text.Translation` features.
           subsets: Dict[split, list[str]]. List of the subset to use for each of the
             split. Note that WMT subclasses overwrite this parameter.
           **kwargs: keyword arguments forwarded to super.
@@ -665,7 +665,7 @@ class WmtConfig(nlp.BuilderConfig):
         # +++++++++++++++++++++
 
 
-class Wmt(ABC, nlp.GeneratorBasedBuilder):
+class Wmt(ABC, datasets.GeneratorBasedBuilder):
     """WMT translation dataset."""
 
     def __init__(self, *args, **kwargs):
@@ -701,9 +701,11 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
 
     def _info(self):
         src, target = self.config.language_pair
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"translation": nlp.features.Translation(languages=self.config.language_pair)}),
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=self.config.language_pair)}
+            ),
             supervised_keys=(src, target),
             homepage=self.config.url,
             citation=self.config.citation,
@@ -756,10 +758,10 @@ class Wmt(ABC, nlp.GeneratorBasedBuilder):
         extraction_map = dict(downloaded_files, **manual_files)
 
         for language in self.config.language_pair:
-            self._vocab_text_gen(self.subsets[nlp.Split.TRAIN], extraction_map, language)
+            self._vocab_text_gen(self.subsets[datasets.Split.TRAIN], extraction_map, language)
 
         return [
-            nlp.SplitGenerator(  # pylint:disable=g-complex-comprehension
+            datasets.SplitGenerator(  # pylint:disable=g-complex-comprehension
                 name=split, gen_kwargs={"split_subsets": split_subsets, "extraction_map": extraction_map}
             )
             for split, split_subsets in self.subsets.items()

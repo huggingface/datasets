@@ -6,7 +6,7 @@ import json
 import os
 import textwrap
 
-import nlp
+import datasets
 
 
 # TODO(openBookQA): BibTeX citation
@@ -33,7 +33,7 @@ a subject.
 _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/OpenBookQA-V1-Sep2018.zip"
 
 
-class OpenbookqaConfig(nlp.BuilderConfig):
+class OpenbookqaConfig(datasets.BuilderConfig):
     def __init__(self, data_dir, **kwargs):
         """BuilderConfig for openBookQA dataset
 
@@ -43,18 +43,16 @@ class OpenbookqaConfig(nlp.BuilderConfig):
 
         """
 
-        super(OpenbookqaConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(OpenbookqaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
         self.data_dir = data_dir
 
 
-class Openbookqa(nlp.GeneratorBasedBuilder):
+class Openbookqa(datasets.GeneratorBasedBuilder):
     """TODO(openBookQA): Short description of my dataset."""
 
     # TODO(openBookQA): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         OpenbookqaConfig(
             name="main",
@@ -84,18 +82,20 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(openBookQA): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(openBookQA): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "id": nlp.Value("string"),
-                    "question_stem": nlp.Value("string"),
-                    "choices": nlp.features.Sequence({"text": nlp.Value("string"), "label": nlp.Value("string")}),
-                    "answerKey": nlp.Value("string"),
+                    "id": datasets.Value("string"),
+                    "question_stem": datasets.Value("string"),
+                    "choices": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                    ),
+                    "answerKey": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -110,7 +110,7 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(openBookQA): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "OpenBookQA-V1-Sep2018", "Data")
@@ -131,18 +131,18 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
             else os.path.join(data_dir, "dev_complete.jsonl")
         )
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": train_file},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": test_file},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dev_file},
             ),

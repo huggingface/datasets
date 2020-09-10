@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -94,7 +94,7 @@ def _get_choices_and_answer(cqa):
     return choices, answer
 
 
-class CosEConfig(nlp.BuilderConfig):
+class CosEConfig(datasets.BuilderConfig):
 
     """ BuilderConfig for CosE"""
 
@@ -107,33 +107,33 @@ class CosEConfig(nlp.BuilderConfig):
         super(CosEConfig, self).__init__(**kwargs)
 
 
-class CosE(nlp.GeneratorBasedBuilder):
+class CosE(datasets.GeneratorBasedBuilder):
     """CoS-E: Common Sense Explanations corpus."""
 
     BUILDER_CONFIGS = [
         CosEConfig(
             name="v1.0",
             description="cos-e version 1.0",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
         ),
         CosEConfig(
             name="v1.11",
             description="cos-e version 1.11",
-            version=nlp.Version("1.11.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.11.0", ""),
         ),
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "choices": nlp.features.Sequence(nlp.Value("string")),
-                    "answer": nlp.Value("string"),
-                    "abstractive_explanation": nlp.Value("string"),
-                    "extractive_explanation": nlp.Value("string"),
+                    "id": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "choices": datasets.features.Sequence(datasets.Value("string")),
+                    "answer": datasets.Value("string"),
+                    "abstractive_explanation": datasets.Value("string"),
+                    "extractive_explanation": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -167,12 +167,12 @@ class CosE(nlp.GeneratorBasedBuilder):
             raise ValueError("Unknown config name")
         # We use the CoS-E/CQA dev set as our validation set.
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"files": files["train"], "cqa_indexed": cqa_indexed},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"files": files["dev"], "cqa_indexed": cqa_indexed},
             ),
         ]

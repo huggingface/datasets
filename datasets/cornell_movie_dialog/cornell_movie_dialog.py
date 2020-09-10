@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import ast
 import os
 
-import nlp
+import datasets
 
 
 # TODO(cornell_movie_dialog): BibTeX citation
@@ -46,31 +46,33 @@ This corpus contains a large metadata-rich collection of fictional conversations
 _URL = "https://www.cs.cornell.edu/~cristian/data/cornell_movie_dialogs_corpus.zip"
 
 
-class CornellMovieDialog(nlp.GeneratorBasedBuilder):
+class CornellMovieDialog(datasets.GeneratorBasedBuilder):
     """TODO(cornell_movie_dialog): Short description of my dataset."""
 
     # TODO(cornell_movie_dialog): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(cornell_movie_dialog): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(cornell_movie_dialog): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "movieID": nlp.Value("string"),
-                    "movieTitle": nlp.Value("string"),
-                    "movieYear": nlp.Value("string"),
-                    "movieIMDBRating": nlp.Value("string"),
-                    "movieNoIMDBVotes": nlp.Value("string"),
-                    "movieGenres": nlp.features.Sequence(nlp.Value("string")),
-                    "characterID1": nlp.Value("string"),
-                    "characterID2": nlp.Value("string"),
-                    "characterName1": nlp.Value("string"),
-                    "characterName2": nlp.Value("string"),
-                    "utterance": nlp.features.Sequence({"text": nlp.Value("string"), "LineID": nlp.Value("string")})
+                    "movieID": datasets.Value("string"),
+                    "movieTitle": datasets.Value("string"),
+                    "movieYear": datasets.Value("string"),
+                    "movieIMDBRating": datasets.Value("string"),
+                    "movieNoIMDBVotes": datasets.Value("string"),
+                    "movieGenres": datasets.features.Sequence(datasets.Value("string")),
+                    "characterID1": datasets.Value("string"),
+                    "characterID2": datasets.Value("string"),
+                    "characterName1": datasets.Value("string"),
+                    "characterName2": datasets.Value("string"),
+                    "utterance": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "LineID": datasets.Value("string")}
+                    )
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -86,12 +88,12 @@ class CornellMovieDialog(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(cornell_movie_dialog): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepaths": os.path.join(dl_dir, "cornell movie-dialogs corpus")},
             ),

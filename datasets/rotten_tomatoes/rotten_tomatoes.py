@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -45,16 +45,16 @@ _CITATION = """\
 _DOWNLOAD_URL = "https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz"
 
 
-class RottenTomatoesMovieReview(nlp.GeneratorBasedBuilder):
+class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
     """Cornell Rotten Tomatoes movie reviews dataset."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {"text": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["neg", "pos"])}
+            features=datasets.Features(
+                {"text": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["neg", "pos"])}
             ),
             supervised_keys=[""],
             homepage="http://www.cs.cornell.edu/people/pabo/movie-review-data/",
@@ -69,16 +69,16 @@ class RottenTomatoesMovieReview(nlp.GeneratorBasedBuilder):
         """ Downloads Rotten Tomatoes sentences. """
         extracted_folder_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"split_key": "validation", "data_dir": extracted_folder_path},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
             ),
         ]

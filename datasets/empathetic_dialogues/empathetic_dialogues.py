@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -23,28 +23,28 @@ PyTorch original implementation of Towards Empathetic Open-domain Conversation M
 _URL = "https://dl.fbaipublicfiles.com/parlai/empatheticdialogues/empatheticdialogues.tar.gz"
 
 
-class EmpatheticDialogues(nlp.GeneratorBasedBuilder):
+class EmpatheticDialogues(datasets.GeneratorBasedBuilder):
     """TODO(empathetic_dialogues): Short description of my dataset."""
 
     # TODO(empathetic_dialogues): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(empathetic_dialogues): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(empathetic_dialogues): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "conv_id": nlp.Value("string"),
-                    "utterance_idx": nlp.Value("int32"),
-                    "context": nlp.Value("string"),
-                    "prompt": nlp.Value("string"),
-                    "speaker_idx": nlp.Value("int32"),
-                    "utterance": nlp.Value("string"),
-                    "selfeval": nlp.Value("string"),
-                    "tags": nlp.Value("string")
+                    "conv_id": datasets.Value("string"),
+                    "utterance_idx": datasets.Value("int32"),
+                    "context": datasets.Value("string"),
+                    "prompt": datasets.Value("string"),
+                    "speaker_idx": datasets.Value("int32"),
+                    "utterance": datasets.Value("string"),
+                    "selfeval": datasets.Value("string"),
+                    "tags": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -60,23 +60,23 @@ class EmpatheticDialogues(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(empathetic_dialogues): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "empatheticdialogues")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "train.csv")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "valid.csv")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "test.csv")},
             ),

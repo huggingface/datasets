@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -77,15 +77,15 @@ _ADDITIONAL_FLOAT_FEATURES = [
 ]
 
 
-class Newsroom(nlp.GeneratorBasedBuilder):
+class Newsroom(datasets.GeneratorBasedBuilder):
     """NEWSROOM Dataset."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     @property
     def manual_download_instructions(self):
         return """\
-  You should download the dataset from http://lil.nlp.cornell.edu/newsroom/
+  You should download the dataset from http://lil.datasets.cornell.edu/newsroom/
   The webpage requires registration.
   To unzip the .tar file run `tar -zxvf complete.tar`. To unzip the .gz files
   run `gunzip train.json.gz` , ...
@@ -93,17 +93,17 @@ class Newsroom(nlp.GeneratorBasedBuilder):
   dev.jsonl, test.jsonl and train.jsonl in a dir of your choice,
   which will be used as a manual_dir, e.g. `~/.manual_dirs/newsroom`
   Newsroom can then be loaded via:
-  `nlp.load_dataset("newsroom", data_dir="~/.manual_dirs/newsroom")`.
+  `datasets.load_dataset("newsroom", data_dir="~/.manual_dirs/newsroom")`.
   """
 
     def _info(self):
-        features = {k: nlp.Value("string") for k in [_DOCUMENT, _SUMMARY] + _ADDITIONAL_TEXT_FEATURES}
-        features.update({k: nlp.Value("float32") for k in _ADDITIONAL_FLOAT_FEATURES})
-        return nlp.DatasetInfo(
+        features = {k: datasets.Value("string") for k in [_DOCUMENT, _SUMMARY] + _ADDITIONAL_TEXT_FEATURES}
+        features.update({k: datasets.Value("float32") for k in _ADDITIONAL_FLOAT_FEATURES})
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             supervised_keys=(_DOCUMENT, _SUMMARY),
-            homepage="http://lil.nlp.cornell.edu/newsroom/",
+            homepage="http://lil.datasets.cornell.edu/newsroom/",
             citation=_CITATION,
         )
 
@@ -112,21 +112,21 @@ class Newsroom(nlp.GeneratorBasedBuilder):
         data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('newsroom', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {}".format(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('newsroom', data_dir=...)` that includes files unzipped from the reclor zip. Manual download instructions: {}".format(
                     data_dir, self.manual_download_instructions
                 )
             )
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"input_file": os.path.join(data_dir, "train.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"input_file": os.path.join(data_dir, "dev.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"input_file": os.path.join(data_dir, "test.jsonl")},
             ),
         ]

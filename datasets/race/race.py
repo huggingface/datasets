@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(race): BibTeX citation
@@ -29,24 +29,24 @@ The dataset can be served as the training and test sets for machine comprehensio
 _URL = "http://www.cs.cmu.edu/~glai1/data/race/RACE.tar.gz"
 
 
-class Race(nlp.GeneratorBasedBuilder):
+class Race(datasets.GeneratorBasedBuilder):
     """TODO(race): Short description of my dataset."""
 
     # TODO(race): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(race): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(race): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "article": nlp.Value("string"),
-                    "answer": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "options": nlp.features.Sequence(nlp.Value("string"))
+                    "article": datasets.Value("string"),
+                    "answer": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "options": datasets.features.Sequence(datasets.Value("string"))
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -62,28 +62,28 @@ class Race(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(race): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "files": sorted(os.listdir(os.path.join(dl_dir, "RACE/test/high"))),
                     "filespath": os.path.join(dl_dir, "RACE/test/high"),
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "files": sorted(os.listdir(os.path.join(dl_dir, "RACE/train/high"))),
                     "filespath": os.path.join(dl_dir, "RACE/train/high"),
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "files": sorted(os.listdir(os.path.join(dl_dir, "RACE/dev/high"))),

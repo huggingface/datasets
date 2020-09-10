@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(drop): BibTeX citation
@@ -29,23 +29,23 @@ question, perhaps to multiple input positions, and perform discrete operations o
 _URl = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"
 
 
-class Drop(nlp.GeneratorBasedBuilder):
+class Drop(datasets.GeneratorBasedBuilder):
     """TODO(drop): Short description of my dataset."""
 
     # TODO(drop): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(drop): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(drop): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "passage": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers_spans": nlp.features.Sequence({"spans": nlp.Value("string")})
+                    "passage": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers_spans": datasets.features.Sequence({"spans": datasets.Value("string")})
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -61,18 +61,18 @@ class Drop(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(drop): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URl)
         data_dir = os.path.join(dl_dir, "drop_dataset")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "drop_dataset_train.json")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "drop_dataset_dev.json")},
             ),

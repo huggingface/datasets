@@ -8,11 +8,11 @@ import pandas as pd
 import pyarrow as pa
 from absl.testing import parameterized
 
-import nlp.arrow_dataset
-from nlp import concatenate_datasets, load_from_disk
-from nlp.arrow_dataset import Dataset
-from nlp.features import ClassLabel, Features, Sequence, Value
-from nlp.info import DatasetInfo
+import datasets.arrow_dataset
+from datasets import concatenate_datasets, load_from_disk
+from datasets.arrow_dataset import Dataset
+from datasets.features import ClassLabel, Features, Sequence, Value
+from datasets.info import DatasetInfo
 
 from .utils import require_tf, require_torch
 
@@ -47,7 +47,7 @@ class BaseDatasetTest(TestCase):
         def reduce_ex(self):
             raise pickle.PicklingError()
 
-        nlp.arrow_dataset.logger.__reduce_ex__ = reduce_ex
+        datasets.arrow_dataset.logger.__reduce_ex__ = reduce_ex
 
     def _create_dummy_dataset(self, in_memory: bool, tmp_dir: str, multiple_columns=False):
         if multiple_columns:

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -78,7 +78,7 @@ _V1_URLS = {
 }
 
 
-class MsMarcoConfig(nlp.BuilderConfig):
+class MsMarcoConfig(datasets.BuilderConfig):
     """BuilderConfig for MS MARCO."""
 
     def __init__(self, **kwargs):
@@ -90,38 +90,38 @@ class MsMarcoConfig(nlp.BuilderConfig):
         super(MsMarcoConfig, self).__init__(**kwargs)
 
 
-class MsMarco(nlp.GeneratorBasedBuilder):
+class MsMarco(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         MsMarcoConfig(
             name="v1.1",
             description="""version v1.1""",
-            version=nlp.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.1.0", ""),
         ),
         MsMarcoConfig(
             name="v2.1",
             description="""version v2.1""",
-            version=nlp.Version("2.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("2.1.0", ""),
         ),
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION + "\n" + self.config.description,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "answers": nlp.features.Sequence(nlp.Value("string")),
-                    "passages": nlp.features.Sequence(
+                    "answers": datasets.features.Sequence(datasets.Value("string")),
+                    "passages": datasets.features.Sequence(
                         {
-                            "is_selected": nlp.Value("int32"),
-                            "passage_text": nlp.Value("string"),
-                            "url": nlp.Value("string"),
+                            "is_selected": datasets.Value("int32"),
+                            "passage_text": datasets.Value("string"),
+                            "url": datasets.Value("string"),
                         }
                     ),
-                    "query": nlp.Value("string"),
-                    "query_id": nlp.Value("int32"),
-                    "query_type": nlp.Value("string"),
-                    "wellFormedAnswers": nlp.features.Sequence(nlp.Value("string")),
+                    "query": datasets.Value("string"),
+                    "query_id": datasets.Value("int32"),
+                    "query_type": datasets.Value("string"),
+                    "wellFormedAnswers": datasets.features.Sequence(datasets.Value("string")),
                 }
             ),
             homepage="https://microsoft.github.io/msmarco/",
@@ -135,16 +135,16 @@ class MsMarco(nlp.GeneratorBasedBuilder):
         else:
             dl_path = dl_manager.download_and_extract(_V1_URLS)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"filepath": dl_path["dev"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"filepath": dl_path["train"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"filepath": dl_path["test"]},
             ),
         ]

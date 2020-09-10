@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import numpy  # Here to have a nice missing dependency error message early on
 import six  # Here to have a nice missing dependency error message early on
 from rouge_score import rouge_scorer, scoring
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -62,16 +62,16 @@ Returns:
 """
 
 
-class Rouge(nlp.Metric):
+class Rouge(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "predictions": nlp.Value("string", id="sequence"),
-                    "references": nlp.Value("string", id="sequence"),
+                    "predictions": datasets.Value("string", id="sequence"),
+                    "references": datasets.Value("string", id="sequence"),
                 }
             ),
             codebase_urls=["https://github.com/google-research/google-research/tree/master/rouge"],

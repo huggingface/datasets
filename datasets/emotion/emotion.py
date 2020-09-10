@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -37,11 +37,11 @@ _VALIDATION_DOWNLOAD_URL = "https://www.dropbox.com/s/2mzialpsgf9k5l3/val.txt?dl
 _TEST_DOWNLOAD_URL = "https://www.dropbox.com/s/ikkqxfdbdec3fuj/test.txt?dl=1"
 
 
-class Emotion(nlp.GeneratorBasedBuilder):
+class Emotion(datasets.GeneratorBasedBuilder):
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"text": nlp.Value("string"), "label": nlp.Value("string")}),
+            features=datasets.Features({"text": datasets.Value("string"), "label": datasets.Value("string")}),
             supervised_keys=("text", "label"),
             homepage=_URL,
             citation=_CITATION,
@@ -53,9 +53,9 @@ class Emotion(nlp.GeneratorBasedBuilder):
         valid_path = dl_manager.download_and_extract(_VALIDATION_DOWNLOAD_URL)
         test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": test_path}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
     def _generate_examples(self, filepath):

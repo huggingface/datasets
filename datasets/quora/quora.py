@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = "The Quora dataset is composed of question pairs, and the task is to determine if the questions are paraphrases of each other (have the same meaning)."
@@ -28,21 +28,21 @@ _DESCRIPTION = "The Quora dataset is composed of question pairs, and the task is
 _URL = "http://qim.fs.quoracdn.net/quora_duplicate_questions.tsv"
 
 
-class Quora(nlp.GeneratorBasedBuilder):
+class Quora(datasets.GeneratorBasedBuilder):
     """Quora Question Pairs dataset"""
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "questions": nlp.features.Sequence(
+                    "questions": datasets.features.Sequence(
                         {
-                            "id": nlp.Value("int32"),
-                            "text": nlp.Value("string"),
+                            "id": datasets.Value("int32"),
+                            "text": datasets.Value("string"),
                         }
                     ),
-                    "is_duplicate": nlp.Value("bool"),
+                    "is_duplicate": datasets.Value("bool"),
                 }
             ),
             homepage="https://www.quora.com/q/quoradata/First-Quora-Dataset-Release-Question-Pairs",
@@ -50,7 +50,7 @@ class Quora(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_file = dl_manager.download_and_extract({"data_file": _URL})
-        return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs=data_file)]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=data_file)]
 
     def _generate_examples(self, data_file):
         with open(data_file, encoding="utf-8") as f:

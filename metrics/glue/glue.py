@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import f1_score, matthews_corrcoef
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -73,7 +73,7 @@ def pearson_and_spearman(preds, labels):
     }
 
 
-class Glue(nlp.Metric):
+class Glue(datasets.Metric):
     def _info(self):
         if self.config_name not in [
             "sst2",
@@ -94,14 +94,14 @@ class Glue(nlp.Metric):
                 '["sst2", "mnli", "mnli_mismatched", "mnli_matched", '
                 '"cola", "stsb", "mrpc", "qqp", "qnli", "rte", "wnli", "hans"]'
             )
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "predictions": nlp.Value("int64" if self.config_name != "stsb" else "float32"),
-                    "references": nlp.Value("int64" if self.config_name != "stsb" else "float32"),
+                    "predictions": datasets.Value("int64" if self.config_name != "stsb" else "float32"),
+                    "references": datasets.Value("int64" if self.config_name != "stsb" else "float32"),
                 }
             ),
             codebase_urls=[],
