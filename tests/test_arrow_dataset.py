@@ -1085,6 +1085,20 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset[:2]["vec"].shape, (2, 3))
             self.assertEqual(dset["vec"][:2].shape, (2, 3))
 
+    def test_format_transmitted(self, in_memory):
+        import numpy as np
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+
+            self.assertEqual(dset.format["type"], None)
+
+            dset.set_format("numpy")
+            self.assertEqual(dset.format["type"], "numpy")
+
+            dset2 = dset.map(lambda x: x, batched=True)
+            self.assertEqual(dset2.format["type"], "numpy")
+
     def test_format_ragged_vectors(self, in_memory):
         import numpy as np
         import tensorflow as tf

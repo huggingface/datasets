@@ -146,6 +146,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_data_files: Optional[List[dict]] = None,
         fingerprint: Optional[str] = None,
         inplace_history: Optional[List[dict]] = None,
+        format: Optional[dict] = None,
     ):
         info = info.copy() if info is not None else DatasetInfo()
         DatasetInfoMixin.__init__(self, info=info, split=split)
@@ -187,6 +188,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self._fingerprint is None:
             self._fingerprint = generate_fingerprint(self)
 
+        # Set format if needed
+        if format is not None:
+            self.set_format(**format)
+
         # Sanity checks
 
         assert self.features is not None, "Features can't be None in a Dataset object"
@@ -210,6 +215,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_filename: Optional[str] = None,
+        format: Optional[dict] = None,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow table at filename """
         mmap = pa.memory_map(filename)
@@ -233,6 +239,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             split=split,
             indices_table=indices_pa_table,
             indices_data_files=indices_data_files,
+            format=format,
         )
 
     @classmethod
@@ -242,6 +249,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
         indices_buffer: Optional[pa.Buffer] = None,
+        format: Optional[dict] = None,
     ) -> "Dataset":
         """ Instantiate a Dataset backed by an Arrow buffer """
         mmap = pa.BufferReader(buffer)
@@ -255,7 +263,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         else:
             indices_pa_table = None
 
-        return cls(pa_table, info=info, split=split, indices_table=indices_pa_table)
+        return cls(pa_table, info=info, split=split, indices_table=indices_pa_table, format=format)
 
     @classmethod
     def from_pandas(
@@ -264,6 +272,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         features: Optional[Features] = None,
         info: Optional[DatasetInfo] = None,
         split: Optional[NamedSplit] = None,
+        format: Optional[dict] = None,
     ) -> "Dataset":
         """
         Convert :obj:``pandas.DataFrame`` to a "obj"``pyarrow.Table`` to create a :obj:``nlp.Dataset``.
@@ -296,7 +305,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         pa_table: pa.Table = pa.Table.from_pandas(
             df=df, schema=pa.schema(features.type) if features is not None else None
         )
-        return cls(pa_table, info=info, split=split)
+        return cls(pa_table, info=info, split=split, format=format)
 
     @classmethod
     def from_dict(
@@ -305,6 +314,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         features: Optional[Features] = None,
         info: Optional[Any] = None,
         split: Optional[Any] = None,
+        format: Optional[dict] = None,
     ) -> "Dataset":
         """
         Convert :obj:``dict`` to a "obj"``pyarrow.Table`` to create a :obj:``nlp.Dataset``.
@@ -335,7 +345,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             for col, data in mapping.items()
         }
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
-        return cls(pa_table, info=info, split=split)
+        return cls(pa_table, info=info, split=split, format=format)
 
     def __getstate__(self):
         state = dict(self.__dict__)
@@ -1388,7 +1398,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.warning("Loading cached processed dataset at %s", cache_file_name)
                 info = self.info.copy()
                 info.features = features
-                return Dataset.from_file(cache_file_name, info=info, split=self.split)
+                return Dataset.from_file(cache_file_name, info=info, split=self.split, format=self.format)
 
         # Prepare output buffer and batched writer in memory or on file if we update the table
         if update_data:
@@ -1464,9 +1474,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             info = self.info.copy()
             info.features = writer._features
             if buf_writer is None:
-                return Dataset.from_file(cache_file_name, info=info, split=self.split)
+                return Dataset.from_file(cache_file_name, info=info, split=self.split, format=self.format)
             else:
-                return Dataset.from_buffer(buf_writer.getvalue(), info=info, split=self.split)
+                return Dataset.from_buffer(buf_writer.getvalue(), info=info, split=self.split, format=self.format)
         else:
             return self
 
@@ -1631,6 +1641,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             indices_data_files=indices_data_files,
             fingerprint=fingerprint,
             inplace_history=self._inplace_history,  # in-place transforms have to be kept as we kept the same data_files
+            format=self.format,
         )
 
     @fingerprint(inplace=False)
@@ -2386,6 +2397,9 @@ def concatenate_datasets(
             description, citation, etc.
         split (:obj:``nlp.NamedSplit``, `optional`, defaults to :obj:``None``): If specified, the name of the dataset split.
     """
+    if len(dsets) == 0:
+        raise ValueError("Please provided a non empty list of datasets to concatenate_datasets.")
+
     if not all([dset.features.type == dsets[0].features.type for dset in dsets]):
         raise ValueError("Features must match for all datasets")
 
@@ -2400,6 +2414,12 @@ def concatenate_datasets(
                 [i for i in range(len(dsets)) if not dsets_in_memory[i]],
             )
         )
+
+    # Find common format or reset format
+    format = dsets[0].format
+    if any(dset.format != format for dset in dsets):
+        format = None
+        logger.info("Some of the datasets have disparate format. Resetting the format of the concatenated dataset.")
 
     # Concatenate tables
 
@@ -2480,6 +2500,7 @@ def concatenate_datasets(
         indices_data_files=indices_data_files,
         fingerprint=fingerprint,
         inplace_history=inplace_history,
+        format=format,
     )
 
 
