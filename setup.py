@@ -20,11 +20,15 @@ To create the package for pypi.
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
 
+   First pin the SCRIPTS_VERSION to VERSION in __init__.py (but don't commit this change)
+
    For the wheel, run: "python setup.py bdist_wheel" in the top level directory.
    (this will build a wheel for the python version you use to build it).
 
    For the sources, run: "python setup.py sdist"
    You should now have a /dist directory with both .whl and .tar.gz source versions.
+
+   Then change the SCRIPTS_VERSION back to to "master" in __init__.py (but don't commit this change)
 
 5. Check that everything looks correct by uploading the package to the pypi test server:
 
