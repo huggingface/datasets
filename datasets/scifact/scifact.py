@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(scifact): BibTeX citation
@@ -26,7 +26,7 @@ SciFact, a dataset of 1.4K expert-written scientific claims paired with evidence
 _URL = "https://ai2-s2-scifact.s3-us-west-2.amazonaws.com/release/2020-05-01/data.tar.gz"
 
 
-class ScifactConfig(nlp.BuilderConfig):
+class ScifactConfig(datasets.BuilderConfig):
     """BuilderConfig for Scifact"""
 
     def __init__(self, **kwargs):
@@ -36,46 +36,46 @@ class ScifactConfig(nlp.BuilderConfig):
             **kwargs: keyword arguments forwarded to super.
         """
         super(ScifactConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
 
 
-class Scifact(nlp.GeneratorBasedBuilder):
+class Scifact(datasets.GeneratorBasedBuilder):
     """TODO(scifact): Short description of my dataset."""
 
     # TODO(scifact): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         ScifactConfig(name="corpus", description=" The corpus of evidence documents"),
         ScifactConfig(name="claims", description=" The claims are split into train, test, dev"),
     ]
 
     def _info(self):
-        # TODO(scifact): Specifies the nlp.DatasetInfo object
+        # TODO(scifact): Specifies the datasets.DatasetInfo object
         if self.config.name == "corpus":
             features = {
-                "doc_id": nlp.Value("int32"),  # The document's S2ORC ID.
-                "title": nlp.Value("string"),  # The title.
-                "abstract": nlp.features.Sequence(
-                    nlp.Value("string")
+                "doc_id": datasets.Value("int32"),  # The document's S2ORC ID.
+                "title": datasets.Value("string"),  # The title.
+                "abstract": datasets.features.Sequence(
+                    datasets.Value("string")
                 ),  # The abstract, written as a list of sentences.
-                "structured": nlp.Value("bool"),  # Indicator for whether this is a structured abstract.
+                "structured": datasets.Value("bool"),  # Indicator for whether this is a structured abstract.
             }
         else:
             features = {
-                "id": nlp.Value("int32"),  # An integer claim ID.
-                "claim": nlp.Value("string"),  # The text of the claim.
-                "evidence_doc_id": nlp.Value("string"),
-                "evidence_label": nlp.Value("string"),  # Label for the rationale.
-                "evidence_sentences": nlp.features.Sequence(nlp.Value("int32")),  # Rationale sentences.
-                "cited_doc_ids": nlp.features.Sequence(nlp.Value("int32")),  # The claim's "cited documents".
+                "id": datasets.Value("int32"),  # An integer claim ID.
+                "claim": datasets.Value("string"),  # The text of the claim.
+                "evidence_doc_id": datasets.Value("string"),
+                "evidence_label": datasets.Value("string"),  # Label for the rationale.
+                "evidence_sentences": datasets.features.Sequence(datasets.Value("int32")),  # Rationale sentences.
+                "cited_doc_ids": datasets.features.Sequence(datasets.Value("int32")),  # The claim's "cited documents".
             }
 
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 features
                 # These are the features of your dataset like images, labels ...
             ),
@@ -91,32 +91,32 @@ class Scifact(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(scifact): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
 
         if self.config.name == "corpus":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dl_dir, "data", "corpus.jsonl"), "split": "train"},
                 ),
             ]
         else:
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dl_dir, "data", "claims_train.jsonl"), "split": "train"},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dl_dir, "data", "claims_test.jsonl"), "split": "test"},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dl_dir, "data", "claims_dev.jsonl"), "split": "dev"},
                 ),

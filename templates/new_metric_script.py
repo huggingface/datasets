@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors and the current dataset script contributor.
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 """TODO: Add a description here."""
 
-import nlp
+import datasets
 
 
 # TODO: Add BibTeX citation
@@ -49,20 +49,20 @@ Returns:
 BAD_WORDS_URL = "http://url/to/external/resource/bad_words.txt"
 
 
-class NewMetric(nlp.Metric):
+class NewMetric(datasets.Metric):
     """TODO: Short description of my metric."""
 
     def _info(self):
-        # TODO: Specifies the nlp.MetricInfo object
-        return nlp.MetricInfo(
+        # TODO: Specifies the datasets.MetricInfo object
+        return datasets.MetricInfo(
             # This is the description that will appear on the metrics page.
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
             # This defines the format of each prediction and reference
-            features=nlp.Features({
-                'predictions': nlp.Value('string'),
-                'references': nlp.Value('string'),
+            features=datasets.Features({
+                'predictions': datasets.Value('string'),
+                'references': datasets.Value('string'),
             }),
             # Homepage of the metric for documentation
             homepage="http://metric.homepage",

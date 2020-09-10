@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from collections import defaultdict
 
 from seqeval.metrics import accuracy_score, f1_score, precision_score, recall_score
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -136,17 +136,17 @@ def get_entities(seq, suffix=False):
     return chunks
 
 
-class Seqeval(nlp.Metric):
+class Seqeval(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             homepage="https://github.com/chakki-works/seqeval",
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "predictions": nlp.Sequence(nlp.Value("string", id="label"), id="sequence"),
-                    "references": nlp.Sequence(nlp.Value("string", id="label"), id="sequence"),
+                    "predictions": datasets.Sequence(datasets.Value("string", id="label"), id="sequence"),
+                    "references": datasets.Sequence(datasets.Value("string", id="label"), id="sequence"),
                 }
             ),
             codebase_urls=["https://github.com/chakki-works/seqeval"],

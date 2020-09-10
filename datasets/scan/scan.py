@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -42,13 +42,13 @@ compositional learning and zero-shot generalization.
 See https://github.com/brendenlake/SCAN for a description of the splits.
 
 Example usage:
-data = nlp.load_dataset('scan/length')
+data = datasets.load_dataset('scan/length')
 """
 
 _DATA_URL = "https://github.com/brendenlake/SCAN/archive/master.zip"
 
 
-class ScanConfig(nlp.BuilderConfig):
+class ScanConfig(datasets.BuilderConfig):
     """BuilderConfig for SCAN."""
 
     def __init__(self, name, directory=None, **kwargs):
@@ -60,7 +60,7 @@ class ScanConfig(nlp.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         # Version history:
-        super(ScanConfig, self).__init__(name=name, version=nlp.Version("1.0.0"), description=_DESCRIPTION, **kwargs)
+        super(ScanConfig, self).__init__(name=name, version=datasets.Version("1.0.0"), description=_DESCRIPTION, **kwargs)
         if directory is None:
             self.directory = name + "_split"
         else:
@@ -71,7 +71,7 @@ _COMMANDS = "commands"
 _ACTIONS = "actions"
 
 
-class Scan(nlp.GeneratorBasedBuilder):
+class Scan(datasets.GeneratorBasedBuilder):
     """SCAN task / splits as proposed by Brenden M. Lake and Marco Baroni."""
 
     BUILDER_CONFIGS = [
@@ -90,12 +90,12 @@ class Scan(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    _COMMANDS: nlp.Value("string"),
-                    _ACTIONS: nlp.Value("string"),
+                    _COMMANDS: datasets.Value("string"),
+                    _ACTIONS: datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -109,11 +109,11 @@ class Scan(nlp.GeneratorBasedBuilder):
         data_dir = os.path.join(data_dir, "SCAN-master", self.config.directory)
         split = self.config.name
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "tasks_train_" + split + ".txt")}
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "tasks_train_" + split + ".txt")}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "tasks_test_" + split + ".txt")}
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "tasks_test_" + split + ".txt")}
             ),
         ]
 

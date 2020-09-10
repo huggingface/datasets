@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import logging
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -48,7 +48,7 @@ KILT-Wikipedia: Wikipedia pre-processed for KILT.
 """
 
 
-class KILTWikipediaConfig(nlp.BuilderConfig):
+class KILTWikipediaConfig(datasets.BuilderConfig):
     """BuilderConfig for KILTWikipedia."""
 
     def __init__(self, **kwargs):
@@ -59,11 +59,11 @@ class KILTWikipediaConfig(nlp.BuilderConfig):
               **kwargs: keyword arguments forwarded to super.
         """
         super(KILTWikipediaConfig, self).__init__(
-            version=nlp.Version("1.0.0", "Wikipedia pre-processed for KILT"), **kwargs
+            version=datasets.Version("1.0.0", "Wikipedia pre-processed for KILT"), **kwargs
         )
 
 
-class KILTWikipedia(nlp.GeneratorBasedBuilder):
+class KILTWikipedia(datasets.GeneratorBasedBuilder):
     """KILTWikipedia: Wikipedia pre-processed for KILT. Version 1.0."""
 
     BUILDER_CONFIGS = [
@@ -74,44 +74,44 @@ class KILTWikipedia(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "kilt_id": nlp.Value("string"),
-                    "wikipedia_id": nlp.Value("string"),
-                    "wikipedia_title": nlp.Value("string"),
-                    "text": nlp.features.Sequence({"paragraph": nlp.Value("string")}),
-                    "anchors": nlp.features.Sequence(
+                    "kilt_id": datasets.Value("string"),
+                    "wikipedia_id": datasets.Value("string"),
+                    "wikipedia_title": datasets.Value("string"),
+                    "text": datasets.features.Sequence({"paragraph": datasets.Value("string")}),
+                    "anchors": datasets.features.Sequence(
                         {
-                            "paragraph_id": nlp.Value("int32"),
-                            "start": nlp.Value("int32"),
-                            "end": nlp.Value("int32"),
-                            "text": nlp.Value("string"),
-                            "href": nlp.Value("string"),
-                            "wikipedia_title": nlp.Value("string"),
-                            "wikipedia_id": nlp.Value("string"),
+                            "paragraph_id": datasets.Value("int32"),
+                            "start": datasets.Value("int32"),
+                            "end": datasets.Value("int32"),
+                            "text": datasets.Value("string"),
+                            "href": datasets.Value("string"),
+                            "wikipedia_title": datasets.Value("string"),
+                            "wikipedia_id": datasets.Value("string"),
                         }
                     ),
-                    "categories": nlp.Value("string"),
-                    "wikidata_info": nlp.Features(
+                    "categories": datasets.Value("string"),
+                    "wikidata_info": datasets.Features(
                         {
-                            "description": nlp.Value("string"),
-                            "enwikiquote_title": nlp.Value("string"),
-                            "wikidata_id": nlp.Value("string"),
-                            "wikidata_label": nlp.Value("string"),
-                            "wikipedia_title": nlp.Value("string"),
-                            "aliases": nlp.features.Sequence({"alias": nlp.Value("string")}),
+                            "description": datasets.Value("string"),
+                            "enwikiquote_title": datasets.Value("string"),
+                            "wikidata_id": datasets.Value("string"),
+                            "wikidata_label": datasets.Value("string"),
+                            "wikipedia_title": datasets.Value("string"),
+                            "aliases": datasets.features.Sequence({"alias": datasets.Value("string")}),
                         }
                     ),
-                    "history": nlp.Features(
+                    "history": datasets.Features(
                         {
-                            "pageid": nlp.Value("int32"),
-                            "parentid": nlp.Value("int32"),
-                            "revid": nlp.Value("int32"),
-                            "pre_dump": nlp.Value("bool"),
-                            "timestamp": nlp.Value("string"),
-                            "url": nlp.Value("string"),
+                            "pageid": datasets.Value("int32"),
+                            "parentid": datasets.Value("int32"),
+                            "revid": datasets.Value("int32"),
+                            "pre_dump": datasets.Value("bool"),
+                            "timestamp": datasets.Value("string"),
+                            "url": datasets.Value("string"),
                         }
                     ),
                 }
@@ -130,7 +130,7 @@ class KILTWikipedia(nlp.GeneratorBasedBuilder):
         )
 
         return [
-            nlp.SplitGenerator(name="full", gen_kwargs={"filepath": downloaded_path}),
+            datasets.SplitGenerator(name="full", gen_kwargs={"filepath": downloaded_path}),
         ]
 
     def _generate_examples(self, filepath):

@@ -5,8 +5,8 @@ import time
 from multiprocessing import Pool
 from unittest import TestCase
 
-from nlp.features import Features, Value
-from nlp.metric import Metric, MetricInfo
+from datasets.features import Features, Value
+from datasets.metric import Metric, MetricInfo
 
 from .utils import require_tf, require_torch
 

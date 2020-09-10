@@ -5,13 +5,13 @@ from unittest import TestCase
 
 import numpy as np
 
-from nlp.arrow_dataset import Dataset
-from nlp.arrow_writer import ArrowWriter
-from nlp.builder import FORCE_REDOWNLOAD, DatasetBuilder, GeneratorBasedBuilder
-from nlp.dataset_dict import DatasetDict
-from nlp.features import Features, Value
-from nlp.info import DatasetInfo, PostProcessedInfo
-from nlp.splits import Split, SplitDict, SplitGenerator, SplitInfo
+from datasets.arrow_dataset import Dataset
+from datasets.arrow_writer import ArrowWriter
+from datasets.builder import FORCE_REDOWNLOAD, DatasetBuilder, GeneratorBasedBuilder
+from datasets.dataset_dict import DatasetDict
+from datasets.features import Features, Value
+from datasets.info import DatasetInfo, PostProcessedInfo
+from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 
 
 class DummyBuilder(DatasetBuilder):

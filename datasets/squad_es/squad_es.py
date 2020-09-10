@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(squad_es): BibTeX citation
@@ -31,7 +31,7 @@ automatic translation of the Stanford Question Answering Dataset (SQuAD) v2 into
 _URL = "https://raw.githubusercontent.com/ccasimiro88/TranslateAlignRetrieve/master/"
 
 
-class SquadEsConfig(nlp.BuilderConfig):
+class SquadEsConfig(datasets.BuilderConfig):
     """BuilderConfig for SQUADEsV2."""
 
     def __init__(self, **kwargs):
@@ -43,42 +43,42 @@ class SquadEsConfig(nlp.BuilderConfig):
         super(SquadEsConfig, self).__init__(**kwargs)
 
 
-class SquadEs(nlp.GeneratorBasedBuilder):
+class SquadEs(datasets.GeneratorBasedBuilder):
     """TODO(squad_es): Short description of my dataset."""
 
     # TODO(squad_es): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     BUILDER_CONFIGS = [
         SquadEsConfig(
             name="v1.1.0",
-            version=nlp.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
             description="Plain text Spanish squad version 1",
         ),
         SquadEsConfig(
             name="v2.0.0",
-            version=nlp.Version("2.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("2.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
             description="Plain text Spanish squad version 2",
         ),
     ]
 
     def _info(self):
-        # TODO(squad_es): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(squad_es): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "id": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
+                    "id": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
                         {
-                            "text": nlp.Value("string"),
-                            "answer_start": nlp.Value("int32"),
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
                         }
                     ),
                 }
@@ -95,7 +95,7 @@ class SquadEs(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(squad_es): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
 
         # download and extract URLs
         v1_urls = {
@@ -113,13 +113,13 @@ class SquadEs(nlp.GeneratorBasedBuilder):
         else:
             raise Exception("version does not match any existing one")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["train"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["dev"]},
             ),

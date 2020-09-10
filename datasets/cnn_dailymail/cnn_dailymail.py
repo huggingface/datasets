@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import hashlib
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -76,19 +76,19 @@ _ARTICLE = "article"
 
 _SUPPORTED_VERSIONS = [
     # Using cased version.
-    nlp.Version("3.0.0", "Using cased version."),
+    datasets.Version("3.0.0", "Using cased version."),
     # Same data as 0.0.2
-    nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+    datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
     # Having the model predict newline separators makes it easier to evaluate
     # using summary-level ROUGE.
-    nlp.Version("2.0.0", "Separate target sentences with newline."),
+    datasets.Version("2.0.0", "Separate target sentences with newline."),
 ]
 
 
-_DEFAULT_VERSION = nlp.Version("3.0.0", "Using cased version.")
+_DEFAULT_VERSION = datasets.Version("3.0.0", "Using cased version.")
 
 
-class CnnDailymailConfig(nlp.BuilderConfig):
+class CnnDailymailConfig(datasets.BuilderConfig):
     """BuilderConfig for CnnDailymail."""
 
     def __init__(self, **kwargs):
@@ -144,11 +144,11 @@ def _subset_filenames(dl_paths, split):
     """Get filenames for a particular split."""
     assert isinstance(dl_paths, dict), dl_paths
     # Get filenames for a split.
-    if split == nlp.Split.TRAIN:
+    if split == datasets.Split.TRAIN:
         urls = _get_url_hashes(dl_paths["train_urls"])
-    elif split == nlp.Split.VALIDATION:
+    elif split == datasets.Split.VALIDATION:
         urls = _get_url_hashes(dl_paths["val_urls"])
-    elif split == nlp.Split.TEST:
+    elif split == datasets.Split.TEST:
         urls = _get_url_hashes(dl_paths["test_urls"])
     else:
         logging.fatal("Unsupported split: %s", split)
@@ -221,7 +221,7 @@ def _get_art_abs(story_file, tfds_version):
     return article, abstract
 
 
-class CnnDailymail(nlp.GeneratorBasedBuilder):
+class CnnDailymail(datasets.GeneratorBasedBuilder):
     """CNN/DailyMail non-anonymized summarization dataset."""
 
     BUILDER_CONFIGS = [
@@ -230,14 +230,14 @@ class CnnDailymail(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # Should return a nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # Should return a datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    _ARTICLE: nlp.Value("string"),
-                    _HIGHLIGHTS: nlp.Value("string"),
-                    "id": nlp.Value("string"),
+                    _ARTICLE: datasets.Value("string"),
+                    _HIGHLIGHTS: datasets.Value("string"),
+                    "id": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -251,15 +251,15 @@ class CnnDailymail(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         dl_paths = dl_manager.download_and_extract(_DL_URLS)
-        train_files = _subset_filenames(dl_paths, nlp.Split.TRAIN)
+        train_files = _subset_filenames(dl_paths, datasets.Split.TRAIN)
         # Generate shared vocabulary
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": train_files}),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"files": _subset_filenames(dl_paths, nlp.Split.VALIDATION)}
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": train_files}),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.VALIDATION)}
             ),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"files": _subset_filenames(dl_paths, nlp.Split.TEST)}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.TEST)}),
         ]
 
     def _generate_examples(self, files):

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors and the current dataset script contributor.
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -105,22 +105,22 @@ _FINE_LABELS = [
 ]
 
 
-class Trec(nlp.GeneratorBasedBuilder):
+class Trec(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
-    VERSION = nlp.Version("1.1.0")
+    VERSION = datasets.Version("1.1.0")
 
     def _info(self):
-        # TODO: Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO: Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "label-coarse": nlp.ClassLabel(names=_COARSE_LABELS),
-                    "label-fine": nlp.ClassLabel(names=_FINE_LABELS),
-                    "text": nlp.Value("string"),
+                    "label-coarse": datasets.ClassLabel(names=_COARSE_LABELS),
+                    "label-fine": datasets.ClassLabel(names=_FINE_LABELS),
+                    "text": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -135,19 +135,19 @@ class Trec(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO: Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_files = dl_manager.download_and_extract(_URLs)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": dl_files["train"],
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": dl_files["test"],

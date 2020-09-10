@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(xcopa): BibTeX citation
@@ -41,7 +41,7 @@ _LANG = ["et", "ht", "it", "id", "qu", "sw", "zh", "ta", "th", "tr", "vi"]
 _URL = "https://github.com/cambridgeltl/xcopa/archive/master.zip"
 
 
-class XcopaConfig(nlp.BuilderConfig):
+class XcopaConfig(datasets.BuilderConfig):
     """BuilderConfig for Break"""
 
     def __init__(self, **kwargs):
@@ -52,15 +52,15 @@ class XcopaConfig(nlp.BuilderConfig):
             **kwargs: keyword arguments forwarded to super.
         """
         super(XcopaConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
 
 
-class Xcopa(nlp.GeneratorBasedBuilder):
+class Xcopa(datasets.GeneratorBasedBuilder):
     """TODO(xcopa): Short description of my dataset."""
 
     # TODO(xcopa): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         XcopaConfig(
             name=lang,
@@ -70,21 +70,21 @@ class Xcopa(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(xcopa): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(xcopa): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION + self.config.description,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "premise": nlp.Value("string"),
-                    "choice1": nlp.Value("string"),
-                    "choice2": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "label": nlp.Value("int32"),
-                    "idx": nlp.Value("int32"),
-                    "changed": nlp.Value("bool"),
+                    "premise": datasets.Value("string"),
+                    "choice1": datasets.Value("string"),
+                    "choice2": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "label": datasets.Value("int32"),
+                    "idx": datasets.Value("int32"),
+                    "changed": datasets.Value("bool"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -99,19 +99,19 @@ class Xcopa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(xcopa): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
 
         data_dir = os.path.join(dl_dir, "xcopa-master", "data", self.config.name)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "test." + self.config.name + ".jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "val." + self.config.name + ".jsonl")},
             ),

@@ -10,7 +10,7 @@ from itertools import groupby
 
 import six
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -252,12 +252,12 @@ _DATASET_CITATIONS = {
 }
 
 
-class LinceConfig(nlp.BuilderConfig):
+class LinceConfig(datasets.BuilderConfig):
     """BuilderConfig for LinCE"""
 
     def __init__(self, colnames, classes, label_column, **kwargs):
         super(LinceConfig, self).__init__(
-            version=nlp.Version("1.0.0", description="The Linguistic Code-switching Evaluation (LinCE) benchmark"),
+            version=datasets.Version("1.0.0", description="The Linguistic Code-switching Evaluation (LinCE) benchmark"),
             **kwargs,
         )
         self.colnames = colnames
@@ -265,7 +265,7 @@ class LinceConfig(nlp.BuilderConfig):
         self.label_column = label_column
 
 
-class Lince(nlp.GeneratorBasedBuilder):
+class Lince(datasets.GeneratorBasedBuilder):
     """TODO(lince): Short description of the LinCE dataset."""
 
     BUILDER_CONFIG_CLASS = LinceConfig
@@ -455,23 +455,23 @@ class Lince(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {"idx": nlp.Value("int32"), "tokens": nlp.Sequence(nlp.Value("string"))}
+        features = {"idx": datasets.Value("int32"), "tokens": datasets.Sequence(datasets.Value("string"))}
 
         if self.config.name != "ner_msaea":
-            features["lid"] = nlp.Sequence(nlp.Value("string"))  # excluding 'ner_msaea', all datasets have 'lid'
+            features["lid"] = datasets.Sequence(datasets.Value("string"))  # excluding 'ner_msaea', all datasets have 'lid'
 
         if self.config.name.startswith("pos_"):
-            features["pos"] = nlp.Sequence(nlp.Value("string"))
+            features["pos"] = datasets.Sequence(datasets.Value("string"))
 
         elif self.config.name.startswith("ner_"):
-            features["ner"] = nlp.Sequence(nlp.Value("string"))
+            features["ner"] = datasets.Sequence(datasets.Value("string"))
 
         elif self.config.name.startswith("sa_"):
-            features["sa"] = nlp.Value("string")
+            features["sa"] = datasets.Value("string")
 
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             supervised_keys=None,
             homepage="http://ritual.uh.edu/lince",
             citation=_DATASET_CITATIONS.get(self.config.name, "") + "\n" + _CITATION,
@@ -482,22 +482,22 @@ class Lince(nlp.GeneratorBasedBuilder):
         lince_dir = dl_manager.download_and_extract(f"{_LINCE_URL}/{self.config.name}.zip")
         data_dir = os.path.join(lince_dir, self.config.data_dir)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "train.conll"),
                     "colnames": self.config.colnames,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "dev.conll"),
                     "colnames": self.config.colnames,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "test.conll"),
                     "colnames": {

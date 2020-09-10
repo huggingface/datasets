@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -54,31 +54,31 @@ _VALIDATIONURL = "https://raw.githubusercontent.com/google-research-datasets/gap
 _TESTURL = "https://raw.githubusercontent.com/google-research-datasets/gap-coreference/master/gap-test.tsv"
 
 
-class Gap(nlp.GeneratorBasedBuilder):
+class Gap(datasets.GeneratorBasedBuilder):
     """GAP is a gender-balanced dataset.
 
     It contains 8,908 coreference-labeled pairs
     of (ambiguous pronoun, antecedent name), sampled from Wikipedia.
     """
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "ID": nlp.Value("string"),
-                    "Text": nlp.Value("string"),
-                    "Pronoun": nlp.Value("string"),
-                    "Pronoun-offset": nlp.Value("int32"),
-                    "A": nlp.Value("string"),
-                    "A-offset": nlp.Value("int32"),
-                    "A-coref": nlp.Value("bool"),
-                    "B": nlp.Value("string"),
-                    "B-offset": nlp.Value("int32"),
-                    "B-coref": nlp.Value("bool"),
-                    "URL": nlp.Value("string"),
+                    "ID": datasets.Value("string"),
+                    "Text": datasets.Value("string"),
+                    "Pronoun": datasets.Value("string"),
+                    "Pronoun-offset": datasets.Value("int32"),
+                    "A": datasets.Value("string"),
+                    "A-offset": datasets.Value("int32"),
+                    "A-coref": datasets.Value("bool"),
+                    "B": datasets.Value("string"),
+                    "B-offset": datasets.Value("int32"),
+                    "B-coref": datasets.Value("bool"),
+                    "URL": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -92,16 +92,16 @@ class Gap(nlp.GeneratorBasedBuilder):
             {"train": _TRAINURL, "validation": _VALIDATIONURL, "test": _TESTURL}
         )
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"filepath": directory["train"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"filepath": directory["validation"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"filepath": directory["test"]},
             ),
         ]

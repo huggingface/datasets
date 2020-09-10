@@ -4,7 +4,7 @@ import tempfile
 
 from utils import generate_example_dataset, get_duration
 
-import nlp
+import datasets
 
 
 SPEED_TEST_N_EXAMPLES = 50_000
@@ -15,26 +15,26 @@ RESULTS_FILE_PATH = os.path.join(RESULTS_BASEPATH, "results", RESULTS_FILENAME.r
 
 
 @get_duration
-def read(dataset: nlp.Dataset, length):
+def read(dataset: datasets.Dataset, length):
     for i in range(length):
         _ = dataset[i]
 
 
 @get_duration
-def read_batch(dataset: nlp.Dataset, length, batch_size):
+def read_batch(dataset: datasets.Dataset, length, batch_size):
     for i in range(0, len(dataset), batch_size):
         _ = dataset[i : i + batch_size]
 
 
 @get_duration
-def read_formatted(dataset: nlp.Dataset, length, type):
+def read_formatted(dataset: datasets.Dataset, length, type):
     with dataset.formatted_as(type=type):
         for i in range(length):
             _ = dataset[i]
 
 
 @get_duration
-def read_formatted_batch(dataset: nlp.Dataset, length, batch_size, type):
+def read_formatted_batch(dataset: datasets.Dataset, length, batch_size, type):
     with dataset.formatted_as(type=type):
         for i in range(0, length, batch_size):
             _ = dataset[i : i + batch_size]
@@ -68,7 +68,7 @@ def benchmark_iterating():
     ]
     with tempfile.TemporaryDirectory() as tmp_dir:
         print("generating dataset")
-        features = nlp.Features({"list": nlp.Sequence(nlp.Value("float32")), "numbers": nlp.Value("float32")})
+        features = datasets.Features({"list": datasets.Sequence(datasets.Value("float32")), "numbers": datasets.Value("float32")})
         dataset = generate_example_dataset(
             os.path.join(tmp_dir, "dataset.arrow"),
             features,

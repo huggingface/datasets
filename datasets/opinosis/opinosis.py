@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -45,16 +45,16 @@ _REVIEW_SENTS = "review_sents"
 _SUMMARIES = "summaries"
 
 
-class Opinosis(nlp.GeneratorBasedBuilder):
+class Opinosis(datasets.GeneratorBasedBuilder):
     """Opinosis Opinion Dataset."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {_REVIEW_SENTS: nlp.Value("string"), _SUMMARIES: nlp.features.Sequence(nlp.Value("string"))}
+            features=datasets.Features(
+                {_REVIEW_SENTS: datasets.Value("string"), _SUMMARIES: datasets.features.Sequence(datasets.Value("string"))}
             ),
             supervised_keys=(_REVIEW_SENTS, _SUMMARIES),
             homepage="http://kavita-ganesan.com/opinosis/",
@@ -65,8 +65,8 @@ class Opinosis(nlp.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         extract_path = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"path": extract_path},
             ),
         ]

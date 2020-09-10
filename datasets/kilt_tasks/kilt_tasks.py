@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import logging
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -50,14 +50,14 @@ KILT tasks training and evaluation data.
 - [WNED-WIKI](https://github.com/U-Alberta/wned) | Entity Linking | wned
 - [WNED-CWEB](https://github.com/U-Alberta/wned) | Entity Linking | cweb
 - [T-REx](https://hadyelsahar.github.io/t-rex) | Slot Filling | trex
-- [Zero-Shot RE](http://nlp.cs.washington.edu/zeroshot) | Slot Filling | structured_zeroshot
+- [Zero-Shot RE](http://datasets.cs.washington.edu/zeroshot) | Slot Filling | structured_zeroshot
 - [Natural Questions](https://ai.google.com/research/NaturalQuestions) | Open Domain QA  | nq
 - [HotpotQA](https://hotpotqa.github.io) | Open Domain QA | hotpotqa
-- [TriviaQA](http://nlp.cs.washington.edu/triviaqa) | Open Domain QA | triviaqa
+- [TriviaQA](http://datasets.cs.washington.edu/triviaqa) | Open Domain QA | triviaqa
 - [ELI5](https://facebookresearch.github.io/ELI5/explore.html) | Open Domain QA | eli5
 - [Wizard of Wikipedia](https://parl.ai/projects/wizard_of_wikipedia) | Dialogue | wow
 
-To finish linking TriviaQA questions to the IDs provided, follow the instructions [here](http://github.com/huggingface/nlp/datasets/kilt_tasks/README.md).
+To finish linking TriviaQA questions to the IDs provided, follow the instructions [here](http://github.com/huggingface/datasets/datasets/kilt_tasks/README.md).
 """
 
 
@@ -118,7 +118,7 @@ _DATA_URLS = {
 }
 
 
-class KILTTasksConfig(nlp.BuilderConfig):
+class KILTTasksConfig(datasets.BuilderConfig):
     """BuilderConfig for KILTTasks."""
 
     def __init__(self, **kwargs):
@@ -129,11 +129,11 @@ class KILTTasksConfig(nlp.BuilderConfig):
               **kwargs: keyword arguments forwarded to super.
         """
         super(KILTTasksConfig, self).__init__(
-            version=nlp.Version("1.0.0", "KILT tasks training and evaluation data"), **kwargs
+            version=datasets.Version("1.0.0", "KILT tasks training and evaluation data"), **kwargs
         )
 
 
-class KILTTasks(nlp.GeneratorBasedBuilder):
+class KILTTasks(datasets.GeneratorBasedBuilder):
     """WikipediaKILT: Wikipedia pre-processed for KILT. Version 1.0."""
 
     BUILDER_CONFIGS = [
@@ -144,60 +144,60 @@ class KILTTasks(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "input": nlp.Value("string"),
-                    "meta": nlp.Features(
+                    "id": datasets.Value("string"),
+                    "input": datasets.Value("string"),
+                    "meta": datasets.Features(
                         {
-                            "left_context": nlp.Value("string"),
-                            "mention": nlp.Value("string"),
-                            "right_context": nlp.Value("string"),
-                            "partial_evidence": nlp.features.Sequence(
+                            "left_context": datasets.Value("string"),
+                            "mention": datasets.Value("string"),
+                            "right_context": datasets.Value("string"),
+                            "partial_evidence": datasets.features.Sequence(
                                 {
-                                    "start_paragraph_id": nlp.Value("int32"),
-                                    "end_paragraph_id": nlp.Value("int32"),
-                                    "title": nlp.Value("string"),
-                                    "section": nlp.Value("string"),
-                                    "wikipedia_id": nlp.Value("string"),
-                                    "meta": nlp.features.Sequence(
+                                    "start_paragraph_id": datasets.Value("int32"),
+                                    "end_paragraph_id": datasets.Value("int32"),
+                                    "title": datasets.Value("string"),
+                                    "section": datasets.Value("string"),
+                                    "wikipedia_id": datasets.Value("string"),
+                                    "meta": datasets.features.Sequence(
                                         {
-                                            "evidence_span": nlp.Value("string"),
+                                            "evidence_span": datasets.Value("string"),
                                         }
                                     ),
                                 }
                             ),
-                            "obj_surface": nlp.features.Sequence({"text": nlp.Value("string")}),
-                            "sub_surface": nlp.features.Sequence({"text": nlp.Value("string")}),
-                            "subj_aliases": nlp.features.Sequence({"text": nlp.Value("string")}),
-                            "template_questions": nlp.features.Sequence({"text": nlp.Value("string")}),
+                            "obj_surface": datasets.features.Sequence({"text": datasets.Value("string")}),
+                            "sub_surface": datasets.features.Sequence({"text": datasets.Value("string")}),
+                            "subj_aliases": datasets.features.Sequence({"text": datasets.Value("string")}),
+                            "template_questions": datasets.features.Sequence({"text": datasets.Value("string")}),
                         }
                     ),
-                    "output": nlp.features.Sequence(
+                    "output": datasets.features.Sequence(
                         {
-                            "answer": nlp.Value("string"),
-                            "meta": nlp.Features({"score": nlp.Value("int32")}),
-                            "provenance": nlp.features.Sequence(
+                            "answer": datasets.Value("string"),
+                            "meta": datasets.Features({"score": datasets.Value("int32")}),
+                            "provenance": datasets.features.Sequence(
                                 {
-                                    "bleu_score": nlp.Value("float32"),
-                                    "start_character": nlp.Value("int32"),
-                                    "start_paragraph_id": nlp.Value("int32"),
-                                    "end_character": nlp.Value("int32"),
-                                    "end_paragraph_id": nlp.Value("int32"),
-                                    "meta": nlp.Features(
+                                    "bleu_score": datasets.Value("float32"),
+                                    "start_character": datasets.Value("int32"),
+                                    "start_paragraph_id": datasets.Value("int32"),
+                                    "end_character": datasets.Value("int32"),
+                                    "end_paragraph_id": datasets.Value("int32"),
+                                    "meta": datasets.Features(
                                         {
-                                            "fever_page_id": nlp.Value("string"),
-                                            "fever_sentence_id": nlp.Value("int32"),
-                                            "annotation_id": nlp.Value("string"),  # int runs into overflow issues
-                                            "yes_no_answer": nlp.Value("string"),
-                                            "evidence_span": nlp.features.Sequence({"text": nlp.Value("string")}),
+                                            "fever_page_id": datasets.Value("string"),
+                                            "fever_sentence_id": datasets.Value("int32"),
+                                            "annotation_id": datasets.Value("string"),  # int runs into overflow issues
+                                            "yes_no_answer": datasets.Value("string"),
+                                            "evidence_span": datasets.features.Sequence({"text": datasets.Value("string")}),
                                         }
                                     ),
-                                    "section": nlp.Value("string"),
-                                    "title": nlp.Value("string"),
-                                    "wikipedia_id": nlp.Value("string"),
+                                    "section": datasets.Value("string"),
+                                    "title": datasets.Value("string"),
+                                    "wikipedia_id": datasets.Value("string"),
                                 }
                             ),
                         }
@@ -217,7 +217,7 @@ class KILTTasks(nlp.GeneratorBasedBuilder):
             file_paths[task_name] = dl_manager.download_and_extract(task_urls)
 
         return [
-            nlp.SplitGenerator(name=split + "_" + task, gen_kwargs={"filepath": downloaded_path})
+            datasets.SplitGenerator(name=split + "_" + task, gen_kwargs={"filepath": downloaded_path})
             for task, split_paths in file_paths.items()
             for split, downloaded_path in split_paths.items()
         ]

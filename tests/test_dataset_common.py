@@ -22,7 +22,7 @@ from unittest import TestCase
 import requests
 from absl.testing import parameterized
 
-from nlp import (
+from datasets import (
     BuilderConfig,
     DatasetBuilder,
     DownloadConfig,

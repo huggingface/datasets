@@ -68,7 +68,7 @@ def main(args):
 
     if not os.path.exists(dataset_info_path):
         raise ValueError(
-            "The file 'dataset_info.json' doesn't exists. Make sure that you run the dataset tests via nlp-cli."
+            "The file 'dataset_info.json' doesn't exists. Make sure that you run the dataset tests via datasets-cli."
         )
 
     with open(dataset_info_path, encoding="utf-8") as in_file:

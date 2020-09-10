@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -45,7 +45,7 @@ _CITATION = """\
 URL = "https://storage.googleapis.com/huggingface-nlp/datasets/bookcorpus/bookcorpus.tar.bz2"
 
 
-class BookcorpusConfig(nlp.BuilderConfig):
+class BookcorpusConfig(datasets.BuilderConfig):
     """BuilderConfig for BookCorpus."""
 
     def __init__(self, **kwargs):
@@ -54,11 +54,11 @@ class BookcorpusConfig(nlp.BuilderConfig):
         **kwargs: keyword arguments forwarded to super.
         """
         super(BookcorpusConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
 
 
-class Bookcorpus(nlp.GeneratorBasedBuilder):
+class Bookcorpus(datasets.GeneratorBasedBuilder):
     """BookCorpus dataset."""
 
     BUILDER_CONFIGS = [
@@ -69,11 +69,11 @@ class Bookcorpus(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string"),
+                    "text": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -89,7 +89,7 @@ class Bookcorpus(nlp.GeneratorBasedBuilder):
         arch_path = dl_manager.download_and_extract(URL)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"directory": arch_path}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"directory": arch_path}),
         ]
 
     def _generate_examples(self, directory):

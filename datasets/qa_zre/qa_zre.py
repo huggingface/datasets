@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -29,24 +29,24 @@ _DESCRIPTION = """\
 A dataset reducing relation extraction to simple reading comprehension questions
 """
 
-_DATA_URL = "http://nlp.cs.washington.edu/zeroshot/relation_splits.tar.bz2"
+_DATA_URL = "http://datasets.cs.washington.edu/zeroshot/relation_splits.tar.bz2"
 
 
-class QaZre(nlp.GeneratorBasedBuilder):
+class QaZre(datasets.GeneratorBasedBuilder):
     """QA-ZRE: Reducing relation extraction to simple reading comprehension questions"""
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "relation": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "subject": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(nlp.Value("string")),
+                    "relation": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "subject": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(datasets.Value("string")),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -54,7 +54,7 @@ class QaZre(nlp.GeneratorBasedBuilder):
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="http://nlp.cs.washington.edu/zeroshot",
+            homepage="http://datasets.cs.washington.edu/zeroshot",
             citation=_CITATION,
         )
 
@@ -64,20 +64,20 @@ class QaZre(nlp.GeneratorBasedBuilder):
         dl_dir = os.path.join(dl_dir, "relation_splits")
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={
                     "filepaths": [os.path.join(dl_dir, "test." + str(i)) for i in range(10)],
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "filepaths": [os.path.join(dl_dir, "dev." + str(i)) for i in range(10)],
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "filepaths": [os.path.join(dl_dir, "train." + str(i)) for i in range(10)],
                 },

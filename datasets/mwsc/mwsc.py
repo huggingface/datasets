@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import re
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -25,20 +25,20 @@ _DATA_URL = "https://raw.githubusercontent.com/salesforce/decaNLP/1e9605f246b9e0
 # Alternate: https://s3.amazonaws.com/research.metamind.io/decaNLP/data/schema.txt
 
 
-class MWSC(nlp.GeneratorBasedBuilder):
+class MWSC(datasets.GeneratorBasedBuilder):
     """MWSC: modified Winograd Schema Challenge"""
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "sentence": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "options": nlp.features.Sequence(nlp.Value("string")),
-                    "answer": nlp.Value("string"),
+                    "sentence": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "options": datasets.features.Sequence(datasets.Value("string")),
+                    "answer": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -59,16 +59,16 @@ class MWSC(nlp.GeneratorBasedBuilder):
             schemas_file = os.path.join(schemas_file, "schema.txt")
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"filepath": schemas_file, "split": "train"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"filepath": schemas_file, "split": "test"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"filepath": schemas_file, "split": "dev"},
             ),
         ]

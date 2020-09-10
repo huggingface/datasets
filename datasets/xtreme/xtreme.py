@@ -10,7 +10,7 @@ import textwrap
 
 import six
 
-import nlp
+import datasets
 
 
 # TODO(xtreme): BibTeX citation
@@ -392,7 +392,7 @@ _URLS = {
 }
 
 
-class XtremeConfig(nlp.BuilderConfig):
+class XtremeConfig(datasets.BuilderConfig):
     """BuilderConfig for Break"""
 
     def __init__(self, data_url, citation, url, text_features, **kwargs):
@@ -406,7 +406,7 @@ class XtremeConfig(nlp.BuilderConfig):
             **kwargs: keyword arguments forwarded to super.
         """
         super(XtremeConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
         self.text_features = text_features
         self.data_url = data_url
@@ -414,11 +414,11 @@ class XtremeConfig(nlp.BuilderConfig):
         self.url = url
 
 
-class Xtreme(nlp.GeneratorBasedBuilder):
+class Xtreme(datasets.GeneratorBasedBuilder):
     """TODO(xtreme): Short description of my dataset."""
 
     # TODO(xtreme): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         XtremeConfig(
             name=name,
@@ -437,35 +437,35 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             return """\
              You need to manually download the AmazonPhotos.zip file on Amazon Cloud Drive
              (https://www.amazon.com/clouddrive/share/d3KGCRCIYwhKJF0H3eWA26hjg2ZCRhjpEQtDL70FSBN). The folder containing the saved file
-             can be used to load the dataset via `nlp.load_dataset("xtreme", data_dir="<path/to/folder>").
+             can be used to load the dataset via `datasets.load_dataset("xtreme", data_dir="<path/to/folder>").
             """
         return None
 
     def _info(self):
-        # TODO(xtreme): Specifies the nlp.DatasetInfo object
-        features = {text_feature: nlp.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        # TODO(xtreme): Specifies the datasets.DatasetInfo object
+        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
         if "answers" in features.keys():
-            features["answers"] = nlp.features.Sequence(
-                {"answer_start": nlp.Value("int32"), "text": nlp.Value("string")}
+            features["answers"] = datasets.features.Sequence(
+                {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}
             )
         if self.config.name.startswith("PAWS-X"):
-            features["label"] = nlp.Value("string")
+            features["label"] = datasets.Value("string")
         if self.config.name == "XNLI":
-            features["gold_label"] = nlp.Value("string")
+            features["gold_label"] = datasets.Value("string")
 
         if self.config.name.startswith("PAN-X"):
-            features = nlp.Features(
+            features = datasets.Features(
                 {
-                    "words": nlp.Sequence(nlp.Value("string")),
-                    "ner_tags": nlp.Sequence(nlp.Value("string")),
-                    "langs": nlp.Sequence(nlp.Value("string")),
+                    "words": datasets.Sequence(datasets.Value("string")),
+                    "ner_tags": datasets.Sequence(datasets.Value("string")),
+                    "langs": datasets.Sequence(datasets.Value("string")),
                 }
             )
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=self.config.description + "\n" + _DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 features
                 # These are the features of your dataset like images, labels ...
             ),
@@ -481,7 +481,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(xtreme): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
 
         if self.config.name == "tydiqa":
@@ -493,13 +493,13 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             }
             dl_dir = dl_manager.download_and_extract(urls_to_download)
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": dl_dir["train"]},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": dl_dir["dev"]},
                 ),
@@ -508,11 +508,11 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             data_dir = os.path.join(dl_dir, "XNLI-1.0")
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")}
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")}
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")}
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")}
                 ),
             ]
 
@@ -521,8 +521,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             l1 = self.config.name.split(".")[1]
             l2 = self.config.name.split(".")[2]
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(
@@ -531,8 +531,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                         )
                     },
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(
@@ -549,8 +549,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                 os.path.join(self.config.data_url, "xquad.{}.json".format(lang))
             )
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": xquad_downloaded_file},
                 ),
@@ -560,18 +560,18 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             paws_x_dir = dl_manager.download_and_extract(self.config.data_url)
             data_dir = os.path.join(paws_x_dir, "x-final", lang)
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(data_dir, "dev_2k.tsv")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(data_dir, "test_2k.tsv")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(data_dir, "translated_train.tsv")
@@ -590,8 +590,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                 os.path.join(self.config.data_url, "tatoeba.{}-eng.eng".format(lang))
             )
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": (tatoeba_source_data, tatoeba_eng_data)},
                 ),
@@ -605,13 +605,13 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                 os.path.join(self.config.data_url, "bucc2018-{}-en.sample-gold.tar.bz2".format(lang))
             )
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(bucc18_dl_dev_dir, "bucc2018", lang + "-en")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(bucc18_dl_test_dir, "bucc2018", lang + "-en")},
                 ),
@@ -626,8 +626,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
 
             if lang == "Kazakh":
                 return [
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TEST,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TEST,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": [
@@ -638,8 +638,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                             ]
                         },
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TRAIN,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TRAIN,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": [
@@ -653,8 +653,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                 ]
             elif lang == "Tagalog" or lang == "Thai" or lang == "Yoruba":
                 return [
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TEST,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TEST,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": [
@@ -668,8 +668,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                 ]
             else:
                 return [
-                    nlp.SplitGenerator(
-                        name=nlp.Split.VALIDATION,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.VALIDATION,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": [
@@ -681,8 +681,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                             # we exclude Arabic NYUAD which deos not contains any word, only _
                         },
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TEST,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TEST,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": [
@@ -693,8 +693,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
                             ]
                         },
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TRAIN,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TRAIN,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": [
@@ -716,8 +716,8 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
             return [
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-                nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
             ]
 
         if self.config.name.startswith("PAN-X"):
@@ -725,7 +725,7 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             panx_path = os.path.join(path_to_manual_folder, _PAN_X_FOLDER)
             if not os.path.exists(panx_path):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('xtreme', data_dir=...)` that includes {}. Manual download instructions: {}".format(
+                    "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('xtreme', data_dir=...)` that includes {}. Manual download instructions: {}".format(
                         panx_path, _PAN_X_FOLDER, self.manual_download_instructions
                     )
                 )
@@ -734,21 +734,21 @@ class Xtreme(nlp.GeneratorBasedBuilder):
             lang = self.config.name.split(".")[1]
             lang_folder = dl_manager.extract(os.path.join(panx_dl_dir, "panx_dataset", lang + ".tar.gz"))
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(lang_folder, "dev")
                         # we exclude Arabic NYUAD which deos not contains any word, only _
                     },
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(lang_folder, "test")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(lang_folder, "train")},
                 ),

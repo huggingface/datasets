@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -31,7 +31,7 @@ _URL = "https://github.com/deepmind/xquad/raw/master/"
 _LANG = ["ar", "de", "zh", "vi", "en", "es", "hi", "el", "th", "tr", "ru"]
 
 
-class XquadConfig(nlp.BuilderConfig):
+class XquadConfig(datasets.BuilderConfig):
 
     """ BuilderConfig for Xquad"""
 
@@ -43,35 +43,35 @@ class XquadConfig(nlp.BuilderConfig):
             **kwargs: keyword arguments forwarded to super.
         """
         super(XquadConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
         self.lang = lang
 
 
-class Xquad(nlp.GeneratorBasedBuilder):
+class Xquad(datasets.GeneratorBasedBuilder):
     """TODO(xquad): Short description of my dataset."""
 
     # TODO(xquad): Set up version.
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
         XquadConfig(name="xquad.{}".format(lang), description=_DESCRIPTION, lang=lang) for lang in _LANG
     ]
 
     def _info(self):
-        # TODO(xquad): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(xquad): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
+                    "id": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
                         {
-                            "text": nlp.Value("string"),
-                            "answer_start": nlp.Value("int32"),
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
                         }
                     ),
                     # These are the features of your dataset like images, labels ...
@@ -89,14 +89,14 @@ class Xquad(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(xquad): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = {lang: _URL + "xquad.{}.json".format(lang) for lang in _LANG}
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": downloaded_files[self.config.lang]},
             ),

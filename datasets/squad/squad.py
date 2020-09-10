@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import json
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -47,7 +47,7 @@ from the corresponding reading passage, or the question might be unanswerable.
 """
 
 
-class SquadConfig(nlp.BuilderConfig):
+class SquadConfig(datasets.BuilderConfig):
     """BuilderConfig for SQUAD."""
 
     def __init__(self, **kwargs):
@@ -59,7 +59,7 @@ class SquadConfig(nlp.BuilderConfig):
         super(SquadConfig, self).__init__(**kwargs)
 
 
-class Squad(nlp.GeneratorBasedBuilder):
+class Squad(datasets.GeneratorBasedBuilder):
     """SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
 
     _URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
@@ -69,24 +69,24 @@ class Squad(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         SquadConfig(
             name="plain_text",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
             description="Plain text",
         ),
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
+                    "id": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
                         {
-                            "text": nlp.Value("string"),
-                            "answer_start": nlp.Value("int32"),
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
                         }
                     ),
                 }
@@ -106,8 +106,8 @@ class Squad(nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
         ]
 
     def _generate_examples(self, filepath):

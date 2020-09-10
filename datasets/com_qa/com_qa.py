@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(com_qa): BibTeX citation
@@ -46,23 +46,23 @@ _DEV_FILE = "comqa_dev.json"
 _TEST_FILE = "comqa_test.json"
 
 
-class ComQa(nlp.GeneratorBasedBuilder):
+class ComQa(datasets.GeneratorBasedBuilder):
     """TODO(com_qa): Short description of my dataset."""
 
     # TODO(com_qa): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(com_qa): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(com_qa): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "cluster_id": nlp.Value("string"),
-                    "questions": nlp.features.Sequence(nlp.Value("string")),
-                    "answers": nlp.features.Sequence(nlp.Value("string")),
+                    "cluster_id": datasets.Value("string"),
+                    "questions": datasets.features.Sequence(datasets.Value("string")),
+                    "answers": datasets.features.Sequence(datasets.Value("string")),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -78,7 +78,7 @@ class ComQa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(com_qa): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = {
             "train": os.path.join(_URL, _TRAIN_FILE),
@@ -87,18 +87,18 @@ class ComQa(nlp.GeneratorBasedBuilder):
         }
         dl_dir = dl_manager.download_and_extract(urls_to_download)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["train"], "split": "train"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["test"], "split": "test"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["dev"], "split": "dev"},
             ),

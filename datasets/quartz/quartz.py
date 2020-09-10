@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(quartz): BibTeX citation
@@ -30,42 +30,42 @@ The dataset is split into train (2696), dev (384) and test (784). A background s
 _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/quartz-dataset-v1-aug2019.zip"
 
 
-class Quartz(nlp.GeneratorBasedBuilder):
+class Quartz(datasets.GeneratorBasedBuilder):
     """TODO(quartz): Short description of my dataset."""
 
     # TODO(quartz): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(quartz): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(quartz): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "id": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "choices": nlp.features.Sequence({"text": nlp.Value("string"), "label": nlp.Value("string")}),
-                    "answerKey": nlp.Value("string"),
-                    "para": nlp.Value("string"),
-                    "para_id": nlp.Value("string"),
+                    "id": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "choices": datasets.features.Sequence({"text": datasets.Value("string"), "label": datasets.Value("string")}),
+                    "answerKey": datasets.Value("string"),
+                    "para": datasets.Value("string"),
+                    "para_id": datasets.Value("string"),
                     "para_anno": {
-                        "effect_prop": nlp.Value("string"),
-                        "cause_dir_str": nlp.Value("string"),
-                        "effect_dir_str": nlp.Value("string"),
-                        "cause_dir_sign": nlp.Value("string"),
-                        "effect_dir_sign": nlp.Value("string"),
-                        "cause_prop": nlp.Value("string"),
+                        "effect_prop": datasets.Value("string"),
+                        "cause_dir_str": datasets.Value("string"),
+                        "effect_dir_str": datasets.Value("string"),
+                        "cause_dir_sign": datasets.Value("string"),
+                        "effect_dir_sign": datasets.Value("string"),
+                        "cause_prop": datasets.Value("string"),
                     },
                     "question_anno": {
-                        "more_effect_dir": nlp.Value("string"),
-                        "less_effect_dir": nlp.Value("string"),
-                        "less_cause_prop": nlp.Value("string"),
-                        "more_effect_prop": nlp.Value("string"),
-                        "less_effect_prop": nlp.Value("string"),
-                        "less_cause_dir": nlp.Value("string"),
+                        "more_effect_dir": datasets.Value("string"),
+                        "less_effect_dir": datasets.Value("string"),
+                        "less_cause_prop": datasets.Value("string"),
+                        "more_effect_prop": datasets.Value("string"),
+                        "less_effect_prop": datasets.Value("string"),
+                        "less_cause_dir": datasets.Value("string"),
                     },
                 }
             ),
@@ -81,23 +81,23 @@ class Quartz(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(quartz): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "quartz-dataset-v1-aug2019")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "train.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "dev.jsonl")},
             ),

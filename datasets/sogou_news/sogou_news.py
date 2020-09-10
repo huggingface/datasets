@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import csv
 import os
 import sys
 
-import nlp
+import datasets
 
 
 csv.field_size_limit(sys.maxsize)
@@ -49,17 +49,17 @@ URL http://sports.sohu.com is categorized as a sport class.
 _DATA_URL = "https://s3.amazonaws.com/fast-ai-nlp/sogou_news_csv.tgz"
 
 
-class Sogou_News(nlp.GeneratorBasedBuilder):
+class Sogou_News(datasets.GeneratorBasedBuilder):
     """Sogou News dataset"""
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "title": nlp.Value("string"),
-                    "content": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(
+                    "title": datasets.Value("string"),
+                    "content": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(
                         names=["sports", "finance", "entertainment", "automobile", "technology"]
                     ),
                 }
@@ -75,11 +75,11 @@ class Sogou_News(nlp.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "test.csv")}
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "test.csv")}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "train.csv")}
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "train.csv")}
             ),
         ]
 

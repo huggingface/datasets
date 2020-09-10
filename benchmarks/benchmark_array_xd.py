@@ -4,9 +4,9 @@ import tempfile
 
 from utils import generate_examples, get_duration
 
-import nlp
-from nlp.arrow_writer import ArrowWriter
-from nlp.features import Array2D
+import datasets
+from datasets.arrow_writer import ArrowWriter
+from datasets.features import Array2D
 
 
 SHAPE_TEST_1 = (30, 487)
@@ -14,7 +14,7 @@ SHAPE_TEST_2 = (36, 1024)
 SPEED_TEST_SHAPE = (100, 100)
 SPEED_TEST_N_EXAMPLES = 100
 
-DEFAULT_FEATURES = nlp.Features(
+DEFAULT_FEATURES = datasets.Features(
     {"text": Array2D(SHAPE_TEST_1, dtype="float32"), "image": Array2D(SHAPE_TEST_2, dtype="float32")}
 )
 
@@ -33,14 +33,14 @@ def write(my_features, dummy_data, tmp_dir):
 
 @get_duration
 def read_unformated(feats, tmp_dir):
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
     for _ in dataset:
         pass
 
 
 @get_duration
 def read_formatted_as_numpy(feats, tmp_dir):
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
     dataset.set_format("numpy")
     for _ in dataset:
         pass
@@ -49,7 +49,7 @@ def read_formatted_as_numpy(feats, tmp_dir):
 @get_duration
 def read_batch_unformated(feats, tmp_dir):
     batch_size = 10
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
     for i in range(0, len(dataset), batch_size):
         _ = dataset[i : i + batch_size]
 
@@ -57,7 +57,7 @@ def read_batch_unformated(feats, tmp_dir):
 @get_duration
 def read_batch_formatted_as_numpy(feats, tmp_dir):
     batch_size = 10
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
     dataset.set_format("numpy")
     for i in range(0, len(dataset), batch_size):
         _ = dataset[i : i + batch_size]
@@ -65,14 +65,14 @@ def read_batch_formatted_as_numpy(feats, tmp_dir):
 
 @get_duration
 def read_col_unformated(feats, tmp_dir):
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
     for col in feats:
         _ = dataset[col]
 
 
 @get_duration
 def read_col_formatted_as_numpy(feats, tmp_dir):
-    dataset = nlp.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=nlp.DatasetInfo(features=feats))
+    dataset = datasets.Dataset.from_file(filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats))
     dataset.set_format("numpy")
     for col in feats:
         _ = dataset[col]
@@ -89,7 +89,7 @@ def benchmark_array_xd():
         read_col_formatted_as_numpy,
     )
     with tempfile.TemporaryDirectory() as tmp_dir:
-        feats = nlp.Features({"image": Array2D(SPEED_TEST_SHAPE, dtype="float32")})
+        feats = datasets.Features({"image": Array2D(SPEED_TEST_SHAPE, dtype="float32")})
         data = generate_examples(features=feats, num_examples=SPEED_TEST_N_EXAMPLES)
         times["write_array2d"] = write(feats, data, tmp_dir)
         for read_func in read_functions:
@@ -97,10 +97,10 @@ def benchmark_array_xd():
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # don't use fixed length for fair comparison
-        # feats = nlp.Features(
-        #     {"image": nlp.Sequence(nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[1]), SPEED_TEST_SHAPE[0])}
+        # feats = datasets.Features(
+        #     {"image": datasets.Sequence(datasets.Sequence(datasets.Value("float32"), SPEED_TEST_SHAPE[1]), SPEED_TEST_SHAPE[0])}
         # )
-        feats = nlp.Features({"image": nlp.Sequence(nlp.Sequence(nlp.Value("float32")))})
+        feats = datasets.Features({"image": datasets.Sequence(datasets.Sequence(datasets.Value("float32")))})
         data = generate_examples(
             features=feats, num_examples=SPEED_TEST_N_EXAMPLES, seq_shapes={"image": SPEED_TEST_SHAPE}
         )
@@ -110,10 +110,10 @@ def benchmark_array_xd():
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         # don't use fixed length for fair comparison
-        # feats = nlp.Features(
-        #     {"image": nlp.Sequence(nlp.Value("float32"), SPEED_TEST_SHAPE[0] * SPEED_TEST_SHAPE[1])}
+        # feats = datasets.Features(
+        #     {"image": datasets.Sequence(datasets.Value("float32"), SPEED_TEST_SHAPE[0] * SPEED_TEST_SHAPE[1])}
         # )
-        feats = nlp.Features({"image": nlp.Sequence(nlp.Value("float32"))})
+        feats = datasets.Features({"image": datasets.Sequence(datasets.Value("float32"))})
         data = generate_examples(
             features=feats,
             num_examples=SPEED_TEST_N_EXAMPLES,

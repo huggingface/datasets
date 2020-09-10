@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(math_qa): BibTeX citation
@@ -19,28 +19,28 @@ Our dataset is gathered by using a new representation language to annotate over 
 _URL = "https://math-qa.github.io/math-QA/data/MathQA.zip"
 
 
-class MathQa(nlp.GeneratorBasedBuilder):
+class MathQa(datasets.GeneratorBasedBuilder):
     """TODO(math_qa): Short description of my dataset."""
 
     # TODO(math_qa): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(math_qa): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(math_qa): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "Problem": nlp.Value("string"),
-                    "Rationale": nlp.Value("string"),
-                    "options": nlp.Value("string"),
-                    "correct": nlp.Value("string"),
-                    "annotated_formula": nlp.Value("string"),
-                    "linear_formula": nlp.Value("string"),
-                    "category": nlp.Value("string"),
+                    "Problem": datasets.Value("string"),
+                    "Rationale": datasets.Value("string"),
+                    "options": datasets.Value("string"),
+                    "correct": datasets.Value("string"),
+                    "annotated_formula": datasets.Value("string"),
+                    "linear_formula": datasets.Value("string"),
+                    "category": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -55,22 +55,22 @@ class MathQa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(math_qa): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_path = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_path, "train.json")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_path, "test.json")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_path, "dev.json")},
             ),

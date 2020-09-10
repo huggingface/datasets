@@ -2,8 +2,8 @@ import timeit
 
 import numpy as np
 
-import nlp
-from nlp.features import _ArrayXD
+import datasets
+from datasets.features import _ArrayXD
 
 
 def get_duration(func):
@@ -26,13 +26,13 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
         for col_id, (k, v) in enumerate(features.items()):
             if isinstance(v, _ArrayXD):
                 data = np.random.rand(*v.shape).astype(v.dtype)
-            elif isinstance(v, nlp.Value):
+            elif isinstance(v, datasets.Value):
                 if v.dtype == "string":
                     data = "The small grey turtle was surprisingly fast when challenged."
                 else:
                     data = np.random.randint(10, size=1).astype(v.dtype).item()
-            elif isinstance(v, nlp.Sequence):
-                while isinstance(v, nlp.Sequence):
+            elif isinstance(v, datasets.Sequence):
+                while isinstance(v, datasets.Sequence):
                     v = v.feature
                 shape = seq_shapes[k]
                 data = np.random.rand(*shape).astype(v.dtype)
@@ -46,7 +46,7 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
 def generate_example_dataset(dataset_path, features, num_examples=100, seq_shapes=None):
     dummy_data = generate_examples(features, num_examples=num_examples, seq_shapes=seq_shapes)
 
-    writer = nlp.ArrowWriter(features=features, path=dataset_path)
+    writer = datasets.ArrowWriter(features=features, path=dataset_path)
     for key, record in dummy_data:
         example = features.encode_example(record)
         writer.write(example)
@@ -57,6 +57,6 @@ def generate_example_dataset(dataset_path, features, num_examples=100, seq_shape
         num_final_examples == num_examples
     ), f"Error writing the dataset, wrote {num_final_examples} examples but should have written {num_examples}."
 
-    dataset = nlp.Dataset.from_file(filename=dataset_path, info=nlp.DatasetInfo(features=features))
+    dataset = datasets.Dataset.from_file(filename=dataset_path, info=datasets.DatasetInfo(features=features))
 
     return dataset

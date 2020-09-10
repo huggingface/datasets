@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import nlp
+import datasets
 
 
 # TODO(wiki_qa): BibTeX citation
@@ -28,25 +28,25 @@ Wiki Question Answering corpus from Microsoft
 _DATA_URL = "https://download.microsoft.com/download/E/5/f/E5FCFCEE-7005-4814-853D-DAA7C66507E0/WikiQACorpus.zip"  # 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=52419'
 
 
-class WikiQa(nlp.GeneratorBasedBuilder):
+class WikiQa(datasets.GeneratorBasedBuilder):
     """TODO(wiki_qa): Short description of my dataset."""
 
     # TODO(wiki_qa): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(wiki_qa): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(wiki_qa): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "question_id": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "document_title": nlp.Value("string"),
-                    "answer": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(num_classes=2),
+                    "question_id": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "document_title": datasets.Value("string"),
+                    "answer": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(num_classes=2),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -62,18 +62,18 @@ class WikiQa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(wiki_qa): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
         dl_dir = os.path.join(dl_dir, "WikiQACorpus")
         # dl_dir = os.path.join(dl_dir, '')
         return [
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "WikiQA-test.tsv")}),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, "WikiQA-dev.tsv")}
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "WikiQA-test.tsv")}),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, "WikiQA-dev.tsv")}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_dir, "WikiQA-train.tsv")},
             ),

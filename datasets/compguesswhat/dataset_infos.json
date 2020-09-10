@@ -148,7 +148,7 @@
     "version": {
       "version_str": "0.1.0",
       "description": "First CompGuessWhat?! release",
-      "nlp_version_to_prepare": null,
+      "datasets_version_to_prepare": null,
       "major": 0,
       "minor": 1,
       "patch": 0
@@ -352,7 +352,7 @@
     "version": {
       "version_str": "0.1.0",
       "description": "First CompGuessWhat?! release",
-      "nlp_version_to_prepare": null,
+      "datasets_version_to_prepare": null,
       "major": 0,
       "minor": 1,
       "patch": 0

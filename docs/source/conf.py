@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('../../src'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'nlp'
+project = 'datasets'
 copyright = '2020, HuggingFace'
 author = 'HuggingFace'
 
@@ -112,7 +112,7 @@ html_favicon = 'favicon.ico'
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'nlpdoc'
+htmlhelp_basename = 'datasetsdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -139,7 +139,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'nlp.tex', u'nlp Documentation',
+    (master_doc, 'datasets.tex', u'datasets Documentation',
      u'huggingface', 'manual'),
 ]
 
@@ -149,7 +149,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'nlp', u'nlp Documentation',
+    (master_doc, 'datasets', u'datasets Documentation',
      [author], 1)
 ]
 
@@ -160,8 +160,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'nlp', u'nlp Documentation',
-     author, 'nlp', 'One line description of project.',
+    (master_doc, 'datasets', u'datasets Documentation',
+     author, 'datasets', 'One line description of project.',
      'Miscellaneous'),
 ]
 

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from logging import getLogger
 
 from bleurt import score  # From: git+https://github.com/google-research/bleurt.git
 
-import nlp
+import datasets
 
 
 logger = getLogger(__name__)
@@ -65,18 +65,18 @@ CHECKPOINT_URLS = {
 }
 
 
-class BLEURT(nlp.Metric):
+class BLEURT(datasets.Metric):
     def _info(self):
 
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             homepage="https://github.com/google-research/bleurt",
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "predictions": nlp.Value("string", id="sequence"),
-                    "references": nlp.Value("string", id="sequence"),
+                    "predictions": datasets.Value("string", id="sequence"),
+                    "references": datasets.Value("string", id="sequence"),
                 }
             ),
             codebase_urls=["https://github.com/google-research/bleurt"],
@@ -89,7 +89,7 @@ class BLEURT(nlp.Metric):
         if self.config_name == "default":
             logger.warning(
                 "Using default BLEURT-Base checkpoint for sequence maximum length 128. "
-                "You can use a bigger model for better results with e.g.: nlp.load_metric('bleurt', 'bleurt-large-512')."
+                "You can use a bigger model for better results with e.g.: datasets.load_metric('bleurt', 'bleurt-large-512')."
             )
             self.config_name = "bleurt-base-128"
         if self.config_name not in CHECKPOINT_URLS.keys():

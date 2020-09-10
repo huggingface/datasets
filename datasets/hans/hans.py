@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -45,7 +45,7 @@ The HANS dataset is an NLI evaluation set that tests specific hypotheses about i
 """
 
 
-class HansConfig(nlp.BuilderConfig):
+class HansConfig(datasets.BuilderConfig):
     """BuilderConfig for HANS."""
 
     def __init__(self, **kwargs):
@@ -56,11 +56,11 @@ class HansConfig(nlp.BuilderConfig):
               **kwargs: keyword arguments forwarded to super.
         """
         super(HansConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
 
 
-class Hans(nlp.GeneratorBasedBuilder):
+class Hans(datasets.GeneratorBasedBuilder):
     """Hans: Heuristic Analysis for NLI Systems."""
 
     BUILDER_CONFIGS = [
@@ -71,13 +71,13 @@ class Hans(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "premise": nlp.Value("string"),
-                    "hypothesis": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["entailment", "non-entailment"]),
+                    "premise": datasets.Value("string"),
+                    "hypothesis": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["entailment", "non-entailment"]),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -101,8 +101,8 @@ class Hans(nlp.GeneratorBasedBuilder):
         )
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": valid_path}),
         ]
 
     def _generate_examples(self, filepath):

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -63,18 +63,18 @@ _DOCUMENT = "document"
 _SUMMARY = "summary"
 
 
-class Gigaword(nlp.GeneratorBasedBuilder):
+class Gigaword(datasets.GeneratorBasedBuilder):
     """Gigaword summarization dataset."""
 
     # 1.0.0 contains a bug that uses validation data as training data.
     # 1.1.0 Update to the correct train, validation and test data.
     # 1.2.0 Replace <unk> with <UNK> in train/val to be consistent with test.
-    VERSION = nlp.Version("1.2.0")
+    VERSION = datasets.Version("1.2.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string")}),
+            features=datasets.Features({_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/harvardnlp/sent-summary",
             citation=_CITATION,
@@ -85,24 +85,24 @@ class Gigaword(nlp.GeneratorBasedBuilder):
         dl_path = dl_manager.download_and_extract(_URL)
         pattern = os.path.join(dl_path, "org_data", "%s.%s.txt")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "src_path": pattern % ("train", "src"),
                     "tgt_path": pattern % ("train", "tgt"),
                     "replace_unk": True,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "src_path": pattern % ("dev", "src"),
                     "tgt_path": pattern % ("dev", "tgt"),
                     "replace_unk": True,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={
                     "src_path": pattern % ("test", "src"),
                     "tgt_path": pattern % ("test", "tgt"),

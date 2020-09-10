@@ -5,15 +5,15 @@ Main classes
 ``DatasetInfo``
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nlp.DatasetInfo
+.. autoclass:: datasets.DatasetInfo
     :members:
 
 ``Dataset``
 ~~~~~~~~~~~~~~~~~~~~~
 
-The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arrow table.
+The base class :class:`datasets.Dataset` implements a Dataset backed by an Apache Arrow table.
 
-.. autoclass:: nlp.Dataset
+.. autoclass:: datasets.Dataset
     :members: from_file, from_buffer, from_pandas, from_dict,
         data, cache_files, num_columns, num_rows, column_names, shape,
         unique, flatten_,
@@ -29,15 +29,15 @@ The base class :class:`nlp.Dataset` implements a Dataset backed by an Apache Arr
         description, download_checksums, download_size, features, homepage,
         license, size_in_bytes, supervised_keys, version
 
-.. autofunction:: nlp.concatenate_datasets
+.. autofunction:: datasets.concatenate_datasets
 
 ``DatasetDict``
 ~~~~~~~~~~~~~~~~~~~~~
 
-Dictionary with split names as keys ('train', 'test' for example), and :obj:`nlp.Dataset` objects as values.
+Dictionary with split names as keys ('train', 'test' for example), and :obj:`datasets.Dataset` objects as values.
 It also has dataset transform methods like map or filter, to process all the splits at once.
 
-.. autoclass:: nlp.DatasetDict
+.. autoclass:: datasets.DatasetDict
     :members: data, cache_files, num_columns, num_rows, column_names, shape,
         unique, flatten_,
         cleanup_cache_files,
@@ -49,46 +49,46 @@ It also has dataset transform methods like map or filter, to process all the spl
 ``Features``
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nlp.Features
+.. autoclass:: datasets.Features
     :members:
 
-.. autoclass:: nlp.Sequence
+.. autoclass:: datasets.Sequence
     :members:
 
-.. autoclass:: nlp.ClassLabel
+.. autoclass:: datasets.ClassLabel
     :members:
 
-.. autoclass:: nlp.Value
+.. autoclass:: datasets.Value
     :members:
 
-.. autoclass:: nlp.Translation
+.. autoclass:: datasets.Translation
     :members:
 
-.. autoclass:: nlp.TranslationVariableLanguages
+.. autoclass:: datasets.TranslationVariableLanguages
     :members:
 
-.. autoclass:: nlp.Array2D
+.. autoclass:: datasets.Array2D
     :members:
 
-.. autoclass:: nlp.Array3D
+.. autoclass:: datasets.Array3D
     :members:
 
-.. autoclass:: nlp.Array4D
+.. autoclass:: datasets.Array4D
     :members:
 
-.. autoclass:: nlp.Array5D
+.. autoclass:: datasets.Array5D
     :members:
 
 ``MetricInfo``
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: nlp.MetricInfo
+.. autoclass:: datasets.MetricInfo
     :members:
 
 ``Metric``
 ~~~~~~~~~~~~~~~~~~~~~
 
-The base class ``Metric`` implements a Metric backed by one or several :class:`nlp.Dataset`.
+The base class ``Metric`` implements a Metric backed by one or several :class:`datasets.Dataset`.
 
-.. autoclass:: nlp.Metric
+.. autoclass:: datasets.Metric
     :members:

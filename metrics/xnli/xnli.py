@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 """ XNLI benchmark metric. """
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -57,16 +57,16 @@ def simple_accuracy(preds, labels):
     return (preds == labels).mean()
 
 
-class Xnli(nlp.Metric):
+class Xnli(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "predictions": nlp.Value("int64" if self.config_name != "sts-b" else "float32"),
-                    "references": nlp.Value("int64" if self.config_name != "sts-b" else "float32"),
+                    "predictions": datasets.Value("int64" if self.config_name != "sts-b" else "float32"),
+                    "references": datasets.Value("int64" if self.config_name != "sts-b" else "float32"),
                 }
             ),
             codebase_urls=[],

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import textwrap
 import numpy as np
 import six
 
-import nlp
+import datasets
 
 
 _GLUE_CITATION = """\
@@ -87,7 +87,7 @@ _MNLI_BASE_KWARGS = dict(
 )
 
 
-class GlueConfig(nlp.BuilderConfig):
+class GlueConfig(datasets.BuilderConfig):
     """BuilderConfig for GLUE."""
 
     def __init__(
@@ -116,13 +116,13 @@ class GlueConfig(nlp.BuilderConfig):
           url: `string`, url for information about the data set
           label_classes: `list[string]`, the list of classes if the label is
             categorical. If not provided, then the label will be of type
-            `nlp.Value('float32')`.
+            `datasets.Value('float32')`.
           process_label: `Function[string, any]`, function  taking in the raw value
             of the label and processing it to the form required by the label feature
           **kwargs: keyword arguments forwarded to super.
         """
         super(GlueConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
         self.text_features = text_features
         self.label_column = label_column
@@ -134,7 +134,7 @@ class GlueConfig(nlp.BuilderConfig):
         self.process_label = process_label
 
 
-class Glue(nlp.GeneratorBasedBuilder):
+class Glue(datasets.GeneratorBasedBuilder):
     """The General Language Understanding Evaluation (GLUE) benchmark."""
 
     BUILDER_CONFIGS = [
@@ -187,7 +187,7 @@ class Glue(nlp.GeneratorBasedBuilder):
               year={2013}
             }"""
             ),
-            url="https://nlp.stanford.edu/sentiment/index.html",
+            url="https://datasets.stanford.edu/sentiment/index.html",
         ),
         GlueConfig(
             name="mrpc",
@@ -455,15 +455,15 @@ class Glue(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {text_feature: nlp.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
         if self.config.label_classes:
-            features["label"] = nlp.features.ClassLabel(names=self.config.label_classes)
+            features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         else:
-            features["label"] = nlp.Value("float32")
-        features["idx"] = nlp.Value("int32")
-        return nlp.DatasetInfo(
+            features["label"] = datasets.Value("float32")
+        features["idx"] = datasets.Value("int32")
+        return datasets.DatasetInfo(
             description=_GLUE_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             homepage=self.config.url,
             citation=self.config.citation + "\n" + _GLUE_CITATION,
         )
@@ -472,8 +472,8 @@ class Glue(nlp.GeneratorBasedBuilder):
         if self.config.name == "ax":
             data_file = dl_manager.download(self.config.data_url)
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "data_file": data_file,
                         "split": "test",
@@ -494,8 +494,8 @@ class Glue(nlp.GeneratorBasedBuilder):
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             data_dir = os.path.join(dl_dir, self.config.data_dir)
             mrpc_files = None
-        train_split = nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
+        train_split = datasets.SplitGenerator(
+            name=datasets.Split.TRAIN,
             gen_kwargs={
                 "data_file": os.path.join(data_dir or "", "train.tsv"),
                 "split": "train",
@@ -523,16 +523,16 @@ class Glue(nlp.GeneratorBasedBuilder):
         else:
             return [
                 train_split,
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     gen_kwargs={
                         "data_file": os.path.join(data_dir or "", "dev.tsv"),
                         "split": "dev",
                         "mrpc_files": mrpc_files,
                     },
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "data_file": os.path.join(data_dir or "", "test.tsv"),
                         "split": "test",
@@ -619,7 +619,7 @@ class Glue(nlp.GeneratorBasedBuilder):
 
 
 def _mnli_split_generator(name, data_dir, split, matched):
-    return nlp.SplitGenerator(
+    return datasets.SplitGenerator(
         name=name,
         gen_kwargs={
             "data_file": os.path.join(data_dir, "%s_%s.tsv" % (split, "matched" if matched else "mismatched")),

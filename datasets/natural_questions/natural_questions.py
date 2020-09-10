@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import re
 import apache_beam as beam
 import six
 
-import nlp
+import datasets
 
 
 if six.PY2:
@@ -62,44 +62,44 @@ _DOWNLOAD_URLS = {
 }
 
 
-class NaturalQuestions(nlp.BeamBasedBuilder):
+class NaturalQuestions(datasets.BeamBasedBuilder):
     """Natural Questions: A Benchmark for Question Answering Research."""
 
-    VERSION = nlp.Version("0.0.2")
-    SUPPORTED_VERSIONS = [nlp.Version("0.0.1")]
+    VERSION = datasets.Version("0.0.2")
+    SUPPORTED_VERSIONS = [datasets.Version("0.0.1")]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
+                    "id": datasets.Value("string"),
                     "document": {
-                        "title": nlp.Value("string"),
-                        "url": nlp.Value("string"),
-                        "html": nlp.Value("string"),
-                        "tokens": nlp.features.Sequence({"token": nlp.Value("string"), "is_html": nlp.Value("bool")}),
+                        "title": datasets.Value("string"),
+                        "url": datasets.Value("string"),
+                        "html": datasets.Value("string"),
+                        "tokens": datasets.features.Sequence({"token": datasets.Value("string"), "is_html": datasets.Value("bool")}),
                     },
-                    "question": {"text": nlp.Value("string"), "tokens": nlp.features.Sequence(nlp.Value("string"))},
-                    "annotations": nlp.features.Sequence(
+                    "question": {"text": datasets.Value("string"), "tokens": datasets.features.Sequence(datasets.Value("string"))},
+                    "annotations": datasets.features.Sequence(
                         {
-                            "id": nlp.Value("string"),
+                            "id": datasets.Value("string"),
                             "long_answer": {
-                                "start_token": nlp.Value("int64"),
-                                "end_token": nlp.Value("int64"),
-                                "start_byte": nlp.Value("int64"),
-                                "end_byte": nlp.Value("int64"),
+                                "start_token": datasets.Value("int64"),
+                                "end_token": datasets.Value("int64"),
+                                "start_byte": datasets.Value("int64"),
+                                "end_byte": datasets.Value("int64"),
                             },
-                            "short_answers": nlp.features.Sequence(
+                            "short_answers": datasets.features.Sequence(
                                 {
-                                    "start_token": nlp.Value("int64"),
-                                    "end_token": nlp.Value("int64"),
-                                    "start_byte": nlp.Value("int64"),
-                                    "end_byte": nlp.Value("int64"),
-                                    "text": nlp.Value("string"),
+                                    "start_token": datasets.Value("int64"),
+                                    "end_token": datasets.Value("int64"),
+                                    "start_byte": datasets.Value("int64"),
+                                    "end_byte": datasets.Value("int64"),
+                                    "text": datasets.Value("string"),
                                 }
                             ),
-                            "yes_no_answer": nlp.features.ClassLabel(names=["NO", "YES"]),  # Can also be -1 for NONE.
+                            "yes_no_answer": datasets.features.ClassLabel(names=["NO", "YES"]),  # Can also be -1 for NONE.
                         }
                     ),
                 }
@@ -117,12 +117,12 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
             files = dl_manager.ship_files_with_pipeline(files, pipeline)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"filepaths": files["train"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"filepaths": files["validation"]},
             ),
         ]
@@ -154,7 +154,7 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
 
             def _parse_annotation(an_json):
                 return {
-                    # Convert to str since some IDs cannot be represented by nlp.Value('int64').
+                    # Convert to str since some IDs cannot be represented by datasets.Value('int64').
                     "id": str(an_json["annotation_id"]),
                     "long_answer": {
                         "start_token": an_json["long_answer"]["start_token"],
@@ -167,7 +167,7 @@ class NaturalQuestions(nlp.BeamBasedBuilder):
                 }
 
             beam.metrics.Metrics.counter("nq", "examples").inc()
-            # Convert to str since some IDs cannot be represented by nlp.Value('int64').
+            # Convert to str since some IDs cannot be represented by datasets.Value('int64').
             id_ = str(ex_json["example_id"])
             return (
                 id_,

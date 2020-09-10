@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -52,7 +52,7 @@ DoQA enables the development and evaluation of conversational QA systems that he
 _URL = "https://ixa2.si.ehu.es/convai/doqa-v2.1.zip"
 
 
-class DoqaConfig(nlp.BuilderConfig):
+class DoqaConfig(datasets.BuilderConfig):
     """BuilderConfig for DoQA."""
 
     def __init__(self, **kwargs):
@@ -63,11 +63,11 @@ class DoqaConfig(nlp.BuilderConfig):
         """
 
         super(DoqaConfig, self).__init__(
-            version=nlp.Version("2.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
+            version=datasets.Version("2.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
 
 
-class Doqa(nlp.GeneratorBasedBuilder):
+class Doqa(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         DoqaConfig(
@@ -82,27 +82,27 @@ class Doqa(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "title": nlp.Value("string"),
-                    "background": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "id": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
+                    "title": datasets.Value("string"),
+                    "background": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "id": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
                         {
-                            "text": nlp.Value("string"),
-                            "answer_start": nlp.Value("int32"),
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
                         }
                     ),
-                    "followup": nlp.Value("string"),
-                    "yesno": nlp.Value("string"),
-                    "orig_answer": nlp.features.Sequence(
+                    "followup": datasets.Value("string"),
+                    "yesno": datasets.Value("string"),
+                    "orig_answer": datasets.features.Sequence(
                         {
-                            "text": nlp.Value("string"),
-                            "answer_start": nlp.Value("int32"),
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
                         }
                     ),
                 }
@@ -115,20 +115,20 @@ class Doqa(nlp.GeneratorBasedBuilder):
         path = dl_manager.download_and_extract(_URL)
         if self.config.name == "cooking":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-cooking-test-v2.1.json")
                     },
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     gen_kwargs={
                         "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-cooking-dev-v2.1.json")
                     },
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={
                         "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-cooking-train-v2.1.json")
                     },
@@ -136,8 +136,8 @@ class Doqa(nlp.GeneratorBasedBuilder):
             ]
         elif self.config.name == "movies":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-movies-test-v2.1.json")
                     },
@@ -145,8 +145,8 @@ class Doqa(nlp.GeneratorBasedBuilder):
             ]
         elif self.config.name == "travel":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-travel-test-v2.1.json")
                     },

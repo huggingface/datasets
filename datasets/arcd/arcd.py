@@ -6,7 +6,7 @@ import json
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -31,7 +31,7 @@ _DESCRIPTION = """\
 """
 
 
-class ArcdConfig(nlp.BuilderConfig):
+class ArcdConfig(datasets.BuilderConfig):
     """BuilderConfig for ARCD."""
 
     def __init__(self, **kwargs):
@@ -43,7 +43,7 @@ class ArcdConfig(nlp.BuilderConfig):
         super(ArcdConfig, self).__init__(**kwargs)
 
 
-class Arcd(nlp.GeneratorBasedBuilder):
+class Arcd(datasets.GeneratorBasedBuilder):
     """ARCD: Arabic Reading Comprehension Dataset."""
 
     _URL = "https://raw.githubusercontent.com/husseinmozannar/SOQAL/master/data/"
@@ -53,22 +53,22 @@ class Arcd(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         ArcdConfig(
             name="plain_text",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
             description="Plain text",
         )
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32")}
+                    "id": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32")}
                     ),
                 }
             ),
@@ -87,8 +87,8 @@ class Arcd(nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
         ]
 
     def _generate_examples(self, filepath):

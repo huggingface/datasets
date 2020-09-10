@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -57,7 +57,7 @@ _VALID_LANGUAGE_PAIRS = (
 )
 
 
-class TedHrlrConfig(nlp.BuilderConfig):
+class TedHrlrConfig(datasets.BuilderConfig):
     """BuilderConfig for TED talk data comparing high/low resource languages."""
 
     def __init__(self, language_pair=(None, None), **kwargs):
@@ -94,21 +94,21 @@ class TedHrlrConfig(nlp.BuilderConfig):
         self.language_pair = language_pair
 
 
-class TedHrlr(nlp.GeneratorBasedBuilder):
+class TedHrlr(datasets.GeneratorBasedBuilder):
     """TED talk data set for comparing high and low resource languages."""
 
     BUILDER_CONFIGS = [
         TedHrlrConfig(  # pylint: disable=g-complex-comprehension
             language_pair=pair,
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
         )
         for pair in _VALID_LANGUAGE_PAIRS
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"translation": nlp.features.Translation(languages=self.config.language_pair)}),
+            features=datasets.Features({"translation": datasets.features.Translation(languages=self.config.language_pair)}),
             homepage="https://github.com/neulab/word-embeddings-for-nmt",
             supervised_keys=self.config.language_pair,
             citation=_CITATION,
@@ -121,22 +121,22 @@ class TedHrlr(nlp.GeneratorBasedBuilder):
         data_dir = os.path.join(dl_dir, "datasets", "%s_to_%s" % (source, target))
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "source_file": os.path.join(data_dir, "{}.train".format(source.replace("_", "-"))),
                     "target_file": os.path.join(data_dir, "{}.train".format(target)),
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "source_file": os.path.join(data_dir, "{}.dev".format(source.split("_")[0])),
                     "target_file": os.path.join(data_dir, "{}.dev".format(target)),
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={
                     "source_file": os.path.join(data_dir, "{}.test".format(source.split("_")[0])),
                     "target_file": os.path.join(data_dir, "{}.test".format(target)),

@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(mlqa): BibTeX citation
@@ -33,7 +33,7 @@ _LANG = ["ar", "de", "vi", "zh", "en", "es", "hi"]
 _TRANSLATE_LANG = ["ar", "de", "vi", "zh", "es", "hi"]
 
 
-class MlqaConfig(nlp.BuilderConfig):
+class MlqaConfig(datasets.BuilderConfig):
     def __init__(self, data_url, **kwargs):
         """BuilderConfig for MLQA
 
@@ -42,7 +42,7 @@ class MlqaConfig(nlp.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(MlqaConfig, self).__init__(
-            version=nlp.Version(
+            version=datasets.Version(
                 "1.0.0",
             ),
             **kwargs,
@@ -50,11 +50,11 @@ class MlqaConfig(nlp.BuilderConfig):
         self.data_url = data_url
 
 
-class Mlqa(nlp.GeneratorBasedBuilder):
+class Mlqa(datasets.GeneratorBasedBuilder):
     """TODO(mlqa): Short description of my dataset."""
 
     # TODO(mlqa): Set up version.
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = (
         [
             MlqaConfig(
@@ -87,17 +87,17 @@ class Mlqa(nlp.GeneratorBasedBuilder):
     )
 
     def _info(self):
-        # TODO(mlqa): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(mlqa): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "context": nlp.Value("string"),
-                    "questions": nlp.Value("string"),
-                    "answers": nlp.features.Sequence({"start": nlp.Value("int32"), "text": nlp.Value("string")}),
-                    "ids": nlp.Value("string"),
+                    "context": datasets.Value("string"),
+                    "questions": datasets.Value("string"),
+                    "answers": datasets.features.Sequence({"start": datasets.Value("int32"), "text": datasets.Value("string")}),
+                    "ids": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -113,14 +113,14 @@ class Mlqa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(mlqa): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         if self.config.name.startswith("mlqa-translate-train"):
             dl_file = dl_manager.download_and_extract(self.config.data_url)
             lang = self.config.name.split(".")[-1]
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(
@@ -129,8 +129,8 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                         )
                     },
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={
                         "filepath": os.path.join(
@@ -147,8 +147,8 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                 name = self.config.name.split(".")
                 l1, l2 = name[1:]
                 return [
-                    nlp.SplitGenerator(
-                        name=nlp.Split.TEST,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TEST,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": os.path.join(
@@ -157,8 +157,8 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                             )
                         },
                     ),
-                    nlp.SplitGenerator(
-                        name=nlp.Split.VALIDATION,
+                    datasets.SplitGenerator(
+                        name=datasets.Split.VALIDATION,
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": os.path.join(
@@ -172,8 +172,8 @@ class Mlqa(nlp.GeneratorBasedBuilder):
                     dl_file = dl_manager.download_and_extract(self.config.data_url)
                     lang = self.config.name.split(".")[-1]
                     return [
-                        nlp.SplitGenerator(
-                            name=nlp.Split.TEST,
+                        datasets.SplitGenerator(
+                            name=datasets.Split.TEST,
                             # These kwargs will be passed to _generate_examples
                             gen_kwargs={
                                 "filepath": os.path.join(
