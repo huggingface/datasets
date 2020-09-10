@@ -55,3 +55,5 @@ if int(pyarrow.__version__.split(".")[1]) < 16 and int(pyarrow.__version__.split
         "To use `nlp`, the module `pyarrow>=0.16.0` is required, and the current version of `pyarrow` doesn't match this condition.\n"
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
     )
+
+SCRIPTS_VERIONS = "master"
