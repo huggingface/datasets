@@ -25,7 +25,7 @@ The two QAngaroo datasets provide a training and evaluation resource for such me
 """
 
 _MEDHOP_DESCRIPTION = """\
-  With the same format as WikiHop, this dataset is based on research paper abstracts from PubMed, and the queries are about interactions between pairs of drugs. 
+  With the same format as WikiHop, this dataset is based on research paper abstracts from PubMed, and the queries are about interactions between pairs of drugs.
   The correct answer has to be inferred by combining information from a chain of reactions of drugs and proteins.
   """
 _WIKIHOP_DESCRIPTION = """\

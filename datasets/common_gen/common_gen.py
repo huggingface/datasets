@@ -20,15 +20,15 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-CommonGen is a constrained text generation task, associated with a benchmark dataset, 
-to explicitly test machines for the ability of generative commonsense reasoning. Given 
-a set of common concepts; the task is to generate a coherent sentence describing an 
+CommonGen is a constrained text generation task, associated with a benchmark dataset,
+to explicitly test machines for the ability of generative commonsense reasoning. Given
+a set of common concepts; the task is to generate a coherent sentence describing an
 everyday scenario using these concepts.
 
-CommonGen is challenging because it inherently requires 1) relational reasoning using 
-background commonsense knowledge, and 2) compositional generalization ability to work 
-on unseen concept combinations. Our dataset, constructed through a combination of 
-crowd-sourcing from AMT and existing caption corpora, consists of 30k concept-sets and 
+CommonGen is challenging because it inherently requires 1) relational reasoning using
+background commonsense knowledge, and 2) compositional generalization ability to work
+on unseen concept combinations. Our dataset, constructed through a combination of
+crowd-sourcing from AMT and existing caption corpora, consists of 30k concept-sets and
 50k sentences in total.
 """
 _URL = "https://storage.googleapis.com/huggingface-nlp/datasets/common_gen/commongen_data.zip"

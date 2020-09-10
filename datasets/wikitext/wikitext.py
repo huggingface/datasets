@@ -17,7 +17,7 @@ _CITATION = """\
 
 # TODO(wikitext):
 _DESCRIPTION = """\
- The WikiText language modeling dataset is a collection of over 100 million tokens extracted from the set of verified 
+ The WikiText language modeling dataset is a collection of over 100 million tokens extracted from the set of verified
  Good and Featured articles on Wikipedia. The dataset is available under the Creative Commons Attribution-ShareAlike License.
 """
 _URL = "https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/"

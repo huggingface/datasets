@@ -266,7 +266,7 @@ class Clue(nlp.GeneratorBasedBuilder):
                 """\
             Multiple-Choice Chinese Machine Reading Comprehension (C3, or C^3) is a Chinese
             multi-choice reading comprehension data set, including mixed type data sets
-            such as dialogue and long text. Both the training and validation sets are 
+            such as dialogue and long text. Both the training and validation sets are
             the concatenation of the dialogue and long-text subsets.
             """
             ),

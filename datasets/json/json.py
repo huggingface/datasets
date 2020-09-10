@@ -3,7 +3,6 @@
 import json
 from dataclasses import dataclass
 from io import BytesIO
-from typing import List, Union
 
 import pyarrow as pa
 import pyarrow.json as paj

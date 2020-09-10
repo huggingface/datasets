@@ -21,11 +21,11 @@ journal = {Transactions of the Association for Computational Linguistics}
 
 # TODO(tydiqa):
 _DESCRIPTION = """\
-TyDi QA is a question answering dataset covering 11 typologically diverse languages with 204K question-answer pairs. 
-The languages of TyDi QA are diverse with regard to their typology -- the set of linguistic features that each language 
-expresses -- such that we expect models performing well on this set to generalize across a large number of the languages 
-in the world. It contains language phenomena that would not be found in English-only corpora. To provide a realistic 
-information-seeking task and avoid priming effects, questions are written by people who want to know the answer, but 
+TyDi QA is a question answering dataset covering 11 typologically diverse languages with 204K question-answer pairs.
+The languages of TyDi QA are diverse with regard to their typology -- the set of linguistic features that each language
+expresses -- such that we expect models performing well on this set to generalize across a large number of the languages
+in the world. It contains language phenomena that would not be found in English-only corpora. To provide a realistic
+information-seeking task and avoid priming effects, questions are written by people who want to know the answer, but
 don’t know the answer yet, (unlike SQuAD and its descendents) and the data is collected directly in each language without
 the use of translation (unlike MLQA and XQuAD).
 """
@@ -61,22 +61,22 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
             name="primary_task",
             description=textwrap.dedent(
                 """\
-          Passage selection task (SelectP): Given a list of the passages in the article, return either (a) the index of 
+          Passage selection task (SelectP): Given a list of the passages in the article, return either (a) the index of
           the passage that answers the question or (b) NULL if no such passage exists.
-          Minimal answer span task (MinSpan): Given the full text of an article, return one of (a) the start and end 
-          byte indices of the minimal span that completely answers the question; (b) YES or NO if the question requires 
-          a yes/no answer and we can draw a conclusion from the passage; (c) NULL if it is not possible to produce a 
+          Minimal answer span task (MinSpan): Given the full text of an article, return one of (a) the start and end
+          byte indices of the minimal span that completely answers the question; (b) YES or NO if the question requires
+          a yes/no answer and we can draw a conclusion from the passage; (c) NULL if it is not possible to produce a
           minimal answer for this question."""
             ),
         ),
         TydiqaConfig(
             name="secondary_task",
             description=textwrap.dedent(
-                """\Gold passage task (GoldP): Given a passage that is guaranteed to contain the 
-          answer, predict the single contiguous span of characters that answers the question. This is more similar to 
-          existing reading comprehension datasets (as opposed to the information-seeking task outlined above). 
-          This task is constructed with two goals in mind: (1) more directly comparing with prior work and (2) providing 
-          a simplified way for researchers to use TyDi QA by providing compatibility with existing code for SQuAD 1.1, 
+                """Gold passage task (GoldP): Given a passage that is guaranteed to contain the
+          answer, predict the single contiguous span of characters that answers the question. This is more similar to
+          existing reading comprehension datasets (as opposed to the information-seeking task outlined above).
+          This task is constructed with two goals in mind: (1) more directly comparing with prior work and (2) providing
+          a simplified way for researchers to use TyDi QA by providing compatibility with existing code for SQuAD 1.1,
           XQuAD, and MLQA. Toward these goals, the gold passage task differs from the primary task in several ways:
           only the gold answer passage is provided rather than the entire Wikipedia article;
           unanswerable questions have been discarded, similar to MLQA and XQuAD;
@@ -104,7 +104,7 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
                         "language": nlp.Value("string"),
                         "annotations": nlp.features.Sequence(
                             {
-                                #'annotation_id': nlp.Value('variant'),
+                                # 'annotation_id': nlp.Value('variant'),
                                 "passage_answer_candidate_index": nlp.Value("int32"),
                                 "minimal_answers_start_byte": nlp.Value("int32"),
                                 "minimal_answers_end_byte": nlp.Value("int32"),
@@ -205,7 +205,7 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
                     lang = data["language"]
                     question = data["question_text"]
                     annotations = data["annotations"]
-                    annot_ids = [annotation["annotation_id"] for annotation in annotations]
+                    # annot_ids = [annotation["annotation_id"] for annotation in annotations]
                     yes_no_answers = [annotation["yes_no_answer"] for annotation in annotations]
                     min_answers_end_byte = [
                         annotation["minimal_answer"]["plaintext_end_byte"] for annotation in annotations
@@ -217,7 +217,7 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
                         annotation["passage_answer"]["candidate_index"] for annotation in annotations
                     ]
                     doc = data["document_plaintext"]
-                    example_id = data["example_id"]
+                    # example_id = data["example_id"]
                     url = data["document_url"]
                     yield id_, {
                         "passage_answer_candidates": {
@@ -228,14 +228,14 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
                         "document_title": title,
                         "language": lang,
                         "annotations": {
-                            #'annotation_id': annot_ids,
+                            # 'annotation_id': annot_ids,
                             "passage_answer_candidate_index": passage_cand_answers,
                             "minimal_answers_start_byte": min_answers_start_byte,
                             "minimal_answers_end_byte": min_answers_end_byte,
                             "yes_no_answer": yes_no_answers,
                         },
                         "document_plaintext": doc,
-                        #'example_id': example_id,
+                        # 'example_id': example_id,
                         "document_url": url,
                     }
         elif self.config.name == "secondary_task":

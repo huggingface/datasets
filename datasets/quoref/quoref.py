@@ -20,8 +20,8 @@ _CITATION = """\
 
 # TODO(quoref):
 _DESCRIPTION = """\
-Quoref is a QA dataset which tests the coreferential reasoning capability of reading comprehension systems. In this 
-span-selection benchmark containing 24K questions over 4.7K paragraphs from Wikipedia, a system must resolve hard 
+Quoref is a QA dataset which tests the coreferential reasoning capability of reading comprehension systems. In this
+span-selection benchmark containing 24K questions over 4.7K paragraphs from Wikipedia, a system must resolve hard
 coreferences before selecting the appropriate span(s) in the paragraphs for answering questions.
 """
 

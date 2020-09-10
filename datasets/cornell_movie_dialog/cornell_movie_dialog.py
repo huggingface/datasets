@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import ast
-import csv
 import os
 
 import nlp
@@ -15,10 +14,10 @@ _CITATION = """\
 
   author={Cristian Danescu-Niculescu-Mizil and Lillian Lee},
 
-  title={Chameleons in imagined conversations: 
+  title={Chameleons in imagined conversations:
   A new approach to understanding coordination of linguistic style in dialogs.},
 
-  booktitle={Proceedings of the 
+  booktitle={Proceedings of the
 
         Workshop on Cognitive Modeling and Computational Linguistics, ACL 2011},
 
@@ -29,7 +28,6 @@ _CITATION = """\
 
 # TODO(cornell_movie_dialog):
 _DESCRIPTION = """\
-     
 This corpus contains a large metadata-rich collection of fictional conversations extracted from raw movie scripts:
 - 220,579 conversational exchanges between 10,292 pairs of movie characters
 - involves 9,035 characters from 617 movies
@@ -118,7 +116,7 @@ class CornellMovieDialog(nlp.GeneratorBasedBuilder):
 
         with open(movie_titles_file, "rb") as f:
             movie_titles_data = [x.decode("latin").split("+++$+++") for x in f.readlines()]
-        ## looping over movie conversation file
+        # looping over movie conversation file
         for id_, conv in enumerate(movie_conv_data):
             char_id_1 = conv[0]
             char_id_2 = conv[1]
@@ -126,13 +124,13 @@ class CornellMovieDialog(nlp.GeneratorBasedBuilder):
             line_ids = conv[-1].replace("\n", "")
             line_ids = ast.literal_eval(line_ids.strip())
             lines_texts = []
-            ## searching text corresponding to each lineID in line_ids in movie lines file
+            # searching text corresponding to each lineID in line_ids in movie lines file
             for line_id in line_ids:
                 i = 0
                 while i < len(movie_lines_data) and movie_lines_data[i][0].strip() != line_id:
                     i += 1
                 lines_texts.append(movie_lines_data[i][0])  # if i < len(movie_lines_data) else '')
-            ## look for char names in movie character file
+            # look for char names in movie character file
             j = 0
             while j < len(movie_char_data) and movie_char_data[j][0].strip() != char_id_1.strip():
                 j += 1
@@ -144,14 +142,14 @@ class CornellMovieDialog(nlp.GeneratorBasedBuilder):
                 k += 1
             char_name_2 = movie_char_data[k][1]
 
-            ##look for movie year, IMDBRating, genre, no_imdb_voting in movie tiles file
-            l = 0
-            while l < len(movie_titles_data) and movie_titles_data[l][0].strip() != movie_id.strip():
-                l += 1
-            movie_year = movie_titles_data[l][2]
-            imdb_rating = movie_titles_data[l][3]
-            no_imdb_vote = movie_titles_data[l][4]
-            genre = movie_titles_data[l][5].replace("\n", "").strip()
+            # look for movie year, IMDBRating, genre, no_imdb_voting in movie tiles file
+            li = 0
+            while li < len(movie_titles_data) and movie_titles_data[li][0].strip() != movie_id.strip():
+                li += 1
+            movie_year = movie_titles_data[li][2]
+            imdb_rating = movie_titles_data[li][3]
+            no_imdb_vote = movie_titles_data[li][4]
+            genre = movie_titles_data[li][5].replace("\n", "").strip()
             movie_genres = ast.literal_eval(genre)
 
             yield id_, {

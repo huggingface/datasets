@@ -15,7 +15,9 @@
 """ BLEU metric. """
 
 import nlp
+
 from .nmt_bleu import compute_bleu  # From: https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py
+
 
 _CITATION = """\
 @INPROCEEDINGS{Papineni02bleu:a,
@@ -73,27 +75,38 @@ Returns:
     'reference_length': reference_length
 """
 
+
 class Bleu(nlp.Metric):
     def _info(self):
         return nlp.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': nlp.Sequence(nlp.Value('string', id='token'), id='sequence'),
-                'references': nlp.Sequence(nlp.Sequence(nlp.Value('string', id='token'), id='sequence'), id='references'),
-            }),
+            features=nlp.Features(
+                {
+                    "predictions": nlp.Sequence(nlp.Value("string", id="token"), id="sequence"),
+                    "references": nlp.Sequence(
+                        nlp.Sequence(nlp.Value("string", id="token"), id="sequence"), id="references"
+                    ),
+                }
+            ),
             codebase_urls=["https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py"],
-            reference_urls=["https://en.wikipedia.org/wiki/BLEU",
-                            "https://towardsdatascience.com/evaluating-text-output-in-nlp-bleu-at-your-own-risk-e8609665a213"]
+            reference_urls=[
+                "https://en.wikipedia.org/wiki/BLEU",
+                "https://towardsdatascience.com/evaluating-text-output-in-nlp-bleu-at-your-own-risk-e8609665a213",
+            ],
         )
 
     def _compute(self, predictions, references, max_order=4, smooth=False):
-        score = compute_bleu(reference_corpus=references, translation_corpus=predictions, max_order=max_order, smooth=smooth)
+        score = compute_bleu(
+            reference_corpus=references, translation_corpus=predictions, max_order=max_order, smooth=smooth
+        )
         (bleu, precisions, bp, ratio, translation_length, reference_length) = score
-        return {'bleu': bleu,
-                'precisions': precisions,
-                'brevity_penalty': bp,
-                'length_ratio': ratio,
-                'translation_length': translation_length,
-                'reference_length': reference_length}
+        return {
+            "bleu": bleu,
+            "precisions": precisions,
+            "brevity_penalty": bp,
+            "length_ratio": ratio,
+            "translation_length": translation_length,
+            "reference_length": reference_length,
+        }

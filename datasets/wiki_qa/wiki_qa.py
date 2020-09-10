@@ -25,7 +25,7 @@ _DESCRIPTION = """\
 Wiki Question Answering corpus from Microsoft
 """
 
-_DATA_URL = "https://download.microsoft.com/download/E/5/f/E5FCFCEE-7005-4814-853D-DAA7C66507E0/WikiQACorpus.zip"  #'https://www.microsoft.com/en-us/download/confirmation.aspx?id=52419'
+_DATA_URL = "https://download.microsoft.com/download/E/5/f/E5FCFCEE-7005-4814-853D-DAA7C66507E0/WikiQACorpus.zip"  # 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=52419'
 
 
 class WikiQa(nlp.GeneratorBasedBuilder):

@@ -14,8 +14,10 @@
 # limitations under the License.
 """ BERTScore metric. """
 
-import nlp
 import bert_score
+
+import nlp
+
 
 _CITATION = """\
 @inproceedings{bert-score,
@@ -29,7 +31,7 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 BERTScore leverages the pre-trained contextual embeddings from BERT and matches words in candidate and reference sentences by cosine similarity.
-It has been shown to correlate with human judgment on sentence-level and system-level evaluation. 
+It has been shown to correlate with human judgment on sentence-level and system-level evaluation.
 Moreover, BERTScore computes precision, recall, and F1 measure, which can be useful for evaluating different language generation tasks.
 
 See the [README.md] file at https://github.com/Tiiiger/bert_score for more information.
@@ -71,19 +73,20 @@ class BERTScore(nlp.Metric):
             citation=_CITATION,
             homepage="https://github.com/Tiiiger/bert_score",
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': nlp.Value('string', id='sequence'),
-                'references': nlp.Sequence(nlp.Value('string', id='sequence'), id='references'),
-            }),
+            features=nlp.Features(
+                {
+                    "predictions": nlp.Value("string", id="sequence"),
+                    "references": nlp.Sequence(nlp.Value("string", id="sequence"), id="references"),
+                }
+            ),
             codebase_urls=["https://github.com/Tiiiger/bert_score"],
-            reference_urls=["https://github.com/Tiiiger/bert_score",
-                            "https://arxiv.org/abs/1904.09675"]
+            reference_urls=["https://github.com/Tiiiger/bert_score", "https://arxiv.org/abs/1904.09675"],
         )
 
     def _compute(
         self,
         predictions,
-        references, 
+        references,
         lang=None,
         model_type=None,
         num_layers=None,
@@ -103,7 +106,7 @@ class BERTScore(nlp.Metric):
             num_layers = bert_score.utils.model2layers[model_type]
 
         hashcode = bert_score.utils.get_hash(model_type, num_layers, idf, rescale_with_baseline)
-        if not hasattr(self, 'cached_bertscorer') or self.cached_bertscorer.hash != hashcode:
+        if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
             self.cached_bertscorer = bert_score.BERTScorer(
                 model_type=model_type,
                 num_layers=num_layers,
@@ -117,19 +120,21 @@ class BERTScore(nlp.Metric):
             )
 
         (P, R, F) = self.cached_bertscorer.score(
-            cands=predictions, refs=references, verbose=verbose, batch_size=batch_size,
+            cands=predictions,
+            refs=references,
+            verbose=verbose,
+            batch_size=batch_size,
         )
         output_dict = {
-            'precision': P,
-            'recall': R,
-            'f1': F,
-            'hashcode': hashcode,
+            "precision": P,
+            "recall": R,
+            "f1": F,
+            "hashcode": hashcode,
         }
         return output_dict
 
     def add_batch(self, predictions=None, references=None, **kwargs):
-        """ Add a batch of predictions and references for the metric's stack.
-        """
+        """Add a batch of predictions and references for the metric's stack."""
         # Refefences can be strings or lists of strings
         # Let's change strings to lists of strings with one element
         if references is not None:
@@ -137,8 +142,7 @@ class BERTScore(nlp.Metric):
         super().add_batch(predictions=predictions, references=references, **kwargs)
 
     def add(self, prediction=None, reference=None, **kwargs):
-        """ Add one prediction and reference for the metric's stack.
-        """
+        """Add one prediction and reference for the metric's stack."""
         # Refefences can be strings or lists of strings
         # Let's change strings to lists of strings with one element
         if isinstance(reference, str):

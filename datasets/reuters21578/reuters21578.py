@@ -18,7 +18,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import os
 from textwrap import dedent
 
@@ -30,7 +29,7 @@ _CITATION = """\
 author = {Chidanand Apt{\'{e}} and Fred Damerau and Sholom M. Weiss},
 title = {Automated Learning of Decision Rules for Text Categorization},
 journal = {ACM Transactions on Information Systems},
-year = {1994}, 
+year = {1994},
 note = {To appear.}
 }
 
@@ -43,7 +42,7 @@ note = {To appear.}
 }
 
 @inproceedings{HAYES8},
-author = {Philip J. Hayes and Peggy M. Anderson and Irene B. Nirenburg and 
+author = {Philip J. Hayes and Peggy M. Anderson and Irene B. Nirenburg and
 Linda M. Schmandt},
 title = {{TCS}: A Shell for Content-Based Text Categorization},
 booktitle = {IEEE Conference on Artificial Intelligence Applications},
@@ -52,7 +51,7 @@ year = {1990}
 
 @inproceedings{HAYES90b,
 author = {Philip J. Hayes and Steven P. Weinstein},
-title = {{CONSTRUE/TIS:} A System for Content-Based Indexing of a 
+title = {{CONSTRUE/TIS:} A System for Content-Based Indexing of a
 Database of News Stories},
 booktitle = {Second Annual Conference on Innovative Applications of
 Artificial Intelligence},
@@ -147,14 +146,14 @@ month = {apr},
 pages = {81--93}
 }
 
-@article{LEWIS94d, 
-author = {David D. Lewis and Philip J. Hayes}, 
-title = {Guest Editorial}, 
-journal = {ACM Transactions on Information Systems}, 
-year = {1994}, 
-volume  = {12}, 
-number  = {3}, 
-pages = {231}, 
+@article{LEWIS94d,
+author = {David D. Lewis and Philip J. Hayes},
+title = {Guest Editorial},
+journal = {ACM Transactions on Information Systems},
+year = {1994},
+volume  = {12},
+number  = {3},
+pages = {231},
 month = {jul}
 }
 
@@ -336,11 +335,11 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
                                 )
                             )
                         ):  # skip example that are not in the current split
-                            l = line
-                            while l and not l.startswith("<REUTERS"):
-                                l = f.readline()
-                            if l:
-                                line = l
+                            li = line
+                            while li and not li.startswith("<REUTERS"):
+                                li = f.readline()
+                            if li:
+                                line = li
                     elif line.startswith("<TOPICS>"):
                         if line.replace("\n", "") != "<TOPICS></TOPICS>":
                             line = line.split("<D>")

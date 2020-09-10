@@ -2,7 +2,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 
@@ -22,9 +21,9 @@ year={2019}
 # TODO(winogrande):
 _DESCRIPTION = """\
 WinoGrande is a new collection of 44k problems, inspired by Winograd Schema Challenge (Levesque, Davis, and Morgenstern
- 2011), but adjusted to improve the scale and robustness against the dataset-specific bias. Formulated as a 
-fill-in-a-blank task with binary options, the goal is to choose the right option for a given sentence which requires 
-commonsense reasoning. 
+ 2011), but adjusted to improve the scale and robustness against the dataset-specific bias. Formulated as a
+fill-in-a-blank task with binary options, the goal is to choose the right option for a given sentence which requires
+commonsense reasoning.
 """
 
 _URL = "https://storage.googleapis.com/ai2-mosaic/public/winogrande/winogrande_1.1.zip"
@@ -94,7 +93,7 @@ class Winogrande(nlp.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "train_{}.jsonl".format(self.config.data_size)),
-                    #'labelpath': os.path.join(data_dir, 'train_{}-labels.lst'.format(self.config.data_size)),
+                    # 'labelpath': os.path.join(data_dir, 'train_{}-labels.lst'.format(self.config.data_size)),
                     "split": "train",
                 },
             ),
@@ -108,7 +107,7 @@ class Winogrande(nlp.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "dev.jsonl"),
-                    #'labelpath': os.path.join(data_dir, 'dev-labels.lst'),
+                    # 'labelpath': os.path.join(data_dir, 'dev-labels.lst'),
                     "split": "dev",
                 },
             ),

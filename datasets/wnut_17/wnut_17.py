@@ -18,11 +18,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import glob
 import logging
-import os
-from pathlib import Path
 
 import nlp
 

@@ -8,7 +8,6 @@ import re
 import textwrap
 from itertools import groupby
 
-import numpy as np
 import six
 
 import nlp
@@ -35,7 +34,7 @@ Note that each LinCE dataset has its own citation. Please see the source to see
 the correct citation for each contained dataset."""
 
 _DESCRIPTION = """\
-LinCE is a centralized Linguistic Code-switching Evaluation benchmark 
+LinCE is a centralized Linguistic Code-switching Evaluation benchmark
 (https://ritual.uh.edu/lince/) that contains data for training and evaluating
 NLP systems on code-switching tasks.
 """
@@ -187,7 +186,7 @@ _DATASET_CITATIONS = {
            publisher = "Association for Computational Linguistics",
            url = "https://www.aclweb.org/anthology/W18-3219",
            pages = "138--147"
-        }  
+        }
         """
     ),
     "ner_msaea": textwrap.dedent(
@@ -207,7 +206,7 @@ _DATASET_CITATIONS = {
            publisher = "Association for Computational Linguistics",
            url = "https://www.aclweb.org/anthology/W18-3219",
            pages = "138--147"
-        }  
+        }
         """
     ),
     "ner_hineng": textwrap.dedent(
@@ -240,7 +239,7 @@ _DATASET_CITATIONS = {
                   Garrette, Dan and
                   Gamb{\"a}ck, Bj{\"o}rn and
                   Chakraborty, Tanmoy and
-                  Solorio, Thamar and  
+                  Solorio, Thamar and
                   Das, Amitava",
           booktitle = "Proceedings of the 14th International Workshop on Semantic Evaluation ({S}em{E}val-2020)",
           year = 2020,

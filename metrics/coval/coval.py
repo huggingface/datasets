@@ -14,13 +14,11 @@
 # limitations under the License.
 """ CoVal metric. """
 
-import numpy
-
-import coval  # From: git+https://github.com/ns-moosavi/coval.git
-import nlp
-import scipy
+import coval  # From: git+https://github.com/ns-moosavi/coval.git noqa: F401
 from coval.conll import reader, util
 from coval.eval import evaluator
+
+import nlp
 
 
 _CITATION = """\
@@ -29,7 +27,7 @@ _CITATION = """\
     title = {Using Automatically Extracted Minimum Spans to Disentangle Coreference Evaluation from Boundary Detection},
     year = {2019},
     booktitle = {Proceedings of the 57th Annual Meeting of
-		the Association for Computational Linguistics (Volume 1: Long Papers)},
+        the Association for Computational Linguistics (Volume 1: Long Papers)},
     publisher = {Association for Computational Linguistics},
     address = {Florence, Italy},
 }
@@ -96,9 +94,9 @@ The CoNLL format has one word per line with all the annotation for this word in 
 Column	Type	Description
 1	Document ID	This is a variation on the document filename
 2	Part number	Some files are divided into multiple parts numbered as 000, 001, 002, ... etc.
-3	Word number	
+3	Word number
 4	Word itself	This is the token as segmented/tokenized in the Treebank. Initially the *_skel file contain the placeholder [WORD] which gets replaced by the actual token from the Treebank which is part of the OntoNotes release.
-5	Part-of-Speech	
+5	Part-of-Speech
 6	Parse bit	This is the bracketed structure broken before the first open parenthesis in the parse, and the word/part-of-speech leaf replaced with a *. The full parse can be created by substituting the asterix with the "([pos] [word])" string (or leaf) and concatenating the items in the rows of that column.
 7	Predicate lemma	The predicate lemma is mentioned for the rows for which we have semantic role information. All other rows are marked with a "-"
 8	Predicate Frameset ID	This is the PropBank frameset ID of the predicate in Column 7.
@@ -149,13 +147,10 @@ Returns:
     'conll_score': averaged CoNLL score (the average of the F1 values of MUC, B-cubed and CEAFe)
 """
 
-def get_coref_infos(key_lines,
-        sys_lines,
-        NP_only=False,
-        remove_nested=False,
-        keep_singletons=True,
-        min_span=False,
-        doc="dummy_doc"):
+
+def get_coref_infos(
+    key_lines, sys_lines, NP_only=False, remove_nested=False, keep_singletons=True, min_span=False, doc="dummy_doc"
+):
 
     key_doc_lines = {doc: key_lines}
     sys_doc_lines = {doc: sys_lines}
@@ -169,88 +164,75 @@ def get_coref_infos(key_lines,
     key_singletons_num = 0
     sys_singletons_num = 0
 
-    key_clusters, singletons_num = reader.get_doc_mentions(
-            doc, key_doc_lines[doc], keep_singletons)
+    key_clusters, singletons_num = reader.get_doc_mentions(doc, key_doc_lines[doc], keep_singletons)
     key_singletons_num += singletons_num
 
     if NP_only or min_span:
-        key_clusters = reader.set_annotated_parse_trees(key_clusters,
-                key_doc_lines[doc],
-                NP_only, min_span)
+        key_clusters = reader.set_annotated_parse_trees(key_clusters, key_doc_lines[doc], NP_only, min_span)
 
-    sys_clusters, singletons_num = reader.get_doc_mentions(
-            doc, sys_doc_lines[doc], keep_singletons)
+    sys_clusters, singletons_num = reader.get_doc_mentions(doc, sys_doc_lines[doc], keep_singletons)
     sys_singletons_num += singletons_num
 
     if NP_only or min_span:
-        sys_clusters = reader.set_annotated_parse_trees(sys_clusters,
-                key_doc_lines[doc],
-                NP_only, min_span)
+        sys_clusters = reader.set_annotated_parse_trees(sys_clusters, key_doc_lines[doc], NP_only, min_span)
 
     if remove_nested:
-        nested_mentions, removed_clusters = reader.remove_nested_coref_mentions(
-                key_clusters, keep_singletons)
+        nested_mentions, removed_clusters = reader.remove_nested_coref_mentions(key_clusters, keep_singletons)
         key_nested_coref_num += nested_mentions
         key_removed_nested_clusters += removed_clusters
 
-        nested_mentions, removed_clusters = reader.remove_nested_coref_mentions(
-                sys_clusters, keep_singletons)
+        nested_mentions, removed_clusters = reader.remove_nested_coref_mentions(sys_clusters, keep_singletons)
         sys_nested_coref_num += nested_mentions
         sys_removed_nested_clusters += removed_clusters
 
-    sys_mention_key_cluster = reader.get_mention_assignments(
-            sys_clusters, key_clusters)
-    key_mention_sys_cluster = reader.get_mention_assignments(
-            key_clusters, sys_clusters)
+    sys_mention_key_cluster = reader.get_mention_assignments(sys_clusters, key_clusters)
+    key_mention_sys_cluster = reader.get_mention_assignments(key_clusters, sys_clusters)
 
-    doc_coref_infos[doc] = (key_clusters, sys_clusters,
-            key_mention_sys_cluster, sys_mention_key_cluster)
+    doc_coref_infos[doc] = (key_clusters, sys_clusters, key_mention_sys_cluster, sys_mention_key_cluster)
 
     if remove_nested:
-        print('Number of removed nested coreferring mentions in the key '
-                'annotation: %s; and system annotation: %s' % (
-                key_nested_coref_num, sys_nested_coref_num))
-        print('Number of resulting singleton clusters in the key '
-                'annotation: %s; and system annotation: %s' % (
-                key_removed_nested_clusters, sys_removed_nested_clusters))
+        print(
+            "Number of removed nested coreferring mentions in the key "
+            "annotation: %s; and system annotation: %s" % (key_nested_coref_num, sys_nested_coref_num)
+        )
+        print(
+            "Number of resulting singleton clusters in the key "
+            "annotation: %s; and system annotation: %s" % (key_removed_nested_clusters, sys_removed_nested_clusters)
+        )
 
     if not keep_singletons:
-        print('%d and %d singletons are removed from the key and system '
-                'files, respectively' % (
-                key_singletons_num, sys_singletons_num))
+        print(
+            "%d and %d singletons are removed from the key and system "
+            "files, respectively" % (key_singletons_num, sys_singletons_num)
+        )
 
     return doc_coref_infos
 
 
-def evaluate(key_lines,
-        sys_lines, metrics, NP_only, remove_nested,
-        keep_singletons, min_span):
-    doc_coref_infos = get_coref_infos(key_lines,
-        sys_lines, NP_only,
-            remove_nested, keep_singletons, min_span)
+def evaluate(key_lines, sys_lines, metrics, NP_only, remove_nested, keep_singletons, min_span):
+    doc_coref_infos = get_coref_infos(key_lines, sys_lines, NP_only, remove_nested, keep_singletons, min_span)
 
     output_scores = {}
     conll = 0
     conll_subparts_num = 0
 
     for name, metric in metrics:
-        recall, precision, f1 = evaluator.evaluate_documents(doc_coref_infos,
-                metric,
-                beta=1)
+        recall, precision, f1 = evaluator.evaluate_documents(doc_coref_infos, metric, beta=1)
         if name in ["muc", "bcub", "ceafe"]:
             conll += f1
             conll_subparts_num += 1
-        output_scores.update({f"{name}/recall": recall,
-                             f"{name}/precision": precision,
-                             f"{name}/f1": f1})
+        output_scores.update({f"{name}/recall": recall, f"{name}/precision": precision, f"{name}/f1": f1})
 
-        print(name.ljust(10), 'Recall: %.2f' % (recall * 100),
-                ' Precision: %.2f' % (precision * 100),
-                ' F1: %.2f' % (f1 * 100))
+        print(
+            name.ljust(10),
+            "Recall: %.2f" % (recall * 100),
+            " Precision: %.2f" % (precision * 100),
+            " F1: %.2f" % (f1 * 100),
+        )
 
     if conll_subparts_num == 3:
         conll = (conll / 3) * 100
-        print('CoNLL score: %.2f' % conll)
+        print("CoNLL score: %.2f" % conll)
         output_scores.update({f"conll_score": conll})
 
     return output_scores
@@ -260,7 +242,7 @@ def check_gold_parse_annotation(key_lines):
     has_gold_parse = False
     for line in key_lines:
         if not line.startswith("#"):
-            if len(line.split())> 6:
+            if len(line.split()) > 6:
                 parse_col = line.split()[5]
                 if not parse_col == "-":
                     has_gold_parse = True
@@ -271,27 +253,35 @@ def check_gold_parse_annotation(key_lines):
 
 
 class Coval(nlp.Metric):
-
     def _info(self):
         return nlp.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': nlp.Value('string', id='sequence'),
-                'references': nlp.Value('string', id='sequence'),
-            }),
+            features=nlp.Features(
+                {
+                    "predictions": nlp.Value("string", id="sequence"),
+                    "references": nlp.Value("string", id="sequence"),
+                }
+            ),
             codebase_urls=["https://github.com/ns-moosavi/coval"],
-            reference_urls=["https://github.com/ns-moosavi/coval",
-                            "https://www.aclweb.org/anthology/P16-1060",
-                            "http://www.conll.cemantix.org/2012/data.html"]
+            reference_urls=[
+                "https://github.com/ns-moosavi/coval",
+                "https://www.aclweb.org/anthology/P16-1060",
+                "http://www.conll.cemantix.org/2012/data.html",
+            ],
         )
 
-    def _compute(self, predictions, references, keep_singletons=True,
-                 NP_only=False, min_spans=False, remove_nested=False):
-        allmetrics = [('mentions', evaluator.mentions), ('muc', evaluator.muc),
-                      ('bcub', evaluator.b_cubed), ('ceafe', evaluator.ceafe),
-                      ('lea', evaluator.lea)]
+    def _compute(
+        self, predictions, references, keep_singletons=True, NP_only=False, min_spans=False, remove_nested=False
+    ):
+        allmetrics = [
+            ("mentions", evaluator.mentions),
+            ("muc", evaluator.muc),
+            ("bcub", evaluator.b_cubed),
+            ("ceafe", evaluator.ceafe),
+            ("lea", evaluator.lea),
+        ]
 
         if min_spans:
             has_gold_parse = util.check_gold_parse_annotation(references)
@@ -307,7 +297,7 @@ class Coval(nlp.Metric):
             NP_only=NP_only,
             remove_nested=remove_nested,
             keep_singletons=keep_singletons,
-            min_spans=min_spans
+            min_spans=min_spans,
         )
 
         return score

@@ -25,10 +25,10 @@ import nlp
 
 _DESCRIPTION = """\
 Movie Review Dataset.
-This is a dataset of containing 5,331 positive and 5,331 negative processed 
-sentences from Rotten Tomatoes movie reviews. This data was first used in Bo 
-Pang and Lillian Lee, ``Seeing stars: Exploiting class relationships for 
-sentiment categorization with respect to rating scales.'', Proceedings of the 
+This is a dataset of containing 5,331 positive and 5,331 negative processed
+sentences from Rotten Tomatoes movie reviews. This data was first used in Bo
+Pang and Lillian Lee, ``Seeing stars: Exploiting class relationships for
+sentiment categorization with respect to rating scales.'', Proceedings of the
 ACL, 2005.
 """
 

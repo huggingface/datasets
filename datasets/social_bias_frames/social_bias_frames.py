@@ -34,8 +34,8 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Social Bias Frames is a new way of representing the biases and offensiveness that are implied in language. 
-For example, these frames are meant to distill the implication that "women (candidates) are less qualified" 
+Social Bias Frames is a new way of representing the biases and offensiveness that are implied in language.
+For example, these frames are meant to distill the implication that "women (candidates) are less qualified"
 behind the statement "we shouldn’t lower our standards to hire more women."
 """
 

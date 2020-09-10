@@ -15,7 +15,9 @@
 """ SQuAD v2 metric. """
 
 import nlp
-from .evaluate import make_qid_to_has_ans, get_raw_scores, apply_no_ans_threshold, make_eval_dict, merge_eval
+
+from .evaluate import apply_no_ans_threshold, get_raw_scores, make_eval_dict, make_qid_to_has_ans, merge_eval
+
 
 _CITATION = """\
 @inproceedings{Rajpurkar2016SQuAD10,
