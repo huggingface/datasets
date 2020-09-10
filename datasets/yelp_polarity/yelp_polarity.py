@@ -95,10 +95,10 @@ class YelpPolarityReviewsConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for YelpPolarityReviews.
 
-    Args:
+        Args:
 
-        **kwargs: keyword arguments forwarded to super.
-    """
+            **kwargs: keyword arguments forwarded to super.
+        """
         super(YelpPolarityReviewsConfig, self).__init__(
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
@@ -107,12 +107,22 @@ class YelpPolarityReviewsConfig(nlp.BuilderConfig):
 class YelpPolarity(nlp.GeneratorBasedBuilder):
     """Yelp Polarity reviews dataset."""
 
-    BUILDER_CONFIGS = [YelpPolarityReviewsConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        YelpPolarityReviewsConfig(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"text": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["1", "2"]),}),
+            features=nlp.Features(
+                {
+                    "text": nlp.Value("string"),
+                    "label": nlp.features.ClassLabel(names=["1", "2"]),
+                }
+            ),
             supervised_keys=None,
             homepage="https://course.fast.ai/datasets",
             citation=_CITATION,

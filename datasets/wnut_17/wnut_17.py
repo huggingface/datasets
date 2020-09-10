@@ -18,11 +18,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import glob
 import logging
-import os
-from pathlib import Path
 
 import nlp
 
@@ -77,9 +73,9 @@ class WNUT_17Config(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for WNUT 17.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(WNUT_17Config, self).__init__(**kwargs)
 
 
@@ -142,7 +138,11 @@ class WNUT_17(nlp.GeneratorBasedBuilder):
                     assert len(current_tokens) == len(current_labels), "💔 between len of tokens & labels"
                     sentence = (
                         sentence_counter,
-                        {"id": str(sentence_counter), "tokens": current_tokens, "labels": current_labels,},
+                        {
+                            "id": str(sentence_counter),
+                            "tokens": current_tokens,
+                            "labels": current_labels,
+                        },
                     )
                     sentence_counter += 1
                     current_tokens = []

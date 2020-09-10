@@ -40,7 +40,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-The Sogou News dataset is a mixture of 2,909,551 news articles from the SogouCA and SogouCS news corpora, in 5 categories. 
+The Sogou News dataset is a mixture of 2,909,551 news articles from the SogouCA and SogouCS news corpora, in 5 categories.
 The number of training samples selected for each class is 90,000 and testing 12,000. Note that the Chinese characters have been converted to Pinyin.
 classification labels of the news are determined by their domain names in the URL. For example, the news with
 URL http://sports.sohu.com is categorized as a sport class.

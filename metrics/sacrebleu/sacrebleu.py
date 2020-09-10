@@ -14,8 +14,10 @@
 # limitations under the License.
 """ SACREBLEU metric. """
 
-import nlp
 import sacrebleu as scb
+
+import nlp
+
 
 _CITATION = """\
 @inproceedings{post-2018-call,
@@ -61,6 +63,7 @@ Returns:
     'ref_len': reference length,
 """
 
+
 class Sacrebleu(nlp.Metric):
     def _info(self):
         return nlp.MetricInfo(
@@ -68,29 +71,35 @@ class Sacrebleu(nlp.Metric):
             citation=_CITATION,
             homepage="https://github.com/mjpost/sacreBLEU",
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': nlp.Value('string', id='sequence'),
-                'references': nlp.Sequence(nlp.Value('string', id='sequence'), id='references'),
-            }),
+            features=nlp.Features(
+                {
+                    "predictions": nlp.Value("string", id="sequence"),
+                    "references": nlp.Sequence(nlp.Value("string", id="sequence"), id="references"),
+                }
+            ),
             codebase_urls=["https://github.com/mjpost/sacreBLEU"],
-            reference_urls=["https://github.com/mjpost/sacreBLEU",
-                            "https://en.wikipedia.org/wiki/BLEU",
-                            "https://towardsdatascience.com/evaluating-text-output-in-nlp-bleu-at-your-own-risk-e8609665a213"]
+            reference_urls=[
+                "https://github.com/mjpost/sacreBLEU",
+                "https://en.wikipedia.org/wiki/BLEU",
+                "https://towardsdatascience.com/evaluating-text-output-in-nlp-bleu-at-your-own-risk-e8609665a213",
+            ],
         )
 
-    def _compute(self, predictions, references, smooth_method='exp',
-                smooth_value=None,
-                force=False,
-                lowercase=False,
-                tokenize=scb.DEFAULT_TOKENIZER,
-                use_effective_order=False):
+    def _compute(
+        self,
+        predictions,
+        references,
+        smooth_method="exp",
+        smooth_value=None,
+        force=False,
+        lowercase=False,
+        tokenize=scb.DEFAULT_TOKENIZER,
+        use_effective_order=False,
+    ):
         references_per_prediction = len(references[0])
         if any(len(refs) != references_per_prediction for refs in references):
-            raise ValueError('Sacrebleu requires the same number of references for each prediction')
-        transformed_references = [
-            [refs[i] for refs in references]
-            for i in range(references_per_prediction)
-        ]
+            raise ValueError("Sacrebleu requires the same number of references for each prediction")
+        transformed_references = [[refs[i] for refs in references] for i in range(references_per_prediction)]
         output = scb.corpus_bleu(
             sys_stream=predictions,
             ref_streams=transformed_references,
@@ -99,14 +108,15 @@ class Sacrebleu(nlp.Metric):
             force=force,
             lowercase=lowercase,
             tokenize=tokenize,
-            use_effective_order=use_effective_order)
+            use_effective_order=use_effective_order,
+        )
         output_dict = {
-            'score': output.score,
-            'counts': output.counts,
-            'totals': output.totals,
-            'precisions': output.precisions,
-            'bp': output.bp,
-            'sys_len': output.sys_len,
-            'ref_len': output.ref_len,
+            "score": output.score,
+            "counts": output.counts,
+            "totals": output.totals,
+            "precisions": output.precisions,
+            "bp": output.bp,
+            "sys_len": output.sys_len,
+            "ref_len": output.ref_len,
         }
         return output_dict

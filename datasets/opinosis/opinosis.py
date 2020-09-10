@@ -65,7 +65,10 @@ class Opinosis(nlp.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         extract_path = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"path": extract_path},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"path": extract_path},
+            ),
         ]
 
     def _generate_examples(self, path=None):

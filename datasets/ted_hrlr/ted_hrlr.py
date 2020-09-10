@@ -63,24 +63,24 @@ class TedHrlrConfig(nlp.BuilderConfig):
     def __init__(self, language_pair=(None, None), **kwargs):
         """BuilderConfig for TED talk data comparing high/low resource languages.
 
-    The first language in `language_pair` should either be a 2-letter coded
-    string or two such strings joined by an underscore (e.g., "az" or "az_tr").
-    In cases where it contains two languages, the train data set will contain an
-    (unlabelled) mix of the two languages and the validation and test sets
-    will contain only the first language. This dataset will refer to the
-    source language by the 5-letter string with the underscore. The second
-    language in `language_pair` must be a 2-letter coded string.
+        The first language in `language_pair` should either be a 2-letter coded
+        string or two such strings joined by an underscore (e.g., "az" or "az_tr").
+        In cases where it contains two languages, the train data set will contain an
+        (unlabelled) mix of the two languages and the validation and test sets
+        will contain only the first language. This dataset will refer to the
+        source language by the 5-letter string with the underscore. The second
+        language in `language_pair` must be a 2-letter coded string.
 
-    For example, to get pairings between Russian and English, specify
-    `("ru", "en")` as `language_pair`. To get a mix of Belarusian and Russian in
-    the training set and purely Belarusian in the validation and test sets,
-    specify `("be_ru", "en")`.
+        For example, to get pairings between Russian and English, specify
+        `("ru", "en")` as `language_pair`. To get a mix of Belarusian and Russian in
+        the training set and purely Belarusian in the validation and test sets,
+        specify `("be_ru", "en")`.
 
-    Args:
-      language_pair: pair of languages that will be used for translation. The
-        first will be used as source and second as target in supervised mode.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          language_pair: pair of languages that will be used for translation. The
+            first will be used as source and second as target in supervised mode.
+          **kwargs: keyword arguments forwarded to super.
+        """
         name = "%s_to_%s" % (language_pair[0].replace("_", ""), language_pair[1])
 
         description = ("Translation dataset from %s to %s in plain text.") % (language_pair[0], language_pair[1])
@@ -99,7 +99,8 @@ class TedHrlr(nlp.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         TedHrlrConfig(  # pylint: disable=g-complex-comprehension
-            language_pair=pair, version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            language_pair=pair,
+            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
         )
         for pair in _VALID_LANGUAGE_PAIRS
     ]

@@ -374,6 +374,7 @@ class BeamWriter(object):
                 that the filter keeps only the metrics for the considered split, under the namespace `split_name`.
         """
         import apache_beam as beam
+
         from .utils import beam_utils
 
         # Convert to arrow

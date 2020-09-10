@@ -94,10 +94,10 @@ class CnnDailymailConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for CnnDailymail.
 
-    Args:
+        Args:
 
-      **kwargs: keyword arguments forwarded to super.
-    """
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(CnnDailymailConfig, self).__init__(**kwargs)
 
 
@@ -234,7 +234,11 @@ class CnnDailymail(nlp.GeneratorBasedBuilder):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(
-                {_ARTICLE: nlp.Value("string"), _HIGHLIGHTS: nlp.Value("string"), "id": nlp.Value("string"),}
+                {
+                    _ARTICLE: nlp.Value("string"),
+                    _HIGHLIGHTS: nlp.Value("string"),
+                    "id": nlp.Value("string"),
+                }
             ),
             supervised_keys=None,
             homepage="https://github.com/abisee/cnn-dailymail",

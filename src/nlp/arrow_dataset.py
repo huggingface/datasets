@@ -1125,6 +1125,66 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
         assert num_proc is None or num_proc > 0, "num_proc must be an integer > 0."
+
+        # If the array is empty we do nothing
+        if len(self) == 0:
+            return self
+
+        if function is None:
+            function = lambda x: x  # noqa: E731
+
+        if isinstance(input_columns, str):
+            input_columns = [input_columns]
+
+        if input_columns is not None:
+            for input_column in input_columns:
+                if input_column not in self._data.column_names:
+                    raise ValueError(
+                        "Input column {} not in the dataset. Current columns in the dataset: {}".format(
+                            input_column, self._data.column_names
+                        )
+                    )
+
+        if fn_kwargs is None:
+            fn_kwargs = dict()
+
+        # Check if the function returns updated examples
+        def does_function_return_dict(inputs, indices):
+            """ Does the function returns a dict. """
+            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
+            processed_inputs = (
+                function(*fn_args, indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
+            )
+            does_return_dict = isinstance(processed_inputs, Mapping)
+
+            if does_return_dict is False and processed_inputs is not None:
+                raise TypeError(
+                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` if you are only interested in side effects.".format(
+                        type(processed_inputs)
+                    )
+                )
+            elif isinstance(test_indices, list) and does_return_dict is True:
+                allowed_batch_return_types = (list, np.ndarray)
+                all_dict_values_are_lists = all(
+                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
+                )
+                if all_dict_values_are_lists is False:
+                    raise TypeError(
+                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
+                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
+                        )
+                    )
+
+            return does_return_dict
+
+        # We only update the data table (and use the cache) if the function returns a dict.
+        # Test it on the first element or a small batch (0, 1) for batched inputs
+        logger.info("Testing the mapped function outputs")
+        test_inputs = self[:2] if batched else self[0]
+        test_indices = [0, 1] if batched else 0
+        update_data = does_function_return_dict(test_inputs, test_indices)
+        logger.info("Testing finished, running the mapping function on the dataset")
+
         if num_proc is None or num_proc == 1:
             return self._map_single(
                 function=function,
@@ -1142,6 +1202,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 disable_nullable=disable_nullable,
                 fn_kwargs=fn_kwargs,
                 new_fingerprint=new_fingerprint,
+                update_data=update_data,
             )
         else:
 
@@ -1153,11 +1214,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return cache_file_name
 
             with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+                shards = [
+                    self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                    for rank in range(num_proc)
+                ]
                 kwds_per_shard = [
                     dict(
-                        self=self.shard(
-                            num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory
-                        ),
+                        self=shards[rank],
                         function=function,
                         with_indices=with_indices,
                         input_columns=input_columns,
@@ -1175,6 +1238,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                         disable_nullable=disable_nullable,
                         fn_kwargs=fn_kwargs,
                         rank=rank,
+                        offset=sum(len(s) for s in shards[:rank]),
+                        update_data=update_data,
                     )
                     for rank in range(num_proc)
                 ]
@@ -1206,6 +1271,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         fn_kwargs: Optional[dict] = None,
         new_fingerprint: Optional[str] = None,
         rank: Optional[int] = None,
+        offset: int = 0,
+        update_data=True,
     ) -> "Dataset":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does updated examples).
@@ -1241,13 +1308,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
             new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the dataset after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
+            rank: (`Optional[int]`, defaults to `None`): If specified, this is the process rank when doing multiprocessing
+            offset: (`int`, defaults to 0): If specified, this is an offset applied to the indices passed to `function` if `with_indices=True`
+            update_data (`bool`, defaults to `True`): If False, no new arrow table will be created
         """
         assert (
             not keep_in_memory or cache_file_name is None
         ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
-        # If the array is empty we do nothing
-        if len(self) == 0:
-            return self
 
         not_verbose = bool(logger.getEffectiveLevel() > INFO)
 
@@ -1258,9 +1325,6 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # see https://github.com/tqdm/tqdm/issues/485#issuecomment-473338308
         if rank is not None and "notebook" in tqdm.__name__:
             print(" ", end="", flush=True)
-
-        if function is None:
-            function = lambda x: x  # noqa: E731
 
         # Select the columns (arrow columns) to process
         if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
@@ -1290,49 +1354,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if batched and (batch_size is None or batch_size <= 0):
             batch_size = self.num_rows
 
-        # Check if the function returns updated examples
-        def does_function_return_dict(inputs, indices):
-            """ Does the function returns a dict. """
-            fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
-            processed_inputs = (
-                function(*fn_args, indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
-            )
-            does_return_dict = isinstance(processed_inputs, Mapping)
-
-            if does_return_dict is False and processed_inputs is not None:
-                raise TypeError(
-                    "Provided `function` which is applied to all elements of table returns a variable of type {}. Make sure provided `function` returns a variable of type `dict` to update the dataset or `None` if you are only interested in side effects.".format(
-                        type(processed_inputs)
-                    )
-                )
-            elif isinstance(test_indices, list) and does_return_dict is True:
-                allowed_batch_return_types = (list, np.ndarray)
-                all_dict_values_are_lists = all(
-                    isinstance(value, allowed_batch_return_types) for value in processed_inputs.values()
-                )
-                if all_dict_values_are_lists is False:
-                    raise TypeError(
-                        "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
-                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
-                        )
-                    )
-
-            return does_return_dict
-
-        # We only update the data table (and use the cache) if the function returns a dict.
-        # Test it on the first element or a small batch (0, 1) for batched inputs
-        test_inputs = self[:2] if batched else self[0]
-        test_indices = [0, 1] if batched else 0
-        update_data = does_function_return_dict(test_inputs, test_indices)
-
         class NumExamplesMismatch(Exception):
             pass
 
-        def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False):
+        def apply_function_on_filtered_inputs(inputs, indices, check_same_num_examples=False, offset=0):
             """ Utility to apply the function on a selection of columns. """
             fn_args = [inputs] if input_columns is None else [inputs[col] for col in input_columns]
+            if offset == 0:
+                effective_indices = indices
+            else:
+                effective_indices = [i + offset for i in indices] if isinstance(indices, list) else indices + offset
             processed_inputs = (
-                function(*fn_args, indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
+                function(*fn_args, effective_indices, **fn_kwargs) if with_indices else function(*fn_args, **fn_kwargs)
             )
             if not update_data:
                 return None  # Nothing to update, let's move on
@@ -1402,7 +1435,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
             if not batched:
                 for i, example in enumerate(pbar):
-                    example = apply_function_on_filtered_inputs(example, i)
+                    example = apply_function_on_filtered_inputs(example, i, offset=offset)
                     if update_data:
                         example = cast_to_python_objects(example)
                         writer.write(example)
@@ -1414,7 +1447,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     indices = list(range(*(slice(i, i + batch_size).indices(self.num_rows))))  # Something simpler?
                     try:
                         batch = apply_function_on_filtered_inputs(
-                            batch, indices, check_same_num_examples=len(self.list_indexes()) > 0
+                            batch, indices, check_same_num_examples=len(self.list_indexes()) > 0, offset=offset
                         )
                     except NumExamplesMismatch:
                         raise DatasetTransformationNotAllowedError(

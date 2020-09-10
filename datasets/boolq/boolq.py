@@ -22,9 +22,9 @@ _CITATION = """\
 
 # TODO(boolq):
 _DESCRIPTION = """\
-BoolQ is a question answering dataset for yes/no questions containing 15942 examples. These questions are naturally 
-occurring ---they are generated in unprompted and unconstrained settings. 
-Each example is a triplet of (question, passage, answer), with the title of the page as optional additional context. 
+BoolQ is a question answering dataset for yes/no questions containing 15942 examples. These questions are naturally
+occurring ---they are generated in unprompted and unconstrained settings.
+Each example is a triplet of (question, passage, answer), with the title of the page as optional additional context.
 The text-pair classification setup is similar to existing natural language inference tasks.
 """
 
@@ -75,7 +75,10 @@ class Boolq(nlp.GeneratorBasedBuilder):
 
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]},),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_files["dev"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):

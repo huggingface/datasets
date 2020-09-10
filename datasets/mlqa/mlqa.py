@@ -22,7 +22,7 @@ _CITATION = """\
 _DESCRIPTION = """\
     MLQA (MultiLingual Question Answering) is a benchmark dataset for evaluating cross-lingual question answering performance.
     MLQA consists of over 5K extractive QA instances (12K in English) in SQuAD format in seven languages - English, Arabic,
-    German, Spanish, Hindi, Vietnamese and Simplified Chinese. MLQA is highly parallel, with QA instances parallel between 
+    German, Spanish, Hindi, Vietnamese and Simplified Chinese. MLQA is highly parallel, with QA instances parallel between
     4 different languages on average.
 """
 _URL = "https://dl.fbaipublicfiles.com/MLQA/"
@@ -41,7 +41,12 @@ class MlqaConfig(nlp.BuilderConfig):
           data_url: `string`, url to the dataset
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MlqaConfig, self).__init__(version=nlp.Version("1.0.0",), **kwargs)
+        super(MlqaConfig, self).__init__(
+            version=nlp.Version(
+                "1.0.0",
+            ),
+            **kwargs,
+        )
         self.data_url = data_url
 
 

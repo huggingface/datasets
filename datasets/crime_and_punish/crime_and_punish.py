@@ -20,7 +20,12 @@ class CrimeAndPunishConfig(nlp.BuilderConfig):
           data_url: `string`, url to the dataset (word or raw level)
           **kwargs: keyword arguments forwarded to super.
         """
-        super(CrimeAndPunishConfig, self).__init__(version=nlp.Version("1.0.0",), **kwargs)
+        super(CrimeAndPunishConfig, self).__init__(
+            version=nlp.Version(
+                "1.0.0",
+            ),
+            **kwargs,
+        )
         self.data_url = data_url
 
 
@@ -40,7 +45,11 @@ class CrimeAndPunish(nlp.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # nlp.features.FeatureConnectors
-            features=nlp.Features({"line": nlp.Value("string"),}),
+            features=nlp.Features(
+                {
+                    "line": nlp.Value("string"),
+                }
+            ),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
@@ -55,7 +64,10 @@ class CrimeAndPunish(nlp.GeneratorBasedBuilder):
             data = dl_manager.download_and_extract(self.config.data_url)
 
             return [
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"data_file": data, "split": "train"},),
+                nlp.SplitGenerator(
+                    name=nlp.Split.TRAIN,
+                    gen_kwargs={"data_file": data, "split": "train"},
+                ),
             ]
         else:
             raise ValueError("{} does not exist".format(self.config.name))

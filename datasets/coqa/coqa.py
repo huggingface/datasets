@@ -2,9 +2,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
-import os
 
 import nlp
 
@@ -28,60 +26,13 @@ CoQA: A Conversational Question Answering Challenge
 _TRAIN_DATA_URL = "https://nlp.stanford.edu/data/coqa/coqa-train-v1.0.json"
 _DEV_DATA_URL = "https://nlp.stanford.edu/data/coqa/coqa-dev-v1.0.json"
 
-#
-# class CoqaConfig(nlp.BuilderConfig):
-#   """BuilderConfig for Coqa."""
-#
-#   def __init__(self,
-#                story,
-#                source,
-#                questions,
-#                answers,
-#                citation,
-#                description,
-#                additional_answers=None,
-#                **kwargs):
-#     """BuilderConfig for Coca.
-#
-#     Args:
-#       story: `text`,  context
-#       source: `text`, source of the story
-#       questions `Sequence` set of questions
-#       answers: `Sequence` set of answers to the questions
-#       data_url: `string`, url to download the  file from
-#       citation: `string`, citation for the data set
-#      additional_answers: `Sequence`, in the dev set questions have also set of additional answers
-#       **kwargs: keyword arguments forwarded to super.
-#     """
-#     super(CoqaConfig, self).__init__(
-#         version=nlp.Version(
-#             "1.0.0",
-#             "New split API (https://tensorflow.org/datasets/splits)"),
-#         **kwargs)
-#     self.story = story
-#     self.source = source
-#     self.questions = questions
-#     self.answers = answers
-#     self.additional_answers = additional_answers
-#     self.citation = citation
-#     self.description = description
-
 
 class Coqa(nlp.GeneratorBasedBuilder):
     """TODO(coqa): Short description of my dataset."""
 
     # TODO(coqa): Set up version.
     VERSION = nlp.Version("1.0.0")
-    # BUILDER_CONFIGS = CoqaConfig(
-    #     story= 'story',
-    #     source='source',
-    #     questions='questions',
-    #     answers='answers',
-    #     additional_answers='additional_answers',
-    #     description= _DESCRIPTION,
-    #     citation= _CITATION
-    #
-    # )
+
     def _info(self):
         # TODO(coqa): Specifies the nlp.DatasetInfo object
         return nlp.DatasetInfo(

@@ -22,8 +22,8 @@ _CITATION = """\
 
 # TODO(wiki_split):
 _DESCRIPTION = """\
-One million English sentences, each split into two sentences that together preserve the original meaning, extracted from Wikipedia 
-Google's WikiSplit dataset was constructed automatically from the publicly available Wikipedia revision history. Although 
+One million English sentences, each split into two sentences that together preserve the original meaning, extracted from Wikipedia
+Google's WikiSplit dataset was constructed automatically from the publicly available Wikipedia revision history. Although
 the dataset contains some inherent noise, it can serve as valuable training data for models that split or merge sentences.
 """
 _URL = "https://github.com/google-research-datasets/wiki-split/raw/master"

@@ -21,9 +21,9 @@ _CITATION = """\
 # TODO(drop):
 _DESCRIPTION = """\
 DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs.
-. DROP is a crowdsourced, adversarially-created, 96k-question benchmark, in which a system must resolve references in a 
+. DROP is a crowdsourced, adversarially-created, 96k-question benchmark, in which a system must resolve references in a
 question, perhaps to multiple input positions, and perform discrete operations over them (such as addition, counting, or
- sorting). These operations require a much more comprehensive understanding of the content of paragraphs than what was 
+ sorting). These operations require a much more comprehensive understanding of the content of paragraphs than what was
  necessary for prior datasets.
 """
 _URl = "https://s3-us-west-2.amazonaws.com/allennlp/datasets/drop/drop_dataset.zip"

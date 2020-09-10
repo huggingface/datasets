@@ -73,10 +73,10 @@ class WikihowConfig(nlp.BuilderConfig):
     def __init__(self, filename=None, **kwargs):
         """BuilderConfig for Wikihow.
 
-    Args:
-      filename: filename of different configs for the dataset.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          filename: filename of different configs for the dataset.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version 1.1.0 remove empty document and summary strings.
         # Version 1.2.0 add train validation test split, add cleaning & filtering.
         super(WikihowConfig, self).__init__(version=nlp.Version("1.2.0"), **kwargs)
@@ -142,14 +142,25 @@ class Wikihow(nlp.GeneratorBasedBuilder):
             )
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"path": path_to_manual_file, "title_set": titles["train"],},
+                name=nlp.Split.TRAIN,
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["train"],
+                },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
-                gen_kwargs={"path": path_to_manual_file, "title_set": titles["validation"],},
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["validation"],
+                },
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"path": path_to_manual_file, "title_set": titles["test"],},
+                name=nlp.Split.TEST,
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["test"],
+                },
             ),
         ]
 

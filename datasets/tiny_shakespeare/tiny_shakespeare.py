@@ -95,9 +95,13 @@ class TinyShakespeare(nlp.GeneratorBasedBuilder):
                 gen_kwargs={"split_key": "train", "split_text": train_text},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"split_key": "validation", "split_text": validation_text},
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"split_key": "validation", "split_text": validation_text},
             ),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"split_key": "test", "split_text": test_text},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"split_key": "test", "split_text": test_text},
+            ),
         ]
 
     def _generate_examples(self, split_key, split_text):

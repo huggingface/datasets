@@ -22,10 +22,10 @@ _CITATION = """\
 
 # TODO(reclor):
 _DESCRIPTION = """\
-Logical reasoning is an important ability to examine, analyze, and critically evaluate arguments as they occur in ordinary 
-language as the definition from LSAC. ReClor is a dataset extracted from logical reasoning questions of standardized graduate 
-admission examinations. Empirical results show that the state-of-the-art models struggle on ReClor with poor performance 
-indicating more research is needed to essentially enhance the logical reasoning ability of current models. We hope this 
+Logical reasoning is an important ability to examine, analyze, and critically evaluate arguments as they occur in ordinary
+language as the definition from LSAC. ReClor is a dataset extracted from logical reasoning questions of standardized graduate
+admission examinations. Empirical results show that the state-of-the-art models struggle on ReClor with poor performance
+indicating more research is needed to essentially enhance the logical reasoning ability of current models. We hope this
 dataset could help push Machine Reading Comprehension (MRC) towards more complicated reasonin
 """
 
@@ -39,7 +39,7 @@ class Reclor(nlp.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-  to use ReClor you need to download it manually. Please go to its homepage (http://whyu.me/reclor/) fill the google 
+  to use ReClor you need to download it manually. Please go to its homepage (http://whyu.me/reclor/) fill the google
   form and you will recive a download link and a password to extract it.Please extract all files in one folder and use the path folder in nlp.load_dataset('reclor', data_dir='path/to/folder/folder_name')
   """
 

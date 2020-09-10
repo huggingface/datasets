@@ -32,9 +32,9 @@ class AllocineConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for Allocine.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(AllocineConfig, self).__init__(**kwargs)
 
 
@@ -58,7 +58,10 @@ class AllocineDataset(nlp.GeneratorBasedBuilder):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(
-                {"review": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["neg", "pos"]),}
+                {
+                    "review": nlp.Value("string"),
+                    "label": nlp.features.ClassLabel(names=["neg", "pos"]),
+                }
             ),
             supervised_keys=None,
             homepage="https://github.com/TheophileBlard/french-sentiment-analysis-with-bert",

@@ -135,9 +135,18 @@ class MsMarco(nlp.GeneratorBasedBuilder):
         else:
             dl_path = dl_manager.download_and_extract(_V1_URLS)
         return [
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": dl_path["dev"]},),
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": dl_path["train"]},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": dl_path["test"]},),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"filepath": dl_path["dev"]},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"filepath": dl_path["train"]},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"filepath": dl_path["test"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):

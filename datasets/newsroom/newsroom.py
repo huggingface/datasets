@@ -118,12 +118,17 @@ class Newsroom(nlp.GeneratorBasedBuilder):
             )
         return [
             nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"input_file": os.path.join(data_dir, "train.jsonl")},
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"input_file": os.path.join(data_dir, "train.jsonl")},
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"input_file": os.path.join(data_dir, "dev.jsonl")},
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"input_file": os.path.join(data_dir, "dev.jsonl")},
             ),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"input_file": os.path.join(data_dir, "test.jsonl")},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"input_file": os.path.join(data_dir, "test.jsonl")},
+            ),
         ]
 
     def _generate_examples(self, input_file=None):

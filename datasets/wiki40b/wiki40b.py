@@ -97,10 +97,10 @@ class Wiki40bConfig(nlp.BuilderConfig):
     def __init__(self, language=None, **kwargs):
         """BuilderConfig for Wiki40B.
 
-    Args:
-      language: string, the language code for the Wiki40B dataset to use.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          language: string, the language code for the Wiki40B dataset to use.
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(Wiki40bConfig, self).__init__(
             name=str(language), description="Wiki40B dataset for {0}.".format(language), **kwargs
         )
@@ -114,7 +114,10 @@ class Wiki40b(nlp.BeamBasedBuilder):
     """Wiki40B: A Clean Wikipedia Dataset for Mutlilingual Language Modeling."""
 
     BUILDER_CONFIGS = [
-        Wiki40bConfig(version=_VERSION, language=lang,)  # pylint:disable=g-complex-comprehension
+        Wiki40bConfig(
+            version=_VERSION,
+            language=lang,
+        )  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
 

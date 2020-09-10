@@ -37,9 +37,9 @@ class ArcdConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for ARCD.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(ArcdConfig, self).__init__(**kwargs)
 
 
