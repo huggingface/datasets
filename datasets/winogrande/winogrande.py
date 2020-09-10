@@ -41,9 +41,7 @@ class WinograndeConfig(datasets.BuilderConfig):
             data_size: the size of the training set we want to us (xs, s, m, l, xl)
             **kwargs: keyword arguments forwarded to super.
         """
-        super(WinograndeConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(WinograndeConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.data_size = data_size
 
 

@@ -46,9 +46,7 @@ class QangarooConfig(datasets.BuilderConfig):
 
         """
 
-        super(QangarooConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(QangarooConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
         self.data_dir = data_dir
 

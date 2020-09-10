@@ -60,17 +60,17 @@ class Fever(datasets.GeneratorBasedBuilder):
         FeverConfig(
             name="v1.0",
             description="FEVER  V1.0",
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
         ),
         FeverConfig(
             name="v2.0",
             description="FEVER  V2.0",
-            version=datasets.Version("2.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("2.0.0", ""),
         ),
         FeverConfig(
             name="wiki_pages",
             description="Wikipedia pages",
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
         ),
     ]
 

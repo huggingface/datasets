@@ -46,9 +46,7 @@ class TydiqaConfig(datasets.BuilderConfig):
         Args:
             **kwargs: keyword arguments forwarded to super.
         """
-        super(TydiqaConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(TydiqaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Tydiqa(datasets.GeneratorBasedBuilder):

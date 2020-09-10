@@ -65,9 +65,7 @@ class MultiNLIMismatchConfig(datasets.BuilderConfig):
 
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MultiNLIMismatchConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(MultiNLIMismatchConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class MultiNliMismatch(datasets.GeneratorBasedBuilder):

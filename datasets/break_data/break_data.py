@@ -44,9 +44,7 @@ class BreakDataConfig(datasets.BuilderConfig):
             lexicon_tokens: to define if we want to load the lexicon_tokens files or not
             **kwargs: keyword arguments forwarded to super.
         """
-        super(BreakDataConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(BreakDataConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.lexicon_tokens = lexicon_tokens
 

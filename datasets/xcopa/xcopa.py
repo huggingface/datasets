@@ -51,9 +51,7 @@ class XcopaConfig(datasets.BuilderConfig):
             data_dir: directory for the given language dataset
             **kwargs: keyword arguments forwarded to super.
         """
-        super(XcopaConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(XcopaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Xcopa(datasets.GeneratorBasedBuilder):

@@ -67,7 +67,7 @@ class Piaf(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         PiafConfig(
             name="plain_text",
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Plain text",
         ),
     ]

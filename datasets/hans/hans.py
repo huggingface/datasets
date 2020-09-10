@@ -55,9 +55,7 @@ class HansConfig(datasets.BuilderConfig):
         .
               **kwargs: keyword arguments forwarded to super.
         """
-        super(HansConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(HansConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Hans(datasets.GeneratorBasedBuilder):

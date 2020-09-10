@@ -73,9 +73,7 @@ class SearchQaConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(SearchQaConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(SearchQaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.data_url = data_url
 
 

@@ -67,9 +67,7 @@ class Lm1bConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Lm1bConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(Lm1bConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 def _train_data_filenames(tmp_dir):

@@ -71,22 +71,22 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         SquadShiftsConfig(
             name="new_wiki",
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="SQuADShifts New Wikipedia article dataset",
         ),
         SquadShiftsConfig(
             name="nyt",
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="SQuADShifts New York Times article dataset.",
         ),
         SquadShiftsConfig(
             name="reddit",
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="SQuADShifts Reddit comment dataset.",
         ),
         SquadShiftsConfig(
             name="amazon",
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="SQuADShifts Amazon product review dataset.",
         ),
     ]

@@ -31,7 +31,7 @@
         "config_name": "XNLI",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -110,7 +110,7 @@
         "config_name": "tydiqa",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -193,7 +193,7 @@
         "config_name": "SQuAD",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -269,7 +269,7 @@
         "config_name": "PAN-X.af",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -342,7 +342,7 @@
         "config_name": "PAN-X.ar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -415,7 +415,7 @@
         "config_name": "PAN-X.bg",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -488,7 +488,7 @@
         "config_name": "PAN-X.bn",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -561,7 +561,7 @@
         "config_name": "PAN-X.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -634,7 +634,7 @@
         "config_name": "PAN-X.el",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -707,7 +707,7 @@
         "config_name": "PAN-X.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -780,7 +780,7 @@
         "config_name": "PAN-X.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -853,7 +853,7 @@
         "config_name": "PAN-X.et",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -926,7 +926,7 @@
         "config_name": "PAN-X.eu",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -999,7 +999,7 @@
         "config_name": "PAN-X.fa",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1072,7 +1072,7 @@
         "config_name": "PAN-X.fi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1145,7 +1145,7 @@
         "config_name": "PAN-X.fr",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1218,7 +1218,7 @@
         "config_name": "PAN-X.he",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1291,7 +1291,7 @@
         "config_name": "PAN-X.hi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1364,7 +1364,7 @@
         "config_name": "PAN-X.hu",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1437,7 +1437,7 @@
         "config_name": "PAN-X.id",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1510,7 +1510,7 @@
         "config_name": "PAN-X.it",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1583,7 +1583,7 @@
         "config_name": "PAN-X.ja",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1656,7 +1656,7 @@
         "config_name": "PAN-X.jv",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1729,7 +1729,7 @@
         "config_name": "PAN-X.ka",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1802,7 +1802,7 @@
         "config_name": "PAN-X.kk",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1875,7 +1875,7 @@
         "config_name": "PAN-X.ko",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -1948,7 +1948,7 @@
         "config_name": "PAN-X.ml",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2021,7 +2021,7 @@
         "config_name": "PAN-X.mr",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2094,7 +2094,7 @@
         "config_name": "PAN-X.ms",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2167,7 +2167,7 @@
         "config_name": "PAN-X.my",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2240,7 +2240,7 @@
         "config_name": "PAN-X.nl",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2313,7 +2313,7 @@
         "config_name": "PAN-X.pt",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2386,7 +2386,7 @@
         "config_name": "PAN-X.ru",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2459,7 +2459,7 @@
         "config_name": "PAN-X.sw",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2532,7 +2532,7 @@
         "config_name": "PAN-X.ta",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2605,7 +2605,7 @@
         "config_name": "PAN-X.te",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2678,7 +2678,7 @@
         "config_name": "PAN-X.th",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2751,7 +2751,7 @@
         "config_name": "PAN-X.tl",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2824,7 +2824,7 @@
         "config_name": "PAN-X.tr",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2897,7 +2897,7 @@
         "config_name": "PAN-X.ur",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -2970,7 +2970,7 @@
         "config_name": "PAN-X.vi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3043,7 +3043,7 @@
         "config_name": "PAN-X.yo",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3116,7 +3116,7 @@
         "config_name": "PAN-X.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3196,7 +3196,7 @@
         "config_name": "MLQA.ar.ar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3275,7 +3275,7 @@
         "config_name": "MLQA.ar.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3354,7 +3354,7 @@
         "config_name": "MLQA.ar.vi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3433,7 +3433,7 @@
         "config_name": "MLQA.ar.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3512,7 +3512,7 @@
         "config_name": "MLQA.ar.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3591,7 +3591,7 @@
         "config_name": "MLQA.ar.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3670,7 +3670,7 @@
         "config_name": "MLQA.ar.hi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3749,7 +3749,7 @@
         "config_name": "MLQA.de.ar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3828,7 +3828,7 @@
         "config_name": "MLQA.de.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3907,7 +3907,7 @@
         "config_name": "MLQA.de.vi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -3986,7 +3986,7 @@
         "config_name": "MLQA.de.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4065,7 +4065,7 @@
         "config_name": "MLQA.de.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4144,7 +4144,7 @@
         "config_name": "MLQA.de.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4223,7 +4223,7 @@
         "config_name": "MLQA.de.hi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4302,7 +4302,7 @@
         "config_name": "MLQA.vi.ar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4381,7 +4381,7 @@
         "config_name": "MLQA.vi.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4460,7 +4460,7 @@
         "config_name": "MLQA.vi.vi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4539,7 +4539,7 @@
         "config_name": "MLQA.vi.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4618,7 +4618,7 @@
         "config_name": "MLQA.vi.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4697,7 +4697,7 @@
         "config_name": "MLQA.vi.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4776,7 +4776,7 @@
         "config_name": "MLQA.vi.hi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4855,7 +4855,7 @@
         "config_name": "MLQA.zh.ar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -4934,7 +4934,7 @@
         "config_name": "MLQA.zh.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5013,7 +5013,7 @@
         "config_name": "MLQA.zh.vi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5092,7 +5092,7 @@
         "config_name": "MLQA.zh.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5171,7 +5171,7 @@
         "config_name": "MLQA.zh.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5250,7 +5250,7 @@
         "config_name": "MLQA.zh.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5329,7 +5329,7 @@
         "config_name": "MLQA.zh.hi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5408,7 +5408,7 @@
         "config_name": "MLQA.en.ar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5487,7 +5487,7 @@
         "config_name": "MLQA.en.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5566,7 +5566,7 @@
         "config_name": "MLQA.en.vi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5645,7 +5645,7 @@
         "config_name": "MLQA.en.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5724,7 +5724,7 @@
         "config_name": "MLQA.en.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5803,7 +5803,7 @@
         "config_name": "MLQA.en.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5882,7 +5882,7 @@
         "config_name": "MLQA.en.hi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -5961,7 +5961,7 @@
         "config_name": "MLQA.es.ar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6040,7 +6040,7 @@
         "config_name": "MLQA.es.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6119,7 +6119,7 @@
         "config_name": "MLQA.es.vi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6198,7 +6198,7 @@
         "config_name": "MLQA.es.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6277,7 +6277,7 @@
         "config_name": "MLQA.es.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6356,7 +6356,7 @@
         "config_name": "MLQA.es.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6435,7 +6435,7 @@
         "config_name": "MLQA.es.hi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6514,7 +6514,7 @@
         "config_name": "MLQA.hi.ar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6593,7 +6593,7 @@
         "config_name": "MLQA.hi.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6672,7 +6672,7 @@
         "config_name": "MLQA.hi.vi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6751,7 +6751,7 @@
         "config_name": "MLQA.hi.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6830,7 +6830,7 @@
         "config_name": "MLQA.hi.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6909,7 +6909,7 @@
         "config_name": "MLQA.hi.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -6988,7 +6988,7 @@
         "config_name": "MLQA.hi.hi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7062,7 +7062,7 @@
         "config_name": "XQuAD.ar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7130,7 +7130,7 @@
         "config_name": "XQuAD.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7198,7 +7198,7 @@
         "config_name": "XQuAD.vi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7266,7 +7266,7 @@
         "config_name": "XQuAD.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7334,7 +7334,7 @@
         "config_name": "XQuAD.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7402,7 +7402,7 @@
         "config_name": "XQuAD.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7470,7 +7470,7 @@
         "config_name": "XQuAD.hi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7538,7 +7538,7 @@
         "config_name": "XQuAD.el",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7606,7 +7606,7 @@
         "config_name": "XQuAD.ru",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7674,7 +7674,7 @@
         "config_name": "XQuAD.th",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7742,7 +7742,7 @@
         "config_name": "XQuAD.tr",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7798,7 +7798,7 @@
         "config_name": "bucc18.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7864,7 +7864,7 @@
         "config_name": "bucc18.fr",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7930,7 +7930,7 @@
         "config_name": "bucc18.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -7996,7 +7996,7 @@
         "config_name": "bucc18.ru",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8057,7 +8057,7 @@
         "config_name": "PAWS-X.de",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8120,7 +8120,7 @@
         "config_name": "PAWS-X.en",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8183,7 +8183,7 @@
         "config_name": "PAWS-X.es",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8246,7 +8246,7 @@
         "config_name": "PAWS-X.fr",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8309,7 +8309,7 @@
         "config_name": "PAWS-X.ja",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8372,7 +8372,7 @@
         "config_name": "PAWS-X.ko",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8435,7 +8435,7 @@
         "config_name": "PAWS-X.zh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8503,7 +8503,7 @@
         "config_name": "tatoeba.afr",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8563,7 +8563,7 @@
         "config_name": "tatoeba.ara",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8623,7 +8623,7 @@
         "config_name": "tatoeba.ben",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8683,7 +8683,7 @@
         "config_name": "tatoeba.bul",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8743,7 +8743,7 @@
         "config_name": "tatoeba.deu",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8803,7 +8803,7 @@
         "config_name": "tatoeba.cmn",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8863,7 +8863,7 @@
         "config_name": "tatoeba.ell",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8923,7 +8923,7 @@
         "config_name": "tatoeba.est",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -8983,7 +8983,7 @@
         "config_name": "tatoeba.eus",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9043,7 +9043,7 @@
         "config_name": "tatoeba.fin",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9103,7 +9103,7 @@
         "config_name": "tatoeba.fra",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9163,7 +9163,7 @@
         "config_name": "tatoeba.heb",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9223,7 +9223,7 @@
         "config_name": "tatoeba.hin",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9283,7 +9283,7 @@
         "config_name": "tatoeba.hun",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9343,7 +9343,7 @@
         "config_name": "tatoeba.ind",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9403,7 +9403,7 @@
         "config_name": "tatoeba.ita",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9463,7 +9463,7 @@
         "config_name": "tatoeba.jav",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9523,7 +9523,7 @@
         "config_name": "tatoeba.jpn",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9583,7 +9583,7 @@
         "config_name": "tatoeba.kat",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9643,7 +9643,7 @@
         "config_name": "tatoeba.kaz",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9703,7 +9703,7 @@
         "config_name": "tatoeba.kor",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9763,7 +9763,7 @@
         "config_name": "tatoeba.mal",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9823,7 +9823,7 @@
         "config_name": "tatoeba.mar",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9883,7 +9883,7 @@
         "config_name": "tatoeba.nld",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -9943,7 +9943,7 @@
         "config_name": "tatoeba.pes",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10003,7 +10003,7 @@
         "config_name": "tatoeba.por",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10063,7 +10063,7 @@
         "config_name": "tatoeba.rus",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10123,7 +10123,7 @@
         "config_name": "tatoeba.spa",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10183,7 +10183,7 @@
         "config_name": "tatoeba.swh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10243,7 +10243,7 @@
         "config_name": "tatoeba.tam",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10303,7 +10303,7 @@
         "config_name": "tatoeba.tgl",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10363,7 +10363,7 @@
         "config_name": "tatoeba.tha",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10423,7 +10423,7 @@
         "config_name": "tatoeba.tur",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10483,7 +10483,7 @@
         "config_name": "tatoeba.urd",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10543,7 +10543,7 @@
         "config_name": "tatoeba.vie",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10593,7 +10593,7 @@
         "config_name": "udpos.Afrikaans",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10651,7 +10651,7 @@
         "config_name": "udpos.Arabic",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10709,7 +10709,7 @@
         "config_name": "udpos.Basque",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10767,7 +10767,7 @@
         "config_name": "udpos.Bulgarian",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10825,7 +10825,7 @@
         "config_name": "udpos.Dutch",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10883,7 +10883,7 @@
         "config_name": "udpos.English",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10941,7 +10941,7 @@
         "config_name": "udpos.Estonian",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -10999,7 +10999,7 @@
         "config_name": "udpos.Finnish",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11057,7 +11057,7 @@
         "config_name": "udpos.French",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11115,7 +11115,7 @@
         "config_name": "udpos.German",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11173,7 +11173,7 @@
         "config_name": "udpos.Greek",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11231,7 +11231,7 @@
         "config_name": "udpos.Hebrew",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11289,7 +11289,7 @@
         "config_name": "udpos.Hindi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11347,7 +11347,7 @@
         "config_name": "udpos.Hungarian",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11405,7 +11405,7 @@
         "config_name": "udpos.Indonesian",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11463,7 +11463,7 @@
         "config_name": "udpos.Italian",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11521,7 +11521,7 @@
         "config_name": "udpos.Japanese",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11579,7 +11579,7 @@
         "config_name": "udpos.Kazakh",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11631,7 +11631,7 @@
         "config_name": "udpos.Korean",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11689,7 +11689,7 @@
         "config_name": "udpos.Chinese",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11747,7 +11747,7 @@
         "config_name": "udpos.Marathi",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11805,7 +11805,7 @@
         "config_name": "udpos.Persian",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11863,7 +11863,7 @@
         "config_name": "udpos.Portuguese",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11921,7 +11921,7 @@
         "config_name": "udpos.Russian",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -11979,7 +11979,7 @@
         "config_name": "udpos.Spanish",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -12037,7 +12037,7 @@
         "config_name": "udpos.Tagalog",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -12083,7 +12083,7 @@
         "config_name": "udpos.Tamil",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -12141,7 +12141,7 @@
         "config_name": "udpos.Telugu",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -12199,7 +12199,7 @@
         "config_name": "udpos.Thai",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -12245,7 +12245,7 @@
         "config_name": "udpos.Turkish",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -12303,7 +12303,7 @@
         "config_name": "udpos.Urdu",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -12361,7 +12361,7 @@
         "config_name": "udpos.Vietnamese",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
@@ -12419,7 +12419,7 @@
         "config_name": "udpos.Yoruba",
         "version": {
             "version_str": "1.0.0",
-            "description": "New split API (https://tensorflow.org/datasets/splits)",
+            "description": "",
             "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,

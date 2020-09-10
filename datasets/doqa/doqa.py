@@ -62,9 +62,7 @@ class DoqaConfig(datasets.BuilderConfig):
         **kwargs: keyword arguments forwarded to super.
         """
 
-        super(DoqaConfig, self).__init__(
-            version=datasets.Version("2.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(DoqaConfig, self).__init__(version=datasets.Version("2.1.0", ""), **kwargs)
 
 
 class Doqa(datasets.GeneratorBasedBuilder):

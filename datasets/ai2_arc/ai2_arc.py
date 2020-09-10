@@ -39,9 +39,7 @@ class Ai2ArcConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Ai2ArcConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(Ai2ArcConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Ai2Arc(datasets.GeneratorBasedBuilder):

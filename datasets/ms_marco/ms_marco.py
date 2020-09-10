@@ -96,12 +96,12 @@ class MsMarco(datasets.GeneratorBasedBuilder):
         MsMarcoConfig(
             name="v1.1",
             description="""version v1.1""",
-            version=datasets.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.1.0", ""),
         ),
         MsMarcoConfig(
             name="v2.1",
             description="""version v2.1""",
-            version=datasets.Version("2.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("2.1.0", ""),
         ),
     ]
 

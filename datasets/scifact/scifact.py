@@ -35,9 +35,7 @@ class ScifactConfig(datasets.BuilderConfig):
         Args:
             **kwargs: keyword arguments forwarded to super.
         """
-        super(ScifactConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(ScifactConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Scifact(datasets.GeneratorBasedBuilder):

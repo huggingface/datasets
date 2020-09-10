@@ -52,12 +52,12 @@ class SquadEs(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         SquadEsConfig(
             name="v1.1.0",
-            version=datasets.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.1.0", ""),
             description="Plain text Spanish squad version 1",
         ),
         SquadEsConfig(
             name="v2.0.0",
-            version=datasets.Version("2.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("2.0.0", ""),
             description="Plain text Spanish squad version 2",
         ),
     ]

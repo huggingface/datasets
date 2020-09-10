@@ -114,12 +114,12 @@ class CosE(datasets.GeneratorBasedBuilder):
         CosEConfig(
             name="v1.0",
             description="cos-e version 1.0",
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
         ),
         CosEConfig(
             name="v1.11",
             description="cos-e version 1.11",
-            version=datasets.Version("1.11.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.11.0", ""),
         ),
     ]
 

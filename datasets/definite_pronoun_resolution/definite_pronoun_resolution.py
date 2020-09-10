@@ -52,7 +52,7 @@ class DefinitePronounResolution(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
             name="plain_text",
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Plain text import of the Definite Pronoun Resolution Dataset.",  # pylint: disable=line-too-long
         )
     ]

@@ -32,9 +32,7 @@ class ArtConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(ArtConfig, self).__init__(
-            version=datasets.Version("0.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(ArtConfig, self).__init__(version=datasets.Version("0.1.0", ""), **kwargs)
 
 
 class Art(datasets.GeneratorBasedBuilder):

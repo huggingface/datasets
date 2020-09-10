@@ -43,9 +43,7 @@ class ScitailConfig(datasets.BuilderConfig):
         Args:
             **kwargs: keyword arguments forwarded to super.
         """
-        super(ScitailConfig, self).__init__(
-            version=datasets.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(ScitailConfig, self).__init__(version=datasets.Version("1.1.0", ""), **kwargs)
 
 
 class Scitail(datasets.GeneratorBasedBuilder):

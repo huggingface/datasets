@@ -54,9 +54,7 @@ class WebOfScienceConfig(datasets.BuilderConfig):
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super(WebOfScienceConfig, self).__init__(
-            version=datasets.Version("6.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(WebOfScienceConfig, self).__init__(version=datasets.Version("6.0.0", ""), **kwargs)
 
 
 class WebOfScience(datasets.GeneratorBasedBuilder):

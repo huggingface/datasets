@@ -65,7 +65,7 @@ class FloresConfig(datasets.BuilderConfig):
         super(FloresConfig, self).__init__(
             name=name,
             description=description,
-            version=datasets.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.1.0", ""),
             **kwargs,
         )
 

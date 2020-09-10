@@ -53,9 +53,7 @@ class BookcorpusConfig(datasets.BuilderConfig):
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super(BookcorpusConfig, self).__init__(
-            version=datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(BookcorpusConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 class Bookcorpus(datasets.GeneratorBasedBuilder):

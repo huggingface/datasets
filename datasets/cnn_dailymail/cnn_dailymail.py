@@ -78,7 +78,7 @@ _SUPPORTED_VERSIONS = [
     # Using cased version.
     datasets.Version("3.0.0", "Using cased version."),
     # Same data as 0.0.2
-    datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+    datasets.Version("1.0.0", ""),
     # Having the model predict newline separators makes it easier to evaluate
     # using summary-level ROUGE.
     datasets.Version("2.0.0", "Separate target sentences with newline."),

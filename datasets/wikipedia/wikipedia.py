@@ -388,7 +388,7 @@ class WikipediaConfig(datasets.BuilderConfig):
         self.language = language
 
 
-_VERSION = datasets.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)")
+_VERSION = datasets.Version("1.0.0", "")
 
 
 class Wikipedia(datasets.BeamBasedBuilder):
