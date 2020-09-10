@@ -59,10 +59,10 @@ class MultiNLIConfig(nlp.BuilderConfig):
     def __init__(self, **kwargs):
         """BuilderConfig for MultiNLI.
 
-    Args:
-.
-      **kwargs: keyword arguments forwarded to super.
-    """
+            Args:
+        .
+              **kwargs: keyword arguments forwarded to super.
+        """
         super(MultiNLIConfig, self).__init__(
             version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
         )
@@ -72,7 +72,10 @@ class MultiNli(nlp.GeneratorBasedBuilder):
     """MultiNLI: The Stanford Question Answering Dataset. Version 1.1."""
 
     BUILDER_CONFIGS = [
-        MultiNLIConfig(name="plain_text", description="Plain text",),
+        MultiNLIConfig(
+            name="plain_text",
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
@@ -115,12 +118,12 @@ class MultiNli(nlp.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate mnli examples.
 
-    Args:
-      filepath: a string
+        Args:
+          filepath: a string
 
-    Yields:
-      dictionaries containing "premise", "hypothesis" and "label" strings
-    """
+        Yields:
+          dictionaries containing "premise", "hypothesis" and "label" strings
+        """
         for idx, line in enumerate(open(filepath, "rb")):
             if idx == 0:
                 continue  # skip header

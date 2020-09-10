@@ -127,9 +127,9 @@ class WikiSnippetsConfig(nlp.BuilderConfig):
         self, wikipedia_name="wiki40b", wikipedia_version_name="en", snippets_length=100, snippets_overlap=0, **kwargs
     ):
         """BuilderConfig for WikiSnippets.
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(WikiSnippetsConfig, self).__init__(**kwargs)
         self.wikipedia_name = wikipedia_name
         self.wikipedia_version_name = wikipedia_version_name
@@ -184,7 +184,10 @@ class WikiSnippets(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        wikipedia = nlp.load_dataset(path=self.config.wikipedia_name, name=self.config.wikipedia_version_name,)
+        wikipedia = nlp.load_dataset(
+            path=self.config.wikipedia_name,
+            name=self.config.wikipedia_version_name,
+        )
 
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"wikipedia": wikipedia}),

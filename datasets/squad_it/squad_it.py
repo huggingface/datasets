@@ -11,23 +11,23 @@ import nlp
 # TODO(squad_it): BibTeX citation
 _CITATION = """\
 @InProceedings{10.1007/978-3-030-03840-3_29,
-	author={Croce, Danilo and Zelenanska, Alexandra and Basili, Roberto},
-	editor={Ghidini, Chiara and Magnini, Bernardo and Passerini, Andrea and Traverso, Paolo",
-	title={Neural Learning for Question Answering in Italian},
-	booktitle={AI*IA 2018 -- Advances in Artificial Intelligence},
-	year={2018},
-	publisher={Springer International Publishing},
-	address={Cham},
-	pages={389--402},
-	isbn={978-3-030-03840-3}
+    author={Croce, Danilo and Zelenanska, Alexandra and Basili, Roberto},
+    editor={Ghidini, Chiara and Magnini, Bernardo and Passerini, Andrea and Traverso, Paolo",
+    title={Neural Learning for Question Answering in Italian},
+    booktitle={AI*IA 2018 -- Advances in Artificial Intelligence},
+    year={2018},
+    publisher={Springer International Publishing},
+    address={Cham},
+    pages={389--402},
+    isbn={978-3-030-03840-3}
 }
 """
 
 # TODO(squad_it):
 _DESCRIPTION = """\
-SQuAD-it is derived from the SQuAD dataset and it is obtained through semi-automatic translation of the SQuAD dataset 
+SQuAD-it is derived from the SQuAD dataset and it is obtained through semi-automatic translation of the SQuAD dataset
 into Italian. It represents a large-scale dataset for open question answering processes on factoid questions in Italian.
- The dataset contains more than 60,000 question/answer pairs derived from the original English dataset. The dataset is 
+ The dataset contains more than 60,000 question/answer pairs derived from the original English dataset. The dataset is
  split into training and test sets to support the replicability of the benchmarking of QA systems:
 """
 _URL = "https://github.com/crux82/squad-it/raw/master"
@@ -53,7 +53,10 @@ class SquadIt(nlp.GeneratorBasedBuilder):
                     "context": nlp.Value("string"),
                     "question": nlp.Value("string"),
                     "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
+                        {
+                            "text": nlp.Value("string"),
+                            "answer_start": nlp.Value("int32"),
+                        }
                     ),
                     # These are the features of your dataset like images, labels ...
                 }
@@ -99,5 +102,8 @@ class SquadIt(nlp.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

@@ -43,7 +43,12 @@ class CommonsenseQa(nlp.GeneratorBasedBuilder):
             {
                 "answerKey": nlp.Value("string"),
                 "question": nlp.Value("string"),
-                "choices": nlp.features.Sequence({"label": nlp.Value("string"), "text": nlp.Value("string"),}),
+                "choices": nlp.features.Sequence(
+                    {
+                        "label": nlp.Value("string"),
+                        "text": nlp.Value("string"),
+                    }
+                ),
             }
         )
         return nlp.DatasetInfo(
@@ -76,10 +81,18 @@ class CommonsenseQa(nlp.GeneratorBasedBuilder):
                 name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"], "split": "train"}
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"], "split": "dev",}
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": downloaded_files["dev"],
+                    "split": "dev",
+                },
             ),
             nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"], "split": "test",}
+                name=nlp.Split.TEST,
+                gen_kwargs={
+                    "filepath": downloaded_files["test"],
+                    "split": "test",
+                },
             ),
         ]
 

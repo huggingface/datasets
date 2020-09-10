@@ -37,7 +37,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-In this dataset, given a textual dialogue i.e. an utterance along with two previous turns of context, the goal was to infer the underlying emotion of the utterance by choosing from four emotion classes - Happy, Sad, Angry and Others. 
+In this dataset, given a textual dialogue i.e. an utterance along with two previous turns of context, the goal was to infer the underlying emotion of the utterance by choosing from four emotion classes - Happy, Sad, Angry and Others.
 """
 
 
@@ -46,9 +46,9 @@ class EmoConfig(nlp.BuilderConfig):
 
     def __init__(self, **kwargs):
         """BuilderConfig for EmoContext.
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(EmoConfig, self).__init__(**kwargs)
 
 
@@ -62,7 +62,11 @@ class Emo(nlp.GeneratorBasedBuilder):
     VERSION = nlp.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        EmoConfig(name="emo2019", version=nlp.Version("1.0.0"), description="Plain text",),
+        EmoConfig(
+            name="emo2019",
+            version=nlp.Version("1.0.0"),
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
@@ -89,8 +93,17 @@ class Emo(nlp.GeneratorBasedBuilder):
         dl_train = dl_manager.download_and_extract(self._get_drive_url(_TRAIN_URL))
         dl_test = dl_manager.download_and_extract(self._get_drive_url(_TEST_URL))
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": dl_train, "split": "train",},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": dl_test, "split": "test"},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={
+                    "filepath": dl_train,
+                    "split": "train",
+                },
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"filepath": dl_test, "split": "test"},
+            ),
         ]
 
     def _generate_examples(self, filepath, split):

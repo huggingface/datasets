@@ -287,17 +287,17 @@ class SuperGlueConfig(nlp.BuilderConfig):
     def __init__(self, features, data_url, citation, url, label_classes=("False", "True"), **kwargs):
         """BuilderConfig for SuperGLUE.
 
-    Args:
-      features: `list[string]`, list of the features that will appear in the
-        feature dict. Should not include "label".
-      data_url: `string`, url to download the zip file from.
-      citation: `string`, citation for the data set.
-      url: `string`, url for information about the data set.
-      label_classes: `list[string]`, the list of classes for the label if the
-        label is present as a string. Non-string labels will be cast to either
-        'False' or 'True'.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          features: `list[string]`, list of the features that will appear in the
+            feature dict. Should not include "label".
+          data_url: `string`, url to download the zip file from.
+          citation: `string`, citation for the data set.
+          url: `string`, url for information about the data set.
+          label_classes: `list[string]`, the list of classes for the label if the
+            label is present as a string. Non-string labels will be cast to either
+            'False' or 'True'.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version history:
         # 1.0.2: Fixed non-nondeterminism in ReCoRD.
         # 1.0.1: Change from the pre-release trial version of SuperGLUE (v1.9) to
@@ -437,10 +437,19 @@ class SuperGlue(nlp.GeneratorBasedBuilder):
             features["end2"] = nlp.Value("int32")
         if self.config.name == "multirc":
             features["idx"] = dict(
-                {"paragraph": nlp.Value("int32"), "question": nlp.Value("int32"), "answer": nlp.Value("int32"),}
+                {
+                    "paragraph": nlp.Value("int32"),
+                    "question": nlp.Value("int32"),
+                    "answer": nlp.Value("int32"),
+                }
             )
         elif self.config.name == "record":
-            features["idx"] = dict({"passage": nlp.Value("int32"), "query": nlp.Value("int32"),})
+            features["idx"] = dict(
+                {
+                    "passage": nlp.Value("int32"),
+                    "query": nlp.Value("int32"),
+                }
+            )
         else:
             features["idx"] = nlp.Value("int32")
 
@@ -476,15 +485,24 @@ class SuperGlue(nlp.GeneratorBasedBuilder):
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
-                gen_kwargs={"data_file": os.path.join(dl_dir, "train.jsonl"), "split": nlp.Split.TRAIN,},
+                gen_kwargs={
+                    "data_file": os.path.join(dl_dir, "train.jsonl"),
+                    "split": nlp.Split.TRAIN,
+                },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.VALIDATION,
-                gen_kwargs={"data_file": os.path.join(dl_dir, "val.jsonl"), "split": nlp.Split.VALIDATION,},
+                gen_kwargs={
+                    "data_file": os.path.join(dl_dir, "val.jsonl"),
+                    "split": nlp.Split.VALIDATION,
+                },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
-                gen_kwargs={"data_file": os.path.join(dl_dir, "test.jsonl"), "split": nlp.Split.TEST,},
+                gen_kwargs={
+                    "data_file": os.path.join(dl_dir, "test.jsonl"),
+                    "split": nlp.Split.TEST,
+                },
             ),
         ]
 

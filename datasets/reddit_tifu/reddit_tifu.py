@@ -63,10 +63,10 @@ class RedditTifuConfig(nlp.BuilderConfig):
     def __init__(self, summary_key=None, **kwargs):
         """BuilderConfig for RedditTifu.
 
-    Args:
-      summary_key: key string of summary in downloaded json file.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          summary_key: key string of summary in downloaded json file.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version 1.1.0 remove empty document and summary strings.
         super(RedditTifuConfig, self).__init__(version=nlp.Version("1.1.0"), **kwargs)
         self.summary_key = summary_key
@@ -76,8 +76,16 @@ class RedditTifu(nlp.GeneratorBasedBuilder):
     """Reddit TIFU Dataset."""
 
     BUILDER_CONFIGS = [
-        RedditTifuConfig(name="short", summary_key=_TITLE, description="Using title as summary.",),
-        RedditTifuConfig(name="long", summary_key=_TLDR, description="Using TLDR as summary.",),
+        RedditTifuConfig(
+            name="short",
+            summary_key=_TITLE,
+            description="Using title as summary.",
+        ),
+        RedditTifuConfig(
+            name="long",
+            summary_key=_TLDR,
+            description="Using TLDR as summary.",
+        ),
     ]
 
     def _info(self):
@@ -99,7 +107,12 @@ class RedditTifu(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         dl_path = dl_manager.download_and_extract(_URL)
-        return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"path": dl_path},)]
+        return [
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"path": dl_path},
+            )
+        ]
 
     def _generate_examples(self, path=None):
         """Yields examples."""

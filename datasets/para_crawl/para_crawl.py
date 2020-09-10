@@ -43,9 +43,9 @@ _BASE_DATA_URL_FORMAT_STR = (
 def _target_languages():
     """Create the sorted dictionary of language codes, and language names.
 
-  Returns:
-    The sorted dictionary as an instance of `collections.OrderedDict`.
-  """
+    Returns:
+      The sorted dictionary as an instance of `collections.OrderedDict`.
+    """
     langs = {
         "bg": "Bulgarian",
         "cs": "Czech",
@@ -80,13 +80,13 @@ class ParaCrawlConfig(nlp.BuilderConfig):
     def __init__(self, target_language=None, **kwargs):
         """BuilderConfig for ParaCrawl.
 
-    Args:
-        for the `nlp.features.text.TextEncoder` used for the features feature.
-      target_language: Target language that will be used to translate to from
-        English which is always the source language. It has to contain 2-letter
-        coded strings. For example: "se", "hu".
-      **kwargs: Keyword arguments forwarded to super.
-    """
+        Args:
+            for the `nlp.features.text.TextEncoder` used for the features feature.
+          target_language: Target language that will be used to translate to from
+            English which is always the source language. It has to contain 2-letter
+            coded strings. For example: "se", "hu".
+          **kwargs: Keyword arguments forwarded to super.
+        """
         # Validate the target language.
         if target_language not in _target_languages():
             raise ValueError("Invalid target language: %s " % target_language)
@@ -113,7 +113,8 @@ class ParaCrawl(nlp.GeneratorBasedBuilder):
         # The version below does not refer to the version of the released
         # database. It only indicates the version of the TFDS integration.
         ParaCrawlConfig(  # pylint: disable=g-complex-comprehension
-            target_language=target_language, version=nlp.Version("1.0.0"),
+            target_language=target_language,
+            version=nlp.Version("1.0.0"),
         )
         for target_language in _target_languages()
     ]

@@ -44,12 +44,12 @@ _CITATION = r"""
 """
 
 _DESCRIPTION = """
-QA4MRE dataset was created for the CLEF 2011/2012/2013 shared tasks to promote research in 
-question answering and reading comprehension. The dataset contains a supporting 
-passage and a set of questions corresponding to the passage. Multiple options 
-for answers are provided for each question, of which only one is correct. The 
+QA4MRE dataset was created for the CLEF 2011/2012/2013 shared tasks to promote research in
+question answering and reading comprehension. The dataset contains a supporting
+passage and a set of questions corresponding to the passage. Multiple options
+for answers are provided for each question, of which only one is correct. The
 training and test datasets are available for the main track.
-Additional gold standard documents are available for two pilot studies: one on 
+Additional gold standard documents are available for two pilot studies: one on
 alzheimers data, and the other on entrance exams data.
 """
 
@@ -80,18 +80,18 @@ PATHS = {
 def _get_question(topic_id, topic_name, test_id, document_id, document_str, question):
     """Gets instance ID and features for every question.
 
-  Args:
-    topic_id: string
-    topic_name: string
-    test_id: string
-    document_id: string
-    document_str: string
-    question: XML element for question
+    Args:
+      topic_id: string
+      topic_name: string
+      test_id: string
+      document_id: string
+      document_str: string
+      question: XML element for question
 
-  Returns:
-    id_: string. Unique ID for instance.
-    feats: dict of instance features
-  """
+    Returns:
+      id_: string. Unique ID for instance.
+      feats: dict of instance features
+    """
 
     question_id = question.attrib["q_id"]
     for q_text in question.iter("q_str"):
@@ -130,12 +130,12 @@ class Qa4mreConfig(nlp.BuilderConfig):
     def __init__(self, year, track="main", language="EN", **kwargs):
         """BuilderConfig for Qa4Mre.
 
-    Args:
-      year: string, year of dataset
-      track: string, the task track from PATHS[year]['_TRACKS'].
-      language: string, Acronym for language in the main task.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          year: string, year of dataset
+          track: string, the task track from PATHS[year]['_TRACKS'].
+          language: string, Acronym for language in the main task.
+          **kwargs: keyword arguments forwarded to super.
+        """
         if track.lower() not in PATHS[year]["_TRACKS"]:
             raise ValueError("Incorrect track. Track should be one of the following: ", PATHS[year]["_TRACKS"])
 

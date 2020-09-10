@@ -65,7 +65,11 @@ class Billsum(nlp.GeneratorBasedBuilder):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
             features=nlp.Features(
-                {_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string"), "title": nlp.Value("string"),}
+                {
+                    _DOCUMENT: nlp.Value("string"),
+                    _SUMMARY: nlp.Value("string"),
+                    "title": nlp.Value("string"),
+                }
             ),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/FiscalNote/BillSum",

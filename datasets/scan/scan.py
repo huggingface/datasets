@@ -54,11 +54,11 @@ class ScanConfig(nlp.BuilderConfig):
     def __init__(self, name, directory=None, **kwargs):
         """BuilderConfig for SCAN.
 
-    Args:
-      name: Unique name of the split.
-      directory: Which subdirectory to read the split from.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          name: Unique name of the split.
+          directory: Which subdirectory to read the split from.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version history:
         super(ScanConfig, self).__init__(name=name, version=nlp.Version("1.0.0"), description=_DESCRIPTION, **kwargs)
         if directory is None:
@@ -92,7 +92,12 @@ class Scan(nlp.GeneratorBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({_COMMANDS: nlp.Value("string"), _ACTIONS: nlp.Value("string"),}),
+            features=nlp.Features(
+                {
+                    _COMMANDS: nlp.Value("string"),
+                    _ACTIONS: nlp.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage="https://github.com/brendenlake/SCAN",
             citation=_CITATION,

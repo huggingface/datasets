@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import nlp
 
@@ -53,7 +52,6 @@ class Jeopardy(nlp.GeneratorBasedBuilder):
                     "value": nlp.Value("int32"),
                     "answer": nlp.Value("string"),
                     "round": nlp.Value("string"),
-                    "category": nlp.Value("string"),
                     "show_number": nlp.Value("int32"),
                     # These are the features of your dataset like images, labels ...
                 }

@@ -25,7 +25,7 @@ _CITATION = """\
 # TODO(break):
 _DESCRIPTION = """\
 Break is a human annotated dataset of natural language questions and their Question Decomposition Meaning Representations
-(QDMRs). Break consists of 83,978 examples sampled from 10 question answering datasets over text, images and databases. 
+(QDMRs). Break consists of 83,978 examples sampled from 10 question answering datasets over text, images and databases.
 This repository contains the Break dataset along with information on the exact data format.
 """
 _URL = "https://github.com/allenai/Break/raw/master/break_dataset/Break-dataset.zip"
@@ -61,7 +61,7 @@ class BreakData(nlp.GeneratorBasedBuilder):
             name="QDMR-high-level",
             description=textwrap.dedent(
                 """
-             Contains questions annotated with the high-level variant of QDMR. These decomposition are exclusive to Reading 
+             Contains questions annotated with the high-level variant of QDMR. These decomposition are exclusive to Reading
              Comprehension tasks (Section 2). lexicon_tokens files are also provided."""
             ),
             text_features={
@@ -77,19 +77,22 @@ class BreakData(nlp.GeneratorBasedBuilder):
             name="QDMR-high-level-lexicon",
             description=textwrap.dedent(
                 """
-               Contains questions annotated with the high-level variant of QDMR. These decomposition are exclusive to Reading 
+               Contains questions annotated with the high-level variant of QDMR. These decomposition are exclusive to Reading
                Comprehension tasks (Section 2). lexicon_tokens files are also provided."""
             ),
-            text_features={"source": "source", "allowed_tokens": "allowed_tokens",},
+            text_features={
+                "source": "source",
+                "allowed_tokens": "allowed_tokens",
+            },
             lexicon_tokens=True,
         ),
         BreakDataConfig(
             name="QDMR",
             description=textwrap.dedent(
                 """
-               Contains questions over text, images and databases annotated with their Question Decomposition Meaning 
-               Representation. In addition to the train, dev and (hidden) test sets we provide lexicon_tokens files. For 
-               each question, the lexicon file contains the set of valid tokens that could potentially appear in its 
+               Contains questions over text, images and databases annotated with their Question Decomposition Meaning
+               Representation. In addition to the train, dev and (hidden) test sets we provide lexicon_tokens files. For
+               each question, the lexicon file contains the set of valid tokens that could potentially appear in its
                decomposition """
             ),
             text_features={
@@ -105,19 +108,22 @@ class BreakData(nlp.GeneratorBasedBuilder):
             name="QDMR-lexicon",
             description=textwrap.dedent(
                 """
-                 Contains questions over text, images and databases annotated with their Question Decomposition Meaning 
-               Representation. In addition to the train, dev and (hidden) test sets we provide lexicon_tokens files. For 
-               each question, the lexicon file contains the set of valid tokens that could potentially appear in its 
+                 Contains questions over text, images and databases annotated with their Question Decomposition Meaning
+               Representation. In addition to the train, dev and (hidden) test sets we provide lexicon_tokens files. For
+               each question, the lexicon file contains the set of valid tokens that could potentially appear in its
                decomposition """
             ),
-            text_features={"source": "source", "allowed_tokens": "allowed_tokens",},
+            text_features={
+                "source": "source",
+                "allowed_tokens": "allowed_tokens",
+            },
             lexicon_tokens=True,
         ),
         BreakDataConfig(
             name="logical-forms",
             description=textwrap.dedent(
                 """
-               Contains questions and QDMRs annotated with full logical-forms of QDMR operators + arguments. Full logical-forms 
+               Contains questions and QDMRs annotated with full logical-forms of QDMR operators + arguments. Full logical-forms
                were inferred by the annotation-consistency algorithm described in """
             ),
             lexicon_tokens=False,

@@ -69,9 +69,18 @@ class MultiNews(nlp.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         extract_path = os.path.join(dl_manager.download_and_extract(_URL), "multi-news-original")
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"path": os.path.join(extract_path, "train")},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"path": os.path.join(extract_path, "val")},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"path": os.path.join(extract_path, "test")},),
+            nlp.SplitGenerator(
+                name=nlp.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(extract_path, "train")},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.VALIDATION,
+                gen_kwargs={"path": os.path.join(extract_path, "val")},
+            ),
+            nlp.SplitGenerator(
+                name=nlp.Split.TEST,
+                gen_kwargs={"path": os.path.join(extract_path, "test")},
+            ),
         ]
 
     def _generate_examples(self, path=None):

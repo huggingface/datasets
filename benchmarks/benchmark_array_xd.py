@@ -2,10 +2,11 @@ import json
 import os
 import tempfile
 
+from utils import generate_examples, get_duration
+
 import nlp
 from nlp.arrow_writer import ArrowWriter
 from nlp.features import Array2D
-from utils import generate_examples, get_duration
 
 
 SHAPE_TEST_1 = (30, 487)

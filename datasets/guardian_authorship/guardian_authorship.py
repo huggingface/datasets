@@ -43,20 +43,20 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-A dataset cross-topic authorship attribution. The dataset is provided by Stamatatos 2013. 
+A dataset cross-topic authorship attribution. The dataset is provided by Stamatatos 2013.
 1- The cross-topic scenarios are based on Table-4 in Stamatatos 2017 (Ex. cross_topic_1 => row 1:P S U&W ).
 2- The cross-genre scenarios are based on Table-5 in the same paper. (Ex. cross_genre_1 => row 1:B P S&U&W).
 
-3- The same-topic/genre scenario is created by grouping all the datasts as follows. 
+3- The same-topic/genre scenario is created by grouping all the datasts as follows.
 For ex., to use same_topic and split the data 60-40 use:
-train_ds = load_dataset('guardian_authorship', name="cross_topic_<<#>>", 
+train_ds = load_dataset('guardian_authorship', name="cross_topic_<<#>>",
                         split='train[:60%]+validation[:60%]+test[:60%]')
-tests_ds = load_dataset('guardian_authorship', name="cross_topic_<<#>>", 
-                        split='train[-40%:]+validation[-40%:]+test[-40%:]')            
+tests_ds = load_dataset('guardian_authorship', name="cross_topic_<<#>>",
+                        split='train[-40%:]+validation[-40%:]+test[-40%:]')
 
 IMPORTANT: train+validation+test[:60%] will generate the wrong splits becasue the data is imbalanced
 
-* See https://huggingface.co/nlp/splits.html for detailed/more examples 
+* See https://huggingface.co/nlp/splits.html for detailed/more examples
 """
 
 _URL = "https://www.dropbox.com/s/lc5mje0owl9shms/Guardian.zip?dl=1"

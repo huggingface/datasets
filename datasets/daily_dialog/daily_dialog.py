@@ -32,10 +32,10 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-We develop a high-quality multi-turn dialog dataset, DailyDialog, which is intriguing in several aspects. 
-The language is human-written and less noisy. The dialogues in the dataset reflect our daily communication way 
-and cover various topics about our daily life. We also manually label the developed dataset with communication 
-intention and emotion information. Then, we evaluate existing approaches on DailyDialog dataset and hope it 
+We develop a high-quality multi-turn dialog dataset, DailyDialog, which is intriguing in several aspects.
+The language is human-written and less noisy. The dialogues in the dataset reflect our daily communication way
+and cover various topics about our daily life. We also manually label the developed dataset with communication
+intention and emotion information. Then, we evaluate existing approaches on DailyDialog dataset and hope it
 benefit the research field of dialog systems.
 """
 
@@ -72,15 +72,9 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(
                 {
-                    "dialog": nlp.features.Sequence(
-                        nlp.Value("string")
-                    ),
-                    "act": nlp.features.Sequence(
-                        nlp.ClassLabel(names=list(act_label.values()))
-                    ),
-                    "emotion": nlp.features.Sequence(
-                        nlp.ClassLabel(names=list(emotion_label.values()))
-                    ),
+                    "dialog": nlp.features.Sequence(nlp.Value("string")),
+                    "act": nlp.features.Sequence(nlp.ClassLabel(names=list(act_label.values()))),
+                    "emotion": nlp.features.Sequence(nlp.ClassLabel(names=list(emotion_label.values()))),
                 }
             ),
             supervised_keys=None,

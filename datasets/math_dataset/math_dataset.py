@@ -192,7 +192,13 @@ def _generate_builder_configs():
     """Generate configs with different subsets of mathematics dataset."""
     configs = []
     for module in sorted(set(_MODULES)):
-        configs.append(nlp.BuilderConfig(name=module, version=nlp.Version("1.0.0"), description=_DESCRIPTION,))
+        configs.append(
+            nlp.BuilderConfig(
+                name=module,
+                version=nlp.Version("1.0.0"),
+                description=_DESCRIPTION,
+            )
+        )
 
     return configs
 
@@ -205,7 +211,12 @@ class MathDataset(nlp.GeneratorBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({_QUESTION: nlp.Value("string"), _ANSWER: nlp.Value("string"),}),
+            features=nlp.Features(
+                {
+                    _QUESTION: nlp.Value("string"),
+                    _ANSWER: nlp.Value("string"),
+                }
+            ),
             supervised_keys=(_QUESTION, _ANSWER),
             homepage="https://github.com/deepmind/mathematics_dataset",
             citation=_CITATION,
@@ -236,11 +247,19 @@ class MathDataset(nlp.GeneratorBasedBuilder):
         return [
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
-                gen_kwargs={"directory": directory, "config": config, "categories": _TRAIN_CATEGORY,},
+                gen_kwargs={
+                    "directory": directory,
+                    "config": config,
+                    "categories": _TRAIN_CATEGORY,
+                },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
-                gen_kwargs={"directory": directory, "config": config, "categories": _INTERPOLATE_CATEGORY,},
+                gen_kwargs={
+                    "directory": directory,
+                    "config": config,
+                    "categories": _INTERPOLATE_CATEGORY,
+                },
             ),
         ]
 

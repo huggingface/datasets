@@ -59,11 +59,11 @@ class CfqConfig(nlp.BuilderConfig):
     def __init__(self, name, directory="splits", **kwargs):
         """BuilderConfig for CFQ.
 
-    Args:
-      name: Unique name of the split.
-      directory: Which subdirectory to read the split from.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          name: Unique name of the split.
+          directory: Which subdirectory to read the split from.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version history:
         super(CfqConfig, self).__init__(name=name, version=nlp.Version("1.0.1"), description=_DESCRIPTION, **kwargs)
         self.split_file = os.path.join(directory, name + ".json")
@@ -92,7 +92,12 @@ class Cfq(nlp.GeneratorBasedBuilder):
     def _info(self):
         return nlp.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({_QUESTION: nlp.Value("string"), _QUERY: nlp.Value("string"),}),
+            features=nlp.Features(
+                {
+                    _QUESTION: nlp.Value("string"),
+                    _QUERY: nlp.Value("string"),
+                }
+            ),
             supervised_keys=(_QUESTION, _QUERY),
             homepage="https://github.com/google-research/google-research/tree/master/cfq",
             citation=_CITATION,

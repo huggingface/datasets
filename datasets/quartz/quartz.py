@@ -14,18 +14,16 @@ _CITATION = """\
   author = {Oyvind Tafjord and Matt Gardner and Kevin Lin and Peter Clark},
   title = {"QUARTZ: An Open-Domain Dataset of Qualitative Relationship
 Questions"},
- 
   year = {"2019"},
 }
 """
 
 # TODO(quartz):
 _DESCRIPTION = """\
-QuaRTz is a crowdsourced dataset of 3864 multiple-choice questions about open domain qualitative relationships. Each 
+QuaRTz is a crowdsourced dataset of 3864 multiple-choice questions about open domain qualitative relationships. Each
 question is paired with one of 405 different background sentences (sometimes short paragraphs).
-The QuaRTz dataset V1 contains 3864 questions about open domain qualitative relationships. Each question is paired with 
+The QuaRTz dataset V1 contains 3864 questions about open domain qualitative relationships. Each question is paired with
 one of 405 different background sentences (sometimes short paragraphs).
-
 The dataset is split into train (2696), dev (384) and test (784). A background sentence will only appear in a single split.
 """
 

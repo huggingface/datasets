@@ -16,10 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
-import os
-
 import nlp
 
 
@@ -146,12 +142,16 @@ class Trec(nlp.GeneratorBasedBuilder):
             nlp.SplitGenerator(
                 name=nlp.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_files["train"],},
+                gen_kwargs={
+                    "filepath": dl_files["train"],
+                },
             ),
             nlp.SplitGenerator(
                 name=nlp.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": dl_files["test"],},
+                gen_kwargs={
+                    "filepath": dl_files["test"],
+                },
             ),
         ]
 

@@ -73,8 +73,12 @@ class Xnli(nlp.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=nlp.Features(
                 {
-                    "premise": nlp.features.Translation(languages=_LANGUAGES,),
-                    "hypothesis": nlp.features.TranslationVariableLanguages(languages=_LANGUAGES,),
+                    "premise": nlp.features.Translation(
+                        languages=_LANGUAGES,
+                    ),
+                    "hypothesis": nlp.features.TranslationVariableLanguages(
+                        languages=_LANGUAGES,
+                    ),
                     "label": nlp.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             ),

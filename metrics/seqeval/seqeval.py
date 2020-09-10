@@ -16,8 +16,10 @@
 
 from collections import defaultdict
 
+from seqeval.metrics import accuracy_score, f1_score, precision_score, recall_score
+
 import nlp
-from seqeval.metrics import accuracy_score, precision_score, recall_score, f1_score
+
 
 _CITATION = """\
 """
@@ -59,6 +61,7 @@ Returns:
         'f1': F1 score, also known as balanced F-score or F-measure,
 """
 
+
 def end_of_chunk(prev_tag, tag, prev_type, type_):
     """Checks if a chunk ended between the previous and current word.
     Args:
@@ -74,7 +77,7 @@ def end_of_chunk(prev_tag, tag, prev_type, type_):
     if (prev_tag in ["B", "I"] and tag in ["B", "S", "O"]) or prev_tag in ["E", "S"]:
         chunk_end = True
 
-    if prev_tag not in ['O', '.'] and prev_type != type_:
+    if prev_tag not in ["O", "."] and prev_type != type_:
         chunk_end = True
 
     return chunk_end
@@ -95,10 +98,11 @@ def start_of_chunk(prev_tag, tag, prev_type, type_):
     if (prev_tag in ["E", "S", "O"] and tag in ["E", "I"]) or tag in ["B", "S"]:
         chunk_start = True
 
-    if tag not in ['O', '.'] and prev_type != type_:
+    if tag not in ["O", "."] and prev_type != type_:
         chunk_start = True
 
     return chunk_start
+
 
 def get_entities(seq, suffix=False):
     """Gets entities from sequence.
@@ -108,28 +112,29 @@ def get_entities(seq, suffix=False):
         list: list of (chunk_type, chunk_start, chunk_end).
     """
     if any(isinstance(s, list) for s in seq):
-        seq = [item for sublist in seq for item in sublist + ['O']]
+        seq = [item for sublist in seq for item in sublist + ["O"]]
 
-    prev_tag = 'O'
-    prev_type = ''
+    prev_tag = "O"
+    prev_type = ""
     begin_offset = 0
     chunks = []
-    for i, chunk in enumerate(seq + ['O']):
+    for i, chunk in enumerate(seq + ["O"]):
         if suffix:
             tag = chunk[-1]
-            type_ = chunk[:-1].rsplit('-', maxsplit=1)[0] or '_'
+            type_ = chunk[:-1].rsplit("-", maxsplit=1)[0] or "_"
         else:
             tag = chunk[0]
-            type_ = chunk[1:].split('-', maxsplit=1)[-1] or '_'
+            type_ = chunk[1:].split("-", maxsplit=1)[-1] or "_"
 
         if end_of_chunk(prev_tag, tag, prev_type, type_):
-            chunks.append((prev_type, begin_offset, i-1))
+            chunks.append((prev_type, begin_offset, i - 1))
         if start_of_chunk(prev_tag, tag, prev_type, type_):
             begin_offset = i
         prev_tag = tag
         prev_type = type_
 
     return chunks
+
 
 class Seqeval(nlp.Metric):
     def _info(self):
@@ -138,12 +143,14 @@ class Seqeval(nlp.Metric):
             citation=_CITATION,
             homepage="https://github.com/chakki-works/seqeval",
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': nlp.Sequence(nlp.Value('string', id='label'), id='sequence'),
-                'references': nlp.Sequence(nlp.Value('string', id='label'), id='sequence'),
-            }),
+            features=nlp.Features(
+                {
+                    "predictions": nlp.Sequence(nlp.Value("string", id="label"), id="sequence"),
+                    "references": nlp.Sequence(nlp.Value("string", id="label"), id="sequence"),
+                }
+            ),
             codebase_urls=["https://github.com/chakki-works/seqeval"],
-            reference_urls=["https://github.com/chakki-works/seqeval"]
+            reference_urls=["https://github.com/chakki-works/seqeval"],
         )
 
     def _compute(self, predictions, references, suffix=False):

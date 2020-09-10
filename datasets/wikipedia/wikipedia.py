@@ -373,12 +373,12 @@ class WikipediaConfig(nlp.BuilderConfig):
     def __init__(self, language=None, date=None, **kwargs):
         """BuilderConfig for Wikipedia.
 
-    Args:
-      language: string, the language code for the Wikipedia dump to use.
-      date: string, date of the Wikipedia dump in YYYYMMDD format. A list of
-        available dates can be found at https://dumps.wikimedia.org/enwiki/.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          language: string, the language code for the Wikipedia dump to use.
+          date: string, date of the Wikipedia dump in YYYYMMDD format. A list of
+            available dates can be found at https://dumps.wikimedia.org/enwiki/.
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(WikipediaConfig, self).__init__(
             name="{0}.{1}".format(date, language),
             description="Wikipedia dataset for {0}, parsed from {1} dump.".format(language, date),
@@ -397,7 +397,11 @@ class Wikipedia(nlp.BeamBasedBuilder):
     # Use mirror (your.org) to avoid download caps.
 
     BUILDER_CONFIGS = [
-        WikipediaConfig(version=_VERSION, language=lang, date="20200501",)  # pylint:disable=g-complex-comprehension
+        WikipediaConfig(
+            version=_VERSION,
+            language=lang,
+            date="20200501",
+        )  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
 
@@ -426,9 +430,11 @@ class Wikipedia(nlp.BeamBasedBuilder):
         with open(downloaded_files["info"], encoding="utf-8") as f:
             dump_info = json.load(f)
         multistream_dump_info = dump_info["jobs"]["articlesmultistreamdump"]
-        assert multistream_dump_info["status"] == "done", (
-            "Specified dump (%s) multistream status is not 'done': %s"
-            % (_base_url(lang), multistream_dump_info["status"])
+        assert (
+            multistream_dump_info["status"] == "done"
+        ), "Specified dump (%s) multistream status is not 'done': %s" % (
+            _base_url(lang),
+            multistream_dump_info["status"],
         )
 
         for fname, info in multistream_dump_info["files"].items():

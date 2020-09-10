@@ -84,13 +84,13 @@ class TriviaQaConfig(nlp.BuilderConfig):
     def __init__(self, unfiltered=False, exclude_context=False, **kwargs):
         """BuilderConfig for TriviaQA.
 
-    Args:
-      unfiltered: bool, whether to use the unfiltered version of the dataset,
-        intended for open-domain QA.
-      exclude_context: bool, whether to exclude Wikipedia and search context for
-        reduced size.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          unfiltered: bool, whether to use the unfiltered version of the dataset,
+            intended for open-domain QA.
+          exclude_context: bool, whether to exclude Wikipedia and search context for
+            reduced size.
+          **kwargs: keyword arguments forwarded to super.
+        """
         name = "unfiltered" if unfiltered else "rc"
         if exclude_context:
             name += ".nocontext"
@@ -107,8 +107,8 @@ class TriviaQaConfig(nlp.BuilderConfig):
 class TriviaQa(nlp.GeneratorBasedBuilder):
     """TriviaQA is a reading comprehension dataset.
 
-  It containss over 650K question-answer-evidence triples.
-  """
+    It containss over 650K question-answer-evidence triples.
+    """
 
     BUILDER_CONFIGS = [
         TriviaQaConfig(unfiltered=False, exclude_context=False),  # rc
