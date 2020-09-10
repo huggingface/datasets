@@ -42,14 +42,8 @@ The documentation is organized in five parts:
     loading_datasets
     exploring
     processing
+    torch_tensorflow
     faiss_and_ea
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Creating and sharing datasets
-
-    add_dataset
-    share_dataset
 
 .. toctree::
     :maxdepth: 2
@@ -57,6 +51,14 @@ The documentation is organized in five parts:
 
     loading_metrics
     using_metrics
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Adding new datasets/metrics
+
+    add_dataset
+    share_dataset
+    add_metric
 
 .. toctree::
     :maxdepth: 2

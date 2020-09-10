@@ -250,6 +250,7 @@ The base :class:`nlp.BuilderConfig` class is very simple and only comprises the 
 You can sub-class the base :class:`nlp.BuilderConfig` class to add additional attributes that you may want to use to control the generation of a dataset. The specific configuration class that will be used by the dataset is set in the :attr:`nlp.DatasetBuilder.BUILDER_CONFIG_CLASS`.
 
 There are two ways to populate the attributes of a :class:`nlp.BuilderConfig` class or sub-class:
+
 - a list of predefined :class:`nlp.BuilderConfig` classes or sub-classes can be set in the :attr:`nlp.DatasetBuilder.BUILDER_CONFIGS` attribute of the dataset. Each specific configuration can then be selected by giving its ``name`` as ``name`` keyword to :func:`nlp.load_dataset`,
 - when calling :func:`nlp.load_dataset`, all the keyword arguments which are not specific to the :func:`nlp.load_dataset` method will be used to set the associated attributes of the :class:`nlp.BuilderConfig` class and override the predefined attributes if a specific configuration was selected.
 

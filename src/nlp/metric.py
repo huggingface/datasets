@@ -27,6 +27,7 @@ from filelock import BaseFileLock, FileLock, Timeout
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
+from .features import Features
 from .info import MetricInfo
 from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
@@ -60,43 +61,108 @@ class FileFreeLock(BaseFileLock):
         self._lock_file_fd = None
 
 
-class Metric(object):
+class MetricInfoMixin(object):
+    """This base class exposes some attributes of MetricInfo
+    at the base level of the Metric for easy access.
+    """
+
+    def __init__(self, info: MetricInfo):
+        self._metric_info = info
+
+    @property
+    def info(self):
+        """ :class:`nlp.MetricInfo` object containing all the metadata in the metric."""
+        return self._metric_info
+
+    @property
+    def name(self) -> str:
+        return self._metric_info.metric_name
+
+    @property
+    def experiment_id(self) -> Optional[str]:
+        return self._metric_info.experiment_id
+
+    @property
+    def description(self) -> str:
+        return self._metric_info.description
+
+    @property
+    def citation(self) -> str:
+        return self._metric_info.citation
+
+    @property
+    def features(self) -> Features:
+        return self._metric_info.features
+
+    @property
+    def inputs_description(self) -> str:
+        return self._metric_info.inputs_description
+
+    @property
+    def homepage(self) -> Optional[str]:
+        return self._metric_info.homepage
+
+    @property
+    def license(self) -> str:
+        return self._metric_info.license
+
+    @property
+    def codebase_urls(self) -> Optional[List[str]]:
+        return self._metric_info.codebase_urls
+
+    @property
+    def reference_urls(self) -> Optional[List[str]]:
+        return self._metric_info.reference_urls
+
+    @property
+    def streamable(self) -> bool:
+        return self._metric_info.streamable
+
+    @property
+    def format(self) -> Optional[str]:
+        return self._metric_info.format
+
+
+class Metric(MetricInfoMixin):
+    """A Metrics is the base class and common API for all metrics.
+
+    Args:
+        config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
+            to be overridden when the metric loading script is modified.
+        keep_in_memory (``bool``): keep all predictions and references in memory. Not possible in distributed settings.
+        cache_dir (``str``): Path to a directory in which temporary prediction/references data will be stored.
+            The data directory should be located on a shared file-system in distributed setups.
+        num_process (``int``): specify the total number of nodes in a distributed settings.
+            This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
+        process_id (``int``): specify the id of the current process in a distributed setup (between 0 and num_process-1)
+            This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
+        seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`nlp.Metric.compute` is run.
+        experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
+            This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
+        max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
+        timeout (``Union[int, float]``): Timeout in second for distributed setting synchronization.
+    """
+
     def __init__(
         self,
+        config_name: Optional[str] = None,
         keep_in_memory: bool = False,
-        data_dir: Optional[str] = None,
+        cache_dir: Optional[str] = None,
         num_process: int = 1,
         process_id: int = 0,
         seed: Optional[int] = None,
-        config_name: Optional[str] = None,
         experiment_id: Optional[str] = None,
         max_concurrent_cache_files: int = 10000,
         timeout: Union[int, float] = 100,
         **kwargs,
     ):
-        """A Metrics is the base class and common API for all metrics.
-        Args:
-            keep_in_memory (``bool``): keep all predictions and references in memory. Not possible in distributed settings.
-            data_dir (``str``): Path to a directory in which temporary prediction/references data will be stored.
-                The data directory should be located on a shared file-system in distributed setups.
-            num_process (``int``): specify the total number of nodes in a distributed settings.
-                This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-            process_id (``int``): specify the id of the current process in a distributed setup (between 0 and num_process-1)
-                This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-            seed (Optional ``int``): If specified, this will temporarily set numpy's random seed when :func:`nlp.Metric.compute` is run.
-            config_name (``str``): This is used to define a hash specific to a metrics computation script and prevents the metric's data
-                to be overridden when the metric loading script is modified.
-            experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
-                This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
-            max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
-            timeout (``Union[int, float]``): Timeout in second for distributed setting synchronization.
-        """
-        # Metric name
-        self.name = camelcase_to_snakecase(self.__class__.__name__)
-        # Configuration name
-        self.config_name: str = config_name or "default_config"
-        # Experiment id
-        self.experiment_id: str = experiment_id or "default_experiment"
+        # prepare info
+        self.config_name = config_name or "default"
+        info = self._info()
+        info.metric_name = camelcase_to_snakecase(self.__class__.__name__)
+        info.config_name = self.config_name
+        info.experiment_id = experiment_id or "default_experiment"
+        MetricInfoMixin.__init__(self, info)  # For easy access on low level
 
         # Safety checks on num_process and process_id
         assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
@@ -111,17 +177,10 @@ class Metric(object):
         self.max_concurrent_cache_files = max_concurrent_cache_files
 
         self.keep_in_memory = keep_in_memory
-        self._data_dir_root = os.path.expanduser(data_dir or HF_METRICS_CACHE)
+        self._data_dir_root = os.path.expanduser(cache_dir or HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
         self.seed: int = seed or np.random.get_state()[1][0]
         self.timeout: Union[int, float] = timeout
-
-        # prepare info
-        info = self._info()
-        info.metric_name = self.name
-        info.config_name = self.config_name
-        info.experiment_id = self.experiment_id
-        self.info = info
 
         # Update 'compute' and 'add' docstring
         # methods need to be copied otherwise it changes the docstrings of every instance
@@ -147,6 +206,19 @@ class Metric(object):
         # This is all the cache files on which we have a lock when we are in a distributed setting
         self.file_paths = None
         self.filelocks = None
+
+    def __len__(self):
+        """Return the number of examples (predictions or predictions/references pair)
+        currently stored in the metric's cache.
+        """
+        return 0 if self.writer is None else len(self.writer)
+
+    def __repr__(self):
+        return (
+            f'Metric(name: "{self.name}", features: {self.features}, '
+            f'usage: """{self.inputs_description}""", '
+            f"stored examples: {len(self)})"
+        )
 
     def _build_data_dir(self):
         """Path of this metric in cache_dir:
@@ -253,7 +325,7 @@ class Metric(object):
         else:
             rendez_vous_lock.release()
 
-    def finalize(self):
+    def _finalize(self):
         """Close all the writing process and load/gather the data
         from all the nodes if main node or all_process is True.
         """
@@ -293,7 +365,6 @@ class Metric(object):
             We disallow the usage of positional arguments to prevent mistakes
             `predictions` (Optional list/array/tensor): predictions
             `references` (Optional list/array/tensor): references
-            `timeout` (Optional int): timeout for distributed gathering of values on several nodes
             `**kwargs` (Optional other kwargs): will be forwared to the metrics :func:`_compute` method (see details in the docstring)
 
         Return:
@@ -308,7 +379,7 @@ class Metric(object):
 
         if predictions is not None:
             self.add_batch(predictions=predictions, references=references)
-        self.finalize()
+        self._finalize()
 
         self.cache_file_name = None
         self.filelock = None
@@ -342,7 +413,15 @@ class Metric(object):
         batch = self.info.features.encode_batch(batch)
         if self.writer is None:
             self._init_writer()
-        self.writer.write_batch(batch)
+        try:
+            self.writer.write_batch(batch)
+        except pa.ArrowInvalid:
+            raise ValueError(
+                f"Predictions and/or references don't match the expected format.\n"
+                f"Expected format: {self.features},\n"
+                f"Input predictions: {predictions},\n"
+                f"Input references: {references}"
+            )
 
     def add(self, *, prediction=None, reference=None):
         """Add one prediction and reference for the metric's stack."""
@@ -350,7 +429,15 @@ class Metric(object):
         example = self.info.features.encode_example(example)
         if self.writer is None:
             self._init_writer()
-        self.writer.write(example)
+        try:
+            self.writer.write(example)
+        except pa.ArrowInvalid:
+            raise ValueError(
+                f"Prediction and/or reference don't match the expected format.\n"
+                f"Expected format: {self.features},\n"
+                f"Input predictions: {prediction},\n"
+                f"Input references: {reference}"
+            )
 
     def _init_writer(self, timeout=1):
         if self.num_process > 1:
