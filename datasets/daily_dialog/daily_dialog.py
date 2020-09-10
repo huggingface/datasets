@@ -39,7 +39,7 @@ intention and emotion information. Then, we evaluate existing approaches on Dail
 benefit the research field of dialog systems.
 """
 
-_URL = "http://yanran.li/files/ijcdatasets_dailydialog.zip"
+_URL = "http://yanran.li/files/ijcnlp_dailydialog.zip"
 
 act_label = {
     "0": "__dummy__",  # Added to be compatible out-of-the-box with datasets.ClassLabel
@@ -87,7 +87,7 @@ class DailyDialog(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
-        data_dir = os.path.join(dl_dir, "ijcdatasets_dailydialog")
+        data_dir = os.path.join(dl_dir, "ijcnlp_dailydialog")
 
         # The splits are nested inside the zip
         for name in ("train", "validation", "test"):
