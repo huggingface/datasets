@@ -305,6 +305,26 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_concat._indices_data_files), 0)
             self.assertEqual(dset_concat.info.description, "Dataset1\n\nDataset2\n\n")
 
+    def test_concatenate_formatted(self, in_memory):
+        data1, data2, data3 = {"id": [0, 1, 2]}, {"id": [3, 4, 5]}, {"id": [6, 7]}
+        info1 = DatasetInfo(description="Dataset1")
+        info2 = DatasetInfo(description="Dataset2")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset1, dset2, dset3 = (
+                Dataset.from_dict(data1, info=info1),
+                Dataset.from_dict(data2, info=info2),
+                Dataset.from_dict(data3),
+            )
+            dset1, dset2, dset3 = self._to(in_memory, tmp_dir, dset1, dset2, dset3)
+
+            dset1.set_format("numpy")
+            dset_concat = concatenate_datasets([dset1, dset2, dset3])
+            self.assertEqual(dset_concat.format["type"], None)
+            dset2.set_format("numpy")
+            dset3.set_format("numpy")
+            dset_concat = concatenate_datasets([dset1, dset2, dset3])
+            self.assertEqual(dset_concat.format["type"], "numpy")
+
     def test_concatenate_with_indices(self, in_memory):
         data1, data2, data3 = {"id": [0, 1, 2] * 2}, {"id": [3, 4, 5] * 2}, {"id": [6, 7]}
         info1 = DatasetInfo(description="Dataset1")
@@ -410,6 +430,7 @@ class BaseDatasetTest(TestCase):
             self.assertNotEqual(dset._fingerprint, fingerprint)
 
     def test_map(self, in_memory):
+        # standard
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
 
@@ -425,6 +446,7 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(dset_test["id"], list(range(30)))
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
 
+        # with indices
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             dset_test_with_indices = dset.map(lambda x, i: {"name": x["filename"][:-2], "id": i}, with_indices=True)
@@ -436,6 +458,7 @@ class BaseDatasetTest(TestCase):
             )
             self.assertListEqual(dset_test["id"], list(range(30)))
 
+        # interrupted
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
 
@@ -468,6 +491,18 @@ class BaseDatasetTest(TestCase):
                 Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
             )
             self.assertListEqual(dset_test["id"], list(range(30)))
+
+        # formatted
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            dset.set_format("numpy")
+
+            dset_test = dset.map(
+                lambda x: {"name": x["filename"].item()[:-2], "id": int(x["filename"].item().split("_")[-1])}
+            )
+            self.assertEqual(len(dset_test), 30)
+            self.assertEqual(dset_test.format["type"], "numpy")
+            self.assertIsInstance(dset_test["id"], np.ndarray)
 
     def test_map_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -618,15 +653,17 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(dset_filter_first_five.features, Features({"filename": Value("string")}))
             self.assertNotEqual(dset_filter_first_five._fingerprint, fingerprint)
 
-        # filter filenames with even id at the end
+        # filter filenames with even id at the end + formatted
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            dset.set_format("numpy")
             fingerprint = dset._fingerprint
-            dset_filter_even_num = dset.filter(lambda x: (int(x["filename"][-1]) % 2 == 0))
+            dset_filter_even_num = dset.filter(lambda x: (int(x["filename"].item()[-1]) % 2 == 0))
             self.assertEqual(len(dset_filter_even_num), 15)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_filter_even_num.features, Features({"filename": Value("string")}))
             self.assertNotEqual(dset_filter_even_num._fingerprint, fingerprint)
+            self.assertEqual(dset_filter_even_num.format["type"], "numpy")
 
     def test_filter_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -770,6 +807,7 @@ class BaseDatasetTest(TestCase):
                 writer_batch_size=2,
             )
             self.assertFalse(os.path.exists(tmp_file))
+            dset.set_format("numpy")
             dset_select_five = dset.select(
                 range(5),
                 indices_cache_file_name=tmp_file,
@@ -777,8 +815,9 @@ class BaseDatasetTest(TestCase):
             )
             self.assertTrue(os.path.exists(tmp_file))
             self.assertEqual(len(dset_select_five), 5)
+            self.assertEqual(dset_select_five.format["type"], "numpy")
             for i, row in enumerate(dset_select_five):
-                self.assertEqual(int(row["filename"][-1]), i)
+                self.assertEqual(int(row["filename"].item()[-1]), i)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_select_even.features, Features({"filename": Value("string")}))
 
@@ -877,6 +916,10 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_sorted.features, Features({"filename": Value("string")}))
             self.assertNotEqual(dset_sorted._fingerprint, fingerprint)
+            # formatted
+            dset.set_format("numpy")
+            dset_sorted_formatted = dset.sort("filename")
+            self.assertEqual(dset_sorted_formatted.format["type"], "numpy")
 
     def test_export(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -967,6 +1010,7 @@ class BaseDatasetTest(TestCase):
             self.assertDictEqual(dset_train.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
 
+            dset.set_format("numpy")
             dset_dict = dset.train_test_split(train_size=10, seed=42)
             self.assertListEqual(list(dset_dict.keys()), ["train", "test"])
             dset_train = dset_dict["train"]
@@ -974,10 +1018,12 @@ class BaseDatasetTest(TestCase):
 
             self.assertEqual(len(dset_train), 10)
             self.assertEqual(len(dset_test), 20)
-            self.assertNotEqual(dset_train[0]["filename"], "my_name-train_0")
-            self.assertNotEqual(dset_train[-1]["filename"], "my_name-train_9")
-            self.assertNotEqual(dset_test[0]["filename"], "my_name-train_10")
-            self.assertNotEqual(dset_test[-1]["filename"], "my_name-train_29")
+            self.assertEqual(dset_train.format["type"], "numpy")
+            self.assertEqual(dset_test.format["type"], "numpy")
+            self.assertNotEqual(dset_train[0]["filename"].item(), "my_name-train_0")
+            self.assertNotEqual(dset_train[-1]["filename"].item(), "my_name-train_9")
+            self.assertNotEqual(dset_test[0]["filename"].item(), "my_name-train_10")
+            self.assertNotEqual(dset_test[-1]["filename"].item(), "my_name-train_29")
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_train.features, Features({"filename": Value("string")}))
             self.assertDictEqual(dset_test.features, Features({"filename": Value("string")}))
@@ -1010,6 +1056,10 @@ class BaseDatasetTest(TestCase):
                 [4, 3, 3],
                 [len(dset.shard(3, index=i, contiguous=True, indices_cache_file_name=tmp_file_2)) for i in range(3)],
             )
+            # formatted
+            dset.set_format("numpy")
+            dset_sharded_formatted = dset.shard(num_shards=3, index=0)
+            self.assertEqual(dset_sharded_formatted.format["type"], "numpy")
 
     def test_flatten_indices(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1028,11 +1078,13 @@ class BaseDatasetTest(TestCase):
 
             tmp_file_2 = os.path.join(tmp_dir, "test_2.arrow")
             fingerprint = dset._fingerprint
+            dset.set_format("numpy")
             dset = dset.flatten_indices(cache_file_name=tmp_file_2)
 
             self.assertEqual(len(dset), 10)
             self.assertEqual(dset._indices, None)
             self.assertNotEqual(dset._fingerprint, fingerprint)
+            self.assertEqual(dset.format["type"], "numpy")
             # Test unique works
             dset.unique(dset.column_names[0])
 
