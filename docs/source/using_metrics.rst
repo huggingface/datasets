@@ -163,7 +163,7 @@ This method can accept several arguments:
 
 In the simplest case (when the predictions and references have already been added with ``add`` or ``add_batch`` and no specific argument need to be set to modify the default behavior of the metric, we can just call :func:`nlp.Metric.compute`:
 
-.. code-black::
+.. code-block::
 
     >>> score = metric.compute()
     Done writing 3 examples in 265 bytes /Users/thomwolf/.cache/huggingface/metrics/sacrebleu/default/default_experiment-0430a7c7-31cb-48bf-9fb0-2a0b6c03ad81-1-0.arrow.

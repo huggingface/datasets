@@ -206,8 +206,8 @@ class Metric(MetricInfoMixin):
         self.filelocks = None
 
     def __len__(self):
-        """ Return the number of examples (predictions or predictions/references pair)
-            currently stored in the metric's cache.
+        """Return the number of examples (predictions or predictions/references pair)
+        currently stored in the metric's cache.
         """
         return 0 if self.writer is None else len(self.writer)
 
