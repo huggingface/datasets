@@ -2,6 +2,7 @@ Sharing your dataset
 =============================================
 
 Once you've written a new dataset loading script as detailed on the :doc:`add_dataset` page, you may want to share it with the community for instance on the `HuggingFace Hub <https://huggingface.co/datasets>`__. There are two options to do that:
+
 - add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗nlp <https://github.com/huggingface/nlp>`__,
 - directly upload it on the Hub as a community provided dataset.
 

@@ -76,7 +76,7 @@ class NewDataset(nlp.GeneratorBasedBuilder):
         return nlp.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
+            # This defines the different columns of the dataset and their types
             features=nlp.Features(
                 {
                     "sentence": nlp.Value("string"),

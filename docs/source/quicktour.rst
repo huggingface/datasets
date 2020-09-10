@@ -178,7 +178,7 @@ This operation has added three new columns to our dataset: ``input_ids``, ``toke
 Formatting the dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`` (or a ``tf.data.Dataset`` for TensorFlow) and use it to train our model.
+Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`` or a ``tf.data.Dataset`` and use it to train our model.
 
 To be able to train our model with this dataset and PyTorch, we will need to do three modifications:
 
