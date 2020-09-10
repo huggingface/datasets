@@ -28,13 +28,6 @@
    it with `pip uninstall nlp` before reinstalling it in editable
    mode with the `-e` flag.)
 
-   Right now, we need an unreleased version of `isort` to avoid a
-   [bug](https://github.com/timothycrosley/isort/pull/1000):
-
-   ```bash
-   $ pip install -U git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort
-   ```
-
 5. Develop the features on your branch. If you want to add a dataset see more in-detail intsructions in the section [*How to add a dataset*](#how-to-add-a-dataset). Alternatively, you can follow the steps to [add a dataset](https://huggingface.co/nlp/add_dataset.html) and [share a dataset](https://huggingface.co/nlp/share_dataset.html) in the documentation.
 
 6. Format your code. Run black and isort so that your newly added files look nice with the following command:
