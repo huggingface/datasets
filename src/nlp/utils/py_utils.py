@@ -345,7 +345,12 @@ def _no_cache_fields(obj):
     try:
         import transformers as tr
 
-        if isinstance(obj, tr.PreTrainedTokenizerBase) and hasattr(obj, "cache") and isinstance(obj.cache, dict):
+        if (
+            hasattr(tr, "PreTrainedTokenizerBase")
+            and isinstance(obj, tr.PreTrainedTokenizerBase)
+            and hasattr(obj, "cache")
+            and isinstance(obj.cache, dict)
+        ):
             with temporary_assignment(obj, "cache", {}):
                 yield
         else:
