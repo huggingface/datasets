@@ -1086,8 +1086,6 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset["vec"][:2].shape, (2, 3))
 
     def test_format_transmitted(self, in_memory):
-        import numpy as np
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
 
