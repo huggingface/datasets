@@ -709,16 +709,24 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             format_kwargs: keywords arguments passed to the convert function like `np.array`, `torch.tensor` or `tensorflow.ragged.constant`.
         """
         # Check return type
-        if type == "torch":
+        if type in ["torch", "pytorch", "pt"]:
             try:
                 import torch  # noqa: F401
             except ImportError:
                 logger.error("PyTorch needs to be installed to be able to return PyTorch tensors.")
-        elif type == "tensorflow":
+            type = "torch"
+        elif type in ["tensorflow", "tf"]:
             try:
                 import tensorflow  # noqa: F401
             except ImportError:
                 logger.error("Tensorflow needs to be installed to be able to return Tensorflow tensors.")
+            type = "tensorflow"
+        elif type in ["numpy", "np"]:
+            type = "numpy"
+        elif type in ["pandas", "pd"]:
+            type = "pandas"
+        elif type in [None, "python"]:
+            type = None
         else:
             assert not (
                 type == "pandas" and (output_all_columns or format_kwargs)

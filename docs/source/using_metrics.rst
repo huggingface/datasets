@@ -170,3 +170,67 @@ In the simplest case (when the predictions and references have already been adde
     Set __getitem__(key) output type to python objects for no columns  (when key is int or slice) and don't output other (un-formatted) columns.
     >>> print(score)
     {'score': 48.530827009929865, 'counts': [14, 7, 5, 3], 'totals': [17, 14, 11, 8], 'precisions': [82.3529411764706, 50.0, 45.45454545454545, 37.5], 'bp': 0.9428731438548749, 'sys_len': 17, 'ref_len': 18}
+
+If needed and if possible for the metric, you can pass additional arguments to the :func:`nlp.Metric.compute` method to control more precisely the behavior of the metric.
+These additional arguments are detailed in the metric information.
+
+For example ``sacrebleu`` accepts the following additional arguments:
+
+- smooth: The smoothing method to use
+- smooth_value: For 'floor' smoothing, the floor to use
+- force: Ignore data that looks already tokenized
+- lowercase: Lowercase the data
+- tokenize: The tokenizer to use
+
+You can list these arguments with ``print(metric)`` or ``print(metric.inputs_description)`` as we saw in the previous section and have more details on the official ``sacrebleu`` homepage and publication (accessible with ``print(metric.homepage)`` and ``print(metric.citation)``):
+
+.. code-block::
+
+    >>> print(metric.inputs_description)
+    Produces BLEU scores along with its sufficient statistics
+    from a source against one or more references.
+    Args:
+        predictions: The system stream (a sequence of segments)
+        references: A list of one or more reference streams (each a sequence of segments)
+        smooth: The smoothing method to use
+        smooth_value: For 'floor' smoothing, the floor to use
+        force: Ignore data that looks already tokenized
+        lowercase: Lowercase the data
+        tokenize: The tokenizer to use
+    Returns:
+        'score': BLEU score,
+        'counts': Counts,
+        'totals': Totals,
+        'precisions': Precisions,
+        'bp': Brevity penalty,
+        'sys_len': predictions length,
+        'ref_len': reference length,
+
+Distributed usage
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Using the metric in a distributed or multiprocessing setting is exactly identical with the only specific behavior that the metric will only be computed on the first node (``process_id=0``). On the other processes, :func:`nlp.Metric.compute` will return ``None``. You should still run :func:`nlp.Metric.compute` on each node though to finalize the prediction/reference writing.
+
+We detailed on the :doc:`loading_metrics` page how to load a metric in a distributed setup.
+
+Here is now a sample script showing how to instantiate and run a metric computation in a distributed/multi-processing setup:
+
+Here is how we can instantiate the metric in such a distributed script:
+
+.. code-block::
+
+    >>> from nlp import load_metric
+
+    >>> # NUM_PROCESS is the total number of processes in the pool (it CANNOT evolve dynamically at the moment)
+    >>> # PROCESS_ID is the rank of rank of current process ranging from 0 to NUM_PROCESS (it also CANNOT evolve dynamically at the moment)
+    >>> # For instance with pytorch:
+    >>> #  NUM_PROCESS = torch.distributed.get_world_size()
+    >>> #  PROCESS_ID = torch.distributed.get_rank()
+
+    >>> metric = load_metric('sacrebleu', num_process=NUM_PROCESS, process_id=PROCESS_ID)
+
+    >>> for model_input, gold_references in evaluation_dataset:
+    ...     model_predictions = model(model_inputs)
+    ...     metric.add_batch(predictions=model_predictions, references=gold_references)
+
+    >>> final_score = metric.compute()  # final_score is returned on process with process_id==0 and will be `None` on the other processes
