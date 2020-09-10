@@ -18,17 +18,17 @@
 import os
 import types
 import uuid
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
-from filelock import FileLock, Timeout
+from filelock import BaseFileLock, FileLock, Timeout
 
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
-from .info import MetricInfo
 from .features import Features
+from .info import MetricInfo
 from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
@@ -39,70 +39,88 @@ from .utils.logging import get_logger
 logger = get_logger(__file__)
 
 
+class FileFreeLock(BaseFileLock):
+    """Thread lock until a file **cannot** be locked"""
+
+    def __init__(self, lock_file, *args, **kwargs):
+        self.filelock = FileLock(lock_file)
+        super().__init__(lock_file, *args, **kwargs)
+
+    def _acquire(self):
+        try:
+            self.filelock.acquire(timeout=0.01, poll_intervall=0.02)  # Try to lock once
+        except Timeout:
+            # We couldn't acquire the lock, the file is locked!
+            self._lock_file_fd = self.filelock.lock_file
+        else:
+            # We were able to acquire the lock, the file is not yet locked!
+            self.filelock.release()
+            self._lock_file_fd = None
+
+    def _release(self):
+        self._lock_file_fd = None
+
+
 class MetricInfoMixin(object):
     """This base class exposes some attributes of MetricInfo
     at the base level of the Metric for easy access.
     """
 
     def __init__(self, info: MetricInfo):
-        self._info = info
+        self._metric_info = info
 
     @property
     def info(self):
         """ :class:`nlp.MetricInfo` object containing all the metadata in the metric."""
-        return self._info
+        return self._metric_info
 
     @property
     def name(self) -> str:
-        return self._info.metric_name
-
-    @property
-    def config_name(self) -> str:
-        return self._info.config_name
+        return self._metric_info.metric_name
 
     @property
     def experiment_id(self) -> Optional[str]:
-        return self._info.experiment_id
+        return self._metric_info.experiment_id
 
     @property
     def description(self) -> str:
-        return self._info.description
+        return self._metric_info.description
 
     @property
     def citation(self) -> str:
-        return self._info.citation
+        return self._metric_info.citation
 
     @property
     def features(self) -> Features:
-        return self._info.features
+        return self._metric_info.features
 
     @property
     def inputs_description(self) -> str:
-        return self._info.inputs_description
+        return self._metric_info.inputs_description
 
     @property
     def homepage(self) -> Optional[str]:
-        return self._info.homepage
+        return self._metric_info.homepage
 
     @property
     def license(self) -> str:
-        return self._info.license
+        return self._metric_info.license
 
     @property
     def codebase_urls(self) -> Optional[List[str]]:
-        return self._info.codebase_urls
+        return self._metric_info.codebase_urls
 
     @property
     def reference_urls(self) -> Optional[List[str]]:
-        return self._info.reference_urls
+        return self._metric_info.reference_urls
 
     @property
     def streamable(self) -> bool:
-        return self._info.streamable
+        return self._metric_info.streamable
 
     @property
     def format(self) -> Optional[str]:
-        return self._info.format
+        return self._metric_info.format
 
 
 class Metric(MetricInfoMixin):
@@ -116,6 +134,7 @@ class Metric(MetricInfoMixin):
         seed: Optional[int] = None,
         experiment_id: Optional[str] = None,
         max_concurrent_cache_files: int = 10000,
+        timeout: Union[int, float] = 100,
         **kwargs,
     ):
         """A Metrics is the base class and common API for all metrics.
@@ -133,13 +152,15 @@ class Metric(MetricInfoMixin):
             experiment_id (``str``): A specific experiment id. This is used if several distributed evaluations share the same file system.
                 This is useful to compute metrics in distributed setups (in particular non-additive metrics like F1).
             max_concurrent_cache_files (``int``): Max number of concurrent metrics cache files (default 10000).
+            timeout (``Union[int, float]``): Timeout in second for distributed setting synchronization.
         """
         # prepare info
+        self.config_name = config_name or "default"
         info = self._info()
         info.metric_name = camelcase_to_snakecase(self.__class__.__name__)
-        info.config_name = config_name or "default_config"
+        info.config_name = self.config_name
         info.experiment_id = experiment_id or "default_experiment"
-        super().__init__(info)  # For easy access on low level
+        MetricInfoMixin.__init__(self, info)  # For easy access on low level
 
         # Safety checks on num_process and process_id
         assert isinstance(process_id, int) and process_id >= 0, "'process_id' should be a number greater than 0"
@@ -157,6 +178,7 @@ class Metric(MetricInfoMixin):
         self._data_dir_root = os.path.expanduser(cache_dir or HF_METRICS_CACHE)
         self.data_dir = self._build_data_dir()
         self.seed: int = seed or np.random.get_state()[1][0]
+        self.timeout: Union[int, float] = timeout
 
         # Update 'compute' and 'add' docstring
         # methods need to be copied otherwise it changes the docstrings of every instance
@@ -177,15 +199,18 @@ class Metric(MetricInfoMixin):
         # Keep it None for now so we can (cloud)pickle the object
         self.cache_file_name = None
         self.filelock = None
+        self.rendez_vous_lock = None
 
         # This is all the cache files on which we have a lock when we are in a distributed setting
         self.file_paths = None
         self.filelocks = None
 
     def __repr__(self):
-        return (f'Metric(name: "{self.name}", features: {self.features}, '
-                f'usage: """{self.inputs_description}""", '
-                f'stored examples: {0 if self.writer is None else len(self.writer)})')
+        return (
+            f'Metric(name: "{self.name}", features: {self.features}, '
+            f'usage: """{self.inputs_description}""", '
+            f"stored examples: {0 if self.writer is None else len(self.writer)})"
+        )
 
     def _build_data_dir(self):
         """Path of this metric in cache_dir:
@@ -201,7 +226,7 @@ class Metric(MetricInfoMixin):
     def _create_cache_file(self, timeout=1) -> Tuple[str, FileLock]:
         """ Create a new cache file. If the default cache file is used, we generated a new hash. """
         file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{self.process_id}.arrow")
-
+        filelock = None
         for i in range(self.max_concurrent_cache_files):
             filelock = FileLock(file_path + ".lock")
             try:
@@ -231,7 +256,7 @@ class Metric(MetricInfoMixin):
 
         return file_path, filelock
 
-    def _get_all_cache_files(self, timeout=100) -> Tuple[List[str], List[FileLock]]:
+    def _get_all_cache_files(self) -> Tuple[List[str], List[FileLock]]:
         """Get a lock on all the cache files in a distributed setup.
         We wait for timeout second to let all the distributed node finish their tasks (default is 100 seconds).
         """
@@ -248,7 +273,7 @@ class Metric(MetricInfoMixin):
         for process_id, file_path in enumerate(file_paths):
             filelock = FileLock(file_path + ".lock")
             try:
-                filelock.acquire(timeout=timeout)
+                filelock.acquire(timeout=self.timeout)
             except Timeout:
                 raise ValueError(f"Cannot acquire lock on cached file {file_path} for process {process_id}.")
             else:
@@ -256,7 +281,43 @@ class Metric(MetricInfoMixin):
 
         return file_paths, filelocks
 
-    def _finalize(self, timeout=100):
+    def _check_all_processes_locks(self):
+        expected_lock_file_names = [
+            os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{process_id}.arrow.lock")
+            for process_id in range(self.num_process)
+        ]
+        for expected_lock_file_name in expected_lock_file_names:
+            nofilelock = FileFreeLock(expected_lock_file_name)
+            try:
+                nofilelock.acquire(timeout=self.timeout)
+            except Timeout:
+                raise ValueError(
+                    f"Expected to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
+                )
+            else:
+                nofilelock.release()
+
+    def _check_rendez_vous(self):
+        expected_lock_file_name = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-0.arrow.lock")
+        nofilelock = FileFreeLock(expected_lock_file_name)
+        try:
+            nofilelock.acquire(timeout=self.timeout)
+        except Timeout:
+            raise ValueError(
+                f"Expected to find locked file {expected_lock_file_name} from process {self.process_id} but it doesn't exist."
+            )
+        else:
+            nofilelock.release()
+        lock_file_name = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock")
+        rendez_vous_lock = FileLock(lock_file_name)
+        try:
+            rendez_vous_lock.acquire(timeout=self.timeout)
+        except Timeout:
+            raise ValueError(f"Couldn't acquire lock on {lock_file_name} from process {self.process_id}.")
+        else:
+            rendez_vous_lock.release()
+
+    def _finalize(self):
         """Close all the writing process and load/gather the data
         from all the nodes if main node or all_process is True.
         """
@@ -273,7 +334,7 @@ class Metric(MetricInfoMixin):
 
         elif self.process_id == 0:
             # Let's acquire a lock on each node files to be sure they are finished writing
-            file_paths, filelocks = self._get_all_cache_files(timeout=timeout)
+            file_paths, filelocks = self._get_all_cache_files()
 
             # Read the predictions and references
             try:
@@ -281,7 +342,7 @@ class Metric(MetricInfoMixin):
                 self.data = Dataset(**reader.read_files([{"filename": f} for f in file_paths]))
             except FileNotFoundError:
                 raise ValueError(
-                    "Another metric instance is already using the local cache file. "
+                    "Error in finalize: another metric instance is already using the local cache file. "
                     "Please specify an experiment_id to avoid colision between distributed metric instances."
                 )
 
@@ -308,11 +369,10 @@ class Metric(MetricInfoMixin):
 
         predictions = kwargs.pop("predictions", None)
         references = kwargs.pop("references", None)
-        timeout = kwargs.pop("timeout", 120)
 
         if predictions is not None:
             self.add_batch(predictions=predictions, references=references)
-        self._finalize(timeout=timeout)
+        self._finalize()
 
         self.cache_file_name = None
         self.filelock = None
@@ -349,10 +409,12 @@ class Metric(MetricInfoMixin):
         try:
             self.writer.write_batch(batch)
         except pa.ArrowInvalid:
-            raise ValueError(f"Predictions and/or references don't match the expected format.\n"
-                            f"Expected format: {self.features},\n"
-                            f"Input predictions: {predictions},\n"
-                            f"Input references: {references}")
+            raise ValueError(
+                f"Predictions and/or references don't match the expected format.\n"
+                f"Expected format: {self.features},\n"
+                f"Input predictions: {predictions},\n"
+                f"Input references: {references}"
+            )
 
     def add(self, *, prediction=None, reference=None):
         """Add one prediction and reference for the metric's stack."""
@@ -363,12 +425,27 @@ class Metric(MetricInfoMixin):
         try:
             self.writer.write(example)
         except pa.ArrowInvalid:
-            raise ValueError(f"Prediction and/or reference don't match the expected format.\n"
-                            f"Expected format: {self.features},\n"
-                            f"Input predictions: {prediction},\n"
-                            f"Input references: {reference}")
+            raise ValueError(
+                f"Prediction and/or reference don't match the expected format.\n"
+                f"Expected format: {self.features},\n"
+                f"Input predictions: {prediction},\n"
+                f"Input references: {reference}"
+            )
 
-    def _init_writer(self):
+    def _init_writer(self, timeout=1):
+        if self.num_process > 1:
+            if self.process_id == 0:
+                file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-rdv.lock")
+                self.rendez_vous_lock = FileLock(file_path)
+                try:
+                    self.rendez_vous_lock.acquire(timeout=timeout)
+                except TimeoutError:
+                    raise ValueError(
+                        f"Another metric instance is already using the local cache file at {file_path}. "
+                        f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
+                        f"between distributed metric instances."
+                    )
+
         if self.keep_in_memory:
             self.buf_writer = pa.BufferOutputStream()
             self.writer = ArrowWriter(
@@ -379,13 +456,20 @@ class Metric(MetricInfoMixin):
 
             # Get cache file name and lock it
             if self.cache_file_name is None or self.filelock is None:
-                cache_file_name, filelock = self._create_cache_file()
+                cache_file_name, filelock = self._create_cache_file()  # get ready
                 self.cache_file_name = cache_file_name
                 self.filelock = filelock
 
             self.writer = ArrowWriter(
                 features=self.info.features, path=self.cache_file_name, writer_batch_size=self.writer_batch_size
             )
+        # Setup rendez-vous here if
+        if self.num_process > 1:
+            if self.process_id == 0:
+                self._check_all_processes_locks()  # wait for everyone to be ready
+                self.rendez_vous_lock.release()  # let everyone go
+            else:
+                self._check_rendez_vous()  # wait for master to be ready and to let everyone go
 
     def _info(self) -> MetricInfo:
         """Construct the MetricInfo object. See `MetricInfo` for details.

@@ -32,15 +32,10 @@ class Version:
     Args:
         version_str: string. Eg: "1.2.3".
         description: string, a description of what is new in this version.
-        nlp_version_to_prepare: string, defaults to None. If set, indicates that
-            current version cannot be used to `download_and_prepare` the
-            dataset, but that at version {nlp_version_to_prepare} should be
-            used instead.
     """
 
     version_str: str
     description: str = None
-    nlp_version_to_prepare: str = None
     major: str = None
     minor: str = None
     patch: str = None

@@ -385,9 +385,11 @@ class DatasetBuilder:
 
         if dl_manager is None:
             if download_config is None:
-                download_config = DownloadConfig()
-                download_config.cache_dir = os.path.join(self._cache_dir_root, "downloads")
-                download_config.force_download = download_mode == FORCE_REDOWNLOAD
+                download_config = DownloadConfig(
+                    cache_dir=os.path.join(self._cache_dir_root, "downloads"),
+                    force_download=bool(download_mode == FORCE_REDOWNLOAD),
+                    use_etag=False,
+                )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
@@ -401,16 +403,6 @@ class DatasetBuilder:
                 logger.info("Reusing dataset %s (%s)", self.name, self._cache_dir)
                 self.download_post_processing_resources(dl_manager)
                 return
-
-            # Currently it's not possible to overwrite the data because it would
-            # conflict with versioning: If the last version has already been generated,
-            # it will always be reloaded and cache_dir will be set at construction.
-            if data_exists and download_mode != REUSE_CACHE_IF_EXISTS:
-                raise ValueError(
-                    "Trying to overwrite an existing dataset {} at {}. A dataset with "
-                    "the same version {} already exists. If the dataset has changed, "
-                    "please update the version number.".format(self.name, self._cache_dir, self.config.version)
-                )
 
             logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
             if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
@@ -432,7 +424,7 @@ class DatasetBuilder:
                     yield dirname
                 else:
                     tmp_dir = dirname + ".incomplete"
-                    os.makedirs(tmp_dir)
+                    os.makedirs(tmp_dir, exist_ok=True)
                     try:
                         yield tmp_dir
                         if os.path.isdir(dirname):
@@ -530,11 +522,14 @@ class DatasetBuilder:
         split_dict = SplitDict(dataset_name=self.name)
         split_generators_kwargs = self._make_split_generators_kwargs(prepare_split_kwargs)
         split_generators = self._split_generators(dl_manager, **split_generators_kwargs)
+
         # Checksums verification
         if verify_infos:
             verify_checksums(
                 self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
             )
+
+        # Build splits
         for split_generator in split_generators:
             if str(split_generator.split_info.name).lower() == "all":
                 raise ValueError(
@@ -554,6 +549,7 @@ class DatasetBuilder:
 
         if verify_infos:
             verify_splits(self.info.splits, split_dict)
+
         # Update the info object with the splits.
         self.info.splits = split_dict
         self.info.download_size = dl_manager.downloaded_size

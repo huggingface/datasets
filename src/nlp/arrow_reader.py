@@ -245,7 +245,7 @@ class BaseReader:
             shutil.move(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
             if self._info is not None:
                 self._info.update(self._info.from_directory(cache_dir))
-        except ConnectionError:
+        except FileNotFoundError:
             raise DatasetNotOnHfGcs()
         try:
             for split in self._info.splits:
@@ -258,7 +258,7 @@ class BaseReader:
                     remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
                     downloaded_prepared_filename = cached_path(remote_prepared_filename)
                     shutil.move(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
-        except ConnectionError:
+        except FileNotFoundError:
             raise MissingFilesOnHfGcs()
 
 
@@ -288,7 +288,8 @@ class ArrowReader(BaseReader):
         mmap = pa.memory_map(filename)
         f = pa.ipc.open_stream(mmap)
         pa_table = f.read_all()
-        if skip is not None and take is not None:
+        # here we don't want to slice an empty table, or it may segfault
+        if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
         return pa_table
 
@@ -317,7 +318,8 @@ class ParquetReader(BaseReader):
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
         pa_table = pa.parquet.read_table(filename, memory_map=True)
-        if skip is not None and take is not None:
+        # here we don't want to slice an empty table, or it may segfault
+        if skip is not None and take is not None and not (skip == 0 and take == len(pa_table)):
             pa_table = pa_table.slice(skip, take)
         return pa_table
 

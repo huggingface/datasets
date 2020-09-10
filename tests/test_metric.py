@@ -1,6 +1,7 @@
 import os
 import pickle
 import tempfile
+import time
 from multiprocessing import Pool
 from unittest import TestCase
 
@@ -53,8 +54,9 @@ def metric_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
+    process_id, preds, refs, exp_id, data_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    time.sleep(wait)
     return metric.compute(predictions=preds, references=refs)
 
 
@@ -62,8 +64,9 @@ def metric_add_batch_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
+    process_id, preds, refs, exp_id, data_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    time.sleep(wait)
     metric.add_batch(predictions=preds, references=refs)
     return metric.compute()
 
@@ -72,8 +75,9 @@ def metric_add_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
+    process_id, preds, refs, exp_id, data_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    time.sleep(wait)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
     return metric.compute()
@@ -83,8 +87,9 @@ def metric_add_and_compute_exp_id(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
+    process_id, preds, refs, exp_id, data_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    time.sleep(wait)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
     return metric.compute()
@@ -185,8 +190,18 @@ class TestMetric(TestCase):
             results = pool.map(
                 metric_compute,
                 [
-                    (0, preds_0, refs_0, "test_distributed_metrics_0", tmp_dir),
-                    (1, preds_1, refs_1, "test_distributed_metrics_0", tmp_dir),
+                    (0, preds_0, refs_0, "test_distributed_metrics_0", tmp_dir, 0),
+                    (1, preds_1, refs_1, "test_distributed_metrics_0", tmp_dir, 0.5),
+                ],
+            )
+            self.assertDictEqual(expected_results, results[0])
+            self.assertIsNone(results[1])
+
+            results = pool.map(
+                metric_compute,
+                [
+                    (0, preds_0, refs_0, "test_distributed_metrics_0", tmp_dir, 0.5),
+                    (1, preds_1, refs_1, "test_distributed_metrics_0", tmp_dir, 0),
                 ],
             )
             self.assertDictEqual(expected_results, results[0])
@@ -195,8 +210,8 @@ class TestMetric(TestCase):
             results = pool.map(
                 metric_add_and_compute,
                 [
-                    (0, preds_0, refs_0, "test_distributed_metrics_1", tmp_dir),
-                    (1, preds_1, refs_1, "test_distributed_metrics_1", tmp_dir),
+                    (0, preds_0, refs_0, "test_distributed_metrics_1", tmp_dir, 0),
+                    (1, preds_1, refs_1, "test_distributed_metrics_1", tmp_dir, 0),
                 ],
             )
             self.assertDictEqual(expected_results, results[0])
@@ -205,8 +220,8 @@ class TestMetric(TestCase):
             results = pool.map(
                 metric_add_batch_and_compute,
                 [
-                    (0, preds_0, refs_0, "test_distributed_metrics_2", tmp_dir),
-                    (1, preds_1, refs_1, "test_distributed_metrics_2", tmp_dir),
+                    (0, preds_0, refs_0, "test_distributed_metrics_2", tmp_dir, 0),
+                    (1, preds_1, refs_1, "test_distributed_metrics_2", tmp_dir, 0),
                 ],
             )
             self.assertDictEqual(expected_results, results[0])
@@ -217,10 +232,10 @@ class TestMetric(TestCase):
                 results = pool.map(
                     metric_add_and_compute,
                     [
-                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir),
-                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir),
-                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir),
-                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir),
+                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir, 0),
+                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir, 0),
+                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir, 0),
+                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir, 0),
                     ],
                 )
             except ValueError:
@@ -237,10 +252,10 @@ class TestMetric(TestCase):
             results = pool.map(
                 metric_add_and_compute_exp_id,
                 [
-                    (0, preds_0, refs_0, "exp_0", tmp_dir),
-                    (1, preds_1, refs_1, "exp_0", tmp_dir),
-                    (0, preds_0, refs_0, "exp_1", tmp_dir),
-                    (1, preds_1, refs_1, "exp_1", tmp_dir),
+                    (0, preds_0, refs_0, "exp_0", tmp_dir, 0),
+                    (1, preds_1, refs_1, "exp_0", tmp_dir, 0),
+                    (0, preds_0, refs_0, "exp_1", tmp_dir, 0),
+                    (1, preds_1, refs_1, "exp_1", tmp_dir, 0),
                 ],
             )
             self.assertDictEqual(expected_results, results[0])

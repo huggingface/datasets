@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import List
 
@@ -6,7 +7,7 @@ import pyarrow.csv as pac
 import nlp
 
 
-logger = nlp.utils.logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 FEATURES = nlp.Features({"text": nlp.Value("string"),})
 
@@ -74,6 +75,8 @@ class Text(nlp.ArrowBasedBuilder):
             If str or List[str], then the dataset returns only the 'train' split.
             If dict, then keys should be from the `nlp.Split` enum.
         """
+        if not self.config.data_files:
+            raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
         data_files = dl_manager.download_and_extract(self.config.data_files)
         if isinstance(data_files, (str, list, tuple)):
             files = data_files

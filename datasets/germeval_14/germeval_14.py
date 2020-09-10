@@ -19,10 +19,7 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import glob
 import logging
-import os
-from pathlib import Path
 
 import nlp
 
@@ -52,10 +49,11 @@ The GermEval 2014 NER Shared Task builds on a new dataset with German Named Enti
       such as [ORG FC Kickers [LOC Darmstadt]].
 """
 
-_URL = "https://sites.google.com/site/germeval2014ner/data/"
-_TRAINING_FILE = "NER-de-train.tsv"
-_DEV_FILE = "NER-de-dev.tsv"
-_TEST_FILE = "NER-de-test.tsv"
+_URLS = {
+    "train": "https://drive.google.com/uc?export=download&id=1Jjhbal535VVz2ap4v4r_rN1UEHTdLK5P",
+    "dev": "https://drive.google.com/uc?export=download&id=1ZfRcQThdtAR5PPRjIDtrVP7BtXSCUBbm",
+    "test": "https://drive.google.com/uc?export=download&id=1u9mb7kNJHWQCWyweMDRMuTFoOHOfeBTH",
+}
 
 
 class GermEval14Config(nlp.BuilderConfig):
@@ -75,7 +73,7 @@ class GermEval14(nlp.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         GermEval14Config(
-            name="germeval_14", version=nlp.Version("1.0.0"), description="GermEval 2014 NER Shared Task dataset"
+            name="germeval_14", version=nlp.Version("2.0.0"), description="GermEval 2014 NER Shared Task dataset"
         ),
     ]
 
@@ -98,12 +96,7 @@ class GermEval14(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        urls_to_download = {
-            "train": f"{_URL}{_TRAINING_FILE}",
-            "dev": f"{_URL}{_DEV_FILE}",
-            "test": f"{_URL}{_TEST_FILE}",
-        }
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        downloaded_files = dl_manager.download_and_extract(_URLS)
 
         return [
             nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),

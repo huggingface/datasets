@@ -46,10 +46,12 @@ class AWSMetricTest(parameterized.TestCase):
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
             download_config.force_download = True
-            name = None
+            config_name = None
             if metric_name == "glue":
-                name = "sst2"
-            metric = load_metric(metric_name, name=name, data_dir=temp_data_dir, download_config=download_config)
+                config_name = "sst2"
+            metric = load_metric(
+                metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config
+            )
 
             parameters = inspect.signature(metric._compute).parameters
             self.assertTrue("predictions" in parameters)
@@ -67,10 +69,12 @@ class LocalMetricTest(parameterized.TestCase):
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
             download_config.force_download = True
-            name = None
+            config_name = None
             if metric_name == "glue":
-                name = "sst2"
-            metric = load_metric(metric_name, name=name, data_dir=temp_data_dir, download_config=download_config)
+                config_name = "sst2"
+            metric = load_metric(
+                metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config
+            )
 
             parameters = inspect.signature(metric._compute).parameters
             self.assertTrue("predictions" in parameters)

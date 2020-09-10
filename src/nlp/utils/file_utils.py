@@ -90,6 +90,7 @@ except (AttributeError, ImportError):
 
 S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets"
 CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/datasets"
+REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/nlp/{version}/datasets/{path}/{name}"
 
 
 default_metrics_cache_path = os.path.join(hf_cache_home, "metrics")
@@ -102,6 +103,7 @@ except (AttributeError, ImportError):
 
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/metrics"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/nlp/metric"
+REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/nlp/{version}/metrics/{path}/{name}"
 
 
 default_modules_cache_path = os.path.join(hf_cache_home, "modules")
@@ -194,6 +196,20 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     return "/".join((endpoint, identifier, filename))
 
 
+def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True) -> requests.models.Response:
+    return requests.head(hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset))
+
+
+def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
+    from .. import __version__
+
+    version = version or os.getenv("HF_SCRIPTS_VERSION", __version__)
+    if dataset:
+        return REPO_DATASETS_URL.format(version=version, path=path, name=name)
+    else:
+        return REPO_METRICS_URL.format(version=version, path=path, name=name)
+
+
 def hash_url_to_filename(url, etag=None):
     """
     Convert `url` into a hashed filename in a repeatable way.
@@ -242,6 +258,8 @@ class DownloadConfig:
     user_agent: Optional[str] = None
     extract_compressed_file: bool = False
     force_extract: bool = False
+    use_etag: bool = True
+    num_proc: Optional[int] = None
 
     def copy(self) -> "DownloadConfig":
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
@@ -287,6 +305,7 @@ def cached_path(
             resume_download=download_config.resume_download,
             user_agent=download_config.user_agent,
             local_files_only=download_config.local_files_only,
+            use_etag=download_config.use_etag,
         )
     elif os.path.exists(url_or_filename):
         # File, and it exists.
@@ -383,6 +402,7 @@ def get_from_cache(
     resume_download=False,
     user_agent=None,
     local_files_only=False,
+    use_etag=True,
 ) -> Optional[str]:
     """
     Given a URL, look for the corresponding file in the local cache.
@@ -406,13 +426,24 @@ def get_from_cache(
 
     original_url = url  # Some parameters may be added
     connected = False
+    response = None
     cookies = None
     etag = None
+
+    # Try a first time to file the file on the local file system without eTag (None)
+    # if we don't ask for 'force_download' then we spare a request
+    filename = hash_url_to_filename(original_url, etag=None)
+    cache_path = os.path.join(cache_dir, filename)
+
+    if os.path.exists(cache_path) and not force_download and not use_etag:
+        return cache_path
+
+    # We don't have the file locally or we need an eTag
     if not local_files_only:
         try:
             response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
             if response.status_code == 200:  # ok
-                etag = response.headers.get("ETag")
+                etag = response.headers.get("ETag") if use_etag else None
                 for k, v in response.cookies.items():
                     # In some edge cases, we need to get a confirmation token
                     if k.startswith("download_warning") and "drive.google.com" in url:
@@ -429,11 +460,6 @@ def get_from_cache(
             # not connected
             pass
 
-    filename = hash_url_to_filename(original_url, etag)
-
-    # get cache path to put the file
-    cache_path = os.path.join(cache_dir, filename)
-
     # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
     # try to get the last downloaded one
     if not connected:
@@ -441,16 +467,21 @@ def get_from_cache(
             return cache_path
         if local_files_only:
             raise FileNotFoundError(
-                "Cannot find the requested files in the cached path and outgoing traffic has been"
-                " disabled. To enable model look-ups and downloads online, set 'local_files_only'"
-                " to False."
+                f"Cannot find the requested files in the cached path at {cache_path} and outgoing traffic has been"
+                " disabled. To enable file online look-ups, set 'local_files_only' to False."
             )
+        elif response is not None and response.status_code == 404:
+            raise FileNotFoundError("Couldn't find file at {}".format(url))
         raise ConnectionError("Couldn't reach {}".format(url))
 
-    # From now on, connected is True.
+    # Try a second time
+    filename = hash_url_to_filename(original_url, etag)
+    cache_path = os.path.join(cache_dir, filename)
+
     if os.path.exists(cache_path) and not force_download:
         return cache_path
 
+    # From now on, connected is True.
     # Prevent parallel downloads of the same file with a lock.
     lock_path = cache_path + ".lock"
     with FileLock(lock_path):
