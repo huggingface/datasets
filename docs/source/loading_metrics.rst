@@ -2,6 +2,7 @@ Loading a Metric
 ==============================================================
 
 The library also provides a selection of metrics focusing in particular on:
+
 - providing a common API accross a range of NLP metrics,
 - providing metrics associated to some benchmark datasets provided by the libray such as GLUE or SQuAD,
 - providing access to recent and somewhat complex metrics such as BLEURT or BERTScore,
@@ -127,6 +128,7 @@ In several settings, computing metrics in distributed or parrallel processing en
 Let's first see how to use a metric in a distributed setting before giving a few words about the internals. Let's say we train and evaluate a model in 8 parallel processes (e.g. using PyTorch's `DistributedDataParallel <https://pytorch.org/tutorials/intermediate/ddp_tutorial.html>`__ on a server with 8 GPUs).
 
 We assume your python script can have access to:
+
 - the total number of processes as an integer we'll call ``num_process`` (in our example 8),
 - the process id of each process as an integer between 0 and ``num_process-1`` that we'll call ``rank`` (in our case betwen 0 and 7 included).
 

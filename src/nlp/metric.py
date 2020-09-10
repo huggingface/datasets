@@ -205,11 +205,17 @@ class Metric(MetricInfoMixin):
         self.file_paths = None
         self.filelocks = None
 
+    def __len__(self):
+        """ Return the number of examples (predictions or predictions/references pair)
+            currently stored in the metric's cache.
+        """
+        return 0 if self.writer is None else len(self.writer)
+
     def __repr__(self):
         return (
             f'Metric(name: "{self.name}", features: {self.features}, '
             f'usage: """{self.inputs_description}""", '
-            f"stored examples: {0 if self.writer is None else len(self.writer)})"
+            f"stored examples: {len(self)})"
         )
 
     def _build_data_dir(self):
@@ -357,7 +363,6 @@ class Metric(MetricInfoMixin):
             We disallow the usage of positional arguments to prevent mistakes
             `predictions` (Optional list/array/tensor): predictions
             `references` (Optional list/array/tensor): references
-            `timeout` (Optional int): timeout for distributed gathering of values on several nodes
             `**kwargs` (Optional other kwargs): will be forwared to the metrics :func:`_compute` method (see details in the docstring)
 
         Return:

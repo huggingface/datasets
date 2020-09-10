@@ -183,6 +183,7 @@ CSV files
 All the CSV files in the dataset should have the same organization and in particular the same datatypes for the columns.
 
 A few interesting features are provided out-of-the-box by the Apache Arrow backend:
+
 - multi-threaded or single-threaded reading
 - automatic decompression of input files (based on the filename extension, such as my_data.csv.gz)
 - fetching column names from the first row in the CSV file

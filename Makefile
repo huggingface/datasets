@@ -12,3 +12,8 @@ quality:
 style:
 	black --line-length 119 --target-version py36 tests src benchmarks
 	isort --recursive tests src datasets benchmarks
+
+# Run tests for the library
+
+test:
+	python -m pytest -n auto --dist=loadfile -s -v ./tests/
