@@ -3,19 +3,19 @@ Using a Dataset with PyTorch/Tensorflow
 
 Once your dataset is processed, you often want to use it with a framework such as PyTorch, Tensorflow, Numpy or Pandas. For instance we may want to use our dataset in a ``torch.Dataloader`` or a ``tf.data.Dataset`` and train a model with it.
 
-🤗nlp provides a simple way to do this through a Dataset's ``format``.
+🤗nlp provides a simple way to do this through what is called the format of a dataset.
 
-The format of the :class:`nlp.Dataset` defines which columns of the dataset are returned by the :func:`nlp.Dataset.__getitem__` method and can cast them in native PyTorch, Tensorflow, Numpy or Pandas types.
+The format of a :class:`nlp.Dataset` instance defines which columns of the dataset are returned by the :func:`nlp.Dataset.__getitem__` method and cast them in PyTorch, Tensorflow, Numpy or Pandas types.
 
-By default, all the columns of the dataset are returned as python object but it's possible to filter out sme columns (e.g. the columns containing strings which are not used to train our model) and to cast them as PyTorch/Tensorflow tensors of Numpy/Pandas arrays or DataFrames.
+By default, all the columns of the dataset are returned as python object. Setting a specific format allow to cast dataset examples as PyTorch/Tensorflow/Numpy/Pandas tensors, arrays or DataFrames and to filter out some columns. A typical examples is columns with strings which are usually not used to train a model and cannot be converted in PyTorch tensors. We may still want to keep them in the dataset though, for instance for the evaluation of the model so it's interesting to just "mask" them during model training.
 
 .. note::
-    A format doesn't change the internal storage of the :class:`nlp.Dataset` object, it just dynamically change the view of the dataset.
+    The format of the dataset has no effect on the internal table storing the data, it just dynamically change the view of the dataset and examples which is returned when calling :func:`nlp.Dataset.__getitem__`.
 
 Setting the format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The format can be set using the :func:`nlp.Dataset.set_format` which take as arguments:
+The format of a :class:`nlp.Dataset` instance can be set using the :func:`nlp.Dataset.set_format` which take as arguments:
 
 - ``type``: an optional string defining the type of the objects that should be returned by :func:`nlp.Dataset.__getitem__`:
 
