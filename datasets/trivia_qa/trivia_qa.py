@@ -41,7 +41,7 @@ archivePrefix = {arXiv},
        eprint = {1705.03551},
 }
 """
-_DOWNLOAD_URL_TMPL = "http://datasets.cs.washington.edu/triviaqa/data/triviaqa-{}.tar.gz"
+_DOWNLOAD_URL_TMPL = "http://nlp.cs.washington.edu/triviaqa/data/triviaqa-{}.tar.gz"
 _TRAIN_FILE_FORMAT = "*-train.json"
 _VALIDATION_FILE_FORMAT = "*-dev.json"
 _TEST_FILE_FORMAT = "*test-without-answers.json"
@@ -158,7 +158,7 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=None,
-            homepage="http://datasets.cs.washington.edu/triviaqa/",
+            homepage="http://nlp.cs.washington.edu/triviaqa/",
             citation=_CITATION,
         )
 

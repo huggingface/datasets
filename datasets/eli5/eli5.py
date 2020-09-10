@@ -260,7 +260,7 @@ class Eli5(datasets.GeneratorBasedBuilder):
     """ELI5: Explain Like I'm Five long form question answering dataset."""
 
     BUILDER_CONFIG_CLASS = Eli5Config
-    _DATA_SPLIT_URL = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/eli5/reddit_data_split.json"
+    _DATA_SPLIT_URL = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets/eli5/reddit_data_split.json"
 
     BUILDER_CONFIGS = [
         Eli5Config(name="LFQA_reddit", version=datasets.Version("1.0.0"), description="long from QA subreddits"),

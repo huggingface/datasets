@@ -29,7 +29,7 @@ _DESCRIPTION = """\
 A dataset reducing relation extraction to simple reading comprehension questions
 """
 
-_DATA_URL = "http://datasets.cs.washington.edu/zeroshot/relation_splits.tar.bz2"
+_DATA_URL = "http://nlp.cs.washington.edu/zeroshot/relation_splits.tar.bz2"
 
 
 class QaZre(datasets.GeneratorBasedBuilder):
@@ -54,7 +54,7 @@ class QaZre(datasets.GeneratorBasedBuilder):
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="http://datasets.cs.washington.edu/zeroshot",
+            homepage="http://nlp.cs.washington.edu/zeroshot",
             citation=_CITATION,
         )
 

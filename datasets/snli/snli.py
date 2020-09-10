@@ -41,7 +41,7 @@ entailment, contradiction, and neutral, supporting the task of natural language
 inference (NLI), also known as recognizing textual entailment (RTE).
 """
 
-_DATA_URL = "https://datasets.stanford.edu/projects/snli/snli_1.0.zip"
+_DATA_URL = "https://nlp.stanford.edu/projects/snli/snli_1.0.zip"
 
 
 class Snli(datasets.GeneratorBasedBuilder):
@@ -68,7 +68,7 @@ class Snli(datasets.GeneratorBasedBuilder):
             # No default supervised_keys (as we have to pass both premise
             # and hypothesis as input).
             supervised_keys=None,
-            homepage="https://datasets.stanford.edu/projects/snli/",
+            homepage="https://nlp.stanford.edu/projects/snli/",
             citation=_CITATION,
         )
 

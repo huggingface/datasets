@@ -50,10 +50,10 @@ KILT tasks training and evaluation data.
 - [WNED-WIKI](https://github.com/U-Alberta/wned) | Entity Linking | wned
 - [WNED-CWEB](https://github.com/U-Alberta/wned) | Entity Linking | cweb
 - [T-REx](https://hadyelsahar.github.io/t-rex) | Slot Filling | trex
-- [Zero-Shot RE](http://datasets.cs.washington.edu/zeroshot) | Slot Filling | structured_zeroshot
+- [Zero-Shot RE](http://nlp.cs.washington.edu/zeroshot) | Slot Filling | structured_zeroshot
 - [Natural Questions](https://ai.google.com/research/NaturalQuestions) | Open Domain QA  | nq
 - [HotpotQA](https://hotpotqa.github.io) | Open Domain QA | hotpotqa
-- [TriviaQA](http://datasets.cs.washington.edu/triviaqa) | Open Domain QA | triviaqa
+- [TriviaQA](http://nlp.cs.washington.edu/triviaqa) | Open Domain QA | triviaqa
 - [ELI5](https://facebookresearch.github.io/ELI5/explore.html) | Open Domain QA | eli5
 - [Wizard of Wikipedia](https://parl.ai/projects/wizard_of_wikipedia) | Dialogue | wow
 

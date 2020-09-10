@@ -157,11 +157,11 @@
             }
         },
         "download_checksums": {
-            "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets_experimental/explainlikeimfive/reddit_data_split.json": {
+            "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets_experimental/explainlikeimfive/reddit_data_split.json": {
                 "num_bytes": 6326543,
                 "checksum": "e605c4854787f3db85415b90ab80bb9ca2e2bd5208391e02aff081be2690923f"
             },
-            "https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/eli5/reddit_data_split.json": {
+            "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets/eli5/reddit_data_split.json": {
                 "checksum": "e605c4854787f3db85415b90ab80bb9ca2e2bd5208391e02aff081be2690923f",
                 "num_bytes": 6326543
             }
