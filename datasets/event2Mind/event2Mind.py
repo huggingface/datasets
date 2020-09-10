@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import nlp
+import datasets
 
 
 # TODO(event2Mind): BibTeX citation
@@ -25,28 +25,28 @@ In Event2Mind, we explore the task of understanding stereotypical intents and re
 _URL = "https://uwnlp.github.io/event2mind/data/event2mind.zip"
 
 
-class Event2mind(nlp.GeneratorBasedBuilder):
+class Event2mind(datasets.GeneratorBasedBuilder):
     """TODO(event2Mind): Short description of my dataset."""
 
     # TODO(event2Mind): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(event2Mind): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(event2Mind): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "Source": nlp.Value("string"),
-                    "Event": nlp.Value("string"),
-                    "Xintent": nlp.Value("string"),
-                    "Xemotion": nlp.Value("string"),
-                    "Otheremotion": nlp.Value("string"),
-                    "Xsent": nlp.Value("string"),
-                    "Osent": nlp.Value("string"),
+                    "Source": datasets.Value("string"),
+                    "Event": datasets.Value("string"),
+                    "Xintent": datasets.Value("string"),
+                    "Xemotion": datasets.Value("string"),
+                    "Otheremotion": datasets.Value("string"),
+                    "Xsent": datasets.Value("string"),
+                    "Osent": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -61,22 +61,22 @@ class Event2mind(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(event2Mind): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_dir, "train.csv")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_dir, "test.csv")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_dir, "dev.csv")},
             ),

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -53,7 +53,7 @@ basis for the shared task of the RepEval 2017 Workshop at EMNLP in Copenhagen.
 """
 
 
-class MultiNLIConfig(nlp.BuilderConfig):
+class MultiNLIConfig(datasets.BuilderConfig):
     """BuilderConfig for MultiNLI."""
 
     def __init__(self, **kwargs):
@@ -63,12 +63,10 @@ class MultiNLIConfig(nlp.BuilderConfig):
         .
               **kwargs: keyword arguments forwarded to super.
         """
-        super(MultiNLIConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(MultiNLIConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class MultiNli(nlp.GeneratorBasedBuilder):
+class MultiNli(datasets.GeneratorBasedBuilder):
     """MultiNLI: The Stanford Question Answering Dataset. Version 1.1."""
 
     BUILDER_CONFIGS = [
@@ -79,13 +77,13 @@ class MultiNli(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "premise": nlp.Value("string"),
-                    "hypothesis": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+                    "premise": datasets.Value("string"),
+                    "hypothesis": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -110,9 +108,9 @@ class MultiNli(nlp.GeneratorBasedBuilder):
         mismatched_validation_path = os.path.join(mnli_path, "multinli_1.0_dev_mismatched.txt")
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-            nlp.SplitGenerator(name="validation_matched", gen_kwargs={"filepath": matched_validation_path}),
-            nlp.SplitGenerator(name="validation_mismatched", gen_kwargs={"filepath": mismatched_validation_path}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
+            datasets.SplitGenerator(name="validation_matched", gen_kwargs={"filepath": matched_validation_path}),
+            datasets.SplitGenerator(name="validation_mismatched", gen_kwargs={"filepath": mismatched_validation_path}),
         ]
 
     def _generate_examples(self, filepath):

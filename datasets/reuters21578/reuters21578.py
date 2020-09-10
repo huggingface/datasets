@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import os
 from textwrap import dedent
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -184,7 +184,7 @@ categorization research. It is collected from the Reuters financial newswire ser
 _DATA_URL = "https://kdd.ics.uci.edu/databases/reuters21578/reuters21578.tar.gz"
 
 
-class Reuters21578Config(nlp.BuilderConfig):
+class Reuters21578Config(datasets.BuilderConfig):
     """BuilderConfig for reuters-21578."""
 
     def __init__(self, **kwargs):
@@ -193,12 +193,10 @@ class Reuters21578Config(nlp.BuilderConfig):
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super(Reuters21578Config, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(Reuters21578Config, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class Reuters21578(nlp.GeneratorBasedBuilder):
+class Reuters21578(datasets.GeneratorBasedBuilder):
     """Reuters 21578"""
 
     BUILDER_CONFIGS = [
@@ -229,22 +227,22 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string"),
-                    "topics": nlp.Sequence(nlp.Value("string")),
-                    "lewis_split": nlp.Value("string"),
-                    "cgis_split": nlp.Value("string"),
-                    "old_id": nlp.Value("string"),
-                    "new_id": nlp.Value("string"),
-                    "places": nlp.Sequence(nlp.Value("string")),
-                    "people": nlp.Sequence(nlp.Value("string")),
-                    "orgs": nlp.Sequence(nlp.Value("string")),
-                    "exchanges": nlp.Sequence(nlp.Value("string")),
-                    "date": nlp.Value("string"),
-                    "title": nlp.Value("string"),
+                    "text": datasets.Value("string"),
+                    "topics": datasets.Sequence(datasets.Value("string")),
+                    "lewis_split": datasets.Value("string"),
+                    "cgis_split": datasets.Value("string"),
+                    "old_id": datasets.Value("string"),
+                    "new_id": datasets.Value("string"),
+                    "places": datasets.Sequence(datasets.Value("string")),
+                    "people": datasets.Sequence(datasets.Value("string")),
+                    "orgs": datasets.Sequence(datasets.Value("string")),
+                    "exchanges": datasets.Sequence(datasets.Value("string")),
+                    "date": datasets.Value("string"),
+                    "title": datasets.Value("string"),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -259,15 +257,15 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
         files = [os.path.join(dl_dir, "reut2-" + "%03d" % i + ".sgm") for i in range(22)]
         if self.config.name == "ModHayes":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "filepath": files,
                         "split": "PUBLISHED-TESTSET",
                     },
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={
                         "filepath": files,
                         "split": "TRAINING-SET",
@@ -276,15 +274,15 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
             ]
         else:
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "filepath": files,
                         "split": "TEST",
                     },
                 ),
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": files, "split": "TRAIN"}),
-                nlp.SplitGenerator(name="unused", gen_kwargs={"filepath": files, "split": "NOT-USED"}),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": files, "split": "TRAIN"}),
+                datasets.SplitGenerator(name="unused", gen_kwargs={"filepath": files, "split": "NOT-USED"}),
             ]
 
     def _generate_examples(self, filepath, split):

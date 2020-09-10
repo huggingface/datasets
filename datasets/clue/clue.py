@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import textwrap
 
 import six
 
-import nlp
+import datasets
 
 
 _CLUE_CITATION = """\
@@ -47,7 +47,7 @@ evaluating, and analyzing Chinese language understanding systems.
 """
 
 
-class ClueConfig(nlp.BuilderConfig):
+class ClueConfig(datasets.BuilderConfig):
     """BuilderConfig for CLUE."""
 
     def __init__(
@@ -76,14 +76,12 @@ class ClueConfig(nlp.BuilderConfig):
           url: `string`, url for information about the data set
           label_classes: `list[string]`, the list of classes if the label is
             categorical. If not provided, then the label will be of type
-            `nlp.Value('float32')`.
+            `datasets.Value('float32')`.
           process_label: `Function[string, any]`, function  taking in the raw value
             of the label and processing it to the form required by the label feature
           **kwargs: keyword arguments forwarded to super.
         """
-        super(ClueConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(ClueConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.label_column = label_column
         self.label_classes = label_classes
@@ -94,7 +92,7 @@ class ClueConfig(nlp.BuilderConfig):
         self.process_label = process_label
 
 
-class Clue(nlp.GeneratorBasedBuilder):
+class Clue(datasets.GeneratorBasedBuilder):
     """A Chinese Language Understanding Evaluation Benchmark (CLUE) benchmark."""
 
     BUILDER_CONFIGS = [
@@ -309,63 +307,65 @@ class Clue(nlp.GeneratorBasedBuilder):
 
     def _info(self):
         if self.config.name in ["afqmc", "tnews", "iflytek", "cmnli", "diagnostics"]:
-            features = {text_feature: nlp.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+            features = {
+                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
+            }
             if self.config.label_classes:
-                features["label"] = nlp.features.ClassLabel(names=self.config.label_classes)
+                features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
             else:
-                features["label"] = nlp.Value("float32")
-            features["idx"] = nlp.Value("int32")
+                features["label"] = datasets.Value("float32")
+            features["idx"] = datasets.Value("int32")
         elif self.config.name == "cluewsc2020":
             features = {
-                "idx": nlp.Value("int32"),
-                "text": nlp.Value("string"),
-                "label": nlp.features.ClassLabel(names=["true", "false"]),
+                "idx": datasets.Value("int32"),
+                "text": datasets.Value("string"),
+                "label": datasets.features.ClassLabel(names=["true", "false"]),
                 "target": {
-                    "span1_text": nlp.Value("string"),
-                    "span2_text": nlp.Value("string"),
-                    "span1_index": nlp.Value("int32"),
-                    "span2_index": nlp.Value("int32"),
+                    "span1_text": datasets.Value("string"),
+                    "span2_text": datasets.Value("string"),
+                    "span1_index": datasets.Value("int32"),
+                    "span2_index": datasets.Value("int32"),
                 },
             }
         elif self.config.name == "csl":
             features = {
-                "idx": nlp.Value("int32"),
-                "corpus_id": nlp.Value("int32"),
-                "abst": nlp.Value("string"),
-                "label": nlp.features.ClassLabel(names=self.config.label_classes),
-                "keyword": nlp.Sequence(nlp.Value("string")),
+                "idx": datasets.Value("int32"),
+                "corpus_id": datasets.Value("int32"),
+                "abst": datasets.Value("string"),
+                "label": datasets.features.ClassLabel(names=self.config.label_classes),
+                "keyword": datasets.Sequence(datasets.Value("string")),
             }
         elif self.config.name in ["cmrc2018", "drcd"]:
             features = {
-                "id": nlp.Value("string"),
-                "context": nlp.Value("string"),
-                "question": nlp.Value("string"),
-                "answers": nlp.Sequence(
+                "id": datasets.Value("string"),
+                "context": datasets.Value("string"),
+                "question": datasets.Value("string"),
+                "answers": datasets.Sequence(
                     {
-                        "text": nlp.Value("string"),
-                        "answer_start": nlp.Value("int32"),
+                        "text": datasets.Value("string"),
+                        "answer_start": datasets.Value("int32"),
                     }
                 ),
             }
         elif self.config.name == "chid":
             features = {
-                "idx": nlp.Value("int32"),
-                "candidates": nlp.Sequence(nlp.Value("string")),
-                "content": nlp.Sequence(nlp.Value("string")),
-                "answers": nlp.features.Sequence(
+                "idx": datasets.Value("int32"),
+                "candidates": datasets.Sequence(datasets.Value("string")),
+                "content": datasets.Sequence(datasets.Value("string")),
+                "answers": datasets.features.Sequence(
                     {
-                        "text": nlp.Value("string"),
-                        "candidate_id": nlp.Value("int32"),
+                        "text": datasets.Value("string"),
+                        "candidate_id": datasets.Value("int32"),
                     }
                 ),
             }
         elif self.config.name == "c3":
             features = {
-                "id": nlp.Value("int32"),
-                "context": nlp.Sequence(nlp.Value("string")),
-                "question": nlp.Value("string"),
-                "choice": nlp.Sequence(nlp.Value("string")),
-                "answer": nlp.Value("string"),
+                "id": datasets.Value("int32"),
+                "context": datasets.Sequence(datasets.Value("string")),
+                "question": datasets.Value("string"),
+                "choice": datasets.Sequence(datasets.Value("string")),
+                "answer": datasets.Value("string"),
             }
         else:
             raise NotImplementedError(
@@ -374,9 +374,9 @@ class Clue(nlp.GeneratorBasedBuilder):
                 "please open a GitHub issue and we will add it."
             )
 
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_CLUE_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             homepage=self.config.url,
             citation=self.config.citation + "\n" + _CLUE_CITATION,
         )
@@ -384,8 +384,8 @@ class Clue(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(self.config.data_url)
         data_dir = os.path.join(dl_dir, self.config.data_dir)
-        test_split = nlp.SplitGenerator(
-            name=nlp.Split.TEST,
+        test_split = datasets.SplitGenerator(
+            name=datasets.Split.TEST,
             gen_kwargs={
                 "data_file": os.path.join(
                     data_dir, "test.json" if self.config.name != "diagnostics" else "diagnostics_test.json"
@@ -397,8 +397,8 @@ class Clue(nlp.GeneratorBasedBuilder):
         split_list = [test_split]
 
         if self.config.name != "diagnostics":
-            train_split = nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            train_split = datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "data_file": os.path.join(
                         data_dir or "", "train.json" if self.config.name != "c3" else "d-train.json"
@@ -406,8 +406,8 @@ class Clue(nlp.GeneratorBasedBuilder):
                     "split": "train",
                 },
             )
-            val_split = nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            val_split = datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "data_file": os.path.join(
                         data_dir or "", "dev.json" if self.config.name != "c3" else "d-dev.json"
@@ -419,8 +419,8 @@ class Clue(nlp.GeneratorBasedBuilder):
 
         if self.config.name == "cmrc2018":
             split_list.append(
-                nlp.SplitGenerator(
-                    name=nlp.Split("trial"),
+                datasets.SplitGenerator(
+                    name=datasets.Split("trial"),
                     gen_kwargs={
                         "data_file": os.path.join(data_dir or "", "trial.json"),
                         "split": "trial",

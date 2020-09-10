@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -45,7 +45,7 @@ relations.
 _URL = "https://raw.githubusercontent.com/OanaMariaCamburu/e-SNLI/master/dataset/"
 
 
-class Esnli(nlp.GeneratorBasedBuilder):
+class Esnli(datasets.GeneratorBasedBuilder):
     """e-SNLI: Natural Language Inference with Natural Language Explanations corpus."""
 
     # Version History
@@ -53,24 +53,24 @@ class Esnli(nlp.GeneratorBasedBuilder):
     # splits only.
     # 0.0.1 Initial version
     BUILDER_CONFIGS = [
-        nlp.BuilderConfig(
+        datasets.BuilderConfig(
             name="plain_text",
-            version=nlp.Version("0.0.2"),
+            version=datasets.Version("0.0.2"),
             description="Plain text import of e-SNLI",
         )
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "premise": nlp.Value("string"),
-                    "hypothesis": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
-                    "explanation_1": nlp.Value("string"),
-                    "explanation_2": nlp.Value("string"),
-                    "explanation_3": nlp.Value("string"),
+                    "premise": datasets.Value("string"),
+                    "hypothesis": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+                    "explanation_1": datasets.Value("string"),
+                    "explanation_2": datasets.Value("string"),
+                    "explanation_3": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -90,16 +90,16 @@ class Esnli(nlp.GeneratorBasedBuilder):
         )
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"files": files["train"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"files": files["validation"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"files": files["test"]},
             ),
         ]

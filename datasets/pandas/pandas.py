@@ -3,12 +3,12 @@
 import pandas as pd
 import pyarrow as pa
 
-import nlp
+import datasets
 
 
-class Pandas(nlp.ArrowBasedBuilder):
+class Pandas(datasets.ArrowBasedBuilder):
     def _info(self):
-        return nlp.DatasetInfo()
+        return datasets.DatasetInfo()
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
@@ -19,14 +19,14 @@ class Pandas(nlp.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
-            return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": files})]
+            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
-        for split_name in [nlp.Split.TRAIN, nlp.Split.VALIDATION, nlp.Split.TEST]:
+        for split_name in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]:
             if split_name in data_files:
                 files = data_files[split_name]
                 if isinstance(files, str):
                     files = [files]
-                splits.append(nlp.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+                splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
     def _generate_tables(self, files):

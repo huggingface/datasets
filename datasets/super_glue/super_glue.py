@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import os
 
 import six
 
-import nlp
+import datasets
 
 
 _SUPER_GLUE_CITATION = """\
@@ -281,7 +281,7 @@ _AXG_CITATION = """\
 """
 
 
-class SuperGlueConfig(nlp.BuilderConfig):
+class SuperGlueConfig(datasets.BuilderConfig):
     """BuilderConfig for SuperGLUE."""
 
     def __init__(self, features, data_url, citation, url, label_classes=("False", "True"), **kwargs):
@@ -304,7 +304,7 @@ class SuperGlueConfig(nlp.BuilderConfig):
         #        the full release (v2.0).
         # 1.0.0: S3 (new shuffling, sharding and slicing mechanism).
         # 0.0.2: Initial version.
-        super(SuperGlueConfig, self).__init__(version=nlp.Version("1.0.2"), **kwargs)
+        super(SuperGlueConfig, self).__init__(version=datasets.Version("1.0.2"), **kwargs)
         self.features = features
         self.label_classes = label_classes
         self.data_url = data_url
@@ -312,7 +312,7 @@ class SuperGlueConfig(nlp.BuilderConfig):
         self.url = url
 
 
-class SuperGlue(nlp.GeneratorBasedBuilder):
+class SuperGlue(datasets.GeneratorBasedBuilder):
     """The SuperGLUE benchmark."""
 
     BUILDER_CONFIGS = [
@@ -376,7 +376,7 @@ class SuperGlue(nlp.GeneratorBasedBuilder):
             name="wic",
             description=_WIC_DESCRIPTION,
             # Note that start1, start2, end1, and end2 will be integers stored as
-            # nlp.Value('int32').
+            # datasets.Value('int32').
             features=["word", "sentence1", "sentence2", "start1", "start2", "end1", "end2"],
             data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WiC.zip",
             citation=_WIC_CITATION,
@@ -386,7 +386,7 @@ class SuperGlue(nlp.GeneratorBasedBuilder):
             name="wsc",
             description=_WSC_DESCRIPTION,
             # Note that span1_index and span2_index will be integers stored as
-            # nlp.Value('int32').
+            # datasets.Value('int32').
             features=["text", "span1_index", "span2_index", "span1_text", "span2_text"],
             data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WSC.zip",
             citation=_WSC_CITATION,
@@ -399,7 +399,7 @@ class SuperGlue(nlp.GeneratorBasedBuilder):
                 "substrings of the text."
             ),
             # Note that span1_index and span2_index will be integers stored as
-            # nlp.Value('int32').
+            # datasets.Value('int32').
             features=["text", "span1_index", "span2_index", "span1_text", "span2_text"],
             data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WSC.zip",
             citation=_WSC_CITATION,
@@ -426,44 +426,44 @@ class SuperGlue(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {feature: nlp.Value("string") for feature in self.config.features}
+        features = {feature: datasets.Value("string") for feature in self.config.features}
         if self.config.name.startswith("wsc"):
-            features["span1_index"] = nlp.Value("int32")
-            features["span2_index"] = nlp.Value("int32")
+            features["span1_index"] = datasets.Value("int32")
+            features["span2_index"] = datasets.Value("int32")
         if self.config.name == "wic":
-            features["start1"] = nlp.Value("int32")
-            features["start2"] = nlp.Value("int32")
-            features["end1"] = nlp.Value("int32")
-            features["end2"] = nlp.Value("int32")
+            features["start1"] = datasets.Value("int32")
+            features["start2"] = datasets.Value("int32")
+            features["end1"] = datasets.Value("int32")
+            features["end2"] = datasets.Value("int32")
         if self.config.name == "multirc":
             features["idx"] = dict(
                 {
-                    "paragraph": nlp.Value("int32"),
-                    "question": nlp.Value("int32"),
-                    "answer": nlp.Value("int32"),
+                    "paragraph": datasets.Value("int32"),
+                    "question": datasets.Value("int32"),
+                    "answer": datasets.Value("int32"),
                 }
             )
         elif self.config.name == "record":
             features["idx"] = dict(
                 {
-                    "passage": nlp.Value("int32"),
-                    "query": nlp.Value("int32"),
+                    "passage": datasets.Value("int32"),
+                    "query": datasets.Value("int32"),
                 }
             )
         else:
-            features["idx"] = nlp.Value("int32")
+            features["idx"] = datasets.Value("int32")
 
         if self.config.name == "record":
             # Entities are the set of possible choices for the placeholder.
-            features["entities"] = nlp.features.Sequence(nlp.Value("string"))
+            features["entities"] = datasets.features.Sequence(datasets.Value("string"))
             # Answers are the subset of entities that are correct.
-            features["answers"] = nlp.features.Sequence(nlp.Value("string"))
+            features["answers"] = datasets.features.Sequence(datasets.Value("string"))
         else:
-            features["label"] = nlp.features.ClassLabel(names=self.config.label_classes)
+            features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
 
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_GLUE_DESCRIPTION + self.config.description,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             homepage=self.config.url,
             citation=self.config.citation + "\n" + _SUPER_GLUE_CITATION,
         )
@@ -474,34 +474,34 @@ class SuperGlue(nlp.GeneratorBasedBuilder):
         dl_dir = os.path.join(dl_dir, task_name)
         if self.config.name in ["axb", "axg"]:
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "data_file": os.path.join(dl_dir, "{}.jsonl".format(task_name)),
-                        "split": nlp.Split.TEST,
+                        "split": datasets.Split.TEST,
                     },
                 ),
             ]
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "data_file": os.path.join(dl_dir, "train.jsonl"),
-                    "split": nlp.Split.TRAIN,
+                    "split": datasets.Split.TRAIN,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "data_file": os.path.join(dl_dir, "val.jsonl"),
-                    "split": nlp.Split.VALIDATION,
+                    "split": datasets.Split.VALIDATION,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={
                     "data_file": os.path.join(dl_dir, "test.jsonl"),
-                    "split": nlp.Split.TEST,
+                    "split": datasets.Split.TEST,
                 },
             ),
         ]
@@ -548,7 +548,7 @@ class SuperGlue(nlp.GeneratorBasedBuilder):
                         else:
                             example["label"] = _cast_label(row["label"])
                     else:
-                        assert split == nlp.Split.TEST, row
+                        assert split == datasets.Split.TEST, row
                         example["label"] = -1
                     yield example["idx"], example
 

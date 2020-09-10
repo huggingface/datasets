@@ -5,9 +5,9 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 
-from nlp import Features, Sequence, Value, load_from_disk
-from nlp.arrow_dataset import Dataset
-from nlp.dataset_dict import DatasetDict
+from datasets import Features, Sequence, Value, load_from_disk
+from datasets.arrow_dataset import Dataset
+from datasets.dataset_dict import DatasetDict
 
 from .utils import require_tf, require_torch
 

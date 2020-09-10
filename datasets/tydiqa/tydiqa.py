@@ -6,7 +6,7 @@ import json
 import os
 import textwrap
 
-import nlp
+import datasets
 
 
 # TODO(tydiqa): BibTeX citation
@@ -36,7 +36,7 @@ _SECONDARY_TASK_TRAIN = "v1.1/tydiqa-goldp-v1.1-train.json"
 _SECONDARY_TASK_DEV = "v1.1/tydiqa-goldp-v1.1-dev.json"
 
 
-class TydiqaConfig(nlp.BuilderConfig):
+class TydiqaConfig(datasets.BuilderConfig):
 
     """ BuilderConfig for Tydiqa"""
 
@@ -46,16 +46,14 @@ class TydiqaConfig(nlp.BuilderConfig):
         Args:
             **kwargs: keyword arguments forwarded to super.
         """
-        super(TydiqaConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(TydiqaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class Tydiqa(nlp.GeneratorBasedBuilder):
+class Tydiqa(datasets.GeneratorBasedBuilder):
     """TODO(tydiqa): Short description of my dataset."""
 
     # TODO(tydiqa): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         TydiqaConfig(
             name="primary_task",
@@ -88,32 +86,35 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(tydiqa): Specifies the nlp.DatasetInfo object
+        # TODO(tydiqa): Specifies the datasets.DatasetInfo object
         if self.config.name == "primary_task":
-            return nlp.DatasetInfo(
+            return datasets.DatasetInfo(
                 # This is the description that will appear on the datasets page.
                 description=_DESCRIPTION,
-                # nlp.features.FeatureConnectors
-                features=nlp.Features(
+                # datasets.features.FeatureConnectors
+                features=datasets.Features(
                     {
-                        "passage_answer_candidates": nlp.features.Sequence(
-                            {"plaintext_start_byte": nlp.Value("int32"), "plaintext_end_byte": nlp.Value("int32")}
-                        ),
-                        "question_text": nlp.Value("string"),
-                        "document_title": nlp.Value("string"),
-                        "language": nlp.Value("string"),
-                        "annotations": nlp.features.Sequence(
+                        "passage_answer_candidates": datasets.features.Sequence(
                             {
-                                # 'annotation_id': nlp.Value('variant'),
-                                "passage_answer_candidate_index": nlp.Value("int32"),
-                                "minimal_answers_start_byte": nlp.Value("int32"),
-                                "minimal_answers_end_byte": nlp.Value("int32"),
-                                "yes_no_answer": nlp.Value("string"),
+                                "plaintext_start_byte": datasets.Value("int32"),
+                                "plaintext_end_byte": datasets.Value("int32"),
                             }
                         ),
-                        "document_plaintext": nlp.Value("string"),
-                        # 'example_id': nlp.Value('variant'),
-                        "document_url": nlp.Value("string")
+                        "question_text": datasets.Value("string"),
+                        "document_title": datasets.Value("string"),
+                        "language": datasets.Value("string"),
+                        "annotations": datasets.features.Sequence(
+                            {
+                                # 'annotation_id': datasets.Value('variant'),
+                                "passage_answer_candidate_index": datasets.Value("int32"),
+                                "minimal_answers_start_byte": datasets.Value("int32"),
+                                "minimal_answers_end_byte": datasets.Value("int32"),
+                                "yes_no_answer": datasets.Value("string"),
+                            }
+                        ),
+                        "document_plaintext": datasets.Value("string"),
+                        # 'example_id': datasets.Value('variant'),
+                        "document_url": datasets.Value("string")
                         # These are the features of your dataset like images, labels ...
                     }
                 ),
@@ -126,18 +127,18 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
                 citation=_CITATION,
             )
         elif self.config.name == "secondary_task":
-            return nlp.DatasetInfo(
+            return datasets.DatasetInfo(
                 description=_DESCRIPTION,
-                features=nlp.Features(
+                features=datasets.Features(
                     {
-                        "id": nlp.Value("string"),
-                        "title": nlp.Value("string"),
-                        "context": nlp.Value("string"),
-                        "question": nlp.Value("string"),
-                        "answers": nlp.features.Sequence(
+                        "id": datasets.Value("string"),
+                        "title": datasets.Value("string"),
+                        "context": datasets.Value("string"),
+                        "question": datasets.Value("string"),
+                        "answers": datasets.features.Sequence(
                             {
-                                "text": nlp.Value("string"),
-                                "answer_start": nlp.Value("int32"),
+                                "text": datasets.Value("string"),
+                                "answer_start": datasets.Value("int32"),
                             }
                         ),
                     }
@@ -152,7 +153,7 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(tydiqa): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         primary_urls_to_download = {
             "train": os.path.join(_URL, _PRIMARY_TASK_TRAIN),
@@ -166,26 +167,26 @@ class Tydiqa(nlp.GeneratorBasedBuilder):
         secondary_downloaded = dl_manager.download_and_extract(secondary_urls_to_download)
         if self.config.name == "primary_task":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": primary_downloaded["train"]},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": primary_downloaded["dev"]},
                 ),
             ]
         elif self.config.name == "secondary_task":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": secondary_downloaded["train"]},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": secondary_downloaded["dev"]},
                 ),

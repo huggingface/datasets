@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(hellaswag): BibTeX citation
@@ -27,31 +27,31 @@ _TRAIN_FILE = "hellaswag_train.jsonl"
 _DEV_FILE = "hellaswag_val.jsonl"
 
 
-class Hellaswag(nlp.GeneratorBasedBuilder):
+class Hellaswag(datasets.GeneratorBasedBuilder):
     """TODO(hellaswag): Short description of my dataset."""
 
     # TODO(hellaswag): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(hellaswag): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(hellaswag): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "ind": nlp.Value("int32"),
-                    "activity_label": nlp.Value("string"),
-                    "ctx_a": nlp.Value("string"),
-                    "ctx_b": nlp.Value("string"),
-                    "ctx": nlp.Value("string"),
-                    "endings": nlp.features.Sequence(nlp.Value("string")),
-                    "source_id": nlp.Value("string"),
-                    "split": nlp.Value("string"),
-                    "split_type": nlp.Value("string"),
-                    "label": nlp.Value("string"),
+                    "ind": datasets.Value("int32"),
+                    "activity_label": datasets.Value("string"),
+                    "ctx_a": datasets.Value("string"),
+                    "ctx_b": datasets.Value("string"),
+                    "ctx": datasets.Value("string"),
+                    "endings": datasets.features.Sequence(datasets.Value("string")),
+                    "source_id": datasets.Value("string"),
+                    "split": datasets.Value("string"),
+                    "split_type": datasets.Value("string"),
+                    "label": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -66,7 +66,7 @@ class Hellaswag(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(hellaswag): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = {
             "train": os.path.join(_URL, _TRAIN_FILE),
@@ -75,18 +75,18 @@ class Hellaswag(nlp.GeneratorBasedBuilder):
         }
         dl_dir = dl_manager.download_and_extract(urls_to_download)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["train"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["test"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["dev"]},
             ),

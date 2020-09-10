@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 """ SQuAD v2 metric. """
 
-import nlp
+import datasets
 
 from .evaluate import apply_no_ans_threshold, get_raw_scores, make_eval_dict, make_qid_to_has_ans, merge_eval
 
@@ -71,23 +71,23 @@ Returns:
 """
 
 
-class SquadV2(nlp.Metric):
+class SquadV2(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
                     "predictions": {
-                        "id": nlp.Value("string"),
-                        "prediction_text": nlp.Value("string"),
-                        "no_answer_probability": nlp.Value("float32"),
+                        "id": datasets.Value("string"),
+                        "prediction_text": datasets.Value("string"),
+                        "no_answer_probability": datasets.Value("float32"),
                     },
                     "references": {
-                        "id": nlp.Value("string"),
-                        "answers": nlp.features.Sequence(
-                            {"text": nlp.Value("string"), "answer_start": nlp.Value("int32")}
+                        "id": datasets.Value("string"),
+                        "answers": datasets.features.Sequence(
+                            {"text": datasets.Value("string"), "answer_start": datasets.Value("int32")}
                         ),
                     },
                 }

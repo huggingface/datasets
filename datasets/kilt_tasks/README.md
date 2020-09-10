@@ -3,7 +3,7 @@
 The original KILT [release](https://github.com/facebookresearch/KILT) only provides question IDs for the TriviaQA task. Using the full dataset requires mapping those back to the TriviaQA questions, which can be done as follows: 
 
 ```python
-from nlp import load_dataset
+from datasets import load_dataset
 
 # Get the pre-processed Wikipedia knowledge source for kild
 kilt_wiki = load_dataset("kilt_wikipedia")

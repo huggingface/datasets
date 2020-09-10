@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 """ BLEU metric. """
 
-import nlp
+import datasets
 
 from .nmt_bleu import compute_bleu  # From: https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py
 
@@ -76,17 +76,17 @@ Returns:
 """
 
 
-class Bleu(nlp.Metric):
+class Bleu(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "predictions": nlp.Sequence(nlp.Value("string", id="token"), id="sequence"),
-                    "references": nlp.Sequence(
-                        nlp.Sequence(nlp.Value("string", id="token"), id="sequence"), id="references"
+                    "predictions": datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
+                    "references": datasets.Sequence(
+                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"), id="references"
                     ),
                 }
             ),

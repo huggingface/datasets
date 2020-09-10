@@ -6,7 +6,7 @@ import csv
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(cosmos_qa): BibTeX citation
@@ -30,28 +30,28 @@ _TRAIN_FILE = "train.csv"
 _DEV_FILE = "valid.csv"
 
 
-class CosmosQa(nlp.GeneratorBasedBuilder):
+class CosmosQa(datasets.GeneratorBasedBuilder):
     """TODO(cosmos_qa): Short description of my dataset."""
 
     # TODO(cosmos_qa): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(cosmos_qa): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(cosmos_qa): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answer0": nlp.Value("string"),
-                    "answer1": nlp.Value("string"),
-                    "answer2": nlp.Value("string"),
-                    "answer3": nlp.Value("string"),
-                    "label": nlp.Value("int32")
+                    "id": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answer0": datasets.Value("string"),
+                    "answer1": datasets.Value("string"),
+                    "answer2": datasets.Value("string"),
+                    "answer3": datasets.Value("string"),
+                    "label": datasets.Value("int32")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -67,7 +67,7 @@ class CosmosQa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(cosmos_qa): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = {
             "train": os.path.join(_URL, _TRAIN_FILE),
@@ -76,18 +76,18 @@ class CosmosQa(nlp.GeneratorBasedBuilder):
         }
         dl_dir = dl_manager.download_and_extract(urls_to_download)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["train"], "split": "train"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["test"], "split": "test"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dl_dir["dev"], "split": "dev"},
             ),

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors
+# Copyright 2020 The HuggingFace Datasets Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from __future__ import absolute_import, division, print_function
 import os
 from zipfile import ZipFile
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -42,7 +42,7 @@ benefit the research field of dialog systems.
 _URL = "http://yanran.li/files/ijcnlp_dailydialog.zip"
 
 act_label = {
-    "0": "__dummy__",  # Added to be compatible out-of-the-box with nlp.ClassLabel
+    "0": "__dummy__",  # Added to be compatible out-of-the-box with datasets.ClassLabel
     "1": "inform",
     "2": "question",
     "3": "directive",
@@ -60,21 +60,21 @@ emotion_label = {
 }
 
 
-class DailyDialog(nlp.GeneratorBasedBuilder):
+class DailyDialog(datasets.GeneratorBasedBuilder):
     """DailyDialog: A Manually Labelled Multi-turn Dialogue Dataset"""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     __EOU__ = "__eou__"
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "dialog": nlp.features.Sequence(nlp.Value("string")),
-                    "act": nlp.features.Sequence(nlp.ClassLabel(names=list(act_label.values()))),
-                    "emotion": nlp.features.Sequence(nlp.ClassLabel(names=list(emotion_label.values()))),
+                    "dialog": datasets.features.Sequence(datasets.Value("string")),
+                    "act": datasets.features.Sequence(datasets.ClassLabel(names=list(act_label.values()))),
+                    "emotion": datasets.features.Sequence(datasets.ClassLabel(names=list(emotion_label.values()))),
                 }
             ),
             supervised_keys=None,
@@ -82,9 +82,9 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
-    def _split_generators(self, dl_manager: nlp.DownloadManager):
+    def _split_generators(self, dl_manager: datasets.DownloadManager):
         """Returns SplitGenerators."""
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "ijcnlp_dailydialog")
@@ -97,8 +97,8 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
                 zip_file.close()
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "file_path": os.path.join(data_dir, "train", "dialogues_train.txt"),
@@ -107,8 +107,8 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
                     "split": "train",
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "file_path": os.path.join(data_dir, "test", "dialogues_test.txt"),
@@ -117,8 +117,8 @@ class DailyDialog(nlp.GeneratorBasedBuilder):
                     "split": "test",
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "file_path": os.path.join(data_dir, "validation", "dialogues_validation.txt"),

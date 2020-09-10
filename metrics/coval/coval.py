@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import coval  # From: git+https://github.com/ns-moosavi/coval.git noqa: F401
 from coval.conll import reader, util
 from coval.eval import evaluator
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -252,16 +252,16 @@ def check_gold_parse_annotation(key_lines):
     return has_gold_parse
 
 
-class Coval(nlp.Metric):
+class Coval(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "predictions": nlp.Value("string", id="sequence"),
-                    "references": nlp.Value("string", id="sequence"),
+                    "predictions": datasets.Value("string", id="sequence"),
+                    "references": datasets.Value("string", id="sequence"),
                 }
             ),
             codebase_urls=["https://github.com/ns-moosavi/coval"],

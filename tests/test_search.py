@@ -7,8 +7,8 @@ import faiss
 import numpy as np
 from elasticsearch import Elasticsearch
 
-from nlp.arrow_dataset import Dataset
-from nlp.search import ElasticSearchIndex, FaissIndex, MissingIndex
+from datasets.arrow_dataset import Dataset
+from datasets.search import ElasticSearchIndex, FaissIndex, MissingIndex
 
 
 class IndexableDatasetTest(TestCase):

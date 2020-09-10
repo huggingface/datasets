@@ -2,7 +2,7 @@ import os
 import unittest
 from distutils.util import strtobool
 
-from nlp.utils.file_utils import _tf_available, _torch_available
+from datasets.utils.file_utils import _tf_available, _torch_available
 
 
 def parse_flag_from_env(key, default=False):

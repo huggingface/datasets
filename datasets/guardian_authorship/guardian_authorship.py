@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors and the current dataset script contributor.
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -56,7 +56,7 @@ tests_ds = load_dataset('guardian_authorship', name="cross_topic_<<#>>",
 
 IMPORTANT: train+validation+test[:60%] will generate the wrong splits becasue the data is imbalanced
 
-* See https://huggingface.co/nlp/splits.html for detailed/more examples
+* See https://huggingface.co/docs/datasets/splits.html for detailed/more examples
 """
 
 _URL = "https://www.dropbox.com/s/lc5mje0owl9shms/Guardian.zip?dl=1"
@@ -65,7 +65,7 @@ _URL = "https://www.dropbox.com/s/lc5mje0owl9shms/Guardian.zip?dl=1"
 # Using a specific configuration class is optional, you can also use the base class if you don't need
 # to add specific attributes.
 # here we give an example for three sub-set of the dataset with difference sizes.
-class GuardianAuthorshipConfig(nlp.BuilderConfig):
+class GuardianAuthorshipConfig(datasets.BuilderConfig):
     """ BuilderConfig for NewDataset"""
 
     def __init__(self, train_folder, valid_folder, test_folder, **kwargs):
@@ -83,7 +83,7 @@ class GuardianAuthorshipConfig(nlp.BuilderConfig):
         self.test_folder = test_folder
 
 
-class GuardianAuthorship(nlp.GeneratorBasedBuilder):
+class GuardianAuthorship(datasets.GeneratorBasedBuilder):
     """dataset for same- and cross-topic authorship attribution"""
 
     config_counter = 0
@@ -92,7 +92,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         # cross-topic
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(1),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(1), description="The Original DS with the cross-topic scenario no.{}".format(1)
             ),
             train_folder="Politics",
@@ -101,7 +101,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(2),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(2), description="The Original DS with the cross-topic scenario no.{}".format(2)
             ),
             train_folder="Politics",
@@ -110,7 +110,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(3),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(3), description="The Original DS with the cross-topic scenario no.{}".format(3)
             ),
             train_folder="Politics",
@@ -119,7 +119,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(4),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(4), description="The Original DS with the cross-topic scenario no.{}".format(4)
             ),
             train_folder="Society",
@@ -128,7 +128,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(5),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(5), description="The Original DS with the cross-topic scenario no.{}".format(5)
             ),
             train_folder="Society",
@@ -137,7 +137,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(6),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(6), description="The Original DS with the cross-topic scenario no.{}".format(6)
             ),
             train_folder="Society",
@@ -146,7 +146,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(7),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(7), description="The Original DS with the cross-topic scenario no.{}".format(7)
             ),
             train_folder="UK",
@@ -155,7 +155,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(8),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(8), description="The Original DS with the cross-topic scenario no.{}".format(8)
             ),
             train_folder="UK",
@@ -164,7 +164,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(9),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(9), description="The Original DS with the cross-topic scenario no.{}".format(9)
             ),
             train_folder="UK",
@@ -173,7 +173,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(10),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(10), description="The Original DS with the cross-topic scenario no.{}".format(10)
             ),
             train_folder="World",
@@ -182,7 +182,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(11),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(11), description="The Original DS with the cross-topic scenario no.{}".format(11)
             ),
             train_folder="World",
@@ -191,7 +191,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(12),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(12), description="The Original DS with the cross-topic scenario no.{}".format(12)
             ),
             train_folder="World",
@@ -201,7 +201,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         # # cross-genre
         GuardianAuthorshipConfig(
             name="cross_genre_{}".format(1),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(13), description="The Original DS with the cross-genre scenario no.{}".format(1)
             ),
             train_folder="Books",
@@ -210,7 +210,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_genre_{}".format(2),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(14), description="The Original DS with the cross-genre scenario no.{}".format(2)
             ),
             train_folder="Books",
@@ -219,7 +219,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_genre_{}".format(3),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(15), description="The Original DS with the cross-genre scenario no.{}".format(3)
             ),
             train_folder="Books",
@@ -228,7 +228,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         ),
         GuardianAuthorshipConfig(
             name="cross_genre_{}".format(4),
-            version=nlp.Version(
+            version=datasets.Version(
                 "{}.0.0".format(16), description="The Original DS with the cross-genre scenario no.{}".format(4)
             ),
             train_folder="Books",
@@ -238,15 +238,15 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
                     # There are 13 authors in this dataset
-                    "author": nlp.features.ClassLabel(
+                    "author": datasets.features.ClassLabel(
                         names=[
                             "catherinebennett",
                             "georgemonbiot",
@@ -264,8 +264,8 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
                         ]
                     ),
                     # There are book reviews, and articles on the following four topics
-                    "topic": nlp.features.ClassLabel(names=["Politics", "Society", "UK", "World", "Books"]),
-                    "article": nlp.Value("string"),
+                    "topic": datasets.features.ClassLabel(names=["Politics", "Society", "UK", "World", "Books"]),
+                    "article": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -279,7 +279,7 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
 
@@ -287,18 +287,18 @@ class GuardianAuthorship(nlp.GeneratorBasedBuilder):
         data_dir = os.path.join(dl_dir, "Guardian", "Guardian_original")
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"data_dir": data_dir, "samples_folders": self.config.train_folder, "split": "train"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"data_dir": data_dir, "samples_folders": self.config.test_folder, "split": "test"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"data_dir": data_dir, "samples_folders": self.config.valid_folder, "split": "valid"},
             ),

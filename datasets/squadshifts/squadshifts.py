@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import json
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -47,7 +47,7 @@ to also evaluate their methods on these new datasets! \
 """
 
 
-class SquadShiftsConfig(nlp.BuilderConfig):
+class SquadShiftsConfig(datasets.BuilderConfig):
     """BuilderConfig for SquadShifts."""
 
     def __init__(self, **kwargs):
@@ -59,7 +59,7 @@ class SquadShiftsConfig(nlp.BuilderConfig):
         super(SquadShiftsConfig, self).__init__(**kwargs)
 
 
-class SquadShifts(nlp.GeneratorBasedBuilder):
+class SquadShifts(datasets.GeneratorBasedBuilder):
     """SquadShifts consists of four new test sets for the SQUAD dataset."""
 
     _URL = "https://raw.githubusercontent.com/modestyachts/squadshifts-website/master/datasets"
@@ -71,39 +71,39 @@ class SquadShifts(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         SquadShiftsConfig(
             name="new_wiki",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="SQuADShifts New Wikipedia article dataset",
         ),
         SquadShiftsConfig(
             name="nyt",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="SQuADShifts New York Times article dataset.",
         ),
         SquadShiftsConfig(
             name="reddit",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="SQuADShifts Reddit comment dataset.",
         ),
         SquadShiftsConfig(
             name="amazon",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="SQuADShifts Amazon product review dataset.",
         ),
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
+                    "id": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
                         {
-                            "text": nlp.Value("string"),
-                            "answer_start": nlp.Value("int32"),
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
                         }
                     ),
                 }
@@ -126,19 +126,21 @@ class SquadShifts(nlp.GeneratorBasedBuilder):
 
         if self.config.name == "new_wiki" or self.config.name == "default":
             return [
-                nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["new_wiki"]}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["new_wiki"]}
+                ),
             ]
         elif self.config.name == "nyt":
             return [
-                nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["nyt"]}),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["nyt"]}),
             ]
         elif self.config.name == "reddit":
             return [
-                nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["reddit"]}),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["reddit"]}),
             ]
         elif self.config.name == "amazon":
             return [
-                nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["amazon"]}),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["amazon"]}),
             ]
         else:
             raise ValueError("SQuADShifts dataset name {} not found!".format(self.config.name))

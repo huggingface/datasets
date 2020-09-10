@@ -3,20 +3,20 @@ from dataclasses import dataclass
 
 import pyarrow.csv as pac
 
-import nlp
+import datasets
 
 
 logger = logging.getLogger(__name__)
 
-FEATURES = nlp.Features(
+FEATURES = datasets.Features(
     {
-        "text": nlp.Value("string"),
+        "text": datasets.Value("string"),
     }
 )
 
 
 @dataclass
-class TextConfig(nlp.BuilderConfig):
+class TextConfig(datasets.BuilderConfig):
     """BuilderConfig for text files."""
 
     encoding: str = None
@@ -66,17 +66,17 @@ class TextConfig(nlp.BuilderConfig):
         return convert_options
 
 
-class Text(nlp.ArrowBasedBuilder):
+class Text(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = TextConfig
 
     def _info(self):
-        return nlp.DatasetInfo(features=FEATURES)
+        return datasets.DatasetInfo(features=FEATURES)
 
     def _split_generators(self, dl_manager):
         """The `datafiles` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
 
         If str or List[str], then the dataset returns only the 'train' split.
-        If dict, then keys should be from the `nlp.Split` enum.
+        If dict, then keys should be from the `datasets.Split` enum.
         """
         if not self.config.data_files:
             raise ValueError(f"At least one data file must be specified, but got data_files={self.config.data_files}")
@@ -85,14 +85,14 @@ class Text(nlp.ArrowBasedBuilder):
             files = data_files
             if isinstance(files, str):
                 files = [files]
-            return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": files})]
+            return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
-        for split_name in [nlp.Split.TRAIN, nlp.Split.VALIDATION, nlp.Split.TEST]:
+        for split_name in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]:
             if split_name in data_files:
                 files = data_files[split_name]
                 if isinstance(files, str):
                     files = [files]
-                splits.append(nlp.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+                splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
     def _generate_tables(self, files):

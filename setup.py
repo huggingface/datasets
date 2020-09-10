@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/NLP is an open library of NLP datasets.
+""" HuggingFace/Datasets is an open library of NLP datasets.
 
 Note:
 
@@ -38,7 +38,7 @@ To create the package for pypi.
    twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 
    Check that you can install it in a virtualenv by running:
-   pip install -i https://testpypi.python.org/pypi nlp
+   pip install -i https://testpypi.python.org/pypi datasets
 
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
@@ -127,23 +127,23 @@ EXTRAS_REQUIRE = {
 }
 
 setup(
-    name='nlp',
+    name='datasets',
     version="0.4.0",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',
     author_email='thomas@huggingface.co',
-    url='https://github.com/huggingface/nlp',
-    download_url='https://github.com/huggingface/nlp/tags',
+    url='https://github.com/huggingface/datasets',
+    download_url='https://github.com/huggingface/datasets/tags',
     license='Apache 2.0',
     package_dir={"": "src"},
     packages=find_packages("src"),
     package_data={
-        'nlp': [
+        'datasets': [
             'scripts/templates/*',
         ],
     },
-    scripts=["nlp-cli"],
+    scripts=["datasets-cli"],
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -158,5 +158,5 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords='nlp machine learning datasets metrics',
+    keywords='datasets machine learning datasets metrics',
 )

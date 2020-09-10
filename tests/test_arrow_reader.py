@@ -4,10 +4,10 @@ from unittest import TestCase
 
 import pyarrow as pa
 
-from nlp.arrow_dataset import Dataset
-from nlp.arrow_reader import BaseReader
-from nlp.info import DatasetInfo
-from nlp.splits import SplitDict, SplitInfo
+from datasets.arrow_dataset import Dataset
+from datasets.arrow_reader import BaseReader
+from datasets.info import DatasetInfo
+from datasets.splits import SplitDict, SplitInfo
 
 
 class ReaderTest(BaseReader):

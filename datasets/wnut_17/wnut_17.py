@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 HuggingFace NLP Authors.
+# Copyright 2020 HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import logging
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -67,7 +67,7 @@ _DEV_FILE = "emerging.dev.conll"
 _TEST_FILE = "emerging.test.annotated"
 
 
-class WNUT_17Config(nlp.BuilderConfig):
+class WNUT_17Config(datasets.BuilderConfig):
     """The WNUT 17 Emerging Entities Dataset."""
 
     def __init__(self, **kwargs):
@@ -79,23 +79,23 @@ class WNUT_17Config(nlp.BuilderConfig):
         super(WNUT_17Config, self).__init__(**kwargs)
 
 
-class WNUT_17(nlp.GeneratorBasedBuilder):
+class WNUT_17(datasets.GeneratorBasedBuilder):
     """The WNUT 17 Emerging Entities Dataset."""
 
     BUILDER_CONFIGS = [
         WNUT_17Config(
-            name="wnut_17", version=nlp.Version("1.0.0"), description="The WNUT 17 Emerging Entities Dataset"
+            name="wnut_17", version=datasets.Version("1.0.0"), description="The WNUT 17 Emerging Entities Dataset"
         ),
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "tokens": nlp.Sequence(nlp.Value("string")),
-                    "labels": nlp.Sequence(nlp.Value("string")),
+                    "id": datasets.Value("string"),
+                    "tokens": datasets.Sequence(datasets.Value("string")),
+                    "labels": datasets.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -113,9 +113,9 @@ class WNUT_17(nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
         ]
 
     def _generate_examples(self, filepath):

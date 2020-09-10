@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -45,7 +45,7 @@ _PROJECT_URL = "https://github.com/alexwarstadt/blimp/tree/master/"
 _DOWNLOAD_URL = "https://raw.githubusercontent.com/alexwarstadt/blimp/master/"
 
 
-class BlimpConfig(nlp.BuilderConfig):
+class BlimpConfig(datasets.BuilderConfig):
     """BuilderConfig for Blimp."""
 
     def __init__(self, paradigm_uid, **kwargs):
@@ -60,10 +60,12 @@ class BlimpConfig(nlp.BuilderConfig):
         description = _DESCRIPTION
         description += ("This configuration includes the paradigm {}.").format(name)
 
-        super(BlimpConfig, self).__init__(name=name, description=description, version=nlp.Version("0.1.0"), **kwargs)
+        super(BlimpConfig, self).__init__(
+            name=name, description=description, version=datasets.Version("0.1.0"), **kwargs
+        )
 
 
-class Blimp(nlp.GeneratorBasedBuilder):
+class Blimp(datasets.GeneratorBasedBuilder):
     """Minimal grammatical and ungrammatical pairs of 67 linguistic paradigms."""
 
     all_paradigms = [
@@ -139,20 +141,20 @@ class Blimp(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [BlimpConfig(paradigm_uid=paradigm) for paradigm in all_paradigms]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "sentence_good": nlp.Value("string"),
-                    "sentence_bad": nlp.Value("string"),
-                    "field": nlp.Value("string"),
-                    "linguistics_term": nlp.Value("string"),
-                    "UID": nlp.Value("string"),
-                    "simple_LM_method": nlp.Value("bool"),
-                    "one_prefix_method": nlp.Value("bool"),
-                    "two_prefix_method": nlp.Value("bool"),
-                    "lexically_identical": nlp.Value("bool"),
-                    "pair_id": nlp.Value("int32"),
+                    "sentence_good": datasets.Value("string"),
+                    "sentence_bad": datasets.Value("string"),
+                    "field": datasets.Value("string"),
+                    "linguistics_term": datasets.Value("string"),
+                    "UID": datasets.Value("string"),
+                    "simple_LM_method": datasets.Value("bool"),
+                    "one_prefix_method": datasets.Value("bool"),
+                    "two_prefix_method": datasets.Value("bool"),
+                    "lexically_identical": datasets.Value("bool"),
+                    "pair_id": datasets.Value("int32"),
                 }
             ),
             supervised_keys=None,
@@ -168,7 +170,9 @@ class Blimp(nlp.GeneratorBasedBuilder):
 
         downloaded_files = dl_manager.download_and_extract(download_urls)
 
-        return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files[cfg.name]})]
+        return [
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files[cfg.name]})
+        ]
 
     def _generate_examples(self, filepath):
         """Yields examples."""

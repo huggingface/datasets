@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from nlp.utils.py_utils import (
+from datasets.utils.py_utils import (
     flatten_nest_dict,
     flatten_nested,
     map_nested,

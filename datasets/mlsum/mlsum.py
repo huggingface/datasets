@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -26,30 +26,30 @@ _URL = "https://gitlab.lip6.fr/scialom/mlsum_data/-/raw/master/MLSUM/"
 _LANG = ["de", "es", "fr", "ru", "tu"]
 
 
-class Mlsum(nlp.GeneratorBasedBuilder):
+class Mlsum(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        nlp.BuilderConfig(
+        datasets.BuilderConfig(
             name=lang,
-            version=nlp.Version("1.0.0"),
+            version=datasets.Version("1.0.0"),
             description="",
         )
         for lang in _LANG
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string"),
-                    "summary": nlp.Value("string"),
-                    "topic": nlp.Value("string"),
-                    "url": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "date": nlp.Value("string")
+                    "text": datasets.Value("string"),
+                    "summary": datasets.Value("string"),
+                    "topic": datasets.Value("string"),
+                    "url": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "date": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -64,7 +64,7 @@ class Mlsum(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
 
         lang = str(self.config.name)
@@ -76,24 +76,24 @@ class Mlsum(nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(downloaded_files["train"], lang + "_train.jsonl"),
                     "lang": lang,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(downloaded_files["validation"], lang + "_val.jsonl"),
                     "lang": lang,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(downloaded_files["test"], lang + "_test.jsonl"),

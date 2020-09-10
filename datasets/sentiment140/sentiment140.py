@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -29,7 +29,7 @@ _TEST_FILE_NAME = "testdata.manual.2009.06.14.csv"
 _TRAIN_FILE_NAME = "training.1600000.processed.noemoticon.csv"
 
 
-class Sentiment140Config(nlp.BuilderConfig):
+class Sentiment140Config(datasets.BuilderConfig):
 
     """BuilderConfig for Break"""
 
@@ -40,15 +40,13 @@ class Sentiment140Config(nlp.BuilderConfig):
           data_url: `string`, url to the dataset (word or raw level)
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Sentiment140Config, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(Sentiment140Config, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.data_url = data_url
 
 
-class Sentiment140(nlp.GeneratorBasedBuilder):
+class Sentiment140(datasets.GeneratorBasedBuilder):
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         Sentiment140Config(
             name="sentiment140",
@@ -58,17 +56,17 @@ class Sentiment140(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string"),
-                    "date": nlp.Value("string"),
-                    "user": nlp.Value("string"),
-                    "sentiment": nlp.Value("int32"),
-                    "query": nlp.Value("string"),
+                    "text": datasets.Value("string"),
+                    "date": datasets.Value("string"),
+                    "user": datasets.Value("string"),
+                    "sentiment": datasets.Value("int32"),
+                    "query": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -89,13 +87,13 @@ class Sentiment140(nlp.GeneratorBasedBuilder):
 
         if self.config.name == "sentiment140":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"file_path": train_csv_file},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"file_path": test_csv_file},
                 ),

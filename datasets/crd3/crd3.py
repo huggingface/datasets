@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import json
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -62,22 +62,22 @@ def get_train_test_dev_files(files, test_split, train_split, dev_split):
     return test_files, train_files, dev_files
 
 
-class CRD3(nlp.GeneratorBasedBuilder):
+class CRD3(datasets.GeneratorBasedBuilder):
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "chunk": nlp.Value("string"),
-                    "chunk_id": nlp.Value("int32"),
-                    "turn_start": nlp.Value("int32"),
-                    "turn_end": nlp.Value("int32"),
-                    "alignment_score": nlp.Value("float32"),
-                    "turn_num": nlp.Value("int32"),
-                    "turns": nlp.features.Sequence(
+                    "chunk": datasets.Value("string"),
+                    "chunk_id": datasets.Value("int32"),
+                    "turn_start": datasets.Value("int32"),
+                    "turn_end": datasets.Value("int32"),
+                    "alignment_score": datasets.Value("float32"),
+                    "turn_num": datasets.Value("int32"),
+                    "turns": datasets.features.Sequence(
                         {
-                            "names": nlp.Value("string"),
-                            "utterances": nlp.Value("string"),
+                            "names": datasets.Value("string"),
+                            "utterances": datasets.Value("string"),
                         }
                     ),
                 }
@@ -108,16 +108,16 @@ class CRD3(nlp.GeneratorBasedBuilder):
         test_files, train_files, dev_files = get_train_test_dev_files(files, test_splits, train_splits, dev_splits)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"files_path": train_files},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"files_path": test_files},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"files_path": dev_files},
             ),
         ]

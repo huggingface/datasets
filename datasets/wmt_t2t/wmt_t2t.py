@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 # Lint as: python3
 """The WMT EnDe Translate dataset used by the Tensor2Tensor library."""
 
-import nlp
+import datasets
 
 from .wmt_utils import Wmt, WmtConfig
 
@@ -46,7 +46,7 @@ class WmtT2t(Wmt):
             url=_URL,
             citation=_CITATION,
             language_pair=("de", "en"),
-            version=nlp.Version("1.0.0"),
+            version=datasets.Version("1.0.0"),
         )
     ]
 
@@ -58,7 +58,7 @@ class WmtT2t(Wmt):
     @property
     def _subsets(self):
         return {
-            nlp.Split.TRAIN: ["europarl_v7", "commoncrawl", "newscommentary_v13"],
-            nlp.Split.VALIDATION: ["newstest2013"],
-            nlp.Split.TEST: ["newstest2014"],
+            datasets.Split.TRAIN: ["europarl_v7", "commoncrawl", "newscommentary_v13"],
+            datasets.Split.VALIDATION: ["newstest2013"],
+            datasets.Split.TEST: ["newstest2014"],
         }

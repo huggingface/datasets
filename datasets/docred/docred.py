@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -37,33 +37,33 @@ _URLS = {
 }
 
 
-class DocRed(nlp.GeneratorBasedBuilder):
+class DocRed(datasets.GeneratorBasedBuilder):
     """DocRED: A Large-Scale Document-Level Relation Extraction Dataset"""
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "title": nlp.Value("string"),
-                    "sents": nlp.features.Sequence(nlp.features.Sequence(nlp.Value("string"))),
+                    "title": datasets.Value("string"),
+                    "sents": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("string"))),
                     "vertexSet": [
                         [
                             {
-                                "name": nlp.Value("string"),
-                                "sent_id": nlp.Value("int32"),
-                                "pos": nlp.features.Sequence(nlp.Value("int32")),
-                                "type": nlp.Value("string"),
+                                "name": datasets.Value("string"),
+                                "sent_id": datasets.Value("int32"),
+                                "pos": datasets.features.Sequence(datasets.Value("int32")),
+                                "type": datasets.Value("string"),
                             }
                         ]
                     ],
-                    "labels": nlp.features.Sequence(
+                    "labels": datasets.features.Sequence(
                         {
-                            "head": nlp.Value("int32"),
-                            "tail": nlp.Value("int32"),
-                            "relation_id": nlp.Value("string"),
-                            "relation_text": nlp.Value("string"),
-                            "evidence": nlp.features.Sequence(nlp.Value("int32")),
+                            "head": datasets.Value("int32"),
+                            "tail": datasets.Value("int32"),
+                            "relation_id": datasets.Value("string"),
+                            "relation_text": datasets.Value("string"),
+                            "evidence": datasets.features.Sequence(datasets.Value("int32")),
                         }
                     ),
                 }
@@ -82,17 +82,18 @@ class DocRed(nlp.GeneratorBasedBuilder):
                 downloads[key] = os.path.join(downloads[key], key + ".json")
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloads["dev"], "rel_info": downloads["rel_info"]}
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": downloads["dev"], "rel_info": downloads["rel_info"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"filepath": downloads["test"], "rel_info": downloads["rel_info"]}
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"filepath": downloads["test"], "rel_info": downloads["rel_info"]}
             ),
-            nlp.SplitGenerator(
+            datasets.SplitGenerator(
                 name="train_annotated",
                 gen_kwargs={"filepath": downloads["train_annotated"], "rel_info": downloads["rel_info"]},
             ),
-            nlp.SplitGenerator(
+            datasets.SplitGenerator(
                 name="train_distant",
                 gen_kwargs={"filepath": downloads["train_distant"], "rel_info": downloads["rel_info"]},
             ),

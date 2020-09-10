@@ -2,7 +2,7 @@ import json
 import logging
 import math
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -107,7 +107,7 @@ def generate_snippets(wikipedia, split_funtion, passage_len=100, overlap=0):
         for doc in split_funtion(article, passage_len, overlap):
             part_id = json.dumps(
                 {
-                    "nlp_id": i,
+                    "datasets_id": i,
                     "wiki_id": doc["wiki_id"],
                     "sp": doc["start_paragraph"],
                     "sc": doc["start_character"],
@@ -116,11 +116,11 @@ def generate_snippets(wikipedia, split_funtion, passage_len=100, overlap=0):
                 }
             )
             doc["_id"] = part_id
-            doc["nlp_id"] = i
+            doc["datasets_id"] = i
             yield doc
 
 
-class WikiSnippetsConfig(nlp.BuilderConfig):
+class WikiSnippetsConfig(datasets.BuilderConfig):
     """BuilderConfig for WikiSnippets."""
 
     def __init__(
@@ -137,12 +137,12 @@ class WikiSnippetsConfig(nlp.BuilderConfig):
         self.snippets_overlap = snippets_overlap
 
 
-class WikiSnippets(nlp.GeneratorBasedBuilder):
+class WikiSnippets(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = WikiSnippetsConfig
     BUILDER_CONFIGS = [
         WikiSnippetsConfig(
             name="wiki40b_en_100_0",
-            version=nlp.Version("1.0.0"),
+            version=datasets.Version("1.0.0"),
             wikipedia_name="wiki40b",
             wikipedia_version_name="en",
             snippets_length=100,
@@ -150,7 +150,7 @@ class WikiSnippets(nlp.GeneratorBasedBuilder):
         ),
         WikiSnippetsConfig(
             name="wikipedia_en_100_0",
-            version=nlp.Version("1.0.0"),
+            version=datasets.Version("1.0.0"),
             wikipedia_name="wikipedia",
             wikipedia_version_name="20200501.en",
             snippets_length=100,
@@ -161,20 +161,20 @@ class WikiSnippets(nlp.GeneratorBasedBuilder):
     test_dummy_data = False
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "_id": nlp.Value("string"),
-                    "nlp_id": nlp.Value("int32"),
-                    "wiki_id": nlp.Value("string"),
-                    "start_paragraph": nlp.Value("int32"),
-                    "start_character": nlp.Value("int32"),
-                    "end_paragraph": nlp.Value("int32"),
-                    "end_character": nlp.Value("int32"),
-                    "article_title": nlp.Value("string"),
-                    "section_title": nlp.Value("string"),
-                    "passage_text": nlp.Value("string"),
+                    "_id": datasets.Value("string"),
+                    "datasets_id": datasets.Value("int32"),
+                    "wiki_id": datasets.Value("string"),
+                    "start_paragraph": datasets.Value("int32"),
+                    "start_character": datasets.Value("int32"),
+                    "end_paragraph": datasets.Value("int32"),
+                    "end_character": datasets.Value("int32"),
+                    "article_title": datasets.Value("string"),
+                    "section_title": datasets.Value("string"),
+                    "passage_text": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -184,13 +184,13 @@ class WikiSnippets(nlp.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        wikipedia = nlp.load_dataset(
+        wikipedia = datasets.load_dataset(
             path=self.config.wikipedia_name,
             name=self.config.wikipedia_version_name,
         )
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"wikipedia": wikipedia}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"wikipedia": wikipedia}),
         ]
 
     def _generate_examples(self, wikipedia):

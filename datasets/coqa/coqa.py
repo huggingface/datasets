@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 
-import nlp
+import datasets
 
 
 # TODO(coqa): BibTeX citation
@@ -23,32 +23,32 @@ _DESCRIPTION = """\
 CoQA: A Conversational Question Answering Challenge
 """
 
-_TRAIN_DATA_URL = "https://nlp.stanford.edu/data/coqa/coqa-train-v1.0.json"
-_DEV_DATA_URL = "https://nlp.stanford.edu/data/coqa/coqa-dev-v1.0.json"
+_TRAIN_DATA_URL = "https://datasets.stanford.edu/data/coqa/coqa-train-v1.0.json"
+_DEV_DATA_URL = "https://datasets.stanford.edu/data/coqa/coqa-dev-v1.0.json"
 
 
-class Coqa(nlp.GeneratorBasedBuilder):
+class Coqa(datasets.GeneratorBasedBuilder):
     """TODO(coqa): Short description of my dataset."""
 
     # TODO(coqa): Set up version.
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        # TODO(coqa): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(coqa): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "source": nlp.Value("string"),
-                    "story": nlp.Value("string"),
-                    "questions": nlp.features.Sequence(nlp.Value("string")),
-                    "answers": nlp.features.Sequence(
+                    "source": datasets.Value("string"),
+                    "story": datasets.Value("string"),
+                    "questions": datasets.features.Sequence(datasets.Value("string")),
+                    "answers": datasets.features.Sequence(
                         {
-                            "input_text": nlp.Value("string"),
-                            "answer_start": nlp.Value("int32"),
-                            "answer_end": nlp.Value("int32"),
+                            "input_text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                            "answer_end": datasets.Value("int32"),
                         }
                     ),
                 }
@@ -65,17 +65,17 @@ class Coqa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(coqa): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = {"train": _TRAIN_DATA_URL, "dev": _DEV_DATA_URL}
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"], "split": "train"}
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"], "split": "train"}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"], "split": "validation"}
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"], "split": "validation"}
             ),
         ]
 

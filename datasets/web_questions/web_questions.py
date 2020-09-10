@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import re
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -53,19 +53,19 @@ The questions are popular ones asked on the web (at least in 2013).
 """
 
 
-class WebQuestions(nlp.GeneratorBasedBuilder):
+class WebQuestions(datasets.GeneratorBasedBuilder):
     """WebQuestions Benchmark for Question Answering."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "url": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(nlp.Value("string")),
+                    "url": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -78,7 +78,7 @@ class WebQuestions(nlp.GeneratorBasedBuilder):
         file_paths = dl_manager.download(_SPLIT_DOWNLOAD_URL)
 
         return [
-            nlp.SplitGenerator(name=split, gen_kwargs={"file_path": file_path})
+            datasets.SplitGenerator(name=split, gen_kwargs={"file_path": file_path})
             for split, file_path in file_paths.items()
         ]
 

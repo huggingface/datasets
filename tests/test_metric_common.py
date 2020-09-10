@@ -19,7 +19,7 @@ import tempfile
 
 from absl.testing import parameterized
 
-from nlp import DownloadConfig, hf_api, load_metric
+from datasets import DownloadConfig, hf_api, load_metric
 
 from .utils import aws, local, slow
 

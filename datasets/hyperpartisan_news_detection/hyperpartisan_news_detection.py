@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import os
 import textwrap
 import xml.etree.ElementTree as ET
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -44,14 +44,14 @@ There are 2 parts:
 _URL_BASE = "https://zenodo.org/record/1489920/files/"
 
 
-class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
+class HyperpartisanNewsDetection(datasets.GeneratorBasedBuilder):
     """Hyperpartisan News Detection Dataset."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        nlp.BuilderConfig(
+        datasets.BuilderConfig(
             name="byarticle",
-            version=nlp.Version("1.0.0", "Version Training and validation v1"),
+            version=datasets.Version("1.0.0", "Version Training and validation v1"),
             description=textwrap.dedent(
                 """
                     This part of the data (filename contains "byarticle") is labeled through crowdsourcing on an article basis.
@@ -61,9 +61,9 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
                 """
             ),
         ),
-        nlp.BuilderConfig(
+        datasets.BuilderConfig(
             name="bypublisher",
-            version=nlp.Version("1.0.0", "Version Training and validation v1"),
+            version=datasets.Version("1.0.0", "Version Training and validation v1"),
             description=textwrap.dedent(
                 """
                     This part of the data (filename contains "bypublisher") is labeled by the overall bias of the publisher as provided
@@ -79,20 +79,20 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
 
     def _info(self):
         features = {
-            "text": nlp.Value("string"),
-            "title": nlp.Value("string"),
-            "hyperpartisan": nlp.Value("bool"),
-            "url": nlp.Value("string"),
-            "published_at": nlp.Value("string"),
+            "text": datasets.Value("string"),
+            "title": datasets.Value("string"),
+            "hyperpartisan": datasets.Value("bool"),
+            "url": datasets.Value("string"),
+            "published_at": datasets.Value("string"),
         }
 
         if self.config.name == "bypublisher":
             # Bias is only included in the bypublisher config
-            features["bias"] = nlp.ClassLabel(names=["right", "right-center", "least", "left-center", "left"])
+            features["bias"] = datasets.ClassLabel(names=["right", "right-center", "least", "left-center", "left"])
 
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             supervised_keys=("text", "label"),
             homepage="https://pan.webis.de/semeval19/semeval19-web/",
             citation=_CITATION,
@@ -101,13 +101,13 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         urls = {
-            nlp.Split.TRAIN: {
+            datasets.Split.TRAIN: {
                 "articles_file": _URL_BASE + "articles-training-" + self.config.name + "-20181122.zip?download=1",
                 "labels_file": _URL_BASE + "ground-truth-training-" + self.config.name + "-20181122.zip?download=1",
             },
         }
         if self.config.name == "bypublisher":
-            urls[nlp.Split.VALIDATION] = {
+            urls[datasets.Split.VALIDATION] = {
                 "articles_file": _URL_BASE + "articles-training-" + self.config.name + "-20181122.zip?download=1",
                 "labels_file": _URL_BASE + "ground-truth-training-" + self.config.name + "-20181122.zip?download=1",
             }
@@ -120,7 +120,7 @@ class HyperpartisanNewsDetection(nlp.GeneratorBasedBuilder):
         for split in data_dir:
             for key in data_dir[split]:
                 data_dir[split][key] = os.path.join(data_dir[split][key], os.listdir(data_dir[split][key])[0])
-            splits.append(nlp.SplitGenerator(name=split, gen_kwargs=data_dir[split]))
+            splits.append(datasets.SplitGenerator(name=split, gen_kwargs=data_dir[split]))
         return splits
 
     def _generate_examples(self, articles_file=None, labels_file=None):

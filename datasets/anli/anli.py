@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -53,7 +53,7 @@ stdnli_label = {
 }
 
 
-class ANLIConfig(nlp.BuilderConfig):
+class ANLIConfig(datasets.BuilderConfig):
     """BuilderConfig for ANLI."""
 
     def __init__(self, **kwargs):
@@ -63,12 +63,10 @@ class ANLIConfig(nlp.BuilderConfig):
         .
               **kwargs: keyword arguments forwarded to super.
         """
-        super(ANLIConfig, self).__init__(
-            version=nlp.Version("0.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(ANLIConfig, self).__init__(version=datasets.Version("0.1.0", ""), **kwargs)
 
 
-class ANLI(nlp.GeneratorBasedBuilder):
+class ANLI(datasets.GeneratorBasedBuilder):
     """ANLI: The ANLI Dataset."""
 
     BUILDER_CONFIGS = [
@@ -79,15 +77,15 @@ class ANLI(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "uid": nlp.Value("string"),
-                    "premise": nlp.Value("string"),
-                    "hypothesis": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
-                    "reason": nlp.Value("string"),
+                    "uid": datasets.Value("string"),
+                    "premise": datasets.Value("string"),
+                    "hypothesis": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+                    "reason": datasets.Value("string"),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -115,17 +113,17 @@ class ANLI(nlp.GeneratorBasedBuilder):
 
         return [
             # Round 1
-            nlp.SplitGenerator(name="train_r1", gen_kwargs={"filepath": path_dict["R1"]["train"]}),
-            nlp.SplitGenerator(name="dev_r1", gen_kwargs={"filepath": path_dict["R1"]["dev"]}),
-            nlp.SplitGenerator(name="test_r1", gen_kwargs={"filepath": path_dict["R1"]["test"]}),
+            datasets.SplitGenerator(name="train_r1", gen_kwargs={"filepath": path_dict["R1"]["train"]}),
+            datasets.SplitGenerator(name="dev_r1", gen_kwargs={"filepath": path_dict["R1"]["dev"]}),
+            datasets.SplitGenerator(name="test_r1", gen_kwargs={"filepath": path_dict["R1"]["test"]}),
             # Round 2
-            nlp.SplitGenerator(name="train_r2", gen_kwargs={"filepath": path_dict["R2"]["train"]}),
-            nlp.SplitGenerator(name="dev_r2", gen_kwargs={"filepath": path_dict["R2"]["dev"]}),
-            nlp.SplitGenerator(name="test_r2", gen_kwargs={"filepath": path_dict["R2"]["test"]}),
+            datasets.SplitGenerator(name="train_r2", gen_kwargs={"filepath": path_dict["R2"]["train"]}),
+            datasets.SplitGenerator(name="dev_r2", gen_kwargs={"filepath": path_dict["R2"]["dev"]}),
+            datasets.SplitGenerator(name="test_r2", gen_kwargs={"filepath": path_dict["R2"]["test"]}),
             # Round 3
-            nlp.SplitGenerator(name="train_r3", gen_kwargs={"filepath": path_dict["R3"]["train"]}),
-            nlp.SplitGenerator(name="dev_r3", gen_kwargs={"filepath": path_dict["R3"]["dev"]}),
-            nlp.SplitGenerator(name="test_r3", gen_kwargs={"filepath": path_dict["R3"]["test"]}),
+            datasets.SplitGenerator(name="train_r3", gen_kwargs={"filepath": path_dict["R3"]["train"]}),
+            datasets.SplitGenerator(name="dev_r3", gen_kwargs={"filepath": path_dict["R3"]["dev"]}),
+            datasets.SplitGenerator(name="test_r3", gen_kwargs={"filepath": path_dict["R3"]["test"]}),
         ]
 
     def _generate_examples(self, filepath):
