@@ -26,6 +26,10 @@ def picklable_map_function(x):
     return {"id": int(x["filename"].split("_")[-1])}
 
 
+def picklable_map_function_with_indices(x, i):
+    return {"id": i}
+
+
 def picklable_filter_function(x):
     return int(x["filename"].split("_")[-1]) < 10
 
@@ -411,13 +415,14 @@ class BaseDatasetTest(TestCase):
 
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             fingerprint = dset._fingerprint
-            dset_test = dset.map(lambda x: {"name": x["filename"][:-2], "id": int(x["filename"][-1])})
+            dset_test = dset.map(lambda x: {"name": x["filename"][:-2], "id": int(x["filename"].split("_")[-1])})
             self.assertEqual(len(dset_test), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(
                 dset_test.features,
                 Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
             )
+            self.assertListEqual(dset_test["id"], list(range(30)))
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -429,6 +434,7 @@ class BaseDatasetTest(TestCase):
                 dset_test_with_indices.features,
                 Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
             )
+            self.assertListEqual(dset_test["id"], list(range(30)))
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
@@ -461,6 +467,7 @@ class BaseDatasetTest(TestCase):
                 dset_test_with_indices.features,
                 Features({"filename": Value("string"), "name": Value("string"), "id": Value("int64")}),
             )
+            self.assertListEqual(dset_test["id"], list(range(30)))
 
     def test_map_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -476,12 +483,13 @@ class BaseDatasetTest(TestCase):
                 Features({"filename": Value("string"), "id": Value("int64")}),
             )
             self.assertEqual(len(dset_test._data_files), 0 if in_memory else 2)
+            self.assertListEqual(dset_test["id"], list(range(30)))
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             fingerprint = dset._fingerprint
-            dset_test = dset.map(picklable_map_function, num_proc=3)
+            dset_test = dset.map(picklable_map_function_with_indices, num_proc=3, with_indices=True)
             self.assertEqual(len(dset_test), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(
@@ -489,6 +497,7 @@ class BaseDatasetTest(TestCase):
                 Features({"filename": Value("string"), "id": Value("int64")}),
             )
             self.assertEqual(len(dset_test._data_files), 0 if in_memory else 3)
+            self.assertListEqual(dset_test["id"], list(range(30)))
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
 
     def test_new_features(self, in_memory):
@@ -778,8 +787,8 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             d1 = dset.select([0])
             d2 = dset.select([1])
-            d1 = d1.map(lambda x: {"id": int(x["filename"][-1])})
-            d2 = d2.map(lambda x: {"id": int(x["filename"][-1])})
+            d1 = d1.map(lambda x: {"id": int(x["filename"].split("_")[-1])})
+            d2 = d2.map(lambda x: {"id": int(x["filename"].split("_")[-1])})
             self.assertEqual(d1[0]["id"], 0)
             self.assertEqual(d2[0]["id"], 1)
 
@@ -787,8 +796,8 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             d1 = dset.select([0], indices_cache_file_name=os.path.join(tmp_dir, "i1.arrow"))
             d2 = dset.select([1], indices_cache_file_name=os.path.join(tmp_dir, "i2.arrow"))
-            d1 = d1.map(lambda x: {"id": int(x["filename"][-1])})
-            d2 = d2.map(lambda x: {"id": int(x["filename"][-1])})
+            d1 = d1.map(lambda x: {"id": int(x["filename"].split("_")[-1])})
+            d2 = d2.map(lambda x: {"id": int(x["filename"].split("_")[-1])})
             self.assertEqual(d1[0]["id"], 0)
             self.assertEqual(d2[0]["id"], 1)
 
