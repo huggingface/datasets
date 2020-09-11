@@ -77,20 +77,20 @@ Using `🤗Datasets` is made to be very simple to use, the main methods are:
 Here is a quick example:
 
 ```python
-import datasets
+from datasets import list_datasets, load_dataset, list_metrics, load_metric
 
 # Print all the available datasets
-print(datasets.list_datasets(id_only=True))
+print(list_datasets())
 
 # Load a dataset and print the first examples in the training set
-squad_dataset = datasets.load_dataset('squad')
+squad_dataset = load_dataset('squad')
 print(squad_dataset['train'][0])
 
 # List all the available metrics
-print(datasets.list_metrics(id_only=True))
+print(list_metrics())
 
 # Load a metric
-squad_metric = datasets.load_metric('squad')
+squad_metric = load_metric('squad')
 ```
 
 For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html and the specific pages on
