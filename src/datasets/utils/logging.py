@@ -15,6 +15,7 @@
 """ Logging utilities. """
 
 import logging
+import os
 import threading
 from logging import CRITICAL  # NOQA
 from logging import DEBUG  # NOQA
