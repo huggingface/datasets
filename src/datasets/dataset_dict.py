@@ -240,6 +240,7 @@ class DatasetDict(dict):
         features: Optional[Features] = None,
         disable_nullable: bool = False,
         fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
     ) -> "DatasetDict":
         """Apply a function to all the elements in the table (individually or in batches)
         and update the table (if function does updated examples).
@@ -272,6 +273,8 @@ class DatasetDict(dict):
                 instead of the automatically generated one.
             disable_nullable (`bool`, defaults to `True`): Disallow null values in the table.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
+            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing.
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -292,6 +295,7 @@ class DatasetDict(dict):
                     features=features,
                     disable_nullable=disable_nullable,
                     fn_kwargs=fn_kwargs,
+                    num_proc=num_proc,
                 )
                 for k, dataset in self.items()
             }
@@ -309,6 +313,7 @@ class DatasetDict(dict):
         cache_file_names: Optional[Dict[str, str]] = None,
         writer_batch_size: Optional[int] = 1000,
         fn_kwargs: Optional[dict] = None,
+        num_proc: Optional[int] = None,
     ) -> "DatasetDict":
         """Apply a filter function to all the elements in the table in batches
         and update the table so that the dataset only includes examples according to the filter function.
@@ -335,6 +340,8 @@ class DatasetDict(dict):
             writer_batch_size (`int`, defaults to `1000`): Number of rows per write operation for the cache file writer.
                 Higher value gives smaller cache files, lower value consume less temporary memory while running `.map()`.
             fn_kwargs (`Optional[Dict]`, defaults to `None`): Keyword arguments to be passed to `function`
+            num_proc (`Optional[int]`, defaults to `None`): Number of processes for multiprocessing. By default it doesn't
+                use multiprocessing.
         """
         self._check_values_type()
         if cache_file_names is None:
@@ -352,6 +359,7 @@ class DatasetDict(dict):
                     cache_file_name=cache_file_names[k],
                     writer_batch_size=writer_batch_size,
                     fn_kwargs=fn_kwargs,
+                    num_proc=num_proc,
                 )
                 for k, dataset in self.items()
             }
