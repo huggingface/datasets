@@ -27,16 +27,26 @@ from .utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-def list_datasets(with_community_datasets=True, id_only=False):
-    """ List all the datasets scripts available on HuggingFace AWS bucket """
+def list_datasets(with_community_datasets=True, with_details=False):
+    """List all the datasets scripts available on HuggingFace AWS bucket.
+
+    Args:
+        with_community_datasets (Optional ``bool``): Include the community provided datasets (default: ``True``)
+        with_details (Optional ``bool``): Return the full details on the datasets instead of only the short name (default: ``False``)
+    """
     api = HfApi()
-    return api.dataset_list(with_community_datasets=with_community_datasets, id_only=id_only)
+    return api.dataset_list(with_community_datasets=with_community_datasets, id_only=bool(not with_details))
 
 
-def list_metrics(with_community_metrics=True, id_only=False):
-    """ List all the metrics script available on HuggingFace AWS bucket """
+def list_metrics(with_community_metrics=True, id_only=False, with_details=False):
+    """List all the metrics script available on HuggingFace AWS bucket
+
+    Args:
+        with_community_metrics (Optional ``bool``): Include the community provided metrics (default: ``True``)
+        with_details (Optional ``bool``): Return the full details on the metrics instead of only the short name (default: ``False``)
+    """
     api = HfApi()
-    return api.metric_list(with_community_metrics=with_community_metrics, id_only=id_only)
+    return api.metric_list(with_community_metrics=with_community_metrics, id_only=bool(not with_details))
 
 
 def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
