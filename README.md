@@ -10,8 +10,8 @@
     <a href="https://github.com/huggingface/datasets/blob/master/LICENSE">
         <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/datasets.svg?color=blue">
     </a>
-    <a href="https://huggingface.co/datasets/index.html">
-        <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/datasets/index.html.svg?down_color=red&down_message=offline&up_message=online">
+    <a href="https://huggingface.co/docs/datasets/index.html">
+        <img alt="Documentation" src="https://img.shields.io/website/http/huggingface.co/docs/datasets/index.html.svg?down_color=red&down_message=offline&up_message=online">
     </a>
     <a href="https://github.com/huggingface/datasets/releases">
         <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/datasets.svg">
@@ -26,11 +26,11 @@
 <p> Compatible with NumPy, Pandas, PyTorch and TensorFlow
 </h3>
 
-🎓 **Documentation**: https://huggingface.co/datasets/
+🎓 **Documentation**: https://huggingface.co/docs/datasets/
 
 🕹 **Colab demo**: https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb
 
-🔎 **Online dataset explorer**: https://huggingface.co/docs/datasets/viewer
+🔎 **Online dataset explorer**: https://huggingface.co/nlp/viewer
 
 `🤗Datasets` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
 
@@ -41,13 +41,13 @@
 - Strive on large datasets: `🤗Datasets` naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
 - Smart caching: never wait for your data to process several times
 
-`🤗Datasets` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the [live datasets viewer](https://huggingface.co/docs/datasets/viewer).
+`🤗Datasets` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the [live datasets viewer](https://huggingface.co/nlp/viewer).
 
 `🤗Datasets` originated from a fork of the awesome [`TensorFlow Datasets`](https://github.com/tensorflow/datasets) and the HuggingFace team want to deeply thank the TensorFlow Datasets team for building this amazing library. More details on the differences between `datasets` and `tfds` can be found in the section [Main differences between `🤗Datasets` and `tfds`](#main-differences-between-🤗Datasets-and-tfds).
 
 # Contributors
 
-[![](https://sourcerer.io/fame/clmnt/huggingface/datasets/images/0)](https://sourcerer.io/fame/clmnt/huggingface/datasets/links/0)[![](https://sourcerer.io/fame/clmnt/huggingface/datasets/images/1)](https://sourcerer.io/fame/clmnt/huggingface/datasets/links/1)[![](https://sourcerer.io/fame/clmnt/huggingface/datasets/images/2)](https://sourcerer.io/fame/clmnt/huggingface/datasets/links/2)[![](https://sourcerer.io/fame/clmnt/huggingface/datasets/images/3)](https://sourcerer.io/fame/clmnt/huggingface/datasets/links/3)[![](https://sourcerer.io/fame/clmnt/huggingface/datasets/images/4)](https://sourcerer.io/fame/clmnt/huggingface/datasets/links/4)[![](https://sourcerer.io/fame/clmnt/huggingface/datasets/images/5)](https://sourcerer.io/fame/clmnt/huggingface/datasets/links/5)[![](https://sourcerer.io/fame/clmnt/huggingface/datasets/images/6)](https://sourcerer.io/fame/clmnt/huggingface/datasets/links/6)[![](https://sourcerer.io/fame/clmnt/huggingface/datasets/images/7)](https://sourcerer.io/fame/clmnt/huggingface/datasets/links/7)
+[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/0)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/0)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/1)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/1)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/2)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/2)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/3)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/3)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/4)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/4)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/5)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/5)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/6)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/6)[![](https://sourcerer.io/fame/thomwolf/huggingface/datasets/images/7)](https://sourcerer.io/fame/thomwolf/huggingface/datasets/links/7)
 
 # Installation
 
@@ -57,13 +57,13 @@
 pip install datasets
 ```
 
-For more details on installation, check the installation page in the documentation: https://huggingface.co/datasets/installation.html
+For more details on installation, check the installation page in the documentation: https://huggingface.co/docs/datasets/installation.html
 
 ## Using with PyTorch/TensorFlow/pandas
 
 If you plan to use `🤗Datasets` with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install PyTorch, Tensorflow or pandas.
 
-For more details on using the library with NumPy, pandas, PyTorch or Tensorflow, check the quick tour page in the documentation: https://huggingface.co/datasets/quicktour.html
+For more details on using the library with NumPy, pandas, PyTorch or Tensorflow, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html
 
 # Usage
 
@@ -93,12 +93,12 @@ print(datasets.list_metrics(id_only=True))
 squad_metric = datasets.load_metric('squad')
 ```
 
-For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/datasets/quicktour.html and the specific pages on
+For more details on using the library, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html and the specific pages on
 
-- Loading a dataset https://huggingface.co/datasets/loading_datasets.html
-- What's in a Dataset: https://huggingface.co/datasets/exploring.html
-- Processing data with `🤗Datasets`: https://huggingface.co/datasets/processing.html
-- Writing your own dataset loading script: https://huggingface.co/datasets/add_dataset.html
+- Loading a dataset https://huggingface.co/docs/datasets/loading_datasets.html
+- What's in a Dataset: https://huggingface.co/docs/datasets/exploring.html
+- Processing data with `🤗Datasets`: https://huggingface.co/docs/datasets/processing.html
+- Writing your own dataset loading script: https://huggingface.co/docs/datasets/add_dataset.html
 - etc
 
 Another introduction to `🤗Datasets` is the tutorial on Google Colab which is here:
