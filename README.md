@@ -22,7 +22,7 @@
 </p>
 
 <h3 align="center">
-<p> Datasets and evaluation metrics for natural language processing
+<p> Datasets and evaluation metrics for natural language processing and more
 <p> Compatible with NumPy, Pandas, PyTorch and TensorFlow
 </h3>
 
@@ -32,7 +32,7 @@
 
 🔎 **Online dataset explorer**: https://huggingface.co/nlp/viewer
 
-`🤗Datasets` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP).
+`🤗Datasets` is a lightweight and extensible library to easily share and access datasets and evaluation metrics for Natural Language Processing (NLP) and more.
 
 `🤗Datasets` has many interesting features (beside easy sharing and accessing datasets/metrics):
 
