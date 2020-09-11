@@ -16,7 +16,7 @@
     <a href="https://github.com/huggingface/datasets/releases">
         <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/datasets.svg">
     </a>
-    <a href="https://huggingface.co/docs/datasets/viewer/">
+    <a href="https://huggingface.co/datasets/">
         <img alt="Number of datasets" src="https://img.shields.io/endpoint?url=https://huggingface.co/api/shields/datasets&color=brightgreen">
     </a>
 </p>
