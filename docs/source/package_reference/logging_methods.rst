@@ -1,9 +1,9 @@
 Logging methods
 ----------------------------------------------------
 
-`datasets` tries to be very transparent and explicit about its inner working, but this can be quite verbose at some times.
+`datasets` tries to be very transparent and explicit about its inner working, but this can be quite verbose at times.
 
-A series of logging methods let you easily adjust the level of logging of the whole library.
+A series of logging methods let you easily adjust the level of verbosity of the whole library.
 
 Currently the default verbosity of the library is ``WARNING``.
 
