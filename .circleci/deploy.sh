@@ -28,7 +28,7 @@ function deploy_doc(){
 	fi
 }
 
-# You can find the commit for each tag on https://github.com/huggingface/docs/datasets/tags
+# You can find the commit for each tag on https://github.com/huggingface/datasets/tags
 # Deploys the master documentation on huggingface.co/docs/datasets/master
 deploy_doc "master" master
 
