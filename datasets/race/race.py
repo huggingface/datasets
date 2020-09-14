@@ -31,7 +31,7 @@ _URL = "http://www.cs.cmu.edu/~glai1/data/race/RACE.tar.gz"
 class Race(datasets.GeneratorBasedBuilder):
     """ReAding Comprehension Dataset From Examination dataset from CMU"""
 
-    VERSION = datasets.Version("0.2.0")
+    VERSION = datasets.Version("0.1.0")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="high", description="Exams designed for high school students", version=VERSION),
