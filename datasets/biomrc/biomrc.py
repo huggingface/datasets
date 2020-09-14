@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,9 +20,8 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import logging
-import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -48,14 +47,14 @@ We introduce BIOMRC, a large-scale cloze-style biomedical MRC dataset. Care was 
 """
 
 
-class BiomrcConfig(nlp.BuilderConfig):
+class BiomrcConfig(datasets.BuilderConfig):
     """BuilderConfig for BioMRC."""
 
     def __init__(self, biomrc_setting="A", biomrc_version="large", **kwargs):
         """BuilderConfig for BioMRC.
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         if biomrc_setting.lower() == "b":
             self.biomrc_setting = "B"
         else:
@@ -75,7 +74,7 @@ class BiomrcConfig(nlp.BuilderConfig):
         super(BiomrcConfig, self).__init__(**kwargs)
 
 
-class Biomrc(nlp.GeneratorBasedBuilder):
+class Biomrc(datasets.GeneratorBasedBuilder):
     """BioMRC Dataset"""
 
     BUILDER_CONFIG_CLASS = BiomrcConfig
@@ -83,42 +82,42 @@ class Biomrc(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         BiomrcConfig(
             name="biomrc_large_A",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Biomrc Version Large Setting A",
             biomrc_setting="A",
             biomrc_version="large",
         ),
         BiomrcConfig(
             name="biomrc_large_B",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Biomrc Version Large Setting B",
             biomrc_setting="B",
             biomrc_version="large",
         ),
         BiomrcConfig(
             name="biomrc_small_A",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Biomrc Version Small Setting A",
             biomrc_setting="A",
             biomrc_version="small",
         ),
         BiomrcConfig(
             name="biomrc_small_B",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Biomrc Version Small Setting B",
             biomrc_setting="B",
             biomrc_version="small",
         ),
         BiomrcConfig(
             name="biomrc_tiny_A",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Biomrc Version Tiny Setting A",
             biomrc_setting="A",
             biomrc_version="tiny",
         ),
         BiomrcConfig(
             name="biomrc_tiny_B",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Biomrc Version Tiny Setting B",
             biomrc_setting="B",
             biomrc_version="tiny",
@@ -126,18 +125,18 @@ class Biomrc(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "abstract": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "entities_list": nlp.features.Sequence(nlp.Value("string")),
-                    "answer": nlp.Value("string"),
+                    "abstract": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "entities_list": datasets.features.Sequence(datasets.Value("string")),
+                    "answer": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
-            homepage="http://nlp.cs.aueb.gr/",
+            homepage="http://datasets.cs.aueb.gr/",
             citation=_CITATION,
         )
 
@@ -178,13 +177,15 @@ class Biomrc(nlp.GeneratorBasedBuilder):
 
         if self.config.biomrc_version == "tiny":
             return [
-                nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
             ]
         else:
             return [
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-                nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["val"]}),
-                nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["val"]}
+                ),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
             ]
 
     def _generate_examples(self, filepath):

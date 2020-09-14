@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
 Movie Review Dataset.
-This is a dataset of containing 5,331 positive and 5,331 negative processed 
-sentences from Rotten Tomatoes movie reviews. This data was first used in Bo 
-Pang and Lillian Lee, ``Seeing stars: Exploiting class relationships for 
-sentiment categorization with respect to rating scales.'', Proceedings of the 
+This is a dataset of containing 5,331 positive and 5,331 negative processed
+sentences from Rotten Tomatoes movie reviews. This data was first used in Bo
+Pang and Lillian Lee, ``Seeing stars: Exploiting class relationships for
+sentiment categorization with respect to rating scales.'', Proceedings of the
 ACL, 2005.
 """
 
@@ -42,19 +42,19 @@ _CITATION = """\
 }
 """
 
-_DOWNLOAD_URL = "http://www.cs.cornell.edu/people/pabo/movie-review-data/rt-polaritydata.tar.gz"
+_DOWNLOAD_URL = "https://storage.googleapis.com/seldon-datasets/sentence_polarity_v1/rt-polaritydata.tar.gz"
 
 
-class RottenTomatoesMovieReview(nlp.GeneratorBasedBuilder):
+class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
     """Cornell Rotten Tomatoes movie reviews dataset."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {"text": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["neg", "pos"])}
+            features=datasets.Features(
+                {"text": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["neg", "pos"])}
             ),
             supervised_keys=[""],
             homepage="http://www.cs.cornell.edu/people/pabo/movie-review-data/",
@@ -69,22 +69,25 @@ class RottenTomatoesMovieReview(nlp.GeneratorBasedBuilder):
         """ Downloads Rotten Tomatoes sentences. """
         extracted_folder_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"split_key": "validation", "data_dir": extracted_folder_path},
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"split_key": "validation", "data_dir": extracted_folder_path},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
             ),
         ]
 
     def _get_examples_from_split(self, split_key, data_dir):
-        """ Reads Rotten Tomatoes sentences and splits into 80% train,
-            10% validation, and 10% test, as is the practice set out in Jinfeng
-            Li, ``TEXTBUGGER: Generating Adversarial Text Against Real-world 
-            Applications.''
+        """Reads Rotten Tomatoes sentences and splits into 80% train,
+        10% validation, and 10% test, as is the practice set out in Jinfeng
+        Li, ``TEXTBUGGER: Generating Adversarial Text Against Real-world
+        Applications.''
         """
         data_dir = os.path.join(data_dir, "rt-polaritydata")
 

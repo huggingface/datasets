@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import logging
 import os
 import xml.etree.ElementTree as ET
 
-import nlp
+import datasets
 
 
 # pylint: disable=anomalous-backslash-in-string
@@ -44,16 +44,16 @@ _CITATION = r"""
 """
 
 _DESCRIPTION = """
-QA4MRE dataset was created for the CLEF 2011/2012/2013 shared tasks to promote research in 
-question answering and reading comprehension. The dataset contains a supporting 
-passage and a set of questions corresponding to the passage. Multiple options 
-for answers are provided for each question, of which only one is correct. The 
+QA4MRE dataset was created for the CLEF 2011/2012/2013 shared tasks to promote research in
+question answering and reading comprehension. The dataset contains a supporting
+passage and a set of questions corresponding to the passage. Multiple options
+for answers are provided for each question, of which only one is correct. The
 training and test datasets are available for the main track.
-Additional gold standard documents are available for two pilot studies: one on 
+Additional gold standard documents are available for two pilot studies: one on
 alzheimers data, and the other on entrance exams data.
 """
 
-_BASE_URL = "http://nlp.uned.es/clef-qa/repository/js/scripts/downloadFile.php?file=/var/www/html/nlp/clef-qa/repository/resources/QA4MRE/"
+_BASE_URL = "http://datasets.uned.es/clef-qa/repository/js/scripts/downloadFile.php?file=/var/www/html/nlp/clef-qa/repository/resources/QA4MRE/"
 
 PATHS = {
     "2011": {
@@ -80,18 +80,18 @@ PATHS = {
 def _get_question(topic_id, topic_name, test_id, document_id, document_str, question):
     """Gets instance ID and features for every question.
 
-  Args:
-    topic_id: string
-    topic_name: string
-    test_id: string
-    document_id: string
-    document_str: string
-    question: XML element for question
+    Args:
+      topic_id: string
+      topic_name: string
+      test_id: string
+      document_id: string
+      document_str: string
+      question: XML element for question
 
-  Returns:
-    id_: string. Unique ID for instance.
-    feats: dict of instance features
-  """
+    Returns:
+      id_: string. Unique ID for instance.
+      feats: dict of instance features
+    """
 
     question_id = question.attrib["q_id"]
     for q_text in question.iter("q_str"):
@@ -124,18 +124,18 @@ def _get_question(topic_id, topic_name, test_id, document_id, document_str, ques
     return id_, feats
 
 
-class Qa4mreConfig(nlp.BuilderConfig):
+class Qa4mreConfig(datasets.BuilderConfig):
     """BuilderConfig for Qa4mre."""
 
     def __init__(self, year, track="main", language="EN", **kwargs):
         """BuilderConfig for Qa4Mre.
 
-    Args:
-      year: string, year of dataset
-      track: string, the task track from PATHS[year]['_TRACKS'].
-      language: string, Acronym for language in the main task.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          year: string, year of dataset
+          track: string, the task track from PATHS[year]['_TRACKS'].
+          language: string, Acronym for language in the main task.
+          **kwargs: keyword arguments forwarded to super.
+        """
         if track.lower() not in PATHS[year]["_TRACKS"]:
             raise ValueError("Incorrect track. Track should be one of the following: ", PATHS[year]["_TRACKS"])
 
@@ -159,10 +159,12 @@ class Qa4mreConfig(nlp.BuilderConfig):
             self.track, self.lang, self.year
         )
 
-        super(Qa4mreConfig, self).__init__(name=name, description=description, version=nlp.Version("0.1.0"), **kwargs)
+        super(Qa4mreConfig, self).__init__(
+            name=name, description=description, version=datasets.Version("0.1.0"), **kwargs
+        )
 
 
-class Qa4mre(nlp.GeneratorBasedBuilder):
+class Qa4mre(datasets.GeneratorBasedBuilder):
     """QA4MRE dataset from CLEF shared tasks 2011, 2012, 2013."""
 
     BUILDER_CONFIGS = [
@@ -189,30 +191,30 @@ class Qa4mre(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "topic_id": nlp.Value("string"),
-                    "topic_name": nlp.Value("string"),
-                    "test_id": nlp.Value("string"),
-                    "document_id": nlp.Value("string"),
-                    "document_str": nlp.Value("string"),
-                    "question_id": nlp.Value("string"),
-                    "question_str": nlp.Value("string"),
-                    "answer_options": nlp.features.Sequence(
-                        {"answer_id": nlp.Value("string"), "answer_str": nlp.Value("string")}
+                    "topic_id": datasets.Value("string"),
+                    "topic_name": datasets.Value("string"),
+                    "test_id": datasets.Value("string"),
+                    "document_id": datasets.Value("string"),
+                    "document_str": datasets.Value("string"),
+                    "question_id": datasets.Value("string"),
+                    "question_str": datasets.Value("string"),
+                    "answer_options": datasets.features.Sequence(
+                        {"answer_id": datasets.Value("string"), "answer_str": datasets.Value("string")}
                     ),
-                    "correct_answer_id": nlp.Value("string"),
-                    "correct_answer_str": nlp.Value("string"),
+                    "correct_answer_id": datasets.Value("string"),
+                    "correct_answer_str": datasets.Value("string"),
                 }
             ),
             # No default supervised keys because both passage and question are used
             # to determine the correct answer.
             supervised_keys=None,
-            homepage="http://nlp.uned.es/clef-qa/repository/pastCampaigns.php",
+            homepage="http://datasets.uned.es/clef-qa/repository/pastCampaigns.php",
             citation=_CITATION,
         )
 
@@ -237,8 +239,8 @@ class Qa4mre(nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(download_urls)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"filepath": downloaded_files["{}.{}.{}".format(cfg.year, cfg.track, cfg.lang)]},
             )
         ]

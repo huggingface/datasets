@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@
 # limitations under the License.
 """ ROUGE metric from Google Research github repo. """
 
-import nlp
-
 # The dependencies in https://github.com/google-research/google-research/blob/master/rouge/requirements.txt
 import absl  # Here to have a nice missing dependency error message early on
 import nltk  # Here to have a nice missing dependency error message early on
 import numpy  # Here to have a nice missing dependency error message early on
 import six  # Here to have a nice missing dependency error message early on
+from rouge_score import rouge_scorer, scoring
 
-from rouge_score import rouge_scorer
-from rouge_score import scoring
+import datasets
+
 
 _CITATION = """\
 @inproceedings{lin-2004-rouge,
@@ -62,24 +61,29 @@ Returns:
     rougeLsum: rouge_l precision
 """
 
-class Rouge(nlp.Metric):
+
+class Rouge(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': nlp.Value('string', id='sequence'),
-                'references': nlp.Value('string', id='sequence'),
-            }),
+            features=datasets.Features(
+                {
+                    "predictions": datasets.Value("string", id="sequence"),
+                    "references": datasets.Value("string", id="sequence"),
+                }
+            ),
             codebase_urls=["https://github.com/google-research/google-research/tree/master/rouge"],
-            reference_urls=["https://en.wikipedia.org/wiki/ROUGE_(metric)",
-                            "https://github.com/google-research/google-research/tree/master/rouge"]
+            reference_urls=[
+                "https://en.wikipedia.org/wiki/ROUGE_(metric)",
+                "https://github.com/google-research/google-research/tree/master/rouge",
+            ],
         )
 
     def _compute(self, predictions, references, rouge_types=None, use_agregator=True, use_stemmer=False):
         if rouge_types is None:
-            rouge_types = ['rouge1', 'rougeL']
+            rouge_types = ["rouge1", "rougeL"]
 
         scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=use_stemmer)
         if use_agregator:

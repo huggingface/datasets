@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import csv
 import os
 import re
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -67,23 +67,23 @@ _URLS = {
 }
 
 
-class WikihowConfig(nlp.BuilderConfig):
+class WikihowConfig(datasets.BuilderConfig):
     """BuilderConfig for Wikihow."""
 
     def __init__(self, filename=None, **kwargs):
         """BuilderConfig for Wikihow.
 
-    Args:
-      filename: filename of different configs for the dataset.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          filename: filename of different configs for the dataset.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version 1.1.0 remove empty document and summary strings.
         # Version 1.2.0 add train validation test split, add cleaning & filtering.
-        super(WikihowConfig, self).__init__(version=nlp.Version("1.2.0"), **kwargs)
+        super(WikihowConfig, self).__init__(version=datasets.Version("1.2.0"), **kwargs)
         self.filename = filename
 
 
-class Wikihow(nlp.GeneratorBasedBuilder):
+class Wikihow(datasets.GeneratorBasedBuilder):
     """WikiHow: A Large Scale Text Summarization Dataset."""
 
     BUILDER_CONFIGS = [
@@ -106,16 +106,16 @@ class Wikihow(nlp.GeneratorBasedBuilder):
 
   The <path/to/folder> can e.g. be "~/manual_wikihow_data".
 
-  Wikihow can then be loaded using the following command `nlp.load_dataset("wikihow", data_dir="<path/to/folder>")`.
+  Wikihow can then be loaded using the following command `datasets.load_dataset("wikihow", data_dir="<path/to/folder>")`.
   """
 
     def _info(self):
         feature_names = [_DOCUMENT, _SUMMARY, "title"]
         if self.config.name == "sep":
             feature_names.extend(["overview", "sectionLabel"])
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({k: nlp.Value("string") for k in feature_names}),
+            features=datasets.Features({k: datasets.Value("string") for k in feature_names}),
             supervised_keys=None,
             homepage="https://github.com/mahnazkoupaee/WikiHow-Dataset",
             citation=_CITATION,
@@ -136,20 +136,31 @@ class Wikihow(nlp.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('wikihow', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('wikihow', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
                     path_to_manual_file, self.config.filename, self.manual_download_instructions
                 )
             )
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"path": path_to_manual_file, "title_set": titles["train"],},
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["train"],
+                },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
-                gen_kwargs={"path": path_to_manual_file, "title_set": titles["validation"],},
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["validation"],
+                },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"path": path_to_manual_file, "title_set": titles["test"],},
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["test"],
+                },
             ),
         ]
 

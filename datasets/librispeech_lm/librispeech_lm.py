@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -41,15 +41,19 @@ _URL = "http://www.openslr.org/11"
 _DL_URL = "http://www.openslr.org/resources/11/librispeech-lm-norm.txt.gz"
 
 
-class LibrispeechLm(nlp.GeneratorBasedBuilder):
+class LibrispeechLm(datasets.GeneratorBasedBuilder):
     """Librispeech language modeling dataset."""
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"text": nlp.Value("string"),}),
+            features=datasets.Features(
+                {
+                    "text": datasets.Value("string"),
+                }
+            ),
             supervised_keys=("text", "text"),
             homepage=_URL,
             citation=_CITATION,
@@ -59,7 +63,7 @@ class LibrispeechLm(nlp.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         archive_path = dl_manager.download_and_extract(_DL_URL)
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"archive_path": archive_path}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"archive_path": archive_path}),
         ]
 
     def _generate_examples(self, archive_path):

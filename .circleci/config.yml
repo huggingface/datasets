@@ -1,7 +1,7 @@
 version: 2
 jobs:
-    run_dataset_script_tests:
-        working_directory: ~/nlp
+    run_dataset_script_tests_pyarrow_0p17:
+        working_directory: ~/datasets
         docker:
             - image: circleci/python:3.6
         resource_class: medium
@@ -10,24 +10,36 @@ jobs:
             - run: python -m venv venv
             - run: source venv/bin/activate
             - run: pip install .[tests]
-            - run: python -m pytest -sv ./tests/
+            - run: pip install pyarrow==0.17.1
+            - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
+
+    run_dataset_script_tests_pyarrow_1:
+        working_directory: ~/datasets
+        docker:
+            - image: circleci/python:3.6
+        resource_class: medium
+        steps:
+            - checkout
+            - run: python -m venv venv
+            - run: source venv/bin/activate
+            - run: pip install .[tests]
+            - run: pip install pyarrow==1.0.0
+            - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
     check_code_quality:
-        working_directory: ~/nlp
+        working_directory: ~/datasets
         docker:
             - image: circleci/python:3.6
         resource_class: medium
         parallelism: 1
         steps:
             - checkout
-            # we need a version of isort with https://github.com/timothycrosley/isort/pull/1000
-            - run: sudo pip install git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort
             - run: sudo pip install .[quality]
-            - run: black --check --line-length 119 --target-version py36 tests src
-            - run: isort --check-only --recursive tests src
-            - run: flake8 tests src
+            - run: black --check --line-length 119 --target-version py36 tests src benchmarks datasets metrics
+            - run: isort --check-only tests src benchmarks datasets metrics
+            - run: flake8 tests src benchmarks datasets metrics
     build_doc:
-        working_directory: ~/nlp
+        working_directory: ~/datasets
         docker:
             - image: circleci/python:3.6
         steps:
@@ -37,7 +49,7 @@ jobs:
             - store_artifacts:
                   path: ./docs/_build
     deploy_doc:
-        working_directory: ~/nlp
+        working_directory: ~/datasets
         docker:
             - image: circleci/python:3.6
         steps:
@@ -59,6 +71,7 @@ workflows:
     build_and_test:
         jobs:
             - check_code_quality
-            - run_dataset_script_tests
+            - run_dataset_script_tests_pyarrow_0p17
+            - run_dataset_script_tests_pyarrow_1
             - build_doc
             - deploy_doc: *workflow_filters

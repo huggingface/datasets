@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import collections
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = "Web-Scale Parallel Corpora for Official European Languages."
@@ -43,9 +43,9 @@ _BASE_DATA_URL_FORMAT_STR = (
 def _target_languages():
     """Create the sorted dictionary of language codes, and language names.
 
-  Returns:
-    The sorted dictionary as an instance of `collections.OrderedDict`.
-  """
+    Returns:
+      The sorted dictionary as an instance of `collections.OrderedDict`.
+    """
     langs = {
         "bg": "Bulgarian",
         "cs": "Czech",
@@ -74,19 +74,19 @@ def _target_languages():
     return collections.OrderedDict(sorted(langs.items()))
 
 
-class ParaCrawlConfig(nlp.BuilderConfig):
+class ParaCrawlConfig(datasets.BuilderConfig):
     """BuilderConfig for ParaCrawl."""
 
     def __init__(self, target_language=None, **kwargs):
         """BuilderConfig for ParaCrawl.
 
-    Args:
-        for the `nlp.features.text.TextEncoder` used for the features feature.
-      target_language: Target language that will be used to translate to from
-        English which is always the source language. It has to contain 2-letter
-        coded strings. For example: "se", "hu".
-      **kwargs: Keyword arguments forwarded to super.
-    """
+        Args:
+            for the `datasets.features.text.TextEncoder` used for the features feature.
+          target_language: Target language that will be used to translate to from
+            English which is always the source language. It has to contain 2-letter
+            coded strings. For example: "se", "hu".
+          **kwargs: Keyword arguments forwarded to super.
+        """
         # Validate the target language.
         if target_language not in _target_languages():
             raise ValueError("Invalid target language: %s " % target_language)
@@ -103,7 +103,7 @@ class ParaCrawlConfig(nlp.BuilderConfig):
         self.data_url = _BASE_DATA_URL_FORMAT_STR.format(target_lang=target_language)
 
 
-class ParaCrawl(nlp.GeneratorBasedBuilder):
+class ParaCrawl(datasets.GeneratorBasedBuilder):
     """ParaCrawl machine translation dataset."""
 
     # Version history:
@@ -113,16 +113,19 @@ class ParaCrawl(nlp.GeneratorBasedBuilder):
         # The version below does not refer to the version of the released
         # database. It only indicates the version of the TFDS integration.
         ParaCrawlConfig(  # pylint: disable=g-complex-comprehension
-            target_language=target_language, version=nlp.Version("1.0.0"),
+            target_language=target_language,
+            version=datasets.Version("1.0.0"),
         )
         for target_language in _target_languages()
     ]
 
     def _info(self):
         target_language = self.config.target_language
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"translation": nlp.features.Translation(languages=("en", target_language))}),
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=("en", target_language))}
+            ),
             supervised_keys=("en", target_language),
             homepage=_BENCHMARK_URL,
             citation=_CITATION,
@@ -137,7 +140,7 @@ class ParaCrawl(nlp.GeneratorBasedBuilder):
         data_file = dl_manager.download_and_extract({"data_file": self.config.data_url})
 
         # Return the single split of the data.
-        return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs=data_file)]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=data_file)]
 
     def _generate_examples(self, data_file):
         """This function returns the examples in the raw (text) form."""

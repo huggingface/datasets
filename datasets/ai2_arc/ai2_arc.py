@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(ai2_arc): BibTeX citation
@@ -30,7 +30,7 @@ A new dataset of 7,787 genuine grade-school level, multiple-choice science quest
 _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/ARC-V1-Feb2018.zip"
 
 
-class Ai2ArcConfig(nlp.BuilderConfig):
+class Ai2ArcConfig(datasets.BuilderConfig):
     """BuilderConfig for Ai2ARC."""
 
     def __init__(self, **kwargs):
@@ -39,16 +39,14 @@ class Ai2ArcConfig(nlp.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(Ai2ArcConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(Ai2ArcConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class Ai2Arc(nlp.GeneratorBasedBuilder):
+class Ai2Arc(datasets.GeneratorBasedBuilder):
     """TODO(arc): Short description of my dataset."""
 
     # TODO(arc): Set up version.
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
         Ai2ArcConfig(
             name="ARC-Challenge",
@@ -65,17 +63,19 @@ class Ai2Arc(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(ai2_arc): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(ai2_arc): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "choices": nlp.features.Sequence({"text": nlp.Value("string"), "label": nlp.Value("string")}),
-                    "answerKey": nlp.Value("string")
+                    "id": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "choices": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                    ),
+                    "answerKey": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -91,23 +91,23 @@ class Ai2Arc(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(ai2_arc): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "ARC-V1-Feb2018-2")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, self.config.name, self.config.name + "-Train.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, self.config.name, self.config.name + "-Test.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, self.config.name, self.config.name + "-Dev.jsonl")},
             ),

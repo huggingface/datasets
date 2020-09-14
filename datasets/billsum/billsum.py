@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -53,19 +53,23 @@ _DOCUMENT = "text"
 _SUMMARY = "summary"
 
 
-class Billsum(nlp.GeneratorBasedBuilder):
+class Billsum(datasets.GeneratorBasedBuilder):
     """BillSum Dataset."""
 
     # 2.0.0 data source updated to filter near duplicates.
     # 3.0.0  none of the test examples are 'near duplicates' of an example in the
     #   train set AND they dont have the same title, regardless of similarity.
-    VERSION = nlp.Version("3.0.0")
+    VERSION = datasets.Version("3.0.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string"), "title": nlp.Value("string"),}
+            features=datasets.Features(
+                {
+                    _DOCUMENT: datasets.Value("string"),
+                    _SUMMARY: datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                }
             ),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/FiscalNote/BillSum",
@@ -76,15 +80,15 @@ class Billsum(nlp.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         dl_path = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"path": os.path.join(dl_path, "us_train_data_final_OFFICIAL.jsonl"), "key": "bill_id"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"path": os.path.join(dl_path, "us_test_data_final_OFFICIAL.jsonl"), "key": "bill_id"},
             ),
-            nlp.SplitGenerator(
+            datasets.SplitGenerator(
                 name="ca_test",
                 gen_kwargs={"path": os.path.join(dl_path, "ca_test_data_final_OFFICIAL.jsonl"), "key": "external_id"},
             ),

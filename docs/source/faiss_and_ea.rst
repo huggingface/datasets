@@ -10,24 +10,24 @@ As we now have models that can generate good semantic vector representations of 
 
 On the other hand there exist other tools like ElasticSearch for exact match retrieval in texts (sparse retrieval).
 
-Both FAISS and ElasticSearch can be used in :class:`nlp.Dataset`, using these methods:
+Both FAISS and ElasticSearch can be used in :class:`datasets.Dataset`, using these methods:
 
-- :func:`nlp.Dataset.add_faiss_index` to add a FAISS index
-- :func:`nlp.Dataset.add_elasticsearch_index` to add an ElasticSearch index
+- :func:`datasets.Dataset.add_faiss_index` to add a FAISS index
+- :func:`datasets.Dataset.add_elasticsearch_index` to add an ElasticSearch index
 
 .. note::
 
-    One :class:`nlp.Dataset` can have several indexes, each identified by its :obj:`index_name`. By default it corresponds to the name of the column used to build the index.
+    One :class:`datasets.Dataset` can have several indexes, each identified by its :obj:`index_name`. By default it corresponds to the name of the column used to build the index.
 
 Then as soon as you have your index you can query it using these methods:
 
-- :func:`nlp.Dataset.search` to retrieve the scores and the ids of the examples. There is a version to do batched queries: :func:`nlp.Dataset.search_batch`.
-- :func:`nlp.Dataset.get_nearest_examples` to retrieve the scores and the content of the examples. There is a version to do batched queries: :func:`nlp.Dataset.get_nearest_examples_batch`.
+- :func:`datasets.Dataset.search` to retrieve the scores and the ids of the examples. There is a version to do batched queries: :func:`datasets.Dataset.search_batch`.
+- :func:`datasets.Dataset.get_nearest_examples` to retrieve the scores and the content of the examples. There is a version to do batched queries: :func:`datasets.Dataset.get_nearest_examples_batch`.
 
 Adding a FAISS index
 ----------------------------------
 
-The :func:`nlp.Dataset.add_faiss_index` method is in charge of building, training and adding vectors to a FAISS index.
+The :func:`datasets.Dataset.add_faiss_index` method is in charge of building, training and adding vectors to a FAISS index.
 
 One way to get good vector representations for text passages is to use the DPR model. We'll compute the representations of only 100 examples just to give you the idea of how it works.
 
@@ -43,13 +43,13 @@ Then you can load your dataset and compute the representations:
 
 .. code-block::
 
-    >>> from nlp import load_dataset
+    >>> from datasets import load_dataset
     >>> ds = load_dataset('crime_and_punish', split='train[:100]')
     >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': ctx_encoder(**ctx_tokenizer(example["line"], return_tensors="pt"))[0][0].numpy()})
 
 .. note::
 
-    If you have the embeddings in numpy format, you can call :func:`nlp.Dataset.add_faiss_index_from_external_arrays` instead.
+    If you have the embeddings in numpy format, you can call :func:`datasets.Dataset.add_faiss_index_from_external_arrays` instead.
 
 We can create the index:
 

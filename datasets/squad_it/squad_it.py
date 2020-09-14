@@ -5,29 +5,29 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(squad_it): BibTeX citation
 _CITATION = """\
 @InProceedings{10.1007/978-3-030-03840-3_29,
-	author={Croce, Danilo and Zelenanska, Alexandra and Basili, Roberto},
-	editor={Ghidini, Chiara and Magnini, Bernardo and Passerini, Andrea and Traverso, Paolo",
-	title={Neural Learning for Question Answering in Italian},
-	booktitle={AI*IA 2018 -- Advances in Artificial Intelligence},
-	year={2018},
-	publisher={Springer International Publishing},
-	address={Cham},
-	pages={389--402},
-	isbn={978-3-030-03840-3}
+    author={Croce, Danilo and Zelenanska, Alexandra and Basili, Roberto},
+    editor={Ghidini, Chiara and Magnini, Bernardo and Passerini, Andrea and Traverso, Paolo",
+    title={Neural Learning for Question Answering in Italian},
+    booktitle={AI*IA 2018 -- Advances in Artificial Intelligence},
+    year={2018},
+    publisher={Springer International Publishing},
+    address={Cham},
+    pages={389--402},
+    isbn={978-3-030-03840-3}
 }
 """
 
 # TODO(squad_it):
 _DESCRIPTION = """\
-SQuAD-it is derived from the SQuAD dataset and it is obtained through semi-automatic translation of the SQuAD dataset 
+SQuAD-it is derived from the SQuAD dataset and it is obtained through semi-automatic translation of the SQuAD dataset
 into Italian. It represents a large-scale dataset for open question answering processes on factoid questions in Italian.
- The dataset contains more than 60,000 question/answer pairs derived from the original English dataset. The dataset is 
+ The dataset contains more than 60,000 question/answer pairs derived from the original English dataset. The dataset is
  split into training and test sets to support the replicability of the benchmarking of QA systems:
 """
 _URL = "https://github.com/crux82/squad-it/raw/master"
@@ -35,25 +35,28 @@ _TRAIN_FILE = "SQuAD_it-train.json.gz"
 _TEST_FILE = "SQuAD_it-test.json.gz"
 
 
-class SquadIt(nlp.GeneratorBasedBuilder):
+class SquadIt(datasets.GeneratorBasedBuilder):
     """TODO(squad_it): Short description of my dataset."""
 
     # TODO(squad_it): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(squad_it): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(squad_it): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
+                    "id": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                     # These are the features of your dataset like images, labels ...
                 }
@@ -70,14 +73,14 @@ class SquadIt(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(squad_it): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = {"train": os.path.join(_URL, _TRAIN_FILE), "test": os.path.join(_URL, _TEST_FILE)}
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
         ]
 
     def _generate_examples(self, filepath):
@@ -99,5 +102,8 @@ class SquadIt(nlp.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

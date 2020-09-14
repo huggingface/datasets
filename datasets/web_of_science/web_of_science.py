@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -45,7 +45,7 @@ _DATA_URL = (
 )
 
 
-class WebOfScienceConfig(nlp.BuilderConfig):
+class WebOfScienceConfig(datasets.BuilderConfig):
     """BuilderConfig for WebOfScience."""
 
     def __init__(self, **kwargs):
@@ -54,12 +54,10 @@ class WebOfScienceConfig(nlp.BuilderConfig):
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super(WebOfScienceConfig, self).__init__(
-            version=nlp.Version("6.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(WebOfScienceConfig, self).__init__(version=datasets.Version("6.0.0", ""), **kwargs)
 
 
-class WebOfScience(nlp.GeneratorBasedBuilder):
+class WebOfScience(datasets.GeneratorBasedBuilder):
     """Web of Science"""
 
     BUILDER_CONFIGS = [
@@ -78,14 +76,14 @@ class WebOfScience(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION + self.config.description,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "input_data": nlp.Value("string"),
-                    "label": nlp.Value("int32"),
-                    "label_level_1": nlp.Value("int32"),
-                    "label_level_2": nlp.Value("int32"),
+                    "input_data": datasets.Value("string"),
+                    "label": datasets.Value("int32"),
+                    "label_level_1": datasets.Value("int32"),
+                    "label_level_2": datasets.Value("int32"),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -98,12 +96,12 @@ class WebOfScience(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
 
         dl_path = dl_manager.download_and_extract(_DATA_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "input_file": os.path.join(dl_path, self.config.name, "X.txt"),

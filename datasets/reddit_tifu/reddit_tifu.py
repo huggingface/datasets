@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -57,40 +57,48 @@ _TLDR = "tldr"
 _ADDITIONAL_FEATURES = ["ups", "num_comments", "score", "upvote_ratio"]
 
 
-class RedditTifuConfig(nlp.BuilderConfig):
+class RedditTifuConfig(datasets.BuilderConfig):
     """BuilderConfig for RedditTifu."""
 
     def __init__(self, summary_key=None, **kwargs):
         """BuilderConfig for RedditTifu.
 
-    Args:
-      summary_key: key string of summary in downloaded json file.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          summary_key: key string of summary in downloaded json file.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version 1.1.0 remove empty document and summary strings.
-        super(RedditTifuConfig, self).__init__(version=nlp.Version("1.1.0"), **kwargs)
+        super(RedditTifuConfig, self).__init__(version=datasets.Version("1.1.0"), **kwargs)
         self.summary_key = summary_key
 
 
-class RedditTifu(nlp.GeneratorBasedBuilder):
+class RedditTifu(datasets.GeneratorBasedBuilder):
     """Reddit TIFU Dataset."""
 
     BUILDER_CONFIGS = [
-        RedditTifuConfig(name="short", summary_key=_TITLE, description="Using title as summary.",),
-        RedditTifuConfig(name="long", summary_key=_TLDR, description="Using TLDR as summary.",),
+        RedditTifuConfig(
+            name="short",
+            summary_key=_TITLE,
+            description="Using title as summary.",
+        ),
+        RedditTifuConfig(
+            name="long",
+            summary_key=_TLDR,
+            description="Using TLDR as summary.",
+        ),
     ]
 
     def _info(self):
         features = {
-            "ups": nlp.Value("float32"),
-            "num_comments": nlp.Value("float32"),
-            "upvote_ratio": nlp.Value("float32"),
-            "score": nlp.Value("float32"),
+            "ups": datasets.Value("float32"),
+            "num_comments": datasets.Value("float32"),
+            "upvote_ratio": datasets.Value("float32"),
+            "score": datasets.Value("float32"),
         }
-        features.update({k: nlp.Value("string") for k in [_DOCUMENT, _TLDR, _TITLE]})
-        return nlp.DatasetInfo(
+        features.update({k: datasets.Value("string") for k in [_DOCUMENT, _TLDR, _TITLE]})
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             supervised_keys=(_DOCUMENT, self.config.summary_key),
             homepage="https://github.com/ctr4si/MMN",
             citation=_CITATION,
@@ -99,7 +107,12 @@ class RedditTifu(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         dl_path = dl_manager.download_and_extract(_URL)
-        return [nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"path": dl_path},)]
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"path": dl_path},
+            )
+        ]
 
     def _generate_examples(self, path=None):
         """Yields examples."""

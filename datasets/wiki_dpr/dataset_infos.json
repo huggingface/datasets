@@ -37,7 +37,7 @@
         "version": {
             "version_str": "1.0.0",
             "description": null,
-            "nlp_version_to_prepare": null,
+            "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
             "patch": 0
@@ -288,7 +288,7 @@
         "version": {
             "version_str": "1.0.0",
             "description": null,
-            "nlp_version_to_prepare": null,
+            "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
             "patch": 0
@@ -349,7 +349,7 @@
         "version": {
             "version_str": "1.0.0",
             "description": null,
-            "nlp_version_to_prepare": null,
+            "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
             "patch": 0
@@ -404,7 +404,7 @@
         "version": {
             "version_str": "1.0.0",
             "description": null,
-            "nlp_version_to_prepare": null,
+            "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
             "patch": 0

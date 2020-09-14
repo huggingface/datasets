@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -46,19 +46,19 @@ reviews.
 _DOWNLOAD_URL = "http://www.eraserbenchmark.com/zipped/movies.tar.gz"
 
 
-class MovieRationales(nlp.GeneratorBasedBuilder):
+class MovieRationales(datasets.GeneratorBasedBuilder):
     """Movie reviews with human annotated rationales."""
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "review": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["NEG", "POS"]),
-                    "evidences": nlp.features.Sequence(nlp.Value("string")),
+                    "review": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["NEG", "POS"]),
+                    "evidences": datasets.features.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -72,16 +72,16 @@ class MovieRationales(nlp.GeneratorBasedBuilder):
         data_dir = os.path.join(dl_dir, "movies")
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "train.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "val.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "test.jsonl")},
             ),
         ]

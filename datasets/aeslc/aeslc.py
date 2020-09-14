@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import glob
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -49,15 +49,15 @@ _DOCUMENT = "email_body"
 _SUMMARY = "subject_line"
 
 
-class Aeslc(nlp.GeneratorBasedBuilder):
+class Aeslc(datasets.GeneratorBasedBuilder):
     """Annotated Enron Subject Line Corpus Dataset."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string")}),
+            features=datasets.Features({_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/ryanzhumich/AESLC",
             citation=_CITATION,
@@ -68,14 +68,17 @@ class Aeslc(nlp.GeneratorBasedBuilder):
         dl_path = dl_manager.download_and_extract(_URL)
         input_path = os.path.join(dl_path, "AESLC-master", "enron_subject_line")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"pattern": os.path.join(input_path, "train", "*.subject")},
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"pattern": os.path.join(input_path, "train", "*.subject")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"pattern": os.path.join(input_path, "dev", "*.subject")},
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"pattern": os.path.join(input_path, "dev", "*.subject")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"pattern": os.path.join(input_path, "test", "*.subject")},
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"pattern": os.path.join(input_path, "test", "*.subject")},
             ),
         ]
 

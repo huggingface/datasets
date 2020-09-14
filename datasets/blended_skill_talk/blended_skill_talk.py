@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(blended_skill_talk): BibTeX citation
@@ -29,27 +29,27 @@ _URL = "http://parl.ai/downloads/blended_skill_talk/blended_skill_talk.tar.gz"
 _TASK = ["convai2", "empathetic_dialogues", "wizard_of_wikipedia"]
 
 
-class BlendedSkillTalk(nlp.GeneratorBasedBuilder):
+class BlendedSkillTalk(datasets.GeneratorBasedBuilder):
     """TODO(blended_skill_talk): Short description of my dataset."""
 
     # TODO(blended_skill_talk): Set up version.
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        # TODO(blended_skill_talk): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(blended_skill_talk): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "personas": nlp.features.Sequence(nlp.Value("string")),
-                    "additional_context": nlp.Value("string"),
-                    "previous_utterance": nlp.features.Sequence(nlp.Value("string")),
-                    "context": nlp.Value("string"),
-                    "free_messages": nlp.features.Sequence(nlp.Value("string")),
-                    "guided_messages": nlp.features.Sequence(nlp.Value("string")),
-                    "suggestions": nlp.features.Sequence({task: nlp.Value("string") for task in _TASK})
+                    "personas": datasets.features.Sequence(datasets.Value("string")),
+                    "additional_context": datasets.Value("string"),
+                    "previous_utterance": datasets.features.Sequence(datasets.Value("string")),
+                    "context": datasets.Value("string"),
+                    "free_messages": datasets.features.Sequence(datasets.Value("string")),
+                    "guided_messages": datasets.features.Sequence(datasets.Value("string")),
+                    "suggestions": datasets.features.Sequence({task: datasets.Value("string") for task in _TASK})
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -65,22 +65,22 @@ class BlendedSkillTalk(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(blended_skill_talk): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         data_dir = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "train.json")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "valid.json")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "test.json")},
             ),

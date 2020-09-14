@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -35,8 +34,8 @@ _CITATION = """
  """
 
 _DESCRIPTION = """
-The 20 Newsgroups data set is a collection of approximately 20,000 newsgroup documents, partitioned (nearly) evenly across 
-20 different newsgroups. The 20 newsgroups collection has become a popular data set for experiments in text applications of 
+The 20 Newsgroups data set is a collection of approximately 20,000 newsgroup documents, partitioned (nearly) evenly across
+20 different newsgroups. The 20 newsgroups collection has become a popular data set for experiments in text applications of
 machine learning techniques, such as text classification and text clustering.
 """
 
@@ -82,7 +81,7 @@ for version in _VERSIONS:
 _CONFIG_NAMES = sorted(_CONFIG_NAMES)
 
 
-class NewsgroupConfig(nlp.BuilderConfig):
+class NewsgroupConfig(datasets.BuilderConfig):
     """BuilderConfig for 20Newsgroup."""
 
     def __init__(self, sub_dir, **kwargs):
@@ -97,22 +96,26 @@ class NewsgroupConfig(nlp.BuilderConfig):
         self.sub_dir = sub_dir
 
 
-class Newsgroups(nlp.GeneratorBasedBuilder):
+class Newsgroups(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         NewsgroupConfig(
             name=name,
             description=_DESC[name.split("_")[0]],
             sub_dir=name.split("_")[1],
-            version=nlp.Version(_VERSIONS[name.split("_")[0]]),
+            version=datasets.Version(_VERSIONS[name.split("_")[0]]),
         )
         for name in _CONFIG_NAMES
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION + "\n" + self.config.description,
-            features=nlp.Features({"text": nlp.Value("string"),}),
+            features=datasets.Features(
+                {
+                    "text": datasets.Value("string"),
+                }
+            ),
             homepage="http://qwone.com/~jason/20Newsgroups/",
             citation=_CITATION,
         )
@@ -123,26 +126,26 @@ class Newsgroups(nlp.GeneratorBasedBuilder):
         if self.config.name.startswith("bydate"):
 
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={"files_path": os.path.join(path, "20news-bydate-train", self.config.sub_dir)},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={"files_path": os.path.join(path, "20news-bydate-train", self.config.sub_dir)},
                 ),
             ]
         elif self.config.name.startswith("19997"):
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={"files_path": os.path.join(path, "20_newsgroups", self.config.sub_dir)},
                 )
             ]
         else:
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={"files_path": os.path.join(path, "20news-18828", self.config.sub_dir)},
                 )
             ]

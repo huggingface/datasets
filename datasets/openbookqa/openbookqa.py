@@ -6,7 +6,7 @@ import json
 import os
 import textwrap
 
-import nlp
+import datasets
 
 
 # TODO(openBookQA): BibTeX citation
@@ -22,47 +22,45 @@ _CITATION = """\
 # TODO(openBookQA):
 _DESCRIPTION = textwrap.dedent(
     """\
-OpenBookQA aims to promote research in advanced question-answering, probing a deeper understanding of both the topic 
-(with salient facts summarized as an open book, also provided with the dataset) and the language it is expressed in. In 
-particular, it contains questions that require multi-step reasoning, use of additional common and commonsense knowledge, 
+OpenBookQA aims to promote research in advanced question-answering, probing a deeper understanding of both the topic
+(with salient facts summarized as an open book, also provided with the dataset) and the language it is expressed in. In
+particular, it contains questions that require multi-step reasoning, use of additional common and commonsense knowledge,
 and rich text comprehension.
 OpenBookQA is a new kind of question-answering dataset modeled after open book exams for assessing human understanding of
-a subject. 
+a subject.
 """
 )
 _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/OpenBookQA-V1-Sep2018.zip"
 
 
-class OpenbookqaConfig(nlp.BuilderConfig):
+class OpenbookqaConfig(datasets.BuilderConfig):
     def __init__(self, data_dir, **kwargs):
-        """ BuilderConfig for openBookQA dataset 
+        """BuilderConfig for openBookQA dataset
 
-      Args:
-        data_dir: directory for the given dataset name
-        **kwargs: keyword arguments forwarded to super.
+        Args:
+          data_dir: directory for the given dataset name
+          **kwargs: keyword arguments forwarded to super.
 
-      """
+        """
 
-        super(OpenbookqaConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(OpenbookqaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
         self.data_dir = data_dir
 
 
-class Openbookqa(nlp.GeneratorBasedBuilder):
+class Openbookqa(datasets.GeneratorBasedBuilder):
     """TODO(openBookQA): Short description of my dataset."""
 
     # TODO(openBookQA): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         OpenbookqaConfig(
             name="main",
             description=textwrap.dedent(
                 """
-                                  It consists of 5,957 multiple-choice elementary-level science questions (4,957 train, 500 dev, 500 test), 
-                                  which probe the understanding of a small “book” of 1,326 core science facts and the application of these facts to novel 
-                                  situations. For training, the dataset includes a mapping from each question to the core science fact it was designed to 
+                                  It consists of 5,957 multiple-choice elementary-level science questions (4,957 train, 500 dev, 500 test),
+                                  which probe the understanding of a small “book” of 1,326 core science facts and the application of these facts to novel
+                                  situations. For training, the dataset includes a mapping from each question to the core science fact it was designed to
                                   probe. Answering OpenBookQA questions requires additional broad common knowledge, not contained in the book. The questions,
                                   by design, are answered incorrectly by both a retrieval-based algorithm and a word co-occurrence algorithm. Strong neural
                                   baselines achieve around 50% on OpenBookQA, leaving a large gap to the 92% accuracy of crowd-workers.
@@ -74,8 +72,8 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
             name="additional",
             description=textwrap.dedent(
                 """
-                                  Additionally, we provide 5,167 crowd-sourced common knowledge facts, and an expanded version of the train/dev/test questions where 
-                                  each question is associated with its originating core fact, a human accuracy score, a clarity score, and an anonymized crowd-worker 
+                                  Additionally, we provide 5,167 crowd-sourced common knowledge facts, and an expanded version of the train/dev/test questions where
+                                  each question is associated with its originating core fact, a human accuracy score, a clarity score, and an anonymized crowd-worker
                                   ID (in the “Additional” folder).
                                 """
             ),
@@ -84,18 +82,20 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(openBookQA): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(openBookQA): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "id": nlp.Value("string"),
-                    "question_stem": nlp.Value("string"),
-                    "choices": nlp.features.Sequence({"text": nlp.Value("string"), "label": nlp.Value("string")}),
-                    "answerKey": nlp.Value("string"),
+                    "id": datasets.Value("string"),
+                    "question_stem": datasets.Value("string"),
+                    "choices": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                    ),
+                    "answerKey": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -110,7 +110,7 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(openBookQA): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "OpenBookQA-V1-Sep2018", "Data")
@@ -131,18 +131,18 @@ class Openbookqa(nlp.GeneratorBasedBuilder):
             else os.path.join(data_dir, "dev_complete.jsonl")
         )
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": train_file},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": test_file},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": dev_file},
             ),

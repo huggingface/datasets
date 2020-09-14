@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -59,22 +59,22 @@ _URLS = {
 }
 
 
-class ScientificPapersConfig(nlp.BuilderConfig):
+class ScientificPapersConfig(datasets.BuilderConfig):
     """BuilderConfig for Scientific Papers."""
 
     def __init__(self, filename=None, **kwargs):
         """BuilderConfig for Wikihow.
 
-    Args:
-      filename: filename of different configs for the dataset.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          filename: filename of different configs for the dataset.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # 1.1.0 remove sentence breaker <S> and </S> in summary.
-        super(ScientificPapersConfig, self).__init__(version=nlp.Version("1.1.1"), **kwargs)
+        super(ScientificPapersConfig, self).__init__(version=datasets.Version("1.1.1"), **kwargs)
         self.filename = filename
 
 
-class ScientificPapers(nlp.GeneratorBasedBuilder):
+class ScientificPapers(datasets.GeneratorBasedBuilder):
     """Scientific Papers."""
 
     BUILDER_CONFIGS = [
@@ -83,10 +83,14 @@ class ScientificPapers(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {_DOCUMENT: nlp.Value("string"), _SUMMARY: nlp.Value("string"), "section_names": nlp.Value("string"),}
+            features=datasets.Features(
+                {
+                    _DOCUMENT: datasets.Value("string"),
+                    _SUMMARY: datasets.Value("string"),
+                    "section_names": datasets.Value("string"),
+                }
             ),
             supervised_keys=None,
             homepage="https://github.com/armancohan/long-summarization",
@@ -98,9 +102,18 @@ class ScientificPapers(nlp.GeneratorBasedBuilder):
         dl_paths = dl_manager.download_and_extract(_URLS)
         path = os.path.join(dl_paths[self.config.name], self.config.name + "-dataset")
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"path": os.path.join(path, "train.txt")},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"path": os.path.join(path, "val.txt")},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"path": os.path.join(path, "test.txt")},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(path, "train.txt")},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"path": os.path.join(path, "val.txt")},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"path": os.path.join(path, "test.txt")},
+            ),
         ]
 
     def _generate_examples(self, path=None):

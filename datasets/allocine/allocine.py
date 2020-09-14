@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -26,19 +26,19 @@ _DESCRIPTION = """\
 """
 
 
-class AllocineConfig(nlp.BuilderConfig):
+class AllocineConfig(datasets.BuilderConfig):
     """BuilderConfig for Allocine."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for Allocine.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(AllocineConfig, self).__init__(**kwargs)
 
 
-class AllocineDataset(nlp.GeneratorBasedBuilder):
+class AllocineDataset(datasets.GeneratorBasedBuilder):
     """Allocine Dataset: A Large-Scale French Movie Reviews Dataset."""
 
     _DOWNLOAD_URL = "https://github.com/TheophileBlard/french-sentiment-analysis-with-bert/raw/master/allocine_dataset/data.tar.bz2"
@@ -49,16 +49,19 @@ class AllocineDataset(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         AllocineConfig(
             name="allocine",
-            version=nlp.Version("1.0.0"),
+            version=datasets.Version("1.0.0"),
             description="Allocine Dataset: A Large-Scale French Movie Reviews Dataset",
         ),
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {"review": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["neg", "pos"]),}
+            features=datasets.Features(
+                {
+                    "review": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["neg", "pos"]),
+                }
             ),
             supervised_keys=None,
             homepage="https://github.com/TheophileBlard/french-sentiment-analysis-with-bert",
@@ -69,13 +72,15 @@ class AllocineDataset(nlp.GeneratorBasedBuilder):
         arch_path = dl_manager.download_and_extract(self._DOWNLOAD_URL)
         data_dir = os.path.join(arch_path, "data")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)}
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, self._TRAIN_FILE)}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, self._VAL_FILE)}
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, self._VAL_FILE)}
             ),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FILE)}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, self._TEST_FILE)}
+            ),
         ]
 
     def _generate_examples(self, filepath):

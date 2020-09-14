@@ -3,9 +3,8 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
-import nlp
+import datasets
 
 
 # TODO(jeopardy): BibTeX citation
@@ -33,28 +32,27 @@ _DATA_URL = "http://skeeto.s3.amazonaws.com/share/JEOPARDY_QUESTIONS1.json.gz"
 _DATA_FILE = "JEOPARDY_QUESTIONS1.json"
 
 
-class Jeopardy(nlp.GeneratorBasedBuilder):
+class Jeopardy(datasets.GeneratorBasedBuilder):
     """TODO(jeopardy): Short description of my dataset."""
 
     # TODO(jeopardy): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(jeopardy): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(jeopardy): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "category": nlp.Value("string"),
-                    "air_date": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "value": nlp.Value("int32"),
-                    "answer": nlp.Value("string"),
-                    "round": nlp.Value("string"),
-                    "category": nlp.Value("string"),
-                    "show_number": nlp.Value("int32"),
+                    "category": datasets.Value("string"),
+                    "air_date": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "value": datasets.Value("int32"),
+                    "answer": datasets.Value("string"),
+                    "round": datasets.Value("string"),
+                    "show_number": datasets.Value("int32"),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -70,12 +68,12 @@ class Jeopardy(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(jeopardy): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         filepath = dl_manager.download_and_extract(_DATA_URL)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": filepath}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": filepath}),
         ]
 
     def _generate_examples(self, filepath):

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,9 +18,8 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import os
-import textwrap
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -41,19 +40,19 @@ Access to the dataset needs to be requested from zenodo.
 """
 
 
-class StyleChangeDetection(nlp.GeneratorBasedBuilder):
+class StyleChangeDetection(datasets.GeneratorBasedBuilder):
     """Style Change Detection Dataset from PAN20"""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        nlp.BuilderConfig(
+        datasets.BuilderConfig(
             name="narrow",
-            version=nlp.Version("1.0.0", "Version 1"),
+            version=datasets.Version("1.0.0", "Version 1"),
             description="The narrow subset contains texts from a relatively narrow set of subjects matters (all related to technology).",
         ),
-        nlp.BuilderConfig(
+        datasets.BuilderConfig(
             name="wide",
-            version=nlp.Version("1.0.0", "Version 1"),
+            version=datasets.Version("1.0.0", "Version 1"),
             description="The wide subset adds additional subject areas (travel, philosophy, economics, history, etc.).",
         ),
     ]
@@ -67,23 +66,23 @@ class StyleChangeDetection(nlp.GeneratorBasedBuilder):
   Download each file, extract it and place in a dir of your choice,
   which will be used as a manual_dir, e.g. `~/.manual_dirs/style_change_detection`
   Style Change Detection can then be loaded via:
-  `nlp.load_dataset("style_change_detection", data_dir="~/.manual_dirs/style_change_detection")`.
+  `datasets.load_dataset("style_change_detection", data_dir="~/.manual_dirs/style_change_detection")`.
   """
 
     def _info(self):
         features = {
-            "id": nlp.Value("string"),
-            "text": nlp.Value("string"),
-            "authors": nlp.Value("int32"),
-            "structure": nlp.features.Sequence(nlp.Value("string")),
-            "site": nlp.Value("string"),
-            "multi-author": nlp.Value("bool"),
-            "changes": nlp.features.Sequence(nlp.Value("bool")),
+            "id": datasets.Value("string"),
+            "text": datasets.Value("string"),
+            "authors": datasets.Value("int32"),
+            "structure": datasets.features.Sequence(datasets.Value("string")),
+            "site": datasets.Value("string"),
+            "multi-author": datasets.Value("bool"),
+            "changes": datasets.features.Sequence(datasets.Value("bool")),
         }
 
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             homepage="https://pan.webis.de/clef20/pan20-web/style-change-detection.html",
             citation=_CITATION,
         )
@@ -97,21 +96,21 @@ class StyleChangeDetection(nlp.GeneratorBasedBuilder):
 
         if not os.path.exists(train_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('style_change_detection', data_dir=...)` that includes {}. Manual download instructions: {}".format(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('style_change_detection', data_dir=...)` that includes {}. Manual download instructions: {}".format(
                     train_dir, train_dir, self.manual_download_instructions
                 )
             )
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "articles": [f for f in os.listdir(train_dir) if f.endswith(".txt")],
                     "base_dir": train_dir,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"articles": [f for f in os.listdir(val_dir) if f.endswith(".txt")], "base_dir": val_dir},
             ),
         ]

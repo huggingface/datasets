@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(commonsense_qa): BibTeX citation
@@ -31,32 +31,37 @@ _DEV_FILE = "dev_rand_split.jsonl"
 _TEST_FILE = "test_rand_split_no_answers.jsonl"
 
 
-class CommonsenseQa(nlp.GeneratorBasedBuilder):
+class CommonsenseQa(datasets.GeneratorBasedBuilder):
     """TODO(commonsense_qa): Short description of my dataset."""
 
     # TODO(commonsense_qa): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
         # These are the features of your dataset like images, labels ...
-        features = nlp.Features(
+        features = datasets.Features(
             {
-                "answerKey": nlp.Value("string"),
-                "question": nlp.Value("string"),
-                "choices": nlp.features.Sequence({"label": nlp.Value("string"), "text": nlp.Value("string"),}),
+                "answerKey": datasets.Value("string"),
+                "question": datasets.Value("string"),
+                "choices": datasets.features.Sequence(
+                    {
+                        "label": datasets.Value("string"),
+                        "text": datasets.Value("string"),
+                    }
+                ),
             }
         )
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
+            # datasets.features.FeatureConnectors
             features=features,
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="https://www.tau-nlp.org/commonsenseqa",
+            homepage="https://www.tau-datasets.org/commonsenseqa",
             citation=_CITATION,
         )
 
@@ -72,14 +77,22 @@ class CommonsenseQa(nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(download_urls)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"], "split": "train"}
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"], "split": "train"}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"], "split": "dev",}
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={
+                    "filepath": downloaded_files["dev"],
+                    "split": "dev",
+                },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"], "split": "test",}
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": downloaded_files["test"],
+                    "split": "test",
+                },
             ),
         ]
 

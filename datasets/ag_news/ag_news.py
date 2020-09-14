@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,25 +19,24 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import os
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
-AG is a collection of more than 1 million news articles. News articles have been 
-gathered from more than 2000 news sources by ComeToMyHead in more than 1 year of 
-activity. ComeToMyHead is an academic news search engine which has been running 
-since July, 2004. The dataset is provided by the academic comunity for research 
-purposes in data mining (clustering, classification, etc), information retrieval 
-(ranking, search, etc), xml, data compression, data streaming, and any other 
-non-commercial activity. For more information, please refer to the link 
+AG is a collection of more than 1 million news articles. News articles have been
+gathered from more than 2000 news sources by ComeToMyHead in more than 1 year of
+activity. ComeToMyHead is an academic news search engine which has been running
+since July, 2004. The dataset is provided by the academic comunity for research
+purposes in data mining (clustering, classification, etc), information retrieval
+(ranking, search, etc), xml, data compression, data streaming, and any other
+non-commercial activity. For more information, please refer to the link
 http://www.di.unipi.it/~gulli/AG_corpus_of_news_articles.html .
 
-The AG's news topic classification dataset is constructed by Xiang Zhang 
-(xiang.zhang@nyu.edu) from the dataset above. It is used as a text 
-classification benchmark in the following paper: Xiang Zhang, Junbo Zhao, Yann 
-LeCun. Character-level Convolutional Networks for Text Classification. Advances 
+The AG's news topic classification dataset is constructed by Xiang Zhang
+(xiang.zhang@nyu.edu) from the dataset above. It is used as a text
+classification benchmark in the following paper: Xiang Zhang, Junbo Zhao, Yann
+LeCun. Character-level Convolutional Networks for Text Classification. Advances
 in Neural Information Processing Systems 28 (NIPS 2015).
 """
 
@@ -54,16 +53,16 @@ _TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/mhjabreel/CharCnn_Keras
 _TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/mhjabreel/CharCnn_Keras/master/data/ag_news_csv/test.csv"
 
 
-class AGNews(nlp.GeneratorBasedBuilder):
+class AGNews(datasets.GeneratorBasedBuilder):
     """AG News topic classification dataset."""
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(names=["World", "Sports", "Business", "Sci/Tech"]),
+                    "text": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["World", "Sports", "Business", "Sci/Tech"]),
                 }
             ),
             homepage="http://groups.di.unipi.it/~gulli/AG_corpus_of_news_articles.html",
@@ -74,8 +73,8 @@ class AGNews(nlp.GeneratorBasedBuilder):
         train_path = dl_manager.download_and_extract(_TRAIN_DOWNLOAD_URL)
         test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": test_path}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
     def _generate_examples(self, filepath):

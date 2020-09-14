@@ -14,35 +14,38 @@
 # limitations under the License.
 
 import glob
-import logging
 import os
 import tempfile
+from multiprocessing import Pool
+from unittest import TestCase
 
 import requests
 from absl.testing import parameterized
 
-from nlp import (
+from datasets import (
     BuilderConfig,
     DatasetBuilder,
     DownloadConfig,
     GenerateMode,
     MockDownloadManager,
+    cached_path,
     hf_api,
     hf_bucket_url,
     import_main_class,
     load_dataset,
+    logging,
     prepare_module,
 )
 
 from .utils import aws, local, slow
 
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.get_logger(__name__)
 
 
 class DatasetTester(object):
     def __init__(self, parent):
-        self.parent = parent
+        self.parent = parent if parent is not None else TestCase()
 
     def load_builder_class(self, dataset_name, is_local=False):
         # Download/copy dataset script
@@ -52,7 +55,6 @@ class DatasetTester(object):
             module_path, _ = prepare_module(dataset_name, download_config=DownloadConfig(force_download=True))
         # Get dataset builder class
         builder_cls = import_main_class(module_path)
-        # Instantiate dataset builder
         return builder_cls
 
     def load_all_configs(self, dataset_name, is_local=False):
@@ -76,7 +78,7 @@ class DatasetTester(object):
 
                 # TODO: skip Beam datasets and datasets that lack dummy data for now
                 if not dataset_builder.test_dummy_data:
-                    logging.info("Skip tests for this dataset for now")
+                    logger.info("Skip tests for this dataset for now")
                     return
 
                 if config is not None:
@@ -192,19 +194,65 @@ class LocalDatasetTest(parameterized.TestCase):
 
     @slow
     def test_load_real_dataset(self, dataset_name):
+        path = "./datasets/" + dataset_name
+        module_path, hash = prepare_module(path, download_config=DownloadConfig(local_files_only=True), dataset=True)
+        builder_cls = import_main_class(module_path, dataset=True)
+        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
-
             dataset = load_dataset(
-                "./datasets/" + dataset_name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+
+    @slow
+    def test_load_real_dataset_all_configs(self, dataset_name):
+        path = "./datasets/" + dataset_name
+        module_path, hash = prepare_module(path, download_config=DownloadConfig(local_files_only=True), dataset=True)
+        builder_cls = import_main_class(module_path, dataset=True)
+        config_names = (
+            [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
+        )
+        for name in config_names:
+            with tempfile.TemporaryDirectory() as temp_cache_dir:
+                dataset = load_dataset(
+                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                )
+                for split in dataset.keys():
+                    self.assertTrue(len(dataset[split]) > 0)
+
+
+def distributed_load_dataset(args):
+    data_name, tmp_dir, datafiles = args
+    dataset = load_dataset(data_name, cache_dir=tmp_dir, data_files=datafiles)
+    return dataset
+
+
+class DistributedDatasetTest(TestCase):
+    def test_load_dataset_distributed(self):
+        num_workers = 5
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_name = "./datasets/csv"
+            data_base_path = os.path.join(data_name, "dummy/0.0.0/dummy_data.zip")
+            local_path = cached_path(
+                data_base_path, cache_dir=tmp_dir, extract_compressed_file=True, force_extract=True
+            )
+            datafiles = {
+                "train": os.path.join(local_path, "dummy_data/train.csv"),
+                "dev": os.path.join(local_path, "dummy_data/dev.csv"),
+                "test": os.path.join(local_path, "dummy_data/test.csv"),
+            }
+            args = data_name, tmp_dir, datafiles
+            with Pool(processes=num_workers) as pool:  # start num_workers processes
+                result = pool.apply_async(distributed_load_dataset, (args,))
+                _ = result.get(timeout=20)
+                _ = pool.map(distributed_load_dataset, [args] * num_workers)
 
 
 def get_aws_dataset_names():
     api = hf_api.HfApi()
     # fetch all dataset names
-    datasets = [x.id for x in api.dataset_list(with_community_datasets=False)]
+    datasets = api.dataset_list(with_community_datasets=False, id_only=True)
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
@@ -249,14 +297,53 @@ class AWSDatasetTest(parameterized.TestCase):
         self.dataset_tester.check_load_dataset(dataset_name, configs)
 
     @slow
-    def test_load_dataset_all_configs(self, dataset_name):
-        configs = self.dataset_tester.load_all_configs(dataset_name)
-        self.dataset_tester.check_load_dataset(dataset_name, configs)
-
-    @slow
     def test_load_real_dataset(self, dataset_name):
+        path = dataset_name
+        module_path, hash = prepare_module(path, download_config=DownloadConfig(force_download=True), dataset=True)
+        builder_cls = import_main_class(module_path, dataset=True)
+        name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
-
-            dataset = load_dataset(dataset_name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD)
+            dataset = load_dataset(
+                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+            )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+
+    @slow
+    def test_load_real_dataset_all_configs(self, dataset_name):
+        path = dataset_name
+        module_path, hash = prepare_module(path, download_config=DownloadConfig(force_download=True), dataset=True)
+        builder_cls = import_main_class(module_path, dataset=True)
+        config_names = (
+            [config.name for config in builder_cls.BUILDER_CONFIGS] if len(builder_cls.BUILDER_CONFIGS) > 0 else [None]
+        )
+        for name in config_names:
+            with tempfile.TemporaryDirectory() as temp_cache_dir:
+                dataset = load_dataset(
+                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                )
+                for split in dataset.keys():
+                    self.assertTrue(len(dataset[split]) > 0)
+
+
+class TextTest(TestCase):
+    def test_caching(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("foo" for _ in range(10)))
+            ds = load_dataset(
+                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
+            )
+            data_file = ds._data_files[0]
+            fingerprint = ds._fingerprint
+            ds = load_dataset(
+                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
+            )
+            self.assertEqual(ds._data_files[0], data_file)
+            self.assertEqual(ds._fingerprint, fingerprint)
+
+            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("bar" for _ in range(10)))
+            ds = load_dataset(
+                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
+            )
+            self.assertNotEqual(ds._data_files[0], data_file)
+            self.assertNotEqual(ds._fingerprint, fingerprint)

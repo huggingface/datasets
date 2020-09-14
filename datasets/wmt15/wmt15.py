@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 # Lint as: python3
 """WMT15: Translate dataset."""
 
-import nlp
+import datasets
 
 from .wmt_utils import Wmt, WmtConfig
 
@@ -48,7 +48,7 @@ class Wmt15(Wmt):
             url=_URL,
             citation=_CITATION,
             language_pair=(l1, l2),
-            version=nlp.Version("1.0.0"),
+            version=datasets.Version("1.0.0"),
         )
         for l1, l2 in _LANGUAGE_PAIRS
     ]
@@ -61,7 +61,7 @@ class Wmt15(Wmt):
     @property
     def _subsets(self):
         return {
-            nlp.Split.TRAIN: [
+            datasets.Split.TRAIN: [
                 "europarl_v7",
                 "europarl_v8_16",
                 "commoncrawl",
@@ -73,6 +73,6 @@ class Wmt15(Wmt):
                 "wikiheadlines_fi",
                 "wikiheadlines_ru",
             ],
-            nlp.Split.VALIDATION: ["newsdev2015", "newsdiscussdev2015", "newstest2014"],
-            nlp.Split.TEST: ["newstest2015", "newsdiscusstest2015"],
+            datasets.Split.VALIDATION: ["newsdev2015", "newsdiscussdev2015", "newstest2014"],
+            datasets.Split.TEST: ["newstest2015", "newsdiscusstest2015"],
         }

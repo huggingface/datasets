@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import json
 import logging
 import os
 
-import nlp
+import datasets
 
 from .c4_utils import (
     dedupe_urls,
@@ -58,7 +58,7 @@ _CITATION = """
     eprint = {1910.10683},
 }
 """
-_VERSION = nlp.Version("2.3.0", "Deduplicate lines within a page.")
+_VERSION = datasets.Version("2.3.0", "Deduplicate lines within a page.")
 
 _DOWNLOAD_HOST = "https://commoncrawl.s3.amazonaws.com"
 _WET_PATH_URL = "https://commoncrawl.s3.amazonaws.com/crawl-data/CC-MAIN-{cc_version}/wet.paths.gz"
@@ -86,7 +86,7 @@ _DEFAULT_WEBTEXTLIKE_CC_VERSIONS = (  # August 2018 - July 2019
 )
 
 
-class C4Config(nlp.BuilderConfig):
+class C4Config(datasets.BuilderConfig):
     """BuilderConfig for C4 dataset."""
 
     def __init__(self, language, cc_versions=None, clean=True, realnewslike=False, webtextlike=False, **kwargs):
@@ -121,7 +121,7 @@ class C4Config(nlp.BuilderConfig):
         self.webtextlike = webtextlike
 
 
-class C4(nlp.BeamBasedBuilder):
+class C4(datasets.BeamBasedBuilder):
     """C4 dataset based on Common Crawl."""
 
     BUILDER_CONFIGS = [
@@ -156,15 +156,15 @@ class C4(nlp.BeamBasedBuilder):
 
     def _info(self):
         features = {
-            "text": nlp.Value("string"),
-            "url": nlp.Value("string"),
-            "content-type": nlp.Value("string"),
-            "content-length": nlp.Value("string"),
-            "timestamp": nlp.Value("string"),
+            "text": datasets.Value("string"),
+            "url": datasets.Value("string"),
+            "content-type": datasets.Value("string"),
+            "content-length": datasets.Value("string"),
+            "timestamp": datasets.Value("string"),
         }
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             citation=_CITATION,
             homepage="https://github.com/google-research/text-to-text-transfer-transformer#datasets",
         )
@@ -192,7 +192,7 @@ class C4(nlp.BeamBasedBuilder):
             owt_path = os.path.join(dl_manager.manual_dir, _OPENWEBTEXT_URLS_ZIP)
             if not os.path.exists(owt_path):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('c4', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
+                    "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('c4', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
                         owt_path, _OPENWEBTEXT_URLS_ZIP, self.manual_download_instructions
                     )
                 )
@@ -210,7 +210,7 @@ class C4(nlp.BeamBasedBuilder):
             wet_files = beam.io.filesystems.FileSystems.match(os.path.join(cc_dir, "*.warc.wet.gz"))
             if not os.path.exists(cc_dir):
                 raise FileNotFoundError(
-                    "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('c4', data_dir=...)` that includes the files {}. Manual download instructions: {})".format(
+                    "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('c4', data_dir=...)` that includes the files {}. Manual download instructions: {})".format(
                         cc_dir, "*.warc.wet.gz", self.manual_download_instructions
                     )
                 )
@@ -219,16 +219,16 @@ class C4(nlp.BeamBasedBuilder):
 
         page_content_pcollection = self._get_page_content(pipeline, file_paths, dl_manager)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs=dict(
                     split="train",
                     page_content=page_content_pcollection,
                     hashed_url_predicate=lambda x: x % 1000 != 0,  # 99.9%
                 ),
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs=dict(
                     split="validation",
                     page_content=page_content_pcollection,
