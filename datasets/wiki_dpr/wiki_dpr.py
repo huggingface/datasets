@@ -155,7 +155,7 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                     {"embeddings_index": os.path.join(_INDEX_URL, self.config.index_file.format(split=split))}
                 )
                 return downloaded_resources["embeddings_index"]
-            except ConnectionError:  # index doesn't exist
+            except (FileNotFoundError, ConnectionError):  # index doesn't exist
                 pass
 
     def _post_process(self, dataset, resources_paths):
