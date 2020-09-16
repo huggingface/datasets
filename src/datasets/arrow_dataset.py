@@ -1356,7 +1356,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             not keep_in_memory or cache_file_name is None
         ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
 
-        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
 
         # Reduce logging to keep things readable in multiprocessing with tqdm
         if rank is not None and get_verbosity() < WARNING:
