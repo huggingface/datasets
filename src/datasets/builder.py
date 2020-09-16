@@ -46,7 +46,7 @@ from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig, is_remote_url
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils.logging import get_logger, WARNING
+from .utils.logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)

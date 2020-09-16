@@ -43,7 +43,7 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .utils import map_nested
-from .utils.logging import INFO, WARNING, get_logger, get_verbosity, set_verbosity_warning
+from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 
 
 if TYPE_CHECKING:

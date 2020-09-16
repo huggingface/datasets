@@ -26,7 +26,7 @@ from tqdm.auto import tqdm
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
-from .utils.logging import get_logger, WARNING
+from .utils.logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)
