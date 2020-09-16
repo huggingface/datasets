@@ -457,7 +457,7 @@ class Lince(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {"idx": datasets.Value("int32"), "tokens": datasets.Sequence(datasets.Value("string"))}
+        features = {"idx": datasets.Value("int32"), "words": datasets.Sequence(datasets.Value("string"))}
 
         if self.config.name != "ner_msaea":
             features["lid"] = datasets.Sequence(
