@@ -96,7 +96,7 @@ class Race(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, train_test_or_eval):
         """Yields examples."""
         current_path = Path(train_test_or_eval)
-        files_in_dir = [str(f.absolute()) for f in current_path.glob("**/*.txt")]
+        files_in_dir = [str(f.absolute()) for f in sorted(current_path.glob("**/*.txt"))]
         for file in sorted(files_in_dir):
             with open(file, encoding="utf-8") as f:
                 data = json.load(f)
