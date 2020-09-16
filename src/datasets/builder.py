@@ -400,7 +400,7 @@ class DatasetBuilder:
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
-                logger.info("Reusing dataset %s (%s)", self.name, self._cache_dir)
+                logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
                 self.download_post_processing_resources(dl_manager)
                 return
 
