@@ -95,11 +95,11 @@ class Mlqa(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "context": datasets.Value("string"),
-                    "questions": datasets.Value("string"),
+                    "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"start": datasets.Value("int32"), "text": datasets.Value("string")}
+                        {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}
                     ),
-                    "ids": datasets.Value("string"),
+                    "id": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -202,7 +202,7 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                     answers_text = [answer["text"] for answer in answers]
                     yield id_, {
                         "context": context,
-                        "questions": question,
-                        "answers": {"start": answers_start, "text": answers_text},
-                        "ids": id_,
+                        "question": question,
+                        "answers": {"answer_start": answers_start, "text": answers_text},
+                        "id": id_,
                     }
