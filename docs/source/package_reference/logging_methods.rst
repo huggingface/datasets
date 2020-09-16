@@ -5,7 +5,7 @@ Logging methods
 
 A series of logging methods let you easily adjust the level of verbosity of the whole library.
 
-Currently the default verbosity of the library is ``INFO``.
+Currently the default verbosity of the library is ``WARNING``.
 
 To change the level of verbosity, just use one of the direct setters. For instance, here is how to change the verbosity to the INFO level.
 

@@ -39,7 +39,7 @@ log_levels = {
     "critical": logging.CRITICAL,
 }
 
-_default_log_level = logging.INFO
+_default_log_level = logging.WARNING
 
 
 def _get_default_logging_level():
