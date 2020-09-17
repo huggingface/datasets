@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import os
+
 import six
 
 import datasets
@@ -48,19 +49,17 @@ class MatinfConfig(datasets.BuilderConfig):
     ):
         """BuilderConfig for MATINF.
 
-    Args:
-      text_features: `dict[string, string]`, map from the name of the feature
-        dict for each text field to the name of the column in the tsv file
-      label_column: `string`, name of the column in the tsv file corresponding
-        to the label
-      label_classes: `list[string]`, the list of classes if the label is
-        categorical. If not provided, then the label will be of type
-        `datasets.Value('float32')`.
-      **kwargs: keyword arguments forwarded to super.
-    """
-        super(MatinfConfig, self).__init__(
-            version=datasets.Version("1.0.0"), **kwargs
-        )
+        Args:
+          text_features: `dict[string, string]`, map from the name of the feature
+            dict for each text field to the name of the column in the tsv file
+          label_column: `string`, name of the column in the tsv file corresponding
+            to the label
+          label_classes: `list[string]`, the list of classes if the label is
+            categorical. If not provided, then the label will be of type
+            `datasets.Value('float32')`.
+          **kwargs: keyword arguments forwarded to super.
+        """
+        super(MatinfConfig, self).__init__(version=datasets.Version("1.0.0"), **kwargs)
         self.text_features = text_features
         self.label_column = label_column
         self.label_classes = label_classes
@@ -74,15 +73,32 @@ class Matinf(datasets.GeneratorBasedBuilder):
             name="age_classification",
             text_features=["question", "description"],
             label_column="class",
-            label_classes=["0-1岁", "1-2岁", "2-3岁"]
+            label_classes=["0-1岁", "1-2岁", "2-3岁"],
         ),
         MatinfConfig(
             name="topic_classification",
             text_features=["question", "description"],
             label_column="class",
-            label_classes=["产褥期保健", "儿童过敏", "动作发育", "婴幼保健", "婴幼心理", "婴幼早教", "婴幼期喂养", "婴幼营养",
-                           "孕期保健", "家庭教育", "幼儿园", "未准父母", "流产和不孕", "疫苗接种", "皮肤护理", "宝宝上火", "腹泻",
-                           "婴幼常见病"]
+            label_classes=[
+                "产褥期保健",
+                "儿童过敏",
+                "动作发育",
+                "婴幼保健",
+                "婴幼心理",
+                "婴幼早教",
+                "婴幼期喂养",
+                "婴幼营养",
+                "孕期保健",
+                "家庭教育",
+                "幼儿园",
+                "未准父母",
+                "流产和不孕",
+                "疫苗接种",
+                "皮肤护理",
+                "宝宝上火",
+                "腹泻",
+                "婴幼常见病",
+            ],
         ),
         MatinfConfig(
             name="summarization",
@@ -98,10 +114,12 @@ class Matinf(datasets.GeneratorBasedBuilder):
 
     @property
     def manual_download_instructions(self):
-        return "To use MATINF you have to download it manually. Please fill this google form (" \
-               "https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you " \
-               "complete the form. Please extract all files in one folder and load the dataset with: " \
-               "`datasets.load_dataset('matinf', data_dir='path/to/folder/folder_name')`"
+        return (
+            "To use MATINF you have to download it manually. Please fill this google form ("
+            "https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you "
+            "complete the form. Please extract all files in one folder and load the dataset with: "
+            "`datasets.load_dataset('matinf', data_dir='path/to/folder/folder_name')`"
+        )
 
     def _info(self):
         features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features}
