@@ -43,7 +43,8 @@ a separate line and there is an empty line after each sentence. The first item o
 a part-of-speech (POS) tag, the third a syntactic chunk tag and the fourth the named entity tag. The chunk tags
 and the named entity tags have the format I-TYPE which means that the word is inside a phrase of type TYPE. Only
 if two phrases of the same type immediately follow each other, the first word of the second phrase will have tag
-B-TYPE to show that it starts a new phrase. A word with tag O is not part of a phrase.
+B-TYPE to show that it starts a new phrase. A word with tag O is not part of a phrase. Note the dataset uses IOB2
+tagging scheme, whereas the original dataset uses IOB1.
 
 For more details see https://www.clips.uantwerpen.be/conll2003/ner/ and https://www.aclweb.org/anthology/W03-0419
 """
@@ -79,7 +80,7 @@ class Conll2003(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "word": datasets.Sequence(datasets.Value("string")),
+                    "words": datasets.Sequence(datasets.Value("string")),
                     "pos": datasets.Sequence(datasets.Value("string")),
                     "chunk": datasets.Sequence(datasets.Value("string")),
                     "ner": datasets.Sequence(datasets.Value("string")),
@@ -116,7 +117,7 @@ class Conll2003(datasets.GeneratorBasedBuilder):
             for line in f:
                 if line.startswith("-DOCSTART-") or line == "" or line == "\n":
                     if words:
-                        yield guid, {"id": str(guid), "word": words, "pos": pos, "chunk": chunk, "ner": ner}
+                        yield guid, {"id": str(guid), "words": words, "pos": pos, "chunk": chunk, "ner": ner}
                         guid += 1
                         words = []
                         pos = []
@@ -130,4 +131,4 @@ class Conll2003(datasets.GeneratorBasedBuilder):
                     chunk.append(splits[2])
                     ner.append(splits[3].rstrip())
             # last example
-            yield guid, {"id": str(guid), "word": words, "pos": pos, "chunk": chunk, "ner": ner}
+            yield guid, {"id": str(guid), "words": words, "pos": pos, "chunk": chunk, "ner": ner}
