@@ -77,7 +77,7 @@ class Conll2000(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "word": datasets.Sequence(datasets.Value("string")),
+                    "words": datasets.Sequence(datasets.Value("string")),
                     "pos": datasets.Sequence(datasets.Value("string")),
                     "chunk": datasets.Sequence(datasets.Value("string")),
                 }
@@ -110,7 +110,7 @@ class Conll2000(datasets.GeneratorBasedBuilder):
             for line in f:
                 if line == "" or line == "\n":
                     if words:
-                        yield guid, {"id": str(guid), "word": words, "pos": pos, "chunk": chunk}
+                        yield guid, {"id": str(guid), "words": words, "pos": pos, "chunk": chunk}
                         guid += 1
                         words = []
                         pos = []
@@ -122,4 +122,4 @@ class Conll2000(datasets.GeneratorBasedBuilder):
                     pos.append(splits[1])
                     chunk.append(splits[2].rstrip())
             # last example
-            yield guid, {"id": str(guid), "word": words, "pos": pos, "chunk": chunk}
+            yield guid, {"id": str(guid), "words": words, "pos": pos, "chunk": chunk}
