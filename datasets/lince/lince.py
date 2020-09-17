@@ -277,7 +277,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="lid_spaeng",
             data_dir="lid_spaeng",
-            colnames={"tokens": 0, "lid": 1},
+            colnames={"words": 0, "lid": 1},
             classes={"lid": ["lang1", "lang2", "ne", "fw", "ambiguous", "mixed", "other", "unk"]},
             label_column="lid",
             description="Spanish-English language identification dataset (Latin script)",
@@ -285,7 +285,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="lid_hineng",
             data_dir="lid_hineng",
-            colnames={"tokens": 0, "lid": 1},
+            colnames={"words": 0, "lid": 1},
             classes={"lid": ["lang1", "lang2", "ne", "fw", "ambiguous", "mixed", "other", "unk"]},
             label_column="lid",
             description="Hindi-English language identification dataset (Latin script)",
@@ -293,7 +293,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="lid_msaea",
             data_dir="lid_msaea",
-            colnames={"tokens": 0, "lid": 1},
+            colnames={"words": 0, "lid": 1},
             classes={
                 "lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],
             },
@@ -303,7 +303,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="lid_nepeng",
             data_dir="lid_nepeng",
-            colnames={"tokens": 0, "lid": 1},
+            colnames={"words": 0, "lid": 1},
             classes={
                 "lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],
             },
@@ -315,7 +315,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="pos_spaeng",
             data_dir="pos_spaeng",
-            colnames={"tokens": 0, "lid": 1, "pos": 2},
+            colnames={"words": 0, "lid": 1, "pos": 2},
             classes={
                 "lid": ["UNK", "eng", "eng&spa", "spa"],
                 "pos": [
@@ -344,7 +344,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="pos_hineng",
             data_dir="pos_hineng",
-            colnames={"tokens": 0, "lid": 1, "pos": 2},
+            colnames={"words": 0, "lid": 1, "pos": 2},
             classes={
                 "lid": ["en", "hi", "rest"],
                 "pos": [
@@ -372,7 +372,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="ner_spaeng",
             data_dir="ner_spaeng",
-            colnames={"tokens": 0, "lid": 1, "ner": 2},
+            colnames={"words": 0, "lid": 1, "ner": 2},
             classes={
                 "lid": ["lang1", "lang2", "ne", "fw", "ambiguous", "mixed", "other", "unk"],
                 "ner": [
@@ -403,7 +403,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="ner_msaea",
             data_dir="ner_msaea",
-            colnames={"tokens": 0, "ner": 1},
+            colnames={"words": 0, "ner": 1},
             classes={
                 "ner": [
                     "O",
@@ -433,7 +433,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="ner_hineng",
             data_dir="ner_hineng",
-            colnames={"tokens": 0, "lid": 1, "ner": 2},
+            colnames={"words": 0, "lid": 1, "ner": 2},
             classes={
                 "lid": ["en", "hi", "rest"],
                 "ner": ["O", "B-PERSON", "I-PERSON", "B-ORGANISATION", "I-ORGANISATION", "B-PLACE", "I-PLACE"],
@@ -446,7 +446,7 @@ class Lince(datasets.GeneratorBasedBuilder):
         LinceConfig(
             name="sa_spaeng",
             data_dir="sa_spaeng",
-            colnames={"tokens": 0, "lid": 1, "sa": 2},
+            colnames={"words": 0, "lid": 1, "sa": 2},
             classes={
                 "lid": ["lang1", "lang2", "ne", "fw", "ambiguous", "mixed", "other", "unk"],
                 "sa": ["positive", "neutral", "negative"],
@@ -457,7 +457,7 @@ class Lince(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {"idx": datasets.Value("int32"), "tokens": datasets.Sequence(datasets.Value("string"))}
+        features = {"idx": datasets.Value("int32"), "words": datasets.Sequence(datasets.Value("string"))}
 
         if self.config.name != "ner_msaea":
             features["lid"] = datasets.Sequence(
@@ -543,6 +543,6 @@ class Lince(datasets.GeneratorBasedBuilder):
                     if self.config.label_column == "sa":
                         row[self.config.label_column] = ""
                     else:
-                        row[self.config.label_column] = [""] * len(row["tokens"])
+                        row[self.config.label_column] = [""] * len(row["words"])
 
                 yield index, row
