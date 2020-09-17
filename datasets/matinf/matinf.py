@@ -29,11 +29,11 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 MATINF is the first jointly labeled large-scale dataset for classification, question answering and summarization.
-MATINF contains 1.07 million question-answer pairs with human-labeled categories and user-generated question 
-descriptions. Based on such rich information, MATINF is applicable for three major NLP tasks, including classification, 
-question answering, and summarization. We benchmark existing methods and a novel multi-task baseline over MATINF to 
-inspire further research. Our comprehensive comparison and experiments over MATINF and other datasets demonstrate the 
-merits held by MATINF.
+ MATINF contains 1.07 million question-answer pairs with human-labeled categories and user-generated question
+ descriptions. Based on such rich information, MATINF is applicable for three major NLP tasks, including classification,
+ question answering, and summarization. We benchmark existing methods and a novel multi-task baseline over MATINF to
+ inspire further research. Our comprehensive comparison and experiments over MATINF and other datasets demonstrate the
+ merits held by MATINF.
 """
 
 
