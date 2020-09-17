@@ -4,7 +4,7 @@ import csv
 import os
 import six
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -36,7 +36,7 @@ merits held by MATINF.
 """
 
 
-class MatinfConfig(nlp.BuilderConfig):
+class MatinfConfig(datasets.BuilderConfig):
     """BuilderConfig for MATINF."""
 
     def __init__(
@@ -55,19 +55,19 @@ class MatinfConfig(nlp.BuilderConfig):
         to the label
       label_classes: `list[string]`, the list of classes if the label is
         categorical. If not provided, then the label will be of type
-        `nlp.Value('float32')`.
+        `datasets.Value('float32')`.
       **kwargs: keyword arguments forwarded to super.
     """
         super(MatinfConfig, self).__init__(
-            version=nlp.Version("1.0.0"), **kwargs
+            version=datasets.Version("1.0.0"), **kwargs
         )
         self.text_features = text_features
         self.label_column = label_column
         self.label_classes = label_classes
 
 
-class Matinf(nlp.GeneratorBasedBuilder):
-    VERSION = nlp.Version("1.0.0")
+class Matinf(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
         MatinfConfig(
@@ -101,16 +101,16 @@ class Matinf(nlp.GeneratorBasedBuilder):
         return "To use MATINF you have to download it manually. Please fill this google form (" \
                "https://forms.gle/nkH4LVE4iNQeDzsc9). You will receive a download link and a password once you " \
                "complete the form. Please extract all files in one folder and load the dataset with: " \
-               "`nlp.load_dataset('matinf', data_dir='path/to/folder/folder_name')`"
+               "`datasets.load_dataset('matinf', data_dir='path/to/folder/folder_name')`"
 
     def _info(self):
-        features = {text_feature: nlp.Value("string") for text_feature in self.config.text_features}
+        features = {text_feature: datasets.Value("string") for text_feature in self.config.text_features}
         if self.config.label_classes:
-            features["label"] = nlp.features.ClassLabel(names=self.config.label_classes)
-        features["id"] = nlp.Value("int32")
-        return nlp.DatasetInfo(
+            features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
+        features["id"] = datasets.Value("int32")
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             homepage="https://github.com/WHUIR/MATINF",
             citation=_CITATION,
         )
@@ -121,21 +121,21 @@ class Matinf(nlp.GeneratorBasedBuilder):
 
         if not os.path.exists(data_dir):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `nlp.load_dataset('matinf', data_dir=...)` that includes files unzipped from the MATINF zip. Manual download instructions: {}".format(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('matinf', data_dir=...)` that includes files unzipped from the MATINF zip. Manual download instructions: {}".format(
                     data_dir, self.manual_download_instructions
                 )
             )
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"filepath": os.path.join(data_dir, "train.csv")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"filepath": os.path.join(data_dir, "test.csv")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"filepath": os.path.join(data_dir, "dev.csv")},
             ),
         ]
