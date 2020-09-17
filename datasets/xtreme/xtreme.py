@@ -363,7 +363,7 @@ _TEXT_FEATURES = {
     "PAWS-X": {"sentence1": "sentence1", "sentence2": "sentence2"},
     "udpos": {"word": "", "pos_tag": ""},
     "SQuAD": {"id": "id", "title": "title", "context": "context", "question": "question", "answers": "answers"},
-    "PAN-X": {"word": "", "ner_tag": "", "lang": ""},
+    "PAN-X": {"words": "", "ner": "", "lang": ""},
 }
 _DATA_URLS = {
     "tydiqa": "https://storage.googleapis.com/tydiqa/",
@@ -455,7 +455,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "words": datasets.Sequence(datasets.Value("string")),
-                    "ner_tags": datasets.Sequence(datasets.Value("string")),
+                    "ner": datasets.Sequence(datasets.Value("string")),
                     "langs": datasets.Sequence(datasets.Value("string")),
                 }
             )
@@ -895,7 +895,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                 for line in f:
                     if line.startswith("-DOCSTART-") or line == "" or line == "\n":
                         if words:
-                            yield guid_index, {"words": words, "ner_tags": ner_tags, "langs": langs}
+                            yield guid_index, {"words": words, "ner": ner_tags, "langs": langs}
                             guid_index += 1
                             words = []
                             ner_tags = []
