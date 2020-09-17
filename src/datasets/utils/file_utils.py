@@ -26,7 +26,7 @@ from filelock import FileLock
 from tqdm.auto import tqdm
 
 from .. import __version__
-from .logging import INFO, get_logger
+from .logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
@@ -377,7 +377,7 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    not_verbose = bool(logger.getEffectiveLevel() > INFO)
+    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
     progress = tqdm(
         unit="B",
         unit_scale=True,
