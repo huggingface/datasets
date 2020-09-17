@@ -46,7 +46,7 @@ from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
 from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig, is_remote_url
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
-from .utils.logging import INFO, get_logger
+from .utils.logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)
@@ -400,7 +400,7 @@ class DatasetBuilder:
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
-                logger.info("Reusing dataset %s (%s)", self.name, self._cache_dir)
+                logger.warning("Reusing dataset %s (%s)", self.name, self._cache_dir)
                 self.download_post_processing_resources(dl_manager)
                 return
 
@@ -828,7 +828,7 @@ class GeneratorBasedBuilder(DatasetBuilder):
         writer = ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size)
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         for key, record in utils.tqdm(
             generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
         ):
@@ -884,7 +884,7 @@ class ArrowBasedBuilder(DatasetBuilder):
         writer = ArrowWriter(path=fpath)
 
         generator = self._generate_tables(**split_generator.gen_kwargs)
-        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         for key, table in utils.tqdm(generator, unit=" tables", leave=False, disable=not_verbose):
             writer.write_table(table)
         num_examples, num_bytes = writer.finalize()
