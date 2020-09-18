@@ -1,4 +1,4 @@
-🤗Datasets
+HuggingFace Datasets
 =======================================
 
 Datasets and evaluation metrics for natural language processing

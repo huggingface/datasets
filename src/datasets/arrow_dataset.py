@@ -43,7 +43,7 @@ from .info import DatasetInfo
 from .search import IndexableMixin
 from .splits import NamedSplit
 from .utils import map_nested
-from .utils.logging import INFO, WARNING, get_logger, get_verbosity, set_verbosity_warning
+from .utils.logging import WARNING, get_logger, get_verbosity, set_verbosity_warning
 
 
 if TYPE_CHECKING:
@@ -1356,7 +1356,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             not keep_in_memory or cache_file_name is None
         ), "Please use either `keep_in_memory` or `cache_file_name` but not both."
 
-        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
 
         # Reduce logging to keep things readable in multiprocessing with tqdm
         if rank is not None and get_verbosity() < WARNING:
@@ -1889,6 +1889,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ), "The provided generator must be an instance of numpy.random.Generator"
 
         if generator is None:
+            if seed is None:
+                seed = np.random.get_state()[1][0]
+                _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
@@ -2048,6 +2051,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         if generator is None and shuffle is True:
+            if seed is None:
+                seed = np.random.get_state()[1][0]
+                _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)

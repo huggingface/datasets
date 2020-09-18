@@ -45,8 +45,11 @@ class TextConfig(datasets.BuilderConfig):
         if self.parse_options is not None:
             parse_options = self.parse_options
         else:
+            # To force the one-column setting, we set an arbitrary character
+            # that is not in text files as delimiter, such as \b or \v.
+            # The bell character, \b, was used to make beeps back in the days
             parse_options = pac.ParseOptions(
-                delimiter="\r",
+                delimiter="\b",
                 quote_char=False,
                 double_quote=False,
                 escape_char=False,

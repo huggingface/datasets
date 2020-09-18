@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Union
 import numpy as np
 from tqdm.auto import tqdm
 
-from .utils.logging import INFO, get_logger
+from .utils.logging import WARNING, get_logger
 
 
 if TYPE_CHECKING:
@@ -139,7 +139,7 @@ class ElasticSearchIndex(BaseIndex):
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
         number_of_docs = len(documents)
-        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         progress = tqdm(unit="docs", total=number_of_docs, disable=not_verbose)
         successes = 0
 
@@ -269,7 +269,7 @@ class FaissIndex(BaseIndex):
 
         # Add vectors
         logger.info("Adding {} vectors to the faiss index".format(len(vectors)))
-        not_verbose = bool(logger.getEffectiveLevel() > INFO)
+        not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         for i in tqdm(range(0, len(vectors), batch_size), disable=not_verbose):
             vecs = vectors[i : i + batch_size] if column is None else vectors[i : i + batch_size][column]
             self.faiss_index.add(vecs)
