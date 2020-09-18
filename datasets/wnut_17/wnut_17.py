@@ -94,8 +94,8 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "tokens": datasets.Sequence(datasets.Value("string")),
-                    "labels": datasets.Sequence(datasets.Value("string")),
+                    "words": datasets.Sequence(datasets.Value("string")),
+                    "ner": datasets.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -140,8 +140,8 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
                         sentence_counter,
                         {
                             "id": str(sentence_counter),
-                            "tokens": current_tokens,
-                            "labels": current_labels,
+                            "words": current_tokens,
+                            "ner": current_labels,
                         },
                     )
                     sentence_counter += 1
@@ -152,6 +152,6 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
             if current_tokens:
                 yield sentence_counter, {
                     "id": str(sentence_counter),
-                    "tokens": current_tokens,
-                    "labels": current_labels,
+                    "words": current_tokens,
+                    "ner": current_labels,
                 }
