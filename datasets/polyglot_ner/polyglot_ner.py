@@ -105,7 +105,7 @@ _VERSION = "1.0.0"
 
 class PolyglotNERConfig(datasets.BuilderConfig):
     def __init__(self, *args, languages=None, **kwargs):
-        super().__init__(*args, version=datasets.Version("1.0.0", ""), **kwargs)
+        super().__init__(*args, version=datasets.Version(_VERSION, ""), **kwargs)
         self.languages = languages
 
     @property
@@ -132,8 +132,8 @@ class PolyglotNER(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "lang": datasets.Value("string"),
-                    "tokens": datasets.Sequence(datasets.Value("string")),
-                    "labels": datasets.Sequence(datasets.Value("string")),
+                    "words": datasets.Sequence(datasets.Value("string")),
+                    "ner": datasets.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -152,38 +152,33 @@ class PolyglotNER(datasets.GeneratorBasedBuilder):
         for filepath, lang in zip(self.config.filepaths, self.config.languages):
             filepath = os.path.join(datapath, filepath)
             with open(filepath, encoding="utf-8") as f:
-                current_tokens = []
-                current_labels = []
+                current_words = []
+                current_ner = []
                 for row in f:
                     row = row.rstrip()
                     if row:
                         token, label = row.split("\t")
-                        current_tokens.append(token)
-                        current_labels.append(label)
+                        current_words.append(token)
+                        current_ner.append(label)
                     else:
                         # New sentence
-                        if not current_tokens:
+                        if not current_words:
                             # Consecutive empty lines will cause empty sentences
                             continue
-                        assert len(current_tokens) == len(current_labels), "💔 between len of tokens & labels"
+                        assert len(current_words) == len(current_ner), "💔 between len of words & ner"
                         sentence = (
                             sentence_counter,
-                            {
-                                "id": str(sentence_counter),
-                                "lang": lang,
-                                "tokens": current_tokens,
-                                "labels": current_labels,
-                            },
+                            {"id": str(sentence_counter), "lang": lang, "words": current_words, "ner": current_ner,},
                         )
                         sentence_counter += 1
-                        current_tokens = []
-                        current_labels = []
+                        current_words = []
+                        current_ner = []
                         yield sentence
                 # Don't forget last sentence in dataset 🧐
-                if current_tokens:
+                if current_words:
                     yield sentence_counter, {
                         "id": str(sentence_counter),
                         "lang": lang,
-                        "tokens": current_tokens,
-                        "labels": current_labels,
+                        "words": current_words,
+                        "ner": current_ner,
                     }
