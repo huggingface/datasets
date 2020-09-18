@@ -174,8 +174,8 @@ class DatasetBuilder:
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
         self._cache_dir = self._build_cache_dir()
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
-        with FileLock(lock_path):
-            if os.path.exists(self._cache_dir):  # check if data exist
+        if os.path.exists(self._cache_dir):  # check if data exist
+            with FileLock(lock_path, self._cache_dir):
                 if len(os.listdir(self._cache_dir)) > 0:
                     logger.info("Overwrite dataset info from restored data version.")
                     self.info = DatasetInfo.from_directory(self._cache_dir)

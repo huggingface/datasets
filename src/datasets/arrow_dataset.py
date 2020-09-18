@@ -1500,12 +1500,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if update_data:
                 writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
+            if update_data:
+                writer.finalize()
             if update_data and tmp_file is not None:
+                tmp_file.close()
                 if os.path.exists(tmp_file.name):
                     os.remove(tmp_file.name)
             raise
 
         if update_data and tmp_file is not None:
+            tmp_file.close()
             shutil.move(tmp_file.name, cache_file_name)
 
         if update_data:
@@ -1748,11 +1752,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
             if tmp_file is not None:
+                tmp_file.close()
                 if os.path.exists(tmp_file.name):
                     os.remove(tmp_file.name)
             raise
 
         if tmp_file is not None:
+            tmp_file.close()
             shutil.move(tmp_file.name, indices_cache_file_name)
 
         # Return new Dataset object
