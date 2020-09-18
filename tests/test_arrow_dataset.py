@@ -9,7 +9,7 @@ import pyarrow as pa
 from absl.testing import parameterized
 
 import datasets.arrow_dataset
-from datasets import concatenate_datasets, load_from_disk
+from datasets import concatenate_datasets, load_from_disk, temp_seed
 from datasets.arrow_dataset import Dataset
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
@@ -886,6 +886,17 @@ class BaseDatasetTest(TestCase):
             tmp_file = os.path.join(tmp_dir, "test_2.arrow")
             dset_shuffled_2 = dset.shuffle(seed=1234, indices_cache_file_name=tmp_file)
             self.assertListEqual(dset_shuffled["filename"], dset_shuffled_2["filename"])
+
+            # Compatible with temp_seed
+            with temp_seed(42):
+                d1 = dset.shuffle()
+            with temp_seed(42):
+                d2 = dset.shuffle()
+                d3 = dset.shuffle()
+            self.assertListEqual(d1["filename"], d2["filename"])
+            self.assertEqual(d1._fingerprint, d2._fingerprint)
+            self.assertNotEqual(d3["filename"], d2["filename"])
+            self.assertNotEqual(d3._fingerprint, d2._fingerprint)
 
     def test_sort(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
