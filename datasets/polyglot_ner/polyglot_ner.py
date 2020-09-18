@@ -168,7 +168,12 @@ class PolyglotNER(datasets.GeneratorBasedBuilder):
                         assert len(current_words) == len(current_ner), "💔 between len of words & ner"
                         sentence = (
                             sentence_counter,
-                            {"id": str(sentence_counter), "lang": lang, "words": current_words, "ner": current_ner,},
+                            {
+                                "id": str(sentence_counter),
+                                "lang": lang,
+                                "words": current_words,
+                                "ner": current_ner,
+                            },
                         )
                         sentence_counter += 1
                         current_words = []
