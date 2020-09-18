@@ -1889,6 +1889,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         ), "The provided generator must be an instance of numpy.random.Generator"
 
         if generator is None:
+            if seed is None:
+                seed = np.random.get_state()[1][0]
+                _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)
@@ -2048,6 +2051,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
         if generator is None and shuffle is True:
+            if seed is None:
+                seed = np.random.get_state()[1][0]
+                _ = np.random.random()  # do 1 step of rng
             generator = np.random.default_rng(seed)
 
         # Check if we've already cached this computation (indexed by a hash)

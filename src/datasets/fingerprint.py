@@ -143,7 +143,7 @@ def fingerprint(inplace, use_kwargs=None, ignore_kwargs=None, fingerprint_names=
                 kwargs_for_fingerprint = {k: v for k, v in kwargs_for_fingerprint.items() if k not in ignore_kwargs}
             if randomized_function:  # randomized functions have `seed` and `generator` parameters
                 if kwargs_for_fingerprint.get("seed") is None and kwargs_for_fingerprint.get("generator") is None:
-                    kwargs_for_fingerprint["generator"] = np.random.default_rng(None)
+                    kwargs_for_fingerprint["generator"] = np.random.default_rng(np.random.get_state()[1][0])
 
             # compute new_fingerprint and add it to the args of not in-place transforms
             transform = func.__module__ + "." + func.__qualname__
