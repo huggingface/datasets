@@ -18,8 +18,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import logging
+import os
+
 import datasets
 
 
@@ -74,15 +75,17 @@ _LANGUAGES = [
     "ro",
     "sl",
     "th",
-    "uk"
+    "uk",
 ]
 
 _LANG_FILEPATHS = {
     lang: os.path.join(
-        "acl_datasets", lang,
-        "data" if lang != "zh" else "", # they're all lang/data/lang_wiki.conll except "zh"
-        f"{lang}_wiki.conll"
-    ) for lang in _LANGUAGES
+        "acl_datasets",
+        lang,
+        "data" if lang != "zh" else "",  # they're all lang/data/lang_wiki.conll except "zh"
+        f"{lang}_wiki.conll",
+    )
+    for lang in _LANGUAGES
 }
 
 _DESCRIPTION = """\
@@ -101,7 +104,6 @@ _VERSION = "1.0.0"
 
 
 class PolyglotNERConfig(datasets.BuilderConfig):
-
     def __init__(self, *args, languages=None, **kwargs):
         super().__init__(*args, version=datasets.Version("1.0.0", ""), **kwargs)
         self.languages = languages
@@ -115,16 +117,11 @@ class PolyglotNER(datasets.GeneratorBasedBuilder):
     """The Polyglot-NER Dataset"""
 
     BUILDER_CONFIGS = [
-        PolyglotNERConfig(
-            name=lang,
-            languages=[lang],
-            description=f"Polyglot-NER examples in {lang}."
-        ) for lang in _LANGUAGES
+        PolyglotNERConfig(name=lang, languages=[lang], description=f"Polyglot-NER examples in {lang}.")
+        for lang in _LANGUAGES
     ] + [
         PolyglotNERConfig(
-            name="combined",
-            languages=_LANGUAGES,
-            description=f"Complete Polyglot-NER dataset with all languages."
+            name="combined", languages=_LANGUAGES, description=f"Complete Polyglot-NER dataset with all languages."
         )
     ]
 
@@ -148,9 +145,7 @@ class PolyglotNER(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         path = dl_manager.download_and_extract(_DATA_URL)
 
-        return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path})
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path})]
 
     def _generate_examples(self, datapath):
         sentence_counter = 0
