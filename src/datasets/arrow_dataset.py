@@ -964,12 +964,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
             # Get the subset of the table
             if indices_array is not None:
-                if PYARROW_V0:
-                    data_subset = pa.concat_tables(
-                        self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
-                    )
-                else:
-                    data_subset = self._data.take(indices_array)
+                # if PYARROW_V0:  # don't use take (see https://issues.apache.org/jira/browse/ARROW-9773)
+                data_subset = pa.concat_tables(
+                    self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
+                )
+                # else:
+                #     data_subset = self._data.take(indices_array)
             else:
                 data_subset = self._data.slice(key_indices[0], key_indices[1] - key_indices[0])
 
@@ -989,10 +989,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # Check if we need to convert indices
             if self._indices is not None:
                 indices_array = self._indices.column(0)
-                if PYARROW_V0:
-                    data_array = pa.concat_tables(self._data.slice(i.as_py(), 1) for i in indices_array).column(key)
-                else:
-                    data_array = self._data.column(key).take(indices_array)
+                # if PYARROW_V0:  # don't use take (see https://issues.apache.org/jira/browse/ARROW-9773)
+                data_array = pa.concat_tables(self._data.slice(i.as_py(), 1) for i in indices_array).column(key)
+                # else:
+                #     data_array = self._data.column(key).take(indices_array)
             else:
                 data_array = self._data.column(key)
 
@@ -1031,12 +1031,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             # TODO: here we could add a check that the resulting indices are a contiguous slice
             # to avoid using 'take' instead of 'slice'
 
-            if PYARROW_V0:
-                data_subset = pa.concat_tables(
-                    self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
-                )
-            else:
-                data_subset = self._data.take(indices_array)
+            # if PYARROW_V0:  # don't use take (see https://issues.apache.org/jira/browse/ARROW-9773)
+            data_subset = pa.concat_tables(
+                self._data.slice(indices_array[i].as_py(), 1) for i in range(len(indices_array))
+            )
+            # else:
+            #     data_subset = self._data.take(indices_array)
 
             if format_type is not None:
                 if format_type == "pandas":
