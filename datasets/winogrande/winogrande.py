@@ -27,7 +27,7 @@ commonsense reasoning.
 """
 
 _URL = "https://storage.googleapis.com/ai2-mosaic/public/winogrande/winogrande_1.1.zip"
-_SIZES = ["xs", "s", "m", "l", "xl"]
+_FORMATS = ["xs", "s", "m", "l", "xl", "debiased"]
 
 
 class WinograndeConfig(datasets.BuilderConfig):
@@ -38,10 +38,10 @@ class WinograndeConfig(datasets.BuilderConfig):
         """
 
         Args:
-            data_size: the size of the training set we want to us (xs, s, m, l, xl)
+            data_size: the format of the training set we want to use (xs, s, m, l, xl, debiased)
             **kwargs: keyword arguments forwarded to super.
         """
-        super(WinograndeConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(WinograndeConfig, self).__init__(version=datasets.Version("1.1.0", ""), **kwargs)
         self.data_size = data_size
 
 
@@ -51,7 +51,8 @@ class Winogrande(datasets.GeneratorBasedBuilder):
     # TODO(winogrande): Set up version.
     VERSION = datasets.Version("1.1.0")
     BUILDER_CONFIGS = [
-        WinograndeConfig(name="winogrande_" + size, description="AI2 dataset", data_size=size) for size in _SIZES
+        WinograndeConfig(name="winogrande_" + data_size, description="AI2 dataset", data_size=data_size)
+        for data_size in _FORMATS
     ]
 
     def _info(self):
