@@ -79,7 +79,7 @@ REQUIRED_PKGS = [
     # filesystem locks e.g. to prevent parallel downloads
     "filelock",
     # for fast hashing
-    "xxhash"
+    "xxhash",
     # for better multiprocessing
     "pathos"
 ]
