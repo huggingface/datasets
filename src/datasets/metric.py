@@ -28,7 +28,7 @@ from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
 from .arrow_writer import ArrowWriter
 from .features import Features
-from .info import MetricInfo
+from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
@@ -337,7 +337,7 @@ class Metric(MetricInfoMixin):
 
         if self.keep_in_memory:
             # Read the predictions and references
-            reader = ArrowReader(path=self.data_dir, info=None)
+            reader = ArrowReader(path=self.data_dir, info=DatasetInfo(features=self.features))
             self.data = Dataset.from_buffer(self.buf_writer.getvalue())
 
         elif self.process_id == 0:
@@ -346,7 +346,7 @@ class Metric(MetricInfoMixin):
 
             # Read the predictions and references
             try:
-                reader = ArrowReader(path=self.data_dir, info=None)
+                reader = ArrowReader(path=self.data_dir, info=DatasetInfo(features=self.features))
                 self.data = Dataset(**reader.read_files([{"filename": f} for f in file_paths]))
             except FileNotFoundError:
                 raise ValueError(
