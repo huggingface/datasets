@@ -167,6 +167,10 @@ class BaseReader:
             pa_table: pa.Table = self._get_dataset_from_filename(f_dict)
             pa_tables.append(pa_table)
         pa_tables = [t for t in pa_tables if len(t) > 0]
+        if not pa_tables and (self._info is None or self._info.features is None):
+            raise ValueError(
+                "Tried to read an empty table. Please specify at least info.features to create an empty table with the right type."
+            )
         pa_tables = pa_tables or [pa.Table.from_batches([], schema=pa.schema(self._info.features.type))]
         pa_table = pa.concat_tables(pa_tables)
         return pa_table

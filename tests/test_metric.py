@@ -20,10 +20,14 @@ class DummyMetric(Metric):
         )
 
     def _compute(self, predictions, references):
-        return {
-            "accuracy": sum(i == j for i, j in zip(predictions, references)) / len(predictions),
-            "set_equality": set(predictions) == set(references),
-        }
+        return (
+            {
+                "accuracy": sum(i == j for i, j in zip(predictions, references)) / len(predictions),
+                "set_equality": set(predictions) == set(references),
+            }
+            if predictions
+            else {}
+        )
 
     @classmethod
     def predictions_and_references(cls):
@@ -124,6 +128,9 @@ class TestMetric(TestCase):
         for pred, ref in zip(preds, refs):
             metric.add(prediction=pred, reference=ref)
         self.assertDictEqual(expected_results, metric.compute())
+
+        metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
+        self.assertDictEqual({}, metric.compute(predictions=[], references=[]))
 
     def test_concurrent_metrics(self):
         preds, refs = DummyMetric.predictions_and_references()
