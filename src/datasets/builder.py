@@ -464,6 +464,8 @@ class DatasetBuilder:
                             downloaded_from_gcs = True
                         except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
                             logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
+                        except ConnectionError:
+                            logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
                         self._download_and_prepare(
                             dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
