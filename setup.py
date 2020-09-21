@@ -80,6 +80,8 @@ REQUIRED_PKGS = [
     "filelock",
     # for fast hashing
     "xxhash"
+    # for better multiprocessing
+    "pathos"
 ]
 
 BENCHMARKS_REQUIRE = [
