@@ -94,9 +94,12 @@ class TypedSequence:
             type = self.type
         try:
             if isinstance(type, _ArrayXDExtensionType):
-                return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
+                out = pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
             else:
-                return pa.array(self.data, type=type)
+                out = pa.array(self.data, type=type)
+            if trying_type and out[0].as_py() != self.data[0]:
+                raise TypeError("Specified try_type alters data")
+            return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
                 try:
