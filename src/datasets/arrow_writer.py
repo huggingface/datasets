@@ -98,7 +98,9 @@ class TypedSequence:
             else:
                 out = pa.array(self.data, type=type)
             if trying_type and out[0].as_py() != self.data[0]:
-                raise TypeError("Specified try_type alters data")
+                raise TypeError(
+                    "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
+                )
             return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
