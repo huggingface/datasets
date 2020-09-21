@@ -532,7 +532,7 @@ class BaseDatasetTest(TestCase):
             del dset, dset_test
 
     def test_map_multiprocessing(self, in_memory):
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with tempfile.TemporaryDirectory() as tmp_dir:  # standard
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
 
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
@@ -549,7 +549,7 @@ class BaseDatasetTest(TestCase):
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
             del dset, dset_test
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        with tempfile.TemporaryDirectory() as tmp_dir:  # with_indices
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             fingerprint = dset._fingerprint
             dset_test = dset.map(picklable_map_function_with_indices, num_proc=3, with_indices=True)
@@ -563,6 +563,20 @@ class BaseDatasetTest(TestCase):
             self.assertListEqual(dset_test["id"], list(range(30)))
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
             del dset, dset_test
+
+        with tempfile.TemporaryDirectory() as tmp_dir:  # lambda (requires pathos)
+            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            fingerprint = dset._fingerprint
+            dset_test = dset.map(lambda x: {"id": int(x["filename"].split("_")[-1])}, num_proc=2)
+            self.assertEqual(len(dset_test), 30)
+            self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
+            self.assertDictEqual(
+                dset_test.features,
+                Features({"filename": Value("string"), "id": Value("int64")}),
+            )
+            self.assertEqual(len(dset_test._data_files), 0 if in_memory else 2)
+            self.assertListEqual(dset_test["id"], list(range(30)))
+            self.assertNotEqual(dset_test._fingerprint, fingerprint)
 
     def test_new_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
