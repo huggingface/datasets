@@ -583,6 +583,14 @@ class BaseDatasetTest(TestCase):
                 Features({"filename": Value("string"), "filename_new": Value("string")}),
             )
 
+    def test_map_nested(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dset = Dataset.from_dict({"field": ["a", "b"]})
+            dset = self._to(in_memory, tmp_dir, dset)
+            dset = dset.map(lambda example: {"otherfield": {"capital": example["field"].capitalize()}})
+            dset = dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}})
+            self.assertEqual(dset[0], {"field": "a", "otherfield": {"append_x": "ax"}})
+
     @require_torch
     def test_map_torch(self, in_memory):
         import torch
