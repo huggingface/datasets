@@ -564,7 +564,7 @@ class BaseDatasetTest(TestCase):
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
             del dset, dset_test
 
-        with tempfile.TemporaryDirectory() as tmp_dir:  # lambda (requires pathos)
+        with tempfile.TemporaryDirectory() as tmp_dir:  # lambda (requires multiprocess from pathos)
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             fingerprint = dset._fingerprint
             dset_test = dset.map(lambda x: {"id": int(x["filename"].split("_")[-1])}, num_proc=2)

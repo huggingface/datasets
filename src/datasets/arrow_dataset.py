@@ -35,7 +35,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Un
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-from pathos.multiprocessing import Pool
+from multiprocess import Pool
 from tqdm.auto import tqdm
 
 from .arrow_reader import ArrowReader
