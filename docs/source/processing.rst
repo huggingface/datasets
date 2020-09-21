@@ -283,7 +283,7 @@ In other words, the mapped function should accept an input with the format of a 
 
 Let's take an example with a fast tokenizer of the 🤗transformers library.
 
-Firsst install this library if you haven't already done it:
+First install this library if you haven't already done it:
 
 .. code-block::
 
