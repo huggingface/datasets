@@ -81,7 +81,7 @@ REQUIRED_PKGS = [
     # for fast hashing
     "xxhash",
     # for better multiprocessing
-    "pathos"
+    "multiprocess"
 ]
 
 BENCHMARKS_REQUIRE = [
