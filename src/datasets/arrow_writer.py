@@ -158,7 +158,7 @@ class ArrowWriter(object):
 
         self._path = path
         if stream is None:
-            self.stream = pa.OSFile(self._path, "wb")
+            self.stream = open(self._path, "wb")
         else:
             self.stream = stream
 
