@@ -65,7 +65,6 @@ class Squad(datasets.Metric):
                         "answers": datasets.features.Sequence(
                             {
                                 "text": datasets.Value("string"),
-                                "answer_start": datasets.Value("int32"),
                             }
                         ),
                     },
