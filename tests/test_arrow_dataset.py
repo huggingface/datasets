@@ -494,15 +494,16 @@ class BaseDatasetTest(TestCase):
 
         # formatted
         with tempfile.TemporaryDirectory() as tmp_dir:
-            dset = self._create_dummy_dataset(in_memory, tmp_dir)
-            dset.set_format("numpy")
+            dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
+            dset.set_format("numpy", columns=["col_1"])
 
-            dset_test = dset.map(
-                lambda x: {"name": x["filename"].item()[:-2], "id": int(x["filename"].item().split("_")[-1])}
-            )
-            self.assertEqual(len(dset_test), 30)
+            dset_test = dset.map(lambda x: {"col_1_plus_one": x["col_1"].item() + 1})
+            self.assertEqual(len(dset_test), 4)
             self.assertEqual(dset_test.format["type"], "numpy")
-            self.assertIsInstance(dset_test["id"], np.ndarray)
+            self.assertIsInstance(dset_test["col_1"], np.ndarray)
+            self.assertIsInstance(dset_test["col_1_plus_one"], np.ndarray)
+            self.assertListEqual(sorted(dset_test[0].keys()), ["col_1", "col_1_plus_one"])
+            self.assertListEqual(sorted(dset_test.column_names), ["col_1", "col_1_plus_one", "col_2"])
 
     def test_map_multiprocessing(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
