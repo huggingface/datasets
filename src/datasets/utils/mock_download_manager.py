@@ -79,7 +79,7 @@ class MockDownloadManager(object):
     @property
     def aws_path_to_dummy_data(self):
         if self._bucket_url is None:
-            self._bucket_url = hf_bucket_url(self.dataset_name, filename=self.dummy_zip_file)
+            self._bucket_url = hf_bucket_url(self.dataset_name, filename=self.dummy_zip_file.replace(os.sep, "/"))
         return self._bucket_url
 
     @property
