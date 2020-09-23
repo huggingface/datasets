@@ -831,12 +831,14 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        for key, record in utils.tqdm(
-            generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
-        ):
-            example = self.info.features.encode_example(record)
-            writer.write(example)
-        num_examples, num_bytes = writer.finalize()
+        try:
+            for key, record in utils.tqdm(
+                generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
+            ):
+                example = self.info.features.encode_example(record)
+                writer.write(example)
+        finally:
+            num_examples, num_bytes = writer.finalize()
 
         assert num_examples == num_examples, f"Expected to write {split_info.num_examples} but wrote {num_examples}"
         split_generator.split_info.num_examples = num_examples
