@@ -15,6 +15,7 @@
 
 import glob
 import inspect
+import os
 import tempfile
 
 from absl.testing import parameterized
@@ -32,7 +33,7 @@ def get_aws_metric_names():
 
 
 def get_local_metric_names():
-    metrics = [metric_dir.split("/")[-2] for metric_dir in glob.glob("./metrics/*/")]
+    metrics = [metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./metrics/*/")]
     return [{"testcase_name": x, "metric_name": x} for x in metrics]
 
 
@@ -80,3 +81,4 @@ class LocalMetricTest(parameterized.TestCase):
             self.assertTrue("predictions" in parameters)
             self.assertTrue("references" in parameters)
             self.assertTrue(all([p.kind != p.VAR_KEYWORD for p in parameters.values()]))  # no **kwargs
+            del metric
