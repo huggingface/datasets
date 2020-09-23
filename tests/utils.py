@@ -38,6 +38,34 @@ def require_beam(test_case):
     return test_case
 
 
+def require_faiss(test_case):
+    """
+    Decorator marking a test that requires Apache Beam.
+
+    These tests are skipped when Faiss isn't installed.
+
+    """
+    try:
+        import faiss  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires faiss")(test_case)
+    return test_case
+
+    
+def require_regex(test_case):
+    """
+    Decorator marking a test that requires Apache Beam.
+
+    These tests are skipped when Regex isn't installed.
+
+    """
+    try:
+        import regex  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires regex")(test_case)
+    return test_case
+
+
 def require_torch(test_case):
     """
     Decorator marking a test that requires PyTorch.
