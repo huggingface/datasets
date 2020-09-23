@@ -29,6 +29,7 @@ from functools import partial, wraps
 from math import ceil, floor
 from multiprocessing import Pool, RLock
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -443,7 +444,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         for data_file in self._data_files + self._indices_data_files:
             # Copy file to destination directory
             src = data_file["filename"]
-            filename = src.split("/")[-1]
+            filename = Path(src).name
             dest = os.path.join(dataset_path, filename)
             if src != dest:
                 shutil.copy(src, dest)

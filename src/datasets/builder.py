@@ -173,9 +173,9 @@ class DatasetBuilder:
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
         self._cache_dir = self._build_cache_dir()
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
-        if os.path.exists(self._cache_dir):  # check if data exist
-            with FileLock(lock_path, self._cache_dir):
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
+        with FileLock(lock_path):
+            if os.path.exists(self._cache_dir):  # check if data exist
                 if len(os.listdir(self._cache_dir)) > 0:
                     logger.info("Overwrite dataset info from restored data version.")
                     self.info = DatasetInfo.from_directory(self._cache_dir)
@@ -396,7 +396,7 @@ class DatasetBuilder:
             )
 
         # Prevent parallel disk operations
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
@@ -496,7 +496,7 @@ class DatasetBuilder:
         remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
         for split in self.info.splits:
             for resource_file_name in self._post_processing_resources(split).values():
-                if "/" in resource_file_name:
+                if os.sep in resource_file_name:
                     raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
                 try:
                     resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
@@ -559,7 +559,7 @@ class DatasetBuilder:
     def download_post_processing_resources(self, dl_manager):
         for split in self.info.splits:
             for resource_name, resource_file_name in self._post_processing_resources(split).items():
-                if "/" in resource_file_name:
+                if os.sep in resource_file_name:
                     raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
                 resource_path = os.path.join(self._cache_dir, resource_file_name)
                 if not os.path.exists(resource_path):
@@ -573,12 +573,12 @@ class DatasetBuilder:
                         shutil.move(downloaded_resource_path, resource_path)
 
     def _save_info(self):
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             self.info.write_to_directory(self._cache_dir)
 
     def _save_infos(self):
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
@@ -635,7 +635,7 @@ class DatasetBuilder:
         )
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
-                if "/" in resource_file_name:
+                if os.sep in resource_file_name:
                     raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
             resources_paths = {
                 resource_name: os.path.join(self._cache_dir, resource_file_name)

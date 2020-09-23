@@ -18,6 +18,7 @@
 
 import os
 import urllib.parse
+from pathlib import Path
 
 from .file_utils import cached_path, hf_bucket_url
 from .logging import get_logger
@@ -87,7 +88,7 @@ class MockDownloadManager(object):
         if os.path.isdir(self.dummy_file):
             return self.dummy_file
         # else cut off path to file -> example `xsum`.
-        return "/".join(self.dummy_file.split("/")[:-1])
+        return "/".join(self.dummy_file.replace(os.sep, "/").split("/")[:-1])
 
     # this function has to be in the manager under this name so that testing works
     def download_and_extract(self, data_url, *args):
@@ -127,9 +128,9 @@ class MockDownloadManager(object):
             # we force the name of each key to be the last file / folder name of the url path
             # if the url has arguments, we need to encode them with urllib.parse.quote_plus
             if isinstance(abs_path, list):
-                value = [os.path.join(path_to_dummy_data, urllib.parse.quote_plus(x.split("/")[-1])) for x in abs_path]
+                value = [os.path.join(path_to_dummy_data, urllib.parse.quote_plus(Path(x).name)) for x in abs_path]
             else:
-                value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(abs_path.split("/")[-1]))
+                value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(Path(abs_path).name))
             dummy_data_dict[key] = value
 
         # make sure that values are unique

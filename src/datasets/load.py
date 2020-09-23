@@ -241,7 +241,7 @@ def prepare_module(
     download_config.force_extract = True
 
     module_type = "dataset" if dataset else "metric"
-    name = list(filter(lambda x: x, path.split("/")))[-1]
+    name = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
     if not name.endswith(".py"):
         name = name + ".py"
 
