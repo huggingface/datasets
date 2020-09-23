@@ -219,8 +219,8 @@ class DownloadManager(object):
         Args:
             path_or_paths: path or `list`/`dict` of path of file to extract. Each
                 path is a `str`.
-            num_proc: Use multi-processing if `num_proc` > 1 and the length of 
-                `path_or_paths` is larger than `num_proc` 
+            num_proc: Use multi-processing if `num_proc` > 1 and the length of
+                `path_or_paths` is larger than `num_proc`
 
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input

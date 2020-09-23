@@ -17,18 +17,18 @@
 from __future__ import absolute_import, division, print_function
 
 import os
-from itertools import chain
 import re
+from itertools import chain
 
 import datasets
 
 
 _CITATION = """\
-@misc{Gokaslan2019OpenWeb,  
-	title={OpenWebText Corpus},
-	author={Aaron Gokaslan*, Vanya Cohen*, Ellie Pavlick, Stefanie Tellex},
-	howpublished{\\url{http://Skylion007.github.io/OpenWebTextCorpus}}, 
-	year={2019}
+@misc{Gokaslan2019OpenWeb,
+  title={OpenWebText Corpus},
+  author={Aaron Gokaslan*, Vanya Cohen*, Ellie Pavlick, Stefanie Tellex},
+  howpublished{\\url{http://Skylion007.github.io/OpenWebTextCorpus}},
+  year={2019}
 }
 """
 
@@ -36,9 +36,7 @@ _DESCRIPTION = """\
 An open-source replication of the WebText dataset from OpenAI.
 """
 
-_URL = (
-    "https://zenodo.org/record/3834942/files/openwebtext.tar.xz"
-)
+_URL = "https://zenodo.org/record/3834942/files/openwebtext.tar.xz"
 
 
 class Openwebtext(datasets.GeneratorBasedBuilder):
@@ -62,25 +60,28 @@ class Openwebtext(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(_URL)
-        owt_dir = os.path.join(dl_dir, 'openwebtext')
+        owt_dir = os.path.join(dl_dir, "openwebtext")
         subset_xzs = [
-            os.path.join(owt_dir, file_name) for file_name in sorted(os.listdir(owt_dir)) if file_name.endswith('xz') # filter out ...xz.lock
+            os.path.join(owt_dir, file_name)
+            for file_name in sorted(os.listdir(owt_dir))
+            if file_name.endswith("xz")  # filter out ...xz.lock
         ]
-        ex_dirs = dl_manager.extract(subset_xzs, num_proc=round(os.cpu_count()*0.75))
-        nested_txt_files = [ 
-          [ 
-            os.path.join(ex_dir,txt_file_name) for txt_file_name in sorted(os.listdir(ex_dir)) if txt_file_name.endswith('txt')
-          ] for ex_dir in ex_dirs
+        ex_dirs = dl_manager.extract(subset_xzs, num_proc=round(os.cpu_count() * 0.75))
+        nested_txt_files = [
+            [
+                os.path.join(ex_dir, txt_file_name)
+                for txt_file_name in sorted(os.listdir(ex_dir))
+                if txt_file_name.endswith("txt")
+            ]
+            for ex_dir in ex_dirs
         ]
         txt_files = chain(*nested_txt_files)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"txt_files": txt_files}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"txt_files": txt_files}),
         ]
 
     def _generate_examples(self, txt_files):
         """ Yields examples. """
         for idx, filepath in enumerate(txt_files):
             with open(filepath, encoding="utf-8") as f:
-                yield idx, {"text": re.sub('\n\n\n+', '\n\n', f.read()).strip()}
+                yield idx, {"text": re.sub("\n\n\n+", "\n\n", f.read()).strip()}

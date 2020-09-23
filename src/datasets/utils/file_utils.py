@@ -347,7 +347,7 @@ def cached_path(
                 with gzip.open(output_path, "rb") as gzip_file:
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(gzip_file, extracted_file)
-            elif is_zipfile(output_path): # put zip file to the last, b/c it is possible wrongly detected as zip
+            elif is_zipfile(output_path):  # put zip file to the last, b/c it is possible wrongly detected as zip
                 with ZipFile(output_path, "r") as zip_file:
                     zip_file.extractall(output_path_extracted)
                     zip_file.close()
