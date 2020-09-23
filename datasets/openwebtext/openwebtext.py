@@ -64,12 +64,12 @@ class Openwebtext(datasets.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_URL)
         owt_dir = os.path.join(dl_dir, 'openwebtext')
         subset_xzs = [
-            os.path.join(owt_dir, file_name) for file_name in os.listdir(owt_dir) if file_name.endswith('xz') # filter out ...xz.lock
+            os.path.join(owt_dir, file_name) for file_name in sorted(os.listdir(owt_dir)) if file_name.endswith('xz') # filter out ...xz.lock
         ]
         ex_dirs = dl_manager.extract(subset_xzs, num_proc=round(os.cpu_count()*0.75))
         nested_txt_files = [ 
           [ 
-            os.path.join(ex_dir,txt_file_name) for txt_file_name in os.listdir(ex_dir) if txt_file_name.endswith('txt')
+            os.path.join(ex_dir,txt_file_name) for txt_file_name in sorted(os.listdir(ex_dir)) if txt_file_name.endswith('txt')
           ] for ex_dir in ex_dirs
         ]
         txt_files = chain(*nested_txt_files)
