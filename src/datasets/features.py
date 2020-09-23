@@ -530,7 +530,7 @@ class ClassLabel:
 
     @staticmethod
     def _load_names_from_file(names_filepath):
-        with open(names_filepath, "r") as f:
+        with open(names_filepath, "r", encoding="utf-8") as f:
             return [name.strip() for name in f.read().split("\n") if name.strip()]  # Filter empty names
 
 

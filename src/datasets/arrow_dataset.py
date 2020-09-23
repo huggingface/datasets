@@ -472,9 +472,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             dataset_path (``str``): path of the dataset directory where the dataset will be loaded from
         """
-        with open(os.path.join(dataset_path, "state.json"), "r") as state_file:
+        with open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "r") as dataset_info_file:
+        with open(os.path.join(dataset_path, "dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})

@@ -489,6 +489,6 @@ class DatasetDict(dict):
             dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be loaded from
         """
         dataset_dict = DatasetDict()
-        for k in json.load(open(os.path.join(dataset_dict_path, "dataset_dict.json"), "r"))["splits"]:
+        for k in json.load(open(os.path.join(dataset_dict_path, "dataset_dict.json"), "r", encoding="utf-8"))["splits"]:
             dataset_dict[k] = Dataset.load_from_disk(os.path.join(dataset_dict_path, k))
         return dataset_dict

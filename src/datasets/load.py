@@ -98,7 +98,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     # Get the code from all these files
     lines = []
     for file_path in to_use_files:
-        with open(file_path, mode="r") as f:
+        with open(file_path, mode="r", encoding="utf-8") as f:
             lines.extend(f.readlines())
     filtered_lines = []
     for line in lines:
@@ -159,7 +159,7 @@ def get_imports(file_path: str):
         import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
     """
     lines = []
-    with open(file_path, mode="r") as f:
+    with open(file_path, mode="r", encoding="utf-8") as f:
         lines.extend(f.readlines())
 
     logger.info("Checking %s for additional imports.", file_path)

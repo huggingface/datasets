@@ -194,7 +194,7 @@ class DatasetInfo:
         if not dataset_info_dir:
             raise ValueError("Calling DatasetInfo.from_directory() with undefined dataset_info_dir.")
 
-        with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "r") as f:
+        with open(os.path.join(dataset_info_dir, DATASET_INFO_FILENAME), "r", encoding="utf-8") as f:
             dataset_info_dict = json.load(f)
         return cls.from_dict(dataset_info_dict)
 
@@ -233,7 +233,7 @@ class DatasetInfosDict(dict):
     @classmethod
     def from_directory(cls, dataset_infos_dir):
         logger.info("Loading Dataset Infos from {}".format(dataset_infos_dir))
-        with open(os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME), "r") as f:
+        with open(os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME), "r", encoding="utf-8") as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()
@@ -300,7 +300,7 @@ class MetricInfo:
         if not metric_info_dir:
             raise ValueError("Calling MetricInfo.from_directory() with undefined metric_info_dir.")
 
-        with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "r") as f:
+        with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "r", encoding="utf-8") as f:
             metric_info_dict = json.load(f)
         return cls.from_dict(metric_info_dict)
 
