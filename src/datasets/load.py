@@ -419,7 +419,7 @@ def prepare_module(
             logger.info(f"Creating metadata file for {module_type} {file_path} at {meta_path}")
             meta = {"original file path": file_path, "local file path": local_file_path}
             # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
-            with open(meta_path, "w") as meta_file:
+            with open(meta_path, "w", encoding="utf-8") as meta_file:
                 json.dump(meta, meta_file)
         else:
             logger.info(f"Found metadata file for {module_type} {file_path} at {meta_path}")

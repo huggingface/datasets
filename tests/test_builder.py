@@ -418,10 +418,10 @@ class BuilderTest(TestCase):
     def test_cache_dir_for_data_files(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_data1 = os.path.join(tmp_dir, "dummy_data1.txt")
-            with open(dummy_data1, "w") as f:
+            with open(dummy_data1, "w", encoding="utf-8") as f:
                 f.writelines("foo bar")
             dummy_data2 = os.path.join(tmp_dir, "dummy_data2.txt")
-            with open(dummy_data2, "w") as f:
+            with open(dummy_data2, "w", encoding="utf-8") as f:
                 f.writelines("foo bar\n")
 
             dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_files=dummy_data1)

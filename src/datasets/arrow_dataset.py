@@ -459,9 +459,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
         ), "in-place history needs to be empty"
         # Serialize state
-        with open(os.path.join(dataset_path, "state.json"), "w") as state_file:
+        with open(os.path.join(dataset_path, "state.json"), "w", encoding="utf-8") as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "w") as dataset_info_file:
+        with open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
 

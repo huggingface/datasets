@@ -476,7 +476,7 @@ class DatasetDict(dict):
             dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be saved to
         """
         os.makedirs(dataset_dict_path, exist_ok=True)
-        json.dump({"splits": list(self)}, open(os.path.join(dataset_dict_path, "dataset_dict.json"), "w"))
+        json.dump({"splits": list(self)}, open(os.path.join(dataset_dict_path, "dataset_dict.json"), "w", encoding="utf-8"))
         for k, dataset in self.items():
             dataset.save_to_disk(os.path.join(dataset_dict_path, k))
 

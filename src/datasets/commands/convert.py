@@ -174,7 +174,7 @@ class ConvertCommand(BaseTransformersCLICommand):
             if needs_manual_update:
                 with_manual_update.append(output_file)
 
-            with open(output_file, "w") as f:
+            with open(output_file, "w", encoding="utf-8") as f:
                 f.writelines(out_lines)
             self._logger.info("Converted in %s", output_file)
 

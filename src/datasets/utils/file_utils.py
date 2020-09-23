@@ -517,7 +517,7 @@ def get_from_cache(
         logger.info("creating metadata file for %s", cache_path)
         meta = {"url": url, "etag": etag}
         meta_path = cache_path + ".json"
-        with open(meta_path, "w") as meta_file:
+        with open(meta_path, "w", encoding="utf-8") as meta_file:
             json.dump(meta, meta_file)
 
     return cache_path

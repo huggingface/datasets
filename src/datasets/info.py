@@ -227,7 +227,7 @@ class DatasetInfosDict(dict):
         else:
             logger.info("Writing new Dataset Infos in {}".format(dataset_infos_dir))
         total_dataset_infos.update(self)
-        with open(dataset_infos_path, "w") as f:
+        with open(dataset_infos_path, "w", encoding="utf-8") as f:
             json.dump({config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()}, f)
 
     @classmethod
@@ -282,10 +282,10 @@ class MetricInfo:
         """Write `MetricInfo` as JSON to `metric_info_dir`.
         Also save the license separately in LICENCE.
         """
-        with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "w") as f:
+        with open(os.path.join(metric_info_dir, METRIC_INFO_FILENAME), "w", encoding="utf-8") as f:
             json.dump(asdict(self), f)
 
-        with open(os.path.join(metric_info_dir, LICENSE_FILENAME), "w") as f:
+        with open(os.path.join(metric_info_dir, LICENSE_FILENAME), "w", encoding="utf-8") as f:
             f.write(self.license)
 
     @classmethod
