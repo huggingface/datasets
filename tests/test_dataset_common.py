@@ -154,10 +154,11 @@ class DatasetTester(object):
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.parent.assertTrue(len(dataset[split]) > 0)
+                del dataset
 
 
 def get_local_dataset_names():
-    datasets = [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
+    datasets = [dataset_dir.split(os.sep)[-2] for dataset_dir in glob.glob("./datasets/*/")]
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
@@ -204,6 +205,7 @@ class LocalDatasetTest(parameterized.TestCase):
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+            del dataset
 
     @slow
     def test_load_real_dataset_all_configs(self, dataset_name):
@@ -220,6 +222,7 @@ class LocalDatasetTest(parameterized.TestCase):
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
+                del dataset
 
 
 def distributed_load_dataset(args):
@@ -245,8 +248,13 @@ class DistributedDatasetTest(TestCase):
             args = data_name, tmp_dir, datafiles
             with Pool(processes=num_workers) as pool:  # start num_workers processes
                 result = pool.apply_async(distributed_load_dataset, (args,))
-                _ = result.get(timeout=20)
-                _ = pool.map(distributed_load_dataset, [args] * num_workers)
+                dataset = result.get(timeout=20)
+                for k in dataset:
+                    del dataset[k]._data
+                datasets = pool.map(distributed_load_dataset, [args] * num_workers)
+                for dataset in datasets:
+                    for k in dataset:
+                        del dataset[k]._data
 
 
 def get_aws_dataset_names():
@@ -308,6 +316,7 @@ class AWSDatasetTest(parameterized.TestCase):
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+            del dataset
 
     @slow
     def test_load_real_dataset_all_configs(self, dataset_name):
@@ -324,26 +333,30 @@ class AWSDatasetTest(parameterized.TestCase):
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
+                del dataset
 
 
 class TextTest(TestCase):
     def test_caching(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("foo" for _ in range(10)))
+            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write("\n".join("foo" for _ in range(10)))
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             data_file = ds._data_files[0]
             fingerprint = ds._fingerprint
+            del ds
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             self.assertEqual(ds._data_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
+            del ds
 
-            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("bar" for _ in range(10)))
+            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write("\n".join("bar" for _ in range(10)))
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
+            del ds
