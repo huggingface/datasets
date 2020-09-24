@@ -1031,7 +1031,7 @@ class BaseDatasetTest(TestCase):
                 self.assertEqual(ex.keys(), formatted_dset[i].keys())
             # Test for equal number of elements
             self.assertEqual(i, len(formatted_dset) - 1)
-            del dset, formatted_dset._data
+            del dset, formatted_dset
 
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:

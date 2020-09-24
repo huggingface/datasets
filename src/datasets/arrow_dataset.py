@@ -2259,6 +2259,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(f"Writing TFRecord to {filename}")
         writer.write(tf_dataset)
         logger.info(f"Finished writing TFRecord to {filename}")
+        self = None  # delete the dataset reference used by tf_dataset
 
     def add_faiss_index(
         self,
