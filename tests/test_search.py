@@ -3,20 +3,23 @@ from functools import partial
 from unittest import TestCase
 from unittest.mock import patch
 
-import faiss
 import numpy as np
-from elasticsearch import Elasticsearch
 
 from datasets.arrow_dataset import Dataset
 from datasets.search import ElasticSearchIndex, FaissIndex, MissingIndex
 
+from .utils import require_faiss, require_elasticsearch
 
+
+@require_faiss
 class IndexableDatasetTest(TestCase):
     def _create_dummy_dataset(self):
         dset = Dataset.from_dict({"filename": ["my_name-train" + "_" + str(x) for x in np.arange(30).tolist()]})
         return dset
 
     def test_add_faiss_index(self):
+        import faiss
+
         dset: Dataset = self._create_dummy_dataset()
         dset = dset.map(
             lambda ex, i: {"vecs": i * np.ones(5, dtype=np.float32)}, with_indices=True, keep_in_memory=True
@@ -27,6 +30,8 @@ class IndexableDatasetTest(TestCase):
         dset.drop_index("vecs")
 
     def test_add_faiss_index_from_external_arrays(self):
+        import faiss
+
         dset: Dataset = self._create_dummy_dataset()
         dset.add_faiss_index_from_external_arrays(
             external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1),
@@ -37,6 +42,8 @@ class IndexableDatasetTest(TestCase):
         self.assertEqual(examples["filename"][0], "my_name-train_29")
 
     def test_serialization(self):
+        import faiss
+
         dset: Dataset = self._create_dummy_dataset()
         dset.add_faiss_index_from_external_arrays(
             external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1),
@@ -58,6 +65,8 @@ class IndexableDatasetTest(TestCase):
         self.assertRaises(MissingIndex, partial(dset.get_nearest_examples, "vecs2", np.ones(5, dtype=np.float32)))
 
     def test_add_elasticsearch_index(self):
+        from elasticsearch import Elasticsearch
+
         dset: Dataset = self._create_dummy_dataset()
         with patch("elasticsearch.Elasticsearch.search") as mocked_search, patch(
             "elasticsearch.client.IndicesClient.create"
@@ -72,8 +81,11 @@ class IndexableDatasetTest(TestCase):
             self.assertEqual(examples["filename"][0], "my_name-train_29")
 
 
+@require_faiss
 class FaissIndexTest(TestCase):
     def test_flat_ip(self):
+        import faiss
+
         index = FaissIndex(metric_type=faiss.METRIC_INNER_PRODUCT)
 
         # add vectors
@@ -99,6 +111,8 @@ class FaissIndexTest(TestCase):
         self.assertListEqual([4, 3, 2, 1, 0], best_indices)
 
     def test_factory(self):
+        import faiss
+
         index = FaissIndex(string_factory="Flat")
         index.add_vectors(np.eye(5, dtype=np.float32))
         self.assertIsInstance(index.faiss_index, faiss.IndexFlat)
@@ -107,12 +121,16 @@ class FaissIndexTest(TestCase):
         self.assertIsInstance(index.faiss_index, faiss.IndexLSH)
 
     def test_custom(self):
+        import faiss
+
         custom_index = faiss.IndexFlat(5)
         index = FaissIndex(custom_index=custom_index)
         index.add_vectors(np.eye(5, dtype=np.float32))
         self.assertIsInstance(index.faiss_index, faiss.IndexFlat)
 
     def test_serialization(self):
+        import faiss
+
         index = FaissIndex(metric_type=faiss.METRIC_INNER_PRODUCT)
         index.add_vectors(np.eye(5, dtype=np.float32))
         with tempfile.NamedTemporaryFile() as tmp_file:
@@ -125,8 +143,11 @@ class FaissIndexTest(TestCase):
         self.assertEqual(indices[0], 1)
 
 
+@require_elasticsearch
 class ElasticSearchIndexTest(TestCase):
     def test_elasticsearch(self):
+        from elasticsearch import Elasticsearch
+
         with patch("elasticsearch.Elasticsearch.search") as mocked_search, patch(
             "elasticsearch.client.IndicesClient.create"
         ) as mocked_index_create, patch("elasticsearch.helpers.streaming_bulk") as mocked_bulk:

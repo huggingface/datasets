@@ -40,7 +40,7 @@ def require_beam(test_case):
 
 def require_faiss(test_case):
     """
-    Decorator marking a test that requires Apache Beam.
+    Decorator marking a test that requires Faiss.
 
     These tests are skipped when Faiss isn't installed.
 
@@ -51,10 +51,10 @@ def require_faiss(test_case):
         test_case = unittest.skip("test requires faiss")(test_case)
     return test_case
 
-    
+
 def require_regex(test_case):
     """
-    Decorator marking a test that requires Apache Beam.
+    Decorator marking a test that requires regex.
 
     These tests are skipped when Regex isn't installed.
 
@@ -63,6 +63,20 @@ def require_regex(test_case):
         import regex  # noqa
     except ImportError:
         test_case = unittest.skip("test requires regex")(test_case)
+    return test_case
+
+
+def require_elasticsearch(test_case):
+    """
+    Decorator marking a test that requires ElasticSearch.
+
+    These tests are skipped when ElasticSearch isn't installed.
+
+    """
+    try:
+        import elasticsearch  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires elasticsearch")(test_case)
     return test_case
 
 
@@ -140,3 +154,14 @@ def aws(test_case):
     if not _run_aws_tests or _run_aws_tests == 0:
         test_case = unittest.skip("test requires aws")(test_case)
     return test_case
+
+
+def for_all_test_methods(*decorators):
+    def decorate(cls):
+        for name, fn in cls.__dict__.items():
+            if callable(fn) and name.startswith("test"):
+                for decorator in decorators:
+                    fn = decorator(fn)
+                setattr(cls, name, fn)
+        return cls
+    return decorate
