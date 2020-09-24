@@ -1000,7 +1000,7 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             # Export the data
             tfrecord_path = os.path.join(tmp_dir, "test.tfrecord")
-            dset = dset.map(
+            formatted_dset = dset.map(
                 lambda ex, i: {
                     "id": i,
                     "question": f"Question {i}",
@@ -1009,9 +1009,9 @@ class BaseDatasetTest(TestCase):
                 with_indices=True,
                 remove_columns=["filename"],
             )
-            dset.flatten_()
-            dset.set_format("numpy")
-            dset.export(filename=tfrecord_path, format="tfrecord")
+            formatted_dset.flatten_()
+            formatted_dset.set_format("numpy")
+            formatted_dset.export(filename=tfrecord_path, format="tfrecord")
 
             # Import the data
             import tensorflow as tf
@@ -1028,10 +1028,10 @@ class BaseDatasetTest(TestCase):
             )
             # Test that keys match original dataset
             for i, ex in enumerate(tf_parsed_dset):
-                self.assertEqual(ex.keys(), dset[i].keys())
+                self.assertEqual(ex.keys(), formatted_dset[i].keys())
             # Test for equal number of elements
-            self.assertEqual(i, len(dset) - 1)
-            del dset
+            self.assertEqual(i, len(formatted_dset) - 1)
+            del dset, formatted_dset._data
 
     def test_train_test_split(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -1167,6 +1167,7 @@ class BaseDatasetTest(TestCase):
             del dset
 
     @require_tf
+    @require_torch
     def test_format_vectors(self, in_memory):
         import numpy as np
         import tensorflow as tf
@@ -1218,6 +1219,7 @@ class BaseDatasetTest(TestCase):
             del dset
 
     @require_tf
+    @require_torch
     def test_format_ragged_vectors(self, in_memory):
         import numpy as np
         import tensorflow as tf
@@ -1272,6 +1274,7 @@ class BaseDatasetTest(TestCase):
             del dset
 
     @require_tf
+    @require_torch
     def test_format_nested(self, in_memory):
         import numpy as np
         import tensorflow as tf

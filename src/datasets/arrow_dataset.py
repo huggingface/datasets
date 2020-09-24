@@ -2214,7 +2214,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if isinstance(values, np.ndarray):
                 if values.dtype == np.dtype(float):
                     return _float_feature(values)
-                elif values.dtype == np.dtype(int):
+                elif values.dtype == np.int64:
                     return _int64_feature(values)
                 elif values.dtype == np.dtype(str) or (
                     values.dtype == np.dtype(object) and len(values) > 0 and isinstance(values[0], str)
