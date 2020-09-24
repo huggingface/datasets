@@ -301,7 +301,7 @@ class BuilderTest(TestCase):
             self.assertDictEqual(dset.features, Features({"text": Value("string")}))
             self.assertListEqual(dset.column_names, ["text"])
             self.assertListEqual(dset.list_indexes(), ["my_index"])
-            del dset._data
+            del dset
 
     def test_download_and_prepare_with_post_process(self):
         def _post_process(self, dataset, resources_paths):

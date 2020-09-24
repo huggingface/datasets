@@ -284,12 +284,9 @@ class DistributedDatasetTest(TestCase):
             with Pool(processes=num_workers) as pool:  # start num_workers processes
                 result = pool.apply_async(distributed_load_dataset, (args,))
                 dataset = result.get(timeout=20)
-                for k in dataset:
-                    del dataset[k]._data
+                del dataset
                 datasets = pool.map(distributed_load_dataset, [args] * num_workers)
-                for dataset in datasets:
-                    for k in dataset:
-                        del dataset[k]._data
+                del datasets
 
 
 def get_aws_dataset_names():
