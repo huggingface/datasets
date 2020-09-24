@@ -242,10 +242,10 @@ class BaseReader:
                 the `datasets` directory on GCS.
 
         """
-        remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
+        remote_cache_dir = HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
         try:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
-            downloaded_dataset_info = cached_path(remote_dataset_info)
+            downloaded_dataset_info = cached_path(remote_dataset_info.replace(os.sep, "/"))
             shutil.move(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
             if self._info is not None:
                 self._info.update(self._info.from_directory(cache_dir))
@@ -260,7 +260,7 @@ class BaseReader:
                 )
                 for file_instruction in file_instructions:
                     remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
-                    downloaded_prepared_filename = cached_path(remote_prepared_filename)
+                    downloaded_prepared_filename = cached_path(remote_prepared_filename.replace(os.sep, "/"))
                     shutil.move(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
         except FileNotFoundError:
             raise MissingFilesOnHfGcs()

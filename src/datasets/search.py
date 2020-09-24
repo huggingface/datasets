@@ -213,9 +213,8 @@ class FaissIndex(BaseIndex):
         self.string_factory = string_factory
         self.metric_type = metric_type
         self.faiss_index = custom_index
-        assert (
-            _has_faiss
-        ), "You must install Faiss to use FaissIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`"
+        if not _has_faiss:
+            raise ImportError("You must install Faiss to use FaissIndex. To do so you can run `pip install faiss-cpu` or `pip install faiss-gpu`")
 
     def add_vectors(
         self,

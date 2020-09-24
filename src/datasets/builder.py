@@ -493,13 +493,13 @@ class DatasetBuilder:
         downloaded_info = DatasetInfo.from_directory(self._cache_dir)
         self.info.update(downloaded_info)
         # download post processing resources
-        remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
+        remote_cache_dir = HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
         for split in self.info.splits:
             for resource_file_name in self._post_processing_resources(split).values():
                 if os.sep in resource_file_name:
                     raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
                 try:
-                    resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
+                    resource_path = utils.cached_path(remote_cache_dir + "/" + resource_file_name)
                     shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
                 except ConnectionError:
                     logger.info(
