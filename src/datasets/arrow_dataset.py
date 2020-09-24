@@ -375,6 +375,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
+    def __del__(self):
+        if hasattr(self, "_data"):
+            del self._data
+        if hasattr(self, "_indices"):
+            del self._indices
+
     def __getstate__(self):
         state = dict(self.__dict__)
         state["_info"] = json.dumps(asdict(state["_info"]))

@@ -398,6 +398,10 @@ class Metric(MetricInfoMixin):
                 # Release locks and delete all the cache files
                 for filelock, file_path in zip(self.filelocks, self.file_paths):
                     logger.info(f"Removing {file_path}")
+                    del self.data
+                    self.data = None
+                    del self.writer
+                    self.writer = None
                     os.remove(file_path)
                     filelock.release()
 
@@ -528,3 +532,9 @@ class Metric(MetricInfoMixin):
     def _compute(self, *, predictions=None, references=None, **kwargs) -> Dict[str, Any]:
         """ This method defines the common API for all the metrics in the library """
         raise NotImplementedError
+
+    def __del__(self):
+        if hasattr(self, "data"):
+            del self.data
+        if hasattr(self, "writer"):
+            del self.writer
