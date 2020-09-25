@@ -164,4 +164,5 @@ def for_all_test_methods(*decorators):
                     fn = decorator(fn)
                 setattr(cls, name, fn)
         return cls
+
     return decorate

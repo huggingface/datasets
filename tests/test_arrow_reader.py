@@ -1,7 +1,7 @@
 import os
 import tempfile
-from unittest import TestCase
 from pathlib import Path
+from unittest import TestCase
 
 import pyarrow as pa
 

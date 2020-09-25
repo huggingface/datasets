@@ -2,10 +2,9 @@ from hashlib import md5
 from types import CodeType, FunctionType
 from unittest import TestCase
 
-
 import datasets
 
-from .utils import require_transformers, require_regex
+from .utils import require_regex, require_transformers
 
 
 class Foo:

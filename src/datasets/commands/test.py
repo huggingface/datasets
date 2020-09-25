@@ -1,8 +1,8 @@
 import os
 from argparse import ArgumentParser
+from pathlib import Path
 from shutil import copyfile
 from typing import List
-from pathlib import Path
 
 from datasets.builder import FORCE_REDOWNLOAD, REUSE_CACHE_IF_EXISTS, DatasetBuilder
 from datasets.commands import BaseTransformersCLICommand

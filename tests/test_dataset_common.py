@@ -16,10 +16,10 @@
 import glob
 import os
 import tempfile
+import warnings
+from functools import wraps
 from multiprocessing import Pool
 from unittest import TestCase
-from functools import wraps
-import warnings
 
 import requests
 from absl.testing import parameterized
@@ -40,7 +40,7 @@ from datasets import (
 )
 from datasets.search import _has_faiss
 
-from .utils import aws, local, slow, for_all_test_methods
+from .utils import aws, for_all_test_methods, local, slow
 
 
 logger = logging.get_logger(__name__)
@@ -56,11 +56,13 @@ def skip_if_dataset_requires_faiss(test_case):
             self.skipTest('"test requires Faiss"')
         else:
             test_case(self, dataset_name)
+
     return wrapper
 
 
 def skip_if_not_compatible_with_windows(test_case):
     if os.name == "nt":  # windows
+
         @wraps(test_case)
         def wrapper(self, dataset_name):
             try:
@@ -71,13 +73,13 @@ def skip_if_not_compatible_with_windows(test_case):
                     self.skipTest('"test not compatible with windows ([WinError 206] error)"')
                 else:
                     raise
+
         return wrapper
     else:
         return test_case
 
 
 class DatasetTester(object):
-
     def __init__(self, parent):
         self.parent = parent if parent is not None else TestCase()
 

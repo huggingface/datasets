@@ -8,7 +8,7 @@ import numpy as np
 from datasets.arrow_dataset import Dataset
 from datasets.search import ElasticSearchIndex, FaissIndex, MissingIndex
 
-from .utils import require_faiss, require_elasticsearch
+from .utils import require_elasticsearch, require_faiss
 
 
 @require_faiss

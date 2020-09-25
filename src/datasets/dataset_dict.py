@@ -476,7 +476,9 @@ class DatasetDict(dict):
             dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be saved to
         """
         os.makedirs(dataset_dict_path, exist_ok=True)
-        json.dump({"splits": list(self)}, open(os.path.join(dataset_dict_path, "dataset_dict.json"), "w", encoding="utf-8"))
+        json.dump(
+            {"splits": list(self)}, open(os.path.join(dataset_dict_path, "dataset_dict.json"), "w", encoding="utf-8")
+        )
         for k, dataset in self.items():
             dataset.save_to_disk(os.path.join(dataset_dict_path, k))
 
@@ -489,6 +491,8 @@ class DatasetDict(dict):
             dataset_dict_path (``str``): path of the dataset dict directory where the dataset dict will be loaded from
         """
         dataset_dict = DatasetDict()
-        for k in json.load(open(os.path.join(dataset_dict_path, "dataset_dict.json"), "r", encoding="utf-8"))["splits"]:
+        for k in json.load(open(os.path.join(dataset_dict_path, "dataset_dict.json"), "r", encoding="utf-8"))[
+            "splits"
+        ]:
             dataset_dict[k] = Dataset.load_from_disk(os.path.join(dataset_dict_path, k))
         return dataset_dict

@@ -71,13 +71,13 @@ class BaseDatasetTest(TestCase):
 
     def test_dummy_dataset(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            
+
             dset = self._create_dummy_dataset(in_memory, tmp_dir)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertEqual(dset[0]["filename"], "my_name-train_0")
             self.assertEqual(dset["filename"][0], "my_name-train_0")
             del dset
-            
+
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             self.assertDictEqual(dset.features, Features({"col_1": Value("int64"), "col_2": Value("string")}))
             self.assertEqual(dset[0]["col_1"], 3)
@@ -1130,7 +1130,10 @@ class BaseDatasetTest(TestCase):
             # Test lengths of sharded contiguous
             self.assertEqual(
                 [4, 3, 3],
-                [len(dset.shard(3, index=i, contiguous=True, indices_cache_file_name=tmp_file_2 + str(i))) for i in range(3)],
+                [
+                    len(dset.shard(3, index=i, contiguous=True, indices_cache_file_name=tmp_file_2 + str(i)))
+                    for i in range(3)
+                ],
             )
             # formatted
             dset.set_format("numpy")
