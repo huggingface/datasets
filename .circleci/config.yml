@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
     run_dataset_script_tests_pyarrow_0p17:
         working_directory: ~/datasets
