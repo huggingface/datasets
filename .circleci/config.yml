@@ -1,4 +1,8 @@
 version: 2.1
+
+orbs:
+    win: circleci/windows@2.2.0
+
 jobs:
     run_dataset_script_tests_pyarrow_0p17:
         working_directory: ~/datasets
