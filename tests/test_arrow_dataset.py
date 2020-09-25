@@ -577,6 +577,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_test._data_files), 0 if in_memory else 2)
             self.assertListEqual(dset_test["id"], list(range(30)))
             self.assertNotEqual(dset_test._fingerprint, fingerprint)
+            del dset, dset_test
 
     def test_new_features(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
