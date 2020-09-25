@@ -30,6 +30,24 @@ jobs:
             - run: pip install pyarrow==1.0.0
             - run: HF_SCRIPTS_VERSION=master python -m pytest -sv ./tests/
 
+
+    run_dataset_script_tests_pyarrow_0p17_WIN:
+        working_directory: ~/datasets
+        executor:
+            name: win/default
+            shell: powershell
+        steps:
+            - checkout
+            - run: conda install python=3.6 --yes
+            - run: conda install pytorch --yes
+            - run: pip install virtualenv
+            - run: python -m virtualenv venv --system-site-packages
+            - run: "& venv/Scripts/activate.ps1"
+            - run: pip install .[tests]
+            - run: pip install pyarrow==0.17.1
+            - run: $env:HF_SCRIPTS_VERSION="master"
+            - run: python -m pytest -sv ./tests/
+
     run_dataset_script_tests_pyarrow_1_WIN:
         working_directory: ~/datasets
         executor:
@@ -59,6 +77,7 @@ jobs:
             - run: black --check --line-length 119 --target-version py36 tests src benchmarks datasets metrics
             - run: isort --check-only tests src benchmarks datasets metrics
             - run: flake8 tests src benchmarks datasets metrics
+
     build_doc:
         working_directory: ~/datasets
         docker:
@@ -69,6 +88,7 @@ jobs:
             - run: cd docs && make html SPHINXOPTS="-W"
             - store_artifacts:
                   path: ./docs/_build
+
     deploy_doc:
         working_directory: ~/datasets
         docker:
@@ -92,8 +112,9 @@ workflows:
     build_and_test:
         jobs:
             - check_code_quality
-            # - run_dataset_script_tests_pyarrow_0p17
-            # - run_dataset_script_tests_pyarrow_1
+            - run_dataset_script_tests_pyarrow_0p17
+            - run_dataset_script_tests_pyarrow_1
+            - run_dataset_script_tests_pyarrow_0p17_WIN
             - run_dataset_script_tests_pyarrow_1_WIN
-            # - build_doc
-            # - deploy_doc: *workflow_filters
+            - build_doc
+            - deploy_doc: *workflow_filters
