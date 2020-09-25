@@ -38,7 +38,7 @@ jobs:
         steps:
             - checkout
             - run: conda install python=3.6 --yes
-            - run: conda install pytorch tensorflow>=2.2.0 --yes
+            - run: conda install pytorch --yes
             - run: pip install virtualenv
             - run: python -m virtualenv venv --system-site-packages
             - run: "& venv/Scripts/activate.ps1"
