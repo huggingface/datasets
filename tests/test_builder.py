@@ -13,6 +13,8 @@ from datasets.features import Features, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
 from datasets.splits import Split, SplitDict, SplitGenerator, SplitInfo
 
+from .utils import require_faiss
+
 
 class DummyBuilder(DatasetBuilder):
     def _info(self):
@@ -69,6 +71,7 @@ class BuilderTest(TestCase):
             self.assertDictEqual(dsets["test"].features, Features({"text": Value("string")}))
             self.assertListEqual(dsets["train"].column_names, ["text"])
             self.assertListEqual(dsets["test"].column_names, ["text"])
+            del dsets
 
             dset = dummy_builder.as_dataset("train")
             self.assertIsInstance(dset, Dataset)
@@ -76,6 +79,7 @@ class BuilderTest(TestCase):
             self.assertEqual(len(dset), 10)
             self.assertDictEqual(dset.features, Features({"text": Value("string")}))
             self.assertListEqual(dset.column_names, ["text"])
+            del dset
 
             dset = dummy_builder.as_dataset("train+test[:30%]")
             self.assertIsInstance(dset, Dataset)
@@ -83,6 +87,7 @@ class BuilderTest(TestCase):
             self.assertEqual(len(dset), 13)
             self.assertDictEqual(dset.features, Features({"text": Value("string")}))
             self.assertListEqual(dset.column_names, ["text"])
+            del dset
 
     def test_download_and_prepare(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -148,6 +153,7 @@ class BuilderTest(TestCase):
             )
             self.assertListEqual(dsets["train"].column_names, ["text", "tokens"])
             self.assertListEqual(dsets["test"].column_names, ["text", "tokens"])
+            del dsets
 
             dset = dummy_builder.as_dataset("train")
             self.assertIsInstance(dset, Dataset)
@@ -159,6 +165,7 @@ class BuilderTest(TestCase):
             self.assertGreater(
                 dummy_builder.info.post_processed.resources_checksums["train"]["tokenized_dataset"]["num_bytes"], 0
             )
+            del dset
 
             dset = dummy_builder.as_dataset("train+test[:30%]")
             self.assertIsInstance(dset, Dataset)
@@ -166,6 +173,7 @@ class BuilderTest(TestCase):
             self.assertEqual(len(dset), 13)
             self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
             self.assertListEqual(dset.column_names, ["text", "tokens"])
+            del dset
 
         def _post_process(self, dataset, resources_paths):
             return dataset.select([0, 1], keep_in_memory=True)
@@ -203,6 +211,7 @@ class BuilderTest(TestCase):
             self.assertDictEqual(dsets["test"].features, Features({"text": Value("string")}))
             self.assertListEqual(dsets["train"].column_names, ["text"])
             self.assertListEqual(dsets["test"].column_names, ["text"])
+            del dsets
 
             dset = dummy_builder.as_dataset("train")
             self.assertIsInstance(dset, Dataset)
@@ -210,6 +219,7 @@ class BuilderTest(TestCase):
             self.assertEqual(len(dset), 2)
             self.assertDictEqual(dset.features, Features({"text": Value("string")}))
             self.assertListEqual(dset.column_names, ["text"])
+            del dset
 
             dset = dummy_builder.as_dataset("train+test[:30%]")
             self.assertIsInstance(dset, Dataset)
@@ -217,7 +227,10 @@ class BuilderTest(TestCase):
             self.assertEqual(len(dset), 2)
             self.assertDictEqual(dset.features, Features({"text": Value("string")}))
             self.assertListEqual(dset.column_names, ["text"])
+            del dset
 
+    @require_faiss
+    def test_as_dataset_with_post_process_with_index(self):
         def _post_process(self, dataset, resources_paths):
             if os.path.exists(resources_paths["index"]):
                 dataset.load_faiss_index("my_index", resources_paths["index"])
@@ -270,6 +283,7 @@ class BuilderTest(TestCase):
             self.assertListEqual(dsets["test"].list_indexes(), ["my_index"])
             self.assertGreater(dummy_builder.info.post_processing_size, 0)
             self.assertGreater(dummy_builder.info.post_processed.resources_checksums["train"]["index"]["num_bytes"], 0)
+            del dsets
 
             dset = dummy_builder.as_dataset("train")
             self.assertIsInstance(dset, Dataset)
@@ -278,6 +292,7 @@ class BuilderTest(TestCase):
             self.assertDictEqual(dset.features, Features({"text": Value("string")}))
             self.assertListEqual(dset.column_names, ["text"])
             self.assertListEqual(dset.list_indexes(), ["my_index"])
+            del dset
 
             dset = dummy_builder.as_dataset("train+test[:30%]")
             self.assertIsInstance(dset, Dataset)
@@ -286,6 +301,7 @@ class BuilderTest(TestCase):
             self.assertDictEqual(dset.features, Features({"text": Value("string")}))
             self.assertListEqual(dset.column_names, ["text"])
             self.assertListEqual(dset.list_indexes(), ["my_index"])
+            del dset
 
     def test_download_and_prepare_with_post_process(self):
         def _post_process(self, dataset, resources_paths):
@@ -402,10 +418,10 @@ class BuilderTest(TestCase):
     def test_cache_dir_for_data_files(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dummy_data1 = os.path.join(tmp_dir, "dummy_data1.txt")
-            with open(dummy_data1, "w") as f:
+            with open(dummy_data1, "w", encoding="utf-8") as f:
                 f.writelines("foo bar")
             dummy_data2 = os.path.join(tmp_dir, "dummy_data2.txt")
-            with open(dummy_data2, "w") as f:
+            with open(dummy_data2, "w", encoding="utf-8") as f:
                 f.writelines("foo bar\n")
 
             dummy_builder = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy", data_files=dummy_data1)

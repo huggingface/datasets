@@ -16,6 +16,8 @@
 import glob
 import os
 import tempfile
+import warnings
+from functools import wraps
 from multiprocessing import Pool
 from unittest import TestCase
 
@@ -36,11 +38,45 @@ from datasets import (
     logging,
     prepare_module,
 )
+from datasets.search import _has_faiss
 
-from .utils import aws, local, slow
+from .utils import aws, for_all_test_methods, local, slow
 
 
 logger = logging.get_logger(__name__)
+
+
+REQUIRE_FAISS = {"wiki_dpr"}
+
+
+def skip_if_dataset_requires_faiss(test_case):
+    @wraps(test_case)
+    def wrapper(self, dataset_name):
+        if not _has_faiss and dataset_name in REQUIRE_FAISS:
+            self.skipTest('"test requires Faiss"')
+        else:
+            test_case(self, dataset_name)
+
+    return wrapper
+
+
+def skip_if_not_compatible_with_windows(test_case):
+    if os.name == "nt":  # windows
+
+        @wraps(test_case)
+        def wrapper(self, dataset_name):
+            try:
+                test_case(self, dataset_name)
+            except FileNotFoundError as e:
+                if "[WinError 206]" in str(e):  # if there's a path that exceeds windows' 256 characters limit
+                    warnings.warn("test not compatible with windows ([WinError 206] error)")
+                    self.skipTest('"test not compatible with windows ([WinError 206] error)"')
+                else:
+                    raise
+
+        return wrapper
+    else:
+        return test_case
 
 
 class DatasetTester(object):
@@ -154,14 +190,16 @@ class DatasetTester(object):
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.parent.assertTrue(len(dataset[split]) > 0)
+                del dataset
 
 
 def get_local_dataset_names():
-    datasets = [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
+    datasets = [dataset_dir.split(os.sep)[-2] for dataset_dir in glob.glob("./datasets/*/")]
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
 @parameterized.named_parameters(get_local_dataset_names())
+@for_all_test_methods(skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows)
 @local
 class LocalDatasetTest(parameterized.TestCase):
     dataset_name = None
@@ -204,6 +242,7 @@ class LocalDatasetTest(parameterized.TestCase):
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+            del dataset
 
     @slow
     def test_load_real_dataset_all_configs(self, dataset_name):
@@ -220,6 +259,7 @@ class LocalDatasetTest(parameterized.TestCase):
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
+                del dataset
 
 
 def distributed_load_dataset(args):
@@ -245,8 +285,12 @@ class DistributedDatasetTest(TestCase):
             args = data_name, tmp_dir, datafiles
             with Pool(processes=num_workers) as pool:  # start num_workers processes
                 result = pool.apply_async(distributed_load_dataset, (args,))
-                _ = result.get(timeout=20)
-                _ = pool.map(distributed_load_dataset, [args] * num_workers)
+                dataset = result.get(timeout=20)
+                del result, dataset
+                datasets = pool.map(distributed_load_dataset, [args] * num_workers)
+                for _ in range(len(datasets)):
+                    dataset = datasets.pop()
+                    del dataset
 
 
 def get_aws_dataset_names():
@@ -257,6 +301,7 @@ def get_aws_dataset_names():
 
 
 @parameterized.named_parameters(get_aws_dataset_names())
+@for_all_test_methods(skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows)
 @aws
 class AWSDatasetTest(parameterized.TestCase):
     dataset_name = None
@@ -308,6 +353,7 @@ class AWSDatasetTest(parameterized.TestCase):
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+            del dataset
 
     @slow
     def test_load_real_dataset_all_configs(self, dataset_name):
@@ -324,26 +370,30 @@ class AWSDatasetTest(parameterized.TestCase):
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
+                del dataset
 
 
 class TextTest(TestCase):
     def test_caching(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("foo" for _ in range(10)))
+            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write("\n".join("foo" for _ in range(10)))
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             data_file = ds._data_files[0]
             fingerprint = ds._fingerprint
+            del ds
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             self.assertEqual(ds._data_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
+            del ds
 
-            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("bar" for _ in range(10)))
+            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write("\n".join("bar" for _ in range(10)))
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
+            del ds

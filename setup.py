@@ -107,6 +107,9 @@ TESTS_REQUIRE = [
     'zstandard'
 ]
 
+if os.name == "nt":  # windows
+    TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
+
 
 QUALITY_REQUIRE = [
     "black",

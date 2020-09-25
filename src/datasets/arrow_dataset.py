@@ -28,6 +28,7 @@ from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
 from multiprocessing import Pool, RLock
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -374,6 +375,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
+    def __del__(self):
+        if hasattr(self, "_data"):
+            del self._data
+        if hasattr(self, "_indices"):
+            del self._indices
+
     def __getstate__(self):
         state = dict(self.__dict__)
         state["_info"] = json.dumps(asdict(state["_info"]))
@@ -443,7 +450,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         for data_file in self._data_files + self._indices_data_files:
             # Copy file to destination directory
             src = data_file["filename"]
-            filename = src.split("/")[-1]
+            filename = Path(src).name
             dest = os.path.join(dataset_path, filename)
             if src != dest:
                 shutil.copy(src, dest)
@@ -458,9 +465,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
         ), "in-place history needs to be empty"
         # Serialize state
-        with open(os.path.join(dataset_path, "state.json"), "w") as state_file:
+        with open(os.path.join(dataset_path, "state.json"), "w", encoding="utf-8") as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "w") as dataset_info_file:
+        with open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
 
@@ -471,9 +478,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             dataset_path (``str``): path of the dataset directory where the dataset will be loaded from
         """
-        with open(os.path.join(dataset_path, "state.json"), "r") as state_file:
+        with open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "r") as dataset_info_file:
+        with open(os.path.join(dataset_path, "dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})
@@ -1500,12 +1507,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if update_data:
                 writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
+            if update_data:
+                writer.finalize()
             if update_data and tmp_file is not None:
+                tmp_file.close()
                 if os.path.exists(tmp_file.name):
                     os.remove(tmp_file.name)
             raise
 
         if update_data and tmp_file is not None:
+            tmp_file.close()
             shutil.move(tmp_file.name, cache_file_name)
 
         if update_data:
@@ -1748,11 +1759,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
             if tmp_file is not None:
+                tmp_file.close()
                 if os.path.exists(tmp_file.name):
                     os.remove(tmp_file.name)
             raise
 
         if tmp_file is not None:
+            tmp_file.close()
             shutil.move(tmp_file.name, indices_cache_file_name)
 
         # Return new Dataset object
@@ -2207,7 +2220,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if isinstance(values, np.ndarray):
                 if values.dtype == np.dtype(float):
                     return _float_feature(values)
-                elif values.dtype == np.dtype(int):
+                elif values.dtype == np.int64:
                     return _int64_feature(values)
                 elif values.dtype == np.dtype(str) or (
                     values.dtype == np.dtype(object) and len(values) > 0 and isinstance(values[0], str)
@@ -2246,6 +2259,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(f"Writing TFRecord to {filename}")
         writer.write(tf_dataset)
         logger.info(f"Finished writing TFRecord to {filename}")
+        self = None  # delete the dataset reference used by tf_dataset
 
     def add_faiss_index(
         self,
