@@ -28,14 +28,13 @@ from collections.abc import Iterable, Mapping
 from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
-from multiprocessing import RLock
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
-from multiprocess import Pool
+from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from .arrow_reader import ArrowReader
