@@ -623,6 +623,7 @@ class BaseDatasetTest(TestCase):
             dset = dset.map(lambda example: {"otherfield": {"capital": example["field"].capitalize()}})
             dset = dset.map(lambda example: {"otherfield": {"append_x": example["field"] + "x"}})
             self.assertEqual(dset[0], {"field": "a", "otherfield": {"append_x": "ax"}})
+            del dset
 
     @require_torch
     def test_map_torch(self, in_memory):
