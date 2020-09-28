@@ -173,6 +173,8 @@ class DatasetBuilder:
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
         self._cache_dir = self._build_cache_dir()
+        if not is_remote_url(self._cache_dir_root):
+            os.makedirs(self._cache_dir_root, exist_ok=True)
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             if os.path.exists(self._cache_dir):  # check if data exist
@@ -405,8 +407,7 @@ class DatasetBuilder:
                 return
 
             logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
-            if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
-                os.makedirs(self._cache_dir_root, exist_ok=True)
+            if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
                 if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
                     raise IOError(
                         "Not enough disk space. Needed: {} (download: {}, generated: {}, post-processed: {})".format(
