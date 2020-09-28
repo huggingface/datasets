@@ -338,11 +338,7 @@ def cached_path(
         with FileLock(lock_path):
             shutil.rmtree(output_path_extracted, ignore_errors=True)
             os.makedirs(output_path_extracted, exist_ok=True)
-            if is_zipfile(output_path):
-                with ZipFile(output_path, "r") as zip_file:
-                    zip_file.extractall(output_path_extracted)
-                    zip_file.close()
-            elif tarfile.is_tarfile(output_path):
+            if tarfile.is_tarfile(output_path):
                 tar_file = tarfile.open(output_path)
                 tar_file.extractall(output_path_extracted)
                 tar_file.close()
@@ -351,6 +347,10 @@ def cached_path(
                 with gzip.open(output_path, "rb") as gzip_file:
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(gzip_file, extracted_file)
+            elif is_zipfile(output_path):  # put zip file to the last, b/c it is possible wrongly detected as zip
+                with ZipFile(output_path, "r") as zip_file:
+                    zip_file.extractall(output_path_extracted)
+                    zip_file.close()
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
