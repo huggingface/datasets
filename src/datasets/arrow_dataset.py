@@ -1031,7 +1031,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             else:
                 indices = key
 
-            indices_array = pa.array([int(i) for i in indices], type=pa.uint64())
+            indices_array = pa.array([int(i) + len(self) if int(i) < 0 else int(i) for i in indices], type=pa.uint64())
 
             # Check if we need to convert indices
             indices_array = self._map_indices(indices_array)

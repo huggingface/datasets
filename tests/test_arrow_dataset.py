@@ -84,6 +84,27 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(dset["col_1"][0], 3)
             del dset
 
+    def test_dataset_getitem(self, in_memory):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+
+            dset = self._create_dummy_dataset(in_memory, tmp_dir)
+            self.assertEqual(dset[0]["filename"], "my_name-train_0")
+            self.assertEqual(dset["filename"][0], "my_name-train_0")
+
+            self.assertEqual(dset[-1]["filename"], "my_name-train_29")
+            self.assertEqual(dset["filename"][-1], "my_name-train_29")
+
+            self.assertListEqual(dset[:2]["filename"], ["my_name-train_0", "my_name-train_1"])
+            self.assertListEqual(dset["filename"][:2], ["my_name-train_0", "my_name-train_1"])
+
+            self.assertEqual(dset[:-1]["filename"][-1], "my_name-train_28")
+            self.assertEqual(dset["filename"][:-1][-1], "my_name-train_28")
+
+            self.assertListEqual(dset[[0, -1]]["filename"], ["my_name-train_0", "my_name-train_29"])
+            self.assertListEqual(dset[np.array([0, -1])]["filename"], ["my_name-train_0", "my_name-train_29"])
+
+            del dset
+
     def test_dummy_dataset_pickle(self, in_memory):
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_file = os.path.join(tmp_dir, "dset.pt")
