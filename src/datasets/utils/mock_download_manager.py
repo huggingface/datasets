@@ -115,7 +115,7 @@ class MockDownloadManager(object):
         return self.download_and_extract(data_url)
 
     # this function has to be in the manager under this name so that testing works
-    def extract(self, path):
+    def extract(self, path, *args, **kwargs):
         return path
 
     # this function has to be in the manager under this name so that testing works
