@@ -17,6 +17,7 @@
 """ Simple Dataset wrapping an Arrow Table."""
 
 import contextlib
+import copy
 import json
 import os
 import pickle
@@ -27,13 +28,13 @@ from collections.abc import Iterable, Mapping
 from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
-from multiprocessing import Pool, RLock
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from .arrow_reader import ArrowReader
@@ -389,6 +390,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             state["_data"] = None
         if self._indices_data_files:
             state["_indices"] = None
+        logger.debug("Copying history")
+        state["_inplace_history"] = [{"transforms": list(h["transforms"])} for h in state["_inplace_history"]]
         return state
 
     def __setstate__(self, state):
@@ -1684,15 +1687,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_pa_table = indices_f.read_all()
 
         # Return new Dataset object
+        # don't forget to copy the objects
         return Dataset(
             self._data,
-            data_files=data_files,
-            info=self.info,
+            data_files=copy.deepcopy(data_files),
+            info=self.info.copy(),
             split=self.split,
             indices_table=indices_pa_table,
-            indices_data_files=indices_data_files,
+            indices_data_files=copy.deepcopy(indices_data_files),
             fingerprint=fingerprint,
-            inplace_history=self._inplace_history,  # in-place transforms have to be kept as we kept the same data_files
+            inplace_history=copy.deepcopy(
+                self._inplace_history
+            ),  # in-place transforms have to be kept as we kept the same data_files
         )
 
     @transmit_format
@@ -2486,8 +2492,8 @@ def concatenate_datasets(
     # Concatenate tables
 
     table = pa.concat_tables(dset._data for dset in dsets if len(dset._data) > 0)
-    data_files = [f for dset in dsets for f in dset._data_files]
-    inplace_history = [h for dset in dsets for h in dset._inplace_history]
+    data_files = [copy.deepcopy(f) for dset in dsets for f in dset._data_files]
+    inplace_history = [copy.deepcopy(h) for dset in dsets for h in dset._inplace_history]
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
@@ -2544,10 +2550,8 @@ def concatenate_datasets(
             indices_table = pa.concat_tables(indices_tables)
         else:
             indices_table = pa.Table.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-        indices_data_files = None  # can't reuse same files as an offset was applied
     else:
         indices_table = None
-        indices_data_files = None
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
@@ -2559,7 +2563,7 @@ def concatenate_datasets(
         split=split,
         data_files=data_files,
         indices_table=indices_table,
-        indices_data_files=indices_data_files,
+        indices_data_files=None,  # can't reuse same files as an offset was applied
         fingerprint=fingerprint,
         inplace_history=inplace_history,
     )
