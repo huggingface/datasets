@@ -1,4 +1,37 @@
+---
+language: 
+- en
+task:
+- text-classification
+purpose:
+- NLI
+size:
+- ">100k"
+language producers:
+- crowdsourced
+annotation:
+- crowdsourced
+tags:
+- extended-from-other-datasets
+license: "CC BY-SA 4.0"
+---
 # Dataset Card for SNLI
+
+## Table of Contents
+- [Tasks Supported](#tasks-supported)
+- [Purpose](#purpose)
+- [Languages](#languages)
+- [People Involved](#who-iswas-involved-in-the-dataset-use-and-creation)
+- [Data Characteristics](#data-characteristics)
+- [Dataset Structure](#dataset-structure)
+- [Known Limitations](#known-limitations)
+- [Licensing information](#licensing-information)
+
+## Tasks supported:
+### Task categorization / tags
+
+Text to structured, three-way text classification
+
 ## Purpose
 
 The [SNLI corpus (version 1.0)](https://nlp.stanford.edu/projects/snli/) was developed as a benchmark for natural langauge inference (NLI), also known as recognizing textual entailment (RTE), with the goal of producing a dataset large enough to train models using neural methodologies. It contains 570k English sentence pairs, which include a premise, a hypothesis, and a label indicating whether the hypothesis entails the premise, contradicts it, or neither. 
@@ -7,10 +40,6 @@ The [SNLI corpus (version 1.0)](https://nlp.stanford.edu/projects/snli/) was dev
 ### Per language:
 
 The BCP-47 code for English is en. Dialect information is unknown (see Speaker and Annotator sections for further details).
-
-### Multilingual datasets:
-
-The SNLI corpus is not a multilingual dataset.
 
 ## Who is/was involved in the dataset use and creation?
 ### Who are the dataset curators?
@@ -93,11 +122,6 @@ ID | Premise | Hypothesis | Label
 0	| Two women are embracing while holding to go packages.	| The sisters are hugging goodbye while holding to go packages after just eating lunch.	| 1
 1	| Two women are embracing while holding to go packages.	| Two woman are holding packages.	| 0
 2	| Two women are embracing while holding to go packages.	| The men are fighting outside a deli. | 2
-
-## Tasks supported:
-### Task categorization / tags
-
-Text to structured, three-way text classification
 
 ### Suggested metrics / models:
 
