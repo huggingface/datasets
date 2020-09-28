@@ -111,8 +111,8 @@ class Gap(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as tsvfile:
             reader = csv.DictReader(tsvfile, dialect="excel-tab")
             for i, row in enumerate(reader):
-                row["A-coref"] = bool(row["A-coref"])
-                row["B-coref"] = bool(row["B-coref"])
+                row["A-coref"] = row["A-coref"] == 'TRUE'
+                row["B-coref"] = row["B-coref"] == 'TRUE'
                 row["A-offset"] = int(row["A-offset"])
                 row["B-offset"] = int(row["B-offset"])
                 row["Pronoun-offset"] = int(row["Pronoun-offset"])
