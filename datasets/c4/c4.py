@@ -145,6 +145,7 @@ class C4(datasets.BeamBasedBuilder):
         ),
     ]
 
+    @property
     def manual_download_instructions(self):
         return """\
     For the WebText-like config, you must manually download 'OpenWebText.zip'
@@ -201,7 +202,7 @@ class C4(datasets.BeamBasedBuilder):
         wet_urls = []
         for wet_path_url in file_paths["wet_path_urls"]:
             with open(wet_path_url, "r", encoding="utf-8") as f:
-                wet_urls.extend(["%s/%s" % (_DOWNLOAD_HOST, l.strip()) for l in f])
+                wet_urls.extend(["%s/%s" % (_DOWNLOAD_HOST, line.strip()) for line in f])
         file_paths["wet_urls"] = wet_urls
         file_paths["wet_files"] = []
 
@@ -300,7 +301,7 @@ class C4(datasets.BeamBasedBuilder):
         # Output: url, text
         if self.config.clean:
             with open(file_paths["badwords"], "r", encoding="utf-8") as f:
-                badwords = [l.strip() for l in f]
+                badwords = [line.strip() for line in f]
             page_content = page_content | "clean_pages" >> beam.FlatMap(get_clean_page_fn(badwords))
             page_content = remove_duplicate_text(page_content)
 
