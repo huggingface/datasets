@@ -28,8 +28,10 @@ from datasets import (
     BuilderConfig,
     DatasetBuilder,
     DownloadConfig,
+    Features,
     GenerateMode,
     MockDownloadManager,
+    Value,
     cached_path,
     hf_api,
     hf_bucket_url,
@@ -375,13 +377,17 @@ class AWSDatasetTest(parameterized.TestCase):
 
 class TextTest(TestCase):
     def test_caching(self):
+        n_samples = 10
         with tempfile.TemporaryDirectory() as tmp_dir:
-            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write("\n".join("foo" for _ in range(10)))
+            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
+                "\n".join("foo" for _ in range(n_samples))
+            )
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             data_file = ds._data_files[0]
             fingerprint = ds._fingerprint
+            self.assertEqual(len(ds), n_samples)
             del ds
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
@@ -390,10 +396,81 @@ class TextTest(TestCase):
             self.assertEqual(ds._fingerprint, fingerprint)
             del ds
 
-            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write("\n".join("bar" for _ in range(10)))
+            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
+                "\n".join("bar" for _ in range(n_samples))
+            )
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             del ds
+
+
+class CsvTest(TestCase):
+    def test_caching(self):
+        n_rows = 10
+
+        features = Features({"foo": Value("string"), "bar": Value("string")})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
+                "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
+            )
+            ds = load_dataset(
+                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+            )
+            data_file = ds._data_files[0]
+            fingerprint = ds._fingerprint
+            self.assertEqual(len(ds), n_rows)
+            del ds
+            ds = load_dataset(
+                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+            )
+            self.assertEqual(ds._data_files[0], data_file)
+            self.assertEqual(ds._fingerprint, fingerprint)
+            del ds
+            ds = load_dataset(
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                features=features,
+            )
+            self.assertNotEqual(ds._data_files[0], data_file)
+            self.assertNotEqual(ds._fingerprint, fingerprint)
+            del ds
+
+            open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
+                "\n".join(",".join(["Foo", "Bar"]) for _ in range(n_rows + 1))
+            )
+            ds = load_dataset(
+                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+            )
+            self.assertNotEqual(ds._data_files[0], data_file)
+            self.assertNotEqual(ds._fingerprint, fingerprint)
+            del ds
+
+    def test_features(self):
+        n_rows = 10
+        n_cols = 3
+
+        def get_features(type):
+            return Features({str(i): Value(type) for i in range(n_cols)})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
+                "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+            )
+            for type in ["float64", "int8"]:
+                features = get_features(type)
+                ds = load_dataset(
+                    "./datasets/csv",
+                    data_files=os.path.join(tmp_dir, "table.csv"),
+                    cache_dir=tmp_dir,
+                    split="train",
+                    features=features,
+                )
+                self.assertEqual(len(ds), n_rows)
+                self.assertDictEqual(ds.features, features)
+                del ds
