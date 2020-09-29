@@ -104,7 +104,7 @@ class Text(datasets.ArrowBasedBuilder):
                 file,
                 read_options=self.config.pa_read_options,
                 parse_options=self.config.pa_parse_options,
-                convert_options=self.config.convert_options,
+                convert_options=self.config.pa_convert_options,
             )
             # Uncomment for debugging (will print the Arrow table size and elements)
             # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
