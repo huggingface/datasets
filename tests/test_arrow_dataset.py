@@ -49,7 +49,7 @@ class BaseDatasetTest(TestCase):
 
         datasets.arrow_dataset.logger.__reduce_ex__ = reduce_ex
 
-    def _create_dummy_dataset(self, in_memory: bool, tmp_dir: str, multiple_columns=False):
+    def _create_dummy_dataset(self, in_memory: bool, tmp_dir: str, multiple_columns=False) -> Dataset:
         if multiple_columns:
             data = {"col_1": [3, 2, 1, 0], "col_2": ["a", "b", "c", "d"]}
             dset = Dataset.from_dict(data)
@@ -289,6 +289,7 @@ class BaseDatasetTest(TestCase):
             dset = self._create_dummy_dataset(in_memory, tmp_dir, multiple_columns=True)
             features = dset.features
             features["col_1"] = Value("float64")
+            features = Features({k: features[k] for k in list(features)[::-1]})
             fingerprint = dset._fingerprint
             dset.cast_(features)
             self.assertEqual(dset.num_columns, 2)

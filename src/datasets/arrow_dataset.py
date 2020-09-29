@@ -600,18 +600,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
-                The name and order of the fields in the features must match the current column names.
+                The name of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
         """
-        if list(features) != self._data.column_names:
+        if sorted(features) != sorted(self._data.column_names):
             raise ValueError(
-                f"The columns in features ({list(features)}) must be identical and in the same order "
+                f"The columns in features ({list(features)}) must be identical "
                 f"as the columns in the dataset: {self._data.column_names}"
             )
 
         self._info.features = features
-        schema = pa.schema(features.type)
+        type = features.type
+        schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
     @fingerprint(inplace=True)
