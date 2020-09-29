@@ -49,7 +49,7 @@ class TextConfig(datasets.BuilderConfig):
             # that is not in text files as delimiter, such as \b or \v.
             # The bell character, \b, was used to make beeps back in the days
             parse_options = pac.ParseOptions(
-                delimiter="\b",
+                delimiter="\a",
                 quote_char=False,
                 double_quote=False,
                 escape_char=False,
