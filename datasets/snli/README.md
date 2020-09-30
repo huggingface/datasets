@@ -30,7 +30,7 @@ license: "CC BY-SA 4.0"
 ## Tasks supported:
 ### Task categorization / tags
 
-Text to structured, three-way text classification
+Text to three-way text classification
 
 ## Purpose
 
@@ -50,13 +50,15 @@ It was supported by a Google Faculty Research Award, a gift from Bloomberg L.P.,
 
 ### Who are the language producers (who wrote the text / created the base content)?
 
-A large portion of the premises (160k) were produced in the [Flickr 30k corpus](http://shannon.cs.illinois.edu/DenotationGraph/) by an unknown number of crowdworkers. About 2,500 crowdworkers from Amazon Mechanical Turk produced the associated hypotheses. The premises from the Flickr 30k project describe people and animals whose photos were collected and presented to the Flickr 30k crowdworkers, but the SNLI corpus did not present the photos to the hypotheses creators. Neither report crowdworker or photo subject demographic information or crowdworker compensation.
+A large portion of the premises (160k) were produced in the [Flickr 30k corpus](http://shannon.cs.illinois.edu/DenotationGraph/) by an unknown number of crowdworkers. About 2,500 crowdworkers from Amazon Mechanical Turk produced the associated hypotheses. The premises from the Flickr 30k project describe people and animals whose photos were collected and presented to the Flickr 30k crowdworkers, but the SNLI corpus did not present the photos to the hypotheses creators. 
+
+The Flickr 30k corpus did not report crowdworker or photo subject demographic information or crowdworker compensation. The SNLI crowdworkers were compensated per HIT at rates between $.1 and $.5 with no incentives. Workers who ignored the guidelines were disqualified, and automated bulk submissions were rejected. No demographic information was collected from the SNLI crowdworkers. 
 
 An additional 4,000 premises come from the pilot study of the [VisualGenome corpus](https://visualgenome.org/static/paper/Visual_Genome.pdf). Though the pilot study itself is not described, the location information of the 33,000 AMT crowdworkers that participated over the course of the 6 months of data collection are aggregated. Most of the workers were located in the United States (93%), with others from the Philippines, Kenya, India, Russia, and Canada. Workers were paid $6-$8 per hour.
 
 ### Who are the annotators?
 
-The annotators of the validation task were a closed set of about 30 trusted crowdworkers on Amazon Mechanical Turk. It is unknown if any demographic information was collected or how they were compensated.
+The annotators of the validation task were a closed set of about 30 trusted crowdworkers on Amazon Mechanical Turk. No demographic information was collected. Annotators were compensated per HIT between $.1 and $.5 with $1 bonuses in cases where annotator labels agreed with the curators' labels for 250 randomly distributed examples.
 
 ## Data characteristics
 
@@ -74,7 +76,7 @@ The premises from the Flickr 30k corpus corrected for spelling using the Linux s
 
 ### Annotation process
 
-56,941 of the total sentence pairs were further annotated in a validation task. Four annotators each labeled a premise-hypothesis pair for entailment, contradiction, or neither, resulting in 5 total judgements including the original hypothesis author judgement. See Section 2.2 for more details (Bowman et al., 2015). 
+56,941 of the total sentence pairs were further annotated in a validation task. Four annotators each labeled a premise-hypothesis pair as entailment, contradiction, or neither, resulting in 5 total judgements including the original hypothesis author judgement. See Section 2.2 for more details (Bowman et al., 2015). 
 
 The authors report 3/5 annotator agreement on 98% of the validation set and unanimous annotator agreement on 58.3% of the validation set. If a label was chosen by three annotators, that label was made the gold label. Following from this, 2% of the data did not have a consensus label and was labeled '-' by the authors. 
 
@@ -89,7 +91,7 @@ overall | 0.70
 
 ### Splits, features, and labels
 
-The SNLI dataset has 3 splits: _train_, _validation_, and _test_. 
+The SNLI dataset has 3 splits: _train_, _validation_, and _test_. All of the examples in the _validation_ and _test_ sets come from the set that was annotated in the validation task with no-consensus examples removed. The remaining multiply-annotated examples are in the training set with no-consensus examples removed. Each unique premise/caption shows up in only one split, even though they usually appear in at least three different examples.
 Dataset Split | Number of Instances in Split
 --------------|--------------------------------------------
 Train | 550,152
@@ -103,7 +105,7 @@ Feature | Mean Token Count
 Premise | 14.1
 Hypothesis | 8.3
 
-The _label_ has 4 possible values, _0_, _1_, _2_, _-_.  which correspond to _entailment_, _neutral_, _contradiction_, and _no label_ respectively. The dataset was developed so that the first three values would be evenly distributed across the splits. See the Annotation Process section for details on _no label_.
+In the Hugging Face distribution of the dataset, the _label_ has 4 possible values, _0_, _1_, _2_, _-_.  which correspond to _entailment_, _neutral_, _contradiction_, and _no label_ respectively. The dataset was developed so that the first three values would be evenly distributed across the splits. See the Annotation Process section for details on _no label_.
 
 ### Span indices
 
@@ -111,11 +113,11 @@ No span indices are included in this dataset.
 
 ### Example ID
 
-The ID is an integer starting from 0. It has no inherent meaning. 
+The IDs in the original dataset correspond to identifiers from Flickr30k or (the draft version of) VisualGenome, suffixed with an internal identifier, though these IDs are not included in the Hugging Face version of the corpus.
 
 ### Free text description for context (e.g. describe difference between title / selftext / body in Reddit data) and example
 
-For each ID, there is a string for the premise, a string for the hypothesis, and an integer for the label. Note that each premise appears three times with a different hypothesis and label. See the [SNLI corpus viewer](https://huggingface.co/nlp/viewer/?dataset=snli) to explore more examples.
+For each ID, there is a string for the premise, a string for the hypothesis, and an integer for the label. Note that each premise may appear three times with a different hypothesis and label. See the [SNLI corpus viewer](https://huggingface.co/nlp/viewer/?dataset=snli) to explore more examples.
 
 ID | Premise | Hypothesis | Label
 ---|---------|------------|-------
@@ -130,11 +132,11 @@ ID | Premise | Hypothesis | Label
 ## Known Limitations
 ### Known social biases
 
-The language reflects the content of the photos collected from Flickr, as described in the Data Collection section.
+The language reflects the content of the photos collected from Flickr, as described in the Data Collection section. [Rudinger et al (2017)](https://www.aclweb.org/anthology/W17-1609.pdf) use pointwise mutual information to calculate a measure of association between a manually selected list of tokens corresponding to identity categories and the other words in the corpus, showing strong evidence of stereotypes across gender categories. They also provide examples in which crowdworkers reproduced harmful stereotypes or pejorative language in the hypotheses. 
 
 ### Other known limitations
 
-[Gururangan et al (2018)](https://www.aclweb.org/anthology/N18-2017.pdf) showed that the SNLI corpus had a number of annotation artifacts. Using a simple classifer, they correctly predicted the label of the hypothesis 67% of the time without using the premise.
+[Gururangan et al (2018)](https://www.aclweb.org/anthology/N18-2017.pdf), [Poliak et al (2018)](https://www.aclweb.org/anthology/S18-2023.pdf), and [Tsuchiya (2018)](https://www.aclweb.org/anthology/L18-1239.pdf) show that the SNLI corpus has a number of annotation artifacts. Using various classifiers, Poliak et al correctly predicted the label of the hypothesis 69% of the time without using the premise, Gururangan et al 67% of the time, and Tsuchiya 63% of the time.
 
 ## Licensing information
 The Stanford Natural Language Inference Corpus is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/).
