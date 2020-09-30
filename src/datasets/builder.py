@@ -25,7 +25,6 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, List, Optional, Union
 
-import xxhash
 from filelock import FileLock
 
 from . import utils
@@ -33,6 +32,7 @@ from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
+from .fingerprint import Hasher
 from .info import (
     DATASET_INFO_FILENAME,
     DATASET_INFOS_DICT_FILE_NAME,
@@ -153,6 +153,8 @@ class DatasetBuilder:
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
+        if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
+            config_kwargs["features"] = features
         self.config = self._create_builder_config(
             name,
             **config_kwargs,
@@ -256,7 +258,7 @@ class DatasetBuilder:
             # if not builder_config.description:
             #     raise ValueError("BuilderConfig %s must have a description" % name)
         if builder_config.data_files is not None:
-            m = xxhash.xxh64()
+            m = Hasher()
             if isinstance(builder_config.data_files, str):
                 data_files = {"train": [builder_config.data_files]}
             elif isinstance(builder_config.data_files, (tuple, list)):
@@ -269,10 +271,12 @@ class DatasetBuilder:
             else:
                 raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
             for key in sorted(data_files.keys()):
-                m.update(key.encode("utf-8"))
+                m.update(key)
                 for data_file in data_files[key]:
-                    m.update(os.path.abspath(data_file).encode("utf-8"))
-                    m.update(str(os.path.getmtime(data_file)).encode("utf-8"))
+                    m.update(os.path.abspath(data_file))
+                    m.update(str(os.path.getmtime(data_file)))
+            if hasattr(builder_config, "features"):
+                m.update(builder_config.features)
             builder_config.name += "-" + m.hexdigest()
         return builder_config
 
