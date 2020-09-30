@@ -1,7 +1,8 @@
 import logging
 from dataclasses import dataclass
 
-import pyarrow.csv as pac
+import pandas as pd
+import pyarrow as pa
 
 import datasets
 
@@ -20,53 +21,7 @@ class TextConfig(datasets.BuilderConfig):
     """BuilderConfig for text files."""
 
     encoding: str = None
-    block_size: int = None
-    use_threads: bool = None
-    read_options: pac.ReadOptions = None
-    parse_options: pac.ParseOptions = None
-    convert_options: pac.ConvertOptions = None
-
-    @property
-    def pa_read_options(self):
-        if self.read_options is not None:
-            read_options = self.read_options
-        else:
-            read_options = pac.ReadOptions(column_names=["text"])
-        if self.encoding is not None:
-            read_options.encoding = self.encoding
-        if self.block_size is not None:
-            read_options.block_size = self.block_size
-        if self.use_threads is not None:
-            read_options.use_threads = self.use_threads
-        return read_options
-
-    @property
-    def pa_parse_options(self):
-        if self.parse_options is not None:
-            parse_options = self.parse_options
-        else:
-            # To force the one-column setting, we set an arbitrary character
-            # that is not in text files as delimiter, such as \b or \v.
-            # The bell character, \b, was used to make beeps back in the days
-            parse_options = pac.ParseOptions(
-                delimiter="\b",
-                quote_char=False,
-                double_quote=False,
-                escape_char=False,
-                newlines_in_values=False,
-                ignore_empty_lines=False,
-            )
-        return parse_options
-
-    @property
-    def pa_convert_options(self):
-        if self.convert_options is not None:
-            convert_options = self.convert_options
-        else:
-            convert_options = pac.ConvertOptions(
-                column_types=FEATURES.type,
-            )
-        return convert_options
+    chunksize: int = 10_000
 
 
 class Text(datasets.ArrowBasedBuilder):
@@ -100,13 +55,19 @@ class Text(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         for i, file in enumerate(files):
-            pa_table = pac.read_csv(
+            text_file_reader = pd.read_csv(
                 file,
-                read_options=self.config.pa_read_options,
-                parse_options=self.config.pa_parse_options,
-                convert_options=self.config.pa_convert_options,
+                dtype={"text": str},
+                names=["text"],
+                header=None,
+                iterator=True,
+                chunksize=self.config.chunksize,
+                encoding=self.config.encoding,
+                sep="\n",
             )
-            # Uncomment for debugging (will print the Arrow table size and elements)
-            # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-            # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-            yield i, pa_table
+            for j, df in enumerate(text_file_reader):
+                pa_table = pa.Table.from_pandas(df)
+                # Uncomment for debugging (will print the Arrow table size and elements)
+                # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                yield (i, j), pa_table
