@@ -1264,7 +1264,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Process #{} will write at {}".format(rank, cache_file_name))
                 return cache_file_name
 
+            prev_env = dict(os.environ)
+            if prev_env.get("TOKENIZERS_PARALLELISM", "false") != "false":
+                logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
+            os.environ["TOKENIZERS_PARALLELISM"] = "false"
             with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+                os.environ = prev_env
                 shards = [
                     self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
                     for rank in range(num_proc)
