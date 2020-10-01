@@ -22,7 +22,7 @@ from absl.testing import parameterized
 
 from datasets import DownloadConfig, load_metric
 
-from .utils import remote, local, slow
+from .utils import local, remote, slow
 
 
 def get_local_metric_names():
