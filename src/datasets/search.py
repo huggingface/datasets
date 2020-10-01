@@ -134,7 +134,6 @@ class ElasticSearchIndex(BaseIndex):
         Add documents to the index.
         If the documents are inside a certain column, you can specify it using the `column` argument.
         """
-        # TODO: don't rebuild if it already exists
         index_name = self.es_index_name
         index_config = self.es_index_config
         self.es_client.indices.create(index=index_name, body=index_config)
@@ -489,8 +488,12 @@ class IndexableMixin:
             column (`str`): The column of the documents to add to the index.
             index_name (Optional `str`): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
                 By defaul it corresponds to `column`.
-            documents (`Union[List[str], datasets.Dataset]`): The documents to index. It can be a `datasets.Dataset`.
-            es_client (`elasticsearch.Elasticsearch`): The elasticsearch client used to create the index.
+            host (Optional `str`, defaults to localhost):
+                host of where ElasticSearch is running
+            port (Optional `str`, defaults to 9200):
+                port of where ElasticSearch is running
+            es_client (Optional `elasticsearch.Elasticsearch`):
+                The elasticsearch client used to create the index if host and port are None.
             es_index_name (Optional `str`): The elasticsearch index name used to create the index.
             es_index_config (Optional `dict`): The configuration of the elasticsearch index.
                 Default config is
@@ -507,8 +510,48 @@ class IndexableMixin:
                 }
         """
         index_name = index_name if index_name is not None else column
-        self._indexes[index_name] = ElasticSearchIndex(host, port, es_client, es_index_name, es_index_config)
+        self._indexes[index_name] = ElasticSearchIndex(
+            host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
+        )
         self._indexes[index_name].add_documents(self, column=column)
+
+    def load_elasticsearch_index(
+        self,
+        index_name: str,
+        es_index_name: str,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        es_client: Optional["Elasticsearch"] = None,
+        es_index_config: Optional[dict] = None,
+    ):
+        """Load an existing a text index using ElasticSearch for fast retrieval.
+
+        Args:
+            index_name (`str``): The index_name/identifier of the index. This is the index name that is used to call `.get_nearest` or `.search`.
+            es_index_name (`str``): The name of elasticsearch index to load.
+            host (Optional `str`, defaults to localhost):
+                host of where ElasticSearch is running
+            port (Optional `str`, defaults to 9200):
+                port of where ElasticSearch is running
+            es_client (Optional `elasticsearch.Elasticsearch`):
+                The elasticsearch client used to create the index if host and port are None.
+            es_index_config (Optional `dict`): The configuration of the elasticsearch index.
+                Default config is
+                {
+                    "settings": {
+                        "number_of_shards": 1,
+                        "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                    },
+                    "mappings": {
+                        "properties": {
+                            "text": {"type": "text", "analyzer": "standard", "similarity": "BM25"},
+                        }
+                    },
+                }
+        """
+        self._indexes[index_name] = ElasticSearchIndex(
+            host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
+        )
 
     def drop_index(self, index_name: str):
         """Drop the index with the specified column.

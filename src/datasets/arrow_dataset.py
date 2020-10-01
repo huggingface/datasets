@@ -2426,10 +2426,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 The index_name/identifier of the index.
                 This is the index name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
                 By default it corresponds to :obj:`column`.
-            documents (:obj:`Union[List[str], datasets.Dataset]`):
-                The documents to index. It can be a :class:`datasets.Dataset`.
-            es_client (:obj:`elasticsearch.Elasticsearch`):
-                The elasticsearch client used to create the index.
+            host (Optional `str`, defaults to localhost):
+                host of where ElasticSearch is running
+            port (Optional `str`, defaults to 9200):
+                port of where ElasticSearch is running
+            es_client (Optional `elasticsearch.Elasticsearch`):
+                The elasticsearch client used to create the index if host and port are None.
             es_index_name (Optional :obj:`str`):
                 The elasticsearch index name used to create the index.
             es_index_config (Optional :obj:`dict`):
@@ -2464,7 +2466,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         with self.formatted_as(type=None, columns=[column]):
             super().add_elasticsearch_index(
-                column=column, host=host, port=port, es_client=es_client, index_name=index_name
+                column=column,
+                index_name=index_name,
+                host=host,
+                port=port,
+                es_client=es_client,
+                es_index_name=es_index_name,
+                es_index_config=es_index_config,
             )
         return self
 
