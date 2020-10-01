@@ -1,7 +1,7 @@
 <p align="center">
-    <br>
+    <br><b>
     <img src="https://raw.githubusercontent.com/huggingface/datasets/master/docs/source/imgs/datasets_logo_name.jpg" width="400"/>
-    <br>
+    <br><b>
 <p>
 <p align="center">
     <a href="https://circleci.com/gh/huggingface/datasets">
