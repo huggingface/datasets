@@ -22,7 +22,7 @@ def parse_flag_from_env(key, default=False):
 
 
 _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
-_run_aws_tests = parse_flag_from_env("RUN_AWS", default=True)
+_run_remote_tests = parse_flag_from_env("RUN_REMOTE", default=True)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 
 
@@ -144,15 +144,15 @@ def local(test_case):
     return test_case
 
 
-def aws(test_case):
+def remote(test_case):
     """
-    Decorator marking a test as one that relies on AWS.
+    Decorator marking a test as one that relies on github or aws.
 
-    AWS tests are skipped by default. Set the RUN_AWS environment variable
+    Remote tests are skipped by default. Set the RUN_REMOTE environment variable
     to a falsy value to not run them.
     """
-    if not _run_aws_tests or _run_aws_tests == 0:
-        test_case = unittest.skip("test requires aws")(test_case)
+    if not _run_remote_tests or _run_remote_tests == 0:
+        test_case = unittest.skip("test requires remote")(test_case)
     return test_case
 
 

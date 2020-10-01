@@ -20,7 +20,7 @@ import os
 import urllib.parse
 from pathlib import Path
 
-from .file_utils import cached_path, hf_bucket_url
+from .file_utils import cached_path, hf_github_url
 from .logging import get_logger
 
 
@@ -63,7 +63,7 @@ class MockDownloadManager(object):
 
     def download_dummy_data(self):
         path_to_dummy_data_dir = (
-            self.local_path_to_dummy_data if self.is_local is True else self.aws_path_to_dummy_data
+            self.local_path_to_dummy_data if self.is_local is True else self.github_path_to_dummy_data
         )
 
         local_path = cached_path(
@@ -77,9 +77,9 @@ class MockDownloadManager(object):
         return os.path.join("datasets", self.dataset_name, self.dummy_zip_file)
 
     @property
-    def aws_path_to_dummy_data(self):
+    def github_path_to_dummy_data(self):
         if self._bucket_url is None:
-            self._bucket_url = hf_bucket_url(self.dataset_name, filename=self.dummy_zip_file.replace(os.sep, "/"))
+            self._bucket_url = hf_github_url(self.dataset_name, self.dummy_zip_file.replace(os.sep, "/"))
         return self._bucket_url
 
     @property
