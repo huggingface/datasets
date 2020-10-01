@@ -52,7 +52,7 @@ B) and is a classification task (given two sentences, predict one of three
 labels).
 """
 
-_DATA_URL = "https://www.nyu.edu/projects/bowman/xnli/XNLI-1.0.zip"
+_DATA_URL = "https://cims.nyu.edu/~sbowman/xnli/XNLI-1.0.zip"
 
 _LANGUAGES = ("ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh")
 
