@@ -36,10 +36,10 @@
 
 `🤗Datasets` has many interesting features (beside easy sharing and accessing datasets/metrics):
 
-- Built-in interoperability with Numpy, Pandas, PyTorch and Tensorflow 2
-- Lightweight and fast with a transparent and pythonic API
+- Built-in interoperability with Numpy, Pandas, PyTorch and Tensorflow 2.
+- Lightweight and fast with a transparent and pythonic API.
 - Strive on large datasets: `🤗Datasets` naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
-- Smart caching: never wait for your data to process several times
+- Smart caching: never wait for your data to process several times.
 
 `🤗Datasets` currently provides access to ~100 NLP datasets and ~10 evaluation metrics and is designed to let the community easily add and share new datasets and evaluation metrics. You can browse the full set of datasets with the [live datasets viewer](https://huggingface.co/nlp/viewer).
 
