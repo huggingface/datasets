@@ -134,7 +134,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name='datasets',
-    version="1.0.2",
+    version="1.1.0",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',
