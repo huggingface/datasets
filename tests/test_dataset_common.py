@@ -32,6 +32,7 @@ from datasets import (
     MockDownloadManager,
     Value,
     cached_path,
+    hf_api,
     import_main_class,
     load_dataset,
     logging,
@@ -292,7 +293,14 @@ class DistributedDatasetTest(TestCase):
                     del dataset
 
 
-@parameterized.named_parameters(get_local_dataset_names())
+def get_remote_dataset_names():
+    api = hf_api.HfApi()
+    # fetch all dataset names
+    datasets = api.dataset_list(with_community_datasets=False, id_only=True)
+    return [{"testcase_name": x, "dataset_name": x} for x in datasets]
+
+
+@parameterized.named_parameters(get_remote_dataset_names())
 @for_all_test_methods(skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows)
 @remote
 class RemoteDatasetTest(parameterized.TestCase):
