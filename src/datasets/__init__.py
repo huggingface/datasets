@@ -56,4 +56,4 @@ if int(pyarrow.__version__.split(".")[1]) < 16 and int(pyarrow.__version__.split
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
     )
 
-SCRIPTS_VERIONS = "master"
+SCRIPTS_VERSION = "master"

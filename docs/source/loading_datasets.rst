@@ -51,7 +51,7 @@ Let's load the **SQuAD dataset for Question Answering**. You can explore this da
 
 This call to :func:`datasets.load_dataset` does the following steps under the hood:
 
-1. Download and import in the library the **SQuAD python processing script** from HuggingFace AWS bucket if it's not already stored in the library.
+1. Download and import in the library the **SQuAD python processing script** from HuggingFace github repository or AWS bucket if it's not already stored in the library.
 
 .. note::
 

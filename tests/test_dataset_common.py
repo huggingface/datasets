@@ -21,7 +21,6 @@ from functools import wraps
 from multiprocessing import Pool
 from unittest import TestCase
 
-import requests
 from absl.testing import parameterized
 
 from datasets import (
@@ -33,8 +32,6 @@ from datasets import (
     MockDownloadManager,
     Value,
     cached_path,
-    hf_api,
-    hf_bucket_url,
     import_main_class,
     load_dataset,
     logging,
@@ -42,7 +39,7 @@ from datasets import (
 )
 from datasets.search import _has_faiss
 
-from .utils import aws, for_all_test_methods, local, slow
+from .utils import for_all_test_methods, local, remote, slow
 
 
 logger = logging.get_logger(__name__)
@@ -295,35 +292,14 @@ class DistributedDatasetTest(TestCase):
                     del dataset
 
 
-def get_aws_dataset_names():
-    api = hf_api.HfApi()
-    # fetch all dataset names
-    datasets = api.dataset_list(with_community_datasets=False, id_only=True)
-    return [{"testcase_name": x, "dataset_name": x} for x in datasets]
-
-
-@parameterized.named_parameters(get_aws_dataset_names())
+@parameterized.named_parameters(get_local_dataset_names())
 @for_all_test_methods(skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows)
-@aws
-class AWSDatasetTest(parameterized.TestCase):
+@remote
+class RemoteDatasetTest(parameterized.TestCase):
     dataset_name = None
 
     def setUp(self):
         self.dataset_tester = DatasetTester(self)
-
-    def test_dataset_has_valid_etag(self, dataset_name):
-        py_script_path = list(filter(lambda x: x, dataset_name.split("/")))[-1] + ".py"
-        dataset_url = hf_bucket_url(dataset_name, filename=py_script_path, dataset=True)
-        etag = None
-        try:
-            response = requests.head(dataset_url, allow_redirects=True, proxies=None, timeout=10)
-
-            if response.status_code == 200:
-                etag = response.headers.get("Etag")
-        except (EnvironmentError, requests.exceptions.Timeout):
-            pass
-
-        self.assertIsNotNone(etag)
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)

@@ -201,9 +201,9 @@ def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True) -> r
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
-    from .. import SCRIPTS_VERIONS
+    from .. import SCRIPTS_VERSION
 
-    version = version or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERIONS)
+    version = version or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
     if dataset:
         return REPO_DATASETS_URL.format(version=version, path=path, name=name)
     else:

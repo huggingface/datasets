@@ -20,16 +20,9 @@ import tempfile
 
 from absl.testing import parameterized
 
-from datasets import DownloadConfig, hf_api, load_metric
+from datasets import DownloadConfig, load_metric
 
-from .utils import aws, local, slow
-
-
-def get_aws_metric_names():
-    api = hf_api.HfApi()
-    # fetch all metric names
-    metrics = [x.id for x in api.metric_list()]
-    return [{"testcase_name": x, "metric_name": x} for x in metrics]
+from .utils import local, remote, slow
 
 
 def get_local_metric_names():
@@ -37,9 +30,9 @@ def get_local_metric_names():
     return [{"testcase_name": x, "metric_name": x} for x in metrics]
 
 
-@parameterized.named_parameters(get_aws_metric_names())
-@aws
-class AWSMetricTest(parameterized.TestCase):
+@parameterized.named_parameters(get_local_metric_names())
+@remote
+class RemoteMetricTest(parameterized.TestCase):
     metric_name = None
 
     @slow
