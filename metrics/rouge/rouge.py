@@ -54,11 +54,19 @@ Args:
         should be a string with tokens separated by spaces.
     references: list of reference for each prediction. Each
         reference should be a string with tokens separated by spaces.
+    rouge_types: A list of rouge types to calculate.
+        Valid names:
+        `"rouge{n}"` (e.g. `"rouge1"`, `"rouge2"`) where: {n} is the n-gram based scoring,
+        `"rougeL"`: Longest common subsequence based scoring.
+        `"rougeLSum"`: rougeLsum splits text using `"\n"`.
+        See details in https://github.com/huggingface/datasets/issues/617
+    use_stemmer: Bool indicating whether Porter stemmer should be used to strip word suffixes.
+    use_agregator: Return aggregates if this is set to True
 Returns:
     rouge1: rouge_1 (precision, recall, f1),
     rouge2: rouge_2 (precision, recall, f1),
     rougeL: rouge_l (precision, recall, f1),
-    rougeLsum: rouge_l (precision, recall, f1)
+    rougeLsum: rouge_lsum (precision, recall, f1)
 """
 
 
