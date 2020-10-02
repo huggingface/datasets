@@ -35,7 +35,11 @@ _CITATION = """
 """
 
 _DESCRIPTION = """\
-HotpotQA is a new dataset with 113k  Wikipedia-based question-answer  pairs with  four  key  features:  (1)  the  questions  require finding and reasoning over multiple supporting  documents  to  answer;  (2)  the  questions  are  diverse  and  not  constrained  to  any pre-existing  knowledge  bases  or  knowledge schemas;  (3)  we  provide  sentence-level  supporting facts required for reasoning, allowingQA systems to reason with strong supervisionand explain the predictions; (4) we offer a new type  of  factoid  comparison  questions  to  testQA  systems’  ability  to  extract  relevant  facts and perform necessary comparison.
+HotpotQA is a new dataset with 113k Wikipedia-based question-answer pairs with four key features:
+(1) the questions require finding and reasoning over multiple supporting documents to answer;
+(2) the questions are diverse and not constrained to any pre-existing knowledge bases or knowledge schemas;
+(3) we provide sentence-level supporting facts required for reasoning, allowingQA systems to reason with strong supervisionand explain the predictions;
+(4) we offer a new type of factoid comparison questions to testQA systems’ ability to extract relevant facts and perform necessary comparison.
 """
 
 _URL_BASE = "http://curtis.ml.cmu.edu/datasets/hotpot/"
