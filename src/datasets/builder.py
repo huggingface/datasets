@@ -265,7 +265,7 @@ class DatasetBuilder:
                 data_files = {"train": builder_config.data_files}
             elif isinstance(builder_config.data_files, dict):
                 data_files = {
-                    key: files if isinstance(files, (tuple, list)) else [files]
+                    str(key): files if isinstance(files, (tuple, list)) else [files]
                     for key, files in builder_config.data_files.items()
                 }
             else:
