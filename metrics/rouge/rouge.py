@@ -55,10 +55,10 @@ Args:
     references: list of reference for each prediction. Each
         reference should be a string with tokens separated by spaces.
 Returns:
-    rouge1: rouge_1 f1,
-    rouge2: rouge_2 f1,
-    rougeL: rouge_l f1,
-    rougeLsum: rouge_l precision
+    rouge1: rouge_1 (precision, recall, f1),
+    rouge2: rouge_2 (precision, recall, f1),
+    rougeL: rouge_l (precision, recall, f1),
+    rougeLsum: rouge_l (precision, recall, f1)
 """
 
 
@@ -83,7 +83,7 @@ class Rouge(datasets.Metric):
 
     def _compute(self, predictions, references, rouge_types=None, use_agregator=True, use_stemmer=False):
         if rouge_types is None:
-            rouge_types = ["rouge1", "rougeL"]
+            rouge_types = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
 
         scorer = rouge_scorer.RougeScorer(rouge_types=rouge_types, use_stemmer=use_stemmer)
         if use_agregator:
