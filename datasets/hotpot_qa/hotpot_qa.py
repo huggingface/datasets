@@ -19,11 +19,8 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 import os
 import textwrap
-
-import six
 
 import datasets
 
