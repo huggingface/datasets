@@ -23,7 +23,7 @@ The base class :class:`datasets.Dataset` implements a Dataset backed by an Apach
         map, filter, select, sort, shuffle, train_test_split, shard, export,
         save_to_disk, load_from_disk,
         add_faiss_index, add_faiss_index_from_external_arrays, save_faiss_index, load_faiss_index,
-        add_elasticsearch_index,
+        add_elasticsearch_index, load_elasticsearch_index,
         list_indexes, get_index, drop_index, search, search_batch, get_nearest_examples, get_nearest_examples_batch,
         info, split, builder_name, citation, config_name, dataset_size,
         description, download_checksums, download_size, features, homepage,
