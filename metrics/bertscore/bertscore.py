@@ -42,13 +42,13 @@ BERTScore Metrics with the hashcode from a source against one or more references
 
 Args:
     `predictions` (list of str): prediction/candidate sentences
-    `refereces` (list of str or list of list of str): reference sentences
+    `references` (list of str or list of list of str): reference sentences
     `lang` (str): language of the sentences; required (e.g. 'en')
     `model_type` (str): bert specification, default using the suggested
-    model for the target langauge; has to specify at least one of
+    model for the target language; has to specify at least one of
     `model_type` or `lang`
     `num_layers` (int): the layer of representation to use.
-    default using the number of layer tuned on WMT16 correlation data
+    default using the number of layers tuned on WMT16 correlation data
     `verbose` (bool): turn on intermediate status update
     `idf` (bool or dict): use idf weighting, can also be a precomputed idf_dict
     `device` (str): on which the contextual embedding model will be allocated on.
@@ -135,7 +135,7 @@ class BERTScore(datasets.Metric):
 
     def add_batch(self, predictions=None, references=None, **kwargs):
         """Add a batch of predictions and references for the metric's stack."""
-        # Refefences can be strings or lists of strings
+        # References can be strings or lists of strings
         # Let's change strings to lists of strings with one element
         if references is not None:
             references = [[ref] if isinstance(ref, str) else ref for ref in references]
@@ -143,7 +143,7 @@ class BERTScore(datasets.Metric):
 
     def add(self, prediction=None, reference=None, **kwargs):
         """Add one prediction and reference for the metric's stack."""
-        # Refefences can be strings or lists of strings
+        # References can be strings or lists of strings
         # Let's change strings to lists of strings with one element
         if isinstance(reference, str):
             reference = [reference]
