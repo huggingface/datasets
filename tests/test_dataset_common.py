@@ -364,8 +364,10 @@ class TextTest(TestCase):
     def test_caching(self):
         n_samples = 10
         with tempfile.TemporaryDirectory() as tmp_dir:
+            # Use \n for newline. Windows automatically adds the \r when writing the file
+            # see https://docs.python.org/3/library/os.html#os.linesep
             open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
-                "\r\n".join("foo" for _ in range(n_samples))
+                "\n".join("foo" for _ in range(n_samples))
             )
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
@@ -400,8 +402,10 @@ class CsvTest(TestCase):
         features = Features({"foo": Value("string"), "bar": Value("string")})
 
         with tempfile.TemporaryDirectory() as tmp_dir:
+            # Use \n for newline. Windows automatically adds the \r when writing the file
+            # see https://docs.python.org/3/library/os.html#os.linesep
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
-                "\r\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
+                "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset(
                 "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
