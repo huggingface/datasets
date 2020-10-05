@@ -64,6 +64,7 @@ class Text(datasets.ArrowBasedBuilder):
                 chunksize=self.config.chunksize,
                 encoding=self.config.encoding,
                 sep="\n",
+                lineterminator="\n",
             )
             for j, df in enumerate(text_file_reader):
                 pa_table = pa.Table.from_pandas(df)
