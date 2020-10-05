@@ -434,6 +434,10 @@ class BuilderTest(TestCase):
             )
             self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
             other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy", data_files={Split.TRAIN: dummy_data1}
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
                 cache_dir=tmp_dir, name="dummy", data_files={"train": [dummy_data1]}
             )
             self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
