@@ -187,6 +187,7 @@ class DatasetTester(object):
                 dataset = dataset_builder.as_dataset()
 
                 # check that dataset is not empty
+                self.parent.assertListEqual(sorted(dataset_builder.info.splits.keys()), sorted(dataset))
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.parent.assertTrue(len(dataset[split]) > 0)
@@ -364,7 +365,7 @@ class TextTest(TestCase):
         n_samples = 10
         with tempfile.TemporaryDirectory() as tmp_dir:
             open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
-                "\n".join("foo" for _ in range(n_samples))
+                "\r\n".join("foo" for _ in range(n_samples))
             )
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
@@ -388,6 +389,7 @@ class TextTest(TestCase):
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
+            self.assertEqual(len(ds), n_samples)
             del ds
 
 
@@ -399,7 +401,7 @@ class CsvTest(TestCase):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
-                "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
+                "\r\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset(
                 "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
@@ -433,6 +435,7 @@ class CsvTest(TestCase):
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
+            self.assertEqual(len(ds), n_rows)
             del ds
 
     def test_features(self):
