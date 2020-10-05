@@ -30,7 +30,7 @@ class Text(datasets.ArrowBasedBuilder):
         return datasets.DatasetInfo(features=FEATURES)
 
     def _split_generators(self, dl_manager):
-        """The `datafiles` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
+        """The `data_files` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
 
         If str or List[str], then the dataset returns only the 'train' split.
         If dict, then keys should be from the `datasets.Split` enum.
@@ -53,8 +53,8 @@ class Text(datasets.ArrowBasedBuilder):
         return splits
 
     def _generate_tables(self, files):
-        for i, file in enumerate(files):
-            j = 0
+        for file_idx, file in enumerate(files):
+            batch_idx = 0
             with open(file, "r", encoding=self.config.encoding) as f:
                 while True:
                     batch = f.read(self.config.chunksize)
@@ -66,5 +66,5 @@ class Text(datasets.ArrowBasedBuilder):
                     # Uncomment for debugging (will print the Arrow table size and elements)
                     # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                     # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                    yield (i, j), pa_table
-                    j += 1
+                    yield (file_idx, batch_idx), pa_table
+                    batch_idx += 1
