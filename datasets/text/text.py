@@ -63,10 +63,7 @@ class Text(datasets.ArrowBasedBuilder):
                         break
                     batch += f.readline()  # finish current line
                     batch = batch.splitlines()
-                    pa_table = pa.Table.from_arrays(
-                        [pa.array(batch)],
-                        schema=pa.schema({"text": pa.string()})
-                    )
+                    pa_table = pa.Table.from_arrays([pa.array(batch)], schema=pa.schema({"text": pa.string()}))
                     # Uncomment for debugging (will print the Arrow table size and elements)
                     # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
                     # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
