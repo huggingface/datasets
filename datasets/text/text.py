@@ -21,7 +21,7 @@ class TextConfig(datasets.BuilderConfig):
     """BuilderConfig for text files."""
 
     encoding: str = None
-    chunksize: int = 10_000
+    chunksize: int = 10 << 20  # 10MB
 
 
 class Text(datasets.ArrowBasedBuilder):
@@ -55,20 +55,20 @@ class Text(datasets.ArrowBasedBuilder):
 
     def _generate_tables(self, files):
         for i, file in enumerate(files):
-            text_file_reader = pd.read_csv(
-                file,
-                dtype={"text": str},
-                names=["text"],
-                header=None,
-                iterator=True,
-                chunksize=self.config.chunksize,
-                encoding=self.config.encoding,
-                sep="\n",
-                lineterminator="\n",
-            )
-            for j, df in enumerate(text_file_reader):
-                pa_table = pa.Table.from_pandas(df)
-                # Uncomment for debugging (will print the Arrow table size and elements)
-                # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                yield (i, j), pa_table
+            j = 0
+            with open(file, "r", encoding=self.config.encoding) as f:
+                while True:
+                    batch = f.read(self.config.chunksize)
+                    if not batch:
+                        break
+                    batch += f.readline()  # finish current line
+                    batch = batch.splitlines()
+                    pa_table = pa.Table.from_arrays(
+                        [pa.array(batch)],
+                        schema=pa.schema({"text": pa.string()})
+                    )
+                    # Uncomment for debugging (will print the Arrow table size and elements)
+                    # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                    # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                    yield (i, j), pa_table
+                    j += 1
