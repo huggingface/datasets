@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass
 
-import pandas as pd
 import pyarrow as pa
 
 import datasets
@@ -20,8 +19,8 @@ FEATURES = datasets.Features(
 class TextConfig(datasets.BuilderConfig):
     """BuilderConfig for text files."""
 
-    encoding: str = None
-    chunksize: int = 10_000
+    encoding: str = "utf-8"
+    chunksize: int = 10 << 20  # 10MB
 
 
 class Text(datasets.ArrowBasedBuilder):
@@ -31,7 +30,7 @@ class Text(datasets.ArrowBasedBuilder):
         return datasets.DatasetInfo(features=FEATURES)
 
     def _split_generators(self, dl_manager):
-        """The `datafiles` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
+        """The `data_files` kwarg in load_dataset() can be a str, List[str], Dict[str,str], or Dict[str,List[str]].
 
         If str or List[str], then the dataset returns only the 'train' split.
         If dict, then keys should be from the `datasets.Split` enum.
@@ -54,20 +53,18 @@ class Text(datasets.ArrowBasedBuilder):
         return splits
 
     def _generate_tables(self, files):
-        for i, file in enumerate(files):
-            text_file_reader = pd.read_csv(
-                file,
-                dtype={"text": str},
-                names=["text"],
-                header=None,
-                iterator=True,
-                chunksize=self.config.chunksize,
-                encoding=self.config.encoding,
-                sep="\n",
-            )
-            for j, df in enumerate(text_file_reader):
-                pa_table = pa.Table.from_pandas(df)
-                # Uncomment for debugging (will print the Arrow table size and elements)
-                # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
-                # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
-                yield (i, j), pa_table
+        for file_idx, file in enumerate(files):
+            batch_idx = 0
+            with open(file, "r", encoding=self.config.encoding) as f:
+                while True:
+                    batch = f.read(self.config.chunksize)
+                    if not batch:
+                        break
+                    batch += f.readline()  # finish current line
+                    batch = batch.splitlines()
+                    pa_table = pa.Table.from_arrays([pa.array(batch)], schema=pa.schema({"text": pa.string()}))
+                    # Uncomment for debugging (will print the Arrow table size and elements)
+                    # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                    # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                    yield (file_idx, batch_idx), pa_table
+                    batch_idx += 1

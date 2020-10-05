@@ -187,6 +187,7 @@ class DatasetTester(object):
                 dataset = dataset_builder.as_dataset()
 
                 # check that dataset is not empty
+                self.parent.assertListEqual(sorted(dataset_builder.info.splits.keys()), sorted(dataset))
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.parent.assertTrue(len(dataset[split]) > 0)
@@ -363,6 +364,8 @@ class TextTest(TestCase):
     def test_caching(self):
         n_samples = 10
         with tempfile.TemporaryDirectory() as tmp_dir:
+            # Use \n for newline. Windows automatically adds the \r when writing the file
+            # see https://docs.python.org/3/library/os.html#os.linesep
             open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
                 "\n".join("foo" for _ in range(n_samples))
             )
@@ -388,6 +391,7 @@ class TextTest(TestCase):
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
+            self.assertEqual(len(ds), n_samples)
             del ds
 
 
@@ -398,6 +402,8 @@ class CsvTest(TestCase):
         features = Features({"foo": Value("string"), "bar": Value("string")})
 
         with tempfile.TemporaryDirectory() as tmp_dir:
+            # Use \n for newline. Windows automatically adds the \r when writing the file
+            # see https://docs.python.org/3/library/os.html#os.linesep
             open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
                 "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
             )
@@ -433,6 +439,7 @@ class CsvTest(TestCase):
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
+            self.assertEqual(len(ds), n_rows)
             del ds
 
     def test_features(self):
