@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass
 
-import pandas as pd
 import pyarrow as pa
 
 import datasets
