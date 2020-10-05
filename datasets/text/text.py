@@ -19,7 +19,7 @@ FEATURES = datasets.Features(
 class TextConfig(datasets.BuilderConfig):
     """BuilderConfig for text files."""
 
-    encoding: str = None
+    encoding: str = "utf-8"
     chunksize: int = 10 << 20  # 10MB
 
 
