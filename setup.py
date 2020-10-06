@@ -73,7 +73,9 @@ REQUIRED_PKGS = [
     # for downloading datasets over HTTPS
     'requests>=2.19.0',
     # progress bars in download and scripts
-    "tqdm >= 4.27",
+    # tqdm 4.50.0 introduced permission errors on windows
+    # see https://app.circleci.com/pipelines/github/huggingface/datasets/235/workflows/cfb6a39f-68eb-4802-8b17-2cd5e8ea7369/jobs/1111
+    "tqdm>=4.27,<4.50.0",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
     # filesystem locks e.g. to prevent parallel downloads
