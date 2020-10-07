@@ -65,8 +65,11 @@ class BaseDatasetTest(TestCase):
         if in_memory:
             datasets = [dataset.map(keep_in_memory=True) for dataset in datasets]
         else:
+            start = 0
+            while os.path.isfile(os.path.join(tmp_dir, f"dataset{start}.arrow")):
+                start += 1
             datasets = [
-                dataset.map(cache_file_name=os.path.join(tmp_dir, f"dataset{i}.arrow"))
+                dataset.map(cache_file_name=os.path.join(tmp_dir, f"dataset{start + i}.arrow"))
                 for i, dataset in enumerate(datasets)
             ]
         return datasets if len(datasets) > 1 else datasets[0]
