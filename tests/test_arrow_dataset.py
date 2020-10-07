@@ -1,6 +1,7 @@
 import os
 import pickle
 import tempfile
+from functools import partial
 from unittest import TestCase
 
 import numpy as np
@@ -10,7 +11,8 @@ from absl.testing import parameterized
 
 import datasets.arrow_dataset
 from datasets import concatenate_datasets, load_from_disk, temp_seed
-from datasets.arrow_dataset import Dataset
+from datasets.arrow_dataset import Dataset, transmit_format
+from datasets.dataset_dict import DatasetDict
 from datasets.features import ClassLabel, Features, Sequence, Value
 from datasets.info import DatasetInfo
 
@@ -1360,6 +1362,40 @@ class BaseDatasetTest(TestCase):
             self.assertIsInstance(dset[:2], pd.DataFrame)
             self.assertIsInstance(dset["col_1"], pd.Series)
             del dset
+
+    def test_transmit_format_single(self, in_memory):
+        @transmit_format
+        def my_single_transform(self, return_factory, *args, **kwargs):
+            return return_factory()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            return_factory = partial(
+                self._create_dummy_dataset, in_memory=in_memory, tmp_dir=tmp_dir, multiple_columns=True
+            )
+            dset = return_factory()
+            dset.set_format("numpy", columns=["col_1"])
+            prev_format = dset.format
+            transformed_dset = my_single_transform(dset, return_factory)
+            self.assertDictEqual(transformed_dset.format, prev_format)
+
+            del dset, transformed_dset
+
+    def test_transmit_format_dict(self, in_memory):
+        @transmit_format
+        def my_split_transform(self, return_factory, *args, **kwargs):
+            return DatasetDict({"train": return_factory()})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            return_factory = partial(
+                self._create_dummy_dataset, in_memory=in_memory, tmp_dir=tmp_dir, multiple_columns=True
+            )
+            dset = return_factory()
+            dset.set_format("numpy", columns=["col_1"])
+            prev_format = dset.format
+            transformed_dset = my_split_transform(dset, return_factory)["train"]
+            self.assertDictEqual(transformed_dset.format, prev_format)
+
+            del dset, transformed_dset
 
 
 class MiscellaneousDatasetTest(TestCase):

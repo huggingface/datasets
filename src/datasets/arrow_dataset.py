@@ -147,17 +147,18 @@ def transmit_format(func):
             self: "Dataset" = kwargs.pop("self")
         # don't use self.format since it returns a list of columns for 'columns' even if self_format_columns is None
         unformatted_columns = set(self.column_names) - set(self._format_columns or [])
-        new_format = {
+        self_format = {
             "type": self._format_type,
             "format_kwargs": self._format_kwargs,
             "columns": self._format_columns,
             "output_all_columns": self._output_all_columns,
         }
         out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
-        if new_format["columns"] is not None:
-            new_format["columns"] = list(set(out.column_names) - unformatted_columns)
         datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
         for dataset in datasets:
+            new_format = dict(self_format)
+            if new_format["columns"] is not None:
+                new_format["columns"] = list(set(dataset.column_names) - unformatted_columns)
             out_format = {
                 "type": dataset._format_type,
                 "format_kwargs": dataset._format_kwargs,
