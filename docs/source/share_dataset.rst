@@ -96,7 +96,7 @@ Push the changes to your account using:
 
 **8.** We also recommend adding **tests** and **metadata** to the dataset script if possible. Go through the :ref:`adding-tests` section to do so.
 
-**9.** Once you are satisfied with the dataset, go the webpage of your fork on GitHub and cick on "Pull request" to **open a pull-request** on the `main github repository <https://github.com/huggingface/datasets>`__ for review.
+**9.** Once you are satisfied with the dataset, go the webpage of your fork on GitHub and click on "Pull request" to **open a pull-request** on the `main github repository <https://github.com/huggingface/datasets>`__ for review.
 
 .. _community-dataset:
 

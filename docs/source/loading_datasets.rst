@@ -51,7 +51,7 @@ Let's load the **SQuAD dataset for Question Answering**. You can explore this da
 
 This call to :func:`datasets.load_dataset` does the following steps under the hood:
 
-1. Download and import in the library the **SQuAD python processing script** from HuggingFace AWS bucket if it's not already stored in the library.
+1. Download and import in the library the **SQuAD python processing script** from HuggingFace github repository or AWS bucket if it's not already stored in the library.
 
 .. note::
 
@@ -87,14 +87,14 @@ You can find more details on the syntax for using :obj:`split` on the :doc:`dedi
 Selecting a configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Some datasets comprise several :obj:`configurations`. A Configuration define a sub-part of a dataset which can be selected. Unlike split, you have to select a single configuration for the dataset, you cannot mix severla configurations. Examples of dataset with several configurations are:
+Some datasets comprise several :obj:`configurations`. A Configuration define a sub-part of a dataset which can be selected. Unlike split, you have to select a single configuration for the dataset, you cannot mix several configurations. Examples of dataset with several configurations are:
 
 - the **GLUE** dataset which is an agregated benchmark comprised of 10 subsets: COLA, SST2, MRPC, QQP, STSB, MNLI, QNLI, RTE, WNLI and the diagnostic subset AX.
 - the **wikipedia** dataset which is provided for several languages.
 
 When a dataset is provided with more than one :obj:`configurations`, you will be requested to explicitely select a configuration among the possibilities.
 
-Selecting a configuration is done by providing :func: `datasets.load_dataset` with a :obj:`name` argument. Here is an example for **GLUE**:
+Selecting a configuration is done by providing :func:`datasets.load_dataset` with a :obj:`name` argument. Here is an example for **GLUE**:
 
 .. code-block::
 

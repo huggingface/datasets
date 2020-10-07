@@ -32,7 +32,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
     ):
         self._path_to_dataset = path_to_dataset
         self._requires_manual = requires_manual
-        self._dataset_name = path_to_dataset.split("/")[-2]
+        self._dataset_name = path_to_dataset.replace(os.sep, "/").split("/")[-2]
 
     def run(self):
         module_path, hash = prepare_module(self._path_to_dataset)

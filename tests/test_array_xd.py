@@ -62,6 +62,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             self.assertTrue(first_shape is not None and second_shape is not None, "need atleast 2 different shapes")
             self.assertEqual(len(first_shape), len(second_shape), "both shapes are supposed to be equal length")
             self.assertNotEqual(first_shape, second_shape, "shapes must not be the same")
+            del dataset
 
     def test_multiple_extensions_same_row(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -78,6 +79,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             second_len = len(row["text"].shape)
             self.assertEqual(first_len, 2, "use a sequence type if dim is  < 2")
             self.assertEqual(second_len, 2, "use a sequence type if dim is  < 2")
+            del dataset
 
     def test_compatability_with_string_values(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -90,6 +92,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             self.assertTrue(isinstance(dataset[0]["image_id"], str), "image id must be of type string")
+            del dataset
 
     def test_extension_indexing(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -104,6 +107,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             dataset.set_format("numpy")
             data = dataset[0]["explicit_ext"]
             self.assertIsInstance(data, np.ndarray, "indexed extension must return numpy.ndarray")
+            del dataset
 
 
 def get_array_feature_types():
@@ -200,6 +204,7 @@ class ArrayXDTest(unittest.TestCase):
             num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             self._check_getitem_output_type(dataset, shape_1, shape_2, my_examples[0][1]["matrix"])
+            del dataset
 
     def test_write_batch(self, array_feature, shape_1, shape_2):
 
@@ -214,6 +219,7 @@ class ArrayXDTest(unittest.TestCase):
             num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
+            del dataset
 
     def test_from_dict(self, array_feature, shape_1, shape_2):
         dict_examples = self.get_dict_examples(shape_1, shape_2)
@@ -221,3 +227,4 @@ class ArrayXDTest(unittest.TestCase):
             dict_examples, features=self.get_features(array_feature, shape_1, shape_2)
         )
         self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
+        del dataset

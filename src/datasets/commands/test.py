@@ -1,5 +1,6 @@
 import os
 from argparse import ArgumentParser
+from pathlib import Path
 from shutil import copyfile
 from typing import List
 
@@ -101,7 +102,7 @@ class TestCommand(BaseTransformersCLICommand):
         if self._save_infos:
             dataset_infos_path = os.path.join(builder_cls.get_imported_module_dir(), DATASET_INFOS_DICT_FILE_NAME)
 
-            name = list(filter(lambda x: x, path.split("/")))[-1] + ".py"
+            name = Path(path).name + ".py"
 
             combined_path = os.path.join(path, name)
             if os.path.isfile(path):

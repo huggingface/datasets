@@ -22,7 +22,7 @@ def parse_flag_from_env(key, default=False):
 
 
 _run_slow_tests = parse_flag_from_env("RUN_SLOW", default=False)
-_run_aws_tests = parse_flag_from_env("RUN_AWS", default=True)
+_run_remote_tests = parse_flag_from_env("RUN_REMOTE", default=True)
 _run_local_tests = parse_flag_from_env("RUN_LOCAL", default=True)
 
 
@@ -35,6 +35,48 @@ def require_beam(test_case):
     """
     if not _torch_available:
         test_case = unittest.skip("test requires PyTorch")(test_case)
+    return test_case
+
+
+def require_faiss(test_case):
+    """
+    Decorator marking a test that requires Faiss.
+
+    These tests are skipped when Faiss isn't installed.
+
+    """
+    try:
+        import faiss  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires faiss")(test_case)
+    return test_case
+
+
+def require_regex(test_case):
+    """
+    Decorator marking a test that requires regex.
+
+    These tests are skipped when Regex isn't installed.
+
+    """
+    try:
+        import regex  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires regex")(test_case)
+    return test_case
+
+
+def require_elasticsearch(test_case):
+    """
+    Decorator marking a test that requires ElasticSearch.
+
+    These tests are skipped when ElasticSearch isn't installed.
+
+    """
+    try:
+        import elasticsearch  # noqa
+    except ImportError:
+        test_case = unittest.skip("test requires elasticsearch")(test_case)
     return test_case
 
 
@@ -102,13 +144,25 @@ def local(test_case):
     return test_case
 
 
-def aws(test_case):
+def remote(test_case):
     """
-    Decorator marking a test as one that relies on AWS.
+    Decorator marking a test as one that relies on github or aws.
 
-    AWS tests are skipped by default. Set the RUN_AWS environment variable
+    Remote tests are skipped by default. Set the RUN_REMOTE environment variable
     to a falsy value to not run them.
     """
-    if not _run_aws_tests or _run_aws_tests == 0:
-        test_case = unittest.skip("test requires aws")(test_case)
+    if not _run_remote_tests or _run_remote_tests == 0:
+        test_case = unittest.skip("test requires remote")(test_case)
     return test_case
+
+
+def for_all_test_methods(*decorators):
+    def decorate(cls):
+        for name, fn in cls.__dict__.items():
+            if callable(fn) and name.startswith("test"):
+                for decorator in decorators:
+                    fn = decorator(fn)
+                setattr(cls, name, fn)
+        return cls
+
+    return decorate

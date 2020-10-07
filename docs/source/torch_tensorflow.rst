@@ -25,8 +25,8 @@ The format of a :class:`datasets.Dataset` instance can be set using the :func:`d
     - ``'numpy'``/``'np'``: return Numpy arrays,
     - ``'pandas'``/``'pd'``: return Pandas DataFrames.
 
-- ``columns`` an optional list of column names (string) defining the list of the column which should be formated and returned by :func:`datasets.Dataset.__getitem__`. Set to None to return all the columns in the dataset (default).
-- ``output_all_columns`` an optional boolean to return as python object the columns which are not selected to be formated (see the above arguments). This can be used for instance if you cannot format some columns (e.g. string columns cannot be formated as PyTorch Tensors) but would still like to have these columns returned. See an example below.
+- ``columns``: an optional list of column names (string) defining the list of the columns which should be formated and returned by :func:`datasets.Dataset.__getitem__`. Set to None to return all the columns in the dataset (default).
+- ``output_all_columns``: an optional boolean to return as python object the columns which are not selected to be formated (see the above arguments). This can be used for instance if you cannot format some columns (e.g. string columns cannot be formated as PyTorch Tensors) but would still like to have these columns returned. See an example below.
 
 Here is how we can apply a format to a simple dataset using :func:`datasets.Dataset.set_format` and wrap it in a ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``:
 
@@ -38,9 +38,9 @@ Here is how we can apply a format to a simple dataset using :func:`datasets.Data
     >>> from transformers import AutoTokenizer
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
     >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
-    >>> dataset = dataset.map(lambda e: tokenizer(e['sentence1']), batched=True)
+    >>> dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
     >>>
-    >>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
+    >>> dataset.set_format(type='torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
     >>> dataloader = torch.utils.data.DataLoader(dataset, batch_size=32)
     >>> next(iter(dataloader))
     {'attention_mask': tensor([[1, 1, 1,  ..., 0, 0, 0],
@@ -59,11 +59,11 @@ Here is how we can apply a format to a simple dataset using :func:`datasets.Data
     >>> from transformers import AutoTokenizer
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
     >>> tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
-    >>> dataset = dataset.map(lambda e: tokenizer(e['sentence1']), batched=True)
+    >>> dataset = dataset.map(lambda e: tokenizer(e['sentence1'], truncation=True, padding='max_length'), batched=True)
     >>>
-    >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'labels'])
+    >>> dataset.set_format(type='tensorflow', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label'])
     >>> features = {x: dataset[x].to_tensor(default_value=0, shape=[None, tokenizer.max_len]) for x in ['input_ids', 'token_type_ids', 'attention_mask']}
-    >>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["labels"])).batch(32)
+    >>> tfdataset = tf.data.Dataset.from_tensor_slices((features, dataset["label"])).batch(32)
     >>> next(iter(tfdataset))
     ({'input_ids': <tf.Tensor: shape=(32, 512), dtype=int32, numpy=
     array([[  101,  7277,  2180, ...,     0,     0,     0],

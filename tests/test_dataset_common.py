@@ -16,31 +16,67 @@
 import glob
 import os
 import tempfile
+import warnings
+from functools import wraps
 from multiprocessing import Pool
 from unittest import TestCase
 
-import requests
 from absl.testing import parameterized
 
 from datasets import (
     BuilderConfig,
     DatasetBuilder,
     DownloadConfig,
+    Features,
     GenerateMode,
     MockDownloadManager,
+    Value,
     cached_path,
     hf_api,
-    hf_bucket_url,
     import_main_class,
     load_dataset,
     logging,
     prepare_module,
 )
+from datasets.search import _has_faiss
 
-from .utils import aws, local, slow
+from .utils import for_all_test_methods, local, remote, slow
 
 
 logger = logging.get_logger(__name__)
+
+
+REQUIRE_FAISS = {"wiki_dpr"}
+
+
+def skip_if_dataset_requires_faiss(test_case):
+    @wraps(test_case)
+    def wrapper(self, dataset_name):
+        if not _has_faiss and dataset_name in REQUIRE_FAISS:
+            self.skipTest('"test requires Faiss"')
+        else:
+            test_case(self, dataset_name)
+
+    return wrapper
+
+
+def skip_if_not_compatible_with_windows(test_case):
+    if os.name == "nt":  # windows
+
+        @wraps(test_case)
+        def wrapper(self, dataset_name):
+            try:
+                test_case(self, dataset_name)
+            except FileNotFoundError as e:
+                if "[WinError 206]" in str(e):  # if there's a path that exceeds windows' 256 characters limit
+                    warnings.warn("test not compatible with windows ([WinError 206] error)")
+                    self.skipTest('"test not compatible with windows ([WinError 206] error)"')
+                else:
+                    raise
+
+        return wrapper
+    else:
+        return test_case
 
 
 class DatasetTester(object):
@@ -151,17 +187,20 @@ class DatasetTester(object):
                 dataset = dataset_builder.as_dataset()
 
                 # check that dataset is not empty
+                self.parent.assertListEqual(sorted(dataset_builder.info.splits.keys()), sorted(dataset))
                 for split in dataset_builder.info.splits.keys():
                     # check that loaded datset is not empty
                     self.parent.assertTrue(len(dataset[split]) > 0)
+                del dataset
 
 
 def get_local_dataset_names():
-    datasets = [dataset_dir.split("/")[-2] for dataset_dir in glob.glob("./datasets/*/")]
+    datasets = [dataset_dir.split(os.sep)[-2] for dataset_dir in glob.glob("./datasets/*/")]
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
 @parameterized.named_parameters(get_local_dataset_names())
+@for_all_test_methods(skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows)
 @local
 class LocalDatasetTest(parameterized.TestCase):
     dataset_name = None
@@ -204,6 +243,7 @@ class LocalDatasetTest(parameterized.TestCase):
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+            del dataset
 
     @slow
     def test_load_real_dataset_all_configs(self, dataset_name):
@@ -220,6 +260,7 @@ class LocalDatasetTest(parameterized.TestCase):
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
+                del dataset
 
 
 def distributed_load_dataset(args):
@@ -245,38 +286,29 @@ class DistributedDatasetTest(TestCase):
             args = data_name, tmp_dir, datafiles
             with Pool(processes=num_workers) as pool:  # start num_workers processes
                 result = pool.apply_async(distributed_load_dataset, (args,))
-                _ = result.get(timeout=20)
-                _ = pool.map(distributed_load_dataset, [args] * num_workers)
+                dataset = result.get(timeout=20)
+                del result, dataset
+                datasets = pool.map(distributed_load_dataset, [args] * num_workers)
+                for _ in range(len(datasets)):
+                    dataset = datasets.pop()
+                    del dataset
 
 
-def get_aws_dataset_names():
+def get_remote_dataset_names():
     api = hf_api.HfApi()
     # fetch all dataset names
     datasets = api.dataset_list(with_community_datasets=False, id_only=True)
     return [{"testcase_name": x, "dataset_name": x} for x in datasets]
 
 
-@parameterized.named_parameters(get_aws_dataset_names())
-@aws
-class AWSDatasetTest(parameterized.TestCase):
+@parameterized.named_parameters(get_remote_dataset_names())
+@for_all_test_methods(skip_if_dataset_requires_faiss, skip_if_not_compatible_with_windows)
+@remote
+class RemoteDatasetTest(parameterized.TestCase):
     dataset_name = None
 
     def setUp(self):
         self.dataset_tester = DatasetTester(self)
-
-    def test_dataset_has_valid_etag(self, dataset_name):
-        py_script_path = list(filter(lambda x: x, dataset_name.split("/")))[-1] + ".py"
-        dataset_url = hf_bucket_url(dataset_name, filename=py_script_path, dataset=True)
-        etag = None
-        try:
-            response = requests.head(dataset_url, allow_redirects=True, proxies=None, timeout=10)
-
-            if response.status_code == 200:
-                etag = response.headers.get("Etag")
-        except (EnvironmentError, requests.exceptions.Timeout):
-            pass
-
-        self.assertIsNotNone(etag)
 
     def test_builder_class(self, dataset_name):
         builder_cls = self.dataset_tester.load_builder_class(dataset_name)
@@ -308,6 +340,7 @@ class AWSDatasetTest(parameterized.TestCase):
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
+            del dataset
 
     @slow
     def test_load_real_dataset_all_configs(self, dataset_name):
@@ -324,26 +357,111 @@ class AWSDatasetTest(parameterized.TestCase):
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
+                del dataset
 
 
 class TextTest(TestCase):
     def test_caching(self):
+        n_samples = 10
         with tempfile.TemporaryDirectory() as tmp_dir:
-            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("foo" for _ in range(10)))
+            # Use \n for newline. Windows automatically adds the \r when writing the file
+            # see https://docs.python.org/3/library/os.html#os.linesep
+            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
+                "\n".join("foo" for _ in range(n_samples))
+            )
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             data_file = ds._data_files[0]
             fingerprint = ds._fingerprint
+            self.assertEqual(len(ds), n_samples)
+            del ds
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             self.assertEqual(ds._data_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
+            del ds
 
-            open(os.path.join(tmp_dir, "text.txt"), "w").write("\n".join("bar" for _ in range(10)))
+            open(os.path.join(tmp_dir, "text.txt"), "w", encoding="utf-8").write(
+                "\n".join("bar" for _ in range(n_samples))
+            )
             ds = load_dataset(
                 "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
+            self.assertEqual(len(ds), n_samples)
+            del ds
+
+
+class CsvTest(TestCase):
+    def test_caching(self):
+        n_rows = 10
+
+        features = Features({"foo": Value("string"), "bar": Value("string")})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Use \n for newline. Windows automatically adds the \r when writing the file
+            # see https://docs.python.org/3/library/os.html#os.linesep
+            open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
+                "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
+            )
+            ds = load_dataset(
+                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+            )
+            data_file = ds._data_files[0]
+            fingerprint = ds._fingerprint
+            self.assertEqual(len(ds), n_rows)
+            del ds
+            ds = load_dataset(
+                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+            )
+            self.assertEqual(ds._data_files[0], data_file)
+            self.assertEqual(ds._fingerprint, fingerprint)
+            del ds
+            ds = load_dataset(
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                features=features,
+            )
+            self.assertNotEqual(ds._data_files[0], data_file)
+            self.assertNotEqual(ds._fingerprint, fingerprint)
+            del ds
+
+            open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
+                "\n".join(",".join(["Foo", "Bar"]) for _ in range(n_rows + 1))
+            )
+            ds = load_dataset(
+                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+            )
+            self.assertNotEqual(ds._data_files[0], data_file)
+            self.assertNotEqual(ds._fingerprint, fingerprint)
+            self.assertEqual(len(ds), n_rows)
+            del ds
+
+    def test_features(self):
+        n_rows = 10
+        n_cols = 3
+
+        def get_features(type):
+            return Features({str(i): Value(type) for i in range(n_cols)})
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            open(os.path.join(tmp_dir, "table.csv"), "w", encoding="utf-8").write(
+                "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+            )
+            for type in ["float64", "int8"]:
+                features = get_features(type)
+                ds = load_dataset(
+                    "./datasets/csv",
+                    data_files=os.path.join(tmp_dir, "table.csv"),
+                    cache_dir=tmp_dir,
+                    split="train",
+                    features=features,
+                )
+                self.assertEqual(len(ds), n_rows)
+                self.assertDictEqual(ds.features, features)
+                del ds

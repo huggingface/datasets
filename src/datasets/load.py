@@ -98,7 +98,7 @@ def files_to_hash(file_paths: List[str]) -> str:
     # Get the code from all these files
     lines = []
     for file_path in to_use_files:
-        with open(file_path, mode="r") as f:
+        with open(file_path, mode="r", encoding="utf-8") as f:
             lines.extend(f.readlines())
     filtered_lines = []
     for line in lines:
@@ -159,7 +159,7 @@ def get_imports(file_path: str):
         import .clicr.dataset-code.build_json_dataset  # From: https://raw.githubusercontent.com/clips/clicr/master/dataset-code/build_json_dataset
     """
     lines = []
-    with open(file_path, mode="r") as f:
+    with open(file_path, mode="r", encoding="utf-8") as f:
         lines.extend(f.readlines())
 
     logger.info("Checking %s for additional imports.", file_path)
@@ -241,7 +241,7 @@ def prepare_module(
     download_config.force_extract = True
 
     module_type = "dataset" if dataset else "metric"
-    name = list(filter(lambda x: x, path.split("/")))[-1]
+    name = list(filter(lambda x: x, path.replace(os.sep, "/").split("/")))[-1]
     if not name.endswith(".py"):
         name = name + ".py"
 
@@ -419,7 +419,7 @@ def prepare_module(
             logger.info(f"Creating metadata file for {module_type} {file_path} at {meta_path}")
             meta = {"original file path": file_path, "local file path": local_file_path}
             # the filename is *.py in our case, so better rename to filenam.json instead of filename.py.json
-            with open(meta_path, "w") as meta_file:
+            with open(meta_path, "w", encoding="utf-8") as meta_file:
                 json.dump(meta, meta_file)
         else:
             logger.info(f"Found metadata file for {module_type} {file_path} at {meta_path}")

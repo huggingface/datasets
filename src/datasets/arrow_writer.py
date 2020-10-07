@@ -26,7 +26,7 @@ from tqdm.auto import tqdm
 from .features import Features, _ArrayXDExtensionType
 from .info import DatasetInfo
 from .utils.file_utils import HF_DATASETS_CACHE, hash_url_to_filename
-from .utils.logging import INFO, get_logger
+from .utils.logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)
@@ -94,9 +94,14 @@ class TypedSequence:
             type = self.type
         try:
             if isinstance(type, _ArrayXDExtensionType):
-                return pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
+                out = pa.ExtensionArray.from_storage(type, pa.array(self.data, type.storage_dtype))
             else:
-                return pa.array(self.data, type=type)
+                out = pa.array(self.data, type=type)
+            if trying_type and out[0].as_py() != self.data[0]:
+                raise TypeError(
+                    "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
+                )
+            return out
         except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
             if trying_type:
                 try:
@@ -414,7 +419,7 @@ def parquet_to_arrow(sources, destination):
     """Convert parquet files to arrow file. Inputs can be str paths or file-like objects"""
     stream = None if isinstance(destination, str) else destination
     writer = ArrowWriter(path=destination, stream=stream)
-    not_verbose = bool(logger.getEffectiveLevel() > INFO)
+    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
     for source in tqdm(sources, unit="sources", disable=not_verbose):
         pf = pa.parquet.ParquetFile(source)
         for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):

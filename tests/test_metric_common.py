@@ -15,30 +15,31 @@
 
 import glob
 import inspect
+import os
 import tempfile
 
 from absl.testing import parameterized
 
 from datasets import DownloadConfig, hf_api, load_metric
 
-from .utils import aws, local, slow
+from .utils import local, remote, slow
 
 
-def get_aws_metric_names():
+def get_local_metric_names():
+    metrics = [metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./metrics/*/")]
+    return [{"testcase_name": x, "metric_name": x} for x in metrics]
+
+
+def get_remote_metric_names():
     api = hf_api.HfApi()
     # fetch all metric names
     metrics = [x.id for x in api.metric_list()]
     return [{"testcase_name": x, "metric_name": x} for x in metrics]
 
 
-def get_local_metric_names():
-    metrics = [metric_dir.split("/")[-2] for metric_dir in glob.glob("./metrics/*/")]
-    return [{"testcase_name": x, "metric_name": x} for x in metrics]
-
-
-@parameterized.named_parameters(get_aws_metric_names())
-@aws
-class AWSMetricTest(parameterized.TestCase):
+@parameterized.named_parameters(get_remote_metric_names())
+@remote
+class RemoteMetricTest(parameterized.TestCase):
     metric_name = None
 
     @slow
@@ -80,3 +81,4 @@ class LocalMetricTest(parameterized.TestCase):
             self.assertTrue("predictions" in parameters)
             self.assertTrue("references" in parameters)
             self.assertTrue(all([p.kind != p.VAR_KEYWORD for p in parameters.values()]))  # no **kwargs
+            del metric

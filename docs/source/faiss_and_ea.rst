@@ -91,4 +91,61 @@ And reload it later:
 Adding an ElasticSearch index
 ----------------------------------
 
-[UNDER CONSTRUCTION]
+The :func:`datasets.Dataset.add_elasticsearch_index` method is in charge of adding documents to an ElasticSearch index.
+
+ElasticSearch is a distributed text search engine based on Lucene. 
+
+To use an ElasticSearch index with your dataset, you first need to have ElasticSearch running and accessible from your machine.
+
+For example if you have ElasticSearch running on your machine (default host=localhost, port=9200), you can run
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> squad = load_dataset('squad', split='validation')
+    >>> squad.add_elasticsearch_index("context", host="localhost", port="9200")
+
+and then query the index of the "context" column of the squad dataset:
+
+.. code-block::
+
+    >>> query = "machine"
+    >>> scores, retrieved_examples = squad.get_nearest_examples("context", query, k=10)
+    >>> retrieved_examples["title"][0]
+    'Computational_complexity_theory'
+
+You can reuse your index later by specifying the ElasticSearch index name
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> squad = load_dataset('squad', split='validation')
+    >>> squad.add_elasticsearch_index("context", host="localhost", port="9200", es_index_name="hf_squad_val_context")
+    >>> squad.get_index("context").es_index_name
+    hf_squad_val_context
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> squad = load_dataset('squad', split='validation')
+    >>> squad.load_elasticsearch_index("context", host="localhost", port="9200", es_index_name="hf_squad_val_context")
+    >>> query = "machine"
+    >>> scores, retrieved_examples = squad.get_nearest_examples("context", query, k=10)
+
+If you want to use a more advanced ElasticSearch configuration, you can also specify your own ElasticSearch, your own ElasticSearch index configuration, as well as you own ElasticSearch index name.
+
+.. code-block::
+
+    >>> import elasticsearch as es
+    >>> import elasticsearch.helpers
+    >>> from elasticsearch import Elasticsearch
+    >>> es_client = Elasticsearch([{"host": "localhost", "port": "9200"}])  # default client
+    >>> es_config = {
+            "settings": {
+                "number_of_shards": 1,
+                "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+            },
+            "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
+        }  # default config
+    >>> es_index_name = "hf_squad_context"  # name of the index in ElasticSearch
+    >>> squad.add_elasticsearch_index("context", es_client=es_client, es_config=es_config, es_index_name=es_index_name)

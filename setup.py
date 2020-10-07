@@ -46,6 +46,7 @@ To create the package for pypi.
 7. Copy the release notes from RELEASE.md to the tag in github once everything is looking hunky-dory.
 
 8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
+   Update the version mapping in docs/source/_static/js/custom.js
 
 9. Update README.md to redirect to correct documentation.
 """
@@ -72,13 +73,17 @@ REQUIRED_PKGS = [
     # for downloading datasets over HTTPS
     'requests>=2.19.0',
     # progress bars in download and scripts
-    "tqdm >= 4.27",
+    # tqdm 4.50.0 introduced permission errors on windows
+    # see https://app.circleci.com/pipelines/github/huggingface/datasets/235/workflows/cfb6a39f-68eb-4802-8b17-2cd5e8ea7369/jobs/1111
+    "tqdm>=4.27,<4.50.0",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
     # filesystem locks e.g. to prevent parallel downloads
     "filelock",
     # for fast hashing
-    "xxhash"
+    "xxhash",
+    # for better multiprocessing
+    "multiprocess"
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -106,6 +111,9 @@ TESTS_REQUIRE = [
     'zstandard'
 ]
 
+if os.name == "nt":  # windows
+    TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
+
 
 QUALITY_REQUIRE = [
     "black",
@@ -128,7 +136,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name='datasets',
-    version="1.0.1",
+    version="1.1.2",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',

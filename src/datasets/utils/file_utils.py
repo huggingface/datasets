@@ -26,7 +26,7 @@ from filelock import FileLock
 from tqdm.auto import tqdm
 
 from .. import __version__
-from .logging import INFO, get_logger
+from .logging import WARNING, get_logger
 
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
@@ -201,9 +201,9 @@ def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True) -> r
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
-    from .. import SCRIPTS_VERIONS
+    from .. import SCRIPTS_VERSION
 
-    version = version or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERIONS)
+    version = version or os.getenv("HF_SCRIPTS_VERSION", SCRIPTS_VERSION)
     if dataset:
         return REPO_DATASETS_URL.format(version=version, path=path, name=name)
     else:
@@ -338,11 +338,7 @@ def cached_path(
         with FileLock(lock_path):
             shutil.rmtree(output_path_extracted, ignore_errors=True)
             os.makedirs(output_path_extracted, exist_ok=True)
-            if is_zipfile(output_path):
-                with ZipFile(output_path, "r") as zip_file:
-                    zip_file.extractall(output_path_extracted)
-                    zip_file.close()
-            elif tarfile.is_tarfile(output_path):
+            if tarfile.is_tarfile(output_path):
                 tar_file = tarfile.open(output_path)
                 tar_file.extractall(output_path_extracted)
                 tar_file.close()
@@ -351,6 +347,10 @@ def cached_path(
                 with gzip.open(output_path, "rb") as gzip_file:
                     with open(output_path_extracted, "wb") as extracted_file:
                         shutil.copyfileobj(gzip_file, extracted_file)
+            elif is_zipfile(output_path):  # put zip file to the last, b/c it is possible wrongly detected as zip
+                with ZipFile(output_path, "r") as zip_file:
+                    zip_file.extractall(output_path_extracted)
+                    zip_file.close()
             else:
                 raise EnvironmentError("Archive format of {} could not be identified".format(output_path))
 
@@ -377,7 +377,7 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
         return
     content_length = response.headers.get("Content-Length")
     total = resume_size + int(content_length) if content_length is not None else None
-    not_verbose = bool(logger.getEffectiveLevel() > INFO)
+    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
     progress = tqdm(
         unit="B",
         unit_scale=True,
@@ -517,7 +517,7 @@ def get_from_cache(
         logger.info("creating metadata file for %s", cache_path)
         meta = {"url": url, "etag": etag}
         meta_path = cache_path + ".json"
-        with open(meta_path, "w") as meta_file:
+        with open(meta_path, "w", encoding="utf-8") as meta_file:
             json.dump(meta, meta_file)
 
     return cache_path

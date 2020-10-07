@@ -82,6 +82,7 @@ class BeamBuilderTest(TestCase):
                     os.path.join(tmp_cache_dir, "dummy_beam_dataset", "default", "0.0.0", "dataset_info.json")
                 )
             )
+            del dset
 
     @require_beam
     def test_no_beam_options(self):
@@ -117,3 +118,4 @@ class BeamBuilderTest(TestCase):
                     os.path.join(tmp_cache_dir, "nested_beam_dataset", "default", "0.0.0", "dataset_info.json")
                 )
             )
+            del dset
