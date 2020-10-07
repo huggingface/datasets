@@ -153,11 +153,13 @@ def transmit_format(func):
             "columns": self._format_columns,
             "output_all_columns": self._output_all_columns,
         }
+        # apply actual function
         out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
         datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
+        # re-apply format to the output
         for dataset in datasets:
             new_format = dict(self_format)
-            if new_format["columns"] is not None:
+            if new_format["columns"] is not None:  # new formatted columns = (columns - previously unformatted columns)
                 new_format["columns"] = list(set(dataset.column_names) - unformatted_columns)
             out_format = {
                 "type": dataset._format_type,
@@ -165,7 +167,7 @@ def transmit_format(func):
                 "columns": dataset._format_columns,
                 "output_all_columns": dataset._output_all_columns,
             }
-            if out_format != new_format:
+            if out_format != new_format:  # only apply if there's a change not to update the fingerprint for nothing
                 dataset.set_format(**new_format)
         return out
 
