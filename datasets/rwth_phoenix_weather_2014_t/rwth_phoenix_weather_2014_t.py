@@ -86,11 +86,11 @@ class RWTHPhoenixWeather2014T(datasets.GeneratorBasedBuilder):
                 gen_kwargs={"base_path": base_path, "split": "train"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"base_path": base_path, "split": "dev"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
+                name=datasets.Split.TEST,
                 gen_kwargs={"base_path": base_path, "split": "test"},
             ),
         ]
