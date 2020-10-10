@@ -34,7 +34,8 @@ _CITATION = """\
   year={2018}
 }
 @article{koller2015continuous,
-  title={Continuous sign language recognition: Towards large vocabulary statistical recognition systems handling multiple signers},
+  title={Continuous sign language recognition: 
+  Towards large vocabulary statistical recognition systems handling multiple signers},
   author={Koller, Oscar and Forster, Jens and Ney, Hermann},
   journal={Computer Vision and Image Understanding},
   volume={141},
