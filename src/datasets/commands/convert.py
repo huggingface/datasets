@@ -56,8 +56,7 @@ class ConvertCommand(BaseTransformersCLICommand):
         :return:
         """
         train_parser = parser.add_parser(
-            "convert",
-            help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
+            "convert", help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
         )
         train_parser.add_argument(
             "--tfds_path",

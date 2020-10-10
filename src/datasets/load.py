@@ -293,10 +293,7 @@ def prepare_module(
 
     # Download the dataset infos file if available
     try:
-        local_dataset_infos_path = cached_path(
-            dataset_infos,
-            download_config=download_config,
-        )
+        local_dataset_infos_path = cached_path(dataset_infos, download_config=download_config,)
     except (FileNotFoundError, ConnectionError):
         local_dataset_infos_path = None
 
@@ -323,10 +320,7 @@ def prepare_module(
         else:
             raise ValueError("Wrong import_type")
 
-        local_import_path = cached_path(
-            url_or_filename,
-            download_config=download_config,
-        )
+        local_import_path = cached_path(url_or_filename, download_config=download_config,)
         if sub_directory is not None:
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
@@ -606,9 +600,7 @@ def load_dataset(
 
     # Download and prepare data
     builder_instance.download_and_prepare(
-        download_config=download_config,
-        download_mode=download_mode,
-        ignore_verifications=ignore_verifications,
+        download_config=download_config, download_mode=download_mode, ignore_verifications=ignore_verifications,
     )
 
     # Build dataset for splits

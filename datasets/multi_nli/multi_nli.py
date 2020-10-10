@@ -70,10 +70,7 @@ class MultiNli(datasets.GeneratorBasedBuilder):
     """MultiNLI: The Stanford Question Answering Dataset. Version 1.1."""
 
     BUILDER_CONFIGS = [
-        MultiNLIConfig(
-            name="plain_text",
-            description="Plain text",
-        ),
+        MultiNLIConfig(name="plain_text", description="Plain text",),
     ]
 
     def _info(self):

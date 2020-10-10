@@ -107,11 +107,15 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
                                 # this is the actual VisualGenome image ID
                                 # because we can't rely store it as an integer we same it as string
                                 "flickr_id": datasets.Value("string"),
-                                "image_id": datasets.Value("string")
-                            }
+                                "image_id": datasets.Value("string"),
+                            },
                         },
                         "qas": datasets.features.Sequence(
-                            {"question": datasets.Value("string"), "answer": datasets.Value("string"), "id": datasets.Value("int32")}
+                            {
+                                "question": datasets.Value("string"),
+                                "answer": datasets.Value("string"),
+                                "id": datasets.Value("int32"),
+                            }
                         ),
                         "objects": datasets.features.Sequence(
                             {
@@ -120,7 +124,9 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
                                 "category": datasets.Value("string"),
                                 "area": datasets.Value("float32"),
                                 "category_id": datasets.Value("int32"),
-                                "segment": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("float32"))),
+                                "segment": datasets.features.Sequence(
+                                    datasets.features.Sequence(datasets.Value("float32"))
+                                ),
                             }
                         ),
                     }

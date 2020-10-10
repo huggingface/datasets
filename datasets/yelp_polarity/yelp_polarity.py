@@ -105,21 +105,13 @@ class YelpPolarityReviewsConfig(datasets.BuilderConfig):
 class YelpPolarity(datasets.GeneratorBasedBuilder):
     """Yelp Polarity reviews dataset."""
 
-    BUILDER_CONFIGS = [
-        YelpPolarityReviewsConfig(
-            name="plain_text",
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [YelpPolarityReviewsConfig(name="plain_text", description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "text": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=["1", "2"]),
-                }
+                {"text": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["1", "2"]),}
             ),
             supervised_keys=None,
             homepage="https://course.fast.ai/datasets",

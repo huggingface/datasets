@@ -11,10 +11,7 @@ logger = get_logger(__name__)
 
 
 def test_command_factory(args):
-    return DummyDataCommand(
-        args.path_to_dataset,
-        args.requires_manual,
-    )
+    return DummyDataCommand(args.path_to_dataset, args.requires_manual,)
 
 
 class DummyDataCommand(BaseTransformersCLICommand):
@@ -26,9 +23,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         test_parser.set_defaults(func=test_command_factory)
 
     def __init__(
-        self,
-        path_to_dataset: str,
-        requires_manual: bool,
+        self, path_to_dataset: str, requires_manual: bool,
     ):
         self._path_to_dataset = path_to_dataset
         self._requires_manual = requires_manual

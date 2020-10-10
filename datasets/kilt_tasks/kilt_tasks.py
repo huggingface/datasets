@@ -137,10 +137,7 @@ class KILTTasks(datasets.GeneratorBasedBuilder):
     """WikipediaKILT: Wikipedia pre-processed for KILT. Version 1.0."""
 
     BUILDER_CONFIGS = [
-        KILTTasksConfig(
-            name="all_tasks",
-            description="All KILT tasks traiing and evaluation data",
-        ),
+        KILTTasksConfig(name="all_tasks", description="All KILT tasks traiing and evaluation data",),
     ]
 
     def _info(self):
@@ -162,11 +159,7 @@ class KILTTasks(datasets.GeneratorBasedBuilder):
                                     "title": datasets.Value("string"),
                                     "section": datasets.Value("string"),
                                     "wikipedia_id": datasets.Value("string"),
-                                    "meta": datasets.features.Sequence(
-                                        {
-                                            "evidence_span": datasets.Value("string"),
-                                        }
-                                    ),
+                                    "meta": datasets.features.Sequence({"evidence_span": datasets.Value("string"),}),
                                 }
                             ),
                             "obj_surface": datasets.features.Sequence({"text": datasets.Value("string")}),

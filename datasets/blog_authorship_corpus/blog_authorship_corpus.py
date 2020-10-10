@@ -52,10 +52,7 @@ class BlogAuthorshipCorpusConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(BlogAuthorshipCorpusConfig, self).__init__(
-            version=datasets.Version(
-                "1.0.0",
-            ),
-            **kwargs,
+            version=datasets.Version("1.0.0",), **kwargs,
         )
         self.data_url = data_url
 
@@ -114,12 +111,10 @@ class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
 
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    gen_kwargs={"files": train_files, "split": "train"},
+                    name=datasets.Split.TRAIN, gen_kwargs={"files": train_files, "split": "train"},
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    gen_kwargs={"files": validation_files, "split": "validation"},
+                    name=datasets.Split.VALIDATION, gen_kwargs={"files": validation_files, "split": "validation"},
                 ),
             ]
         else:

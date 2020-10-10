@@ -265,11 +265,7 @@ class DownloadConfig:
         return self.__class__(**{k: copy.deepcopy(v) for k, v in self.__dict__.items()})
 
 
-def cached_path(
-    url_or_filename,
-    download_config=None,
-    **download_kwargs,
-) -> Optional[str]:
+def cached_path(url_or_filename, download_config=None, **download_kwargs,) -> Optional[str]:
     """
     Given something that might be a URL (or might be a local path),
     determine which. If it's a URL, download the file and cache it, and
@@ -379,12 +375,7 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
     total = resume_size + int(content_length) if content_length is not None else None
     not_verbose = bool(logger.getEffectiveLevel() > WARNING)
     progress = tqdm(
-        unit="B",
-        unit_scale=True,
-        total=total,
-        initial=resume_size,
-        desc="Downloading",
-        disable=not_verbose,
+        unit="B", unit_scale=True, total=total, initial=resume_size, desc="Downloading", disable=not_verbose,
     )
     for chunk in response.iter_content(chunk_size=1024):
         if chunk:  # filter out keep-alive new chunks

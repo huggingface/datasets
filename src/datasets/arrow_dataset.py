@@ -1848,8 +1848,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not isinstance(column, str) or column not in self._data.column_names:
             raise ValueError(
                 "Column '{}' not found in the dataset. Please provide a column selected in: {}".format(
-                    column,
-                    self._data.column_names,
+                    column, self._data.column_names,
                 )
             )
 
@@ -2205,9 +2204,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     def export(
-        self,
-        filename: str,
-        format: str = "tfrecord",
+        self, filename: str, format: str = "tfrecord",
     ):
         """Writes the Arrow dataset to a TFRecord file.
 
@@ -2481,9 +2478,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
 
 def concatenate_datasets(
-    dsets: List[Dataset],
-    info: Optional[Any] = None,
-    split: Optional[Any] = None,
+    dsets: List[Dataset], info: Optional[Any] = None, split: Optional[Any] = None,
 ):
     """
     Converts a list of :obj:``datasets.Dataset`` with the same schema into a single :obj:``datasets.Dataset``.

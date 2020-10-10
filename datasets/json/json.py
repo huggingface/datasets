@@ -79,9 +79,7 @@ class Json(datasets.ArrowBasedBuilder):
             else:
                 try:
                     pa_table = paj.read_json(
-                        file,
-                        read_options=self.config.pa_read_options,
-                        parse_options=self.config.pa_parse_options,
+                        file, read_options=self.config.pa_read_options, parse_options=self.config.pa_parse_options,
                     )
                 except pa.ArrowInvalid:
                     with open(file, encoding="utf-8") as f:

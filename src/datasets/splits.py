@@ -38,11 +38,7 @@ class SplitInfo:
     def file_instructions(self):
         """Returns the list of dict(filename, take, skip)."""
         # `self.dataset_name` is assigned in `SplitDict.add()`.
-        instructions = make_file_instructions(
-            name=self.dataset_name,
-            split_infos=[self],
-            instruction=str(self.name),
-        )
+        instructions = make_file_instructions(name=self.dataset_name, split_infos=[self], instruction=str(self.name),)
         return instructions.file_instructions
 
 
@@ -418,13 +414,7 @@ class Split(object):
 
 
 # Similar to SplitInfo, but contain an additional slice info
-SlicedSplitInfo = collections.namedtuple(
-    "SlicedSplitInfo",
-    [
-        "split_info",
-        "slice_value",
-    ],
-)  # noqa: E231
+SlicedSplitInfo = collections.namedtuple("SlicedSplitInfo", ["split_info", "slice_value",],)  # noqa: E231
 
 
 class SplitReadInstruction(object):
@@ -495,11 +485,7 @@ class SplitDict(dict):
             return super(SplitDict, self).__getitem__(str(key))
         # 2nd case: Uses instructions: `info.splits['train[50%]']`
         else:
-            instructions = make_file_instructions(
-                name=self.dataset_name,
-                split_infos=self.values(),
-                instruction=key,
-            )
+            instructions = make_file_instructions(name=self.dataset_name, split_infos=self.values(), instruction=key,)
             return SubSplitInfo(instructions)
 
     def __setitem__(self, key: Union[SplitBase, str], value: SplitInfo):

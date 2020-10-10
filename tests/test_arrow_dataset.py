@@ -568,8 +568,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_test), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "id": Value("int64")}),
+                dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
             )
             self.assertEqual(len(dset_test._data_files), 0 if in_memory else 2)
             self.assertListEqual(dset_test["id"], list(range(30)))
@@ -583,8 +582,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_test), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "id": Value("int64")}),
+                dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
             )
             self.assertEqual(len(dset_test._data_files), 0 if in_memory else 3)
             self.assertListEqual(dset_test["id"], list(range(30)))
@@ -598,8 +596,7 @@ class BaseDatasetTest(TestCase):
             self.assertEqual(len(dset_test), 30)
             self.assertDictEqual(dset.features, Features({"filename": Value("string")}))
             self.assertDictEqual(
-                dset_test.features,
-                Features({"filename": Value("string"), "id": Value("int64")}),
+                dset_test.features, Features({"filename": Value("string"), "id": Value("int64")}),
             )
             self.assertEqual(len(dset_test._data_files), 0 if in_memory else 2)
             self.assertListEqual(dset_test["id"], list(range(30)))
@@ -613,8 +610,7 @@ class BaseDatasetTest(TestCase):
             dset_test_with_indices = dset.map(lambda x, i: {"label": i % 2}, with_indices=True, features=features)
             self.assertEqual(len(dset_test_with_indices), 30)
             self.assertDictEqual(
-                dset_test_with_indices.features,
-                features,
+                dset_test_with_indices.features, features,
             )
             del dset, dset_test_with_indices
 
@@ -899,19 +895,11 @@ class BaseDatasetTest(TestCase):
             bad_indices[3] = "foo"
             tmp_file = os.path.join(tmp_dir, "test.arrow")
             self.assertRaises(
-                Exception,
-                dset.select,
-                indices=bad_indices,
-                indices_cache_file_name=tmp_file,
-                writer_batch_size=2,
+                Exception, dset.select, indices=bad_indices, indices_cache_file_name=tmp_file, writer_batch_size=2,
             )
             self.assertFalse(os.path.exists(tmp_file))
             dset.set_format("numpy")
-            dset_select_five = dset.select(
-                range(5),
-                indices_cache_file_name=tmp_file,
-                writer_batch_size=2,
-            )
+            dset_select_five = dset.select(range(5), indices_cache_file_name=tmp_file, writer_batch_size=2,)
             self.assertTrue(os.path.exists(tmp_file))
             self.assertEqual(len(dset_select_five), 5)
             self.assertEqual(dset_select_five.format["type"], "numpy")

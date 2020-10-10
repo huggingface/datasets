@@ -29,12 +29,7 @@ _LANG = ["de", "es", "fr", "ru", "tu"]
 class Mlsum(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name=lang,
-            version=datasets.Version("1.0.0"),
-            description="",
-        )
-        for lang in _LANG
+        datasets.BuilderConfig(name=lang, version=datasets.Version("1.0.0"), description="",) for lang in _LANG
     ]
 
     def _info(self):
@@ -79,10 +74,7 @@ class Mlsum(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(downloaded_files["train"], lang + "_train.jsonl"),
-                    "lang": lang,
-                },
+                gen_kwargs={"filepath": os.path.join(downloaded_files["train"], lang + "_train.jsonl"), "lang": lang,},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -95,10 +87,7 @@ class Mlsum(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(downloaded_files["test"], lang + "_test.jsonl"),
-                    "lang": lang,
-                },
+                gen_kwargs={"filepath": os.path.join(downloaded_files["test"], lang + "_test.jsonl"), "lang": lang,},
             ),
         ]
 

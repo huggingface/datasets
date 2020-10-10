@@ -8,11 +8,7 @@ import datasets
 
 logger = logging.getLogger(__name__)
 
-FEATURES = datasets.Features(
-    {
-        "text": datasets.Value("string"),
-    }
-)
+FEATURES = datasets.Features({"text": datasets.Value("string"),})
 
 
 @dataclass

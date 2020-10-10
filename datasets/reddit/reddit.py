@@ -75,8 +75,7 @@ class Reddit(datasets.GeneratorBasedBuilder):
         dl_path = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"path": os.path.join(dl_path, "corpus-webis-tldr-17.json")},
+                name=datasets.Split.TRAIN, gen_kwargs={"path": os.path.join(dl_path, "corpus-webis-tldr-17.json")},
             )
         ]
 

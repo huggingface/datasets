@@ -123,12 +123,7 @@ class DatasetBuilder:
     # displayed in the dataset documentation.
 
     def __init__(
-        self,
-        cache_dir=None,
-        name=None,
-        hash=None,
-        features=None,
-        **config_kwargs,
+        self, cache_dir=None, name=None, hash=None, features=None, **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
 
@@ -155,10 +150,7 @@ class DatasetBuilder:
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
-        self.config = self._create_builder_config(
-            name,
-            **config_kwargs,
-        )
+        self.config = self._create_builder_config(name, **config_kwargs,)
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
@@ -635,9 +627,7 @@ class DatasetBuilder:
             split = Split(split)
 
         # Build base dataset
-        ds = self._as_dataset(
-            split=split,
-        )
+        ds = self._as_dataset(split=split,)
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
                 if os.sep in resource_file_name:
@@ -704,9 +694,7 @@ class DatasetBuilder:
         """
 
         dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
-            name=self.name,
-            instructions=split,
-            split_infos=self.info.splits.values(),
+            name=self.name, instructions=split, split_infos=self.info.splits.values(),
         )
         return Dataset(**dataset_kwargs)
 
@@ -994,14 +982,9 @@ class BeamBasedBuilder(DatasetBuilder):
         # are better without it.
         beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
-        pipeline = beam_utils.BeamPipeline(
-            runner=beam_runner,
-            options=beam_options,
-        )
+        pipeline = beam_utils.BeamPipeline(runner=beam_runner, options=beam_options,)
         super(BeamBasedBuilder, self)._download_and_prepare(
-            dl_manager,
-            verify_infos=False,
-            pipeline=pipeline,
+            dl_manager, verify_infos=False, pipeline=pipeline,
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()

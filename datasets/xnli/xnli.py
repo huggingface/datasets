@@ -62,9 +62,7 @@ class Xnli(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="plain_text",
-            version=datasets.Version("1.0.0", ""),
-            description="Plain text import of XNLI",
+            name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text import of XNLI",
         )
     ]
 
@@ -73,12 +71,8 @@ class Xnli(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "premise": datasets.features.Translation(
-                        languages=_LANGUAGES,
-                    ),
-                    "hypothesis": datasets.features.TranslationVariableLanguages(
-                        languages=_LANGUAGES,
-                    ),
+                    "premise": datasets.features.Translation(languages=_LANGUAGES,),
+                    "hypothesis": datasets.features.TranslationVariableLanguages(languages=_LANGUAGES,),
                     "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             ),

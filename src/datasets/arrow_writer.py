@@ -258,9 +258,7 @@ class ArrowWriter(object):
             self.write_on_file()
 
     def write_batch(
-        self,
-        batch_examples: Dict[str, List[Any]],
-        writer_batch_size: Optional[int] = None,
+        self, batch_examples: Dict[str, List[Any]], writer_batch_size: Optional[int] = None,
     ):
         """Write a batch of Example to file.
 

@@ -152,9 +152,7 @@ class ElasticSearchIndex(BaseIndex):
 
         # create the ES index
         for ok, action in es.helpers.streaming_bulk(
-            client=self.es_client,
-            index=index_name,
-            actions=passage_generator(),
+            client=self.es_client, index=index_name, actions=passage_generator(),
         ):
             progress.update(1)
             successes += ok
@@ -322,11 +320,7 @@ class FaissIndex(BaseIndex):
         faiss.write_index(index, file)
 
     @classmethod
-    def load(
-        cls,
-        file: str,
-        device: Optional[int] = None,
-    ) -> "FaissIndex":
+    def load(cls, file: str, device: Optional[int] = None,) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         faiss_index = cls(device=device)
         index = faiss.read_index(file)
@@ -450,10 +444,7 @@ class IndexableMixin:
         logger.info("Saved FaissIndex {} at {}".format(index_name, file))
 
     def load_faiss_index(
-        self,
-        index_name: str,
-        file: str,
-        device: Optional[int] = None,
+        self, index_name: str, file: str, device: Optional[int] = None,
     ):
         """Load a FaissIndex from disk.
         If you want to do additional configurations, you can have access to the faiss index object by doing `.get_index(index_name).faiss_index` to make it fit your needs

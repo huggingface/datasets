@@ -53,10 +53,7 @@ class GenerateMode(enum.Enum):
 
 class DownloadManager(object):
     def __init__(
-        self,
-        dataset_name=None,
-        data_dir=None,
-        download_config=None,
+        self, dataset_name=None, data_dir=None, download_config=None,
     ):
         """Download manager constructor.
 
@@ -103,10 +100,7 @@ class DownloadManager(object):
             upload_local_to_remote(local_file_path, remote_file_path)
             return remote_file_path
 
-        uploaded_path_or_paths = map_nested(
-            lambda local_file_path: upload(local_file_path),
-            downloaded_path_or_paths,
-        )
+        uploaded_path_or_paths = map_nested(lambda local_file_path: upload(local_file_path), downloaded_path_or_paths,)
         return uploaded_path_or_paths
 
     def _record_sizes_checksums(self, url_or_urls, downloaded_path_or_paths):
@@ -173,10 +167,7 @@ class DownloadManager(object):
 
         start_time = datetime.now()
         downloaded_path_or_paths = map_nested(
-            download_func,
-            url_or_urls,
-            map_tuple=True,
-            num_proc=download_config.num_proc,
+            download_func, url_or_urls, map_tuple=True, num_proc=download_config.num_proc,
         )
         duration = datetime.now() - start_time
         logger.info("Downloading took {} min".format(duration.total_seconds() // 60))
@@ -229,11 +220,7 @@ class DownloadManager(object):
         download_config = self._download_config.copy()
         download_config.extract_compressed_file = True
         download_config.force_extract = False
-        return map_nested(
-            partial(cached_path, download_config=download_config),
-            path_or_paths,
-            num_proc=num_proc,
-        )
+        return map_nested(partial(cached_path, download_config=download_config), path_or_paths, num_proc=num_proc,)
 
     def download_and_extract(self, url_or_urls):
         """Download and extract given url_or_urls.

@@ -145,9 +145,7 @@ class TestMetric(TestCase):
         other_expected_results = DummyMetric.other_expected_results()
 
         metric = DummyMetric(experiment_id="test_concurrent_metrics")
-        other_metric = DummyMetric(
-            experiment_id="test_concurrent_metrics",
-        )
+        other_metric = DummyMetric(experiment_id="test_concurrent_metrics",)
 
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
         self.assertDictEqual(
@@ -155,12 +153,8 @@ class TestMetric(TestCase):
         )
         del metric, other_metric
 
-        metric = DummyMetric(
-            experiment_id="test_concurrent_metrics",
-        )
-        other_metric = DummyMetric(
-            experiment_id="test_concurrent_metrics",
-        )
+        metric = DummyMetric(experiment_id="test_concurrent_metrics",)
+        other_metric = DummyMetric(experiment_id="test_concurrent_metrics",)
         metric.add_batch(predictions=preds, references=refs)
         other_metric.add_batch(predictions=other_preds, references=other_refs)
         self.assertDictEqual(expected_results, metric.compute())

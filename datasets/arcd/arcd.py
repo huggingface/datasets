@@ -50,13 +50,7 @@ class Arcd(datasets.GeneratorBasedBuilder):
     _DEV_FILE = "arcd-test.json"
     _TRAINING_FILE = "arcd-train.json"
 
-    BUILDER_CONFIGS = [
-        ArcdConfig(
-            name="plain_text",
-            version=datasets.Version("1.0.0", ""),
-            description="Plain text",
-        )
-    ]
+    BUILDER_CONFIGS = [ArcdConfig(name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text",)]
 
     def _info(self):
         return datasets.DatasetInfo(

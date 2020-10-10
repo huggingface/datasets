@@ -70,16 +70,14 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
         extracted_folder_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
+                name=datasets.Split.TRAIN, gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={"split_key": "validation", "data_dir": extracted_folder_path},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
+                name=datasets.Split.TEST, gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
             ),
         ]
 
