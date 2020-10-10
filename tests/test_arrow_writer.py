@@ -4,8 +4,8 @@ from unittest import TestCase
 
 import pyarrow as pa
 
-from nlp.arrow_writer import ArrowWriter, TypedSequence
-from nlp.features import Array2DExtensionType
+from datasets.arrow_writer import ArrowWriter, TypedSequence
+from datasets.features import Array2DExtensionType
 
 
 class TypedSequenceTest(TestCase):
@@ -64,6 +64,7 @@ class ArrowWriterTest(TestCase):
         f = pa.ipc.open_stream(mmap)
         pa_table: pa.Table = f.read_all()
         self.assertDictEqual(pa_table.to_pydict(), {"col_1": ["foo", "bar"], "col_2": [1, 2]})
+        del pa_table
 
     def test_write_no_schema(self):
         output = pa.BufferOutputStream()

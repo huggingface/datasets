@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors and the current dataset script contributor.
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -44,7 +44,7 @@ For each language pair, training and development sets are available through the 
 MULTI_URL = "https://wit3.fbk.eu/archive/2017-01-trnmted//texts/DeEnItNlRo/DeEnItNlRo/DeEnItNlRo-DeEnItNlRo.tgz"
 
 
-class IWSLT2017Config(nlp.BuilderConfig):
+class IWSLT2017Config(datasets.BuilderConfig):
     """ BuilderConfig for NewDataset"""
 
     def __init__(self, pair, is_multilingual, **kwargs):
@@ -74,10 +74,10 @@ BI_PAIRS = [
 PAIRS = MULTI_PAIRS + BI_PAIRS
 
 
-class IWSLT217(nlp.GeneratorBasedBuilder):
+class IWSLT217(datasets.GeneratorBasedBuilder):
     """The IWSLT 2017 Evaluation Campaign includes a multilingual TED Talks MT task."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,
@@ -87,7 +87,7 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
         IWSLT2017Config(
             name="iwslt2017-" + pair,
             description="A small dataset",
-            version=nlp.Version("1.0.0"),
+            version=datasets.Version("1.0.0"),
             pair=pair,
             is_multilingual=pair in MULTI_PAIRS,
         )
@@ -95,11 +95,13 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features({"translation": nlp.features.Translation(languages=self.config.pair.split("-"))}),
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=self.config.pair.split("-"))}
+            ),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
@@ -122,39 +124,61 @@ class IWSLT217(nlp.GeneratorBasedBuilder):
             data_dir = os.path.join(dl_dir, f"{source}-{target}")
             years = [2010, 2011, 2012, 2013, 2014, 2015]
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "source_files": [os.path.join(data_dir, "train.tags.{}.{}".format(self.config.pair, source),)],
-                    "target_files": [os.path.join(data_dir, "train.tags.{}.{}".format(self.config.pair, target),)],
-                    "split": "train",
-                },
-            ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
-                        os.path.join(data_dir, "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, source),)
+                        os.path.join(
+                            data_dir,
+                            "train.tags.{}.{}".format(self.config.pair, source),
+                        )
+                    ],
+                    "target_files": [
+                        os.path.join(
+                            data_dir,
+                            "train.tags.{}.{}".format(self.config.pair, target),
+                        )
+                    ],
+                    "split": "train",
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "source_files": [
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, source),
+                        )
                         for year in years
                     ],
                     "target_files": [
-                        os.path.join(data_dir, "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, target),)
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.tst{}.{}.{}.xml".format(year, self.config.pair, target),
+                        )
                         for year in years
                     ],
                     "split": "test",
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "source_files": [
-                        os.path.join(data_dir, "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, source),)
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, source),
+                        )
                     ],
                     "target_files": [
-                        os.path.join(data_dir, "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, target),)
+                        os.path.join(
+                            data_dir,
+                            "IWSLT17.TED.dev2010.{}.{}.xml".format(self.config.pair, target),
+                        )
                     ],
                     "split": "dev",
                 },

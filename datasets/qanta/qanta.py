@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 from typing import List, Tuple
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -25,7 +25,7 @@ The Qanta dataset is a question answering dataset based on the academic trivia g
 
 _QANTA_URL = "https://s3-us-west-2.amazonaws.com/pinafore-us-west-2/qanta-jmlr-datasets/qanta.mapped.2018.04.18.json"
 _TRICK_URL = "https://s3-us-west-2.amazonaws.com/pinafore-us-west-2/trick-tacl-datasets/qanta.tacl-trick.json"
-_VERSION = nlp.Version("2018.04.18")
+_VERSION = datasets.Version("2018.04.18")
 _FIRST = "first"
 _FULL = "full"
 _SENTENCES = "sentences"
@@ -35,7 +35,7 @@ _MODES = [_FULL, _FIRST, _SENTENCES, _RUNS]
 _DEFAULT_CHAR_SKIP = 25
 
 
-class QantaConfig(nlp.BuilderConfig):
+class QantaConfig(datasets.BuilderConfig):
     """BuilderConfig for Qanta."""
 
     def __init__(self, mode: str, char_skip: int, **kwargs):
@@ -131,38 +131,37 @@ def question_to_examples(question, mode: str, char_skip: int):
 
 _FEATURES = {
     # Generated ID based modes set, unique
-    "id": nlp.Value("string"),
+    "id": datasets.Value("string"),
     # Dataset defined IDs
-    "qanta_id": nlp.Value("int32"),
-    "proto_id": nlp.Value("string"),
-    "qdb_id": nlp.Value("int32"),
-    "dataset": nlp.Value("string"),
+    "qanta_id": datasets.Value("int32"),
+    "proto_id": datasets.Value("string"),
+    "qdb_id": datasets.Value("int32"),
+    "dataset": datasets.Value("string"),
     # Inputs
-    "text": nlp.Value("string"),
-    "full_question": nlp.Value("string"),
-    "first_sentence": nlp.Value("string"),
-    "char_idx": nlp.Value("int32"),
-    "sentence_idx": nlp.Value("int32"),
+    "text": datasets.Value("string"),
+    "full_question": datasets.Value("string"),
+    "first_sentence": datasets.Value("string"),
+    "char_idx": datasets.Value("int32"),
+    "sentence_idx": datasets.Value("int32"),
     # Character indices of sentences: List[Tuple[int, int]]
-    "tokenizations": nlp.features.Sequence(nlp.features.Sequence(nlp.Value("int32"), length=2)),
+    "tokenizations": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("int32"), length=2)),
     # Labels: Number is equal to number of unique pages across all folds
-    "answer": nlp.Value("string"),
-    "page": nlp.Value("string"),
-    "raw_answer": nlp.Value("string"),
+    "answer": datasets.Value("string"),
+    "page": datasets.Value("string"),
+    "raw_answer": datasets.Value("string"),
     # Meta Information
-    "fold": nlp.Value("string"),
-    "gameplay": nlp.Value("bool"),
-    "category": nlp.Value("string"),
-    "subcategory": nlp.Value("string"),
-    "tournament": nlp.Value("string"),
-    "difficulty": nlp.Value("string"),
-    "year": nlp.Value("int32"),
+    "fold": datasets.Value("string"),
+    "gameplay": datasets.Value("bool"),
+    "category": datasets.Value("string"),
+    "subcategory": datasets.Value("string"),
+    "tournament": datasets.Value("string"),
+    "difficulty": datasets.Value("string"),
+    "year": datasets.Value("int32"),
 }
 
 
-class Qanta(nlp.GeneratorBasedBuilder):
-    """The Qanta dataset is a question answering dataset based on the academic trivia game Quizbowl.
-  """
+class Qanta(datasets.GeneratorBasedBuilder):
+    """The Qanta dataset is a question answering dataset based on the academic trivia game Quizbowl."""
 
     VERSION = _VERSION
     BUILDER_CONFIGS = [
@@ -176,11 +175,11 @@ class Qanta(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(_FEATURES),
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(_FEATURES),
             # Number of classes is a function of the dataset, ClassLabel doesn't support dynamic
             # definition, so have to defer conversion to classes to later, so can't define
             # supervied keys
@@ -195,8 +194,8 @@ class Qanta(nlp.GeneratorBasedBuilder):
         qanta_path = dl_manager.download_and_extract(_QANTA_URL)
         trick_path = dl_manager.download_and_extract(_TRICK_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split("guesstrain"),
+            datasets.SplitGenerator(
+                name=datasets.Split("guesstrain"),
                 gen_kwargs={
                     "qanta_filepath": qanta_path,
                     "trick_filepath": trick_path,
@@ -205,8 +204,8 @@ class Qanta(nlp.GeneratorBasedBuilder):
                     "char_skip": self.config.char_skip,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("buzztrain"),
+            datasets.SplitGenerator(
+                name=datasets.Split("buzztrain"),
                 gen_kwargs={
                     "qanta_filepath": qanta_path,
                     "trick_filepath": trick_path,
@@ -215,8 +214,8 @@ class Qanta(nlp.GeneratorBasedBuilder):
                     "char_skip": self.config.char_skip,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("guessdev"),
+            datasets.SplitGenerator(
+                name=datasets.Split("guessdev"),
                 gen_kwargs={
                     "qanta_filepath": qanta_path,
                     "trick_filepath": trick_path,
@@ -225,8 +224,8 @@ class Qanta(nlp.GeneratorBasedBuilder):
                     "char_skip": self.config.char_skip,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("buzzdev"),
+            datasets.SplitGenerator(
+                name=datasets.Split("buzzdev"),
                 gen_kwargs={
                     "qanta_filepath": qanta_path,
                     "trick_filepath": trick_path,
@@ -235,8 +234,8 @@ class Qanta(nlp.GeneratorBasedBuilder):
                     "char_skip": self.config.char_skip,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("guesstest"),
+            datasets.SplitGenerator(
+                name=datasets.Split("guesstest"),
                 gen_kwargs={
                     "qanta_filepath": qanta_path,
                     "trick_filepath": trick_path,
@@ -245,8 +244,8 @@ class Qanta(nlp.GeneratorBasedBuilder):
                     "char_skip": self.config.char_skip,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("buzztest"),
+            datasets.SplitGenerator(
+                name=datasets.Split("buzztest"),
                 gen_kwargs={
                     "qanta_filepath": qanta_path,
                     "trick_filepath": trick_path,
@@ -255,8 +254,8 @@ class Qanta(nlp.GeneratorBasedBuilder):
                     "char_skip": self.config.char_skip,
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("adversarial"),
+            datasets.SplitGenerator(
+                name=datasets.Split("adversarial"),
                 gen_kwargs={
                     "qanta_filepath": qanta_path,
                     "trick_filepath": trick_path,
@@ -268,7 +267,12 @@ class Qanta(nlp.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(
-        self, qanta_filepath: str, trick_filepath: str, fold: str, mode: str, char_skip: int,
+        self,
+        qanta_filepath: str,
+        trick_filepath: str,
+        fold: str,
+        mode: str,
+        char_skip: int,
     ):
         """Yields examples."""
         if mode not in _MODES:

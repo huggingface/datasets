@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(lc_quad): BibTeX citation
@@ -26,30 +26,30 @@ LC-QuAD 2.0 is a Large Question Answering dataset with 30,000 pairs of question 
 _URL = "https://github.com/AskNowQA/LC-QuAD2.0/archive/master.zip"
 
 
-class LcQuad(nlp.GeneratorBasedBuilder):
+class LcQuad(datasets.GeneratorBasedBuilder):
     """TODO(lc_quad): Short description of my dataset."""
 
     # TODO(lc_quad): Set up version.
-    VERSION = nlp.Version("2.0.0")
+    VERSION = datasets.Version("2.0.0")
 
     def _info(self):
-        # TODO(lc_quad): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(lc_quad): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "NNQT_question": nlp.Value("string"),
-                    "uid": nlp.Value("int32"),
-                    "subgraph": nlp.Value("string"),
-                    "template_index": nlp.Value("int32"),
-                    "question": nlp.Value("string"),
-                    "sparql_wikidata": nlp.Value("string"),
-                    "sparql_dbpedia18": nlp.Value("string"),
-                    "template": nlp.Value("string"),
-                    # "template_id": nlp.Value('string'),
-                    "paraphrased_question": nlp.Value("string")
+                    "NNQT_question": datasets.Value("string"),
+                    "uid": datasets.Value("int32"),
+                    "subgraph": datasets.Value("string"),
+                    "template_index": datasets.Value("int32"),
+                    "question": datasets.Value("string"),
+                    "sparql_wikidata": datasets.Value("string"),
+                    "sparql_dbpedia18": datasets.Value("string"),
+                    "template": datasets.Value("string"),
+                    # "template_id": datasets.Value('string'),
+                    "paraphrased_question": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -65,18 +65,18 @@ class LcQuad(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(lc_quad): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         dl_dir = os.path.join(dl_dir, "LC-QuAD2.0-master", "dataset")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_dir, "train.json")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_dir, "test.json")},
             ),

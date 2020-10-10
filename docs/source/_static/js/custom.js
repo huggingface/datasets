@@ -1,11 +1,14 @@
 // These two things need to be updated at each release for the version selector.
 // Last stable version
-const stableVersion = "v0.4.0"
+const stableVersion = "v1.0.2"
 // Dictionary doc folder to label
 const versionMapping = {
     "master": "master",
     "v0.3.0": "v0.3.0",
-    "v0.4.0": "v0.4.0"
+    "v0.4.0": "v0.4.0",
+    "v1.0.0": "v1.0.0",
+    "v1.0.1": "v1.0.1",
+    "v1.0.2": "v1.0.2"
 }
 
 function addIcon() {
@@ -26,7 +29,7 @@ function addIcon() {
 function addCustomFooter() {
     const customFooter = document.createElement("div");
     const questionOrIssue = document.createElement("div");
-    questionOrIssue.innerHTML = "Stuck? Read our <a href='https://medium.com/huggingface'>Blog posts</a> or <a href='https://github.com/huggingface/nlp'>Create an issue</a>";
+    questionOrIssue.innerHTML = "Stuck? Read our <a href='https://medium.com/huggingface'>Blog posts</a> or <a href='https://github.com/huggingface/datasets'>Create an issue</a>";
     customFooter.appendChild(questionOrIssue);
     customFooter.classList.add("footer");
 
@@ -60,7 +63,7 @@ function addGithubButton() {
         <div class="github-repo">
             <a 
                 class="github-button"
-                href="https://github.com/huggingface/nlp" data-size="large" data-show-count="true" aria-label="Star huggingface/nlp on GitHub">
+                href="https://github.com/huggingface/datasets" data-size="large" data-show-count="true" aria-label="Star huggingface/datasets on GitHub">
                 Star
             </a>
         </div>
@@ -87,7 +90,7 @@ function addVersionControl() {
 
     const htmlLines = [];
     for (const [key, value] of Object.entries(versionMapping)) {
-        let baseUrlIndex = (version == "nlp") ? versionIndex + 1: versionIndex;
+        let baseUrlIndex = (version == "datasets") ? versionIndex + 1: versionIndex;
         var urlParts = parts.slice(0, baseUrlIndex);
         if (key != "") {
             urlParts = urlParts.concat([key]);
@@ -102,7 +105,7 @@ function addVersionControl() {
     // Button for version selection
     const versionButton = document.createElement("div");
     versionButton.classList.add("version-button");
-    let label = (version == "nlp") ? stableVersion : version
+    let label = (version == "datasets") ? stableVersion : version
     versionButton.innerText = label.concat(" ▼");
 
     // Toggle the menu when we click on the button

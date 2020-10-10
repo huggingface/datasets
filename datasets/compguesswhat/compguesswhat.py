@@ -4,10 +4,10 @@ import gzip
 import json
 import os
 
-import nlp
+import datasets
 
 
-class CompguesswhatConfig(nlp.BuilderConfig):
+class CompguesswhatConfig(datasets.BuilderConfig):
     """ BuilderConfig for CompGuessWhat?!"""
 
     def __init__(self, data_url, splits, gameplay_scenario, **kwargs):
@@ -19,7 +19,7 @@ class CompguesswhatConfig(nlp.BuilderConfig):
             **kwargs: keyword arguments forwarded to super.
         """
         super(CompguesswhatConfig, self).__init__(
-            version=nlp.Version("0.2.0", "First CompGuessWhat?! release"), **kwargs
+            version=datasets.Version("0.2.0", "First CompGuessWhat?! release"), **kwargs
         )
         assert gameplay_scenario in (
             "original",
@@ -31,7 +31,7 @@ class CompguesswhatConfig(nlp.BuilderConfig):
         self.data_url = data_url
 
 
-class Compguesswhat(nlp.GeneratorBasedBuilder):
+class Compguesswhat(datasets.GeneratorBasedBuilder):
     _CITATION = """\
         @inproceedings{suglia2020compguesswhat,
           title={CompGuessWhat?!: a Multi-task Evaluation Framework for Grounded Language Learning},
@@ -73,54 +73,54 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
         ),
     ]
 
-    VERSION = nlp.Version("0.2.0")
+    VERSION = datasets.Version("0.2.0")
 
     def _info(self):
         if self.config.gameplay_scenario == "original":
-            return nlp.DatasetInfo(
+            return datasets.DatasetInfo(
                 # This is the description that will appear on the datasets page.
                 description=self._DESCRIPTION,
-                # nlp.features.FeatureConnectors
-                features=nlp.Features(
+                # datasets.features.FeatureConnectors
+                features=datasets.Features(
                     {
-                        "id": nlp.Value("int32"),
-                        "target_id": nlp.Value("int32"),
-                        "timestamp": nlp.Value("string"),
-                        "status": nlp.Value("string"),
+                        "id": datasets.Value("int32"),
+                        "target_id": datasets.Value("int32"),
+                        "timestamp": datasets.Value("string"),
+                        "status": datasets.Value("string"),
                         "image": {
                             # this is the image ID in GuessWhat?! which corresponds to the MSCOCO id
-                            "id": nlp.Value("int32"),
-                            "file_name": nlp.Value("string"),
-                            "flickr_url": nlp.Value("string"),
-                            "coco_url": nlp.Value("string"),
-                            "height": nlp.Value("int32"),
-                            "width": nlp.Value("int32"),
+                            "id": datasets.Value("int32"),
+                            "file_name": datasets.Value("string"),
+                            "flickr_url": datasets.Value("string"),
+                            "coco_url": datasets.Value("string"),
+                            "height": datasets.Value("int32"),
+                            "width": datasets.Value("int32"),
                             # this field represents the corresponding image metadata that can be found in VisualGenome
                             # in the file image_data.json
                             # We copy it over so that we avoid any confusion or possible wrong URL
                             # Please use the original image files to resolve photos
                             "visual_genome": {
-                                "width": nlp.Value("int32"),
-                                "height": nlp.Value("int32"),
-                                "url": nlp.Value("string"),
-                                "coco_id": nlp.Value("int32"),
+                                "width": datasets.Value("int32"),
+                                "height": datasets.Value("int32"),
+                                "url": datasets.Value("string"),
+                                "coco_id": datasets.Value("int32"),
                                 # this is the actual VisualGenome image ID
                                 # because we can't rely store it as an integer we same it as string
-                                "flickr_id": nlp.Value("string"),
-                                "image_id": nlp.Value("string")
+                                "flickr_id": datasets.Value("string"),
+                                "image_id": datasets.Value("string")
                             }
                         },
-                        "qas": nlp.features.Sequence(
-                            {"question": nlp.Value("string"), "answer": nlp.Value("string"), "id": nlp.Value("int32")}
+                        "qas": datasets.features.Sequence(
+                            {"question": datasets.Value("string"), "answer": datasets.Value("string"), "id": datasets.Value("int32")}
                         ),
-                        "objects": nlp.features.Sequence(
+                        "objects": datasets.features.Sequence(
                             {
-                                "id": nlp.Value("int32"),
-                                "bbox": nlp.Sequence(nlp.Value("float32"), length=4),
-                                "category": nlp.Value("string"),
-                                "area": nlp.Value("float32"),
-                                "category_id": nlp.Value("int32"),
-                                "segment": nlp.features.Sequence(nlp.features.Sequence(nlp.Value("float32"))),
+                                "id": datasets.Value("int32"),
+                                "bbox": datasets.Sequence(datasets.Value("float32"), length=4),
+                                "category": datasets.Value("string"),
+                                "area": datasets.Value("float32"),
+                                "category_id": datasets.Value("int32"),
+                                "segment": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("float32"))),
                             }
                         ),
                     }
@@ -134,45 +134,45 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
                 citation=self._CITATION,
             )
         elif self.config.gameplay_scenario == "zero_shot":
-            return nlp.DatasetInfo(
+            return datasets.DatasetInfo(
                 # This is the description that will appear on the datasets page.
                 description=self._DESCRIPTION,
-                # nlp.features.FeatureConnectors
-                features=nlp.Features(
+                # datasets.features.FeatureConnectors
+                features=datasets.Features(
                     {
-                        "id": nlp.Value("int32"),
-                        "target_id": nlp.Value("string"),
-                        "status": nlp.Value("string"),
+                        "id": datasets.Value("int32"),
+                        "target_id": datasets.Value("string"),
+                        "status": datasets.Value("string"),
                         "image": {
-                            "id": nlp.Value("int32"),
-                            "file_name": nlp.Value("string"),
-                            "coco_url": nlp.Value("string"),
-                            "height": nlp.Value("int32"),
-                            "width": nlp.Value("int32"),
-                            "license": nlp.Value("int32"),
-                            "open_images_id": nlp.Value("string"),
-                            "date_captured": nlp.Value("string"),
+                            "id": datasets.Value("int32"),
+                            "file_name": datasets.Value("string"),
+                            "coco_url": datasets.Value("string"),
+                            "height": datasets.Value("int32"),
+                            "width": datasets.Value("int32"),
+                            "license": datasets.Value("int32"),
+                            "open_images_id": datasets.Value("string"),
+                            "date_captured": datasets.Value("string"),
                         },
-                        "objects": nlp.features.Sequence(
+                        "objects": datasets.features.Sequence(
                             {
-                                "id": nlp.Value("string"),
-                                "bbox": nlp.Sequence(nlp.Value("float32"), length=4),
-                                "category": nlp.Value("string"),
-                                "area": nlp.Value("float32"),
-                                "category_id": nlp.Value("int32"),
-                                "IsOccluded": nlp.Value("int32"),
-                                "IsTruncated": nlp.Value("int32"),
-                                "segment": nlp.features.Sequence(
+                                "id": datasets.Value("string"),
+                                "bbox": datasets.Sequence(datasets.Value("float32"), length=4),
+                                "category": datasets.Value("string"),
+                                "area": datasets.Value("float32"),
+                                "category_id": datasets.Value("int32"),
+                                "IsOccluded": datasets.Value("int32"),
+                                "IsTruncated": datasets.Value("int32"),
+                                "segment": datasets.features.Sequence(
                                     {
-                                        "MaskPath": nlp.Value("string"),
-                                        "LabelName": nlp.Value("string"),
-                                        "BoxID": nlp.Value("string"),
-                                        "BoxXMin": nlp.Value("string"),
-                                        "BoxXMax": nlp.Value("string"),
-                                        "BoxYMin": nlp.Value("string"),
-                                        "BoxYMax": nlp.Value("string"),
-                                        "PredictedIoU": nlp.Value("string"),
-                                        "Clicks": nlp.Value("string"),
+                                        "MaskPath": datasets.Value("string"),
+                                        "LabelName": datasets.Value("string"),
+                                        "BoxID": datasets.Value("string"),
+                                        "BoxXMin": datasets.Value("string"),
+                                        "BoxXMax": datasets.Value("string"),
+                                        "BoxYMin": datasets.Value("string"),
+                                        "BoxYMax": datasets.Value("string"),
+                                        "PredictedIoU": datasets.Value("string"),
+                                        "Clicks": datasets.Value("string"),
                                     }
                                 ),
                             }
@@ -197,17 +197,17 @@ class Compguesswhat(nlp.GeneratorBasedBuilder):
         for split_id, split_filename in self.config.splits.items():
             if self.config.gameplay_scenario == "original":
                 if "train" in split_id:
-                    split_name = nlp.Split.TRAIN
+                    split_name = datasets.Split.TRAIN
                 elif "valid" in split_id:
-                    split_name = nlp.Split.VALIDATION
+                    split_name = datasets.Split.VALIDATION
                 elif "test" in split_id:
-                    split_name = nlp.Split.TEST
+                    split_name = datasets.Split.TEST
             else:
-                split_name = nlp.Split(split_id)
+                split_name = datasets.Split(split_id)
 
             full_split_name = "-".join(["compguesswhat", self.config.gameplay_scenario])
             splits_gen.append(
-                nlp.SplitGenerator(
+                datasets.SplitGenerator(
                     name=split_name,
                     gen_kwargs={
                         "filepath": os.path.join(dl_dir, full_split_name, self.VERSION.version_str, split_filename)

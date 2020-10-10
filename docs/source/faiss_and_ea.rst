@@ -10,24 +10,24 @@ As we now have models that can generate good semantic vector representations of 
 
 On the other hand there exist other tools like ElasticSearch for exact match retrieval in texts (sparse retrieval).
 
-Both FAISS and ElasticSearch can be used in :class:`nlp.Dataset`, using these methods:
+Both FAISS and ElasticSearch can be used in :class:`datasets.Dataset`, using these methods:
 
-- :func:`nlp.Dataset.add_faiss_index` to add a FAISS index
-- :func:`nlp.Dataset.add_elasticsearch_index` to add an ElasticSearch index
+- :func:`datasets.Dataset.add_faiss_index` to add a FAISS index
+- :func:`datasets.Dataset.add_elasticsearch_index` to add an ElasticSearch index
 
 .. note::
 
-    One :class:`nlp.Dataset` can have several indexes, each identified by its :obj:`index_name`. By default it corresponds to the name of the column used to build the index.
+    One :class:`datasets.Dataset` can have several indexes, each identified by its :obj:`index_name`. By default it corresponds to the name of the column used to build the index.
 
 Then as soon as you have your index you can query it using these methods:
 
-- :func:`nlp.Dataset.search` to retrieve the scores and the ids of the examples. There is a version to do batched queries: :func:`nlp.Dataset.search_batch`.
-- :func:`nlp.Dataset.get_nearest_examples` to retrieve the scores and the content of the examples. There is a version to do batched queries: :func:`nlp.Dataset.get_nearest_examples_batch`.
+- :func:`datasets.Dataset.search` to retrieve the scores and the ids of the examples. There is a version to do batched queries: :func:`datasets.Dataset.search_batch`.
+- :func:`datasets.Dataset.get_nearest_examples` to retrieve the scores and the content of the examples. There is a version to do batched queries: :func:`datasets.Dataset.get_nearest_examples_batch`.
 
 Adding a FAISS index
 ----------------------------------
 
-The :func:`nlp.Dataset.add_faiss_index` method is in charge of building, training and adding vectors to a FAISS index.
+The :func:`datasets.Dataset.add_faiss_index` method is in charge of building, training and adding vectors to a FAISS index.
 
 One way to get good vector representations for text passages is to use the DPR model. We'll compute the representations of only 100 examples just to give you the idea of how it works.
 
@@ -43,13 +43,13 @@ Then you can load your dataset and compute the representations:
 
 .. code-block::
 
-    >>> from nlp import load_dataset
+    >>> from datasets import load_dataset
     >>> ds = load_dataset('crime_and_punish', split='train[:100]')
     >>> ds_with_embeddings = ds.map(lambda example: {'embeddings': ctx_encoder(**ctx_tokenizer(example["line"], return_tensors="pt"))[0][0].numpy()})
 
 .. note::
 
-    If you have the embeddings in numpy format, you can call :func:`nlp.Dataset.add_faiss_index_from_external_arrays` instead.
+    If you have the embeddings in numpy format, you can call :func:`datasets.Dataset.add_faiss_index_from_external_arrays` instead.
 
 We can create the index:
 
@@ -91,4 +91,61 @@ And reload it later:
 Adding an ElasticSearch index
 ----------------------------------
 
-[UNDER CONSTRUCTION]
+The :func:`datasets.Dataset.add_elasticsearch_index` method is in charge of adding documents to an ElasticSearch index.
+
+ElasticSearch is a distributed text search engine based on Lucene. 
+
+To use an ElasticSearch index with your dataset, you first need to have ElasticSearch running and accessible from your machine.
+
+For example if you have ElasticSearch running on your machine (default host=localhost, port=9200), you can run
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> squad = load_dataset('squad', split='validation')
+    >>> squad.add_elasticsearch_index("context", host="localhost", port="9200")
+
+and then query the index of the "context" column of the squad dataset:
+
+.. code-block::
+
+    >>> query = "machine"
+    >>> scores, retrieved_examples = squad.get_nearest_examples("context", query, k=10)
+    >>> retrieved_examples["title"][0]
+    'Computational_complexity_theory'
+
+You can reuse your index later by specifying the ElasticSearch index name
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> squad = load_dataset('squad', split='validation')
+    >>> squad.add_elasticsearch_index("context", host="localhost", port="9200", es_index_name="hf_squad_val_context")
+    >>> squad.get_index("context").es_index_name
+    hf_squad_val_context
+
+.. code-block::
+
+    >>> from datasets import load_dataset
+    >>> squad = load_dataset('squad', split='validation')
+    >>> squad.load_elasticsearch_index("context", host="localhost", port="9200", es_index_name="hf_squad_val_context")
+    >>> query = "machine"
+    >>> scores, retrieved_examples = squad.get_nearest_examples("context", query, k=10)
+
+If you want to use a more advanced ElasticSearch configuration, you can also specify your own ElasticSearch, your own ElasticSearch index configuration, as well as you own ElasticSearch index name.
+
+.. code-block::
+
+    >>> import elasticsearch as es
+    >>> import elasticsearch.helpers
+    >>> from elasticsearch import Elasticsearch
+    >>> es_client = Elasticsearch([{"host": "localhost", "port": "9200"}])  # default client
+    >>> es_config = {
+            "settings": {
+                "number_of_shards": 1,
+                "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+            },
+            "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
+        }  # default config
+    >>> es_index_name = "hf_squad_context"  # name of the index in ElasticSearch
+    >>> squad.add_elasticsearch_index("context", es_client=es_client, es_config=es_config, es_index_name=es_index_name)

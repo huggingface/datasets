@@ -4,11 +4,11 @@ from unittest import TestCase
 
 from absl.testing import parameterized
 
-from nlp.arrow_reader import HF_GCP_BASE_URL
-from nlp.builder import DatasetBuilder
-from nlp.info import DATASET_INFO_FILENAME
-from nlp.load import import_main_class, prepare_module
-from nlp.utils import cached_path
+from datasets.arrow_reader import HF_GCP_BASE_URL
+from datasets.builder import DatasetBuilder
+from datasets.info import DATASET_INFO_FILENAME
+from datasets.load import import_main_class, prepare_module
+from datasets.utils import cached_path
 
 
 DATASETS_ON_HF_GCP = [
@@ -66,6 +66,6 @@ class TestDatasetOnHfGcp(TestCase):
 
             dataset_info_url = os.path.join(
                 HF_GCP_BASE_URL, builder_instance._relative_data_dir(with_hash=False), DATASET_INFO_FILENAME
-            )
+            ).replace(os.sep, "/")
             datset_info_path = cached_path(dataset_info_url, cache_dir=tmp_dir)
             self.assertTrue(os.path.exists(datset_info_path))

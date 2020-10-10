@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(social_i_qa): BibTeX citation
@@ -19,27 +19,27 @@ We introduce Social IQa: Social Interaction QA, a new question-answering benchma
 _URL = "https://storage.googleapis.com/ai2-mosaic/public/socialiqa/socialiqa-train-dev.zip"
 
 
-class SocialIQa(nlp.GeneratorBasedBuilder):
+class SocialIQa(datasets.GeneratorBasedBuilder):
     """TODO(social_i_qa): Short description of my dataset."""
 
     # TODO(social_i_qa): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(social_i_qa): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(social_i_qa): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answerA": nlp.Value("string"),
-                    "answerB": nlp.Value("string"),
-                    "answerC": nlp.Value("string"),
-                    "label": nlp.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answerA": datasets.Value("string"),
+                    "answerB": datasets.Value("string"),
+                    "answerC": datasets.Value("string"),
+                    "label": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -54,21 +54,21 @@ class SocialIQa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(social_i_qa): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         dl_dir = os.path.join(dl_dir, "socialiqa-train-dev")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(dl_dir, "train.jsonl"),
                     "labelpath": os.path.join(dl_dir, "train-labels.lst"),
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(dl_dir, "dev.jsonl"),

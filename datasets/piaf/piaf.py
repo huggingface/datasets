@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import json
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -46,19 +46,19 @@ dataset. This version, published in February 2020, contains 3835 questions on Fr
 """
 
 
-class PiafConfig(nlp.BuilderConfig):
+class PiafConfig(datasets.BuilderConfig):
     """BuilderConfig for PIAF."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for PIAF.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(PiafConfig, self).__init__(**kwargs)
 
 
-class Piaf(nlp.GeneratorBasedBuilder):
+class Piaf(datasets.GeneratorBasedBuilder):
     """The Piaf Question Answering Dataset. Version 1.0."""
 
     _URL = "https://github.com/etalab-ia/piaf-code/raw/master/"
@@ -67,22 +67,25 @@ class Piaf(nlp.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         PiafConfig(
             name="plain_text",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Plain text",
         ),
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
+                    "id": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -98,7 +101,7 @@ class Piaf(nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
         ]
 
     def _generate_examples(self, filepath):
@@ -124,5 +127,8 @@ class Piaf(nlp.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

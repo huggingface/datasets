@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import os
 from textwrap import dedent
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -30,7 +29,7 @@ _CITATION = """\
 author = {Chidanand Apt{\'{e}} and Fred Damerau and Sholom M. Weiss},
 title = {Automated Learning of Decision Rules for Text Categorization},
 journal = {ACM Transactions on Information Systems},
-year = {1994}, 
+year = {1994},
 note = {To appear.}
 }
 
@@ -43,7 +42,7 @@ note = {To appear.}
 }
 
 @inproceedings{HAYES8},
-author = {Philip J. Hayes and Peggy M. Anderson and Irene B. Nirenburg and 
+author = {Philip J. Hayes and Peggy M. Anderson and Irene B. Nirenburg and
 Linda M. Schmandt},
 title = {{TCS}: A Shell for Content-Based Text Categorization},
 booktitle = {IEEE Conference on Artificial Intelligence Applications},
@@ -52,7 +51,7 @@ year = {1990}
 
 @inproceedings{HAYES90b,
 author = {Philip J. Hayes and Steven P. Weinstein},
-title = {{CONSTRUE/TIS:} A System for Content-Based Indexing of a 
+title = {{CONSTRUE/TIS:} A System for Content-Based Indexing of a
 Database of News Stories},
 booktitle = {Second Annual Conference on Innovative Applications of
 Artificial Intelligence},
@@ -147,14 +146,14 @@ month = {apr},
 pages = {81--93}
 }
 
-@article{LEWIS94d, 
-author = {David D. Lewis and Philip J. Hayes}, 
-title = {Guest Editorial}, 
-journal = {ACM Transactions on Information Systems}, 
-year = {1994}, 
-volume  = {12}, 
-number  = {3}, 
-pages = {231}, 
+@article{LEWIS94d,
+author = {David D. Lewis and Philip J. Hayes},
+title = {Guest Editorial},
+journal = {ACM Transactions on Information Systems},
+year = {1994},
+volume  = {12},
+number  = {3},
+pages = {231},
 month = {jul}
 }
 
@@ -184,7 +183,8 @@ categorization research. It is collected from the Reuters financial newswire ser
 
 _DATA_URL = "https://kdd.ics.uci.edu/databases/reuters21578/reuters21578.tar.gz"
 
-class Reuters21578Config(nlp.BuilderConfig):
+
+class Reuters21578Config(datasets.BuilderConfig):
     """BuilderConfig for reuters-21578."""
 
     def __init__(self, **kwargs):
@@ -193,52 +193,56 @@ class Reuters21578Config(nlp.BuilderConfig):
         Args:
         **kwargs: keyword arguments forwarded to super.
         """
-        super(Reuters21578Config, self).__init__(version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs)
-    
-class Reuters21578(nlp.GeneratorBasedBuilder):
+        super(Reuters21578Config, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+
+
+class Reuters21578(datasets.GeneratorBasedBuilder):
     """Reuters 21578"""
-    
+
     BUILDER_CONFIGS = [
         Reuters21578Config(
             name="ModHayes",
-            description=dedent("""Training Set (20856 docs): CGISPLIT="TRAINING-SET"
+            description=dedent(
+                """Training Set (20856 docs): CGISPLIT="TRAINING-SET"
                                 Test Set (722 docs): CGISPLIT="PUBLISHED-TESTSET"
-                                Unused (0 docs)""")
+                                Unused (0 docs)"""
+            ),
         ),
         Reuters21578Config(
             name="ModLewis",
-            description=dedent("""Training Set (13,625 docs): LEWISSPLIT="TRAIN";  TOPICS="YES" or "NO"
+            description=dedent(
+                """Training Set (13,625 docs): LEWISSPLIT="TRAIN";  TOPICS="YES" or "NO"
                                 Test Set (6,188 docs):  LEWISSPLIT="TEST"; TOPICS="YES" or "NO"
-                                Unused (1,765): LEWISSPLIT="NOT-USED" or TOPICS="BYPASS""")
+                                Unused (1,765): LEWISSPLIT="NOT-USED" or TOPICS="BYPASS"""
+            ),
         ),
         Reuters21578Config(
             name="ModApte",
-            description=dedent("""Training Set (9,603 docs): LEWISSPLIT="TRAIN";  TOPICS="YES"
+            description=dedent(
+                """Training Set (9,603 docs): LEWISSPLIT="TRAIN";  TOPICS="YES"
                                 Test Set (3,299 docs): LEWISSPLIT="TEST"; TOPICS="YES"
-                                Unused (8,676 docs):   LEWISSPLIT="NOT-USED"; TOPICS="YES" or TOPICS="NO" or TOPICS="BYPASS" """)
+                                Unused (8,676 docs):   LEWISSPLIT="NOT-USED"; TOPICS="YES" or TOPICS="NO" or TOPICS="BYPASS" """
+            ),
         ),
-        
-        
     ]
 
-
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string"),
-                    "topics": nlp.Sequence(nlp.Value("string")),
-                    "lewis_split": nlp.Value("string"),
-                    "cgis_split": nlp.Value("string"),
-                    "old_id": nlp.Value("string"),
-                    "new_id": nlp.Value("string"),
-                    "places": nlp.Sequence(nlp.Value("string")),
-                    "people": nlp.Sequence(nlp.Value("string")),
-                    "orgs": nlp.Sequence(nlp.Value("string")),
-                    "exchanges": nlp.Sequence(nlp.Value("string")),
-                    "date": nlp.Value("string"),
-                    "title": nlp.Value("string"),
+                    "text": datasets.Value("string"),
+                    "topics": datasets.Sequence(datasets.Value("string")),
+                    "lewis_split": datasets.Value("string"),
+                    "cgis_split": datasets.Value("string"),
+                    "old_id": datasets.Value("string"),
+                    "new_id": datasets.Value("string"),
+                    "places": datasets.Sequence(datasets.Value("string")),
+                    "people": datasets.Sequence(datasets.Value("string")),
+                    "orgs": datasets.Sequence(datasets.Value("string")),
+                    "exchanges": datasets.Sequence(datasets.Value("string")),
+                    "date": datasets.Value("string"),
+                    "title": datasets.Value("string"),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -247,66 +251,58 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
             homepage="https://kdd.ics.uci.edu/databases/reuters21578/reuters21578.html",
             citation=_CITATION,
         )
+
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
-        files = [os.path.join(dl_dir, "reut2-"+"%03d"% i+".sgm" ) for i in range(22)]
+        files = [os.path.join(dl_dir, "reut2-" + "%03d" % i + ".sgm") for i in range(22)]
         if self.config.name == "ModHayes":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST, 
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "filepath": files,
                         "split": "PUBLISHED-TESTSET",
-                        
-                        
-                        }),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN, 
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     gen_kwargs={
                         "filepath": files,
                         "split": "TRAINING-SET",
-                        
-                        }),
+                    },
+                ),
             ]
         else:
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST, 
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "filepath": files,
                         "split": "TEST",
-                        
-                        }),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN, 
-                    gen_kwargs={
-                        "filepath": files,
-                        "split": "TRAIN"
-                    }),
-                nlp.SplitGenerator(
-                    name="unused",
-                    gen_kwargs={
-                        "filepath": files,
-                        "split": "NOT-USED"
-                    })
+                    },
+                ),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": files, "split": "TRAIN"}),
+                datasets.SplitGenerator(name="unused", gen_kwargs={"filepath": files, "split": "NOT-USED"}),
             ]
-    
+
     def _generate_examples(self, filepath, split):
         """This function returns the examples in the raw (text) form."""
         for file in filepath:
-            with open(file, encoding="utf-8",  errors='ignore') as f: # only the file reut2-017 has one line non UTF-8 encoded so we can ignore it
+            with open(
+                file, encoding="utf-8", errors="ignore"
+            ) as f:  # only the file reut2-017 has one line non UTF-8 encoded so we can ignore it
                 line = f.readline()
-                lewis_split = ''
-                cgis_split = ''
-                old_id = ''
-                new_id = ''
+                lewis_split = ""
+                cgis_split = ""
+                old_id = ""
+                new_id = ""
                 topics = []
                 places = []
                 people = []
                 orgs = []
                 exchanges = []
-                date = ''
-                title = ''
+                date = ""
+                title = ""
                 while line:
                     if line.startswith("<REUTERS"):
                         line = line.split()
@@ -316,16 +312,32 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
                         new_id = line[5].split("=")[1][:-1]
                         has_topic = line[1].split("=")[1]
                         line = f.readline()
-                        if (self.config.name == "ModHayes" and split not in cgis_split) or (self.config.name == "ModLewis" and ((split not in lewis_split) or 
-                                (split=="TRAIN" and has_topic not in ['"YES"', '"NO"']) or (split=="TEST" and has_topic not in ['"YES"', '"NO"'])  or
-                                (split=="NOT-USED" and has_topic not in ['"YES"', '"NO"', '"BYPASS"']))) or (self.config.name == "ModApte" and (split not in lewis_split or 
-                                (split=="TRAIN" and has_topic != '"YES"') or (split=="TEST" and has_topic != '"YES"') or 
-                                (split=="NOT-USED" and has_topic not in ['"YES"', '"NO"', '"BYPASS"']))): #skip example that are not in the current split
-                                l = line
-                                while l and not l.startswith("<REUTERS"):
-                                    l = f.readline()
-                                if l:
-                                    line = l 
+                        if (
+                            (self.config.name == "ModHayes" and split not in cgis_split)
+                            or (
+                                self.config.name == "ModLewis"
+                                and (
+                                    (split not in lewis_split)
+                                    or (split == "TRAIN" and has_topic not in ['"YES"', '"NO"'])
+                                    or (split == "TEST" and has_topic not in ['"YES"', '"NO"'])
+                                    or (split == "NOT-USED" and has_topic not in ['"YES"', '"NO"', '"BYPASS"'])
+                                )
+                            )
+                            or (
+                                self.config.name == "ModApte"
+                                and (
+                                    split not in lewis_split
+                                    or (split == "TRAIN" and has_topic != '"YES"')
+                                    or (split == "TEST" and has_topic != '"YES"')
+                                    or (split == "NOT-USED" and has_topic not in ['"YES"', '"NO"', '"BYPASS"'])
+                                )
+                            )
+                        ):  # skip example that are not in the current split
+                            li = line
+                            while li and not li.startswith("<REUTERS"):
+                                li = f.readline()
+                            if li:
+                                line = li
                     elif line.startswith("<TOPICS>"):
                         if line.replace("\n", "") != "<TOPICS></TOPICS>":
                             line = line.split("<D>")
@@ -358,33 +370,33 @@ class Reuters21578(nlp.GeneratorBasedBuilder):
                         line = f.readline()
                     elif line.startswith("<DATE>"):
                         date = line.replace("\n", "")
-                        date = line[6:-8]   
+                        date = line[6:-8]
                         line = f.readline()
                     elif line.startswith("<TITLE>"):
                         title = line[7:-9]
                         line = f.readline()
                     elif "<BODY>" in line:
-                        text = line.split('<BODY>')[1]
+                        text = line.split("<BODY>")[1]
                         line = f.readline()
                         while "</BODY>" not in line:
                             text += line
                             line = f.readline()
-                        
+
                         yield new_id, {
-                                "lewis_split": lewis_split,
-                                "cgis_split": cgis_split,
-                                "old_id": old_id,
-                                "new_id": new_id,
-                                "topics": topics,
-                                "places": places,
-                                "people": people,
-                                "orgs": orgs,
-                                "exchanges": exchanges,
-                                "date": date,
-                                "title": title,
-                                "text": text
+                            "lewis_split": lewis_split,
+                            "cgis_split": cgis_split,
+                            "old_id": old_id,
+                            "new_id": new_id,
+                            "topics": topics,
+                            "places": places,
+                            "people": people,
+                            "orgs": orgs,
+                            "exchanges": exchanges,
+                            "date": date,
+                            "title": title,
+                            "text": text,
                         }
                         line = f.readline()
-                        
+
                     else:
                         line = f.readline()

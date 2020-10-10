@@ -1,7 +1,7 @@
 Processing data in a Dataset
 ==============================================================
 
-🤗nlp provides many methods to modify a Dataset, be it to reorder, split or shuffle the dataset or to apply data processing functions or evaluation functions to its elements.
+🤗datasets provides many methods to modify a Dataset, be it to reorder, split or shuffle the dataset or to apply data processing functions or evaluation functions to its elements.
 
 We'll start by presenting the methods which change the order or number of elements before presenting methods which access and can change the content of the elements themselves.
 
@@ -9,22 +9,22 @@ As always, let's start by loading a small dataset for our demonstrations:
 
 .. code-block::
 
-    >>> from nlp import load_dataset
+    >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
 .. note::
 
-    **No in-place policy** All the methods in this chapter return a new :class:`nlp.Dataset`. No modification is done in-place and it's the thus responsibility of the user to decide to override the previous dataset with the newly returned one.
+    **No in-place policy** All the methods in this chapter return a new :class:`datasets.Dataset`. No modification is done in-place and it's the thus responsibility of the user to decide to override the previous dataset with the newly returned one.
 
 .. note::
 
     **Caching policy** All the methods in this chapter store the updated dataset in a cache file indexed by a hash of current state and all the argument used to call the method.
 
-    A subsequent call to any of the methods detailed here (like :func:`nlp.Dataset.sort`, :func:`nlp.Dataset.map`, etc) will thus **reuse the cached file instead of recomputing the operation** (even in another python session).
+    A subsequent call to any of the methods detailed here (like :func:`datasets.Dataset.sort`, :func:`datasets.Dataset.map`, etc) will thus **reuse the cached file instead of recomputing the operation** (even in another python session).
 
-    This usually makes it very efficient to process data with 🤗nlp.
+    This usually makes it very efficient to process data with 🤗datasets.
 
-    If the disk space is critical, these methods can be called with arguments to avoid this behavior (see the last section), or the cache files can be cleaned using the method :func:`nlp.Dataset.cleanup_cache_files`.
+    If the disk space is critical, these methods can be called with arguments to avoid this behavior (see the last section), or the cache files can be cleaned using the method :func:`datasets.Dataset.cleanup_cache_files`.
 
 
 Selecting, sorting, shuffling, splitting rows
@@ -32,12 +32,12 @@ Selecting, sorting, shuffling, splitting rows
 
 Several methods are provided to reorder rows and/or split the dataset:
 
-- sorting the dataset according to a column (:func:`nlp.Dataset.sort`)
-- shuffling the dataset (:func:`nlp.Dataset.shuffle`)
-- filtering rows either according to a list of indices (:func:`nlp.Dataset.select`) or with a filter function returning true for the rows to keep (:func:`nlp.Dataset.filter`),
-- splitting the dataset in a (potentially shuffled) train and a test split (:func:`nlp.Dataset.train_test_split`),
-- splitting the dataset in a deterministic list of shards (:func:`nlp.Dataset.shard`),
-- concatenate datasets that have the same column types (:func:`nlp.concatenate_datasets`).
+- sorting the dataset according to a column (:func:`datasets.Dataset.sort`)
+- shuffling the dataset (:func:`datasets.Dataset.shuffle`)
+- filtering rows either according to a list of indices (:func:`datasets.Dataset.select`) or with a filter function returning true for the rows to keep (:func:`datasets.Dataset.filter`),
+- splitting the dataset in a (potentially shuffled) train and a test split (:func:`datasets.Dataset.train_test_split`),
+- splitting the dataset in a deterministic list of shards (:func:`datasets.Dataset.shard`),
+- concatenate datasets that have the same column types (:func:`datasets.concatenate_datasets`).
 
 These methods have quite simple signature and should be for the most part self-explanatory.
 
@@ -67,12 +67,12 @@ Shuffling the dataset: ``shuffle``
     >>> shuffled_dataset['label'][:10]
     [1, 1, 1, 0, 1, 1, 1, 1, 1, 0]
 
-You can also provide a :obj:`numpy.random.Generator` to :func:`nlp.Dataset.shuffle` to control more finely the algorithm used to shuffle the dataset.
+You can also provide a :obj:`numpy.random.Generator` to :func:`datasets.Dataset.shuffle` to control more finely the algorithm used to shuffle the dataset.
 
 Filtering rows: ``select`` and ``filter``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can filter rows according to a list of indices (:func:`nlp.Dataset.select`) or with a filter function returning true for the rows to keep (:func:`nlp.Dataset.filter`):
+You can filter rows according to a list of indices (:func:`datasets.Dataset.select`) or with a filter function returning true for the rows to keep (:func:`datasets.Dataset.filter`):
 
 .. code-block::
 
@@ -92,7 +92,7 @@ You can filter rows according to a list of indices (:func:`nlp.Dataset.select`) 
      'Artists are worried the plan would harm those who need help most - performers who have a difficult time lining up shows .'
     ]
 
-:func:`nlp.Dataset.filter` expect a function which can accept a single example of the dataset, i.e. the python dictionary returned by :obj:`dataset[i]` and return a boolean value. It's also possible to use the indice of each example in the function by setting :obj:`with_indices=True` in :func:`nlp.Dataset.filter`. In this case, the signature of the function given to :func:`nlp.Dataset.filter` should be :obj:`function(example: dict, indice: int) -> bool`:
+:func:`datasets.Dataset.filter` expect a function which can accept a single example of the dataset, i.e. the python dictionary returned by :obj:`dataset[i]` and return a boolean value. It's also possible to use the indice of each example in the function by setting :obj:`with_indices=True` in :func:`datasets.Dataset.filter`. In this case, the signature of the function given to :func:`datasets.Dataset.filter` should be :obj:`function(example: dict, indice: int) -> bool`:
 
 .. code-block::
 
@@ -109,9 +109,9 @@ This method is adapted from scikit-learn celebrated :obj:`train_test_split` meth
 
 You can select the test and train sizes as relative proportions or absolute number of samples.
 
-The splits will be **shuffled by default** using the above described :func:`nlp.Dataset.shuffle` method. You can deactivate this behavior by setting :obj:`shuffle=False` in the arguments of :func:`nlp.Dataset.train_test_split`.
+The splits will be **shuffled by default** using the above described :func:`datasets.Dataset.shuffle` method. You can deactivate this behavior by setting :obj:`shuffle=False` in the arguments of :func:`datasets.Dataset.train_test_split`.
 
-The two splits are returned as a dictionary of :class:`nlp.Dataset`.
+The two splits are returned as a dictionary of :class:`datasets.Dataset`.
 
 .. code-block::
 
@@ -123,14 +123,14 @@ The two splits are returned as a dictionary of :class:`nlp.Dataset`.
 
 We can see that the test split is 10% of the original dataset.
 
-The :func:`nlp.Dataset.train_test_split` has many ways to select the relative sizes of the train and test split so we refer the reader to the package reference of :func:`nlp.Dataset.train_test_split` for all the details.
+The :func:`datasets.Dataset.train_test_split` has many ways to select the relative sizes of the train and test split so we refer the reader to the package reference of :func:`datasets.Dataset.train_test_split` for all the details.
 
 Sharding the dataset: ``shard``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Eventually, it's possible to "shard" the dataset, i.e. divide it in a deterministic list of dataset of (almost) the same size.
 
-The :func:`nlp.Dataset.shard` takes as arguments the total number of shards (:obj:`num_shards`) and the index of the currently requested shard (:obj:`index`)  and return a :class:`nlp.Dataset` instance constituted by the requested shard.
+The :func:`datasets.Dataset.shard` takes as arguments the total number of shards (:obj:`num_shards`) and the index of the currently requested shard (:obj:`index`)  and return a :class:`datasets.Dataset` instance constituted by the requested shard.
 
 This method can be used to slice a very large dataset in a predefined number of chunks.
 
@@ -139,9 +139,9 @@ Processing data with ``map``
 
 All the methods we seen up to now operate on examples taken as a whole and don't inspect (excepted for the ``filter`` method) or modify the content of the samples.
 
-We now turn to the :func:`nlp.Dataset.map` method which is a powerful method inspired by ``tf.data.Dataset`` map method and which you can use to apply a processing function to each examples in a dataset, independently or in batch and even generate new rows or columns.
+We now turn to the :func:`datasets.Dataset.map` method which is a powerful method inspired by ``tf.data.Dataset`` map method and which you can use to apply a processing function to each examples in a dataset, independently or in batch and even generate new rows or columns.
 
-:func:`nlp.Dataset.map` takes a callable accepting a dict as argument (same dict as returned by :obj:`dataset[i]`) and iterate over the dataset by calling the function with each example.
+:func:`datasets.Dataset.map` takes a callable accepting a dict as argument (same dict as returned by :obj:`dataset[i]`) and iterate over the dataset by calling the function with each example.
 
 Let's print the length of the ``sentence1`` value for each sample in our dataset:
 
@@ -170,18 +170,18 @@ This is basically the same as doing
     for example in dataset:
         function(example)
 
-The above example had no effect on the dataset because the method we supplied to :func:`nlp.Dataset.map` didn't return a :obj:`dict` or a :obj:`abc.Mapping` that could be used to update the examples in the dataset.
+The above example had no effect on the dataset because the method we supplied to :func:`datasets.Dataset.map` didn't return a :obj:`dict` or a :obj:`abc.Mapping` that could be used to update the examples in the dataset.
 
-In such a case, :func:`nlp.Dataset.map` will return the original dataset (:obj:`self`) and the user is usually only interested in side effects of the provided method.
+In such a case, :func:`datasets.Dataset.map` will return the original dataset (:obj:`self`) and the user is usually only interested in side effects of the provided method.
 
-Now let's see how we can use a method that actually modify the dataset with :func:`nlp.Dataset.map`.
+Now let's see how we can use a method that actually modify the dataset with :func:`datasets.Dataset.map`.
 
 Processing data row by row
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The main interest of :func:`nlp.Dataset.map` is to update and modify the content of the table and leverage smart caching and fast backend.
+The main interest of :func:`datasets.Dataset.map` is to update and modify the content of the table and leverage smart caching and fast backend.
 
-To use :func:`nlp.Dataset.map` to update elements in the table you need to provide a function with the following signature: :obj:`function(example: dict) -> dict`.
+To use :func:`datasets.Dataset.map` to update elements in the table you need to provide a function with the following signature: :obj:`function(example: dict) -> dict`.
 
 Let's add a prefix ``'My sentence: '`` to each ``sentence1`` values in our small dataset:
 
@@ -199,15 +199,15 @@ Let's add a prefix ``'My sentence: '`` to each ``sentence1`` values in our small
      'My sentence: Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
     ]
 
-This call to :func:`nlp.Dataset.map` computed and returned an updated table.
+This call to :func:`datasets.Dataset.map` computed and returned an updated table.
 
 .. note::
 
-    Calling :func:`nlp.Dataset.map` also stored the updated table in a cache file indexed by the current state and the mapped function.
-    A subsequent call to :func:`nlp.Dataset.map` (even in another python session) will reuse the cached file instead of recomputing the operation.
+    Calling :func:`datasets.Dataset.map` also stored the updated table in a cache file indexed by the current state and the mapped function.
+    A subsequent call to :func:`datasets.Dataset.map` (even in another python session) will reuse the cached file instead of recomputing the operation.
     You can test this by running again the previous cell, you will see that the result are directly loaded from the cache and not re-computed again.
 
-The function you provide to :func:`nlp.Dataset.map` should accept an input with the format of an item of the dataset: :obj:`function(dataset[0])` and return a python dict.
+The function you provide to :func:`datasets.Dataset.map` should accept an input with the format of an item of the dataset: :obj:`function(dataset[0])` and return a python dict.
 
 The columns and type of the outputs **can be different** from columns and type of the input dict. In this case the new keys will be **added** as additional columns in the dataset.
 
@@ -233,13 +233,18 @@ Since the input example dict is **updated** with output dict generated by our :o
      'My sentence: Around 0335 GMT , Tab shares were up 19 cents , or 4.4 % , at A $ 4.56 , having earlier set a record high of A $ 4.57 .',
      'My sentence: The stock rose $ 2.11 , or about 11 percent , to close Friday at $ 21.51 on the New York Stock Exchange .']
 
+If a dataset was formatted using :func:`datasets.Dataset.set_format`, then:
+
+- if a format type was set, then the format type doesn't change
+- if a list of columns that __getitem__ should return was set, then the new columns added by map are added to this list
+
 Removing columns
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 This process of **updating** the original example with the output of the mapped function is simpler to write when mostly adding new columns to a dataset but we need an additional mechanism to easily remove columns.
 
 
-To this aim, the :obj:`remove_columns=List[str]` argument can be used and provided with a single name or a list of names of columns which should be removed during the :func:`nlp.Dataset.map` operation.
+To this aim, the :obj:`remove_columns=List[str]` argument can be used and provided with a single name or a list of names of columns which should be removed during the :func:`datasets.Dataset.map` operation.
 
 Column to remove are removed **after** the example has been provided to the mapped function so that the mapped function can use the content of these columns before they are removed.
 
@@ -273,17 +278,17 @@ In the following example, we add the index of the example as a prefix to the 'se
 Processing data in batches
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-:func:`nlp.Dataset.map` can also work with batches of examples (slices of the dataset).
+:func:`datasets.Dataset.map` can also work with batches of examples (slices of the dataset).
 
 This is particularly interesting if you have a mapped function which can efficiently handle batches of inputs like the tokenizers of the fast `HuggingFace tokenizers library <https://github.com/huggingface/tokenizers>`__.
 
-To operate on batch of example, just set :obj:`batched=True` when calling :func:`nlp.Dataset.map` and provide a function with the following signature: :obj:`function(examples: Dict[List]) -> Dict[List]` or, if you use indices (:obj:`with_indices=True`): :obj:`function(examples: Dict[List], indices: List[int]) -> Dict[List])`.
+To operate on batch of example, just set :obj:`batched=True` when calling :func:`datasets.Dataset.map` and provide a function with the following signature: :obj:`function(examples: Dict[List]) -> Dict[List]` or, if you use indices (:obj:`with_indices=True`): :obj:`function(examples: Dict[List], indices: List[int]) -> Dict[List])`.
 
 In other words, the mapped function should accept an input with the format of a slice of the dataset: :obj:`function(dataset[:10])`.
 
 Let's take an example with a fast tokenizer of the 🤗transformers library.
 
-Firsst install this library if you haven't already done it:
+First install this library if you haven't already done it:
 
 .. code-block::
 
@@ -302,7 +307,7 @@ For more details on the tokenizers of the 🤗transformers library Please refer 
 
 This tokenizer will output a dictionary-like object with three fields: ``input_ids``, ``token_type_ids``, ``attention_mask`` corresponding to Bert model's required inputs. Each field contain a list (batch) of samples.
 
-The output of the tokenizer is thus compatible with the :func:`nlp.Dataset.map` method which is also expected to return a dictionary. We can thus directly return the dictionary generated by the tokenizer as the output of our mapped function:
+The output of the tokenizer is thus compatible with the :func:`datasets.Dataset.map` method which is also expected to return a dictionary. We can thus directly return the dictionary generated by the tokenizer as the output of our mapped function:
 
 .. code-block::
 
@@ -326,9 +331,9 @@ The batch size provided to the mapped function can be controlled by the :obj:`ba
 Augmenting the dataset
 ---------------------------
 
-Using :func:`nlp.Dataset.map` in batched mode (i.e. with :obj:`batched=True`) actually let you control the size of the generate dataset freely.
+Using :func:`datasets.Dataset.map` in batched mode (i.e. with :obj:`batched=True`) actually let you control the size of the generate dataset freely.
 
-More precisely, in batched mode :func:`nlp.Dataset.map` will provide batch of examples (as a dict of lists) to the mapped function and expect the mapped function to return back a batch of examples (as a dict of lists) but **the input and output batch are not required to be of the same size**.
+More precisely, in batched mode :func:`datasets.Dataset.map` will provide batch of examples (as a dict of lists) to the mapped function and expect the mapped function to return back a batch of examples (as a dict of lists) but **the input and output batch are not required to be of the same size**.
 
 In other words, a batch mapped function can take as input a batch of size ``N`` and return a batch of size ``M`` where ``M`` can be greater or less than ``N`` and can even be zero.
 
@@ -336,7 +341,7 @@ The resulting dataset can thus have a different size from the original dataset.
 
 This can be taken advantage of for several use-cases:
 
-- the :func:`nlp.Dataset.filter` method makes use of variable size batched mapping under the hood to change the size of the dataset and filter some columns,
+- the :func:`datasets.Dataset.filter` method makes use of variable size batched mapping under the hood to change the size of the dataset and filter some columns,
 - it's possible to cut examples which are too long in several snippets,
 - it's also possible to do data augmentation on each example.
 
@@ -373,7 +378,7 @@ We will also remove all the columns of the dataset and only keep the chunks in o
                 'Around 0335 GMT , Tab shares were up 19 cents , or',
                 ' 4.4 % , at A $ 4.56 , having earlier set a record']}
 
-As we can see, our dataset is now much longer (10470 row) and contains a single column with chunks of 50 characters. Some chunks are smaller since they are the last part of the sentences which were smaller than 50 characters. We could then filter them with :func:`nlp.Dataset.filter` for instance.
+As we can see, our dataset is now much longer (10470 row) and contains a single column with chunks of 50 characters. Some chunks are smaller since they are the last part of the sentences which were smaller than 50 characters. We could then filter them with :func:`datasets.Dataset.filter` for instance.
 
 Now let's finish with the other example and try to do some data augmentation. We will use a Roberta model to sample some masked tokens.
 
@@ -424,12 +429,12 @@ Obviously this is a very simple example for data augmentation and it could be im
 Processing several splits at once
 -----------------------------------
 
-When you load a dataset that has various splits, :func:`nlp.load_dataset` returns a :obj:`nlp.DatasetDict` that is a dictionary with split names as keys ('train', 'test' for example), and :obj:`nlp.Dataset` objects as values.
-You can directly call map, filter, shuffle, and sort directly on a :obj:`nlp.DatasetDict` object:
+When you load a dataset that has various splits, :func:`datasets.load_dataset` returns a :obj:`datasets.DatasetDict` that is a dictionary with split names as keys ('train', 'test' for example), and :obj:`datasets.Dataset` objects as values.
+You can directly call map, filter, shuffle, and sort directly on a :obj:`datasets.DatasetDict` object:
 
 .. code-block::
 
-    >>> from nlp import load_dataset
+    >>> from datasets import load_dataset
     >>>
     >>> dataset = load_dataset('glue', 'mrpc')  # load all the splits
     >>> dataset.keys()
@@ -445,16 +450,16 @@ You can directly call map, filter, shuffle, and sort directly on a :obj:`nlp.Dat
      'attention_mask': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     }
 
-This concludes our chapter on data processing with 🤗nlp (and 🤗transformers).
+This concludes our chapter on data processing with 🤗datasets (and 🤗transformers).
 
 Concatenate several datasets
 ----------------------------
 
-When you have several :obj:`nlp.Dataset` objects that share the same column types, you can create a new :obj:`nlp.Dataset` object that is the concatenation of them:
+When you have several :obj:`datasets.Dataset` objects that share the same column types, you can create a new :obj:`datasets.Dataset` object that is the concatenation of them:
 
 .. code-block::
 
-    >>> from nlp import concatenate_datasets, load_dataset
+    >>> from datasets import concatenate_datasets, load_dataset
     >>>
     >>> bookcorpus = load_dataset("bookcorpus", split="train")
     >>> wiki = load_dataset("wikipedia", "20200501.en", split="train")
@@ -467,7 +472,7 @@ When you have several :obj:`nlp.Dataset` objects that share the same column type
 Saving a processed dataset on disk and reload it
 ------------------------------------------------
 
-Once you have your final dataset you can save it on your disk and reuse it later using :obj:`nlp.load_from_disk`.
+Once you have your final dataset you can save it on your disk and reuse it later using :obj:`datasets.load_from_disk`.
 Saving a dataset creates a directory with various files:
 
 - arrow files: they contain your dataset's data
@@ -478,10 +483,10 @@ Saving a dataset creates a directory with various files:
 
     >>> encoded_dataset.save_to_disk("path/of/my/dataset/directory")
     >>> ...
-    >>> from nlp import load_from_disk
+    >>> from datasets import load_from_disk
     >>> reloaded_encoded_dataset = load_from_disk("path/of/my/dataset/directory")
 
-Both :obj:`nlp.Dataset` and :obj:`nlp.DatasetDict` objects can be saved on disk, by using respectively :func:`nlp.Dataset.save_to_disk` and :func:`nlp.DatasetDict.save_to_disk`.
+Both :obj:`datasets.Dataset` and :obj:`datasets.DatasetDict` objects can be saved on disk, by using respectively :func:`datasets.Dataset.save_to_disk` and :func:`datasets.DatasetDict.save_to_disk`.
 
 Controling the cache behavior
 -----------------------------------

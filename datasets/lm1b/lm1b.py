@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import glob
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -58,18 +58,16 @@ _TRAIN_FILE_FORMAT = os.path.join(_TOP_LEVEL_DIR, "training-monolingual.tokenize
 _HELDOUT_FILE_FORMAT = os.path.join(_TOP_LEVEL_DIR, "heldout-monolingual.tokenized.shuffled", "news.en.heldout-*")
 
 
-class Lm1bConfig(nlp.BuilderConfig):
+class Lm1bConfig(datasets.BuilderConfig):
     """BuilderConfig for Lm1b."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for Lm1b.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
-        super(Lm1bConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
+        super(Lm1bConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
 def _train_data_filenames(tmp_dir):
@@ -80,17 +78,20 @@ def _test_data_filenames(tmp_dir):
     return sorted(glob.glob(os.path.join(tmp_dir, _HELDOUT_FILE_FORMAT)))
 
 
-class Lm1b(nlp.GeneratorBasedBuilder):
+class Lm1b(datasets.GeneratorBasedBuilder):
     """1 Billion Word Language Model Benchmark dataset."""
 
     BUILDER_CONFIGS = [
-        Lm1bConfig(name="plain_text", description="Plain text",),
+        Lm1bConfig(
+            name="plain_text",
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"text": nlp.Value("string")}),
+            features=datasets.Features({"text": datasets.Value("string")}),
             supervised_keys=("text", "text"),
             homepage="http://www.statmt.org/lm-benchmark/",
             citation=_CITATION,
@@ -103,8 +104,8 @@ class Lm1b(nlp.GeneratorBasedBuilder):
         test_files = _test_data_filenames(lm1b_path)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": train_files}),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"files": test_files}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": train_files}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"files": test_files}),
         ]
 
     def _generate_examples(self, files):

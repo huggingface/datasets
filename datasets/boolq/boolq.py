@@ -7,7 +7,7 @@ import os
 
 import tensorflow as tf
 
-import nlp
+import datasets
 
 
 # TODO(boolq): BibTeX citation
@@ -22,9 +22,9 @@ _CITATION = """\
 
 # TODO(boolq):
 _DESCRIPTION = """\
-BoolQ is a question answering dataset for yes/no questions containing 15942 examples. These questions are naturally 
-occurring ---they are generated in unprompted and unconstrained settings. 
-Each example is a triplet of (question, passage, answer), with the title of the page as optional additional context. 
+BoolQ is a question answering dataset for yes/no questions containing 15942 examples. These questions are naturally
+occurring ---they are generated in unprompted and unconstrained settings.
+Each example is a triplet of (question, passage, answer), with the title of the page as optional additional context.
 The text-pair classification setup is similar to existing natural language inference tasks.
 """
 
@@ -33,23 +33,23 @@ _TRAIN_FILE_NAME = "train.jsonl"
 _DEV_FILE_NAME = "dev.jsonl"
 
 
-class Boolq(nlp.GeneratorBasedBuilder):
+class Boolq(datasets.GeneratorBasedBuilder):
     """TODO(boolq): Short description of my dataset."""
 
     # TODO(boolq): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(boolq): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(boolq): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "question": nlp.Value("string"),
-                    "answer": nlp.Value("bool"),
-                    "passage": nlp.Value("string")
+                    "question": datasets.Value("string"),
+                    "answer": datasets.Value("bool"),
+                    "passage": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -65,7 +65,7 @@ class Boolq(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(boolq): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = {
             "train": os.path.join(_URL, _TRAIN_FILE_NAME),
@@ -74,8 +74,11 @@ class Boolq(nlp.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_custom(urls_to_download, tf.io.gfile.copy)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]},),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_files["dev"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):

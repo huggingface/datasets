@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import collections
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -46,26 +46,26 @@ _DATA_URL = "https://github.com/facebookresearch/flores/raw/master/data/wikipedi
 TranslateData = collections.namedtuple("TranslateData", ["url", "language_to_file"])
 
 
-class FloresConfig(nlp.BuilderConfig):
+class FloresConfig(datasets.BuilderConfig):
     """BuilderConfig for FLoRes."""
 
     def __init__(self, language_pair=(None, None), **kwargs):
         """BuilderConfig for FLoRes.
 
-    Args:
-        for the `nlp.features.text.TextEncoder` used for the features feature.
-      language_pair: pair of languages that will be used for translation. Should
-        contain 2-letter coded strings. First will be used at source and second
-        as target in supervised mode. For example: ("se", "en").
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+            for the `datasets.features.text.TextEncoder` used for the features feature.
+          language_pair: pair of languages that will be used for translation. Should
+            contain 2-letter coded strings. First will be used at source and second
+            as target in supervised mode. For example: ("se", "en").
+          **kwargs: keyword arguments forwarded to super.
+        """
         name = "%s%s" % (language_pair[0], language_pair[1])
 
         description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
         super(FloresConfig, self).__init__(
             name=name,
             description=description,
-            version=nlp.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.1.0", ""),
             **kwargs,
         )
 
@@ -78,19 +78,25 @@ class FloresConfig(nlp.BuilderConfig):
         self.language_pair = language_pair
 
 
-class Flores(nlp.GeneratorBasedBuilder):
+class Flores(datasets.GeneratorBasedBuilder):
     """FLoRes machine translation dataset."""
 
     BUILDER_CONFIGS = [
-        FloresConfig(language_pair=("ne", "en"),),
-        FloresConfig(language_pair=("si", "en"),),
+        FloresConfig(
+            language_pair=("ne", "en"),
+        ),
+        FloresConfig(
+            language_pair=("si", "en"),
+        ),
     ]
 
     def _info(self):
         source, target = self.config.language_pair
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"translation": nlp.features.Translation(languages=self.config.language_pair)}),
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=self.config.language_pair)}
+            ),
             supervised_keys=(source, target),
             homepage="https://github.com/facebookresearch/flores/",
             citation=_CITATION,
@@ -111,8 +117,8 @@ class Flores(nlp.GeneratorBasedBuilder):
             }
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs=files["dev"]),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs=files["devtest"]),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs=files["dev"]),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs=files["devtest"]),
         ]
 
     def _generate_examples(self, source_file, target_file):

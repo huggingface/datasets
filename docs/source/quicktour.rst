@@ -1,17 +1,17 @@
 Quick tour
 ==========
 
-Let's have a quick look at the 🤗nlp library. This library has three main features:
+Let's have a quick look at the 🤗datasets library. This library has three main features:
 
 - It provides a very **efficient way to load and process data** from raw files (CSV/JSON/text) or in-memory data (python dict, pandas dataframe) with a special focus on memory efficiency and speed. As a matter of example, loading a 18GB dataset like English Wikipedia allocate 9 MB in RAM and you can iterate over the dataset at 1-2 GBit/s in python.
 - It provides a very **simple way to access and share datasets** with the research and practitioner communities (over 130 NLP datasets are already accessible in one line with the library as we'll see below).
 - It was designed with a particular focus on interoperabilty with frameworks like **pandas, NumPy, PyTorch and TensorFlow**.
 
-🤗nlp provides datasets for many NLP tasks like text classification, question answering, language modeling, etc and obviously these datasets can always be used to other tasks than their originally assigned task. Let's list all the currently provided datasets using :func:`nlp.list_datasets`:
+🤗datasets provides datasets for many NLP tasks like text classification, question answering, language modeling, etc and obviously these datasets can always be used to other tasks than their originally assigned task. Let's list all the currently provided datasets using :func:`datasets.list_datasets`:
 
 .. code-block::
 
-    >>> from nlp import list_datasets
+    >>> from datasets import list_datasets
     >>> datasets_list = list_datasets()
     >>> len(datasets_list)
     136
@@ -28,25 +28,25 @@ Let's have a quick look at the 🤗nlp library. This library has three main feat
     wikihow, wikipedia, wikisql, wikitext, winogrande, wiqa, wmt14, wmt15, wmt16, wmt17, wmt18, wmt19, wmt_t2t, wnut_17, x_stance, xcopa, xnli, 
     xquad, xsum, xtreme, yelp_polarity
 
-All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗nlp viewer <https://huggingface.co/nlp/viewer>`__.
+All these datasets can also be browsed on the `HuggingFace Hub <https://huggingface.co/datasets>`__ and can be viewed and explored online with the `🤗datasets viewer <https://huggingface.co/docs/datasets/viewer>`__.
 
 Loading a dataset
 --------------------
 
-Now let's load a simple dataset for classification, we'll use the MRPC dataset provided in the GLUE banchmark which is small enough for quick prototyping. You can explore this dataset and read more details `on the online viewer here <https://huggingface.co/nlp/viewer/?dataset=glue&config=mrpc>`__:
+Now let's load a simple dataset for classification, we'll use the MRPC dataset provided in the GLUE banchmark which is small enough for quick prototyping. You can explore this dataset and read more details `on the online viewer here <https://huggingface.co/docs/datasets/viewer/?dataset=glue&config=mrpc>`__:
 
 .. code-block::
 
-    >>> from nlp import load_dataset
+    >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
-When typing this command for the first time, a processing script called a ``builder`` which is in charge of loading the MRPC/GLUE dataset will be downloaded, cached and imported. Then the dataset files themselves are downloaded and cached (usually from the original dataset URLs) and are processed to return a :class:`nlp.Dataset` comprising the training split of MRPC/GLUE as requested here.
+When typing this command for the first time, a processing script called a ``builder`` which is in charge of loading the MRPC/GLUE dataset will be downloaded, cached and imported. Then the dataset files themselves are downloaded and cached (usually from the original dataset URLs) and are processed to return a :class:`datasets.Dataset` comprising the training split of MRPC/GLUE as requested here.
 
-If you want to create a :class:`nlp.Dataset` from local CSV, JSON, text or pandas files instead of a community provided dataset, you can use one of the ``csv``, ``json``, ``text`` or ``pandas`` builder. They all accept a variety of file paths as inputs: a path to a single file, a list of paths to files or a dict of paths to files for each split. Here are some examples to load from CSV files:
+If you want to create a :class:`datasets.Dataset` from local CSV, JSON, text or pandas files instead of a community provided dataset, you can use one of the ``csv``, ``json``, ``text`` or ``pandas`` builder. They all accept a variety of file paths as inputs: a path to a single file, a list of paths to files or a dict of paths to files for each split. Here are some examples to load from CSV files:
 
 .. code-block::
 
-    >>> from nlp import load_dataset
+    >>> from datasets import load_dataset
     >>> dataset = load_dataset('csv', data_files='my_file.csv')
     >>> dataset = load_dataset('csv', data_files=['my_file_1.csv', 'my_file_2.csv', 'my_file_3.csv'])
     >>> dataset = load_dataset('csv', data_files={'train': ['my_train_file_1.csv', 'my_train_file_2.csv'], 
@@ -54,9 +54,9 @@ If you want to create a :class:`nlp.Dataset` from local CSV, JSON, text or panda
 
 .. note::
 
-    If you don't provide a :obj:`split` argument to :func:`nlp.load_dataset`, this method will return a dictionary containing a datasets for each split in the dataset. This dictionary is a :obj:`nlp.DatasetDict` object that lets you process all the splits at once using :func:`nlp.DatasetDict.map`, :func:`nlp.DatasetDict.filter`, etc.
+    If you don't provide a :obj:`split` argument to :func:`datasets.load_dataset`, this method will return a dictionary containing a datasets for each split in the dataset. This dictionary is a :obj:`datasets.DatasetDict` object that lets you process all the splits at once using :func:`datasets.DatasetDict.map`, :func:`datasets.DatasetDict.filter`, etc.
 
-Now let's have a look at our newly created :class:`nlp.Dataset` object. It basically behaves like a normal python container. You can query its length, get a single row but also get multiple rows and even index along columns (see all the details in :doc:`exploring </exploring>`):
+Now let's have a look at our newly created :class:`datasets.Dataset` object. It basically behaves like a normal python container. You can query its length, get a single row but also get multiple rows and even index along columns (see all the details in :doc:`exploring </exploring>`):
 
 .. code-block::
 
@@ -69,9 +69,9 @@ Now let's have a look at our newly created :class:`nlp.Dataset` object. It basic
      'idx': 0}
 
 A lot of metadata are available in the dataset attributes (description, citation, split sizes, etc) and we'll dive in this in the :doc:`exploring </exploring>` page.
-We'll just say here that :class:`nlp.Dataset` have columns which are typed with types which can be arbitrarily nested complex types (e.g. list of strings or list of lists of int64 values).
+We'll just say here that :class:`datasets.Dataset` have columns which are typed with types which can be arbitrarily nested complex types (e.g. list of strings or list of lists of int64 values).
 
-Let's take a look at the column in our dataset by printing its :func:`nlp.Dataset.features`:
+Let's take a look at the column in our dataset by printing its :func:`datasets.Dataset.features`:
 
 .. code-block::
 
@@ -86,9 +86,9 @@ Fine-tuning a deep-learning model
 
 In the rest of this quick-tour we will use this dataset to fine-tune a Bert model on the sentence pair classification task of Paraphrase Classification. Let's have a quick look at our task.
 
-As you can see from the above features, the labels are a :class:`nlp.ClassLabel` instance with two classes: ``not_equivalent`` and ``equivalent``. 
+As you can see from the above features, the labels are a :class:`datasets.ClassLabel` instance with two classes: ``not_equivalent`` and ``equivalent``. 
 
-We can print one example of each class using :func:`nlp.Dataset.filter` and a name-to-integer conversion method of the feature :class:`nlp.ClassLabel` called :func:`nlp.ClassLabel.str2int` (that we detail these methods in :doc:`processing </processing>` and :doc:`exploring </exploring>`):
+We can print one example of each class using :func:`datasets.Dataset.filter` and a name-to-integer conversion method of the feature :class:`datasets.ClassLabel` called :func:`datasets.ClassLabel.str2int` (that we detail these methods in :doc:`processing </processing>` and :doc:`exploring </exploring>`):
 
 .. code-block::
 
@@ -150,7 +150,7 @@ The first step is to tokenize our sentences in order to build sequences of integ
 
 As you can see, the tokenizer has merged the pair of sequences in a single input separating them by some special tokens ``[CLS]`` and ``[SEP]`` expected by Bert. For more details on this, you can refer to `🤗transformers's documentation on data processing <https://huggingface.co/transformers/preprocessing.html#preprocessing-pairs-of-sentences>`__.
 
-In our case, we want to tokenize our full dataset, so we will use a method called :func:`nlp.Dataset.map` to apply the encoding process to their whole dataset.
+In our case, we want to tokenize our full dataset, so we will use a method called :func:`datasets.Dataset.map` to apply the encoding process to their whole dataset.
 To be sure we can easily build tensors batches for our model, we will truncate and pad the inputs to the max length of our model.
 
 .. code-block::
@@ -178,17 +178,17 @@ This operation has added three new columns to our dataset: ``input_ids``, ``toke
 Formatting the dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`` (or a ``tf.data.Dataset`` for TensorFlow) and use it to train our model.
+Now that we have encoded our dataset, we want to use it in a ``torch.Dataloader`` or a ``tf.data.Dataset`` and use it to train our model.
 
 To be able to train our model with this dataset and PyTorch, we will need to do three modifications:
 
 - rename our ``label`` column in ``labels`` which is the expected input name for labels in `BertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#transformers.BertForSequenceClassification.forward>`__ or `TFBertForSequenceClassification <https://huggingface.co/transformers/model_doc/bert.html?#tfbertforsequenceclassification>`__,
-- get pytorch (or tensorflow) tensors out of our :class:`nlp.Dataset`, instead of python objects, and
+- get pytorch (or tensorflow) tensors out of our :class:`datasets.Dataset`, instead of python objects, and
 - filter the columns to return only the subset of the columns that we need for our model inputs (``input_ids``, ``token_type_ids`` and ``attention_mask``).
 
 .. note::
 
-    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model. 🤗nlp let you control the output format of :func:`nlp.Dataset.__getitem__` to just mask them as detailed in :doc:`exploring <./exploring>`.
+    We don't want the columns `sentence1` or `sentence2` as inputs to train our model, but we could still want to keep them in the dataset, for instance for the evaluation of the model. 🤗datasets let you control the output format of :func:`datasets.Dataset.__getitem__` to just mask them as detailed in :doc:`exploring <./exploring>`.
 
 The first modification is just a matter of renaming the column as follow (we could have done it during the tokenization process as well:
 
@@ -196,9 +196,9 @@ The first modification is just a matter of renaming the column as follow (we cou
 
     >>> dataset = dataset.map(lambda examples: {'labels': examples['label']}, batched=True)
 
-The two other modifications can be handled by the :func:`nlp.Dataset.set_format` method which will convert, on the fly, the returned output from :func:`nlp.Dataset.__getitem__` to filter the unwanted columns and convert python objects in PyTorch tensors.
+The two other modifications can be handled by the :func:`datasets.Dataset.set_format` method which will convert, on the fly, the returned output from :func:`datasets.Dataset.__getitem__` to filter the unwanted columns and convert python objects in PyTorch tensors.
 
-Here is how we can apply the right format to our dataset using :func:`nlp.Dataset.set_format` and wrap it in a ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``:
+Here is how we can apply the right format to our dataset using :func:`datasets.Dataset.set_format` and wrap it in a ``torch.utils.data.DataLoader`` or a ``tf.data.Dataset``:
 
 .. code-block::
 
@@ -287,7 +287,7 @@ We are now ready to train our model. Let's write a simple training loop and a st
     >>> model.fit(tfdataset, epochs=3)
 
 
-Now this was a very simple tour, you should continue with either the detailled notebook which is `here <https://colab.research.google.com/github/huggingface/nlp/blob/master/notebooks/Overview.ipynb#scrollTo=my95uHbLyjwR>`__ or the in-depth guides on
+Now this was a very simple tour, you should continue with either the detailled notebook which is `here <https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb#scrollTo=my95uHbLyjwR>`__ or the in-depth guides on
 
 - :doc:`loading datasets <./loading_datasets>`
 - :doc:`exploring the dataset object attributes <./exploring>`

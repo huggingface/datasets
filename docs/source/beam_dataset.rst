@@ -39,14 +39,14 @@ If you want to run the Beam pipeline of a dataset anyway, here are the different
 
 .. code::
 
-    echo "nlp" > /tmp/beam_requirements.txt
+    echo "datasets" > /tmp/beam_requirements.txt
     echo "apache_beam" >> /tmp/beam_requirements.txt
 
 - Finally run your pipeline:
 
 .. code::
 
-    python -m nlp-cli run_beam datasets/$DATASET_NAME \
+    python -mdatasets-cli run_beam datasets/$DATASET_NAME \
     --name $CONFIG_NAME \
     --save_infos \
     --cache_dir gs://$BUCKET/cache/datasets \
@@ -66,4 +66,4 @@ How to create your own Beam dataset
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is highly recommended to be familiar with Beam pipelines first.
-Then, you can start looking at the `wikipedia.py <https://github.com/huggingface/nlp/blob/master/datasets/wikipedia/wikipedia.py>`_ script for an example.
+Then, you can start looking at the `wikipedia.py <https://github.com/huggingface/datasets/blob/master/datasets/wikipedia/wikipedia.py>`_ script for an example.

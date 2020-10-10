@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -48,30 +48,33 @@ _CITATION = """\
 _DOWNLOAD_URL = "http://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz"
 
 
-class IMDBReviewsConfig(nlp.BuilderConfig):
+class IMDBReviewsConfig(datasets.BuilderConfig):
     """BuilderConfig for IMDBReviews."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for IMDBReviews.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
-        super(IMDBReviewsConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
+        super(IMDBReviewsConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class Imdb(nlp.GeneratorBasedBuilder):
+class Imdb(datasets.GeneratorBasedBuilder):
     """IMDB movie reviews dataset."""
 
-    BUILDER_CONFIGS = [IMDBReviewsConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        IMDBReviewsConfig(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {"text": nlp.Value("string"), "label": nlp.features.ClassLabel(names=["neg", "pos"])}
+            features=datasets.Features(
+                {"text": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["neg", "pos"])}
             ),
             supervised_keys=None,
             homepage="http://ai.stanford.edu/~amaas/data/sentiment/",
@@ -86,10 +89,14 @@ class Imdb(nlp.GeneratorBasedBuilder):
         arch_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
         data_dir = os.path.join(arch_path, "aclImdb")
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"directory": os.path.join(data_dir, "train")}),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"directory": os.path.join(data_dir, "test")}),
-            nlp.SplitGenerator(
-                name=nlp.Split("unsupervised"),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"directory": os.path.join(data_dir, "train")}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"directory": os.path.join(data_dir, "test")}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split("unsupervised"),
                 gen_kwargs={"directory": os.path.join(data_dir, "train"), "labeled": False},
             ),
         ]

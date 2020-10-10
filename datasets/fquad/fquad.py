@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(fquad): BibTeX citation
@@ -38,24 +38,24 @@ _TRAIN_DATA = "train.json.zip"
 _VALID_DATA = "valid.json.zip"
 
 
-class Fquad(nlp.GeneratorBasedBuilder):
+class Fquad(datasets.GeneratorBasedBuilder):
     """TODO(fquad): Short description of my dataset."""
 
     # TODO(fquad): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(fquad): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(fquad): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "context": nlp.Value("string"),
-                    "questions": nlp.features.Sequence(nlp.Value("string")),
-                    "answers": nlp.features.Sequence(
-                        {"texts": nlp.Value("string"), "answers_starts": nlp.Value("int32")}
+                    "context": datasets.Value("string"),
+                    "questions": datasets.features.Sequence(datasets.Value("string")),
+                    "answers": datasets.features.Sequence(
+                        {"texts": datasets.Value("string"), "answers_starts": datasets.Value("int32")}
                     ),
                     # These are the features of your dataset like images, labels ...
                 }
@@ -72,18 +72,18 @@ class Fquad(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(fquad): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         download_urls = {"train": os.path.join(_URL, _TRAIN_DATA), "valid": os.path.join(_URL, _VALID_DATA)}
         dl_dir = dl_manager.download_and_extract(download_urls)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_dir["train"], "train.json")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(dl_dir["valid"], "valid.json")},
             ),

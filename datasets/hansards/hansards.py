@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import glob
 import os
 
-import nlp
+import datasets
 
 
 # TODO(hansards): BibTeX citation
@@ -45,7 +45,7 @@ _SENATE_DEBATES_TRAIN_SET_FILE = "hansard.36.r2001-1a.senate.debates.training.ta
 _SENATE_DEBATES_TEST_SET_FILE = "hansard.36.r2001-1a.senate.debates.testing.tar"
 
 
-class HansardsConfig(nlp.BuilderConfig):
+class HansardsConfig(datasets.BuilderConfig):
     """BuilderConfig for Hansards."""
 
     def __init__(self, **kwargs):
@@ -53,16 +53,14 @@ class HansardsConfig(nlp.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(HansardsConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(HansardsConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class Hansards(nlp.GeneratorBasedBuilder):
+class Hansards(datasets.GeneratorBasedBuilder):
     """TODO(hansards): Short description of my dataset."""
 
     # TODO(hansards): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         HansardsConfig(
             name="house",
@@ -79,15 +77,15 @@ class Hansards(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(hansards): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(hansards): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "fr": nlp.Value("string"),
-                    "en": nlp.Value("string")
+                    "fr": datasets.Value("string"),
+                    "en": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -103,7 +101,7 @@ class Hansards(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(hansards): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         name = self.config.name
         if name == "house":
@@ -135,13 +133,13 @@ class Hansards(nlp.GeneratorBasedBuilder):
             fr_files[split_name] = dl_manager.extract(fr_split_compress_files)
             en_files[split_name] = dl_manager.extract(en_split_compress_files)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"fr_files": fr_files["train"], "en_files": en_files["train"]},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"fr_files": fr_files["test"], "en_files": en_files["test"]},
             ),

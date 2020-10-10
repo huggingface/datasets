@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 import json
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -54,15 +54,17 @@ _SUMMARY = "summary"
 _ADDITIONAL_FEATURES = ["author", "body", "normalizedBody", "subreddit", "subreddit_id", "id"]
 
 
-class Reddit(nlp.GeneratorBasedBuilder):
+class Reddit(datasets.GeneratorBasedBuilder):
     """Reddit Dataset."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({k: nlp.Value("string") for k in _ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY]}),
+            features=datasets.Features(
+                {k: datasets.Value("string") for k in _ADDITIONAL_FEATURES + [_DOCUMENT, _SUMMARY]}
+            ),
             supervised_keys=None,
             homepage="https://github.com/webis-de/webis-tldr-17-corpus",
             citation=_CITATION,
@@ -72,8 +74,9 @@ class Reddit(nlp.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         dl_path = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"path": os.path.join(dl_path, "corpus-webis-tldr-17.json")},
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(dl_path, "corpus-webis-tldr-17.json")},
             )
         ]
 

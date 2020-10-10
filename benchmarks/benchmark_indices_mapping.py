@@ -2,8 +2,9 @@ import json
 import os
 import tempfile
 
-import nlp
 from utils import generate_example_dataset, get_duration
+
+import datasets
 
 
 SPEED_TEST_N_EXAMPLES = 500_000
@@ -13,27 +14,27 @@ RESULTS_FILE_PATH = os.path.join(RESULTS_BASEPATH, "results", RESULTS_FILENAME.r
 
 
 @get_duration
-def select(dataset: nlp.Dataset):
+def select(dataset: datasets.Dataset):
     _ = dataset.select(range(0, len(dataset), 2))
 
 
 @get_duration
-def sort(dataset: nlp.Dataset):
+def sort(dataset: datasets.Dataset):
     _ = dataset.sort("numbers")
 
 
 @get_duration
-def shuffle(dataset: nlp.Dataset):
+def shuffle(dataset: datasets.Dataset):
     _ = dataset.shuffle()
 
 
 @get_duration
-def train_test_split(dataset: nlp.Dataset):
+def train_test_split(dataset: datasets.Dataset):
     _ = dataset.train_test_split(0.1)
 
 
 @get_duration
-def shard(dataset: nlp.Dataset, num_shards=10):
+def shard(dataset: datasets.Dataset, num_shards=10):
     for shard_id in range(num_shards):
         _ = dataset.shard(num_shards, shard_id)
 
@@ -43,7 +44,7 @@ def benchmark_indices_mapping():
     functions = (select, sort, shuffle, train_test_split, shard)
     with tempfile.TemporaryDirectory() as tmp_dir:
         print("generating dataset")
-        features = nlp.Features({"text": nlp.Value("string"), "numbers": nlp.Value("float32")})
+        features = datasets.Features({"text": datasets.Value("string"), "numbers": datasets.Value("float32")})
         dataset = generate_example_dataset(
             os.path.join(tmp_dir, "dataset.arrow"), features, num_examples=SPEED_TEST_N_EXAMPLES
         )

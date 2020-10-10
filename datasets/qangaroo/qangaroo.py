@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(qangaroo): BibTeX citation
@@ -25,7 +25,7 @@ The two QAngaroo datasets provide a training and evaluation resource for such me
 """
 
 _MEDHOP_DESCRIPTION = """\
-  With the same format as WikiHop, this dataset is based on research paper abstracts from PubMed, and the queries are about interactions between pairs of drugs. 
+  With the same format as WikiHop, this dataset is based on research paper abstracts from PubMed, and the queries are about interactions between pairs of drugs.
   The correct answer has to be inferred by combining information from a chain of reactions of drugs and proteins.
   """
 _WIKIHOP_DESCRIPTION = """\
@@ -36,9 +36,9 @@ _WIKIHOP_DESCRIPTION = """\
 _URL = "https://drive.google.com/uc?export=download&id=1ytVZ4AhubFDOEL7o7XrIRIyhU8g9wvKA"
 
 
-class QangarooConfig(nlp.BuilderConfig):
+class QangarooConfig(datasets.BuilderConfig):
     def __init__(self, data_dir, **kwargs):
-        """ BuilderConfig for qangaroo dataset
+        """BuilderConfig for qangaroo dataset
 
         Args:
           data_dir: directory for the given dataset name
@@ -46,18 +46,16 @@ class QangarooConfig(nlp.BuilderConfig):
 
         """
 
-        super(QangarooConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(QangarooConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
         self.data_dir = data_dir
 
 
-class Qangaroo(nlp.GeneratorBasedBuilder):
+class Qangaroo(datasets.GeneratorBasedBuilder):
     """TODO(qangaroo): Short description of my dataset."""
 
     # TODO(qangaroo): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         QangarooConfig(name="medhop", description=_MEDHOP_DESCRIPTION, data_dir="medhop"),
         QangarooConfig(name="masked_medhop", description=_MEDHOP_DESCRIPTION, data_dir="medhop"),
@@ -66,19 +64,19 @@ class Qangaroo(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(qangaroo): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(qangaroo): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "query": nlp.Value("string"),
-                    "supports": nlp.features.Sequence(nlp.Value("string")),
-                    "candidates": nlp.features.Sequence(nlp.Value("string")),
-                    "answer": nlp.Value("string"),
-                    "id": nlp.Value("string")
+                    "query": datasets.Value("string"),
+                    "supports": datasets.features.Sequence(datasets.Value("string")),
+                    "candidates": datasets.features.Sequence(datasets.Value("string")),
+                    "answer": datasets.Value("string"),
+                    "id": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -94,20 +92,20 @@ class Qangaroo(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(qangaroo): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "qangaroo_v1.1")
         train_file = "train.masked.json" if "masked" in self.config.name else "train.json"
         dev_file = "dev.masked.json" if "masked" in self.config.name else "dev.json"
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, self.config.data_dir, train_file)},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, self.config.data_dir, dev_file)},
             ),

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import logging
 import os
 import re
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -47,25 +47,27 @@ The CFQ dataset (and it's splits) for measuring compositional generalization.
 See https://arxiv.org/abs/1912.09713.pdf for background.
 
 Example usage:
-data = nlp.load_dataset('cfq/mcd1')
+data = datasets.load_dataset('cfq/mcd1')
 """
 
 _DATA_URL = "https://storage.googleapis.com/cfq_dataset/cfq.tar.gz"
 
 
-class CfqConfig(nlp.BuilderConfig):
+class CfqConfig(datasets.BuilderConfig):
     """BuilderConfig for CFQ splits."""
 
     def __init__(self, name, directory="splits", **kwargs):
         """BuilderConfig for CFQ.
 
-    Args:
-      name: Unique name of the split.
-      directory: Which subdirectory to read the split from.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          name: Unique name of the split.
+          directory: Which subdirectory to read the split from.
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version history:
-        super(CfqConfig, self).__init__(name=name, version=nlp.Version("1.0.1"), description=_DESCRIPTION, **kwargs)
+        super(CfqConfig, self).__init__(
+            name=name, version=datasets.Version("1.0.1"), description=_DESCRIPTION, **kwargs
+        )
         self.split_file = os.path.join(directory, name + ".json")
 
 
@@ -75,7 +77,7 @@ _QUESTION_FIELD = "questionPatternModEntities"
 _QUERY_FIELD = "sparqlPatternModEntities"
 
 
-class Cfq(nlp.GeneratorBasedBuilder):
+class Cfq(datasets.GeneratorBasedBuilder):
     """CFQ task / splits."""
 
     BUILDER_CONFIGS = [
@@ -90,9 +92,14 @@ class Cfq(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({_QUESTION: nlp.Value("string"), _QUERY: nlp.Value("string"),}),
+            features=datasets.Features(
+                {
+                    _QUESTION: datasets.Value("string"),
+                    _QUERY: datasets.Value("string"),
+                }
+            ),
             supervised_keys=(_QUESTION, _QUERY),
             homepage="https://github.com/google-research/google-research/tree/master/cfq",
             citation=_CITATION,
@@ -103,16 +110,16 @@ class Cfq(nlp.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_DATA_URL)
         data_dir = os.path.join(data_dir, "cfq")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "base_directory": data_dir,
                     "splits_file": self.config.split_file,
                     "split_id": "trainIdxs",
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"base_directory": data_dir, "splits_file": self.config.split_file, "split_id": "testIdxs"},
             ),
         ]

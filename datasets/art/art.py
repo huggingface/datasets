@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(art): BibTeX citation
@@ -24,7 +24,7 @@ the Abductive Natural Language Inference Dataset from AI2
 _DATA_URL = "https://storage.googleapis.com/ai2-mosaic/public/alphanli/alphanli-train-dev.zip"
 
 
-class ArtConfig(nlp.BuilderConfig):
+class ArtConfig(datasets.BuilderConfig):
     """BuilderConfig for Art."""
 
     def __init__(self, **kwargs):
@@ -32,16 +32,14 @@ class ArtConfig(nlp.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(ArtConfig, self).__init__(
-            version=nlp.Version("0.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(ArtConfig, self).__init__(version=datasets.Version("0.1.0", ""), **kwargs)
 
 
-class Art(nlp.GeneratorBasedBuilder):
+class Art(datasets.GeneratorBasedBuilder):
     """TODO(art): Short description of my dataset."""
 
     # TODO(art): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         ArtConfig(
             name="anli",
@@ -52,18 +50,18 @@ class Art(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(art): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(art): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "observation_1": nlp.Value("string"),
-                    "observation_2": nlp.Value("string"),
-                    "hypothesis_1": nlp.Value("string"),
-                    "hypothesis_2": nlp.Value("string"),
-                    "label": nlp.features.ClassLabel(num_classes=3)
+                    "observation_1": datasets.Value("string"),
+                    "observation_2": datasets.Value("string"),
+                    "hypothesis_1": datasets.Value("string"),
+                    "hypothesis_2": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(num_classes=3)
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -79,19 +77,19 @@ class Art(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(art): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
                     "filepath": os.path.join(dl_dir, "dev.jsonl"),
                     "labelpath": os.path.join(dl_dir, "dev-labels.lst"),
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "filepath": os.path.join(dl_dir, "train.jsonl"),
                     "labelpath": os.path.join(dl_dir, "train-labels.lst"),

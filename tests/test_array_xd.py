@@ -6,9 +6,9 @@ import numpy as np
 import pandas as pd
 from absl.testing import parameterized
 
-import nlp
-from nlp.arrow_writer import ArrowWriter
-from nlp.features import Array2D, Array3D, Array4D, Array5D, Value, _ArrayXD
+import datasets
+from datasets.arrow_writer import ArrowWriter
+from datasets.features import Array2D, Array3D, Array4D, Array5D, Value, _ArrayXD
 
 
 SHAPE_TEST_1 = (30, 487)
@@ -16,7 +16,7 @@ SHAPE_TEST_2 = (36, 1024)
 SPEED_TEST_SHAPE = (100, 100)
 SPEED_TEST_N_EXAMPLES = 100
 
-DEFAULT_FEATURES = nlp.Features(
+DEFAULT_FEATURES = datasets.Features(
     {"text": Array2D(SHAPE_TEST_1, dtype="float32"), "image": Array2D(SHAPE_TEST_2, dtype="float32")}
 )
 
@@ -29,10 +29,10 @@ def generate_examples(features: dict, num_examples=100, seq_shapes=None):
         for col_id, (k, v) in enumerate(features.items()):
             if isinstance(v, _ArrayXD):
                 data = np.random.rand(*v.shape).astype(v.dtype)
-            elif isinstance(v, nlp.Value):
+            elif isinstance(v, datasets.Value):
                 data = "foo"
-            elif isinstance(v, nlp.Sequence):
-                while isinstance(v, nlp.Sequence):
+            elif isinstance(v, datasets.Sequence):
+                while isinstance(v, datasets.Sequence):
                     v = v.feature
                 shape = seq_shapes[k]
                 data = np.random.rand(*shape).astype(v.dtype)
@@ -54,7 +54,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
-            dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
+            dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             dataset.set_format("numpy")
             row = dataset[0]
             first_shape = row["image"].shape
@@ -62,6 +62,7 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             self.assertTrue(first_shape is not None and second_shape is not None, "need atleast 2 different shapes")
             self.assertEqual(len(first_shape), len(second_shape), "both shapes are supposed to be equal length")
             self.assertNotEqual(first_shape, second_shape, "shapes must not be the same")
+            del dataset
 
     def test_multiple_extensions_same_row(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -71,25 +72,27 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
-            dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
+            dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             dataset.set_format("numpy")
             row = dataset[0]
             first_len = len(row["image"].shape)
             second_len = len(row["text"].shape)
             self.assertEqual(first_len, 2, "use a sequence type if dim is  < 2")
             self.assertEqual(second_len, 2, "use a sequence type if dim is  < 2")
+            del dataset
 
     def test_compatability_with_string_values(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
-            my_features["image_id"] = nlp.Value("string")
+            my_features["image_id"] = datasets.Value("string")
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
             for key, record in generate_examples(features=my_features, num_examples=1):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
-            dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
+            dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             self.assertTrue(isinstance(dataset[0]["image_id"], str), "image id must be of type string")
+            del dataset
 
     def test_extension_indexing(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -100,10 +103,11 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
-            dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
+            dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             dataset.set_format("numpy")
             data = dataset[0]["explicit_ext"]
             self.assertIsInstance(data, np.ndarray, "indexed extension must return numpy.ndarray")
+            del dataset
 
 
 def get_array_feature_types():
@@ -123,7 +127,7 @@ def get_array_feature_types():
 @parameterized.named_parameters(get_array_feature_types())
 class ArrayXDTest(unittest.TestCase):
     def get_features(self, array_feature, shape_1, shape_2):
-        return nlp.Features(
+        return datasets.Features(
             {
                 "image": array_feature(shape_1, dtype="float32"),
                 "source": Value("string"),
@@ -198,8 +202,9 @@ class ArrayXDTest(unittest.TestCase):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
-            dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
+            dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             self._check_getitem_output_type(dataset, shape_1, shape_2, my_examples[0][1]["matrix"])
+            del dataset
 
     def test_write_batch(self, array_feature, shape_1, shape_2):
 
@@ -212,10 +217,14 @@ class ArrayXDTest(unittest.TestCase):
             dict_examples = my_features.encode_batch(dict_examples)
             writer.write_batch(dict_examples)
             num_examples, num_bytes = writer.finalize()
-            dataset = nlp.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
+            dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
             self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
+            del dataset
 
     def test_from_dict(self, array_feature, shape_1, shape_2):
         dict_examples = self.get_dict_examples(shape_1, shape_2)
-        dataset = nlp.Dataset.from_dict(dict_examples, features=self.get_features(array_feature, shape_1, shape_2))
+        dataset = datasets.Dataset.from_dict(
+            dict_examples, features=self.get_features(array_feature, shape_1, shape_2)
+        )
         self._check_getitem_output_type(dataset, shape_1, shape_2, dict_examples["matrix"][0])
+        del dataset

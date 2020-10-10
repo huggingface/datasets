@@ -1,13 +1,14 @@
 import os
 import tempfile
+from pathlib import Path
 from unittest import TestCase
 
 import pyarrow as pa
 
-from nlp.arrow_dataset import Dataset
-from nlp.arrow_reader import BaseReader
-from nlp.info import DatasetInfo
-from nlp.splits import SplitDict, SplitInfo
+from datasets.arrow_dataset import Dataset
+from datasets.arrow_reader import BaseReader
+from datasets.info import DatasetInfo
+from datasets.splits import SplitDict, SplitInfo
 
 
 class ReaderTest(BaseReader):
@@ -24,7 +25,7 @@ class ReaderTest(BaseReader):
             filename_skip_take["take"] if "take" in filename_skip_take else None,
         )
         open(os.path.join(filename), "wb").close()
-        pa_table = pa.Table.from_pydict({"filename": [filename.split("/")[-1]] * 100})
+        pa_table = pa.Table.from_pydict({"filename": [Path(filename).name] * 100})
         if skip is not None and take is not None:
             pa_table = pa_table.slice(skip, take)
         return pa_table
@@ -59,6 +60,7 @@ class BaseReaderTest(TestCase):
             self.assertEqual(test_dset["filename"][0], f"{name}-test")
             self.assertEqual(test_dset.num_rows, 33)
             self.assertEqual(test_dset.num_columns, 1)
+            del train_dset, test_dset
 
     def test_read_files(self):
         train_info = SplitInfo(name="train", num_examples=100)
@@ -79,3 +81,4 @@ class BaseReaderTest(TestCase):
             self.assertEqual(dset.num_rows, 110)
             self.assertEqual(dset.num_columns, 1)
             self.assertEqual(dset._data_files, files)
+            del dset

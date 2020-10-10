@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -40,8 +40,8 @@ http://karpathy.github.io/2015/05/21/rnn-effectiveness/.
 To use for e.g. character modelling:
 
 ```
-d = nlp.load_dataset(name='tiny_shakespeare')['train']
-d = d.map(lambda x: nlp.Value('strings').unicode_split(x['text'], 'UTF-8'))
+d = datasets.load_dataset(name='tiny_shakespeare')['train']
+d = d.map(lambda x: datasets.Value('strings').unicode_split(x['text'], 'UTF-8'))
 # train split includes vocabulary for other splits
 vocabulary = sorted(set(next(iter(d)).numpy()))
 d = d.map(lambda x: {'cur_char': x[:-1], 'next_char': x[1:]})
@@ -54,15 +54,15 @@ d = d.batch(batch_size)
 """
 
 
-class TinyShakespeare(nlp.GeneratorBasedBuilder):
+class TinyShakespeare(datasets.GeneratorBasedBuilder):
     """Tiny Shakespeare dataset builder."""
 
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({"text": nlp.Value("string")}),
+            features=datasets.Features({"text": datasets.Value("string")}),
             supervised_keys=None,
             homepage="https://github.com/karpathy/char-rnn/blob/master/data/tinyshakespeare/input.txt",
             citation=_CITATION,
@@ -89,15 +89,19 @@ class TinyShakespeare(nlp.GeneratorBasedBuilder):
         test_text = text
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"split_key": "train", "split_text": train_text},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"split_key": "validation", "split_text": validation_text},
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"split_key": "validation", "split_text": validation_text},
             ),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"split_key": "test", "split_text": test_text},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"split_key": "test", "split_text": test_text},
+            ),
         ]
 
     def _generate_examples(self, split_key, split_text):

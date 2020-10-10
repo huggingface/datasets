@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors and the current dataset script contributor.
+# Copyright 2020 The HuggingFace Datasets Authors and the current dataset script contributor.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import csv
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO: Add BibTeX citation
@@ -45,7 +45,7 @@ _URL = "https://huggingface.co/great-new-dataset.zip"
 # Using a specific configuration class is optional, you can also use the base class if you don't need
 # to add specific attributes.
 # here we give an example for three sub-set of the dataset with difference sizes.
-class NewDatasetConfig(nlp.BuilderConfig):
+class NewDatasetConfig(datasets.BuilderConfig):
     """ BuilderConfig for NewDataset"""
 
     def __init__(self, data_size, **kwargs):
@@ -58,10 +58,10 @@ class NewDatasetConfig(nlp.BuilderConfig):
         self.data_size = data_size
 
 
-class NewDataset(nlp.GeneratorBasedBuilder):
+class NewDataset(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
-    VERSION = nlp.Version("1.1.0")
+    VERSION = datasets.Version("1.1.0")
 
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,
@@ -72,17 +72,17 @@ class NewDataset(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO: Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO: Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # This defines the different columns of the dataset and their types
+            features=datasets.Features(
                 {
-                    "sentence": nlp.Value("string"),
-                    "option1": nlp.Value("string"),
-                    "option2": nlp.Value("string"),
-                    "answer": nlp.Value("string")
+                    "sentence": datasets.Value("string"),
+                    "option1": datasets.Value("string"),
+                    "option2": datasets.Value("string"),
+                    "answer": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -98,13 +98,13 @@ class NewDataset(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO: Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "great-new-dataset")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "train_{}.jsonl".format(self.config.data_size)),
@@ -112,13 +112,13 @@ class NewDataset(nlp.GeneratorBasedBuilder):
                     "split": "train",
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl"), "split": "test"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "dev.jsonl"),

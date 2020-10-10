@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import os
 
 import six
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -78,19 +78,19 @@ def _wiki_evidence_dir(tmp_dir):
     return sorted(glob.glob(os.path.join(tmp_dir, _WIKI_EVIDENCE_DIR)))
 
 
-class TriviaQaConfig(nlp.BuilderConfig):
+class TriviaQaConfig(datasets.BuilderConfig):
     """BuilderConfig for TriviaQA."""
 
     def __init__(self, unfiltered=False, exclude_context=False, **kwargs):
         """BuilderConfig for TriviaQA.
 
-    Args:
-      unfiltered: bool, whether to use the unfiltered version of the dataset,
-        intended for open-domain QA.
-      exclude_context: bool, whether to exclude Wikipedia and search context for
-        reduced size.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          unfiltered: bool, whether to use the unfiltered version of the dataset,
+            intended for open-domain QA.
+          exclude_context: bool, whether to exclude Wikipedia and search context for
+            reduced size.
+          **kwargs: keyword arguments forwarded to super.
+        """
         name = "unfiltered" if unfiltered else "rc"
         if exclude_context:
             name += ".nocontext"
@@ -98,17 +98,17 @@ class TriviaQaConfig(nlp.BuilderConfig):
         if not exclude_context:
             description += _CONTEXT_ADDENDUM
         super(TriviaQaConfig, self).__init__(
-            name=name, description=description, version=nlp.Version("1.1.0"), **kwargs
+            name=name, description=description, version=datasets.Version("1.1.0"), **kwargs
         )
         self.unfiltered = unfiltered
         self.exclude_context = exclude_context
 
 
-class TriviaQa(nlp.GeneratorBasedBuilder):
+class TriviaQa(datasets.GeneratorBasedBuilder):
     """TriviaQA is a reading comprehension dataset.
 
-  It containss over 650K question-answer-evidence triples.
-  """
+    It containss over 650K question-answer-evidence triples.
+    """
 
     BUILDER_CONFIGS = [
         TriviaQaConfig(unfiltered=False, exclude_context=False),  # rc
@@ -119,40 +119,40 @@ class TriviaQa(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "question": nlp.Value("string"),
-                    "question_id": nlp.Value("string"),
-                    "question_source": nlp.Value("string"),
-                    "entity_pages": nlp.features.Sequence(
+                    "question": datasets.Value("string"),
+                    "question_id": datasets.Value("string"),
+                    "question_source": datasets.Value("string"),
+                    "entity_pages": datasets.features.Sequence(
                         {
-                            "doc_source": nlp.Value("string"),
-                            "filename": nlp.Value("string"),
-                            "title": nlp.Value("string"),
-                            "wiki_context": nlp.Value("string"),
+                            "doc_source": datasets.Value("string"),
+                            "filename": datasets.Value("string"),
+                            "title": datasets.Value("string"),
+                            "wiki_context": datasets.Value("string"),
                         }
                     ),
-                    "search_results": nlp.features.Sequence(
+                    "search_results": datasets.features.Sequence(
                         {
-                            "description": nlp.Value("string"),
-                            "filename": nlp.Value("string"),
-                            "rank": nlp.Value("int32"),
-                            "title": nlp.Value("string"),
-                            "url": nlp.Value("string"),
-                            "search_context": nlp.Value("string"),
+                            "description": datasets.Value("string"),
+                            "filename": datasets.Value("string"),
+                            "rank": datasets.Value("int32"),
+                            "title": datasets.Value("string"),
+                            "url": datasets.Value("string"),
+                            "search_context": datasets.Value("string"),
                         }
                     ),
                     "answer": dict(
                         {
-                            "aliases": nlp.features.Sequence(nlp.Value("string")),
-                            "normalized_aliases": nlp.features.Sequence(nlp.Value("string")),
-                            "matched_wiki_entity_name": nlp.Value("string"),
-                            "normalized_matched_wiki_entity_name": nlp.Value("string"),
-                            "normalized_value": nlp.Value("string"),
-                            "type": nlp.Value("string"),
-                            "value": nlp.Value("string"),
+                            "aliases": datasets.features.Sequence(datasets.Value("string")),
+                            "normalized_aliases": datasets.features.Sequence(datasets.Value("string")),
+                            "matched_wiki_entity_name": datasets.Value("string"),
+                            "normalized_matched_wiki_entity_name": datasets.Value("string"),
+                            "normalized_value": datasets.Value("string"),
+                            "type": datasets.Value("string"),
+                            "value": datasets.Value("string"),
                         }
                     ),
                 }
@@ -189,16 +189,16 @@ class TriviaQa(nlp.GeneratorBasedBuilder):
             wiki_evidence_dir = os.path.join(file_paths["rc"], _WIKI_EVIDENCE_DIR)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"files": train_files, "web_dir": web_evidence_dir, "wiki_dir": wiki_evidence_dir},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"files": valid_files, "web_dir": web_evidence_dir, "wiki_dir": wiki_evidence_dir},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"files": test_files, "web_dir": web_evidence_dir, "wiki_dir": wiki_evidence_dir},
             ),
         ]
@@ -251,7 +251,7 @@ class TriviaQa(nlp.GeneratorBasedBuilder):
                     try:
                         with open(os.path.join(file_dir, fname), encoding="utf-8") as f:
                             new_item[context_field] = f.read()
-                    except (IOError, nlp.Value("errors").NotFoundError):
+                    except (IOError, datasets.Value("errors").NotFoundError):
                         logging.info("File does not exist, skipping: %s", fname)
                         continue
                     new_items.append(new_item)
@@ -262,7 +262,8 @@ class TriviaQa(nlp.GeneratorBasedBuilder):
 
             def _transpose_and_strip_dicts(dicts, field_names):
                 return {
-                    nlp.naming.camelcase_to_snakecase(k): [_strip_if_str(d[k]) for d in dicts] for k in field_names
+                    datasets.naming.camelcase_to_snakecase(k): [_strip_if_str(d[k]) for d in dicts]
+                    for k in field_names
                 }
 
             search_results = _transpose_and_strip_dicts(

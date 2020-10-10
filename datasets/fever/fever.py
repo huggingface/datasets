@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -42,7 +41,7 @@ The FEVER workshops are a venue for work in verifiable knowledge extraction and 
 """
 
 
-class FeverConfig(nlp.BuilderConfig):
+class FeverConfig(datasets.BuilderConfig):
     """BuilderConfig for FEVER."""
 
     def __init__(self, **kwargs):
@@ -54,24 +53,24 @@ class FeverConfig(nlp.BuilderConfig):
         super(FeverConfig, self).__init__(**kwargs)
 
 
-class Fever(nlp.GeneratorBasedBuilder):
+class Fever(datasets.GeneratorBasedBuilder):
     """Fact Extraction and VERification Dataset."""
 
     BUILDER_CONFIGS = [
         FeverConfig(
             name="v1.0",
             description="FEVER  V1.0",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
         ),
         FeverConfig(
             name="v2.0",
             description="FEVER  V2.0",
-            version=nlp.Version("2.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("2.0.0", ""),
         ),
         FeverConfig(
             name="wiki_pages",
             description="Wikipedia pages",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
         ),
     ]
 
@@ -79,23 +78,23 @@ class Fever(nlp.GeneratorBasedBuilder):
 
         if self.config.name == "wiki_pages":
             features = {
-                "id": nlp.Value("string"),
-                "text": nlp.Value("string"),
-                "lines": nlp.Value("string"),
+                "id": datasets.Value("string"),
+                "text": datasets.Value("string"),
+                "lines": datasets.Value("string"),
             }
         else:
             features = {
-                "id": nlp.Value("int32"),
-                "label": nlp.Value("string"),
-                "claim": nlp.Value("string"),
-                "evidence_annotation_id": nlp.Value("int32"),
-                "evidence_id": nlp.Value("int32"),
-                "evidence_wiki_url": nlp.Value("string"),
-                "evidence_sentence_id": nlp.Value("int32"),
+                "id": datasets.Value("int32"),
+                "label": datasets.Value("string"),
+                "claim": datasets.Value("string"),
+                "evidence_annotation_id": datasets.Value("int32"),
+                "evidence_id": datasets.Value("int32"),
+                "evidence_wiki_url": datasets.Value("string"),
+                "evidence_sentence_id": datasets.Value("int32"),
             }
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION + "\n" + self.config.description,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             homepage="https://fever.ai/",
             citation=_CITATION,
         )
@@ -105,7 +104,14 @@ class Fever(nlp.GeneratorBasedBuilder):
         if self.config.name == "v2.0":
             urls = "https://s3-eu-west-1.amazonaws.com/fever.public/fever2-fixers-dev.jsonl"
             dl_path = dl_manager.download_and_extract(urls)
-            return [nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": dl_path,},)]
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "filepath": dl_path,
+                    },
+                )
+            ]
         elif self.config.name == "v1.0":
             urls = {
                 "train": "https://s3-eu-west-1.amazonaws.com/fever.public/train.jsonl",
@@ -117,12 +123,42 @@ class Fever(nlp.GeneratorBasedBuilder):
             }
             dl_path = dl_manager.download_and_extract(urls)
             return [
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": dl_path["train"],},),
-                nlp.SplitGenerator(name="unlabelled_test", gen_kwargs={"filepath": dl_path["unlabelled_test"],},),
-                nlp.SplitGenerator(name="unlabelled_dev", gen_kwargs={"filepath": dl_path["unlabelled_dev"],},),
-                nlp.SplitGenerator(name="labelled_dev", gen_kwargs={"filepath": dl_path["labelled_dev"],},),
-                nlp.SplitGenerator(name="paper_dev", gen_kwargs={"filepath": dl_path["paper_dev"],},),
-                nlp.SplitGenerator(name="paper_test", gen_kwargs={"filepath": dl_path["paper_test"],},),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "filepath": dl_path["train"],
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="unlabelled_test",
+                    gen_kwargs={
+                        "filepath": dl_path["unlabelled_test"],
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="unlabelled_dev",
+                    gen_kwargs={
+                        "filepath": dl_path["unlabelled_dev"],
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="labelled_dev",
+                    gen_kwargs={
+                        "filepath": dl_path["labelled_dev"],
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="paper_dev",
+                    gen_kwargs={
+                        "filepath": dl_path["paper_dev"],
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name="paper_test",
+                    gen_kwargs={
+                        "filepath": dl_path["paper_test"],
+                    },
+                ),
             ]
         elif self.config.name == "wiki_pages":
             urls = "https://s3-eu-west-1.amazonaws.com/fever.public/wiki-pages.zip"
@@ -130,7 +166,12 @@ class Fever(nlp.GeneratorBasedBuilder):
             files = sorted(os.listdir(os.path.join(dl_path, "wiki-pages")))
             file_paths = [os.path.join(dl_path, "wiki-pages", file) for file in files]
             return [
-                nlp.SplitGenerator(name="wikipedia_pages", gen_kwargs={"filepath": file_paths,},),
+                datasets.SplitGenerator(
+                    name="wikipedia_pages",
+                    gen_kwargs={
+                        "filepath": file_paths,
+                    },
+                ),
             ]
         else:
             raise ValueError("config name not found")

@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(quarel): BibTeX citation
@@ -25,29 +25,29 @@ QuaRel is a crowdsourced dataset of 2771 multiple-choice story questions, includ
 _URL = "https://s3-us-west-2.amazonaws.com/ai2-website/data/quarel-dataset-v1-nov2018.zip"
 
 
-class Quarel(nlp.GeneratorBasedBuilder):
+class Quarel(datasets.GeneratorBasedBuilder):
     """TODO(quarel): Short description of my dataset."""
 
     # TODO(quarel): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(quarel): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(quarel): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "id": nlp.Value("string"),
-                    "answer_index": nlp.Value("int32"),
-                    "logical_forms": nlp.features.Sequence(nlp.Value("string")),
-                    "logical_form_pretty": nlp.Value("string"),
-                    "world_literals": nlp.features.Sequence(
-                        {"world1": nlp.Value("string"), "world2": nlp.Value("string")}
+                    "id": datasets.Value("string"),
+                    "answer_index": datasets.Value("int32"),
+                    "logical_forms": datasets.features.Sequence(datasets.Value("string")),
+                    "logical_form_pretty": datasets.Value("string"),
+                    "world_literals": datasets.features.Sequence(
+                        {"world1": datasets.Value("string"), "world2": datasets.Value("string")}
                     ),
-                    "question": nlp.Value("string"),
+                    "question": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -62,23 +62,23 @@ class Quarel(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(quarel): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "quarel-dataset-v1")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "quarel-v1-train.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "quarel-v1-test.jsonl")},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "quarel-v1-dev.jsonl")},
             ),

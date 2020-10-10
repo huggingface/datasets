@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
 # limitations under the License.
 """ BERTScore metric. """
 
-import nlp
 import bert_score
+
+import datasets
+
 
 _CITATION = """\
 @inproceedings{bert-score,
@@ -29,7 +31,7 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 BERTScore leverages the pre-trained contextual embeddings from BERT and matches words in candidate and reference sentences by cosine similarity.
-It has been shown to correlate with human judgment on sentence-level and system-level evaluation. 
+It has been shown to correlate with human judgment on sentence-level and system-level evaluation.
 Moreover, BERTScore computes precision, recall, and F1 measure, which can be useful for evaluating different language generation tasks.
 
 See the [README.md] file at https://github.com/Tiiiger/bert_score for more information.
@@ -40,13 +42,13 @@ BERTScore Metrics with the hashcode from a source against one or more references
 
 Args:
     `predictions` (list of str): prediction/candidate sentences
-    `refereces` (list of str or list of list of str): reference sentences
+    `references` (list of str or list of list of str): reference sentences
     `lang` (str): language of the sentences; required (e.g. 'en')
     `model_type` (str): bert specification, default using the suggested
-    model for the target langauge; has to specify at least one of
+    model for the target language; has to specify at least one of
     `model_type` or `lang`
     `num_layers` (int): the layer of representation to use.
-    default using the number of layer tuned on WMT16 correlation data
+    default using the number of layers tuned on WMT16 correlation data
     `verbose` (bool): turn on intermediate status update
     `idf` (bool or dict): use idf weighting, can also be a precomputed idf_dict
     `device` (str): on which the contextual embedding model will be allocated on.
@@ -64,26 +66,27 @@ Returns:
 """
 
 
-class BERTScore(nlp.Metric):
+class BERTScore(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             homepage="https://github.com/Tiiiger/bert_score",
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': nlp.Value('string', id='sequence'),
-                'references': nlp.Sequence(nlp.Value('string', id='sequence'), id='references'),
-            }),
+            features=datasets.Features(
+                {
+                    "predictions": datasets.Value("string", id="sequence"),
+                    "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
+                }
+            ),
             codebase_urls=["https://github.com/Tiiiger/bert_score"],
-            reference_urls=["https://github.com/Tiiiger/bert_score",
-                            "https://arxiv.org/abs/1904.09675"]
+            reference_urls=["https://github.com/Tiiiger/bert_score", "https://arxiv.org/abs/1904.09675"],
         )
 
     def _compute(
         self,
         predictions,
-        references, 
+        references,
         lang=None,
         model_type=None,
         num_layers=None,
@@ -103,7 +106,7 @@ class BERTScore(nlp.Metric):
             num_layers = bert_score.utils.model2layers[model_type]
 
         hashcode = bert_score.utils.get_hash(model_type, num_layers, idf, rescale_with_baseline)
-        if not hasattr(self, 'cached_bertscorer') or self.cached_bertscorer.hash != hashcode:
+        if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
             self.cached_bertscorer = bert_score.BERTScorer(
                 model_type=model_type,
                 num_layers=num_layers,
@@ -117,29 +120,30 @@ class BERTScore(nlp.Metric):
             )
 
         (P, R, F) = self.cached_bertscorer.score(
-            cands=predictions, refs=references, verbose=verbose, batch_size=batch_size,
+            cands=predictions,
+            refs=references,
+            verbose=verbose,
+            batch_size=batch_size,
         )
         output_dict = {
-            'precision': P,
-            'recall': R,
-            'f1': F,
-            'hashcode': hashcode,
+            "precision": P,
+            "recall": R,
+            "f1": F,
+            "hashcode": hashcode,
         }
         return output_dict
 
     def add_batch(self, predictions=None, references=None, **kwargs):
-        """ Add a batch of predictions and references for the metric's stack.
-        """
-        # Refefences can be strings or lists of strings
+        """Add a batch of predictions and references for the metric's stack."""
+        # References can be strings or lists of strings
         # Let's change strings to lists of strings with one element
         if references is not None:
             references = [[ref] if isinstance(ref, str) else ref for ref in references]
         super().add_batch(predictions=predictions, references=references, **kwargs)
 
     def add(self, prediction=None, reference=None, **kwargs):
-        """ Add one prediction and reference for the metric's stack.
-        """
-        # Refefences can be strings or lists of strings
+        """Add one prediction and reference for the metric's stack."""
+        # References can be strings or lists of strings
         # Let's change strings to lists of strings with one element
         if isinstance(reference, str):
             reference = [reference]

@@ -2,18 +2,18 @@ What's in the Dataset object
 ==============================================================
 
 
-The :class:`nlp.Dataset` object that you get when you execute for instance the following commands:
+The :class:`datasets.Dataset` object that you get when you execute for instance the following commands:
 
 .. code-block::
 
-    >>> from nlp import load_dataset
+    >>> from datasets import load_dataset
     >>> dataset = load_dataset('glue', 'mrpc', split='train')
 
 behaves like a normal python container. You can query its length, get rows, columns and also lot of metadata on the dataset (description, citation, split sizes, etc).
 
 In this guide we will detail what's in this object and how to access all the information.
 
-An :class:`nlp.Dataset` is a python container with a length coresponding to the number of examples in the dataset. You can access a single example by its index. Let's query the first sample in the dataset:
+An :class:`datasets.Dataset` is a python container with a length coresponding to the number of examples in the dataset. You can access a single example by its index. Let's query the first sample in the dataset:
 
 .. code-block::
 
@@ -28,7 +28,7 @@ An :class:`nlp.Dataset` is a python container with a length coresponding to the 
 Features and columns
 ------------------------------------------------------
 
-A :class:`nlp.Dataset` instance is more precisely a table with **rows** and **columns** in which the columns are typed. Querying an example (a single row) will thus return a python dictionary with keys corresponding to columns names, and values corresponding to the example's value for each column.
+A :class:`datasets.Dataset` instance is more precisely a table with **rows** and **columns** in which the columns are typed. Querying an example (a single row) will thus return a python dictionary with keys corresponding to columns names, and values corresponding to the example's value for each column.
 
 You can get the number of rows and columns of the dataset with various standard attributes:
 
@@ -43,7 +43,7 @@ You can get the number of rows and columns of the dataset with various standard 
     >>> len(dataset)
     3668
 
-You can list the column names with :func:`nlp.Dataset.column_names` and get their detailed types (called ``features``) with :attr:`nlp.Dataset.features`:
+You can list the column names with :func:`datasets.Dataset.column_names` and get their detailed types (called ``features``) with :attr:`datasets.Dataset.features`:
 
 .. code-block::
 
@@ -56,9 +56,9 @@ You can list the column names with :func:`nlp.Dataset.column_names` and get thei
      'idx': Value(dtype='int32', id=None)
     }
 
-Here we can see that the column ``label`` is a :class:`nlp.ClassLabel` feature.
+Here we can see that the column ``label`` is a :class:`datasets.ClassLabel` feature.
 
-We can access this feature to get more information on the values in the ``label`` columns. In particular, a :class:`nlp.ClassLabel` feature provides a mapping from integers (as single integer, lists, numpy arrays or even pytorch/tensorflow tensors) to human-readable names and vice-versa:
+We can access this feature to get more information on the values in the ``label`` columns. In particular, a :class:`datasets.ClassLabel` feature provides a mapping from integers (as single integer, lists, numpy arrays or even pytorch/tensorflow tensors) to human-readable names and vice-versa:
 
 .. code-block::
 
@@ -71,14 +71,14 @@ We can access this feature to get more information on the values in the ``label`
     >>> dataset.features['label'].str2int('not_equivalent')
     0
 
-More details on the ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`nlp.Features`.
+More details on the ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`datasets.Features`.
 
 Metadata
 ------------------------------------------------------
 
-The :class:`nlp.Dataset` object also host many important metadata on the dataset which are all stored in ``dataset.info``. Many of these metadata are also accessible on the lower level, i.e. directly as attributes of the Dataset for shorter access (e.g. ``dataset.info.features`` is also available as ``dataset.features``).
+The :class:`datasets.Dataset` object also host many important metadata on the dataset which are all stored in ``dataset.info``. Many of these metadata are also accessible on the lower level, i.e. directly as attributes of the Dataset for shorter access (e.g. ``dataset.info.features`` is also available as ``dataset.features``).
 
-All these attributes are listed in the package refefence on :class:`nlp.DatasetInfo`. The most important metadata are ``split``, ``description``, ``citation``, ``homepage`` (and ``licence`` when this one is available).
+All these attributes are listed in the package refefence on :class:`datasets.DatasetInfo`. The most important metadata are ``split``, ``description``, ``citation``, ``homepage`` (and ``licence`` when this one is available).
 
 .. code-block::
 
@@ -117,7 +117,7 @@ Let's see how big is our dataset and how much RAM loading it requires:
 
 .. code-block::
 
-    >>> from nlp import total_allocated_bytes
+    >>> from datasets import total_allocated_bytes
     >>> print("The number of bytes allocated on the drive is", dataset.nbytes)
     The number of bytes allocated on the drive is 943864
     >>> print("For comparison, here is the number of bytes allocated in memory:", total_allocated_bytes())
@@ -125,7 +125,7 @@ Let's see how big is our dataset and how much RAM loading it requires:
 
 This is not a typo. The dataset is memory-mapped on the drive and requires no space in RAM for storage. This memory-mapping is done using a zero-deserialization-cost format so the speed of reading/writing is usually really high as well.
 
-You can clean up the cache files in the current dataset directory (only keeping the currently used one) with :func:`nlp.Dataset.cleanup_cache_files`:
+You can clean up the cache files in the current dataset directory (only keeping the currently used one) with :func:`datasets.Dataset.cleanup_cache_files`:
 
 .. code-block::
 
@@ -201,13 +201,13 @@ Up to now, the rows/batches/columns returned when querying the elements of the d
 
 Sometimes we would like to have more sophisticated objects returned by our dataset, for instance NumPy arrays or PyTorch tensors instead of python lists.
 
-🤗nlp provides a way to do that through what is called a ``format``.
+🤗datasets provides a way to do that through what is called a ``format``.
 
-While the internal storage of the dataset is always the Apache Arrow format, by setting a specific format on a dataset, you can filter some columns and cast the output of :func:`nlp.Dataset.__getitem__` in NumPy/pandas/PyTorch/TensorFlow, on-the-fly.
+While the internal storage of the dataset is always the Apache Arrow format, by setting a specific format on a dataset, you can filter some columns and cast the output of :func:`datasets.Dataset.__getitem__` in NumPy/pandas/PyTorch/TensorFlow, on-the-fly.
 
-A specific format can be activated with :func:`nlp.Dataset.set_format`.
+A specific format can be activated with :func:`datasets.Dataset.set_format`.
 
-:func:`nlp.Dataset.set_format` accepts three inputs to control the format of the dataset:
+:func:`datasets.Dataset.set_format` accepts three inputs to control the format of the dataset:
 
 - :obj:`type` (``Union[None, str]``, default to ``None``) defines the return type for the dataset :obj`__getitem__` method and is one of ``[None, 'numpy', 'pandas', 'torch', 'tensorflow']`` (``None`` means return python objects),
 - :obj:`columns` (``Union[None, str, List[str]]``, default to ``None``) defines the columns returned by :obj:`__getitem__` and takes the name of a column in the dataset or a list of columns to return (``None`` means return all columns),
@@ -227,7 +227,7 @@ Here is an example:
     >>> dataset[0]
     {'label': tensor(1)}
 
-The current format of the dataset can be queried with :func:`nlp.Dataset.format` and can be reset to the original format (python and no column filtered) with :func:`nlp.Dataset.reset_format`:
+The current format of the dataset can be queried with :func:`datasets.Dataset.format` and can be reset to the original format (python and no column filtered) with :func:`datasets.Dataset.reset_format`:
 
 .. code-block::
 

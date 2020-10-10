@@ -5,9 +5,9 @@ from unittest import TestCase
 import numpy as np
 import pandas as pd
 
-from nlp import Features, Sequence, Value, load_from_disk
-from nlp.arrow_dataset import Dataset
-from nlp.dataset_dict import DatasetDict
+from datasets import Features, Sequence, Value, load_from_disk
+from datasets.arrow_dataset import Dataset
+from datasets.dataset_dict import DatasetDict
 
 from .utils import require_tf, require_torch
 
@@ -43,6 +43,7 @@ class DatasetDictTest(TestCase):
         self.assertDictEqual(
             dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
         )
+        del dset
 
     def test_set_format_numpy(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
@@ -77,6 +78,7 @@ class DatasetDictTest(TestCase):
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 2)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
+        del dset
 
     @require_torch
     def test_set_format_torch(self):
@@ -100,6 +102,7 @@ class DatasetDictTest(TestCase):
         for dset_split in dset.values():
             with self.assertRaises(TypeError):
                 dset_split[0]
+        del dset
 
     @require_tf
     def test_set_format_tf(self):
@@ -123,6 +126,7 @@ class DatasetDictTest(TestCase):
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0]), 2)
             self.assertEqual(dset_split[0]["col_2"].numpy().decode("utf-8"), "a")
+        del dset
 
     def test_set_format_pandas(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
@@ -137,6 +141,7 @@ class DatasetDictTest(TestCase):
         for dset_split in dset.values():
             self.assertEqual(len(dset_split[0].columns), 2)
             self.assertEqual(dset_split[0]["col_2"].item(), "a")
+        del dset
 
     def test_cast_(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
@@ -147,6 +152,7 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dset_split.num_columns, 2)
             self.assertEqual(dset_split.features["col_1"], Value("float64"))
             self.assertIsInstance(dset_split[0]["col_1"], float)
+        del dset
 
     def test_remove_columns_(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
@@ -159,6 +165,7 @@ class DatasetDictTest(TestCase):
         dset.remove_columns_(column_names=["col_1", "col_2"])
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 0)
+        del dset
 
     def test_rename_column_(self):
         dset = self._create_dummy_dataset_dict(multiple_columns=True)
@@ -166,6 +173,7 @@ class DatasetDictTest(TestCase):
         for dset_split in dset.values():
             self.assertEqual(dset_split.num_columns, 2)
             self.assertListEqual(list(dset_split.column_names), ["new_name", "col_2"])
+        del dset
 
     def test_map(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -184,6 +192,7 @@ class DatasetDictTest(TestCase):
             )
             self.assertListEqual(list(dsets.keys()), list(mapped_dsets_2.keys()))
             self.assertListEqual(sorted(mapped_dsets_2["train"].column_names), sorted(["filename", "foo", "bar"]))
+            del dsets, mapped_dsets_1, mapped_dsets_2
 
     def test_filter(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -202,6 +211,7 @@ class DatasetDictTest(TestCase):
             )
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_2.keys()))
             self.assertEqual(len(filtered_dsets_2["train"]), 5)
+            del dsets, filtered_dsets_1, filtered_dsets_2
 
     def test_sort(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -226,6 +236,7 @@ class DatasetDictTest(TestCase):
                 [f.split("_")[-1] for f in sorted_dsets_2["train"]["filename"]],
                 sorted(("{:03d}".format(x) for x in range(30)), reverse=True),
             )
+            del dsets, sorted_dsets_1, sorted_dsets_2
 
     def test_shuffle(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -264,10 +275,15 @@ class DatasetDictTest(TestCase):
                 "train": 1234,
                 "test": 1,
             }
+            indices_cache_file_names_3 = {
+                "train": os.path.join(tmp_dir, "train_3.arrow"),
+                "test": os.path.join(tmp_dir, "test_3.arrow"),
+            }
             dsets_shuffled_3 = dsets.shuffle(
-                seeds=seeds, indices_cache_file_names=indices_cache_file_names, load_from_cache_file=False
+                seeds=seeds, indices_cache_file_names=indices_cache_file_names_3, load_from_cache_file=False
             )
             self.assertNotEqual(dsets_shuffled_3["train"]["filename"], dsets_shuffled_3["test"]["filename"])
+            del dsets, dsets_shuffled, dsets_shuffled_2, dsets_shuffled_3
 
     def test_check_values_type(self):
         dsets = self._create_dummy_dataset_dict()
@@ -276,11 +292,13 @@ class DatasetDictTest(TestCase):
         self.assertRaises(TypeError, dsets.filter, lambda x: True)
         self.assertRaises(TypeError, dsets.shuffle)
         self.assertRaises(TypeError, dsets.sort, "filename")
+        del dsets
 
     def test_serialization(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
             dsets.save_to_disk(tmp_dir)
+            del dsets
             dsets = DatasetDict.load_from_disk(tmp_dir)
             self.assertListEqual(sorted(dsets), ["test", "train"])
             self.assertEqual(len(dsets["train"]), 30)
@@ -290,18 +308,22 @@ class DatasetDictTest(TestCase):
 
             del dsets["test"]
             dsets.save_to_disk(tmp_dir)
+            del dsets
             dsets = DatasetDict.load_from_disk(tmp_dir)
             self.assertListEqual(sorted(dsets), ["train"])
             self.assertEqual(len(dsets["train"]), 30)
             self.assertListEqual(dsets["train"].column_names, ["filename"])
+            del dsets
 
     def test_load_from_disk(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             dsets = self._create_dummy_dataset_dict()
             dsets.save_to_disk(tmp_dir)
+            del dsets
             dsets = load_from_disk(tmp_dir)
             self.assertListEqual(sorted(dsets), ["test", "train"])
             self.assertEqual(len(dsets["train"]), 30)
             self.assertListEqual(dsets["train"].column_names, ["filename"])
             self.assertEqual(len(dsets["test"]), 30)
             self.assertListEqual(dsets["test"].column_names, ["filename"])
+            del dsets

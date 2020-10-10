@@ -4,7 +4,7 @@ import json
 import os
 import random
 
-import nlp
+import datasets
 
 
 random.seed(42)  # This is important, to ensure the same order for concept sets as the official script.
@@ -20,35 +20,35 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-CommonGen is a constrained text generation task, associated with a benchmark dataset, 
-to explicitly test machines for the ability of generative commonsense reasoning. Given 
-a set of common concepts; the task is to generate a coherent sentence describing an 
+CommonGen is a constrained text generation task, associated with a benchmark dataset,
+to explicitly test machines for the ability of generative commonsense reasoning. Given
+a set of common concepts; the task is to generate a coherent sentence describing an
 everyday scenario using these concepts.
 
-CommonGen is challenging because it inherently requires 1) relational reasoning using 
-background commonsense knowledge, and 2) compositional generalization ability to work 
-on unseen concept combinations. Our dataset, constructed through a combination of 
-crowd-sourcing from AMT and existing caption corpora, consists of 30k concept-sets and 
+CommonGen is challenging because it inherently requires 1) relational reasoning using
+background commonsense knowledge, and 2) compositional generalization ability to work
+on unseen concept combinations. Our dataset, constructed through a combination of
+crowd-sourcing from AMT and existing caption corpora, consists of 30k concept-sets and
 50k sentences in total.
 """
 _URL = "https://storage.googleapis.com/huggingface-nlp/datasets/common_gen/commongen_data.zip"
 
 
-class CommonGen(nlp.GeneratorBasedBuilder):
-    VERSION = nlp.Version("2020.5.30")
+class CommonGen(datasets.GeneratorBasedBuilder):
+    VERSION = datasets.Version("2020.5.30")
 
     def _info(self):
-        features = nlp.Features(
+        features = datasets.Features(
             {
-                "concept_set_idx": nlp.Value("int32"),
-                "concepts": nlp.Sequence(nlp.Value("string")),
-                "target": nlp.Value("string"),
+                "concept_set_idx": datasets.Value("int32"),
+                "concepts": datasets.Sequence(datasets.Value("string")),
+                "target": datasets.Value("string"),
             }
         )
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
-            supervised_keys=nlp.info.SupervisedKeysData(input="concepts", output="target"),
+            supervised_keys=datasets.info.SupervisedKeysData(input="concepts", output="target"),
             homepage="https://inklab.usc.edu/CommonGen/index.html",
             citation=_CITATION,
         )
@@ -59,23 +59,17 @@ class CommonGen(nlp.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_URL)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "commongen.train.jsonl"),
-                    "split": "train"
-                }
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "commongen.train.jsonl"), "split": "train"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "commongen.dev.jsonl"),
-                    "split": "dev"
-                }
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "commongen.dev.jsonl"), "split": "dev"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "commongen.test_noref.jsonl"),
-                    "split": "test"
-                }
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "commongen.test_noref.jsonl"), "split": "test"},
             ),
         ]
 
@@ -87,7 +81,7 @@ class CommonGen(nlp.GeneratorBasedBuilder):
                 row = row.replace(", }", "}")  # Fix possible JSON format error
                 data = json.loads(row)
 
-                rand_order = [word for word in data["concept_set"].split('#')]
+                rand_order = [word for word in data["concept_set"].split("#")]
                 random.shuffle(rand_order)
 
                 if split == "test":

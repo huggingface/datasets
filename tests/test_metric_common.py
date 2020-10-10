@@ -15,30 +15,31 @@
 
 import glob
 import inspect
+import os
 import tempfile
 
 from absl.testing import parameterized
 
-from nlp import DownloadConfig, hf_api, load_metric
+from datasets import DownloadConfig, hf_api, load_metric
 
-from .utils import aws, local, slow
+from .utils import local, remote, slow
 
 
-def get_aws_metric_names():
+def get_local_metric_names():
+    metrics = [metric_dir.split(os.sep)[-2] for metric_dir in glob.glob("./metrics/*/")]
+    return [{"testcase_name": x, "metric_name": x} for x in metrics]
+
+
+def get_remote_metric_names():
     api = hf_api.HfApi()
     # fetch all metric names
     metrics = [x.id for x in api.metric_list()]
     return [{"testcase_name": x, "metric_name": x} for x in metrics]
 
 
-def get_local_metric_names():
-    metrics = [metric_dir.split("/")[-2] for metric_dir in glob.glob("./metrics/*/")]
-    return [{"testcase_name": x, "metric_name": x} for x in metrics]
-
-
-@parameterized.named_parameters(get_aws_metric_names())
-@aws
-class AWSMetricTest(parameterized.TestCase):
+@parameterized.named_parameters(get_remote_metric_names())
+@remote
+class RemoteMetricTest(parameterized.TestCase):
     metric_name = None
 
     @slow
@@ -46,10 +47,12 @@ class AWSMetricTest(parameterized.TestCase):
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
             download_config.force_download = True
-            name = None
+            config_name = None
             if metric_name == "glue":
-                name = "sst2"
-            metric = load_metric(metric_name, name=name, data_dir=temp_data_dir, download_config=download_config)
+                config_name = "sst2"
+            metric = load_metric(
+                metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config
+            )
 
             parameters = inspect.signature(metric._compute).parameters
             self.assertTrue("predictions" in parameters)
@@ -67,12 +70,15 @@ class LocalMetricTest(parameterized.TestCase):
         with tempfile.TemporaryDirectory() as temp_data_dir:
             download_config = DownloadConfig()
             download_config.force_download = True
-            name = None
+            config_name = None
             if metric_name == "glue":
-                name = "sst2"
-            metric = load_metric(metric_name, name=name, data_dir=temp_data_dir, download_config=download_config)
+                config_name = "sst2"
+            metric = load_metric(
+                metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config
+            )
 
             parameters = inspect.signature(metric._compute).parameters
             self.assertTrue("predictions" in parameters)
             self.assertTrue("references" in parameters)
             self.assertTrue(all([p.kind != p.VAR_KEYWORD for p in parameters.values()]))  # no **kwargs
+            del metric

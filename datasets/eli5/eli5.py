@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 Facebook, Inc. and the HuggingFace NLP Authors.
+# Copyright 2020 Facebook, Inc. and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ from os.path import isfile
 from os.path import join as pjoin
 from time import time
 
-import nlp
+import datasets
 
 
 _SUB_REDDITS = ["explainlikeimfive", "askscience", "AskHistorians"]
@@ -245,45 +245,49 @@ _CITATION = """\
 """
 
 
-class Eli5Config(nlp.BuilderConfig):
+class Eli5Config(datasets.BuilderConfig):
     """BuilderConfig for ExplainLikeImFive."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for ExplainLikeImFive.
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(Eli5Config, self).__init__(**kwargs)
 
 
-class Eli5(nlp.GeneratorBasedBuilder):
+class Eli5(datasets.GeneratorBasedBuilder):
     """ELI5: Explain Like I'm Five long form question answering dataset."""
 
     BUILDER_CONFIG_CLASS = Eli5Config
     _DATA_SPLIT_URL = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets/eli5/reddit_data_split.json"
 
     BUILDER_CONFIGS = [
-        Eli5Config(name="LFQA_reddit", version=nlp.Version("1.0.0"), description="long from QA subreddits"),
+        Eli5Config(name="LFQA_reddit", version=datasets.Version("1.0.0"), description="long from QA subreddits"),
     ]
 
     test_dummy_data = False
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "q_id": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "selftext": nlp.Value("string"),
-                    "document": nlp.Value("string"),
-                    "subreddit": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
-                        {"a_id": nlp.Value("string"), "text": nlp.Value("string"), "score": nlp.Value("int32")}
+                    "q_id": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "selftext": datasets.Value("string"),
+                    "document": datasets.Value("string"),
+                    "subreddit": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
+                        {
+                            "a_id": datasets.Value("string"),
+                            "text": datasets.Value("string"),
+                            "score": datasets.Value("int32"),
+                        }
                     ),
-                    "title_urls": nlp.features.Sequence(nlp.Value("string")),
-                    "selftext_urls": nlp.features.Sequence(nlp.Value("string")),
-                    "answers_urls": nlp.features.Sequence(nlp.Value("string")),
+                    "title_urls": datasets.features.Sequence(datasets.Value("string")),
+                    "selftext_urls": datasets.features.Sequence(datasets.Value("string")),
+                    "answers_urls": datasets.features.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -308,34 +312,41 @@ class Eli5(nlp.GeneratorBasedBuilder):
         fpath_splits = dl_manager.download(self._DATA_SPLIT_URL)
         self.data_split = json.load(open(fpath_splits))
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split("train_eli5"), gen_kwargs={"split": "train", "subreddit_name": "explainlikeimfive"},
+            datasets.SplitGenerator(
+                name=datasets.Split("train_eli5"),
+                gen_kwargs={"split": "train", "subreddit_name": "explainlikeimfive"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("validation_eli5"),
+            datasets.SplitGenerator(
+                name=datasets.Split("validation_eli5"),
                 gen_kwargs={"split": "validation", "subreddit_name": "explainlikeimfive"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("test_eli5"), gen_kwargs={"split": "test", "subreddit_name": "explainlikeimfive"},
+            datasets.SplitGenerator(
+                name=datasets.Split("test_eli5"),
+                gen_kwargs={"split": "test", "subreddit_name": "explainlikeimfive"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("train_asks"), gen_kwargs={"split": "train", "subreddit_name": "askscience"},
+            datasets.SplitGenerator(
+                name=datasets.Split("train_asks"),
+                gen_kwargs={"split": "train", "subreddit_name": "askscience"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("validation_asks"), gen_kwargs={"split": "validation", "subreddit_name": "askscience"},
+            datasets.SplitGenerator(
+                name=datasets.Split("validation_asks"),
+                gen_kwargs={"split": "validation", "subreddit_name": "askscience"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("test_asks"), gen_kwargs={"split": "test", "subreddit_name": "askscience"},
+            datasets.SplitGenerator(
+                name=datasets.Split("test_asks"),
+                gen_kwargs={"split": "test", "subreddit_name": "askscience"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("train_askh"), gen_kwargs={"split": "train", "subreddit_name": "AskHistorians"},
+            datasets.SplitGenerator(
+                name=datasets.Split("train_askh"),
+                gen_kwargs={"split": "train", "subreddit_name": "AskHistorians"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("validation_askh"),
+            datasets.SplitGenerator(
+                name=datasets.Split("validation_askh"),
                 gen_kwargs={"split": "validation", "subreddit_name": "AskHistorians"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split("test_askh"), gen_kwargs={"split": "test", "subreddit_name": "AskHistorians"},
+            datasets.SplitGenerator(
+                name=datasets.Split("test_askh"),
+                gen_kwargs={"split": "test", "subreddit_name": "AskHistorians"},
             ),
         ]
 

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -91,38 +91,45 @@ WIKIPEDIA_LANGUAGES = [
 ]
 
 
-class Wiki40bConfig(nlp.BuilderConfig):
+class Wiki40bConfig(datasets.BuilderConfig):
     """BuilderConfig for Wiki40B."""
 
     def __init__(self, language=None, **kwargs):
         """BuilderConfig for Wiki40B.
 
-    Args:
-      language: string, the language code for the Wiki40B dataset to use.
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          language: string, the language code for the Wiki40B dataset to use.
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(Wiki40bConfig, self).__init__(
             name=str(language), description="Wiki40B dataset for {0}.".format(language), **kwargs
         )
         self.language = language
 
 
-_VERSION = nlp.Version("1.1.0")
+_VERSION = datasets.Version("1.1.0")
 
 
-class Wiki40b(nlp.BeamBasedBuilder):
+class Wiki40b(datasets.BeamBasedBuilder):
     """Wiki40B: A Clean Wikipedia Dataset for Mutlilingual Language Modeling."""
 
     BUILDER_CONFIGS = [
-        Wiki40bConfig(version=_VERSION, language=lang,)  # pylint:disable=g-complex-comprehension
+        Wiki40bConfig(
+            version=_VERSION,
+            language=lang,
+        )  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
-                {"wikidata_id": nlp.Value("string"), "text": nlp.Value("string"), "version_id": nlp.Value("string")}
+            features=datasets.Features(
+                {
+                    "wikidata_id": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                    "version_id": datasets.Value("string"),
+                }
             ),
             supervised_keys=None,
             homepage=_URL,
@@ -135,16 +142,16 @@ class Wiki40b(nlp.BeamBasedBuilder):
         lang = self.config.language
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 gen_kwargs={"filepaths": os.path.join(_DATA_DIRECTORY, "train", "{}_examples-*".format(lang))},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={"filepaths": os.path.join(_DATA_DIRECTORY, "dev", "{}_examples-*".format(lang))},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 gen_kwargs={"filepaths": os.path.join(_DATA_DIRECTORY, "test", "{}_examples-*".format(lang))},
             ),
         ]

@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import os
 
 import six
 
-import nlp
+import datasets
 
 
 _DESCRIPTION = """\
@@ -112,24 +112,24 @@ _LANGUAGES = (
 )
 
 
-class TedMultiTranslate(nlp.GeneratorBasedBuilder):
+class TedMultiTranslate(datasets.GeneratorBasedBuilder):
     """TED talk multilingual data set."""
 
     BUILDER_CONFIGS = [
-        nlp.BuilderConfig(
+        datasets.BuilderConfig(
             name="plain_text",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Plain text import of multilingual TED talk translations",
         )
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "translations": nlp.features.TranslationVariableLanguages(languages=_LANGUAGES),
-                    "talk_name": nlp.Value("string"),
+                    "translations": datasets.features.TranslationVariableLanguages(languages=_LANGUAGES),
+                    "talk_name": datasets.Value("string"),
                 }
             ),
             homepage="https://github.com/neulab/word-embeddings-for-nmt",
@@ -140,14 +140,14 @@ class TedMultiTranslate(nlp.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN, gen_kwargs={"data_file": os.path.join(dl_dir, "all_talks_train.tsv")}
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"data_file": os.path.join(dl_dir, "all_talks_train.tsv")}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"data_file": os.path.join(dl_dir, "all_talks_dev.tsv")}
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"data_file": os.path.join(dl_dir, "all_talks_dev.tsv")}
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST, gen_kwargs={"data_file": os.path.join(dl_dir, "all_talks_test.tsv")}
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"data_file": os.path.join(dl_dir, "all_talks_test.tsv")}
             ),
         ]
 

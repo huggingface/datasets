@@ -3,10 +3,9 @@
 from __future__ import absolute_import, division, print_function
 
 import ast
-import csv
 import os
 
-import nlp
+import datasets
 
 
 # TODO(cornell_movie_dialog): BibTeX citation
@@ -15,10 +14,10 @@ _CITATION = """\
 
   author={Cristian Danescu-Niculescu-Mizil and Lillian Lee},
 
-  title={Chameleons in imagined conversations: 
+  title={Chameleons in imagined conversations:
   A new approach to understanding coordination of linguistic style in dialogs.},
 
-  booktitle={Proceedings of the 
+  booktitle={Proceedings of the
 
         Workshop on Cognitive Modeling and Computational Linguistics, ACL 2011},
 
@@ -29,7 +28,6 @@ _CITATION = """\
 
 # TODO(cornell_movie_dialog):
 _DESCRIPTION = """\
-     
 This corpus contains a large metadata-rich collection of fictional conversations extracted from raw movie scripts:
 - 220,579 conversational exchanges between 10,292 pairs of movie characters
 - involves 9,035 characters from 617 movies
@@ -48,31 +46,33 @@ This corpus contains a large metadata-rich collection of fictional conversations
 _URL = "https://www.cs.cornell.edu/~cristian/data/cornell_movie_dialogs_corpus.zip"
 
 
-class CornellMovieDialog(nlp.GeneratorBasedBuilder):
+class CornellMovieDialog(datasets.GeneratorBasedBuilder):
     """TODO(cornell_movie_dialog): Short description of my dataset."""
 
     # TODO(cornell_movie_dialog): Set up version.
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        # TODO(cornell_movie_dialog): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(cornell_movie_dialog): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "movieID": nlp.Value("string"),
-                    "movieTitle": nlp.Value("string"),
-                    "movieYear": nlp.Value("string"),
-                    "movieIMDBRating": nlp.Value("string"),
-                    "movieNoIMDBVotes": nlp.Value("string"),
-                    "movieGenres": nlp.features.Sequence(nlp.Value("string")),
-                    "characterID1": nlp.Value("string"),
-                    "characterID2": nlp.Value("string"),
-                    "characterName1": nlp.Value("string"),
-                    "characterName2": nlp.Value("string"),
-                    "utterance": nlp.features.Sequence({"text": nlp.Value("string"), "LineID": nlp.Value("string")})
+                    "movieID": datasets.Value("string"),
+                    "movieTitle": datasets.Value("string"),
+                    "movieYear": datasets.Value("string"),
+                    "movieIMDBRating": datasets.Value("string"),
+                    "movieNoIMDBVotes": datasets.Value("string"),
+                    "movieGenres": datasets.features.Sequence(datasets.Value("string")),
+                    "characterID1": datasets.Value("string"),
+                    "characterID2": datasets.Value("string"),
+                    "characterName1": datasets.Value("string"),
+                    "characterName2": datasets.Value("string"),
+                    "utterance": datasets.features.Sequence(
+                        {"text": datasets.Value("string"), "LineID": datasets.Value("string")}
+                    )
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -88,12 +88,12 @@ class CornellMovieDialog(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(cornell_movie_dialog): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepaths": os.path.join(dl_dir, "cornell movie-dialogs corpus")},
             ),
@@ -118,7 +118,7 @@ class CornellMovieDialog(nlp.GeneratorBasedBuilder):
 
         with open(movie_titles_file, "rb") as f:
             movie_titles_data = [x.decode("latin").split("+++$+++") for x in f.readlines()]
-        ## looping over movie conversation file
+        # looping over movie conversation file
         for id_, conv in enumerate(movie_conv_data):
             char_id_1 = conv[0]
             char_id_2 = conv[1]
@@ -126,13 +126,13 @@ class CornellMovieDialog(nlp.GeneratorBasedBuilder):
             line_ids = conv[-1].replace("\n", "")
             line_ids = ast.literal_eval(line_ids.strip())
             lines_texts = []
-            ## searching text corresponding to each lineID in line_ids in movie lines file
+            # searching text corresponding to each lineID in line_ids in movie lines file
             for line_id in line_ids:
                 i = 0
                 while i < len(movie_lines_data) and movie_lines_data[i][0].strip() != line_id:
                     i += 1
                 lines_texts.append(movie_lines_data[i][0])  # if i < len(movie_lines_data) else '')
-            ## look for char names in movie character file
+            # look for char names in movie character file
             j = 0
             while j < len(movie_char_data) and movie_char_data[j][0].strip() != char_id_1.strip():
                 j += 1
@@ -144,14 +144,14 @@ class CornellMovieDialog(nlp.GeneratorBasedBuilder):
                 k += 1
             char_name_2 = movie_char_data[k][1]
 
-            ##look for movie year, IMDBRating, genre, no_imdb_voting in movie tiles file
-            l = 0
-            while l < len(movie_titles_data) and movie_titles_data[l][0].strip() != movie_id.strip():
-                l += 1
-            movie_year = movie_titles_data[l][2]
-            imdb_rating = movie_titles_data[l][3]
-            no_imdb_vote = movie_titles_data[l][4]
-            genre = movie_titles_data[l][5].replace("\n", "").strip()
+            # look for movie year, IMDBRating, genre, no_imdb_voting in movie tiles file
+            li = 0
+            while li < len(movie_titles_data) and movie_titles_data[li][0].strip() != movie_id.strip():
+                li += 1
+            movie_year = movie_titles_data[li][2]
+            imdb_rating = movie_titles_data[li][3]
+            no_imdb_vote = movie_titles_data[li][4]
+            genre = movie_titles_data[li][5].replace("\n", "").strip()
             movie_genres = ast.literal_eval(genre)
 
             yield id_, {

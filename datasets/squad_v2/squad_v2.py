@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(squad_v2): BibTeX citation
@@ -25,7 +25,7 @@ archivePrefix = {arXiv},
 
 _DESCRIPTION = """\
 combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable questions written adversarially by crowdworkers
- to look similar to answerable ones. To do well on SQuAD2.0, systems must not only answer questions when possible, but 
+ to look similar to answerable ones. To do well on SQuAD2.0, systems must not only answer questions when possible, but
  also determine when no answer is supported by the paragraph and abstain from answering.
 """
 
@@ -34,40 +34,43 @@ _DEV_FILE = "dev-v2.0.json"
 _TRAINING_FILE = "train-v2.0.json"
 
 
-class SquadV2Config(nlp.BuilderConfig):
+class SquadV2Config(datasets.BuilderConfig):
     """BuilderConfig for SQUAD."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for SQUADV2.
 
-    Args:
-      **kwargs: keyword arguments forwarded to super.
-    """
+        Args:
+          **kwargs: keyword arguments forwarded to super.
+        """
         super(SquadV2Config, self).__init__(**kwargs)
 
 
-class SquadV2(nlp.GeneratorBasedBuilder):
+class SquadV2(datasets.GeneratorBasedBuilder):
     """TODO(squad_v2): Short description of my dataset."""
 
     # TODO(squad_v2): Set up version.
     BUILDER_CONFIGS = [
-        SquadV2Config(name="squad_v2", version=nlp.Version("2.0.0"), description="SQuAD plaint text version 2"),
+        SquadV2Config(name="squad_v2", version=datasets.Version("2.0.0"), description="SQuAD plaint text version 2"),
     ]
 
     def _info(self):
-        # TODO(squad_v2): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(squad_v2): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "id": nlp.Value("string"),
-                    "title": nlp.Value("string"),
-                    "context": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "answers": nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
+                    "id": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                    "context": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "answers": datasets.features.Sequence(
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                     # These are the features of your dataset like images, labels ...
                 }
@@ -84,14 +87,14 @@ class SquadV2(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(squad_v2): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         urls_to_download = {"train": os.path.join(_URL, _TRAINING_FILE), "dev": os.path.join(_URL, _DEV_FILE)}
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
         ]
 
     def _generate_examples(self, filepath):
@@ -117,5 +120,8 @@ class SquadV2(nlp.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

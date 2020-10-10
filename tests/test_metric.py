@@ -1,11 +1,12 @@
 import os
 import pickle
 import tempfile
+import time
 from multiprocessing import Pool
 from unittest import TestCase
 
-from nlp.features import Features, Value
-from nlp.metric import Metric, MetricInfo
+from datasets.features import Features, Value
+from datasets.metric import Metric, MetricInfo
 
 from .utils import require_tf, require_torch
 
@@ -19,10 +20,14 @@ class DummyMetric(Metric):
         )
 
     def _compute(self, predictions, references):
-        return {
-            "accuracy": sum(i == j for i, j in zip(predictions, references)) / len(predictions),
-            "set_equality": set(predictions) == set(references),
-        }
+        return (
+            {
+                "accuracy": sum(i == j for i, j in zip(predictions, references)) / len(predictions),
+                "set_equality": set(predictions) == set(references),
+            }
+            if predictions
+            else {}
+        )
 
     @classmethod
     def predictions_and_references(cls):
@@ -53,8 +58,9 @@ def metric_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
+    process_id, preds, refs, exp_id, data_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    time.sleep(wait)
     return metric.compute(predictions=preds, references=refs)
 
 
@@ -62,8 +68,9 @@ def metric_add_batch_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
+    process_id, preds, refs, exp_id, data_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    time.sleep(wait)
     metric.add_batch(predictions=preds, references=refs)
     return metric.compute()
 
@@ -72,8 +79,9 @@ def metric_add_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
+    process_id, preds, refs, exp_id, data_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    time.sleep(wait)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
     return metric.compute()
@@ -83,8 +91,9 @@ def metric_add_and_compute_exp_id(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir)
+    process_id, preds, refs, exp_id, data_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    time.sleep(wait)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
     return metric.compute()
@@ -97,28 +106,37 @@ class TestMetric(TestCase):
 
         metric = DummyMetric(experiment_id="test_dummy_metric")
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
+        del metric
 
         metric = DummyMetric(experiment_id="test_dummy_metric")
         metric.add_batch(predictions=preds, references=refs)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric
 
         metric = DummyMetric(experiment_id="test_dummy_metric")
         for pred, ref in zip(preds, refs):
             metric.add(prediction=pred, reference=ref)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric
 
         # With keep_in_memory
         metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
+        del metric
 
         metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
         metric.add_batch(predictions=preds, references=refs)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric
 
         metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
         for pred, ref in zip(preds, refs):
             metric.add(prediction=pred, reference=ref)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric
+
+        metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
+        self.assertDictEqual({}, metric.compute(predictions=[], references=[]))
 
     def test_concurrent_metrics(self):
         preds, refs = DummyMetric.predictions_and_references()
@@ -135,6 +153,7 @@ class TestMetric(TestCase):
         self.assertDictEqual(
             other_expected_results, other_metric.compute(predictions=other_preds, references=other_refs)
         )
+        del metric, other_metric
 
         metric = DummyMetric(
             experiment_id="test_concurrent_metrics",
@@ -152,6 +171,7 @@ class TestMetric(TestCase):
             other_metric.add(prediction=other_pred, reference=other_ref)
         self.assertDictEqual(expected_results, metric.compute())
         self.assertDictEqual(other_expected_results, other_metric.compute())
+        del metric, other_metric
 
         # With keep_in_memory
         metric = DummyMetric(experiment_id="test_concurrent_metrics", keep_in_memory=True)
@@ -174,6 +194,7 @@ class TestMetric(TestCase):
             other_metric.add(prediction=other_pred, reference=other_ref)
         self.assertDictEqual(expected_results, metric.compute())
         self.assertDictEqual(other_expected_results, other_metric.compute())
+        del metric, other_metric
 
     def test_distributed_metrics(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -185,42 +206,56 @@ class TestMetric(TestCase):
             results = pool.map(
                 metric_compute,
                 [
-                    (0, preds_0, refs_0, "test_distributed_metrics_0", tmp_dir),
-                    (1, preds_1, refs_1, "test_distributed_metrics_0", tmp_dir),
+                    (0, preds_0, refs_0, "test_distributed_metrics_0", tmp_dir, 0),
+                    (1, preds_1, refs_1, "test_distributed_metrics_0", tmp_dir, 0.5),
                 ],
             )
             self.assertDictEqual(expected_results, results[0])
             self.assertIsNone(results[1])
+            del results
+
+            results = pool.map(
+                metric_compute,
+                [
+                    (0, preds_0, refs_0, "test_distributed_metrics_0", tmp_dir, 0.5),
+                    (1, preds_1, refs_1, "test_distributed_metrics_0", tmp_dir, 0),
+                ],
+            )
+            self.assertDictEqual(expected_results, results[0])
+            self.assertIsNone(results[1])
+            del results
 
             results = pool.map(
                 metric_add_and_compute,
                 [
-                    (0, preds_0, refs_0, "test_distributed_metrics_1", tmp_dir),
-                    (1, preds_1, refs_1, "test_distributed_metrics_1", tmp_dir),
+                    (0, preds_0, refs_0, "test_distributed_metrics_1", tmp_dir, 0),
+                    (1, preds_1, refs_1, "test_distributed_metrics_1", tmp_dir, 0),
                 ],
             )
             self.assertDictEqual(expected_results, results[0])
             self.assertIsNone(results[1])
+            del results
 
             results = pool.map(
                 metric_add_batch_and_compute,
                 [
-                    (0, preds_0, refs_0, "test_distributed_metrics_2", tmp_dir),
-                    (1, preds_1, refs_1, "test_distributed_metrics_2", tmp_dir),
+                    (0, preds_0, refs_0, "test_distributed_metrics_2", tmp_dir, 0),
+                    (1, preds_1, refs_1, "test_distributed_metrics_2", tmp_dir, 0),
                 ],
             )
             self.assertDictEqual(expected_results, results[0])
             self.assertIsNone(results[1])
+            del results
 
             # To use several distributed metrics on the same local file system, need to specify an experiment_id
             try:
                 results = pool.map(
                     metric_add_and_compute,
                     [
-                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir),
-                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir),
-                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir),
-                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir),
+                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir, 0),
+                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir, 0),
+                        (0, preds_0, refs_0, "test_distributed_metrics_3", tmp_dir, 0),
+                        (1, preds_1, refs_1, "test_distributed_metrics_3", tmp_dir, 0),
                     ],
                 )
             except ValueError:
@@ -233,20 +268,22 @@ class TestMetric(TestCase):
                 self.assertDictEqual(expected_results, results[2])
                 self.assertIsNone(results[1])
                 self.assertIsNone(results[3])
+                del results
 
             results = pool.map(
                 metric_add_and_compute_exp_id,
                 [
-                    (0, preds_0, refs_0, "exp_0", tmp_dir),
-                    (1, preds_1, refs_1, "exp_0", tmp_dir),
-                    (0, preds_0, refs_0, "exp_1", tmp_dir),
-                    (1, preds_1, refs_1, "exp_1", tmp_dir),
+                    (0, preds_0, refs_0, "exp_0", tmp_dir, 0),
+                    (1, preds_1, refs_1, "exp_0", tmp_dir, 0),
+                    (0, preds_0, refs_0, "exp_1", tmp_dir, 0),
+                    (1, preds_1, refs_1, "exp_1", tmp_dir, 0),
                 ],
             )
             self.assertDictEqual(expected_results, results[0])
             self.assertDictEqual(expected_results, results[2])
             self.assertIsNone(results[1])
             self.assertIsNone(results[3])
+            del results
 
             # With keep_in_memory is not allowed
             with self.assertRaises(AssertionError):
@@ -268,10 +305,12 @@ class TestMetric(TestCase):
 
             with open(tmp_file, "wb") as f:
                 pickle.dump(metric, f)
+            del metric
 
             with open(tmp_file, "rb") as f:
                 metric = pickle.load(f)
             self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
+            del metric
 
     def test_input_numpy(self):
         import numpy as np
@@ -282,15 +321,18 @@ class TestMetric(TestCase):
 
         metric = DummyMetric(experiment_id="test_input_numpy")
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
+        del metric
 
         metric = DummyMetric(experiment_id="test_input_numpy")
         metric.add_batch(predictions=preds, references=refs)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric
 
         metric = DummyMetric(experiment_id="test_input_numpy")
         for pred, ref in zip(preds, refs):
             metric.add(prediction=pred, reference=ref)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric
 
     @require_torch
     def test_input_torch(self):
@@ -302,15 +344,18 @@ class TestMetric(TestCase):
 
         metric = DummyMetric(experiment_id="test_input_torch")
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
+        del metric
 
         metric = DummyMetric(experiment_id="test_input_torch")
         metric.add_batch(predictions=preds, references=refs)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric
 
         metric = DummyMetric(experiment_id="test_input_torch")
         for pred, ref in zip(preds, refs):
             metric.add(prediction=pred, reference=ref)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric
 
     @require_tf
     def test_input_tf(self):
@@ -322,12 +367,15 @@ class TestMetric(TestCase):
 
         metric = DummyMetric(experiment_id="test_input_tf")
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
+        del metric
 
         metric = DummyMetric(experiment_id="test_input_tf")
         metric.add_batch(predictions=preds, references=refs)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric
 
         metric = DummyMetric(experiment_id="test_input_tf")
         for pred, ref in zip(preds, refs):
             metric.add(prediction=pred, reference=ref)
         self.assertDictEqual(expected_results, metric.compute())
+        del metric

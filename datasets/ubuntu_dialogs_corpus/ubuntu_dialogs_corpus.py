@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import nlp
+import datasets
 
 
 # TODO(ubuntu_dialogs_corpus): BibTeX citation
@@ -35,26 +35,26 @@ Ubuntu Dialogue Corpus, a dataset containing almost 1 million multi-turn dialogu
 """
 
 
-class UbuntuDialogsCorpusConfig(nlp.BuilderConfig):
+class UbuntuDialogsCorpusConfig(datasets.BuilderConfig):
     """BuilderConfig for UbuntuDialogsCorpus."""
 
     def __init__(self, features, **kwargs):
         """BuilderConfig for UbuntuDialogsCorpus.
 
-    Args:
+        Args:
 
-      **kwargs: keyword arguments forwarded to super.
-    """
+          **kwargs: keyword arguments forwarded to super.
+        """
 
-        super(UbuntuDialogsCorpusConfig, self).__init__(version=nlp.Version("2.0.0"), **kwargs)
+        super(UbuntuDialogsCorpusConfig, self).__init__(version=datasets.Version("2.0.0"), **kwargs)
         self.features = features
 
 
-class UbuntuDialogsCorpus(nlp.GeneratorBasedBuilder):
+class UbuntuDialogsCorpus(datasets.GeneratorBasedBuilder):
     """TODO(ubuntu_dialogs_corpus): Short description of my dataset."""
 
     # TODO(ubuntu_dialogs_corpus): Set up version.
-    VERSION = nlp.Version("2.0.0")
+    VERSION = datasets.Version("2.0.0")
     BUILDER_CONFIGS = [
         UbuntuDialogsCorpusConfig(
             name="train", features=["Context", "Utterance", "Label"], description="training features"
@@ -73,15 +73,15 @@ class UbuntuDialogsCorpus(nlp.GeneratorBasedBuilder):
    data. Others arguments are left to their default values here. Please save train.csv, test.csv and valid.csv in the same path"""
 
     def _info(self):
-        # TODO(ubuntu_dialogs_corpus): Specifies the nlp.DatasetInfo object
-        features = {feature: nlp.Value("string") for feature in self.config.features}
+        # TODO(ubuntu_dialogs_corpus): Specifies the datasets.DatasetInfo object
+        features = {feature: datasets.Value("string") for feature in self.config.features}
         if self.config.name == "train":
-            features["Label"] = nlp.Value("int32")
-        return nlp.DatasetInfo(
+            features["Label"] = datasets.Value("int32")
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 # These are the features of your dataset like images, labels ...
                 features
             ),
@@ -97,27 +97,27 @@ class UbuntuDialogsCorpus(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(ubuntu_dialogs_corpus): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         manual_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
 
         if self.config.name == "train":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(manual_dir, "train.csv")},
                 ),
             ]
         else:
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(manual_dir, "test.csv")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(manual_dir, "valid.csv")},
                 ),

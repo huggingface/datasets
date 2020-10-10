@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import re
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -25,20 +25,20 @@ _DATA_URL = "https://raw.githubusercontent.com/salesforce/decaNLP/1e9605f246b9e0
 # Alternate: https://s3.amazonaws.com/research.metamind.io/decaNLP/data/schema.txt
 
 
-class MWSC(nlp.GeneratorBasedBuilder):
+class MWSC(datasets.GeneratorBasedBuilder):
     """MWSC: modified Winograd Schema Challenge"""
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "sentence": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "options": nlp.features.Sequence(nlp.Value("string")),
-                    "answer": nlp.Value("string"),
+                    "sentence": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "options": datasets.features.Sequence(datasets.Value("string")),
+                    "answer": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -59,15 +59,24 @@ class MWSC(nlp.GeneratorBasedBuilder):
             schemas_file = os.path.join(schemas_file, "schema.txt")
 
         return [
-            nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepath": schemas_file, "split": "train"},),
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": schemas_file, "split": "test"},),
-            nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepath": schemas_file, "split": "dev"},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": schemas_file, "split": "train"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": schemas_file, "split": "test"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": schemas_file, "split": "dev"},
+            ),
         ]
 
     def _get_both_schema(self, context):
         """Split [option1/option2] into 2 sentences.
         From https://github.com/salesforce/decaNLP/blob/1e9605f246b9e05199b28bde2a2093bc49feeeaa/text/torchtext/datasets/generic.py#L815-L827"""
-        pattern = "\[.*\]"
+        pattern = r"\[.*\]"
         variations = [x[1:-1].split("/") for x in re.findall(pattern, context)]
         splits = re.split(pattern, context)
         results = []

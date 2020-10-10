@@ -7,7 +7,7 @@ import json
 import os
 import textwrap
 
-import nlp
+import datasets
 
 
 # TODO(sciTail): BibTeX citation
@@ -22,18 +22,18 @@ inproceedings{scitail,
 
 # TODO(sciTail):
 _DESCRIPTION = """\
-The SciTail dataset is an entailment dataset created from multiple-choice science exams and web sentences. Each question 
-and the correct answer choice are converted into an assertive statement to form the hypothesis. We use information 
-retrieval to obtain relevant text from a large text corpus of web sentences, and use these sentences as a premise P. We 
-crowdsource the annotation of such premise-hypothesis pair as supports (entails) or not (neutral), in order to create 
-the SciTail dataset. The dataset contains 27,026 examples with 10,101 examples with entails label and 16,925 examples 
+The SciTail dataset is an entailment dataset created from multiple-choice science exams and web sentences. Each question
+and the correct answer choice are converted into an assertive statement to form the hypothesis. We use information
+retrieval to obtain relevant text from a large text corpus of web sentences, and use these sentences as a premise P. We
+crowdsource the annotation of such premise-hypothesis pair as supports (entails) or not (neutral), in order to create
+the SciTail dataset. The dataset contains 27,026 examples with 10,101 examples with entails label and 16,925 examples
 with neutral label
 """
 
 _URL = "http://data.allenai.org.s3.amazonaws.com/downloads/SciTailV1.1.zip"
 
 
-class ScitailConfig(nlp.BuilderConfig):
+class ScitailConfig(datasets.BuilderConfig):
 
     """ BuilderConfig for Xquad"""
 
@@ -43,16 +43,14 @@ class ScitailConfig(nlp.BuilderConfig):
         Args:
             **kwargs: keyword arguments forwarded to super.
         """
-        super(ScitailConfig, self).__init__(
-            version=nlp.Version("1.1.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(ScitailConfig, self).__init__(version=datasets.Version("1.1.0", ""), **kwargs)
 
 
-class Scitail(nlp.GeneratorBasedBuilder):
+class Scitail(datasets.GeneratorBasedBuilder):
     """TODO(sciTail): Short description of my dataset."""
 
     # TODO(sciTail): Set up version.
-    VERSION = nlp.Version("1.1.0")
+    VERSION = datasets.Version("1.1.0")
     BUILDER_CONFIGS = [
         ScitailConfig(
             name="snli_format",
@@ -80,21 +78,21 @@ class Scitail(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(sciTail): Specifies the nlp.DatasetInfo object
+        # TODO(sciTail): Specifies the datasets.DatasetInfo object
         if self.config.name == "snli_format":
-            return nlp.DatasetInfo(
+            return datasets.DatasetInfo(
                 # This is the description that will appear on the datasets page.
                 description=_DESCRIPTION,
-                # nlp.features.FeatureConnectors
-                features=nlp.Features(
+                # datasets.features.FeatureConnectors
+                features=datasets.Features(
                     {
-                        "sentence1_binary_parse": nlp.Value("string"),
-                        "sentence1_parse": nlp.Value("string"),
-                        "sentence1": nlp.Value("string"),
-                        "sentence2_parse": nlp.Value("string"),
-                        "sentence2": nlp.Value("string"),
-                        "annotator_labels": nlp.features.Sequence(nlp.Value("string")),
-                        "gold_label": nlp.Value("string")
+                        "sentence1_binary_parse": datasets.Value("string"),
+                        "sentence1_parse": datasets.Value("string"),
+                        "sentence1": datasets.Value("string"),
+                        "sentence2_parse": datasets.Value("string"),
+                        "sentence2": datasets.Value("string"),
+                        "annotator_labels": datasets.features.Sequence(datasets.Value("string")),
+                        "gold_label": datasets.Value("string")
                         # These are the features of your dataset like images, labels ...
                     }
                 ),
@@ -107,15 +105,15 @@ class Scitail(nlp.GeneratorBasedBuilder):
                 citation=_CITATION,
             )
         elif self.config.name == "tsv_format":
-            return nlp.DatasetInfo(
+            return datasets.DatasetInfo(
                 # This is the description that will appear on the datasets page.
                 description=_DESCRIPTION,
-                # nlp.features.FeatureConnectors
-                features=nlp.Features(
+                # datasets.features.FeatureConnectors
+                features=datasets.Features(
                     {
-                        "premise": nlp.Value("string"),
-                        "hypothesis": nlp.Value("string"),
-                        "label": nlp.Value("string")
+                        "premise": datasets.Value("string"),
+                        "hypothesis": datasets.Value("string"),
+                        "label": datasets.Value("string")
                         # These are the features of your dataset like images, labels ...
                     }
                 ),
@@ -128,18 +126,18 @@ class Scitail(nlp.GeneratorBasedBuilder):
                 citation=_CITATION,
             )
         elif self.config.name == "predictor_format":
-            return nlp.DatasetInfo(
+            return datasets.DatasetInfo(
                 # This is the description that will appear on the datasets page.
                 description=_DESCRIPTION,
-                # nlp.features.FeatureConnectors
-                features=nlp.Features(
+                # datasets.features.FeatureConnectors
+                features=datasets.Features(
                     {
-                        "answer": nlp.Value("string"),
-                        "sentence2_structure": nlp.Value("string"),
-                        "sentence1": nlp.Value("string"),
-                        "sentence2": nlp.Value("string"),
-                        "gold_label": nlp.Value("string"),
-                        "question": nlp.Value("string")
+                        "answer": datasets.Value("string"),
+                        "sentence2_structure": datasets.Value("string"),
+                        "sentence1": datasets.Value("string"),
+                        "sentence2": datasets.Value("string"),
+                        "gold_label": datasets.Value("string"),
+                        "question": datasets.Value("string")
                         # These are the features of your dataset like images, labels ...
                     }
                 ),
@@ -152,16 +150,16 @@ class Scitail(nlp.GeneratorBasedBuilder):
                 citation=_CITATION,
             )
         elif self.config.name == "dgem_format":
-            return nlp.DatasetInfo(
+            return datasets.DatasetInfo(
                 # This is the description that will appear on the datasets page.
                 description=_DESCRIPTION,
-                # nlp.features.FeatureConnectors
-                features=nlp.Features(
+                # datasets.features.FeatureConnectors
+                features=datasets.Features(
                     {
-                        "premise": nlp.Value("string"),
-                        "hypothesis": nlp.Value("string"),
-                        "label": nlp.Value("string"),
-                        "hypothesis_graph_structure": nlp.Value("string")
+                        "premise": datasets.Value("string"),
+                        "hypothesis": datasets.Value("string"),
+                        "label": datasets.Value("string"),
+                        "hypothesis_graph_structure": datasets.Value("string")
                         # These are the features of your dataset like images, labels ...
                     }
                 ),
@@ -177,7 +175,7 @@ class Scitail(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(sciTail): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "SciTailV1.1")
@@ -187,72 +185,72 @@ class Scitail(nlp.GeneratorBasedBuilder):
         predictor = os.path.join(data_dir, "predictor_format")
         if self.config.name == "snli_format":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(snli, "scitail_1.0_train.txt")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(snli, "scitail_1.0_test.txt")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(snli, "scitail_1.0_dev.txt")},
                 ),
             ]
         elif self.config.name == "tsv_format":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(tsv, "scitail_1.0_train.tsv")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(tsv, "scitail_1.0_test.tsv")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(tsv, "scitail_1.0_dev.tsv")},
                 ),
             ]
         elif self.config.name == "predictor_format":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(predictor, "scitail_1.0_structure_train.jsonl")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(predictor, "scitail_1.0_structure_test.jsonl")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(predictor, "scitail_1.0_structure_dev.jsonl")},
                 ),
             ]
         elif self.config.name == "dgem_format":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dgem, "scitail_1.0_structure_train.tsv")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dgem, "scitail_1.0_structure_test.tsv")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dgem, "scitail_1.0_structure_dev.tsv")},
                 ),

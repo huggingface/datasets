@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ from __future__ import absolute_import, division, print_function
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """
@@ -45,7 +45,7 @@ Original paper: Analysing Mathematical Reasoning Abilities of Neural Models
 (Saxton, Grefenstette, Hill, Kohli).
 
 Example usage:
-train_examples, val_examples = nlp.load_dataset(
+train_examples, val_examples = datasets.load_dataset(
     'math_dataset/arithmetic__mul',
     split=['train', 'test'],
     as_supervised=True)
@@ -192,20 +192,31 @@ def _generate_builder_configs():
     """Generate configs with different subsets of mathematics dataset."""
     configs = []
     for module in sorted(set(_MODULES)):
-        configs.append(nlp.BuilderConfig(name=module, version=nlp.Version("1.0.0"), description=_DESCRIPTION,))
+        configs.append(
+            datasets.BuilderConfig(
+                name=module,
+                version=datasets.Version("1.0.0"),
+                description=_DESCRIPTION,
+            )
+        )
 
     return configs
 
 
-class MathDataset(nlp.GeneratorBasedBuilder):
+class MathDataset(datasets.GeneratorBasedBuilder):
     """Math Dataset."""
 
     BUILDER_CONFIGS = _generate_builder_configs()
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features({_QUESTION: nlp.Value("string"), _ANSWER: nlp.Value("string"),}),
+            features=datasets.Features(
+                {
+                    _QUESTION: datasets.Value("string"),
+                    _ANSWER: datasets.Value("string"),
+                }
+            ),
             supervised_keys=(_QUESTION, _ANSWER),
             homepage="https://github.com/deepmind/mathematics_dataset",
             citation=_CITATION,
@@ -234,13 +245,21 @@ class MathDataset(nlp.GeneratorBasedBuilder):
         config = self.config.name + ".txt"
 
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
-                gen_kwargs={"directory": directory, "config": config, "categories": _TRAIN_CATEGORY,},
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "directory": directory,
+                    "config": config,
+                    "categories": _TRAIN_CATEGORY,
+                },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
-                gen_kwargs={"directory": directory, "config": config, "categories": _INTERPOLATE_CATEGORY,},
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "directory": directory,
+                    "config": config,
+                    "categories": _INTERPOLATE_CATEGORY,
+                },
             ),
         ]
 

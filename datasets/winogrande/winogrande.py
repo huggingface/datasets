@@ -2,11 +2,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 
-import nlp
+import datasets
 
 
 # TODO(winogrande): BibTeX citation
@@ -22,16 +21,16 @@ year={2019}
 # TODO(winogrande):
 _DESCRIPTION = """\
 WinoGrande is a new collection of 44k problems, inspired by Winograd Schema Challenge (Levesque, Davis, and Morgenstern
- 2011), but adjusted to improve the scale and robustness against the dataset-specific bias. Formulated as a 
-fill-in-a-blank task with binary options, the goal is to choose the right option for a given sentence which requires 
-commonsense reasoning. 
+ 2011), but adjusted to improve the scale and robustness against the dataset-specific bias. Formulated as a
+fill-in-a-blank task with binary options, the goal is to choose the right option for a given sentence which requires
+commonsense reasoning.
 """
 
 _URL = "https://storage.googleapis.com/ai2-mosaic/public/winogrande/winogrande_1.1.zip"
-_SIZES = ["xs", "s", "m", "l", "xl"]
+_FORMATS = ["xs", "s", "m", "l", "xl", "debiased"]
 
 
-class WinograndeConfig(nlp.BuilderConfig):
+class WinograndeConfig(datasets.BuilderConfig):
 
     """ BuilderConfig for Discofuse"""
 
@@ -39,36 +38,35 @@ class WinograndeConfig(nlp.BuilderConfig):
         """
 
         Args:
-            data_size: the size of the training set we want to us (xs, s, m, l, xl)
+            data_size: the format of the training set we want to use (xs, s, m, l, xl, debiased)
             **kwargs: keyword arguments forwarded to super.
         """
-        super(WinograndeConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(WinograndeConfig, self).__init__(version=datasets.Version("1.1.0", ""), **kwargs)
         self.data_size = data_size
 
 
-class Winogrande(nlp.GeneratorBasedBuilder):
+class Winogrande(datasets.GeneratorBasedBuilder):
     """TODO(winogrande): Short description of my dataset."""
 
     # TODO(winogrande): Set up version.
-    VERSION = nlp.Version("1.1.0")
+    VERSION = datasets.Version("1.1.0")
     BUILDER_CONFIGS = [
-        WinograndeConfig(name="winogrande_" + size, description="AI2 dataset", data_size=size) for size in _SIZES
+        WinograndeConfig(name="winogrande_" + data_size, description="AI2 dataset", data_size=data_size)
+        for data_size in _FORMATS
     ]
 
     def _info(self):
-        # TODO(winogrande): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(winogrande): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "sentence": nlp.Value("string"),
-                    "option1": nlp.Value("string"),
-                    "option2": nlp.Value("string"),
-                    "answer": nlp.Value("string")
+                    "sentence": datasets.Value("string"),
+                    "option1": datasets.Value("string"),
+                    "option2": datasets.Value("string"),
+                    "answer": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
             ),
@@ -84,31 +82,31 @@ class Winogrande(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(winogrande): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "winogrande_1.1")
         return [
-            nlp.SplitGenerator(
-                name=nlp.Split.TRAIN,
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "train_{}.jsonl".format(self.config.data_size)),
-                    #'labelpath': os.path.join(data_dir, 'train_{}-labels.lst'.format(self.config.data_size)),
+                    # 'labelpath': os.path.join(data_dir, 'train_{}-labels.lst'.format(self.config.data_size)),
                     "split": "train",
                 },
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.TEST,
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl"), "split": "test"},
             ),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION,
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "dev.jsonl"),
-                    #'labelpath': os.path.join(data_dir, 'dev-labels.lst'),
+                    # 'labelpath': os.path.join(data_dir, 'dev-labels.lst'),
                     "split": "dev",
                 },
             ),

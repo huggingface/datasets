@@ -5,7 +5,7 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 
-import nlp
+import datasets
 
 
 # TODO(kor_nli): BibTeX citation
@@ -24,25 +24,25 @@ _DESCRIPTION = """ Korean Natural  Language Inference datasets
 _URL = "https://github.com/kakaobrain/KorNLUDatasets/archive/master.zip"
 
 
-class KorNLIConfig(nlp.BuilderConfig):
+class KorNLIConfig(datasets.BuilderConfig):
     """BuilderConfig for KorNLI."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for KorNLI.
 
-    Args:
+        Args:
 
-      **kwargs: keyword arguments forwarded to super.
-    """
+          **kwargs: keyword arguments forwarded to super.
+        """
         # Version 1.1.0 remove empty document and summary strings.
-        super(KorNLIConfig, self).__init__(version=nlp.Version("1.0.0"), **kwargs)
+        super(KorNLIConfig, self).__init__(version=datasets.Version("1.0.0"), **kwargs)
 
 
-class KorNli(nlp.GeneratorBasedBuilder):
+class KorNli(datasets.GeneratorBasedBuilder):
     """TODO(kor_nli): Short description of my dataset."""
 
     # TODO(kor_nli): Set up version.
-    VERSION = nlp.Version("1.0.0")
+    VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
         KorNLIConfig(name="multi_nli", description="Korean multi NLI datasets"),
         KorNLIConfig(name="snli", description="Korean SNLI dataset"),
@@ -50,17 +50,17 @@ class KorNli(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        # TODO(kor_nli): Specifies the nlp.DatasetInfo object
-        return nlp.DatasetInfo(
+        # TODO(kor_nli): Specifies the datasets.DatasetInfo object
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "sentence1": nlp.Value("string"),
-                    "sentence2": nlp.Value("string"),
-                    "gold_label": nlp.Value("string"),
+                    "sentence1": datasets.Value("string"),
+                    "sentence2": datasets.Value("string"),
+                    "gold_label": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -75,35 +75,35 @@ class KorNli(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(kor_nli): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         dl_dir = os.path.join(dl_dir, "KorNLUDatasets-master", "KorNLI")
         if self.config.name == "multi_nli":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dl_dir, "multinli.train.ko.tsv")},
                 ),
             ]
         elif self.config.name == "snli":
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.TRAIN,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dl_dir, "snli_1.0_train.ko.tsv")},
                 ),
             ]
         else:
             return [
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dl_dir, "xnli.dev.ko.tsv")},
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
                     gen_kwargs={"filepath": os.path.join(dl_dir, "xnli.test.ko.tsv")},
                 ),

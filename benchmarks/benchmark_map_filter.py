@@ -3,9 +3,9 @@ import os
 import tempfile
 
 import transformers
-
-import nlp
 from utils import generate_example_dataset, get_duration
+
+import datasets
 
 
 SPEED_TEST_N_EXAMPLES = 500_000
@@ -15,19 +15,19 @@ RESULTS_FILE_PATH = os.path.join(RESULTS_BASEPATH, "results", RESULTS_FILENAME.r
 
 
 @get_duration
-def map(dataset: nlp.Dataset, **kwargs):
+def map(dataset: datasets.Dataset, **kwargs):
     _ = dataset.map(**kwargs)
 
 
 @get_duration
-def filter(dataset: nlp.Dataset, **kwargs):
+def filter(dataset: datasets.Dataset, **kwargs):
     _ = dataset.filter(**kwargs)
 
 
 def benchmark_map_filter():
     times = {"num examples": SPEED_TEST_N_EXAMPLES}
     with tempfile.TemporaryDirectory() as tmp_dir:
-        features = nlp.Features({"text": nlp.Value("string"), "numbers": nlp.Value("float32")})
+        features = datasets.Features({"text": datasets.Value("string"), "numbers": datasets.Value("float32")})
         dataset = generate_example_dataset(
             os.path.join(tmp_dir, "dataset.arrow"), features, num_examples=SPEED_TEST_N_EXAMPLES
         )

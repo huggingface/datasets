@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,13 +19,12 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import logging
 import os
 
-import nlp
+import datasets
 
 
-_CITATION = """
+_CITATION = r"""
     @article{DBLP:journals/corr/DunnSHGCC17,
     author    = {Matthew Dunn and
                 Levent Sagun and
@@ -49,12 +48,12 @@ _CITATION = """
 """
 # pylint: disable=line-too-long
 _DESCRIPTION = """
-We publicly release a new large-scale dataset, called SearchQA, for machine comprehension, or question-answering. Unlike recently released datasets, such as DeepMind 
-CNN/DailyMail and SQuAD, the proposed SearchQA was constructed to reflect a full pipeline of general question-answering. That is, we start not from an existing article 
-and generate a question-answer pair, but start from an existing question-answer pair, crawled from J! Archive, and augment it with text snippets retrieved by Google. 
+We publicly release a new large-scale dataset, called SearchQA, for machine comprehension, or question-answering. Unlike recently released datasets, such as DeepMind
+CNN/DailyMail and SQuAD, the proposed SearchQA was constructed to reflect a full pipeline of general question-answering. That is, we start not from an existing article
+and generate a question-answer pair, but start from an existing question-answer pair, crawled from J! Archive, and augment it with text snippets retrieved by Google.
 Following this approach, we built SearchQA, which consists of more than 140k question-answer pairs with each pair having 49.6 snippets on average. Each question-answer-context
- tuple of the SearchQA comes with additional meta-data such as the snippet's URL, which we believe will be valuable resources for future research. We conduct human evaluation 
- as well as test two baseline methods, one simple word selection and the other deep learning based, on the SearchQA. We show that there is a meaningful gap between the human 
+ tuple of the SearchQA comes with additional meta-data such as the snippet's URL, which we believe will be valuable resources for future research. We conduct human evaluation
+ as well as test two baseline methods, one simple word selection and the other deep learning based, on the SearchQA. We show that there is a meaningful gap between the human
  and machine performances. This suggests that the proposed dataset could well serve as a benchmark for question-answering.
 """
 
@@ -65,7 +64,7 @@ _DL_URLS = {
 # pylint: enable=line-too-long
 
 
-class SearchQaConfig(nlp.BuilderConfig):
+class SearchQaConfig(datasets.BuilderConfig):
     """BuilderConfig for SearchQA."""
 
     def __init__(self, data_url, **kwargs):
@@ -74,36 +73,33 @@ class SearchQaConfig(nlp.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(SearchQaConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        super(SearchQaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.data_url = data_url
 
 
-class SearchQa(nlp.GeneratorBasedBuilder):
+class SearchQa(datasets.GeneratorBasedBuilder):
     """Search QA Dataset."""
 
     BUILDER_CONFIGS = [SearchQaConfig(name=name, description="", data_url=_DL_URLS[name]) for name in _DL_URLS.keys()]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION + "\n" + self.config.description,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "category": nlp.Value("string"),
-                    "air_date": nlp.Value("string"),
-                    "question": nlp.Value("string"),
-                    "value": nlp.Value("string"),
-                    "answer": nlp.Value("string"),
-                    "round": nlp.Value("string"),
-                    "category": nlp.Value("string"),
-                    "show_number": nlp.Value("int32"),
-                    "search_results": nlp.features.Sequence(
+                    "category": datasets.Value("string"),
+                    "air_date": datasets.Value("string"),
+                    "question": datasets.Value("string"),
+                    "value": datasets.Value("string"),
+                    "answer": datasets.Value("string"),
+                    "round": datasets.Value("string"),
+                    "show_number": datasets.Value("int32"),
+                    "search_results": datasets.features.Sequence(
                         {
-                            "urls": nlp.Value("string"),
-                            "snippets": nlp.Value("string"),
-                            "titles": nlp.Value("string"),
-                            "related_links": nlp.Value("string"),
+                            "urls": datasets.Value("string"),
+                            "snippets": datasets.Value("string"),
+                            "titles": datasets.Value("string"),
+                            "related_links": datasets.Value("string"),
                         }
                     )
                     # These are the features of your dataset like images, labels ...
@@ -116,7 +112,7 @@ class SearchQa(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         # TODO(jeopardy): Downloads the data and defines the splits
-        # dl_manager is a nlp.download.DownloadManager that can be used to
+        # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
 
         if self.config.name == "raw_jeopardy":
@@ -145,7 +141,7 @@ class SearchQa(nlp.GeneratorBasedBuilder):
                 all_files.extend(files_paths)
 
             return [
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepaths": all_files}),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": all_files}),
             ]
         elif self.config.name == "train_test_val":
             filepath = dl_manager.download_and_extract(_DL_URLS["train_test_val"])
@@ -157,9 +153,9 @@ class SearchQa(nlp.GeneratorBasedBuilder):
             test_files = [os.path.join(test_path, file) for file in sorted(os.listdir(test_path))]
             val_files = [os.path.join(val_path, file) for file in sorted(os.listdir(val_path))]
             return [
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"filepaths": train_files}),
-                nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepaths": test_files}),
-                nlp.SplitGenerator(name=nlp.Split.VALIDATION, gen_kwargs={"filepaths": val_files}),
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": train_files}),
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepaths": test_files}),
+                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": val_files}),
             ]
 
     def _generate_examples(self, filepaths):

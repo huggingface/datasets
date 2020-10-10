@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import os
 
 import six
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -52,30 +52,34 @@ B) and is a classification task (given two sentences, predict one of three
 labels).
 """
 
-_DATA_URL = "https://www.nyu.edu/projects/bowman/xnli/XNLI-1.0.zip"
+_DATA_URL = "https://cims.nyu.edu/~sbowman/xnli/XNLI-1.0.zip"
 
 _LANGUAGES = ("ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh")
 
 
-class Xnli(nlp.GeneratorBasedBuilder):
+class Xnli(datasets.GeneratorBasedBuilder):
     """XNLI: The Cross-Lingual NLI Corpus. Version 1.0."""
 
     BUILDER_CONFIGS = [
-        nlp.BuilderConfig(
+        datasets.BuilderConfig(
             name="plain_text",
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"),
+            version=datasets.Version("1.0.0", ""),
             description="Plain text import of XNLI",
         )
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=nlp.Features(
+            features=datasets.Features(
                 {
-                    "premise": nlp.features.Translation(languages=_LANGUAGES,),
-                    "hypothesis": nlp.features.TranslationVariableLanguages(languages=_LANGUAGES,),
-                    "label": nlp.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+                    "premise": datasets.features.Translation(
+                        languages=_LANGUAGES,
+                    ),
+                    "hypothesis": datasets.features.TranslationVariableLanguages(
+                        languages=_LANGUAGES,
+                    ),
+                    "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -89,9 +93,11 @@ class Xnli(nlp.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
         data_dir = os.path.join(dl_dir, "XNLI-1.0")
         return [
-            nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")}),
-            nlp.SplitGenerator(
-                name=nlp.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")}
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")}
             ),
         ]
 

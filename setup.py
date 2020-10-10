@@ -1,5 +1,10 @@
 # Lint as: python3
-""" HuggingFace/NLP is an open library of NLP datasets.
+""" HuggingFace/Datasets is an open library of NLP datasets.
+
+Note:
+
+   VERSION needs to be formatted following the MAJOR.MINOR.PATCH convention
+   (we need to follow this convention to be able to retrieve versioned scripts)
 
 Simple check list for release from AllenNLP repo: https://github.com/allenai/allennlp/blob/master/setup.py
 
@@ -15,11 +20,15 @@ To create the package for pypi.
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
 
+   First pin the SCRIPTS_VERSION to VERSION in __init__.py (but don't commit this change)
+
    For the wheel, run: "python setup.py bdist_wheel" in the top level directory.
    (this will build a wheel for the python version you use to build it).
 
    For the sources, run: "python setup.py sdist"
    You should now have a /dist directory with both .whl and .tar.gz source versions.
+
+   Then change the SCRIPTS_VERSION back to to "master" in __init__.py (but don't commit this change)
 
 5. Check that everything looks correct by uploading the package to the pypi test server:
 
@@ -29,7 +38,7 @@ To create the package for pypi.
    twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 
    Check that you can install it in a virtualenv by running:
-   pip install -i https://testpypi.python.org/pypi nlp
+   pip install -i https://testpypi.python.org/pypi datasets
 
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
@@ -37,6 +46,7 @@ To create the package for pypi.
 7. Copy the release notes from RELEASE.md to the tag in github once everything is looking hunky-dory.
 
 8. Update the documentation commit in .circleci/deploy.sh for the accurate documentation to be displayed
+   Update the version mapping in docs/source/_static/js/custom.js
 
 9. Update README.md to redirect to correct documentation.
 """
@@ -63,13 +73,17 @@ REQUIRED_PKGS = [
     # for downloading datasets over HTTPS
     'requests>=2.19.0',
     # progress bars in download and scripts
-    "tqdm >= 4.27",
+    # tqdm 4.50.0 introduced permission errors on windows
+    # see https://app.circleci.com/pipelines/github/huggingface/datasets/235/workflows/cfb6a39f-68eb-4802-8b17-2cd5e8ea7369/jobs/1111
+    "tqdm>=4.27,<4.50.0",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
     # filesystem locks e.g. to prevent parallel downloads
     "filelock",
     # for fast hashing
-    "xxhash"
+    "xxhash",
+    # for better multiprocessing
+    "multiprocess"
 ]
 
 BENCHMARKS_REQUIRE = [
@@ -97,11 +111,13 @@ TESTS_REQUIRE = [
     'zstandard'
 ]
 
+if os.name == "nt":  # windows
+    TESTS_REQUIRE.remove("faiss-cpu")  # faiss doesn't exist on windows
+
 
 QUALITY_REQUIRE = [
     "black",
-    # "isort",
-    "isort @ git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort",
+    "isort",
     "flake8==3.7.9",
 ]
 
@@ -119,23 +135,23 @@ EXTRAS_REQUIRE = {
 }
 
 setup(
-    name='nlp',
-    version="0.4.0",
+    name='datasets',
+    version="1.1.2",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',
     author_email='thomas@huggingface.co',
-    url='https://github.com/huggingface/nlp',
-    download_url='https://github.com/huggingface/nlp/tags',
+    url='https://github.com/huggingface/datasets',
+    download_url='https://github.com/huggingface/datasets/tags',
     license='Apache 2.0',
     package_dir={"": "src"},
     packages=find_packages("src"),
     package_data={
-        'nlp': [
+        'datasets': [
             'scripts/templates/*',
         ],
     },
-    scripts=["nlp-cli"],
+    scripts=["datasets-cli"],
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
     classifiers=[
@@ -150,5 +166,5 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    keywords='nlp machine learning datasets metrics',
+    keywords='datasets machine learning datasets metrics',
 )

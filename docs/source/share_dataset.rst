@@ -2,7 +2,8 @@ Sharing your dataset
 =============================================
 
 Once you've written a new dataset loading script as detailed on the :doc:`add_dataset` page, you may want to share it with the community for instance on the `HuggingFace Hub <https://huggingface.co/datasets>`__. There are two options to do that:
-- add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗nlp <https://github.com/huggingface/nlp>`__,
+
+- add it as a canonical dataset by opening a pull-request on the `GitHub repository for 🤗datasets <https://github.com/huggingface/datasets>`__,
 - directly upload it on the Hub as a community provided dataset.
 
 Here are the main differences between these two options.
@@ -30,15 +31,15 @@ Sharing a "canonical" dataset
 
 To add a "canonical" dataset to the library, you need to go through the following steps:
 
-**1. Fork the** `🤗nlp repository <https://github.com/huggingface/nlp>`__ by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
+**1. Fork the** `🤗datasets repository <https://github.com/huggingface/datasets>`__ by clicking on the 'Fork' button on the repository's home page. This creates a copy of the code under your GitHub user account.
 
 **2. Clone your fork** to your local disk, and add the base repository as a remote:
 
 .. code::
 
-	git clone https://github.com/<your_Github_handle>/nlp
-	cd nlp
-	git remote add upstream https://github.com/huggingface/nlp.git
+	git clone https://github.com/<your_Github_handle>/datasets
+	cd datasets
+	git remote add upstream https://github.com/huggingface/datasets.git
 
 
 **3. Create a new branch** to hold your development changes:
@@ -59,18 +60,11 @@ To add a "canonical" dataset to the library, you need to go through the followin
 
 .. note::
 
-   If 🤗nlp was already installed in the virtual environment, remove
-   it with ``pip uninstall nlp`` before reinstalling it in editable
+   If 🤗datasets was already installed in the virtual environment, remove
+   it with ``pip uninstall datasets`` before reinstalling it in editable
    mode with the ``-e`` flag.
 
-   Right now, we need an unreleased version of ``isort`` to avoid a
-   `bug <https://github.com/timothycrosley/isort/pull/1000>`__:
-
-.. code-block::
-
-   pip install -U git+git://github.com/timothycrosley/isort.git@e63ae06ec7d70b06df9e528357650281a3d3ec22#egg=isort
-
-**5. Create a new folder with your dataset name** inside the `datasets folder <https://github.com/huggingface/nlp/tree/master/datasets>`__ of the repository and add the dataset script you wrote and tested while following the instructions on the :doc:`add_dataset` page. 
+**5. Create a new folder with your dataset name** inside the `datasets folder <https://github.com/huggingface/datasets/tree/master/datasets>`__ of the repository and add the dataset script you wrote and tested while following the instructions on the :doc:`add_dataset` page. 
 
 **6. Format your code.** Run black and isort so that your newly added files look nice with the following command:
 
@@ -102,7 +96,7 @@ Push the changes to your account using:
 
 **8.** We also recommend adding **tests** and **metadata** to the dataset script if possible. Go through the :ref:`adding-tests` section to do so.
 
-**9.** Once you are satisfied with the dataset, go the webpage of your fork on GitHub and cick on "Pull request" to **open a pull-request** on the `main github repository <https://github.com/huggingface/nlp>`__ for review.
+**9.** Once you are satisfied with the dataset, go the webpage of your fork on GitHub and click on "Pull request" to **open a pull-request** on the `main github repository <https://github.com/huggingface/datasets>`__ for review.
 
 .. _community-dataset:
 
@@ -125,7 +119,7 @@ We recommend adding testing data and checksum metadata to your dataset so its be
 
 .. note::
 
-	In the rest of this section, you should make sure that you run all of the commands **from the root** of your local ``nlp`` repository.
+	In the rest of this section, you should make sure that you run all of the commands **from the root** of your local ``datasets`` repository.
 
 1. Adding metadata
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -134,7 +128,7 @@ You can check that the new dataset loading script works correctly and create the
 
 .. code-block::
 
-	python nlp-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+	python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 
 If the command was succesful, you should now have a ``dataset_infos.json`` file created in the folder of your dataset loading script. Here is a dummy example of the content for a dataset with a single configuration:
 
@@ -165,7 +159,7 @@ If the command was succesful, you should now have a ``dataset_infos.json`` file 
 			"config_name": "default",
 			"version": {
 				"version_str": "1.1.0", "description": null,
-				"nlp_version_to_prepare": null,
+				"datasets_version_to_prepare": null,
 				"major": 1, "minor": 1, "patch": 0
 			},
 			"splits": {
@@ -205,7 +199,7 @@ Now that we have the metadata prepared we can also create some dummy data for au
 
 .. code-block::
 
-	python nlp-cli dummy_data datasets/<your-dataset-folder> 
+	python datasets-cli dummy_data datasets/<your-dataset-folder> 
 
 This command will output instructions specifically tailored to your dataset and will look like:
 
@@ -232,7 +226,7 @@ This command will output instructions specifically tailored to your dataset and 
 3. Testing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Now test that both the real data and the dummy data work correctly. Go back to the root of your nlp folder and use the following command:
+Now test that both the real data and the dummy data work correctly. Go back to the root of your datasets folder and use the following command:
 
 *For the real data*:
 
@@ -254,7 +248,7 @@ If all tests pass, your dataset works correctly. Awesome! You can now follow the
 
 .. code-block::
 
-		python nlp-cli dummy_data datasets/<your-dataset-folder> 
+		python datasets-cli dummy_data datasets/<your-dataset-folder> 
 
 and make sure you follow the exact instructions provided by the command. 
 

@@ -4,7 +4,7 @@ import glob
 import logging
 import os
 
-import nlp
+import datasets
 
 
 _CITATION = """\
@@ -41,7 +41,7 @@ _URL = "https://u.cs.biu.ac.il/~koppel/BlogCorpus.htm"
 _DATA_URL = "http://www.cs.biu.ac.il/~koppel/blogs/blogs.zip"
 
 
-class BlogAuthorshipCorpusConfig(nlp.BuilderConfig):
+class BlogAuthorshipCorpusConfig(datasets.BuilderConfig):
     """BuilderConfig for BlogAuthorship."""
 
     def __init__(self, data_url, **kwargs):
@@ -51,14 +51,19 @@ class BlogAuthorshipCorpusConfig(nlp.BuilderConfig):
           data_url: `string`, url to the dataset (word or raw level)
           **kwargs: keyword arguments forwarded to super.
         """
-        super(BlogAuthorshipCorpusConfig, self).__init__(version=nlp.Version("1.0.0",), **kwargs)
+        super(BlogAuthorshipCorpusConfig, self).__init__(
+            version=datasets.Version(
+                "1.0.0",
+            ),
+            **kwargs,
+        )
         self.data_url = data_url
 
 
-class BlogAuthorshipCorpus(nlp.GeneratorBasedBuilder):
+class BlogAuthorshipCorpus(datasets.GeneratorBasedBuilder):
     """TODO(BlogAuthorship): Short description of my dataset."""
 
-    VERSION = nlp.Version("0.1.0")
+    VERSION = datasets.Version("0.1.0")
     BUILDER_CONFIGS = [
         BlogAuthorshipCorpusConfig(
             name="blog-authorship-corpus",
@@ -68,18 +73,18 @@ class BlogAuthorshipCorpus(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        return nlp.DatasetInfo(
+        return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # nlp.features.FeatureConnectors
-            features=nlp.Features(
+            # datasets.features.FeatureConnectors
+            features=datasets.Features(
                 {
-                    "text": nlp.Value("string"),
-                    "date": nlp.Value("string"),
-                    "gender": nlp.Value("string"),
-                    "age": nlp.Value("int32"),
-                    "horoscope": nlp.Value("string"),
-                    "job": nlp.Value("string"),
+                    "text": datasets.Value("string"),
+                    "date": datasets.Value("string"),
+                    "gender": datasets.Value("string"),
+                    "age": datasets.Value("int32"),
+                    "horoscope": datasets.Value("string"),
+                    "job": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -108,9 +113,13 @@ class BlogAuthorshipCorpus(nlp.GeneratorBasedBuilder):
                     train_files.append(file_path)
 
             return [
-                nlp.SplitGenerator(name=nlp.Split.TRAIN, gen_kwargs={"files": train_files, "split": "train"},),
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION, gen_kwargs={"files": validation_files, "split": "validation"},
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"files": train_files, "split": "train"},
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"files": validation_files, "split": "validation"},
                 ),
             ]
         else:

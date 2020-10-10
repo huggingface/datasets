@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The HuggingFace NLP Authors.
+# Copyright 2020 The HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@
 # limitations under the License.
 """ SQuAD metric. """
 
-import nlp
+import datasets
+
 from .evaluate import evaluate
+
 
 _CITATION = """\
 @inproceedings{Rajpurkar2016SQuAD10,
@@ -42,38 +44,58 @@ Args:
         - 'prediction_text': the text of the answer
     references: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair (see above),
-        - 'answers': a Dict {'text': list of possible texts for the answer, as a list of strings}
+        - 'answers': a Dict in the SQuAD dataset format
+            {
+                'text': list of possible texts for the answer, as a list of strings
+                'answer_start': list of start positions for the answer, as a list of ints
+            }
+            Note that answer_start values are not taken into account to compute the metric.
 Returns:
     'exact_match': Exact match (the normalized answer exactly match the gold answer)
     'f1': The F-score of predicted tokens versus the gold answer
 """
 
-class Squad(nlp.Metric):
+
+class Squad(datasets.Metric):
     def _info(self):
-        return nlp.MetricInfo(
+        return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=nlp.Features({
-                'predictions': {
-                    "id": nlp.Value("string"),
-                    "prediction_text": nlp.Value("string")
-                },
-                'references': {
-                    'id': nlp.Value('string'),
-                    'answers': nlp.features.Sequence(
-                        {"text": nlp.Value("string"), "answer_start": nlp.Value("int32"),}
-                    )
-                },
-            }),
+            features=datasets.Features(
+                {
+                    "predictions": {"id": datasets.Value("string"), "prediction_text": datasets.Value("string")},
+                    "references": {
+                        "id": datasets.Value("string"),
+                        "answers": datasets.features.Sequence(
+                            {
+                                "text": datasets.Value("string"),
+                                "answer_start": datasets.Value("int32"),
+                            }
+                        ),
+                    },
+                }
+            ),
             codebase_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
-            reference_urls=["https://rajpurkar.github.io/SQuAD-explorer/"]
+            reference_urls=["https://rajpurkar.github.io/SQuAD-explorer/"],
         )
 
     def _compute(self, predictions, references):
         pred_dict = {prediction["id"]: prediction["prediction_text"] for prediction in predictions}
-        dataset = [{'paragraphs': [{'qas': [
-            {"answers": [{"text": answer_text} for answer_text in ref["answers"]["text"]], "id": ref["id"]} for ref in references
-        ]}]}]
+        dataset = [
+            {
+                "paragraphs": [
+                    {
+                        "qas": [
+                            {
+                                "answers": [{"text": answer_text} for answer_text in ref["answers"]["text"]],
+                                "id": ref["id"],
+                            }
+                            for ref in references
+                        ]
+                    }
+                ]
+            }
+        ]
         score = evaluate(dataset=dataset, predictions=pred_dict)
         return score

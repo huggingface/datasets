@@ -1,5 +1,5 @@
 # coding=utf-8
-# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace NLP Authors.
+# Copyright 2020 The TensorFlow Datasets Authors and the HuggingFace Datasets Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import textwrap
 import numpy as np
 import six
 
-import nlp
+import datasets
 
 
 _GLUE_CITATION = """\
@@ -44,15 +44,18 @@ evaluating, and analyzing natural language understanding systems.
 
 """
 
-_MRPC_DEV_IDS = "https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2Fmrpc_dev_ids.tsv?alt=media&token=ec5c0836-31d5-48f4-b431-7480817f1adc"
+_MRPC_DEV_IDS = "https://dl.fbaipublicfiles.com/glue/data/mrpc_dev_ids.tsv"
 _MRPC_TRAIN = "https://dl.fbaipublicfiles.com/senteval/senteval_data/msr_paraphrase_train.txt"
 _MRPC_TEST = "https://dl.fbaipublicfiles.com/senteval/senteval_data/msr_paraphrase_test.txt"
 
 _MNLI_BASE_KWARGS = dict(
-    text_features={"premise": "sentence1", "hypothesis": "sentence2",},
+    text_features={
+        "premise": "sentence1",
+        "hypothesis": "sentence2",
+    },
     label_classes=["entailment", "neutral", "contradiction"],
     label_column="gold_label",
-    data_url="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FMNLI.zip?alt=media&token=50329ea1-e339-40e2-809c-10c40afff3ce",
+    data_url="https://dl.fbaipublicfiles.com/glue/data/MNLI.zip",
     data_dir="MNLI",
     citation=textwrap.dedent(
         """\
@@ -84,7 +87,7 @@ _MNLI_BASE_KWARGS = dict(
 )
 
 
-class GlueConfig(nlp.BuilderConfig):
+class GlueConfig(datasets.BuilderConfig):
     """BuilderConfig for GLUE."""
 
     def __init__(
@@ -101,26 +104,24 @@ class GlueConfig(nlp.BuilderConfig):
     ):
         """BuilderConfig for GLUE.
 
-    Args:
-      text_features: `dict[string, string]`, map from the name of the feature
-        dict for each text field to the name of the column in the tsv file
-      label_column: `string`, name of the column in the tsv file corresponding
-        to the label
-      data_url: `string`, url to download the zip file from
-      data_dir: `string`, the path to the folder containing the tsv files in the
-        downloaded zip
-      citation: `string`, citation for the data set
-      url: `string`, url for information about the data set
-      label_classes: `list[string]`, the list of classes if the label is
-        categorical. If not provided, then the label will be of type
-        `nlp.Value('float32')`.
-      process_label: `Function[string, any]`, function  taking in the raw value
-        of the label and processing it to the form required by the label feature
-      **kwargs: keyword arguments forwarded to super.
-    """
-        super(GlueConfig, self).__init__(
-            version=nlp.Version("1.0.0", "New split API (https://tensorflow.org/datasets/splits)"), **kwargs
-        )
+        Args:
+          text_features: `dict[string, string]`, map from the name of the feature
+            dict for each text field to the name of the column in the tsv file
+          label_column: `string`, name of the column in the tsv file corresponding
+            to the label
+          data_url: `string`, url to download the zip file from
+          data_dir: `string`, the path to the folder containing the tsv files in the
+            downloaded zip
+          citation: `string`, citation for the data set
+          url: `string`, url for information about the data set
+          label_classes: `list[string]`, the list of classes if the label is
+            categorical. If not provided, then the label will be of type
+            `datasets.Value('float32')`.
+          process_label: `Function[string, any]`, function  taking in the raw value
+            of the label and processing it to the form required by the label feature
+          **kwargs: keyword arguments forwarded to super.
+        """
+        super(GlueConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.label_column = label_column
         self.label_classes = label_classes
@@ -131,7 +132,7 @@ class GlueConfig(nlp.BuilderConfig):
         self.process_label = process_label
 
 
-class Glue(nlp.GeneratorBasedBuilder):
+class Glue(datasets.GeneratorBasedBuilder):
     """The General Language Understanding Evaluation (GLUE) benchmark."""
 
     BUILDER_CONFIGS = [
@@ -147,7 +148,7 @@ class Glue(nlp.GeneratorBasedBuilder):
             text_features={"sentence": "sentence"},
             label_classes=["unacceptable", "acceptable"],
             label_column="is_acceptable",
-            data_url="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FCoLA.zip?alt=media&token=46d5e637-3411-4188-bc44-5809b5bfb5f4",
+            data_url="https://dl.fbaipublicfiles.com/glue/data/CoLA.zip",
             data_dir="CoLA",
             citation=textwrap.dedent(
                 """\
@@ -172,7 +173,7 @@ class Glue(nlp.GeneratorBasedBuilder):
             text_features={"sentence": "sentence"},
             label_classes=["negative", "positive"],
             label_column="label",
-            data_url="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FSST-2.zip?alt=media&token=aabc5f6b-e466-44a2-b9b4-cf6337f84ac8",
+            data_url="https://dl.fbaipublicfiles.com/glue/data/SST-2.zip",
             data_dir="SST-2",
             citation=textwrap.dedent(
                 """\
@@ -184,7 +185,7 @@ class Glue(nlp.GeneratorBasedBuilder):
               year={2013}
             }"""
             ),
-            url="https://nlp.stanford.edu/sentiment/index.html",
+            url="https://datasets.stanford.edu/sentiment/index.html",
         ),
         GlueConfig(
             name="mrpc",
@@ -218,10 +219,13 @@ class Glue(nlp.GeneratorBasedBuilder):
             community question-answering website Quora. The task is to determine whether a
             pair of questions are semantically equivalent."""
             ),
-            text_features={"question1": "question1", "question2": "question2",},
+            text_features={
+                "question1": "question1",
+                "question2": "question2",
+            },
             label_classes=["not_duplicate", "duplicate"],
             label_column="is_duplicate",
-            data_url="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FQQP.zip?alt=media&token=700c6acf-160d-4d89-81d1-de4191d02cb5",
+            data_url="https://dl.fbaipublicfiles.com/glue/data/QQP-clean.zip",
             data_dir="QQP",
             citation=textwrap.dedent(
                 """\
@@ -244,9 +248,12 @@ class Glue(nlp.GeneratorBasedBuilder):
             language inference data. Each pair is human-annotated with a similarity score
             from 1 to 5."""
             ),
-            text_features={"sentence1": "sentence1", "sentence2": "sentence2",},
+            text_features={
+                "sentence1": "sentence1",
+                "sentence2": "sentence2",
+            },
             label_column="score",
-            data_url="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FSTS-B.zip?alt=media&token=bddb94a7-8706-4e0d-a694-1109e12273b5",
+            data_url="https://dl.fbaipublicfiles.com/glue/data/STS-B.zip",
             data_dir="STS-B",
             citation=textwrap.dedent(
                 """\
@@ -307,10 +314,13 @@ class Glue(nlp.GeneratorBasedBuilder):
             the model select the exact answer, but also removes the simplifying assumptions that the answer
             is always present in the input and that lexical overlap is a reliable cue."""
             ),  # pylint: disable=line-too-long
-            text_features={"question": "question", "sentence": "sentence",},
+            text_features={
+                "question": "question",
+                "sentence": "sentence",
+            },
             label_classes=["entailment", "not_entailment"],
             label_column="label",
-            data_url="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FQNLIv2.zip?alt=media&token=6fdcf570-0fc5-4631-8456-9505272d1601",
+            data_url="https://dl.fbaipublicfiles.com/glue/data/QNLIv2.zip",
             data_dir="QNLI",
             citation=textwrap.dedent(
                 """\
@@ -333,10 +343,13 @@ class Glue(nlp.GeneratorBasedBuilder):
             constructed based on news and Wikipedia text. We convert all datasets to a two-class split, where
             for three-class datasets we collapse neutral and contradiction into not entailment, for consistency."""
             ),  # pylint: disable=line-too-long
-            text_features={"sentence1": "sentence1", "sentence2": "sentence2",},
+            text_features={
+                "sentence1": "sentence1",
+                "sentence2": "sentence2",
+            },
             label_classes=["entailment", "not_entailment"],
             label_column="label",
-            data_url="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FRTE.zip?alt=media&token=5efa7e85-a0bb-4f19-8ea2-9e1840f077fb",
+            data_url="https://dl.fbaipublicfiles.com/glue/data/RTE.zip",
             data_dir="RTE",
             citation=textwrap.dedent(
                 """\
@@ -395,10 +408,13 @@ class Glue(nlp.GeneratorBasedBuilder):
             between a model's score on this task and its score on the unconverted original task. We
             call converted dataset WNLI (Winograd NLI)."""
             ),
-            text_features={"sentence1": "sentence1", "sentence2": "sentence2",},
+            text_features={
+                "sentence1": "sentence1",
+                "sentence2": "sentence2",
+            },
             label_classes=["not_entailment", "entailment"],
             label_column="label",
-            data_url="https://firebasestorage.googleapis.com/v0/b/mtl-sentence-representations.appspot.com/o/data%2FWNLI.zip?alt=media&token=068ad0a0-ded7-4bd7-99a5-5e00222e0faf",
+            data_url="https://dl.fbaipublicfiles.com/glue/data/WNLI.zip",
             data_dir="WNLI",
             citation=textwrap.dedent(
                 """\
@@ -421,12 +437,15 @@ class Glue(nlp.GeneratorBasedBuilder):
             Inference (NLI) problems. Use a model trained on MulitNLI to produce
             predictions for this dataset."""
             ),
-            text_features={"premise": "sentence1", "hypothesis": "sentence2",},
+            text_features={
+                "premise": "sentence1",
+                "hypothesis": "sentence2",
+            },
             label_classes=["entailment", "neutral", "contradiction"],
             label_column="",  # No label since we only have test set.
             # We must use a URL shortener since the URL from GLUE is very long and
             # causes issues in TFDS.
-            data_url="https://bit.ly/2BOtOJ7",
+            data_url="https://dl.fbaipublicfiles.com/glue/data/AX.tsv",
             data_dir="",  # We are downloading a tsv.
             citation="",  # The GLUE citation is sufficient.
             url="https://gluebenchmark.com/diagnostics",
@@ -434,15 +453,15 @@ class Glue(nlp.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {text_feature: nlp.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
         if self.config.label_classes:
-            features["label"] = nlp.features.ClassLabel(names=self.config.label_classes)
+            features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         else:
-            features["label"] = nlp.Value("float32")
-        features["idx"] = nlp.Value("int32")
-        return nlp.DatasetInfo(
+            features["label"] = datasets.Value("float32")
+        features["idx"] = datasets.Value("int32")
+        return datasets.DatasetInfo(
             description=_GLUE_DESCRIPTION,
-            features=nlp.Features(features),
+            features=datasets.Features(features),
             homepage=self.config.url,
             citation=self.config.citation + "\n" + _GLUE_CITATION,
         )
@@ -450,17 +469,31 @@ class Glue(nlp.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         if self.config.name == "ax":
             data_file = dl_manager.download(self.config.data_url)
-            return [nlp.SplitGenerator(name=nlp.Split.TEST, gen_kwargs={"data_file": data_file, "split": "test",})]
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "data_file": data_file,
+                        "split": "test",
+                    },
+                )
+            ]
 
         if self.config.name == "mrpc":
             data_dir = None
-            mrpc_files = dl_manager.download({"dev_ids": _MRPC_DEV_IDS, "train": _MRPC_TRAIN, "test": _MRPC_TEST,})
+            mrpc_files = dl_manager.download(
+                {
+                    "dev_ids": _MRPC_DEV_IDS,
+                    "train": _MRPC_TRAIN,
+                    "test": _MRPC_TEST,
+                }
+            )
         else:
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             data_dir = os.path.join(dl_dir, self.config.data_dir)
             mrpc_files = None
-        train_split = nlp.SplitGenerator(
-            name=nlp.Split.TRAIN,
+        train_split = datasets.SplitGenerator(
+            name=datasets.Split.TRAIN,
             gen_kwargs={
                 "data_file": os.path.join(data_dir or "", "train.tsv"),
                 "split": "train",
@@ -488,16 +521,16 @@ class Glue(nlp.GeneratorBasedBuilder):
         else:
             return [
                 train_split,
-                nlp.SplitGenerator(
-                    name=nlp.Split.VALIDATION,
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
                     gen_kwargs={
                         "data_file": os.path.join(data_dir or "", "dev.tsv"),
                         "split": "dev",
                         "mrpc_files": mrpc_files,
                     },
                 ),
-                nlp.SplitGenerator(
-                    name=nlp.Split.TEST,
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "data_file": os.path.join(data_dir or "", "test.tsv"),
                         "split": "test",
@@ -584,7 +617,7 @@ class Glue(nlp.GeneratorBasedBuilder):
 
 
 def _mnli_split_generator(name, data_dir, split, matched):
-    return nlp.SplitGenerator(
+    return datasets.SplitGenerator(
         name=name,
         gen_kwargs={
             "data_file": os.path.join(data_dir, "%s_%s.tsv" % (split, "matched" if matched else "mismatched")),
