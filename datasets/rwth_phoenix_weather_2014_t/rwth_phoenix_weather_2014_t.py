@@ -47,7 +47,7 @@ _CITATION = """\
 
 # TODO add support for ftp downloads https://github.com/huggingface/datasets/issues/721
 # _URL = "ftp://wasserstoff.informatik.rwth-aachen.de/pub/rwth-phoenix/2016/phoenix-2014-T.v3.tar.gz"
-_URL = "/home/nlp/amit/forks/datasets/datasets/rwth_phoneix_weather_2014_t/dummy/1.0.0/dummy_data.zip"
+_URL = "/home/nlp/amit/forks/datasets/datasets/rwth_phoenix_weather_2014_t/dummy/1.0.0/dummy_data.zip"
 
 _HOMEPAGE = "https://www-i6.informatik.rwth-aachen.de/~koller/RWTH-PHOENIX-2014-T/"
 
