@@ -66,6 +66,6 @@ class TestDatasetOnHfGcp(TestCase):
 
             dataset_info_url = os.path.join(
                 HF_GCP_BASE_URL, builder_instance._relative_data_dir(with_hash=False), DATASET_INFO_FILENAME
-            )
+            ).replace(os.sep, "/")
             datset_info_path = cached_path(dataset_info_url, cache_dir=tmp_dir)
             self.assertTrue(os.path.exists(datset_info_path))

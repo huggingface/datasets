@@ -206,19 +206,21 @@ class DownloadManager(object):
 
         # We do this complex absolute/relative scheme to reproduce the API of iter_tar of tfds
         for root, dirs, files in os.walk(extracted_path, topdown=False):
-            relative_dir_path = root.replace(os.path.abspath(extracted_path) + "/", "")
+            relative_dir_path = root.replace(os.path.abspath(extracted_path) + os.sep, "")
             for name in files:
                 relative_file_path = os.path.join(relative_dir_path, name)
                 absolute_file_path = os.path.join(root, name)
                 with open(absolute_file_path, "rb") as file_obj:
                     yield (relative_file_path, file_obj)
 
-    def extract(self, path_or_paths):
+    def extract(self, path_or_paths, num_proc=None):
         """Extract given path(s).
 
         Args:
             path_or_paths: path or `list`/`dict` of path of file to extract. Each
                 path is a `str`.
+            num_proc: Use multi-processing if `num_proc` > 1 and the length of
+                `path_or_paths` is larger than `num_proc`
 
         Returns:
             extracted_path(s): `str`, The extracted paths matching the given input
@@ -228,8 +230,9 @@ class DownloadManager(object):
         download_config.extract_compressed_file = True
         download_config.force_extract = False
         return map_nested(
-            lambda path: cached_path(path, download_config=download_config),
+            partial(cached_path, download_config=download_config),
             path_or_paths,
+            num_proc=num_proc,
         )
 
     def download_and_extract(self, url_or_urls):

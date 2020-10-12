@@ -20,6 +20,7 @@ class CsvConfig(datasets.BuilderConfig):
     read_options: pac.ReadOptions = None
     parse_options: pac.ParseOptions = None
     convert_options: pac.ConvertOptions = None
+    features: datasets.Features = None
 
     @property
     def pa_read_options(self):
@@ -43,7 +44,9 @@ class CsvConfig(datasets.BuilderConfig):
 
     @property
     def pa_convert_options(self):
-        convert_options = self.convert_options or pac.ConvertOptions()
+        convert_options = self.convert_options or pac.ConvertOptions(
+            column_types=self.features.type if self.features is not None else None
+        )
         return convert_options
 
 
@@ -78,6 +81,6 @@ class Csv(datasets.ArrowBasedBuilder):
                 file,
                 read_options=self.config.pa_read_options,
                 parse_options=self.config.pa_parse_options,
-                convert_options=self.config.convert_options,
+                convert_options=self.config.pa_convert_options,
             )
             yield i, pa_table

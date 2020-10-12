@@ -17,6 +17,7 @@
 """ Simple Dataset wrapping an Arrow Table."""
 
 import contextlib
+import copy
 import json
 import os
 import pickle
@@ -27,12 +28,13 @@ from collections.abc import Iterable, Mapping
 from dataclasses import asdict
 from functools import partial, wraps
 from math import ceil, floor
-from multiprocessing import Pool, RLock
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
+from multiprocess import Pool, RLock
 from tqdm.auto import tqdm
 
 from .arrow_reader import ArrowReader
@@ -144,24 +146,28 @@ def transmit_format(func):
         else:
             self: "Dataset" = kwargs.pop("self")
         # don't use self.format since it returns a list of columns for 'columns' even if self_format_columns is None
-        new_format = {
+        unformatted_columns = set(self.column_names) - set(self._format_columns or [])
+        self_format = {
             "type": self._format_type,
             "format_kwargs": self._format_kwargs,
             "columns": self._format_columns,
             "output_all_columns": self._output_all_columns,
         }
+        # apply actual function
         out: Union["Dataset", "DatasetDict"] = func(self, *args, **kwargs)
-        if new_format["columns"] is not None:
-            new_format["columns"] = list(set(new_format["columns"]) & set(out.column_names))
         datasets: List["Dataset"] = list(out.values()) if isinstance(out, dict) else [out]
+        # re-apply format to the output
         for dataset in datasets:
+            new_format = dict(self_format)
+            if new_format["columns"] is not None:  # new formatted columns = (columns - previously unformatted columns)
+                new_format["columns"] = list(set(dataset.column_names) - unformatted_columns)
             out_format = {
                 "type": dataset._format_type,
                 "format_kwargs": dataset._format_kwargs,
                 "columns": dataset._format_columns,
                 "output_all_columns": dataset._output_all_columns,
             }
-            if out_format != new_format:
+            if out_format != new_format:  # only apply if there's a change not to update the fingerprint for nothing
                 dataset.set_format(**new_format)
         return out
 
@@ -373,6 +379,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         pa_table: pa.Table = pa.Table.from_pydict(mapping=mapping)
         return cls(pa_table, info=info, split=split)
 
+    def __del__(self):
+        if hasattr(self, "_data"):
+            del self._data
+        if hasattr(self, "_indices"):
+            del self._indices
+
     def __getstate__(self):
         state = dict(self.__dict__)
         state["_info"] = json.dumps(asdict(state["_info"]))
@@ -381,6 +393,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             state["_data"] = None
         if self._indices_data_files:
             state["_indices"] = None
+        logger.debug("Copying history")
+        state["_inplace_history"] = [{"transforms": list(h["transforms"])} for h in state["_inplace_history"]]
         return state
 
     def __setstate__(self, state):
@@ -442,7 +456,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         for data_file in self._data_files + self._indices_data_files:
             # Copy file to destination directory
             src = data_file["filename"]
-            filename = src.split("/")[-1]
+            filename = Path(src).name
             dest = os.path.join(dataset_path, filename)
             if src != dest:
                 shutil.copy(src, dest)
@@ -457,9 +471,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             len(h["transforms"]) == 0 for h in state.get("_inplace_history", [])
         ), "in-place history needs to be empty"
         # Serialize state
-        with open(os.path.join(dataset_path, "state.json"), "w") as state_file:
+        with open(os.path.join(dataset_path, "state.json"), "w", encoding="utf-8") as state_file:
             json.dump(state, state_file, indent=2, sort_keys=True)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "w") as dataset_info_file:
+        with open(os.path.join(dataset_path, "dataset_info.json"), "w", encoding="utf-8") as dataset_info_file:
             json.dump(dataset_info, dataset_info_file, indent=2, sort_keys=True)
         logger.info("Dataset saved in {}".format(dataset_path))
 
@@ -470,9 +484,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         Args:
             dataset_path (``str``): path of the dataset directory where the dataset will be loaded from
         """
-        with open(os.path.join(dataset_path, "state.json"), "r") as state_file:
+        with open(os.path.join(dataset_path, "state.json"), "r", encoding="utf-8") as state_file:
             state = json.load(state_file)
-        with open(os.path.join(dataset_path, "dataset_info.json"), "r") as dataset_info_file:
+        with open(os.path.join(dataset_path, "dataset_info.json"), "r", encoding="utf-8") as dataset_info_file:
             dataset_info = json.load(dataset_info_file)
         state["_info"] = json.dumps(dataset_info)
         dataset = Dataset.from_dict({})
@@ -589,18 +603,19 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
         Args:
             features (:class:`datasets.Features`): New features to cast the dataset to.
-                The name and order of the fields in the features must match the current column names.
+                The name of the fields in the features must match the current column names.
                 The type of the data must also be convertible from one type to the other.
                 For non-trivial conversion, e.g. string <-> ClassLabel you should use :func:`map` to update the Dataset.
         """
-        if list(features) != self._data.column_names:
+        if sorted(features) != sorted(self._data.column_names):
             raise ValueError(
-                f"The columns in features ({list(features)}) must be identical and in the same order "
+                f"The columns in features ({list(features)}) must be identical "
                 f"as the columns in the dataset: {self._data.column_names}"
             )
 
         self._info.features = features
-        schema = pa.schema(features.type)
+        type = features.type
+        schema = pa.schema({col_name: type[col_name].type for col_name in self._data.column_names})
         self._data = self._data.cast(schema)
 
     @fingerprint(inplace=True)
@@ -1023,7 +1038,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             else:
                 indices = key
 
-            indices_array = pa.array([int(i) for i in indices], type=pa.uint64())
+            indices_array = pa.array([int(i) + len(self) if int(i) < 0 else int(i) for i in indices], type=pa.uint64())
 
             # Check if we need to convert indices
             indices_array = self._map_indices(indices_array)
@@ -1252,7 +1267,22 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 logger.info("Process #{} will write at {}".format(rank, cache_file_name))
                 return cache_file_name
 
+            prev_env = dict(os.environ)
+            # check if parallelism if off
+            # from https://github.com/huggingface/tokenizers/blob/bb668bc439dc34389b71dbb8ce0c597f15707b53/tokenizers/src/utils/parallelism.rs#L22
+            if prev_env.get("TOKENIZERS_PARALLELISM", "false").lower() not in (
+                "",
+                "off",
+                "false",
+                "f",
+                "no",
+                "n",
+                "0",
+            ):
+                logger.warning("Setting TOKENIZERS_PARALLELISM=false for forked processes.")
+            os.environ["TOKENIZERS_PARALLELISM"] = "false"
             with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
+                os.environ = prev_env
                 shards = [
                     self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
                     for rank in range(num_proc)
@@ -1499,12 +1529,16 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if update_data:
                 writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
+            if update_data:
+                writer.finalize()
             if update_data and tmp_file is not None:
+                tmp_file.close()
                 if os.path.exists(tmp_file.name):
                     os.remove(tmp_file.name)
             raise
 
         if update_data and tmp_file is not None:
+            tmp_file.close()
             shutil.move(tmp_file.name, cache_file_name)
 
         if update_data:
@@ -1672,15 +1706,18 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         indices_pa_table = indices_f.read_all()
 
         # Return new Dataset object
+        # don't forget to copy the objects
         return Dataset(
             self._data,
-            data_files=data_files,
-            info=self.info,
+            data_files=copy.deepcopy(data_files),
+            info=self.info.copy(),
             split=self.split,
             indices_table=indices_pa_table,
-            indices_data_files=indices_data_files,
+            indices_data_files=copy.deepcopy(indices_data_files),
             fingerprint=fingerprint,
-            inplace_history=self._inplace_history,  # in-place transforms have to be kept as we kept the same data_files
+            inplace_history=copy.deepcopy(
+                self._inplace_history
+            ),  # in-place transforms have to be kept as we kept the same data_files
         )
 
     @transmit_format
@@ -1747,11 +1784,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             writer.finalize()  # close_stream=bool(buf_writer is None))  # We only close if we are writing in a file
         except (Exception, KeyboardInterrupt):
             if tmp_file is not None:
+                tmp_file.close()
                 if os.path.exists(tmp_file.name):
                     os.remove(tmp_file.name)
             raise
 
         if tmp_file is not None:
+            tmp_file.close()
             shutil.move(tmp_file.name, indices_cache_file_name)
 
         # Return new Dataset object
@@ -2206,7 +2245,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             if isinstance(values, np.ndarray):
                 if values.dtype == np.dtype(float):
                     return _float_feature(values)
-                elif values.dtype == np.dtype(int):
+                elif values.dtype == np.int64:
                     return _int64_feature(values)
                 elif values.dtype == np.dtype(str) or (
                     values.dtype == np.dtype(object) and len(values) > 0 and isinstance(values[0], str)
@@ -2245,6 +2284,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         logger.info(f"Writing TFRecord to {filename}")
         writer.write(tf_dataset)
         logger.info(f"Finished writing TFRecord to {filename}")
+        self = None  # delete the dataset reference used by tf_dataset
 
     def add_faiss_index(
         self,
@@ -2389,10 +2429,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 The index_name/identifier of the index.
                 This is the index name that is used to call :func:`datasets.Dataset.get_nearest_examples` or :func:`datasets.Dataset.search`.
                 By default it corresponds to :obj:`column`.
-            documents (:obj:`Union[List[str], datasets.Dataset]`):
-                The documents to index. It can be a :class:`datasets.Dataset`.
-            es_client (:obj:`elasticsearch.Elasticsearch`):
-                The elasticsearch client used to create the index.
+            host (Optional :obj:`str`, defaults to localhost):
+                host of where ElasticSearch is running
+            port (Optional :obj:`str`, defaults to 9200):
+                port of where ElasticSearch is running
+            es_client (Optional :obj:`elasticsearch.Elasticsearch`):
+                The elasticsearch client used to create the index if host and port are None.
             es_index_name (Optional :obj:`str`):
                 The elasticsearch index name used to create the index.
             es_index_config (Optional :obj:`dict`):
@@ -2427,7 +2469,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         """
         with self.formatted_as(type=None, columns=[column]):
             super().add_elasticsearch_index(
-                column=column, host=host, port=port, es_client=es_client, index_name=index_name
+                column=column,
+                index_name=index_name,
+                host=host,
+                port=port,
+                es_client=es_client,
+                es_index_name=es_index_name,
+                es_index_config=es_index_config,
             )
         return self
 
@@ -2471,8 +2519,8 @@ def concatenate_datasets(
     # Concatenate tables
 
     table = pa.concat_tables(dset._data for dset in dsets if len(dset._data) > 0)
-    data_files = [f for dset in dsets for f in dset._data_files]
-    inplace_history = [h for dset in dsets for h in dset._inplace_history]
+    data_files = [copy.deepcopy(f) for dset in dsets for f in dset._data_files]
+    inplace_history = [copy.deepcopy(h) for dset in dsets for h in dset._inplace_history]
 
     def apply_offset_to_indices_table(table, offset):
         if offset == 0:
@@ -2529,10 +2577,8 @@ def concatenate_datasets(
             indices_table = pa.concat_tables(indices_tables)
         else:
             indices_table = pa.Table.from_batches([], schema=pa.schema({"indices": pa.int64()}))
-        indices_data_files = None  # can't reuse same files as an offset was applied
     else:
         indices_table = None
-        indices_data_files = None
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
@@ -2544,7 +2590,7 @@ def concatenate_datasets(
         split=split,
         data_files=data_files,
         indices_table=indices_table,
-        indices_data_files=indices_data_files,
+        indices_data_files=None,  # can't reuse same files as an offset was applied
         fingerprint=fingerprint,
         inplace_history=inplace_history,
     )

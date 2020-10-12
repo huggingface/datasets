@@ -25,7 +25,6 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, List, Optional, Union
 
-import xxhash
 from filelock import FileLock
 
 from . import utils
@@ -33,6 +32,7 @@ from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
+from .fingerprint import Hasher
 from .info import (
     DATASET_INFO_FILENAME,
     DATASET_INFOS_DICT_FILE_NAME,
@@ -153,6 +153,8 @@ class DatasetBuilder:
 
         # Prepare config: DatasetConfig contains name, version and description but can be extended by each dataset
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
+        if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
+            config_kwargs["features"] = features
         self.config = self._create_builder_config(
             name,
             **config_kwargs,
@@ -173,7 +175,9 @@ class DatasetBuilder:
         # prepare data dirs
         self._cache_dir_root = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
         self._cache_dir = self._build_cache_dir()
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        if not is_remote_url(self._cache_dir_root):
+            os.makedirs(self._cache_dir_root, exist_ok=True)
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             if os.path.exists(self._cache_dir):  # check if data exist
                 if len(os.listdir(self._cache_dir)) > 0:
@@ -254,23 +258,25 @@ class DatasetBuilder:
             # if not builder_config.description:
             #     raise ValueError("BuilderConfig %s must have a description" % name)
         if builder_config.data_files is not None:
-            m = xxhash.xxh64()
+            m = Hasher()
             if isinstance(builder_config.data_files, str):
                 data_files = {"train": [builder_config.data_files]}
             elif isinstance(builder_config.data_files, (tuple, list)):
                 data_files = {"train": builder_config.data_files}
             elif isinstance(builder_config.data_files, dict):
                 data_files = {
-                    key: files if isinstance(files, (tuple, list)) else [files]
+                    str(key): files if isinstance(files, (tuple, list)) else [files]
                     for key, files in builder_config.data_files.items()
                 }
             else:
                 raise ValueError("Please provide a valid `data_files` in `DatasetBuilder`")
             for key in sorted(data_files.keys()):
-                m.update(key.encode("utf-8"))
+                m.update(key)
                 for data_file in data_files[key]:
-                    m.update(os.path.abspath(data_file).encode("utf-8"))
-                    m.update(str(os.path.getmtime(data_file)).encode("utf-8"))
+                    m.update(os.path.abspath(data_file))
+                    m.update(str(os.path.getmtime(data_file)))
+            if hasattr(builder_config, "features"):
+                m.update(builder_config.features)
             builder_config.name += "-" + m.hexdigest()
         return builder_config
 
@@ -396,7 +402,7 @@ class DatasetBuilder:
             )
 
         # Prevent parallel disk operations
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             data_exists = os.path.exists(self._cache_dir)
             if data_exists and download_mode == REUSE_DATASET_IF_EXISTS:
@@ -405,8 +411,7 @@ class DatasetBuilder:
                 return
 
             logger.info("Generating dataset %s (%s)", self.name, self._cache_dir)
-            if not is_remote_url(self._cache_dir):  # if cache dir is local, check for available space
-                os.makedirs(self._cache_dir_root, exist_ok=True)
+            if not is_remote_url(self._cache_dir_root):  # if cache dir is local, check for available space
                 if not utils.has_sufficient_disk_space(self.info.size_in_bytes or 0, directory=self._cache_dir_root):
                     raise IOError(
                         "Not enough disk space. Needed: {} (download: {}, generated: {}, post-processed: {})".format(
@@ -493,13 +498,13 @@ class DatasetBuilder:
         downloaded_info = DatasetInfo.from_directory(self._cache_dir)
         self.info.update(downloaded_info)
         # download post processing resources
-        remote_cache_dir = os.path.join(HF_GCP_BASE_URL, relative_data_dir)
+        remote_cache_dir = HF_GCP_BASE_URL + "/" + relative_data_dir.replace(os.sep, "/")
         for split in self.info.splits:
             for resource_file_name in self._post_processing_resources(split).values():
-                if "/" in resource_file_name:
+                if os.sep in resource_file_name:
                     raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
                 try:
-                    resource_path = utils.cached_path(os.path.join(remote_cache_dir, resource_file_name))
+                    resource_path = utils.cached_path(remote_cache_dir + "/" + resource_file_name)
                     shutil.move(resource_path, os.path.join(self._cache_dir, resource_file_name))
                 except ConnectionError:
                     logger.info(
@@ -559,7 +564,7 @@ class DatasetBuilder:
     def download_post_processing_resources(self, dl_manager):
         for split in self.info.splits:
             for resource_name, resource_file_name in self._post_processing_resources(split).items():
-                if "/" in resource_file_name:
+                if os.sep in resource_file_name:
                     raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
                 resource_path = os.path.join(self._cache_dir, resource_file_name)
                 if not os.path.exists(resource_path):
@@ -573,12 +578,12 @@ class DatasetBuilder:
                         shutil.move(downloaded_resource_path, resource_path)
 
     def _save_info(self):
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             self.info.write_to_directory(self._cache_dir)
 
     def _save_infos(self):
-        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace("/", "_") + ".lock")
+        lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
         with FileLock(lock_path):
             DatasetInfosDict(**{self.config.name: self.info}).write_to_directory(self.get_imported_module_dir())
 
@@ -635,7 +640,7 @@ class DatasetBuilder:
         )
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
-                if "/" in resource_file_name:
+                if os.sep in resource_file_name:
                     raise ValueError("Resources shouldn't be in a sub-directory: {}".format(resource_file_name))
             resources_paths = {
                 resource_name: os.path.join(self._cache_dir, resource_file_name)
@@ -831,12 +836,14 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
-        for key, record in utils.tqdm(
-            generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
-        ):
-            example = self.info.features.encode_example(record)
-            writer.write(example)
-        num_examples, num_bytes = writer.finalize()
+        try:
+            for key, record in utils.tqdm(
+                generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
+            ):
+                example = self.info.features.encode_example(record)
+                writer.write(example)
+        finally:
+            num_examples, num_bytes = writer.finalize()
 
         assert num_examples == num_examples, f"Expected to write {split_info.num_examples} but wrote {num_examples}"
         split_generator.split_info.num_examples = num_examples

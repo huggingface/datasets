@@ -19,13 +19,13 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
+import ctypes
 import os
-import sys
 
 import datasets
 
 
-csv.field_size_limit(sys.maxsize)
+csv.field_size_limit(int(ctypes.c_ulong(-1).value // 2))
 
 
 _CITATION = """\

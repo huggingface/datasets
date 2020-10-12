@@ -18,7 +18,7 @@
 # pylint: enable=line-too-long
 # pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
 
-__version__ = "1.0.2"
+__version__ = "1.1.2"
 
 import pyarrow
 from pyarrow import total_allocated_bytes
@@ -56,4 +56,4 @@ if int(pyarrow.__version__.split(".")[1]) < 16 and int(pyarrow.__version__.split
         "If you are running this in a Google Colab, you should probably just restart the runtime to use the right version of `pyarrow`."
     )
 
-SCRIPTS_VERIONS = "master"
+SCRIPTS_VERSION = "master"

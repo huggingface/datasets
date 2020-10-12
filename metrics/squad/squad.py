@@ -44,7 +44,12 @@ Args:
         - 'prediction_text': the text of the answer
     references: List of question-answers dictionaries with the following key-values:
         - 'id': id of the question-answer pair (see above),
-        - 'answers': a Dict {'text': list of possible texts for the answer, as a list of strings}
+        - 'answers': a Dict in the SQuAD dataset format
+            {
+                'text': list of possible texts for the answer, as a list of strings
+                'answer_start': list of start positions for the answer, as a list of ints
+            }
+            Note that answer_start values are not taken into account to compute the metric.
 Returns:
     'exact_match': Exact match (the normalized answer exactly match the gold answer)
     'f1': The F-score of predicted tokens versus the gold answer

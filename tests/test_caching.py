@@ -2,11 +2,9 @@ from hashlib import md5
 from types import CodeType, FunctionType
 from unittest import TestCase
 
-import regex
-
 import datasets
 
-from .utils import require_transformers
+from .utils import require_regex, require_transformers
 
 
 class Foo:
@@ -55,7 +53,10 @@ class TokenizersCachingTest(TestCase):
         hash2 = md5(datasets.utils.dumps(tokenizer)).hexdigest()
         self.assertEqual(hash1, hash2)
 
+    @require_regex
     def test_hash_regex(self):
+        import regex
+
         pat = regex.Regex("foo")
         hash1 = md5(datasets.utils.dumps(pat)).hexdigest()
         pat = regex.Regex("bar")
