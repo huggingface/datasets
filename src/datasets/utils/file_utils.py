@@ -33,7 +33,6 @@ from .logging import WARNING, get_logger
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
-
 try:
     USE_TF = os.environ.get("USE_TF", "AUTO").upper()
     USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
@@ -47,6 +46,7 @@ try:
         _torch_available = False
 except ImportError:
     _torch_available = False  # pylint: disable=invalid-name
+
 
 try:
     USE_TF = os.environ.get("USE_TF", "AUTO").upper()
