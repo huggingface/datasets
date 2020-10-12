@@ -19,6 +19,8 @@ from hashlib import sha256
 from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
+from urllib.request import urlretrieve
+from ftplib import FTP
 
 import numpy as np
 import requests
@@ -27,7 +29,6 @@ from tqdm.auto import tqdm
 
 from .. import __version__
 from .logging import WARNING, get_logger
-
 
 logger = get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -45,7 +46,6 @@ try:
 except ImportError:
     _torch_available = False  # pylint: disable=invalid-name
 
-
 try:
     USE_TF = os.environ.get("USE_TF", "AUTO").upper()
     USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
@@ -62,7 +62,6 @@ try:
 except (ImportError, AssertionError):
     _tf_available = False  # pylint: disable=invalid-name
 
-
 try:
     USE_BEAM = os.environ.get("USE_BEAM", "AUTO").upper()
     if USE_BEAM in ("1", "ON", "YES", "AUTO"):
@@ -75,7 +74,6 @@ try:
         _beam_available = False
 except ImportError:
     _beam_available = False  # pylint: disable=invalid-name
-
 
 hf_cache_home = os.path.expanduser(
     os.getenv("HF_HOME", os.path.join(os.getenv("XDG_CACHE_HOME", "~/.cache"), "huggingface"))
@@ -92,7 +90,6 @@ S3_DATASETS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/da
 CLOUDFRONT_DATASETS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/datasets"
 REPO_DATASETS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/datasets/{path}/{name}"
 
-
 default_metrics_cache_path = os.path.join(hf_cache_home, "metrics")
 try:
     from pathlib import Path
@@ -104,7 +101,6 @@ except (AttributeError, ImportError):
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
 REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
-
 
 default_modules_cache_path = os.path.join(hf_cache_home, "modules")
 try:
@@ -185,7 +181,7 @@ def is_tf_available():
 
 def is_remote_url(url_or_filename):
     parsed = urlparse(url_or_filename)
-    return parsed.scheme in ("http", "https", "s3", "gs", "hdfs")
+    return parsed.scheme in ("http", "https", "s3", "gs", "hdfs", "ftp")
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
@@ -359,6 +355,30 @@ def cached_path(
     return output_path
 
 
+def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
+    not_verbose = bool(logger.getEffectiveLevel() > WARNING)
+
+    # Get file size
+    parsed = urlparse(url)
+    ftp = FTP(parsed.netloc)
+    ftp.login()
+    total_size = ftp.size(parsed.path)
+
+    progress = tqdm(
+        unit="B",
+        unit_scale=True,
+        total=total_size,
+        initial=resume_size,
+        desc="Downloading",
+        disable=not_verbose,
+    )
+
+    def progress_hook(block_num, block_size, total_size):
+        progress.update(block_size)
+
+    urlretrieve(url, temp_file.name, progress_hook)
+
+
 def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
     ua = "datasets/{}; python/{}".format(__version__, sys.version.split()[0])
     if is_torch_available():
@@ -452,7 +472,7 @@ def get_from_cache(
                 connected = True
             # In some edge cases, head request returns 400 but the connection is actually ok
             elif (response.status_code == 400 and "firebasestorage.googleapis.com" in url) or (
-                response.status_code == 405 and "drive.google.com" in url
+                    response.status_code == 405 and "drive.google.com" in url
             ):
                 connected = True
                 logger.info("Couldn't get ETag version for url {}".format(url))
@@ -472,7 +492,8 @@ def get_from_cache(
             )
         elif response is not None and response.status_code == 404:
             raise FileNotFoundError("Couldn't find file at {}".format(url))
-        raise ConnectionError("Couldn't reach {}".format(url))
+        elif not url.startswith("ftp"):
+            raise ConnectionError("Couldn't reach {}".format(url))
 
     # Try a second time
     filename = hash_url_to_filename(original_url, etag)
@@ -509,7 +530,11 @@ def get_from_cache(
             logger.info("%s not found in cache or force_download set to True, downloading to %s", url, temp_file.name)
 
             # GET file object
-            http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent, cookies=cookies)
+            if url.startswith("ftp"):
+                ftp_get(url, temp_file)
+            else:
+                http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent,
+                         cookies=cookies)
 
         logger.info("storing %s in cache at %s", url, cache_path)
         shutil.move(temp_file.name, cache_path)
