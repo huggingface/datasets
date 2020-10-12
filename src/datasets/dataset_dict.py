@@ -106,7 +106,7 @@ class DatasetDict(dict):
             dataset.cleanup_cache_files()
 
     def __repr__(self):
-        return f"DatasetDict({super().__repr__()})"
+        return "\n".join(["DatasetDict({"] + [f"  {k}: {v}" for k, v in self.items()] + ["})"])
 
     def cast_(self, features: Features):
         """
