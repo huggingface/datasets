@@ -31,13 +31,13 @@
                 "_type": "Sequence"
             }
         },
+        "post_processed": null,
         "supervised_keys": null,
         "builder_name": "wiki_dpr",
         "config_name": "psgs_w100_with_nq_embeddings",
         "version": {
             "version_str": "1.0.0",
             "description": null,
-            "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
             "patch": 0
@@ -257,6 +257,7 @@
             }
         },
         "download_size": 70965697456,
+        "post_processing_size": null,
         "dataset_size": 78419281788,
         "size_in_bytes": 149384979244
     },
@@ -282,13 +283,13 @@
                 "_type": "Value"
             }
         },
+        "post_processed": null,
         "supervised_keys": null,
         "builder_name": "wiki_dpr",
         "config_name": "dummy_psgs_w100_no_embeddings",
         "version": {
             "version_str": "1.0.0",
             "description": null,
-            "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
             "patch": 0
@@ -308,6 +309,7 @@
             }
         },
         "download_size": 4694541059,
+        "post_processing_size": null,
         "dataset_size": 6562601,
         "size_in_bytes": 4701103660
     },
@@ -343,13 +345,13 @@
                 "_type": "Sequence"
             }
         },
+        "post_processed": null,
         "supervised_keys": null,
         "builder_name": "wiki_dpr",
         "config_name": "dummy_psgs_w100_with_nq_embeddings",
         "version": {
             "version_str": "1.0.0",
             "description": null,
-            "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
             "patch": 0
@@ -373,6 +375,7 @@
             }
         },
         "download_size": 6019234692,
+        "post_processing_size": null,
         "dataset_size": 37322605,
         "size_in_bytes": 6056557297
     },
@@ -398,13 +401,13 @@
                 "_type": "Value"
             }
         },
+        "post_processed": null,
         "supervised_keys": null,
         "builder_name": "wiki_dpr",
         "config_name": "psgs_w100_no_embeddings",
         "version": {
             "version_str": "1.0.0",
             "description": null,
-            "datasets_version_to_prepare": null,
             "major": 1,
             "minor": 0,
             "patch": 0
@@ -424,7 +427,275 @@
             }
         },
         "download_size": 4694541059,
+        "post_processing_size": null,
         "dataset_size": 13776210580,
         "size_in_bytes": 18470751639
+    },
+    "psgs_w100.multiset.no_index": {
+        "description": "\nThis is the wikipedia split used to evaluate the Dense Passage Retrieval (DPR) model.\nIt contains 21M passages from wikipedia along with their DPR embeddings.\nThe wikipedia articles were split into multiple, disjoint text blocks of 100 words as passages.\n",
+        "citation": "\n@misc{karpukhin2020dense,\n    title={Dense Passage Retrieval for Open-Domain Question Answering},\n    author={Vladimir Karpukhin and Barlas Oğuz and Sewon Min and Patrick Lewis and Ledell Wu and Sergey Edunov and Danqi Chen and Wen-tau Yih},\n    year={2020},\n    eprint={2004.04906},\n    archivePrefix={arXiv},\n    primaryClass={cs.CL}\n}\n",
+        "homepage": "https://github.com/facebookresearch/DPR",
+        "license": "",
+        "features": {
+            "id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "text": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "title": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "embeddings": {
+                "feature": {
+                    "dtype": "float32",
+                    "id": null,
+                    "_type": "Value"
+                },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            }
+        },
+        "post_processed": {
+            "features": null,
+            "resources_checksums": {
+                "train": {}
+            }
+        },
+        "supervised_keys": null,
+        "builder_name": "wiki_dpr",
+        "config_name": "psgs_w100.multiset.no_index",
+        "version": {
+            "version_str": "0.0.0",
+            "description": null,
+            "major": 0,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 78419281788,
+                "num_examples": 21015300,
+                "dataset_name": "wiki_dpr"
+            }
+        },
+        "download_checksums": {
+            "https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz": {
+                "num_bytes": 4694541059,
+                "checksum": "c39b020c855a2b5c25ffef3abe4a3b6f9b829ad7dbc14ec3d163d34d7c53ea8d"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_0": {
+                "num_bytes": 1324693633,
+                "checksum": "74303181307ffd010325d71249c13e8af6459fbc4bfe43cfa96fa1df0f24f8e5"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_1": {
+                "num_bytes": 1324804738,
+                "checksum": "efbcbace46d62cf3948d2b90a01fb9d97e237be23517509a36ec1552cea679f9"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_2": {
+                "num_bytes": 1325065657,
+                "checksum": "dcb02b2af69694383b573f7811f30331da9ab4c27b41e0cc9fa953cc5982dd3e"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_3": {
+                "num_bytes": 1325225044,
+                "checksum": "5ebc5100cd06c59ab950f8e71909bbfc500c2e652fd8d3419137aa3e77602584"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_4": {
+                "num_bytes": 1325225044,
+                "checksum": "99ec3180bd17fe70374a074ead11ed86cc2cfb5794522fcc9f9a9e20f1774602"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_5": {
+                "num_bytes": 1325225044,
+                "checksum": "142112c333d7fd8669f84ae205271dc43c7b9d7e8b156964d51b5d930241da46"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_6": {
+                "num_bytes": 1325225044,
+                "checksum": "c5dd9acd9e83f84cfe27dde0493a9673167567cdb4ba5d60c1ef27dfbdee83f5"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_7": {
+                "num_bytes": 1325225044,
+                "checksum": "732fd0c01c8e1c1edc9dc19cdc7bff0cf4e6dbfbc9f1bcd512babd2ee8169e91"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_8": {
+                "num_bytes": 1325225044,
+                "checksum": "d3057ed3cf5cdf7d7e5979d5574179b6ca1ac57d15db28de6852ec2fd6f0ddc4"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_9": {
+                "num_bytes": 1325225044,
+                "checksum": "feb456f41a631130ff0f5366f86db7601a5f1f6e88e71ffdb9b73d4e07671e68"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_10": {
+                "num_bytes": 1325225044,
+                "checksum": "7ddfd1b77294afc59cb97348474bed0faa3f7cbeeac02f7bccf055d63fe8f78a"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_11": {
+                "num_bytes": 1325225044,
+                "checksum": "6d680e450b36e1e08852f24d8cef4567e6b8eaef5091948276bbebe31e76f39c"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_12": {
+                "num_bytes": 1325225044,
+                "checksum": "db15b7a3186a81a2c780ea6ff3c3de17faa57c061d586b138112f10b159e3fdf"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_13": {
+                "num_bytes": 1325225044,
+                "checksum": "89f0e99a808ca5b62533bc611e4d0f5fa59d0dd05aa00fc375281c3470efa4de"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_14": {
+                "num_bytes": 1325225044,
+                "checksum": "196d1da6ef91cffe26cb9652490c853e0881e445f615be0580a52934017c76a6"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_15": {
+                "num_bytes": 1325225044,
+                "checksum": "7900fce5db30cac4efa95240898922f2c0b34f985d4e1757fef7d15217fee4a8"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_16": {
+                "num_bytes": 1325225044,
+                "checksum": "f54ab11a36e5e8499bec485deed6b79fe5793c5616fcdcf029c4d82ad4ce2d18"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_17": {
+                "num_bytes": 1325225044,
+                "checksum": "01f258eec94ce0015accd89921f9c629c9cf5ccb7040a3871a0e0f98ff6c1f9b"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_18": {
+                "num_bytes": 1325225044,
+                "checksum": "6d3e2d9f97698151ea7b759ed735d758024baa22bd21654d8fe0a1c83484b60a"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_19": {
+                "num_bytes": 1325225044,
+                "checksum": "8a3c3115ed7c92dbb5dfd284eaa8ffa1d6da5efbc398525f4c588db7610c8241"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_20": {
+                "num_bytes": 1325225044,
+                "checksum": "06332eb5dec070aaec6d7cc31a6a1d3181873ae0c3e26aefeab5acfd9141420a"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_21": {
+                "num_bytes": 1325225044,
+                "checksum": "a30bbef31dd6e18a9163b3052bea18663a94f67c15e7a5c175d3deb8a2bddf8e"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_22": {
+                "num_bytes": 1325225044,
+                "checksum": "94b30fd1fb2037adf1149eb1bff22aa82162a6b97d86d3878f50553fee2e0a77"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_23": {
+                "num_bytes": 1325312389,
+                "checksum": "b77c42af02096b3e6030c8af6bf4a6ffa7ca5a8f3f3d005c6b7fa4dc5a4a4726"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_24": {
+                "num_bytes": 1325645350,
+                "checksum": "bafc2a706b8d27b65a04ec3922c555da3096709e29779fdcf1b04eb9548d2916"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_25": {
+                "num_bytes": 1325645350,
+                "checksum": "1645feb6a6a172eb08bbeb4e8f97a7807956c23e55ddd74dc445849bac5ab46f"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_26": {
+                "num_bytes": 1325645350,
+                "checksum": "60ae7d894fe440d30d32b203eb57aacc2606a5ab58db25af18f963f7185448a5"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_27": {
+                "num_bytes": 1325645350,
+                "checksum": "a4c9ef9ada9ecd1bb62dbd255d74dfdca63b12f96f005f3cc376300506de4033"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_28": {
+                "num_bytes": 1325645350,
+                "checksum": "9a522cb87fcef236910f656d407afcf796b538fdf67739a961c95fd0a2b28eb0"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_29": {
+                "num_bytes": 1325645350,
+                "checksum": "99671858eb3aeac7616b0ea8863c3cef66fa1eb263709e3fa578c2c31ffe8da5"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_30": {
+                "num_bytes": 1325645350,
+                "checksum": "120e83687903d778abfa1745134a002e65334a2faafb3d05a9f951cc46420309"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_31": {
+                "num_bytes": 1325645350,
+                "checksum": "3c4e78b566fe0c963b9f0783b42044d2738734a3fa18fffe321555f612c101d2"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_32": {
+                "num_bytes": 1325645350,
+                "checksum": "85c3534fea8fe7e0579554f9f5f426392e01eba90dda408374b33c19694454f9"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_33": {
+                "num_bytes": 1325645350,
+                "checksum": "3e672bad1501e893b84c58755f68383c025d5a6b61f86751673060798609d325"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_34": {
+                "num_bytes": 1325645350,
+                "checksum": "5fe0c4094aa36cca856a37ed6597d02ea9718b9ceb6066416249cab7dabb12a8"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_35": {
+                "num_bytes": 1325645350,
+                "checksum": "eec94012b34edd0cf6ed60d23385dec0eeb277ed7e883b3d58540bea5146d33b"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_36": {
+                "num_bytes": 1325645350,
+                "checksum": "c54ae88f28437658029e125993ba13de70ce5752d5c57e1714dd311fa7959337"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_37": {
+                "num_bytes": 1325645350,
+                "checksum": "d9e21afe767929f3262abd408219bb0fc4785ea34e7df94543035c5c51bbb7cb"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_38": {
+                "num_bytes": 1325645350,
+                "checksum": "375b823097f2e2f7c2c02b2c0a2f548d116925a74d1a83329ba9f23fb5243c14"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_39": {
+                "num_bytes": 1325645350,
+                "checksum": "103df67db851fb059059b526c6a453176ce34050c14a00e00ad7201fc0de3966"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_40": {
+                "num_bytes": 1325645350,
+                "checksum": "0dca1535f881e6a024549a32477c3df6dfcbdccddab2eb3a4343449ec179c4a9"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_41": {
+                "num_bytes": 1325645350,
+                "checksum": "e2f757eb26540e8100073adea25ef522ac2b00138706320fed49fc1b043fa0af"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_42": {
+                "num_bytes": 1325645350,
+                "checksum": "fa355f330dacc9778dac4099bb977b5f9963654abbfe205e371223af6ec3e6a2"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_43": {
+                "num_bytes": 1325645350,
+                "checksum": "74e643a7ae4bfcf2f02b450fa87706be0185e21997254424ae2b301498082011"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_44": {
+                "num_bytes": 1325645350,
+                "checksum": "b2cb91109c509c0bb48d177eda00bf827cef8f53c4b41dfe4c4a3af1093f1020"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_45": {
+                "num_bytes": 1325645350,
+                "checksum": "8c7e2d32dee1cbf4380bd0e5aa538c937a653bbd3dc68ee37cd40e088e0c2ef3"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_46": {
+                "num_bytes": 1325645350,
+                "checksum": "17b383263eb3f93502d0854b0a315481ec7d88f7bc7baf634f86e0ce45ca61d8"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_47": {
+                "num_bytes": 1325645350,
+                "checksum": "3cd48784458fc50e6f8a5fe4ab0d122a16a514d54e5f744d0e2b2175a9f77f66"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_48": {
+                "num_bytes": 1325645350,
+                "checksum": "fd44acad82277a40d83e38a82c86603f9449d2e8f47659009895d600822be0d6"
+            },
+            "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_49": {
+                "num_bytes": 1325645350,
+                "checksum": "7d4530958e6184aa0bb5acf19e6bb265a001b608b351efc1b9457248b1ec26a0"
+            }
+        },
+        "download_size": 70965697456,
+        "post_processing_size": 0,
+        "dataset_size": 78419281788,
+        "size_in_bytes": 149384979244
     }
 }
