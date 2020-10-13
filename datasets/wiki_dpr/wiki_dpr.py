@@ -27,7 +27,9 @@ _LICENSE = """DPR is CC-BY-NC 4.0 licensed."""
 
 _DATA_URL = "https://dl.fbaipublicfiles.com/dpr/wikipedia_split/psgs_w100.tsv.gz"
 
-_VECTORS_URL = "https://dl.fbaipublicfiles.com/dpr/data/wiki_encoded/single/nq/wiki_passages_{i}"
+_NQ_VECTORS_URL = "https://dl.fbaipublicfiles.com/dpr/data/wiki_encoded/single/nq/wiki_passages_{i}"
+
+_MULTISET_VECTORS_URL = "https://dl.fbaipublicfiles.com/rag/rag_multiset_embeddings/wiki_passages_{i}"
 
 _INDEX_URL = "https://storage.googleapis.com/huggingface-nlp/datasets/wiki_dpr"
 
@@ -48,14 +50,19 @@ class WikiDprConfig(datasets.BuilderConfig):
     ):
         """BuilderConfig for WikiSnippets.
         Args:
-            with_embeddings (`bool`, defaults to `True`): Load the 768-dimensional embeddings from DPR trained on NQ.
+            with_embeddings (`bool`, defaults to `True`): Load the 768-dimensional embeddings from DPR.
             with_index (`bool`, defaults to `True`): Load the faiss index trained on the embeddings.
+            wiki_split (`str`, defaults to `psgs_w100`): name of the splitting method of wiki articles.
+            embeddings_name (`str`, defaults to `nq`): "nq" or "multiset", depending on which dataset DPR was trained on.
+            index_name (`str`, defaults to `compressed`): "compressed" or "exact", the configuration of the faiss index to use.
+            index_train_size (`int`, defaults to `262144`): Size of the subset to use to train the index, if it is trainable.
+            dummy (`bool`, defaults to `False`): Dummy uses only 10 000 examples for testing purposes.
           **kwargs: keyword arguments forwarded to super.
         """
         self.with_embeddings = with_embeddings
         self.with_index = with_index
         self.wiki_split = wiki_split
-        self.embeddings_name = embeddings_name if with_embeddings else "no_embeddings"
+        self.embeddings_name = embeddings_name
         self.index_name = index_name if with_index else "no_index"
         self.index_train_size = index_train_size
         self.dummy = dummy
@@ -65,13 +72,17 @@ class WikiDprConfig(datasets.BuilderConfig):
             assert (
                 self.index_name != "compressed" or not self.with_index
             ), "Please use `index_name='exact' for dummy wiki_dpr`"
+        assert wiki_split == "psgs_w100"
+        assert embeddings_name in ("nq", "multiset")
+        assert index_name in ("compressed", "exact", "no_index")
         kwargs["name"] = ".".join(name)
         super(WikiDprConfig, self).__init__(**kwargs)
 
+        prefix = f"{wiki_split}.{embeddings_name}."
         if self.index_name == "exact":
-            self.index_file = "psgs_w100.nq.IndexHNSWFlat-IP-{split}.faiss"
+            self.index_file = prefix + "IndexHNSWFlat-IP-{split}.faiss"
         else:
-            self.index_file = "psgs_w100.nq.IVFPQ4096_HNSW32_PQ64-IP-{split}.faiss"
+            self.index_file = prefix + "IVFPQ4096_HNSW32_PQ64-IP-{split}.faiss"
         if self.dummy:
             self.index_file = "dummy." + self.index_file
 
@@ -103,10 +114,11 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
         files_to_download = {"data_file": _DATA_URL}
         downloaded_files = dl_manager.download_and_extract(files_to_download)
         if self.config.with_embeddings:
+            vectors_url = _NQ_VECTORS_URL if self.config.embeddings_name == "nq" else _MULTISET_VECTORS_URL
             if self.config.dummy:
-                downloaded_files["vectors_files"] = dl_manager.download([_VECTORS_URL.format(i=0)])
+                downloaded_files["vectors_files"] = dl_manager.download([vectors_url.format(i=0)])
             else:
-                downloaded_files["vectors_files"] = dl_manager.download([_VECTORS_URL.format(i=i) for i in range(50)])
+                downloaded_files["vectors_files"] = dl_manager.download([vectors_url.format(i=i) for i in range(50)])
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs=downloaded_files),
         ]
