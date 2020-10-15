@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import urllib.request
+from urllib.error import ContentTooShortError
 
 import datasets
 from tqdm import tqdm
@@ -51,7 +52,11 @@ def download_aslpro(url: str, dst_path: str):
     opener = urllib.request.build_opener()
     opener.addheaders = _ASLPRO_HEADERS
     urllib.request.install_opener(opener)
-    urllib.request.urlretrieve(url, dst_path)
+
+    try:
+        urllib.request.urlretrieve(url, dst_path)
+    except ContentTooShortError:
+        pass
 
 
 def download_youtube(url, dst_path):
@@ -62,10 +67,7 @@ def download_youtube(url, dst_path):
         try:
             ydl.download([url])
         except youtube_dl.utils.DownloadError as e:
-            if "YouTube said: Unable to extract video data" in str(e):
-                print("Video no longer available. Skipping")
-            else:
-                raise e
+            print("Problem downloading youtube video", url)
 
 
 class WLASL(datasets.GeneratorBasedBuilder):
@@ -84,7 +86,7 @@ class WLASL(datasets.GeneratorBasedBuilder):
                 "end": datasets.Value("int32"),  # End frame
                 "fps": datasets.Value("int32"),  # Frames per Second
                 "signer_id": datasets.Value("int32"),  # Unique ID of signer
-                "bbox": datasets.Value("string"),  # Array of integers
+                "bbox": datasets.features.Sequence(datasets.Value("int32")),  # Array of integers
                 "gloss": datasets.Value("string"),  # American sign language gloss
                 "gloss_variation": datasets.Value("int32"),  # Variation ID of gloss
             }),
@@ -110,7 +112,7 @@ class WLASL(datasets.GeneratorBasedBuilder):
         for video_id, video in tqdm(videos.items(), total=len(videos)):
             try:
                 paths[video_id] = self._download_video(video, dl_manager)
-            except FileNotFoundError as err:
+            except (FileNotFoundError, ConnectionError) as err:
                 print("Failed to download", video, str(err))
 
         return paths
@@ -139,7 +141,7 @@ class WLASL(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"data_path": processed_path, "split": "dev"},
+                gen_kwargs={"data_path": processed_path, "split": "val"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -156,7 +158,7 @@ class WLASL(datasets.GeneratorBasedBuilder):
             counter = 0
             for datum in data:
                 for instance in datum["instances"]:
-                    if instance["split"] == split:
+                    if instance["split"] == split and instance["video"] is not None:
                         yield counter, {
                             "video": instance["video"],
                             "url": instance["url"],
