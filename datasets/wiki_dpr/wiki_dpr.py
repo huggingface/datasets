@@ -184,7 +184,7 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                 logging.info("Building wiki_dpr faiss index")
                 if self.config.index_name == "exact":
                     d = 768
-                    index = faiss.IndexHNSWFlat(d, 512, faiss.METRIC_INNER_PRODUCT)
+                    index = faiss.IndexHNSWFlat(d, 128, faiss.METRIC_INNER_PRODUCT)
                     dataset.add_faiss_index("embeddings", custom_index=index)
                 else:
                     d = 768
