@@ -20,7 +20,7 @@ from typing import Dict, Optional, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 from urllib.request import urlretrieve
-from ftplib import FTP
+from ftplib import FTP, FTP_TLS
 
 import numpy as np
 import requests
@@ -187,7 +187,7 @@ def is_tf_available():
 
 def is_remote_url(url_or_filename):
     parsed = urlparse(url_or_filename)
-    return parsed.scheme in ("http", "https", "s3", "gs", "hdfs", "ftp")
+    return parsed.scheme in ("http", "https", "s3", "gs", "hdfs", "ftp", "ftps")
 
 
 def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -> str:
@@ -361,28 +361,56 @@ def cached_path(
     return output_path
 
 
+def ftp_get_connection(url: str) -> Union[FTP, FTP_TLS]:
+    parsed = urlparse(url)
+
+    try:
+        ftp_class = FTP_TLS if parsed.scheme == "ftps" else FTP
+        ftp = ftp_class(parsed.netloc)
+        ftp.login()
+    except:
+        raise ConnectionError("Couldn't reach {}".format(parsed.netloc))
+
+    try:
+        ftp.size(parsed.path)
+    except:
+        ftp.quit()
+        raise FileNotFoundError("Couldn't find file at {}".format(url))
+
+    return ftp
+
+
 def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
     not_verbose = bool(logger.getEffectiveLevel() > WARNING)
 
-    # Get file size
     parsed = urlparse(url)
-    ftp = FTP(parsed.netloc)
-    ftp.login()
-    total_size = ftp.size(parsed.path)
+    ftp = ftp_get_connection(url)
 
-    progress = tqdm(
-        unit="B",
-        unit_scale=True,
-        total=total_size,
-        initial=resume_size,
-        desc="Downloading",
-        disable=not_verbose,
-    )
+    # Continue download option
+    rest = str(os.path.getsize(temp_file.name)) if resume_size > 0 else None
 
-    def progress_hook(block_num, block_size, total_size):
-        progress.update(block_size)
+    with open(temp_file.name, 'wb') as fd:
+        total = ftp.size(parsed.path)
 
-    urlretrieve(url, temp_file.name, progress_hook)
+        progress = tqdm(
+            unit="B",
+            unit_scale=True,
+            total=total,
+            initial=resume_size,
+            desc="Downloading",
+            disable=not_verbose,
+        )
+
+        def callback_(data):
+            progress.update(len(data))
+            fd.write(data)
+
+        print('RETR {}'.format(parsed.path))
+        ftp.retrbinary('RETR {}'.format(parsed.path), callback_, rest=rest)
+
+        progress.close()
+
+    ftp.quit()
 
 
 def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
@@ -465,41 +493,45 @@ def get_from_cache(
         return cache_path
 
     # We don't have the file locally or we need an eTag
-    if not local_files_only:
-        try:
-            response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
-            if response.status_code == 200:  # ok
-                etag = response.headers.get("ETag") if use_etag else None
-                for k, v in response.cookies.items():
-                    # In some edge cases, we need to get a confirmation token
-                    if k.startswith("download_warning") and "drive.google.com" in url:
-                        url += "&confirm=" + v
-                        cookies = response.cookies
-                connected = True
-            # In some edge cases, head request returns 400 but the connection is actually ok
-            elif (response.status_code == 400 and "firebasestorage.googleapis.com" in url) or (
-                response.status_code == 405 and "drive.google.com" in url
-            ):
-                connected = True
-                logger.info("Couldn't get ETag version for url {}".format(url))
-        except (EnvironmentError, requests.exceptions.Timeout):
-            # not connected
-            pass
+    if url.startswith("ftp"):
+        ftp = ftp_get_connection(url)
+        ftp.quit()
+    else:
+        if not local_files_only:
+            try:
+                response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
+                if response.status_code == 200:  # ok
+                    etag = response.headers.get("ETag") if use_etag else None
+                    for k, v in response.cookies.items():
+                        # In some edge cases, we need to get a confirmation token
+                        if k.startswith("download_warning") and "drive.google.com" in url:
+                            url += "&confirm=" + v
+                            cookies = response.cookies
+                    connected = True
+                # In some edge cases, head request returns 400 but the connection is actually ok
+                elif (response.status_code == 400 and "firebasestorage.googleapis.com" in url) or (
+                        response.status_code == 405 and "drive.google.com" in url
+                ):
+                    connected = True
+                    logger.info("Couldn't get ETag version for url {}".format(url))
+            except (EnvironmentError, requests.exceptions.Timeout):
+                # not connected
+                pass
 
-    # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
-    # try to get the last downloaded one
-    if not connected:
-        if os.path.exists(cache_path):
-            return cache_path
-        if local_files_only:
-            raise FileNotFoundError(
-                f"Cannot find the requested files in the cached path at {cache_path} and outgoing traffic has been"
-                " disabled. To enable file online look-ups, set 'local_files_only' to False."
-            )
-        elif response is not None and response.status_code == 404:
-            raise FileNotFoundError("Couldn't find file at {}".format(url))
-        elif not url.startswith("ftp"):
-            raise ConnectionError("Couldn't reach {}".format(url))
+        # connected == False = we don't have a connection, or url doesn't exist, or is otherwise inaccessible.
+        # try to get the last downloaded one
+        if not connected:
+            if os.path.exists(cache_path):
+                return cache_path
+            if local_files_only:
+                raise FileNotFoundError(
+                    f"Cannot find the requested files in the cached path at {cache_path} and outgoing traffic has been"
+                    " disabled. To enable file online look-ups, set 'local_files_only' to False."
+                )
+            elif response is not None and response.status_code == 404:
+                raise FileNotFoundError("Couldn't find file at {}".format(url))
+            else:
+                raise ConnectionError("Couldn't reach {}".format(url))
 
     # Try a second time
     filename = hash_url_to_filename(original_url, etag)
@@ -537,7 +569,7 @@ def get_from_cache(
 
             # GET file object
             if url.startswith("ftp"):
-                ftp_get(url, temp_file)
+                ftp_get(url, temp_file, resume_size=resume_size)
             else:
                 http_get(url, temp_file, proxies=proxies, resume_size=resume_size, user_agent=user_agent,
                          cookies=cookies)

@@ -20,6 +20,8 @@ import csv
 import os
 
 import datasets
+import numpy as np
+from PIL import Image
 
 _DESCRIPTION = """\
 Parallel Corpus of Sign Language Video, Gloss and Translation
@@ -45,7 +47,7 @@ _CITATION = """\
 }
 """
 
-_URL = "ftp://wasserstoff.informatik.rwth-aachen.de/pub/rwth-phoenix/2016/phoenix-2014-T.v3.tar.gz"
+_URL = "ftps://wasserstoff.informatik.rwth-aachen.de/pub/rwth-phoenix/2016/phoenix-2014-T.v3.tar.gz"
 
 _HOMEPAGE = "https://www-i6.informatik.rwth-aachen.de/~koller/RWTH-PHOENIX-2014-T/"
 
@@ -56,17 +58,15 @@ class RWTHPhoenixWeather2014T(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     def _info(self):
-        # TODO: Specifies the datasets.DatasetInfo object
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
             features=datasets.Features({
-                "video": datasets.Value("string"),  # path to directory of images
-                "start": datasets.Value("int32"),  # starting frame of the annotation
-                "end": datasets.Value("int32"),  # ending frame of the annotation
+                # sequence of frames
+                "video": datasets.features.Sequence(datasets.features.Array3D(shape=(260, 210, 3), dtype="uint8")),
                 "signer": datasets.Value("string"),  # signer ID
                 "gloss": datasets.Value("string"),  # German sign language gloss
-                "translation": datasets.Value("string")  # German translation
+                "text": datasets.Value("string")  # German translation
             }),
             homepage=_HOMEPAGE,
             citation=_CITATION,
@@ -99,14 +99,17 @@ class RWTHPhoenixWeather2014T(datasets.GeneratorBasedBuilder):
         filepath = os.path.join(base_path, "annotations", "manual", "PHOENIX-2014-T." + split + ".corpus.csv")
         images_path = os.path.join(base_path, "features", "fullFrame-210x260px", split)
 
-        with open(filepath) as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             data = csv.DictReader(f, delimiter="|", quoting=csv.QUOTE_NONE)
             for row in data:
+                frames_path = os.path.join(images_path, row["video"])[:-7]
+                frames_paths = [os.path.join(frames_path, frame) for frame in os.listdir(frames_path)]
+                frames = [np.asarray(Image.open(path)) for path in frames_paths]
+                print(len(frames), frames[0].shape, frames[0].dtype)  # prints  5 (260, 210, 3) uint8
+
                 yield row["name"], {
-                    "video": os.path.join(images_path, row["video"]),
-                    "start": int(row["start"]),
-                    "end": int(row["end"]),
+                    "video": frames,
                     "signer": row["speaker"],
                     "gloss": row["orth"],
-                    "translation": row["translation"]
+                    "text": row["translation"]
                 }
