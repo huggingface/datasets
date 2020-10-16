@@ -22,7 +22,8 @@ import os
 import datasets
 
 _DESCRIPTION = """\
-Synthetic English-ASL Gloss Parallel Corpus 2012
+A large synthetic collection of parallel English and ASL-Gloss texts.
+There are two string features: text, and gloss.
 """
 
 _CITATION = """\
@@ -72,8 +73,8 @@ class ASLGPC12(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, gloss_path, text_path):
         """ Yields examples. """
 
-        gloss_f = open(gloss_path, "r")
-        text_f = open(text_path, "r")
+        gloss_f = open(gloss_path, "r", encoding="utf-8")
+        text_f = open(text_path, "r", encoding="utf-8")
 
         for i, (gloss, text) in enumerate(zip(gloss_f, text_f)):
             yield i, {
