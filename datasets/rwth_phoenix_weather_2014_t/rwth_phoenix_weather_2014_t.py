@@ -47,7 +47,7 @@ _CITATION = """\
 }
 """
 
-_URL = "ftps://wasserstoff.informatik.rwth-aachen.de/pub/rwth-phoenix/2016/phoenix-2014-T.v3.tar.gz"
+_URL = "https://www-i6.informatik.rwth-aachen.de/ftp/pub/rwth-phoenix/2016/phoenix-2014-T.v3.tar.gz"
 
 _HOMEPAGE = "https://www-i6.informatik.rwth-aachen.de/~koller/RWTH-PHOENIX-2014-T/"
 
