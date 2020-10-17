@@ -103,12 +103,15 @@ class RWTHPhoenixWeather2014T(datasets.GeneratorBasedBuilder):
             data = csv.DictReader(f, delimiter="|", quoting=csv.QUOTE_NONE)
             for row in data:
                 frames_path = os.path.join(images_path, row["video"])[:-7]
-                frames_paths = [os.path.join(frames_path, frame) for frame in os.listdir(frames_path)]
-                frames = [np.asarray(Image.open(path)) for path in frames_paths]
-                print(len(frames), frames[0].shape, frames[0].dtype)  # prints  5 (260, 210, 3) uint8
+                np_frames = []
+                for frame_name in os.listdir(frames_path):
+                    frame_path = os.path.join(frames_path, frame_name)
+                    im = Image.open(frame_path)
+                    np_frames.append(np.asarray(im))
+                    im.close()
 
                 yield row["name"], {
-                    "video": frames,
+                    "video": np_frames,
                     "signer": row["speaker"],
                     "gloss": row["orth"],
                     "text": row["translation"]
