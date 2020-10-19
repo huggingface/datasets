@@ -68,7 +68,10 @@ class NewDataset(datasets.GeneratorBasedBuilder):
     # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
     BUILDER_CONFIG_CLASS = NewDatasetConfig
     BUILDER_CONFIGS = [
-        NewDatasetConfig(name="my_dataset_" + size, description="A small dataset", data_size=size) for size in ["small", "medium", "large"]
+        NewDatasetConfig(
+            name="my_dataset_" + size, description="A small dataset", data_size=size
+        )
+        for size in ["small", "medium", "large"]
     ]
 
     def _info(self):
@@ -107,7 +110,9 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train_{}.jsonl".format(self.config.data_size)),
+                    "filepath": os.path.join(
+                        data_dir, "train_{}.jsonl".format(self.config.data_size)
+                    ),
                     #'labelpath': os.path.join(data_dir, 'train_{}-labels.lst'.format(self.config.data_size)),
                     "split": "train",
                 },
@@ -115,7 +120,10 @@ class NewDataset(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl"), "split": "test"},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "test.jsonl"),
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,

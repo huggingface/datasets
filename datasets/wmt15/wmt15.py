@@ -73,6 +73,10 @@ class Wmt15(Wmt):
                 "wikiheadlines_fi",
                 "wikiheadlines_ru",
             ],
-            datasets.Split.VALIDATION: ["newsdev2015", "newsdiscussdev2015", "newstest2014"],
+            datasets.Split.VALIDATION: [
+                "newsdev2015",
+                "newsdiscussdev2015",
+                "newstest2014",
+            ],
             datasets.Split.TEST: ["newstest2015", "newsdiscusstest2015"],
         }

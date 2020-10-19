@@ -149,7 +149,13 @@ Returns:
 
 
 def get_coref_infos(
-    key_lines, sys_lines, NP_only=False, remove_nested=False, keep_singletons=True, min_span=False, doc="dummy_doc"
+    key_lines,
+    sys_lines,
+    NP_only=False,
+    remove_nested=False,
+    keep_singletons=True,
+    min_span=False,
+    doc="dummy_doc",
 ):
 
     key_doc_lines = {doc: key_lines}
@@ -188,7 +194,12 @@ def get_coref_infos(
     sys_mention_key_cluster = reader.get_mention_assignments(sys_clusters, key_clusters)
     key_mention_sys_cluster = reader.get_mention_assignments(key_clusters, sys_clusters)
 
-    doc_coref_infos[doc] = (key_clusters, sys_clusters, key_mention_sys_cluster, sys_mention_key_cluster)
+    doc_coref_infos[doc] = (
+        key_clusters,
+        sys_clusters,
+        key_mention_sys_cluster,
+        sys_mention_key_cluster,
+    )
 
     if remove_nested:
         print(
@@ -273,7 +284,13 @@ class Coval(datasets.Metric):
         )
 
     def _compute(
-        self, predictions, references, keep_singletons=True, NP_only=False, min_spans=False, remove_nested=False
+        self,
+        predictions,
+        references,
+        keep_singletons=True,
+        NP_only=False,
+        min_spans=False,
+        remove_nested=False,
     ):
         allmetrics = [
             ("mentions", evaluator.mentions),

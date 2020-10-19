@@ -137,7 +137,10 @@ class KILTTasks(datasets.GeneratorBasedBuilder):
     """WikipediaKILT: Wikipedia pre-processed for KILT. Version 1.0."""
 
     BUILDER_CONFIGS = [
-        KILTTasksConfig(name="all_tasks", description="All KILT tasks traiing and evaluation data",),
+        KILTTasksConfig(
+            name="all_tasks",
+            description="All KILT tasks traiing and evaluation data",
+        ),
     ]
 
     def _info(self):
@@ -159,7 +162,11 @@ class KILTTasks(datasets.GeneratorBasedBuilder):
                                     "title": datasets.Value("string"),
                                     "section": datasets.Value("string"),
                                     "wikipedia_id": datasets.Value("string"),
-                                    "meta": datasets.features.Sequence({"evidence_span": datasets.Value("string"),}),
+                                    "meta": datasets.features.Sequence(
+                                        {
+                                            "evidence_span": datasets.Value("string"),
+                                        }
+                                    ),
                                 }
                             ),
                             "obj_surface": datasets.features.Sequence({"text": datasets.Value("string")}),
@@ -235,7 +242,12 @@ class KILTTasks(datasets.GeneratorBasedBuilder):
                 article["meta"] = article.get("meta", {})
                 for k in ["left_context", "mention", "right_context"]:
                     article["meta"][k] = article["meta"].get(k, "")
-                for k in ["obj_surface", "sub_surface", "subj_aliases", "template_questions"]:
+                for k in [
+                    "obj_surface",
+                    "sub_surface",
+                    "subj_aliases",
+                    "template_questions",
+                ]:
                     article["meta"][k] = {"text": article["meta"].get(k, [])}
                 article["meta"]["partial_evidence"] = article["meta"].get("partial_evidence", [])
                 if "partial_evidence" in article["meta"]:
@@ -275,7 +287,12 @@ class KILTTasks(datasets.GeneratorBasedBuilder):
                                 meta_dct["evidence_span"] = {"text": meta_dct.get("evidence_span", [])}
                         else:
                             prov_dct_list["meta"] = []
-                        for k in ["start_character", "start_paragraph_id", "end_character", "end_paragraph_id"]:
+                        for k in [
+                            "start_character",
+                            "start_paragraph_id",
+                            "end_character",
+                            "end_paragraph_id",
+                        ]:
                             prov_dct_list[k] = [prov.get(k, -1) for prov in prov_list]
                         for k in ["section", "title", "wikipedia_id"]:
                             prov_dct_list[k] = [prov.get(k, "") for prov in prov_list]

@@ -171,7 +171,10 @@ class Blimp(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(download_urls)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files[cfg.name]})
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_files[cfg.name]},
+            )
         ]
 
     def _generate_examples(self, filepath):

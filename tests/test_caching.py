@@ -123,7 +123,13 @@ class RecurseDumpTest(TestCase):
 
             code = func.__code__
             code = CodeType(*[getattr(code, k) if k != "co_filename" else co_filename for k in code_args])
-            return FunctionType(code, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+            return FunctionType(
+                code,
+                func.__globals__,
+                func.__name__,
+                func.__defaults__,
+                func.__closure__,
+            )
 
         co_filename, returned_obj = "<ipython-input-2-e0383a102aae>", [0]
         hash1 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()

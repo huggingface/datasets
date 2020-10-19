@@ -59,7 +59,12 @@ class Xsum(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    _DOCUMENT: datasets.Value("string"),
+                    _SUMMARY: datasets.Value("string"),
+                }
+            ),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset",
             citation=_CITATION,

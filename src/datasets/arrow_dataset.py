@@ -236,7 +236,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if self.info.features.type != inferred_features.type:
             raise ValueError(
                 "External features info don't match the dataset:\nGot\n{}\nwith type\n{}\n\nbut expected something like\n{}\nwith type\n{}".format(
-                    self.info.features, self.info.features.type, inferred_features, inferred_features.type
+                    self.info.features,
+                    self.info.features.type,
+                    inferred_features,
+                    inferred_features.type,
                 )
             )
 
@@ -739,7 +742,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             self.set_format(type, columns, output_all_columns, **format_kwargs)
             yield
         finally:
-            self.set_format(old_format_type, old_format_columns, old_output_all_columns, **old_format_kwargs)
+            self.set_format(
+                old_format_type,
+                old_format_columns,
+                old_output_all_columns,
+                **old_format_kwargs,
+            )
 
     @fingerprint(inplace=True)
     def set_format(
@@ -794,7 +802,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if columns is not None and any(col not in self._data.column_names for col in columns):
             raise ValueError(
                 "Columns {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, columns)), self._data.column_names
+                    list(filter(lambda col: col not in self._data.column_names, columns)),
+                    self._data.column_names,
                 )
             )
 
@@ -819,7 +828,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         self.set_format()
 
     def _convert_outputs(
-        self, outputs, format_type=None, format_columns=None, output_all_columns=False, format_kwargs=None
+        self,
+        outputs,
+        format_type=None,
+        format_columns=None,
+        output_all_columns=False,
+        format_kwargs=None,
     ):
         format_kwargs = format_kwargs if format_kwargs is not None else {}
         if format_type is None:
@@ -1038,7 +1052,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             else:
                 indices = key
 
-            indices_array = pa.array([int(i) + len(self) if int(i) < 0 else int(i) for i in indices], type=pa.uint64())
+            indices_array = pa.array(
+                [int(i) + len(self) if int(i) < 0 else int(i) for i in indices],
+                type=pa.uint64(),
+            )
 
             # Check if we need to convert indices
             indices_array = self._map_indices(indices_array)
@@ -1225,7 +1242,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 if all_dict_values_are_lists is False:
                     raise TypeError(
                         "Provided `function` which is applied to all elements of table returns a `dict` of types {}. When using `batched=True`, make sure provided `function` returns a `dict` of types like `{}`.".format(
-                            [type(x) for x in processed_inputs.values()], allowed_batch_return_types
+                            [type(x) for x in processed_inputs.values()],
+                            allowed_batch_return_types,
                         )
                     )
 
@@ -1284,7 +1302,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             with Pool(num_proc, initargs=(RLock(),), initializer=tqdm.set_lock) as pool:
                 os.environ = prev_env
                 shards = [
-                    self.shard(num_shards=num_proc, index=rank, contiguous=True, keep_in_memory=keep_in_memory)
+                    self.shard(
+                        num_shards=num_proc,
+                        index=rank,
+                        contiguous=True,
+                        keep_in_memory=keep_in_memory,
+                    )
                     for rank in range(num_proc)
                 ]
                 kwds_per_shard = [
@@ -1400,7 +1423,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if remove_columns is not None and any(col not in self._data.column_names for col in remove_columns):
             raise ValueError(
                 "Column to remove {} not in the dataset. Current columns in the dataset: {}".format(
-                    list(filter(lambda col: col not in self._data.column_names, remove_columns)),
+                    list(
+                        filter(
+                            lambda col: col not in self._data.column_names,
+                            remove_columns,
+                        )
+                    ),
                     self._data.column_names,
                 )
             )
@@ -1502,7 +1530,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             pbar_iterable = self if not batched else range(0, len(self), batch_size)
             pbar_unit = "ex" if not batched else "ba"
             pbar_desc = "#" + str(rank) if rank is not None else None
-            pbar = tqdm(pbar_iterable, disable=not_verbose, position=rank, unit=pbar_unit, desc=pbar_desc)
+            pbar = tqdm(
+                pbar_iterable,
+                disable=not_verbose,
+                position=rank,
+                unit=pbar_unit,
+                desc=pbar_desc,
+            )
             if not batched:
                 for i, example in enumerate(pbar):
                     example = apply_function_on_filtered_inputs(example, i, offset=offset)
@@ -1517,7 +1551,10 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                     indices = list(range(*(slice(i, i + batch_size).indices(self.num_rows))))  # Something simpler?
                     try:
                         batch = apply_function_on_filtered_inputs(
-                            batch, indices, check_same_num_examples=len(self.list_indexes()) > 0, offset=offset
+                            batch,
+                            indices,
+                            check_same_num_examples=len(self.list_indexes()) > 0,
+                            offset=offset,
                         )
                     except NumExamplesMismatch:
                         raise DatasetTransformationNotAllowedError(
@@ -1759,14 +1796,20 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             buf_writer = pa.BufferOutputStream()
             tmp_file = None
             writer = ArrowWriter(
-                stream=buf_writer, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+                stream=buf_writer,
+                writer_batch_size=writer_batch_size,
+                fingerprint=new_fingerprint,
+                unit="indices",
             )
         else:
             buf_writer = None
             logger.info("Caching indices mapping at %s", indices_cache_file_name)
             tmp_file = tempfile.NamedTemporaryFile("wb", dir=os.path.dirname(indices_cache_file_name), delete=False)
             writer = ArrowWriter(
-                path=tmp_file.name, writer_batch_size=writer_batch_size, fingerprint=new_fingerprint, unit="indices"
+                path=tmp_file.name,
+                writer_batch_size=writer_batch_size,
+                fingerprint=new_fingerprint,
+                unit="indices",
             )
 
         indices_array = pa.array(indices, type=pa.uint64())
@@ -1796,7 +1839,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         # Return new Dataset object
         if buf_writer is None:
             return self._new_dataset_with_indices(
-                indices_cache_file_name=indices_cache_file_name, fingerprint=new_fingerprint
+                indices_cache_file_name=indices_cache_file_name,
+                fingerprint=new_fingerprint,
             )
         else:
             return self._new_dataset_with_indices(indices_buffer=buf_writer.getvalue(), fingerprint=new_fingerprint)
@@ -1848,7 +1892,8 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         if not isinstance(column, str) or column not in self._data.column_names:
             raise ValueError(
                 "Column '{}' not found in the dataset. Please provide a column selected in: {}".format(
-                    column, self._data.column_names,
+                    column,
+                    self._data.column_names,
                 )
             )
 
@@ -1858,13 +1903,21 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warning("Loading cached sorted indices for dataset at %s", indices_cache_file_name)
+                logger.warning(
+                    "Loading cached sorted indices for dataset at %s",
+                    indices_cache_file_name,
+                )
                 return self._new_dataset_with_indices(
-                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint,
+                    indices_cache_file_name=indices_cache_file_name,
                 )
 
         column_data = self._getitem(
-            column, format_type="numpy", format_columns=None, output_all_columns=False, format_kwargs=None
+            column,
+            format_type="numpy",
+            format_columns=None,
+            output_all_columns=False,
+            format_kwargs=None,
         )
         indices = np.argsort(column_data, kind=kind)
         if reverse:
@@ -1938,9 +1991,13 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 # we create a unique hash from the function, current dataset file and the mapping args
                 indices_cache_file_name = self._get_cache_file_path(new_fingerprint)
             if os.path.exists(indices_cache_file_name) and load_from_cache_file:
-                logger.warning("Loading cached shuffled indices for dataset at %s", indices_cache_file_name)
+                logger.warning(
+                    "Loading cached shuffled indices for dataset at %s",
+                    indices_cache_file_name,
+                )
                 return self._new_dataset_with_indices(
-                    fingerprint=new_fingerprint, indices_cache_file_name=indices_cache_file_name
+                    fingerprint=new_fingerprint,
+                    indices_cache_file_name=indices_cache_file_name,
                 )
 
         permutation = generator.permutation(len(self))
@@ -1955,7 +2012,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
     @transmit_format
     @fingerprint(
-        inplace=False, randomized_function=True, fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"]
+        inplace=False,
+        randomized_function=True,
+        fingerprint_names=["train_new_fingerprint", "test_new_fingerprint"],
     )
     def train_test_split(
         self,
@@ -2007,7 +2066,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             test_new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the test set after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
-        from .dataset_dict import DatasetDict  # import here because of circular dependency
+        from .dataset_dict import (
+            DatasetDict,
+        )  # import here because of circular dependency
 
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(
@@ -2116,10 +2177,12 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
                 return DatasetDict(
                     {
                         "train": self._new_dataset_with_indices(
-                            fingerprint=train_new_fingerprint, indices_cache_file_name=train_indices_cache_file_name
+                            fingerprint=train_new_fingerprint,
+                            indices_cache_file_name=train_indices_cache_file_name,
                         ),
                         "test": self._new_dataset_with_indices(
-                            fingerprint=test_new_fingerprint, indices_cache_file_name=test_indices_cache_file_name
+                            fingerprint=test_new_fingerprint,
+                            indices_cache_file_name=test_indices_cache_file_name,
                         ),
                     }
                 )
@@ -2204,7 +2267,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
         )
 
     def export(
-        self, filename: str, format: str = "tfrecord",
+        self,
+        filename: str,
+        format: str = "tfrecord",
     ):
         """Writes the Arrow dataset to a TFRecord file.
 
@@ -2478,7 +2543,9 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
 
 
 def concatenate_datasets(
-    dsets: List[Dataset], info: Optional[Any] = None, split: Optional[Any] = None,
+    dsets: List[Dataset],
+    info: Optional[Any] = None,
+    split: Optional[Any] = None,
 ):
     """
     Converts a list of :obj:``datasets.Dataset`` with the same schema into a single :obj:``datasets.Dataset``.
@@ -2523,7 +2590,10 @@ def concatenate_datasets(
         else:
             array = table["indices"]
             if isinstance(array, pa.ChunkedArray):
-                new_array = pa.array(np.concatenate([c.to_numpy() for c in array.chunks]) + offset, pa.uint64())
+                new_array = pa.array(
+                    np.concatenate([c.to_numpy() for c in array.chunks]) + offset,
+                    pa.uint64(),
+                )
             else:
                 new_array = pa.array(array.to_numpy() + offset, pa.uint64())
             return pa.Table.from_arrays([new_array], names=["indices"])
@@ -2577,7 +2647,9 @@ def concatenate_datasets(
     if info is None:
         info = DatasetInfo.from_merge([dset.info for dset in dsets])
     fingerprint = update_fingerprint(
-        "".join(dset._fingerprint for dset in dsets), concatenate_datasets, {"info": info, "split": split}
+        "".join(dset._fingerprint for dset in dsets),
+        concatenate_datasets,
+        {"info": info, "split": split},
     )
     concatenated_dataset = Dataset(
         table,

@@ -116,7 +116,16 @@ class Glue(datasets.Metric):
             return pearson_and_spearman(predictions, references)
         elif self.config_name in ["mrpc", "qqp"]:
             return acc_and_f1(predictions, references)
-        elif self.config_name in ["sst2", "mnli", "mnli_mismatched", "mnli_matched", "qnli", "rte", "wnli", "hans"]:
+        elif self.config_name in [
+            "sst2",
+            "mnli",
+            "mnli_mismatched",
+            "mnli_matched",
+            "qnli",
+            "rte",
+            "wnli",
+            "hans",
+        ]:
             return {"accuracy": simple_accuracy(predictions, references)}
         else:
             raise KeyError(

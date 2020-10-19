@@ -32,7 +32,10 @@ TO_CONVERT = [
     (r"tfds\.features\.Text\(", r"datasets.Value('string'),"),
     (r"features\s*=\s*tfds.features.FeaturesDict\(", r"features=datasets.Features("),
     (r"tfds\.features\.FeaturesDict\(", r"dict("),
-    (r"The TensorFlow Datasets Authors", r"The TensorFlow Datasets Authors and the HuggingFace Datasets Authors"),
+    (
+        r"The TensorFlow Datasets Authors",
+        r"The TensorFlow Datasets Authors and the HuggingFace Datasets Authors",
+    ),
     (r"tfds\.", r"datasets."),
     (r"dl_manager\.manual_dir", r"self.config.data_dir"),
     (r"self\.builder_config", r"self.config"),
@@ -56,7 +59,8 @@ class ConvertCommand(BaseTransformersCLICommand):
         :return:
         """
         train_parser = parser.add_parser(
-            "convert", help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
+            "convert",
+            help="CLI tool to convert a (nlp) TensorFlow-Dataset in a HuggingFace-NLP dataset.",
         )
         train_parser.add_argument(
             "--tfds_path",
@@ -65,7 +69,10 @@ class ConvertCommand(BaseTransformersCLICommand):
             help="Path to a TensorFlow Datasets folder to convert or a single tfds file to convert.",
         )
         train_parser.add_argument(
-            "--datasets_directory", type=str, required=True, help="Path to the HuggingFace NLP folder."
+            "--datasets_directory",
+            type=str,
+            required=True,
+            help="Path to the HuggingFace NLP folder.",
         )
         train_parser.set_defaults(func=convert_command_factory)
 

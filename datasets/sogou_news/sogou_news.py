@@ -60,7 +60,13 @@ class Sogou_News(datasets.GeneratorBasedBuilder):
                     "title": datasets.Value("string"),
                     "content": datasets.Value("string"),
                     "label": datasets.features.ClassLabel(
-                        names=["sports", "finance", "entertainment", "automobile", "technology"]
+                        names=[
+                            "sports",
+                            "finance",
+                            "entertainment",
+                            "automobile",
+                            "technology",
+                        ]
                     ),
                 }
             ),
@@ -76,10 +82,12 @@ class Sogou_News(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "test.csv")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "test.csv")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "train.csv")}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "sogou_news_csv", "train.csv")},
             ),
         ]
 
@@ -88,4 +96,8 @@ class Sogou_News(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as csv_file:
             data = csv.reader(csv_file)
             for id_, row in enumerate(data):
-                yield id_, {"title": row[1], "content": row[2], "label": int(row[0]) - 1}
+                yield id_, {
+                    "title": row[1],
+                    "content": row[2],
+                    "label": int(row[0]) - 1,
+                }

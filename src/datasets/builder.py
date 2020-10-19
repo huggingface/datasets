@@ -29,7 +29,12 @@ from filelock import FileLock
 
 from . import utils
 from .arrow_dataset import Dataset
-from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
+from .arrow_reader import (
+    HF_GCP_BASE_URL,
+    ArrowReader,
+    DatasetNotOnHfGcs,
+    MissingFilesOnHfGcs,
+)
 from .arrow_writer import ArrowWriter, BeamWriter
 from .dataset_dict import DatasetDict
 from .fingerprint import Hasher
@@ -123,7 +128,12 @@ class DatasetBuilder:
     # displayed in the dataset documentation.
 
     def __init__(
-        self, cache_dir=None, name=None, hash=None, features=None, **config_kwargs,
+        self,
+        cache_dir=None,
+        name=None,
+        hash=None,
+        features=None,
+        **config_kwargs,
     ):
         """Constructs a DatasetBuilder.
 
@@ -150,7 +160,10 @@ class DatasetBuilder:
         config_kwargs = dict((key, value) for key, value in config_kwargs.items() if value is not None)
         if "features" in inspect.signature(self.BUILDER_CONFIG_CLASS.__init__).parameters and features is not None:
             config_kwargs["features"] = features
-        self.config = self._create_builder_config(name, **config_kwargs,)
+        self.config = self._create_builder_config(
+            name,
+            **config_kwargs,
+        )
 
         # prepare info: DatasetInfo are a standardized dataclass across all datasets
         # Prefill datasetinfo
@@ -214,7 +227,11 @@ class DatasetBuilder:
                     + "\nExample of usage:\n\t`{}`".format(example_of_usage)
                 )
             builder_config = self.BUILDER_CONFIGS[0]
-            logger.info("No config specified, defaulting to first: %s/%s", self.name, builder_config.name)
+            logger.info(
+                "No config specified, defaulting to first: %s/%s",
+                self.name,
+                builder_config.name,
+            )
         if isinstance(name, str):
             builder_config = self.builder_configs.get(name)
             if builder_config is None and self.BUILDER_CONFIGS:
@@ -390,7 +407,9 @@ class DatasetBuilder:
                 )  # We don't use etag for data files to speed up the process
 
             dl_manager = DownloadManager(
-                dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
+                dataset_name=self.name,
+                download_config=download_config,
+                data_dir=self.config.data_dir,
             )
 
         # Prevent parallel disk operations
@@ -445,7 +464,10 @@ class DatasetBuilder:
                 assert (
                     dl_manager.manual_dir is not None
                 ), "The dataset {} with config {} requires manual data. \n Please follow the manual download instructions: {}. \n Manual data can be loaded with `datasets.load_dataset({}, data_dir='<path/to/manual/data>')".format(
-                    self.name, self.config.name, self.manual_download_instructions, self.name
+                    self.name,
+                    self.config.name,
+                    self.manual_download_instructions,
+                    self.name,
                 )
 
             # Create a tmp dir and rename to self._cache_dir on successful exit.
@@ -465,7 +487,9 @@ class DatasetBuilder:
                             logger.warning("HF google storage unreachable. Downloading and preparing it from source")
                     if not downloaded_from_gcs:
                         self._download_and_prepare(
-                            dl_manager=dl_manager, verify_infos=verify_infos, **download_and_prepare_kwargs
+                            dl_manager=dl_manager,
+                            verify_infos=verify_infos,
+                            **download_and_prepare_kwargs,
                         )
                     # Sync info
                     self.info.dataset_size = sum(split.num_bytes for split in self.info.splits.values())
@@ -525,7 +549,9 @@ class DatasetBuilder:
         # Checksums verification
         if verify_infos:
             verify_checksums(
-                self.info.download_checksums, dl_manager.get_recorded_sizes_checksums(), "dataset source files"
+                self.info.download_checksums,
+                dl_manager.get_recorded_sizes_checksums(),
+                "dataset source files",
             )
 
         # Build splits
@@ -585,7 +611,10 @@ class DatasetBuilder:
         return {}
 
     def as_dataset(
-        self, split: Optional[Split] = None, run_post_process=True, ignore_verifications=False
+        self,
+        split: Optional[Split] = None,
+        run_post_process=True,
+        ignore_verifications=False,
     ) -> Union[Dataset, DatasetDict]:
         """Return a Dataset for the specified split."""
         if not os.path.exists(self._cache_dir):
@@ -599,7 +628,9 @@ class DatasetBuilder:
             )
 
         logger.info(
-            "Constructing Dataset for split %s, from %s", split or ", ".join(self.info.splits), self._cache_dir
+            "Constructing Dataset for split %s, from %s",
+            split or ", ".join(self.info.splits),
+            self._cache_dir,
         )
 
         # By default, return all splits
@@ -620,14 +651,21 @@ class DatasetBuilder:
             datasets = DatasetDict(datasets)
         return datasets
 
-    def _build_single_dataset(self, split: Union[str, Split], run_post_process: bool, ignore_verifications: bool):
+    def _build_single_dataset(
+        self,
+        split: Union[str, Split],
+        run_post_process: bool,
+        ignore_verifications: bool,
+    ):
         """as_dataset for a single split."""
         verify_infos = not ignore_verifications
         if isinstance(split, str):
             split = Split(split)
 
         # Build base dataset
-        ds = self._as_dataset(split=split,)
+        ds = self._as_dataset(
+            split=split,
+        )
         if run_post_process:
             for resource_file_name in self._post_processing_resources(split).values():
                 if os.sep in resource_file_name:
@@ -648,7 +686,11 @@ class DatasetBuilder:
                         expected_checksums = None
                     else:
                         expected_checksums = self.info.post_processed.resources_checksums.get(split)
-                    verify_checksums(expected_checksums, recorded_checksums, "post processing resources")
+                    verify_checksums(
+                        expected_checksums,
+                        recorded_checksums,
+                        "post processing resources",
+                    )
                 if self.info.post_processed is None:
                     self.info.post_processed = PostProcessedInfo()
                 if self.info.post_processed.resources_checksums is None:
@@ -694,7 +736,9 @@ class DatasetBuilder:
         """
 
         dataset_kwargs = ArrowReader(self._cache_dir, self.info).read(
-            name=self.name, instructions=split, split_infos=self.info.splits.values(),
+            name=self.name,
+            instructions=split,
+            split_infos=self.info.splits.values(),
         )
         return Dataset(**dataset_kwargs)
 
@@ -820,13 +864,21 @@ class GeneratorBasedBuilder(DatasetBuilder):
 
         fname = "{}-{}.arrow".format(self.name, split_generator.name)
         fpath = os.path.join(self._cache_dir, fname)
-        writer = ArrowWriter(features=self.info.features, path=fpath, writer_batch_size=self._writer_batch_size)
+        writer = ArrowWriter(
+            features=self.info.features,
+            path=fpath,
+            writer_batch_size=self._writer_batch_size,
+        )
 
         generator = self._generate_examples(**split_generator.gen_kwargs)
         not_verbose = bool(logger.getEffectiveLevel() > WARNING)
         try:
             for key, record in utils.tqdm(
-                generator, unit=" examples", total=split_info.num_examples, leave=False, disable=not_verbose
+                generator,
+                unit=" examples",
+                total=split_info.num_examples,
+                leave=False,
+                disable=not_verbose,
             ):
                 example = self.info.features.encode_example(record)
                 writer.write(example)
@@ -982,9 +1034,14 @@ class BeamBasedBuilder(DatasetBuilder):
         # are better without it.
         beam_options.view_as(beam.options.pipeline_options.TypeOptions).pipeline_type_check = False
         # Use a single pipeline for all splits
-        pipeline = beam_utils.BeamPipeline(runner=beam_runner, options=beam_options,)
+        pipeline = beam_utils.BeamPipeline(
+            runner=beam_runner,
+            options=beam_options,
+        )
         super(BeamBasedBuilder, self)._download_and_prepare(
-            dl_manager, verify_infos=False, pipeline=pipeline,
+            dl_manager,
+            verify_infos=False,
+            pipeline=pipeline,
         )  # TODO handle verify_infos in beam datasets
         # Run pipeline
         pipeline_results = pipeline.run()
@@ -1022,7 +1079,10 @@ class BeamBasedBuilder(DatasetBuilder):
         fname = "{}-{}.arrow".format(self.name, split_name)
         fpath = os.path.join(self._cache_dir, fname)
         beam_writer = BeamWriter(
-            features=self.info.features, path=fpath, namespace=split_name, cache_dir=self._cache_dir
+            features=self.info.features,
+            path=fpath,
+            namespace=split_name,
+            cache_dir=self._cache_dir,
         )
         self._beam_writers[split_name] = beam_writer
 

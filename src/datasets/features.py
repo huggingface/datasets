@@ -222,7 +222,10 @@ class _ArrayXDExtensionType(pa.PyExtensionType):
         pa.PyExtensionType.__init__(self, self.storage_dtype)
 
     def __reduce__(self):
-        return self.__class__, (self.shape, self.value_type,)
+        return self.__class__, (
+            self.shape,
+            self.value_type,
+        )
 
     def __arrow_ext_class__(self):
         return ArrayExtensionArray
@@ -320,7 +323,10 @@ class PandasArrayExtensionArray(PandasExtensionArray):
 
     @classmethod
     def _from_sequence(
-        cls, scalars, dtype: Optional[PandasArrayExtensionDtype] = None, copy: bool = False
+        cls,
+        scalars,
+        dtype: Optional[PandasArrayExtensionDtype] = None,
+        copy: bool = False,
     ) -> "PandasArrayExtensionArray":
         data = np.array(scalars, dtype=dtype if dtype is None else dtype.value_type, copy=copy)
         return PandasArrayExtensionArray(data, dtype=dtype, copy=copy)
@@ -625,7 +631,8 @@ class TranslationVariableLanguages:
         if self.languages and set(translation_dict) - lang_set:
             raise ValueError(
                 "Some languages in example ({0}) are not in valid set ({1}).".format(
-                    ", ".join(sorted(set(translation_dict) - lang_set)), ", ".join(lang_set)
+                    ", ".join(sorted(set(translation_dict) - lang_set)),
+                    ", ".join(lang_set),
                 )
             )
 
@@ -759,7 +766,10 @@ def generate_from_arrow_type(pa_type: pa.DataType):
     if isinstance(pa_type, pa.StructType):
         return {field.name: generate_from_arrow_type(field.type) for field in pa_type}
     elif isinstance(pa_type, pa.FixedSizeListType):
-        return Sequence(feature=generate_from_arrow_type(pa_type.value_type), length=pa_type.list_size)
+        return Sequence(
+            feature=generate_from_arrow_type(pa_type.value_type),
+            length=pa_type.list_size,
+        )
     elif isinstance(pa_type, pa.ListType):
         feature = generate_from_arrow_type(pa_type.value_type)
         if isinstance(feature, (dict, tuple, list)):

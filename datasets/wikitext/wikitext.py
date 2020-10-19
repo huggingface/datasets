@@ -35,7 +35,10 @@ class WikitextConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(WikitextConfig, self).__init__(
-            version=datasets.Version("1.0.0",), **kwargs,
+            version=datasets.Version(
+                "1.0.0",
+            ),
+            **kwargs,
         )
         self.data_url = data_url
 
@@ -102,15 +105,24 @@ class Wikitext(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={"data_file": os.path.join(data_dir, "wiki.test.tokens"), "split": "test"},
+                    gen_kwargs={
+                        "data_file": os.path.join(data_dir, "wiki.test.tokens"),
+                        "split": "test",
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={"data_file": os.path.join(data_dir, "wiki.train.tokens"), "split": "train"},
+                    gen_kwargs={
+                        "data_file": os.path.join(data_dir, "wiki.train.tokens"),
+                        "split": "train",
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={"data_file": os.path.join(data_dir, "wiki.valid.tokens"), "split": "valid"},
+                    gen_kwargs={
+                        "data_file": os.path.join(data_dir, "wiki.valid.tokens"),
+                        "split": "valid",
+                    },
                 ),
             ]
         else:
@@ -120,15 +132,24 @@ class Wikitext(datasets.GeneratorBasedBuilder):
                 return [
                     datasets.SplitGenerator(
                         name=datasets.Split.TEST,
-                        gen_kwargs={"data_file": os.path.join(data_dir, "wiki.test.raw"), "split": "test"},
+                        gen_kwargs={
+                            "data_file": os.path.join(data_dir, "wiki.test.raw"),
+                            "split": "test",
+                        },
                     ),
                     datasets.SplitGenerator(
                         name=datasets.Split.TRAIN,
-                        gen_kwargs={"data_file": os.path.join(data_dir, "wiki.train.raw"), "split": "train"},
+                        gen_kwargs={
+                            "data_file": os.path.join(data_dir, "wiki.train.raw"),
+                            "split": "train",
+                        },
                     ),
                     datasets.SplitGenerator(
                         name=datasets.Split.VALIDATION,
-                        gen_kwargs={"data_file": os.path.join(data_dir, "wiki.valid.raw"), "split": "valid"},
+                        gen_kwargs={
+                            "data_file": os.path.join(data_dir, "wiki.valid.raw"),
+                            "split": "valid",
+                        },
                     ),
                 ]
             else:
@@ -138,15 +159,24 @@ class Wikitext(datasets.GeneratorBasedBuilder):
                     return [
                         datasets.SplitGenerator(
                             name=datasets.Split.TEST,
-                            gen_kwargs={"data_file": os.path.join(data_dir, "wiki.test.raw"), "split": "test"},
+                            gen_kwargs={
+                                "data_file": os.path.join(data_dir, "wiki.test.raw"),
+                                "split": "test",
+                            },
                         ),
                         datasets.SplitGenerator(
                             name=datasets.Split.TRAIN,
-                            gen_kwargs={"data_file": os.path.join(data_dir, "wiki.train.raw"), "split": "train"},
+                            gen_kwargs={
+                                "data_file": os.path.join(data_dir, "wiki.train.raw"),
+                                "split": "train",
+                            },
                         ),
                         datasets.SplitGenerator(
                             name=datasets.Split.VALIDATION,
-                            gen_kwargs={"data_file": os.path.join(data_dir, "wiki.valid.raw"), "split": "valid"},
+                            gen_kwargs={
+                                "data_file": os.path.join(data_dir, "wiki.valid.raw"),
+                                "split": "valid",
+                            },
                         ),
                     ]
                 else:
@@ -156,7 +186,10 @@ class Wikitext(datasets.GeneratorBasedBuilder):
                         return [
                             datasets.SplitGenerator(
                                 name=datasets.Split.TEST,
-                                gen_kwargs={"data_file": os.path.join(data_dir, "wiki.test.tokens"), "split": "test"},
+                                gen_kwargs={
+                                    "data_file": os.path.join(data_dir, "wiki.test.tokens"),
+                                    "split": "test",
+                                },
                             ),
                             datasets.SplitGenerator(
                                 name=datasets.Split.TRAIN,

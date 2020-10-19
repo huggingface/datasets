@@ -94,7 +94,12 @@ class Cfq(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({_QUESTION: datasets.Value("string"), _QUERY: datasets.Value("string"),}),
+            features=datasets.Features(
+                {
+                    _QUESTION: datasets.Value("string"),
+                    _QUERY: datasets.Value("string"),
+                }
+            ),
             supervised_keys=(_QUESTION, _QUERY),
             homepage="https://github.com/google-research/google-research/tree/master/cfq",
             citation=_CITATION,
@@ -115,7 +120,11 @@ class Cfq(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"base_directory": data_dir, "splits_file": self.config.split_file, "split_id": "testIdxs"},
+                gen_kwargs={
+                    "base_directory": data_dir,
+                    "splits_file": self.config.split_file,
+                    "split_id": "testIdxs",
+                },
             ),
         ]
 
@@ -127,7 +136,10 @@ class Cfq(datasets.GeneratorBasedBuilder):
         # dependencies we use a simple (perhaps somewhat brittle) regexp to reduce
         # the content to only what is needed. This takes 1min to execute but
         # afterwards loading requires only 500MB or RAM and is done in 2s.
-        regex = re.compile(r'("%s":\s*"[^"]*").*?("%s":\s*"[^"]*")' % (_QUESTION_FIELD, _QUERY_FIELD), re.DOTALL)
+        regex = re.compile(
+            r'("%s":\s*"[^"]*").*?("%s":\s*"[^"]*")' % (_QUESTION_FIELD, _QUERY_FIELD),
+            re.DOTALL,
+        )
         return "[" + ",".join(["{" + m.group(1) + "," + m.group(2) + "}" for m in regex.finditer(content)]) + "]"
 
     def _generate_examples(self, base_directory, splits_file, split_id):
@@ -143,4 +155,7 @@ class Cfq(datasets.GeneratorBasedBuilder):
                 splits = json.load(splits_file)
                 for idx in splits[split_id]:
                     sample = samples[idx]
-                    yield idx, {_QUESTION: sample[_QUESTION_FIELD], _QUERY: sample[_QUERY_FIELD]}
+                    yield idx, {
+                        _QUESTION: sample[_QUESTION_FIELD],
+                        _QUERY: sample[_QUERY_FIELD],
+                    }

@@ -51,7 +51,10 @@ class RemoteMetricTest(parameterized.TestCase):
             if metric_name == "glue":
                 config_name = "sst2"
             metric = load_metric(
-                metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config
+                metric_name,
+                config_name=config_name,
+                data_dir=temp_data_dir,
+                download_config=download_config,
             )
 
             parameters = inspect.signature(metric._compute).parameters
@@ -74,7 +77,10 @@ class LocalMetricTest(parameterized.TestCase):
             if metric_name == "glue":
                 config_name = "sst2"
             metric = load_metric(
-                metric_name, config_name=config_name, data_dir=temp_data_dir, download_config=download_config
+                metric_name,
+                config_name=config_name,
+                data_dir=temp_data_dir,
+                download_config=download_config,
             )
 
             parameters = inspect.signature(metric._compute).parameters

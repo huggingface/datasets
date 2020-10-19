@@ -21,7 +21,9 @@ import scipy.stats
 
 import datasets
 
-from .gec_gleu import GLEU  # From: https://github.com/cnap/gec-ranking/blob/master/scripts/gleu.py
+from .gec_gleu import (
+    GLEU,
+)  # From: https://github.com/cnap/gec-ranking/blob/master/scripts/gleu.py
 
 
 _CITATION = """\
@@ -93,7 +95,8 @@ class Gleu(datasets.Metric):
                 {
                     "predictions": datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
                     "references": datasets.Sequence(
-                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"), id="references"
+                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
+                        id="references",
                     ),
                 }
             ),

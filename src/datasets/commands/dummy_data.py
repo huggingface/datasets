@@ -11,19 +11,28 @@ logger = get_logger(__name__)
 
 
 def test_command_factory(args):
-    return DummyDataCommand(args.path_to_dataset, args.requires_manual,)
+    return DummyDataCommand(
+        args.path_to_dataset,
+        args.requires_manual,
+    )
 
 
 class DummyDataCommand(BaseTransformersCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("dummy_data")
-        test_parser.add_argument("--requires_manual", action="store_true", help="Dataset requires manual data")
+        test_parser.add_argument(
+            "--requires_manual",
+            action="store_true",
+            help="Dataset requires manual data",
+        )
         test_parser.add_argument("path_to_dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=test_command_factory)
 
     def __init__(
-        self, path_to_dataset: str, requires_manual: bool,
+        self,
+        path_to_dataset: str,
+        requires_manual: bool,
     ):
         self._path_to_dataset = path_to_dataset
         self._requires_manual = requires_manual
@@ -46,7 +55,10 @@ class DummyDataCommand(BaseTransformersCLICommand):
 
             dataset_builder = builder_cls(name=name, hash=hash)
             mock_dl_manager = MockDownloadManager(
-                dataset_name=self._dataset_name, config=config, version=version, is_local=True
+                dataset_name=self._dataset_name,
+                config=config,
+                version=version,
+                is_local=True,
             )
 
             dummy_data_folder = os.path.join(self._path_to_dataset, mock_dl_manager.dummy_data_folder)

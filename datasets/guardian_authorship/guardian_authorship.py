@@ -93,7 +93,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(1),
             version=datasets.Version(
-                "{}.0.0".format(1), description="The Original DS with the cross-topic scenario no.{}".format(1)
+                "{}.0.0".format(1),
+                description="The Original DS with the cross-topic scenario no.{}".format(1),
             ),
             train_folder="Politics",
             valid_folder="Society",
@@ -102,7 +103,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(2),
             version=datasets.Version(
-                "{}.0.0".format(2), description="The Original DS with the cross-topic scenario no.{}".format(2)
+                "{}.0.0".format(2),
+                description="The Original DS with the cross-topic scenario no.{}".format(2),
             ),
             train_folder="Politics",
             valid_folder="UK",
@@ -111,7 +113,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(3),
             version=datasets.Version(
-                "{}.0.0".format(3), description="The Original DS with the cross-topic scenario no.{}".format(3)
+                "{}.0.0".format(3),
+                description="The Original DS with the cross-topic scenario no.{}".format(3),
             ),
             train_folder="Politics",
             valid_folder="World",
@@ -120,7 +123,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(4),
             version=datasets.Version(
-                "{}.0.0".format(4), description="The Original DS with the cross-topic scenario no.{}".format(4)
+                "{}.0.0".format(4),
+                description="The Original DS with the cross-topic scenario no.{}".format(4),
             ),
             train_folder="Society",
             valid_folder="Politics",
@@ -129,7 +133,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(5),
             version=datasets.Version(
-                "{}.0.0".format(5), description="The Original DS with the cross-topic scenario no.{}".format(5)
+                "{}.0.0".format(5),
+                description="The Original DS with the cross-topic scenario no.{}".format(5),
             ),
             train_folder="Society",
             valid_folder="UK",
@@ -138,7 +143,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(6),
             version=datasets.Version(
-                "{}.0.0".format(6), description="The Original DS with the cross-topic scenario no.{}".format(6)
+                "{}.0.0".format(6),
+                description="The Original DS with the cross-topic scenario no.{}".format(6),
             ),
             train_folder="Society",
             valid_folder="World",
@@ -147,7 +153,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(7),
             version=datasets.Version(
-                "{}.0.0".format(7), description="The Original DS with the cross-topic scenario no.{}".format(7)
+                "{}.0.0".format(7),
+                description="The Original DS with the cross-topic scenario no.{}".format(7),
             ),
             train_folder="UK",
             valid_folder="Politics",
@@ -156,7 +163,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(8),
             version=datasets.Version(
-                "{}.0.0".format(8), description="The Original DS with the cross-topic scenario no.{}".format(8)
+                "{}.0.0".format(8),
+                description="The Original DS with the cross-topic scenario no.{}".format(8),
             ),
             train_folder="UK",
             valid_folder="Society",
@@ -165,7 +173,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(9),
             version=datasets.Version(
-                "{}.0.0".format(9), description="The Original DS with the cross-topic scenario no.{}".format(9)
+                "{}.0.0".format(9),
+                description="The Original DS with the cross-topic scenario no.{}".format(9),
             ),
             train_folder="UK",
             valid_folder="World",
@@ -174,7 +183,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(10),
             version=datasets.Version(
-                "{}.0.0".format(10), description="The Original DS with the cross-topic scenario no.{}".format(10)
+                "{}.0.0".format(10),
+                description="The Original DS with the cross-topic scenario no.{}".format(10),
             ),
             train_folder="World",
             valid_folder="Politics",
@@ -183,7 +193,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(11),
             version=datasets.Version(
-                "{}.0.0".format(11), description="The Original DS with the cross-topic scenario no.{}".format(11)
+                "{}.0.0".format(11),
+                description="The Original DS with the cross-topic scenario no.{}".format(11),
             ),
             train_folder="World",
             valid_folder="Society",
@@ -192,7 +203,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_topic_{}".format(12),
             version=datasets.Version(
-                "{}.0.0".format(12), description="The Original DS with the cross-topic scenario no.{}".format(12)
+                "{}.0.0".format(12),
+                description="The Original DS with the cross-topic scenario no.{}".format(12),
             ),
             train_folder="World",
             valid_folder="UK",
@@ -202,7 +214,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_genre_{}".format(1),
             version=datasets.Version(
-                "{}.0.0".format(13), description="The Original DS with the cross-genre scenario no.{}".format(1)
+                "{}.0.0".format(13),
+                description="The Original DS with the cross-genre scenario no.{}".format(1),
             ),
             train_folder="Books",
             valid_folder="Politics",
@@ -211,7 +224,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_genre_{}".format(2),
             version=datasets.Version(
-                "{}.0.0".format(14), description="The Original DS with the cross-genre scenario no.{}".format(2)
+                "{}.0.0".format(14),
+                description="The Original DS with the cross-genre scenario no.{}".format(2),
             ),
             train_folder="Books",
             valid_folder="Society",
@@ -220,7 +234,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_genre_{}".format(3),
             version=datasets.Version(
-                "{}.0.0".format(15), description="The Original DS with the cross-genre scenario no.{}".format(3)
+                "{}.0.0".format(15),
+                description="The Original DS with the cross-genre scenario no.{}".format(3),
             ),
             train_folder="Books",
             valid_folder="UK",
@@ -229,7 +244,8 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
         GuardianAuthorshipConfig(
             name="cross_genre_{}".format(4),
             version=datasets.Version(
-                "{}.0.0".format(16), description="The Original DS with the cross-genre scenario no.{}".format(4)
+                "{}.0.0".format(16),
+                description="The Original DS with the cross-genre scenario no.{}".format(4),
             ),
             train_folder="Books",
             valid_folder="World",
@@ -290,17 +306,29 @@ class GuardianAuthorship(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": data_dir, "samples_folders": self.config.train_folder, "split": "train"},
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "samples_folders": self.config.train_folder,
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": data_dir, "samples_folders": self.config.test_folder, "split": "test"},
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "samples_folders": self.config.test_folder,
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": data_dir, "samples_folders": self.config.valid_folder, "split": "valid"},
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "samples_folders": self.config.valid_folder,
+                    "split": "valid",
+                },
             ),
         ]
 

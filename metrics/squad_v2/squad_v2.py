@@ -16,7 +16,13 @@
 
 import datasets
 
-from .evaluate import apply_no_ans_threshold, get_raw_scores, make_eval_dict, make_qid_to_has_ans, merge_eval
+from .evaluate import (
+    apply_no_ans_threshold,
+    get_raw_scores,
+    make_eval_dict,
+    make_qid_to_has_ans,
+    merge_eval,
+)
 
 
 _CITATION = """\
@@ -87,7 +93,10 @@ class SquadV2(datasets.Metric):
                     "references": {
                         "id": datasets.Value("string"),
                         "answers": datasets.features.Sequence(
-                            {"text": datasets.Value("string"), "answer_start": datasets.Value("int32")}
+                            {
+                                "text": datasets.Value("string"),
+                                "answer_start": datasets.Value("int32"),
+                            }
                         ),
                     },
                 }

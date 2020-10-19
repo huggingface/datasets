@@ -64,11 +64,17 @@ class Squad(datasets.Metric):
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": {"id": datasets.Value("string"), "prediction_text": datasets.Value("string")},
+                    "predictions": {
+                        "id": datasets.Value("string"),
+                        "prediction_text": datasets.Value("string"),
+                    },
                     "references": {
                         "id": datasets.Value("string"),
                         "answers": datasets.features.Sequence(
-                            {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                            {
+                                "text": datasets.Value("string"),
+                                "answer_start": datasets.Value("int32"),
+                            }
                         ),
                     },
                 }

@@ -54,7 +54,10 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"text": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["neg", "pos"])}
+                {
+                    "text": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["neg", "pos"]),
+                }
             ),
             supervised_keys=[""],
             homepage="http://www.cs.cornell.edu/people/pabo/movie-review-data/",
@@ -70,14 +73,19 @@ class RottenTomatoesMovieReview(datasets.GeneratorBasedBuilder):
         extracted_folder_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"split_key": "train", "data_dir": extracted_folder_path},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"split_key": "validation", "data_dir": extracted_folder_path},
+                gen_kwargs={
+                    "split_key": "validation",
+                    "data_dir": extracted_folder_path,
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
+                name=datasets.Split.TEST,
+                gen_kwargs={"split_key": "test", "data_dir": extracted_folder_path},
             ),
         ]
 

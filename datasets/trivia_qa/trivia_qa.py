@@ -191,15 +191,27 @@ class TriviaQa(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"files": train_files, "web_dir": web_evidence_dir, "wiki_dir": wiki_evidence_dir},
+                gen_kwargs={
+                    "files": train_files,
+                    "web_dir": web_evidence_dir,
+                    "wiki_dir": wiki_evidence_dir,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"files": valid_files, "web_dir": web_evidence_dir, "wiki_dir": wiki_evidence_dir},
+                gen_kwargs={
+                    "files": valid_files,
+                    "web_dir": web_evidence_dir,
+                    "wiki_dir": wiki_evidence_dir,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"files": test_files, "web_dir": web_evidence_dir, "wiki_dir": wiki_evidence_dir},
+                gen_kwargs={
+                    "files": test_files,
+                    "web_dir": web_evidence_dir,
+                    "wiki_dir": wiki_evidence_dir,
+                },
             ),
         ]
 

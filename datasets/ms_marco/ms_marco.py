@@ -93,8 +93,16 @@ class MsMarcoConfig(datasets.BuilderConfig):
 class MsMarco(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        MsMarcoConfig(name="v1.1", description="""version v1.1""", version=datasets.Version("1.1.0", ""),),
-        MsMarcoConfig(name="v2.1", description="""version v2.1""", version=datasets.Version("2.1.0", ""),),
+        MsMarcoConfig(
+            name="v1.1",
+            description="""version v1.1""",
+            version=datasets.Version("1.1.0", ""),
+        ),
+        MsMarcoConfig(
+            name="v2.1",
+            description="""version v2.1""",
+            version=datasets.Version("2.1.0", ""),
+        ),
     ]
 
     def _info(self):
@@ -127,9 +135,18 @@ class MsMarco(datasets.GeneratorBasedBuilder):
         else:
             dl_path = dl_manager.download_and_extract(_V1_URLS)
         return [
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": dl_path["dev"]},),
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": dl_path["train"]},),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": dl_path["test"]},),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": dl_path["dev"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": dl_path["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": dl_path["test"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):
@@ -157,7 +174,11 @@ class MsMarco(datasets.GeneratorBasedBuilder):
                         wellFormedAnswer = []
                     yield query_id, {
                         "answers": answer,
-                        "passages": {"is_selected": is_selected, "passage_text": passage_text, "url": urls},
+                        "passages": {
+                            "is_selected": is_selected,
+                            "passage_text": passage_text,
+                            "url": urls,
+                        },
                         "query": question,
                         "query_id": query_id,
                         "query_type": query_type,
@@ -180,7 +201,11 @@ class MsMarco(datasets.GeneratorBasedBuilder):
                         wellFormedAnswer = []
                     yield query_id, {
                         "answers": answer,
-                        "passages": {"is_selected": is_selected, "passage_text": passage_text, "url": urls},
+                        "passages": {
+                            "is_selected": is_selected,
+                            "passage_text": passage_text,
+                            "url": urls,
+                        },
                         "query": question,
                         "query_id": query_id,
                         "query_type": query_type,

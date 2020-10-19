@@ -163,7 +163,11 @@ def _post_process(reddit_dct, name=""):
         for i, c in enumerate(reddit_dct["comments"])
         if len(c["body"][0].split()) >= 8 and c["id"] not in [x["id"] for x in reddit_dct["comments"][:i]]
     ]
-    comments = sorted(comments, key=lambda c: (c["score"], len(c["body"][0].split()), c["id"]), reverse=True)
+    comments = sorted(
+        comments,
+        key=lambda c: (c["score"], len(c["body"][0].split()), c["id"]),
+        reverse=True,
+    )
     reddit_dct["comments"] = comments
     return reddit_dct
 
@@ -263,7 +267,11 @@ class Eli5(datasets.GeneratorBasedBuilder):
     _DATA_SPLIT_URL = "https://s3.amazonaws.com/datasets.huggingface.co/nlp/datasets/eli5/reddit_data_split.json"
 
     BUILDER_CONFIGS = [
-        Eli5Config(name="LFQA_reddit", version=datasets.Version("1.0.0"), description="long from QA subreddits"),
+        Eli5Config(
+            name="LFQA_reddit",
+            version=datasets.Version("1.0.0"),
+            description="long from QA subreddits",
+        ),
     ]
 
     test_dummy_data = False
@@ -297,7 +305,9 @@ class Eli5(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         qa_data_file = pjoin(
-            self._cache_dir_root, self._relative_data_dir(with_version=False), "reddit_downloaded_qa_lists.json"
+            self._cache_dir_root,
+            self._relative_data_dir(with_version=False),
+            "reddit_downloaded_qa_lists.json",
         )
         if isfile(qa_data_file):
             logging.info("loading pre-computed QA list")
@@ -318,30 +328,38 @@ class Eli5(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("validation_eli5"),
-                gen_kwargs={"split": "validation", "subreddit_name": "explainlikeimfive"},
+                gen_kwargs={
+                    "split": "validation",
+                    "subreddit_name": "explainlikeimfive",
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("test_eli5"), gen_kwargs={"split": "test", "subreddit_name": "explainlikeimfive"},
+                name=datasets.Split("test_eli5"),
+                gen_kwargs={"split": "test", "subreddit_name": "explainlikeimfive"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("train_asks"), gen_kwargs={"split": "train", "subreddit_name": "askscience"},
+                name=datasets.Split("train_asks"),
+                gen_kwargs={"split": "train", "subreddit_name": "askscience"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("validation_asks"),
                 gen_kwargs={"split": "validation", "subreddit_name": "askscience"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("test_asks"), gen_kwargs={"split": "test", "subreddit_name": "askscience"},
+                name=datasets.Split("test_asks"),
+                gen_kwargs={"split": "test", "subreddit_name": "askscience"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("train_askh"), gen_kwargs={"split": "train", "subreddit_name": "AskHistorians"},
+                name=datasets.Split("train_askh"),
+                gen_kwargs={"split": "train", "subreddit_name": "AskHistorians"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("validation_askh"),
                 gen_kwargs={"split": "validation", "subreddit_name": "AskHistorians"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split("test_askh"), gen_kwargs={"split": "test", "subreddit_name": "AskHistorians"},
+                name=datasets.Split("test_askh"),
+                gen_kwargs={"split": "test", "subreddit_name": "AskHistorians"},
             ),
         ]
 
@@ -386,7 +404,11 @@ class Eli5(datasets.GeneratorBasedBuilder):
                 "selftext": selftext,
                 "document": "",
                 "subreddit": example.get("subreddit", subreddit_name),
-                "answers": {"a_id": answer_ids, "text": answer_texts, "score": answer_scores},
+                "answers": {
+                    "a_id": answer_ids,
+                    "text": answer_texts,
+                    "score": answer_scores,
+                },
                 "title_urls": title_urls,
                 "selftext_urls": selftext_urls,
                 "answers_urls": answers_urls,

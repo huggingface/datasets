@@ -98,7 +98,10 @@ class Scifact(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(dl_dir, "data", "corpus.jsonl"), "split": "train"},
+                    gen_kwargs={
+                        "filepath": os.path.join(dl_dir, "data", "corpus.jsonl"),
+                        "split": "train",
+                    },
                 ),
             ]
         else:
@@ -106,17 +109,26 @@ class Scifact(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(dl_dir, "data", "claims_train.jsonl"), "split": "train"},
+                    gen_kwargs={
+                        "filepath": os.path.join(dl_dir, "data", "claims_train.jsonl"),
+                        "split": "train",
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(dl_dir, "data", "claims_test.jsonl"), "split": "test"},
+                    gen_kwargs={
+                        "filepath": os.path.join(dl_dir, "data", "claims_test.jsonl"),
+                        "split": "test",
+                    },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     # These kwargs will be passed to _generate_examples
-                    gen_kwargs={"filepath": os.path.join(dl_dir, "data", "claims_dev.jsonl"), "split": "dev"},
+                    gen_kwargs={
+                        "filepath": os.path.join(dl_dir, "data", "claims_dev.jsonl"),
+                        "split": "dev",
+                    },
                 ),
             ]
 

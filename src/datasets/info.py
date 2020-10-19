@@ -228,12 +228,19 @@ class DatasetInfosDict(dict):
             logger.info("Writing new Dataset Infos in {}".format(dataset_infos_dir))
         total_dataset_infos.update(self)
         with open(dataset_infos_path, "w", encoding="utf-8") as f:
-            json.dump({config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()}, f)
+            json.dump(
+                {config_name: asdict(dset_info) for config_name, dset_info in total_dataset_infos.items()},
+                f,
+            )
 
     @classmethod
     def from_directory(cls, dataset_infos_dir):
         logger.info("Loading Dataset Infos from {}".format(dataset_infos_dir))
-        with open(os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME), "r", encoding="utf-8") as f:
+        with open(
+            os.path.join(dataset_infos_dir, DATASET_INFOS_DICT_FILE_NAME),
+            "r",
+            encoding="utf-8",
+        ) as f:
             dataset_infos_dict = {
                 config_name: DatasetInfo.from_dict(dataset_info_dict)
                 for config_name, dataset_info_dict in json.load(f).items()

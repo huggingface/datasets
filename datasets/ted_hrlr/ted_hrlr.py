@@ -83,7 +83,10 @@ class TedHrlrConfig(datasets.BuilderConfig):
         """
         name = "%s_to_%s" % (language_pair[0].replace("_", ""), language_pair[1])
 
-        description = ("Translation dataset from %s to %s in plain text.") % (language_pair[0], language_pair[1])
+        description = ("Translation dataset from %s to %s in plain text.") % (
+            language_pair[0],
+            language_pair[1],
+        )
         super(TedHrlrConfig, self).__init__(name=name, description=description, **kwargs)
 
         # Validate language pair.
@@ -99,7 +102,8 @@ class TedHrlr(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         TedHrlrConfig(  # pylint: disable=g-complex-comprehension
-            language_pair=pair, version=datasets.Version("1.0.0", ""),
+            language_pair=pair,
+            version=datasets.Version("1.0.0", ""),
         )
         for pair in _VALID_LANGUAGE_PAIRS
     ]

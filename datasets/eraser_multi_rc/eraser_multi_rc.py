@@ -80,17 +80,26 @@ class EraserMultiRc(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "train.jsonl")},
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "filepath": os.path.join(data_dir, "train.jsonl"),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "val.jsonl")},
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "filepath": os.path.join(data_dir, "val.jsonl"),
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"data_dir": data_dir, "filepath": os.path.join(data_dir, "test.jsonl")},
+                gen_kwargs={
+                    "data_dir": data_dir,
+                    "filepath": os.path.join(data_dir, "test.jsonl"),
+                },
             ),
         ]
 

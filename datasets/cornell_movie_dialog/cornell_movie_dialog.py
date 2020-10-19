@@ -71,7 +71,10 @@ class CornellMovieDialog(datasets.GeneratorBasedBuilder):
                     "characterName1": datasets.Value("string"),
                     "characterName2": datasets.Value("string"),
                     "utterance": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "LineID": datasets.Value("string")}
+                        {
+                            "text": datasets.Value("string"),
+                            "LineID": datasets.Value("string"),
+                        }
                     )
                     # These are the features of your dataset like images, labels ...
                 }

@@ -67,7 +67,10 @@ class KILTWikipedia(datasets.GeneratorBasedBuilder):
     """KILTWikipedia: Wikipedia pre-processed for KILT. Version 1.0."""
 
     BUILDER_CONFIGS = [
-        KILTWikipediaConfig(name="2019-08-01", description="Wikipedia pre-processed for KILT from 2019/08/01 dump",),
+        KILTWikipediaConfig(
+            name="2019-08-01",
+            description="Wikipedia pre-processed for KILT from 2019/08/01 dump",
+        ),
     ]
 
     def _info(self):
@@ -149,7 +152,13 @@ class KILTWikipedia(datasets.GeneratorBasedBuilder):
                 pre_article["wikidata_info"] = pre_article.get("wikidata_info", {})
                 if pre_article["wikidata_info"].get("aliases", None) is None:
                     pre_article["wikidata_info"]["aliases"] = []
-                for k in ["description", "enwikiquote_title", "wikidata_id", "wikidata_label", "wikipedia_title"]:
+                for k in [
+                    "description",
+                    "enwikiquote_title",
+                    "wikidata_id",
+                    "wikidata_label",
+                    "wikipedia_title",
+                ]:
                     val = pre_article["wikidata_info"].get(k, None)
                     article["wikidata_info"][k] = "" if val is None else val
                 article["wikidata_info"]["aliases"] = {"alias": pre_article["wikidata_info"]["aliases"]}
@@ -168,6 +177,14 @@ class KILTWikipedia(datasets.GeneratorBasedBuilder):
                 article["kilt_id"] = pre_article["_id"]
                 article["text"] = {"paragraph": pre_article["text"]}
                 article["anchors"] = {}
-                for k in ["paragraph_id", "start", "end", "text", "href", "wikipedia_title", "wikipedia_id"]:
+                for k in [
+                    "paragraph_id",
+                    "start",
+                    "end",
+                    "text",
+                    "href",
+                    "wikipedia_title",
+                    "wikipedia_id",
+                ]:
                     article["anchors"][k] = [anchor.get(k, "") for anchor in pre_article["anchors"]]
                 yield idx, article

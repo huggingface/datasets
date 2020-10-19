@@ -49,7 +49,9 @@ class Snli(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text import of SNLI",
+            name="plain_text",
+            version=datasets.Version("1.0.0", ""),
+            description="Plain text import of SNLI",
         )
     ]
 
@@ -75,13 +77,16 @@ class Snli(datasets.GeneratorBasedBuilder):
         data_dir = os.path.join(dl_dir, "snli_1.0")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "snli_1.0_test.txt")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(data_dir, "snli_1.0_test.txt")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "snli_1.0_dev.txt")}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(data_dir, "snli_1.0_dev.txt")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "snli_1.0_train.txt")}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(data_dir, "snli_1.0_train.txt")},
             ),
         ]
 

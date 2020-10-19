@@ -105,7 +105,10 @@ def make_file_instructions(name, split_infos, instruction, filetype_suffix=None)
     absolute_instructions = instruction.to_absolute(name2len)
 
     return _make_file_instructions_from_absolutes(
-        name=name, name2len=name2len, absolute_instructions=absolute_instructions, filetype_suffix=filetype_suffix
+        name=name,
+        name2len=name2len,
+        absolute_instructions=absolute_instructions,
+        filetype_suffix=filetype_suffix,
     )
 
 
@@ -117,14 +120,19 @@ def _make_file_instructions_from_absolutes(name, name2len, absolute_instructions
     for abs_instr in absolute_instructions:
         length = name2len[abs_instr.splitname]
         filename = filename_for_dataset_split(
-            dataset_name=name, split=abs_instr.splitname, filetype_suffix=filetype_suffix
+            dataset_name=name,
+            split=abs_instr.splitname,
+            filetype_suffix=filetype_suffix,
         )
         from_ = 0 if abs_instr.from_ is None else abs_instr.from_
         to = length if abs_instr.to is None else abs_instr.to
         num_examples += to - from_
         single_file_instructions = [{"filename": filename, "skip": from_, "take": to - from_}]
         file_instructions.extend(single_file_instructions)
-    return FileInstructions(num_examples=num_examples, file_instructions=file_instructions,)
+    return FileInstructions(
+        num_examples=num_examples,
+        file_instructions=file_instructions,
+    )
 
 
 class BaseReader:
@@ -181,7 +189,10 @@ class BaseReader:
         return files
 
     def read(
-        self, name, instructions, split_infos,
+        self,
+        name,
+        instructions,
+        split_infos,
     ):
         """Returns Dataset instance(s).
 
@@ -203,7 +214,9 @@ class BaseReader:
         return self.read_files(files=files, original_instructions=instructions)
 
     def read_files(
-        self, files, original_instructions=None,
+        self,
+        files,
+        original_instructions=None,
     ):
         """Returns single Dataset instance for the set of file instructions.
 
@@ -221,7 +234,12 @@ class BaseReader:
         files = copy.deepcopy(files)
         for f in files:
             f.update(filename=os.path.join(self._path, f["filename"]))
-        dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=self._info, split=original_instructions)
+        dataset_kwargs = dict(
+            arrow_table=pa_table,
+            data_files=files,
+            info=self._info,
+            split=original_instructions,
+        )
         return dataset_kwargs
 
     def download_from_hf_gcs(self, cache_dir, relative_data_dir):
@@ -246,12 +264,17 @@ class BaseReader:
         try:
             for split in self._info.splits:
                 file_instructions = self.get_file_instructions(
-                    name=self._info.builder_name, instruction=split, split_infos=self._info.splits.values(),
+                    name=self._info.builder_name,
+                    instruction=split,
+                    split_infos=self._info.splits.values(),
                 )
                 for file_instruction in file_instructions:
                     remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
                     downloaded_prepared_filename = cached_path(remote_prepared_filename.replace(os.sep, "/"))
-                    shutil.move(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
+                    shutil.move(
+                        downloaded_prepared_filename,
+                        os.path.join(cache_dir, file_instruction["filename"]),
+                    )
         except FileNotFoundError:
             raise MissingFilesOnHfGcs()
 
@@ -339,7 +362,10 @@ class _RelativeInstruction:
 
     def __post_init__(self):
         assert self.unit is None or self.unit in ["%", "abs"]
-        assert self.rounding is None or self.rounding in ["closest", "pct1_dropremainder"]
+        assert self.rounding is None or self.rounding in [
+            "closest",
+            "pct1_dropremainder",
+        ]
         if self.unit == "%" and self.from_ is not None and abs(self.from_) > 100:
             raise AssertionError("Percent slice boundaries must be > -100 and < 100.")
         if self.unit == "%" and self.to is not None and abs(self.to) > 100:
@@ -397,7 +423,11 @@ def _rel_to_abs_instr(rel_instr, name2len):
         from_ = 0 if from_ is None else from_
         to = num_examples if to is None else to
     if abs(from_) > num_examples or abs(to) > num_examples:
-        msg = "Requested slice [%s:%s] incompatible with %s examples." % (from_ or "", to or "", num_examples)
+        msg = "Requested slice [%s:%s] incompatible with %s examples." % (
+            from_ or "",
+            to or "",
+            num_examples,
+        )
         raise AssertionError(msg)
     if from_ < 0:
         from_ = num_examples + from_

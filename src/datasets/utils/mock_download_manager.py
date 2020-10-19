@@ -67,7 +67,10 @@ class MockDownloadManager(object):
         )
 
         local_path = cached_path(
-            path_to_dummy_data_dir, cache_dir=self.cache_dir, extract_compressed_file=True, force_extract=True
+            path_to_dummy_data_dir,
+            cache_dir=self.cache_dir,
+            extract_compressed_file=True,
+            force_extract=True,
         )
 
         return os.path.join(local_path, self.dummy_file_name)

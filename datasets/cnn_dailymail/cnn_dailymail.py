@@ -160,7 +160,18 @@ def _subset_filenames(dl_paths, split):
 DM_SINGLE_CLOSE_QUOTE = "\u2019"  # unicode
 DM_DOUBLE_CLOSE_QUOTE = "\u201d"
 # acceptable ways to end a sentence
-END_TOKENS = [".", "!", "?", "...", "'", "`", '"', DM_SINGLE_CLOSE_QUOTE, DM_DOUBLE_CLOSE_QUOTE, ")"]
+END_TOKENS = [
+    ".",
+    "!",
+    "?",
+    "...",
+    "'",
+    "`",
+    '"',
+    DM_SINGLE_CLOSE_QUOTE,
+    DM_DOUBLE_CLOSE_QUOTE,
+    ")",
+]
 
 
 def _read_text_file(text_file):
@@ -261,7 +272,8 @@ class CnnDailymail(datasets.GeneratorBasedBuilder):
                 gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.VALIDATION)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.TEST)}
+                name=datasets.Split.TEST,
+                gen_kwargs={"files": _subset_filenames(dl_paths, datasets.Split.TEST)},
             ),
         ]
 

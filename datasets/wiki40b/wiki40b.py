@@ -114,7 +114,10 @@ class Wiki40b(datasets.BeamBasedBuilder):
     """Wiki40B: A Clean Wikipedia Dataset for Mutlilingual Language Modeling."""
 
     BUILDER_CONFIGS = [
-        Wiki40bConfig(version=_VERSION, language=lang,)  # pylint:disable=g-complex-comprehension
+        Wiki40bConfig(
+            version=_VERSION,
+            language=lang,
+        )  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
 

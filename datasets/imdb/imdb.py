@@ -63,13 +63,21 @@ class IMDBReviewsConfig(datasets.BuilderConfig):
 class Imdb(datasets.GeneratorBasedBuilder):
     """IMDB movie reviews dataset."""
 
-    BUILDER_CONFIGS = [IMDBReviewsConfig(name="plain_text", description="Plain text",)]
+    BUILDER_CONFIGS = [
+        IMDBReviewsConfig(
+            name="plain_text",
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"text": datasets.Value("string"), "label": datasets.features.ClassLabel(names=["neg", "pos"])}
+                {
+                    "text": datasets.Value("string"),
+                    "label": datasets.features.ClassLabel(names=["neg", "pos"]),
+                }
             ),
             supervised_keys=None,
             homepage="http://ai.stanford.edu/~amaas/data/sentiment/",
@@ -85,14 +93,19 @@ class Imdb(datasets.GeneratorBasedBuilder):
         data_dir = os.path.join(arch_path, "aclImdb")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"directory": os.path.join(data_dir, "train")}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"directory": os.path.join(data_dir, "train")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"directory": os.path.join(data_dir, "test")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"directory": os.path.join(data_dir, "test")},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split("unsupervised"),
-                gen_kwargs={"directory": os.path.join(data_dir, "train"), "labeled": False},
+                gen_kwargs={
+                    "directory": os.path.join(data_dir, "train"),
+                    "labeled": False,
+                },
             ),
         ]
 

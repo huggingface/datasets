@@ -233,7 +233,10 @@ class Metric(MetricInfoMixin):
 
     def _create_cache_file(self, timeout=1) -> Tuple[str, FileLock]:
         """ Create a new cache file. If the default cache file is used, we generated a new hash. """
-        file_path = os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{self.process_id}.arrow")
+        file_path = os.path.join(
+            self.data_dir,
+            f"{self.experiment_id}-{self.num_process}-{self.process_id}.arrow",
+        )
         filelock = None
         for i in range(self.max_concurrent_cache_files):
             filelock = FileLock(file_path + ".lock")
@@ -257,7 +260,8 @@ class Metric(MetricInfoMixin):
                 # In other cases (allow to find new file name + not yet at max num of attempts) we can try to sample a new hashing name.
                 file_uuid = str(uuid.uuid4())
                 file_path = os.path.join(
-                    self.data_dir, f"{self.experiment_id}-{file_uuid}-{self.num_process}-{self.process_id}.arrow"
+                    self.data_dir,
+                    f"{self.experiment_id}-{file_uuid}-{self.num_process}-{self.process_id}.arrow",
                 )
             else:
                 break
@@ -272,7 +276,10 @@ class Metric(MetricInfoMixin):
             file_paths = [self.cache_file_name]
         else:
             file_paths = [
-                os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{process_id}.arrow")
+                os.path.join(
+                    self.data_dir,
+                    f"{self.experiment_id}-{self.num_process}-{process_id}.arrow",
+                )
                 for process_id in range(self.num_process)
             ]
 
@@ -291,7 +298,10 @@ class Metric(MetricInfoMixin):
 
     def _check_all_processes_locks(self):
         expected_lock_file_names = [
-            os.path.join(self.data_dir, f"{self.experiment_id}-{self.num_process}-{process_id}.arrow.lock")
+            os.path.join(
+                self.data_dir,
+                f"{self.experiment_id}-{self.num_process}-{process_id}.arrow.lock",
+            )
             for process_id in range(self.num_process)
         ]
         for expected_lock_file_name in expected_lock_file_names:
@@ -460,7 +470,9 @@ class Metric(MetricInfoMixin):
         if self.keep_in_memory:
             self.buf_writer = pa.BufferOutputStream()
             self.writer = ArrowWriter(
-                features=self.info.features, stream=self.buf_writer, writer_batch_size=self.writer_batch_size
+                features=self.info.features,
+                stream=self.buf_writer,
+                writer_batch_size=self.writer_batch_size,
             )
         else:
             self.buf_writer = None
@@ -472,7 +484,9 @@ class Metric(MetricInfoMixin):
                 self.filelock = filelock
 
             self.writer = ArrowWriter(
-                features=self.info.features, path=self.cache_file_name, writer_batch_size=self.writer_batch_size
+                features=self.info.features,
+                path=self.cache_file_name,
+                writer_batch_size=self.writer_batch_size,
             )
         # Setup rendez-vous here if
         if self.num_process > 1:
@@ -512,7 +526,9 @@ class Metric(MetricInfoMixin):
                 download_config.force_download = False
 
             dl_manager = DownloadManager(
-                dataset_name=self.name, download_config=download_config, data_dir=self.data_dir
+                dataset_name=self.name,
+                download_config=download_config,
+                data_dir=self.data_dir,
             )
 
         self._download_and_prepare(dl_manager)

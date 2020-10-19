@@ -93,7 +93,11 @@ class Wikihow(datasets.GeneratorBasedBuilder):
             description="Use the concatenation of all paragraphs as the articles"
             " and the bold lines as the reference summaries",
         ),
-        WikihowConfig(name="sep", filename="wikihowSep.csv", description="use each paragraph and its summary."),
+        WikihowConfig(
+            name="sep",
+            filename="wikihowSep.csv",
+            description="use each paragraph and its summary.",
+        ),
     ]
 
     @property
@@ -131,25 +135,39 @@ class Wikihow(datasets.GeneratorBasedBuilder):
                     titles[k].add(line.strip())
 
         path_to_manual_file = os.path.join(
-            os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), self.config.filename
+            os.path.abspath(os.path.expanduser(dl_manager.manual_dir)),
+            self.config.filename,
         )
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
                 "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('wikihow', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                    path_to_manual_file, self.config.filename, self.manual_download_instructions
+                    path_to_manual_file,
+                    self.config.filename,
+                    self.manual_download_instructions,
                 )
             )
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file, "title_set": titles["train"],},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["train"],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"path": path_to_manual_file, "title_set": titles["validation"],},
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["validation"],
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"path": path_to_manual_file, "title_set": titles["test"],},
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "path": path_to_manual_file,
+                    "title_set": titles["test"],
+                },
             ),
         ]
 
@@ -160,7 +178,13 @@ class Wikihow(datasets.GeneratorBasedBuilder):
             headers = next(reader)
             if self.config.name == "all" and headers != ["headline", "title", "text"]:
                 raise ValueError("Mismatched header in WikiAll.txt")
-            if self.config.name == "sep" and headers != ["overview", "headline", "text", "sectionLabel", "title"]:
+            if self.config.name == "sep" and headers != [
+                "overview",
+                "headline",
+                "text",
+                "sectionLabel",
+                "title",
+            ]:
                 raise ValueError("Mismatched header in WikiSep.txt")
             key2id = {key: i for i, key in enumerate(headers)}
             for i, line in enumerate(reader):

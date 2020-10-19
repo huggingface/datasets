@@ -55,7 +55,10 @@ class Fquad(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "questions": datasets.features.Sequence(datasets.Value("string")),
                     "answers": datasets.features.Sequence(
-                        {"texts": datasets.Value("string"), "answers_starts": datasets.Value("int32")}
+                        {
+                            "texts": datasets.Value("string"),
+                            "answers_starts": datasets.Value("int32"),
+                        }
                     ),
                     # These are the features of your dataset like images, labels ...
                 }
@@ -74,7 +77,10 @@ class Fquad(datasets.GeneratorBasedBuilder):
         # TODO(fquad): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        download_urls = {"train": os.path.join(_URL, _TRAIN_DATA), "valid": os.path.join(_URL, _VALID_DATA)}
+        download_urls = {
+            "train": os.path.join(_URL, _TRAIN_DATA),
+            "valid": os.path.join(_URL, _VALID_DATA),
+        }
         dl_dir = dl_manager.download_and_extract(download_urls)
         return [
             datasets.SplitGenerator(

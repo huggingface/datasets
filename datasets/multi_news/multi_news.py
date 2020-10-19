@@ -59,7 +59,12 @@ class MultiNews(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    _DOCUMENT: datasets.Value("string"),
+                    _SUMMARY: datasets.Value("string"),
+                }
+            ),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/Alex-Fabbri/Multi-News",
             citation=_CITATION,
@@ -70,13 +75,16 @@ class MultiNews(datasets.GeneratorBasedBuilder):
         extract_path = os.path.join(dl_manager.download_and_extract(_URL), "multi-news-original")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"path": os.path.join(extract_path, "train")},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(extract_path, "train")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"path": os.path.join(extract_path, "val")},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"path": os.path.join(extract_path, "val")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"path": os.path.join(extract_path, "test")},
+                name=datasets.Split.TEST,
+                gen_kwargs={"path": os.path.join(extract_path, "test")},
             ),
         ]
 

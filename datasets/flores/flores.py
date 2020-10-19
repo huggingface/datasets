@@ -61,13 +61,22 @@ class FloresConfig(datasets.BuilderConfig):
         """
         name = "%s%s" % (language_pair[0], language_pair[1])
 
-        description = ("Translation dataset from %s to %s") % (language_pair[0], language_pair[1])
+        description = ("Translation dataset from %s to %s") % (
+            language_pair[0],
+            language_pair[1],
+        )
         super(FloresConfig, self).__init__(
-            name=name, description=description, version=datasets.Version("1.1.0", ""), **kwargs,
+            name=name,
+            description=description,
+            version=datasets.Version("1.1.0", ""),
+            **kwargs,
         )
 
         # Validate language pair.
-        assert "en" in language_pair, ("Config language pair must contain `en`, got: %s", language_pair)
+        assert "en" in language_pair, (
+            "Config language pair must contain `en`, got: %s",
+            language_pair,
+        )
         source, target = language_pair
         non_en = source if target == "en" else target
         assert non_en in ["ne", "si"], ("Invalid non-en language in pair: %s", non_en)
@@ -79,8 +88,12 @@ class Flores(datasets.GeneratorBasedBuilder):
     """FLoRes machine translation dataset."""
 
     BUILDER_CONFIGS = [
-        FloresConfig(language_pair=("ne", "en"),),
-        FloresConfig(language_pair=("si", "en"),),
+        FloresConfig(
+            language_pair=("ne", "en"),
+        ),
+        FloresConfig(
+            language_pair=("si", "en"),
+        ),
     ]
 
     def _info(self):

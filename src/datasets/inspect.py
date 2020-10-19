@@ -49,7 +49,12 @@ def list_metrics(with_community_metrics=True, id_only=False, with_details=False)
     return api.metric_list(with_community_metrics=with_community_metrics, id_only=bool(not with_details))
 
 
-def inspect_dataset(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
+def inspect_dataset(
+    path: str,
+    local_path: str,
+    download_config: Optional[DownloadConfig] = None,
+    **download_kwargs,
+):
     r"""
     Allow inspection/modification of a dataset script by copying on local drive at local_path.
 
@@ -64,7 +69,11 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
         **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
     module_path, _ = prepare_module(
-        path, download_config=download_config, dataset=True, force_local_path=local_path, **download_kwargs
+        path,
+        download_config=download_config,
+        dataset=True,
+        force_local_path=local_path,
+        **download_kwargs,
     )
     print(
         f"The processing script for dataset {path} can be inspected at {local_path}. "
@@ -73,7 +82,12 @@ def inspect_dataset(path: str, local_path: str, download_config: Optional[Downlo
     )
 
 
-def inspect_metric(path: str, local_path: str, download_config: Optional[DownloadConfig] = None, **download_kwargs):
+def inspect_metric(
+    path: str,
+    local_path: str,
+    download_config: Optional[DownloadConfig] = None,
+    **download_kwargs,
+):
     r"""
     Allow inspection/modification of a metric script by copying it on local drive at local_path.
 
@@ -88,7 +102,11 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
         **download_kwargs: optional attributes for DownloadConfig() which will override the attributes in download_config if supplied.
     """
     module_path, _ = prepare_module(
-        path, download_config=download_config, dataset=False, force_local_path=local_path, **download_kwargs
+        path,
+        download_config=download_config,
+        dataset=False,
+        force_local_path=local_path,
+        **download_kwargs,
     )
     print(
         f"The processing scripts for metric {path} can be inspected at {local_path}. "

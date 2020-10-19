@@ -45,7 +45,10 @@ class Quarel(datasets.GeneratorBasedBuilder):
                     "logical_forms": datasets.features.Sequence(datasets.Value("string")),
                     "logical_form_pretty": datasets.Value("string"),
                     "world_literals": datasets.features.Sequence(
-                        {"world1": datasets.Value("string"), "world2": datasets.Value("string")}
+                        {
+                            "world1": datasets.Value("string"),
+                            "world2": datasets.Value("string"),
+                        }
                     ),
                     "question": datasets.Value("string"),
                 }

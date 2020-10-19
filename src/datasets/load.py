@@ -37,7 +37,14 @@ from .info import DATASET_INFOS_DICT_FILE_NAME
 from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
-from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, head_hf_s3, hf_bucket_url, hf_github_url
+from .utils.file_utils import (
+    HF_MODULES_CACHE,
+    DownloadConfig,
+    cached_path,
+    head_hf_s3,
+    hf_bucket_url,
+    hf_github_url,
+)
 from .utils.logging import get_logger
 from .utils.version import Version
 
@@ -165,7 +172,11 @@ def get_imports(file_path: str):
     logger.info("Checking %s for additional imports.", file_path)
     imports = []
     for line in lines:
-        match = re.match(r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)", line, flags=re.MULTILINE)
+        match = re.match(
+            r"^import\s+(\.?)([^\s\.]+)[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
+            line,
+            flags=re.MULTILINE,
+        )
         if match is None:
             match = re.match(
                 r"^from\s+(\.?)([^\s\.]+)(?:[^\s]*)\s+import\s+[^#\r\n]*(?:#\s+From:\s+)?([^\r\n]*)",
@@ -293,7 +304,10 @@ def prepare_module(
 
     # Download the dataset infos file if available
     try:
-        local_dataset_infos_path = cached_path(dataset_infos, download_config=download_config,)
+        local_dataset_infos_path = cached_path(
+            dataset_infos,
+            download_config=download_config,
+        )
     except (FileNotFoundError, ConnectionError):
         local_dataset_infos_path = None
 
@@ -320,7 +334,10 @@ def prepare_module(
         else:
             raise ValueError("Wrong import_type")
 
-        local_import_path = cached_path(url_or_filename, download_config=download_config,)
+        local_import_path = cached_path(
+            url_or_filename,
+            download_config=download_config,
+        )
         if sub_directory is not None:
             local_import_path = os.path.join(local_import_path, sub_directory)
         local_imports.append((import_name, local_import_path))
@@ -396,16 +413,28 @@ def prepare_module(
         # Copy dataset infos file if needed
         if not os.path.exists(dataset_infos_path):
             if local_dataset_infos_path is not None:
-                logger.info("Copying dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info(
+                    "Copying dataset infos file from %s to %s",
+                    dataset_infos,
+                    dataset_infos_path,
+                )
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
                 logger.info("Couldn't find dataset infos file at %s", dataset_infos)
         else:
             if local_dataset_infos_path is not None and not filecmp.cmp(local_dataset_infos_path, dataset_infos_path):
-                logger.info("Updating dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info(
+                    "Updating dataset infos file from %s to %s",
+                    dataset_infos,
+                    dataset_infos_path,
+                )
                 shutil.copyfile(local_dataset_infos_path, dataset_infos_path)
             else:
-                logger.info("Found dataset infos file from %s to %s", dataset_infos, dataset_infos_path)
+                logger.info(
+                    "Found dataset infos file from %s to %s",
+                    dataset_infos,
+                    dataset_infos_path,
+                )
 
         # Record metadata associating original dataset path with local unique folder
         meta_path = local_file_path.split(".py")[0] + ".json"
@@ -423,22 +452,45 @@ def prepare_module(
             if os.path.isfile(import_path):
                 full_path_local_import = os.path.join(hash_folder_path, import_name + ".py")
                 if not os.path.exists(full_path_local_import):
-                    logger.info("Copying local import file from %s at %s", import_path, full_path_local_import)
+                    logger.info(
+                        "Copying local import file from %s at %s",
+                        import_path,
+                        full_path_local_import,
+                    )
                     shutil.copyfile(import_path, full_path_local_import)
                 else:
-                    logger.info("Found local import file from %s at %s", import_path, full_path_local_import)
+                    logger.info(
+                        "Found local import file from %s at %s",
+                        import_path,
+                        full_path_local_import,
+                    )
             elif os.path.isdir(import_path):
                 full_path_local_import = os.path.join(hash_folder_path, import_name)
                 if not os.path.exists(full_path_local_import):
-                    logger.info("Copying local import directory from %s at %s", import_path, full_path_local_import)
+                    logger.info(
+                        "Copying local import directory from %s at %s",
+                        import_path,
+                        full_path_local_import,
+                    )
                     shutil.copytree(import_path, full_path_local_import)
                 else:
-                    logger.info("Found local import directory from %s at %s", import_path, full_path_local_import)
+                    logger.info(
+                        "Found local import directory from %s at %s",
+                        import_path,
+                        full_path_local_import,
+                    )
             else:
                 raise OSError(f"Error with local import at {import_path}")
 
     if force_local_path is None:
-        module_path = ".".join([DATASETS_MODULE if dataset else METRICS_MODULE, short_name, hash, short_name])
+        module_path = ".".join(
+            [
+                DATASETS_MODULE if dataset else METRICS_MODULE,
+                short_name,
+                hash,
+                short_name,
+            ]
+        )
     else:
         module_path = local_file_path
 
@@ -581,7 +633,11 @@ def load_dataset(
     ignore_verifications = ignore_verifications or save_infos
     # Download/copy dataset processing script
     module_path, hash = prepare_module(
-        path, script_version=script_version, download_config=download_config, download_mode=download_mode, dataset=True
+        path,
+        script_version=script_version,
+        download_config=download_config,
+        download_mode=download_mode,
+        dataset=True,
     )
 
     # Get dataset builder class from the processing script
@@ -600,7 +656,9 @@ def load_dataset(
 
     # Download and prepare data
     builder_instance.download_and_prepare(
-        download_config=download_config, download_mode=download_mode, ignore_verifications=ignore_verifications,
+        download_config=download_config,
+        download_mode=download_mode,
+        ignore_verifications=ignore_verifications,
     )
 
     # Build dataset for splits

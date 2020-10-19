@@ -177,15 +177,25 @@ class Biomrc(datasets.GeneratorBasedBuilder):
 
         if self.config.biomrc_version == "tiny":
             return [
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": downloaded_files["test"]},
+                ),
             ]
         else:
             return [
-                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
                 datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["val"]}
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"filepath": downloaded_files["train"]},
                 ),
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={"filepath": downloaded_files["val"]},
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": downloaded_files["test"]},
+                ),
             ]
 
     def _generate_examples(self, filepath):
@@ -195,6 +205,16 @@ class Biomrc(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as fp:
             biomrc = json.load(fp)
             for _id, (ab, ti, el, an) in enumerate(
-                zip(biomrc["abstracts"], biomrc["titles"], biomrc["entities_list"], biomrc["answers"])
+                zip(
+                    biomrc["abstracts"],
+                    biomrc["titles"],
+                    biomrc["entities_list"],
+                    biomrc["answers"],
+                )
             ):
-                yield _id, {"abstract": ab, "title": ti, "entities_list": el, "answer": an}
+                yield _id, {
+                    "abstract": ab,
+                    "title": ti,
+                    "entities_list": el,
+                    "answer": an,
+                }

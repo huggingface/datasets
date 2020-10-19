@@ -34,12 +34,20 @@ class Race(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.1.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="high", description="Exams designed for high school students", version=VERSION),
         datasets.BuilderConfig(
-            name="middle", description="Exams designed for middle school students", version=VERSION
+            name="high",
+            description="Exams designed for high school students",
+            version=VERSION,
         ),
         datasets.BuilderConfig(
-            name="all", description="Exams designed for both high school and middle school students", version=VERSION
+            name="middle",
+            description="Exams designed for middle school students",
+            version=VERSION,
+        ),
+        datasets.BuilderConfig(
+            name="all",
+            description="Exams designed for both high school and middle school students",
+            version=VERSION,
         ),
     ]
 

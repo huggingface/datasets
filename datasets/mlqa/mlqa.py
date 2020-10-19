@@ -42,7 +42,10 @@ class MlqaConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(MlqaConfig, self).__init__(
-            version=datasets.Version("1.0.0",), **kwargs,
+            version=datasets.Version(
+                "1.0.0",
+            ),
+            **kwargs,
         )
         self.data_url = data_url
 
@@ -94,7 +97,10 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}
+                        {
+                            "answer_start": datasets.Value("int32"),
+                            "text": datasets.Value("string"),
+                        }
                     ),
                     "id": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
@@ -161,7 +167,8 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                         # These kwargs will be passed to _generate_examples
                         gen_kwargs={
                             "filepath": os.path.join(
-                                os.path.join(dl_file, "MLQA_V1/dev"), "dev-context-{}-question-{}.json".format(l1, l2)
+                                os.path.join(dl_file, "MLQA_V1/dev"),
+                                "dev-context-{}-question-{}.json".format(l1, l2),
                             )
                         },
                     ),
@@ -200,6 +207,9 @@ class Mlqa(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         "context": context,
                         "question": question,
-                        "answers": {"answer_start": answers_start, "text": answers_text},
+                        "answers": {
+                            "answer_start": answers_start,
+                            "text": answers_text,
+                        },
                         "id": id_,
                     }

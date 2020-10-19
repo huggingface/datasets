@@ -60,11 +60,16 @@ class MWSC(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": schemas_file, "split": "train"},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": schemas_file, "split": "train"},
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": schemas_file, "split": "test"},),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": schemas_file, "split": "dev"},
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": schemas_file, "split": "test"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": schemas_file, "split": "dev"},
             ),
         ]
 
@@ -113,5 +118,10 @@ class MWSC(datasets.GeneratorBasedBuilder):
             question = self._get_both_schema(question)
             answers = answers.split("/")
             for i in range(2):
-                yield idx, {"sentence": sentence[i], "question": question[i], "options": answers, "answer": answers[i]}
+                yield idx, {
+                    "sentence": sentence[i],
+                    "question": question[i],
+                    "options": answers,
+                    "answer": answers[i],
+                }
                 idx += 1

@@ -57,7 +57,12 @@ class Aeslc(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    _DOCUMENT: datasets.Value("string"),
+                    _SUMMARY: datasets.Value("string"),
+                }
+            ),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/ryanzhumich/AESLC",
             citation=_CITATION,
@@ -69,13 +74,16 @@ class Aeslc(datasets.GeneratorBasedBuilder):
         input_path = os.path.join(dl_path, "AESLC-master", "enron_subject_line")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"pattern": os.path.join(input_path, "train", "*.subject")},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"pattern": os.path.join(input_path, "train", "*.subject")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"pattern": os.path.join(input_path, "dev", "*.subject")},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"pattern": os.path.join(input_path, "dev", "*.subject")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"pattern": os.path.join(input_path, "test", "*.subject")},
+                name=datasets.Split.TEST,
+                gen_kwargs={"pattern": os.path.join(input_path, "test", "*.subject")},
             ),
         ]
 

@@ -107,7 +107,10 @@ class CivilComments(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filename": os.path.join(dl_path, "train.csv"), "toxicity_label": "target"},
+                gen_kwargs={
+                    "filename": os.path.join(dl_path, "train.csv"),
+                    "toxicity_label": "target",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -144,6 +147,13 @@ class CivilComments(datasets.GeneratorBasedBuilder):
                 example = {}
                 example["text"] = row["comment_text"]
                 example["toxicity"] = float(row[toxicity_label])
-                for label in ["severe_toxicity", "obscene", "threat", "insult", "identity_attack", "sexual_explicit"]:
+                for label in [
+                    "severe_toxicity",
+                    "obscene",
+                    "threat",
+                    "insult",
+                    "identity_attack",
+                    "sexual_explicit",
+                ]:
                     example[label] = float(row[label])
                 yield row["id"], example

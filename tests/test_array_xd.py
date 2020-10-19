@@ -17,7 +17,10 @@ SPEED_TEST_SHAPE = (100, 100)
 SPEED_TEST_N_EXAMPLES = 100
 
 DEFAULT_FEATURES = datasets.Features(
-    {"text": Array2D(SHAPE_TEST_1, dtype="float32"), "image": Array2D(SHAPE_TEST_2, dtype="float32")}
+    {
+        "text": Array2D(SHAPE_TEST_1, dtype="float32"),
+        "image": Array2D(SHAPE_TEST_2, dtype="float32"),
+    }
 )
 
 
@@ -47,7 +50,10 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             my_features = DEFAULT_FEATURES.copy()
             writer = ArrowWriter(features=my_features, path=os.path.join(tmp_dir, "beta.arrow"))
-            for key, record in generate_examples(features=my_features, num_examples=1,):
+            for key, record in generate_examples(
+                features=my_features,
+                num_examples=1,
+            ):
                 example = my_features.encode_example(record)
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
@@ -56,8 +62,15 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
             row = dataset[0]
             first_shape = row["image"].shape
             second_shape = row["text"].shape
-            self.assertTrue(first_shape is not None and second_shape is not None, "need atleast 2 different shapes")
-            self.assertEqual(len(first_shape), len(second_shape), "both shapes are supposed to be equal length")
+            self.assertTrue(
+                first_shape is not None and second_shape is not None,
+                "need atleast 2 different shapes",
+            )
+            self.assertEqual(
+                len(first_shape),
+                len(second_shape),
+                "both shapes are supposed to be equal length",
+            )
             self.assertNotEqual(first_shape, second_shape, "shapes must not be the same")
             del dataset
 
@@ -88,7 +101,10 @@ class ExtensionTypeCompatibilityTest(unittest.TestCase):
                 writer.write(example)
             num_examples, num_bytes = writer.finalize()
             dataset = datasets.Dataset.from_file(os.path.join(tmp_dir, "beta.arrow"))
-            self.assertTrue(isinstance(dataset[0]["image_id"], str), "image id must be of type string")
+            self.assertTrue(
+                isinstance(dataset[0]["image_id"], str),
+                "image id must be of type string",
+            )
             del dataset
 
     def test_extension_indexing(self):

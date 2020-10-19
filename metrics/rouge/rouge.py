@@ -89,7 +89,14 @@ class Rouge(datasets.Metric):
             ],
         )
 
-    def _compute(self, predictions, references, rouge_types=None, use_agregator=True, use_stemmer=False):
+    def _compute(
+        self,
+        predictions,
+        references,
+        rouge_types=None,
+        use_agregator=True,
+        use_stemmer=False,
+    ):
         if rouge_types is None:
             rouge_types = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
 

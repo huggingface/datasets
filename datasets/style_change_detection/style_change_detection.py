@@ -111,7 +111,10 @@ class StyleChangeDetection(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"articles": [f for f in os.listdir(val_dir) if f.endswith(".txt")], "base_dir": val_dir},
+                gen_kwargs={
+                    "articles": [f for f in os.listdir(val_dir) if f.endswith(".txt")],
+                    "base_dir": val_dir,
+                },
             ),
         ]
 

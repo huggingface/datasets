@@ -61,15 +61,24 @@ class CommonGen(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(dl_dir, "commongen.train.jsonl"), "split": "train"},
+                gen_kwargs={
+                    "filepath": os.path.join(dl_dir, "commongen.train.jsonl"),
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(dl_dir, "commongen.dev.jsonl"), "split": "dev"},
+                gen_kwargs={
+                    "filepath": os.path.join(dl_dir, "commongen.dev.jsonl"),
+                    "split": "dev",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": os.path.join(dl_dir, "commongen.test_noref.jsonl"), "split": "test"},
+                gen_kwargs={
+                    "filepath": os.path.join(dl_dir, "commongen.test_noref.jsonl"),
+                    "split": "test",
+                },
             ),
         ]
 

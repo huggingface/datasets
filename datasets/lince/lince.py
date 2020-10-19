@@ -258,7 +258,8 @@ class LinceConfig(datasets.BuilderConfig):
     def __init__(self, colnames, classes, label_column, **kwargs):
         super(LinceConfig, self).__init__(
             version=datasets.Version(
-                "1.0.0", description="The Linguistic Code-switching Evaluation (LinCE) benchmark"
+                "1.0.0",
+                description="The Linguistic Code-switching Evaluation (LinCE) benchmark",
             ),
             **kwargs,
         )
@@ -278,7 +279,18 @@ class Lince(datasets.GeneratorBasedBuilder):
             name="lid_spaeng",
             data_dir="lid_spaeng",
             colnames={"words": 0, "lid": 1},
-            classes={"lid": ["lang1", "lang2", "ne", "fw", "ambiguous", "mixed", "other", "unk"]},
+            classes={
+                "lid": [
+                    "lang1",
+                    "lang2",
+                    "ne",
+                    "fw",
+                    "ambiguous",
+                    "mixed",
+                    "other",
+                    "unk",
+                ]
+            },
             label_column="lid",
             description="Spanish-English language identification dataset (Latin script)",
         ),
@@ -286,7 +298,18 @@ class Lince(datasets.GeneratorBasedBuilder):
             name="lid_hineng",
             data_dir="lid_hineng",
             colnames={"words": 0, "lid": 1},
-            classes={"lid": ["lang1", "lang2", "ne", "fw", "ambiguous", "mixed", "other", "unk"]},
+            classes={
+                "lid": [
+                    "lang1",
+                    "lang2",
+                    "ne",
+                    "fw",
+                    "ambiguous",
+                    "mixed",
+                    "other",
+                    "unk",
+                ]
+            },
             label_column="lid",
             description="Hindi-English language identification dataset (Latin script)",
         ),
@@ -294,7 +317,9 @@ class Lince(datasets.GeneratorBasedBuilder):
             name="lid_msaea",
             data_dir="lid_msaea",
             colnames={"words": 0, "lid": 1},
-            classes={"lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],},
+            classes={
+                "lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],
+            },
             label_column="lid",
             description="Modern Standard Arabic-Egyptian Arabic language identification dataset (Persian script)",
         ),
@@ -302,7 +327,9 @@ class Lince(datasets.GeneratorBasedBuilder):
             name="lid_nepeng",
             data_dir="lid_nepeng",
             colnames={"words": 0, "lid": 1},
-            classes={"lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],},
+            classes={
+                "lid": ["ambiguous", "lang1", "lang2", "mixed", "ne", "other"],
+            },
             label_column="lid",
             description="Nepali-English language identification dataset (Latin script)",
         ),
@@ -370,7 +397,16 @@ class Lince(datasets.GeneratorBasedBuilder):
             data_dir="ner_spaeng",
             colnames={"words": 0, "lid": 1, "ner": 2},
             classes={
-                "lid": ["lang1", "lang2", "ne", "fw", "ambiguous", "mixed", "other", "unk"],
+                "lid": [
+                    "lang1",
+                    "lang2",
+                    "ne",
+                    "fw",
+                    "ambiguous",
+                    "mixed",
+                    "other",
+                    "unk",
+                ],
                 "ner": [
                     "O",
                     "B-PER",
@@ -432,7 +468,15 @@ class Lince(datasets.GeneratorBasedBuilder):
             colnames={"words": 0, "lid": 1, "ner": 2},
             classes={
                 "lid": ["en", "hi", "rest"],
-                "ner": ["O", "B-PERSON", "I-PERSON", "B-ORGANISATION", "I-ORGANISATION", "B-PLACE", "I-PLACE"],
+                "ner": [
+                    "O",
+                    "B-PERSON",
+                    "I-PERSON",
+                    "B-ORGANISATION",
+                    "I-ORGANISATION",
+                    "B-PLACE",
+                    "I-PLACE",
+                ],
             },
             label_column="ner",
             description="Hindi-English named entity recognition dataset (Latin script)",
@@ -444,7 +488,16 @@ class Lince(datasets.GeneratorBasedBuilder):
             data_dir="sa_spaeng",
             colnames={"words": 0, "lid": 1, "sa": 2},
             classes={
-                "lid": ["lang1", "lang2", "ne", "fw", "ambiguous", "mixed", "other", "unk"],
+                "lid": [
+                    "lang1",
+                    "lang2",
+                    "ne",
+                    "fw",
+                    "ambiguous",
+                    "mixed",
+                    "other",
+                    "unk",
+                ],
                 "sa": ["positive", "neutral", "negative"],
             },
             label_column="sa",
@@ -453,7 +506,10 @@ class Lince(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {"idx": datasets.Value("int32"), "words": datasets.Sequence(datasets.Value("string"))}
+        features = {
+            "idx": datasets.Value("int32"),
+            "words": datasets.Sequence(datasets.Value("string")),
+        }
 
         if self.config.name != "ner_msaea":
             features["lid"] = datasets.Sequence(
@@ -484,11 +540,17 @@ class Lince(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir, "train.conll"), "colnames": self.config.colnames,},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "train.conll"),
+                    "colnames": self.config.colnames,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": os.path.join(data_dir, "dev.conll"), "colnames": self.config.colnames,},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "dev.conll"),
+                    "colnames": self.config.colnames,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -509,7 +571,8 @@ class Lince(datasets.GeneratorBasedBuilder):
 
         index = 0
         for is_empty, pack in groupby(
-            csv.reader(open(filepath), delimiter=delimiter, quoting=csv.QUOTE_NONE), is_empty_line
+            csv.reader(open(filepath), delimiter=delimiter, quoting=csv.QUOTE_NONE),
+            is_empty_line,
         ):
             if is_empty is False:
                 # packed sentence -> [['tok_1', 'lid_1', 'ner_1'], ..., ['tok_n', 'lid_n', 'ner_n']]

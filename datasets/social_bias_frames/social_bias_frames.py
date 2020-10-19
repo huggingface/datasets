@@ -81,13 +81,16 @@ class SocialBiasFrames(datasets.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_DATA_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.tst.csv")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.tst.csv")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.dev.csv")}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.dev.csv")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.trn.csv")}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "SBFv2.trn.csv")},
             ),
         ]
 

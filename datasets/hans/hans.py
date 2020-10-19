@@ -62,7 +62,10 @@ class Hans(datasets.GeneratorBasedBuilder):
     """Hans: Heuristic Analysis for NLI Systems."""
 
     BUILDER_CONFIGS = [
-        HansConfig(name="plain_text", description="Plain text",),
+        HansConfig(
+            name="plain_text",
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
@@ -119,4 +122,8 @@ class Hans(datasets.GeneratorBasedBuilder):
             if split_line[0] == "-":
                 continue
             # Works for both splits even though dev has some extra human labels.
-            yield idx, {"premise": split_line[5], "hypothesis": split_line[6], "label": split_line[0]}
+            yield idx, {
+                "premise": split_line[5],
+                "hypothesis": split_line[6],
+                "label": split_line[0],
+            }

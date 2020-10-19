@@ -194,7 +194,9 @@ class C4(datasets.BeamBasedBuilder):
             if not os.path.exists(owt_path):
                 raise FileNotFoundError(
                     "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('c4', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
-                        owt_path, _OPENWEBTEXT_URLS_ZIP, self.manual_download_instructions
+                        owt_path,
+                        _OPENWEBTEXT_URLS_ZIP,
+                        self.manual_download_instructions,
                     )
                 )
             file_paths["openwebtext_urls_zip"] = dl_manager.extract(owt_path)
@@ -215,7 +217,11 @@ class C4(datasets.BeamBasedBuilder):
                         cc_dir, "*.warc.wet.gz", self.manual_download_instructions
                     )
                 )
-            logging.info("Adding %d WET files for manually downloaded version %s.", len(wet_files), cc_version)
+            logging.info(
+                "Adding %d WET files for manually downloaded version %s.",
+                len(wet_files),
+                cc_version,
+            )
             file_paths["wet_files"].extend(wet_files)
 
         page_content_pcollection = self._get_page_content(pipeline, file_paths, dl_manager)
@@ -285,7 +291,10 @@ class C4(datasets.BeamBasedBuilder):
                 pipeline
                 | "read_webtextlike_urls"
                 >> beam.io.ReadFromText(
-                    os.path.join(file_paths["openwebtext_urls_zip"], _OPENWEBTEXT_URLS_FILE_PATTERN)
+                    os.path.join(
+                        file_paths["openwebtext_urls_zip"],
+                        _OPENWEBTEXT_URLS_FILE_PATTERN,
+                    )
                 )
                 | "add_dummy_page" >> beam.Map(lambda x: (x, ""))
                 | "normal_webtext_url" >> beam.Map(normalize_url)

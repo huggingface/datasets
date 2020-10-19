@@ -24,7 +24,8 @@ class UserCommands(BaseTransformersCLICommand):
         logout_parser.set_defaults(func=lambda args: LogoutCommand(args))
         # s3 dataset
         s3_parser = parser.add_parser(
-            "s3_datasets", help="{ls, rm} Commands to interact with the files you upload on S3."
+            "s3_datasets",
+            help="{ls, rm} Commands to interact with the files you upload on S3.",
         )
         s3_subparsers = s3_parser.add_subparsers(help="s3 related commands")
         ls_parser = s3_subparsers.add_parser("ls")
@@ -36,7 +37,8 @@ class UserCommands(BaseTransformersCLICommand):
         rm_parser.set_defaults(func=lambda args: DeleteObjCommand(args, file_types="datasets"))
         # s3 metrics
         s3_parser = parser.add_parser(
-            "s3_metrics", help="{ls, rm} Commands to interact with the files you upload on S3."
+            "s3_metrics",
+            help="{ls, rm} Commands to interact with the files you upload on S3.",
         )
         s3_subparsers = s3_parser.add_subparsers(help="s3 related commands")
         ls_parser = s3_subparsers.add_parser("ls")
@@ -49,21 +51,31 @@ class UserCommands(BaseTransformersCLICommand):
         # upload dataset
         upload_dataset_parser = parser.add_parser("upload_dataset", help="Upload a dataset to S3.")
         upload_dataset_parser.add_argument(
-            "path", type=str, help="Local path of the dataset folder or individual file to upload."
+            "path",
+            type=str,
+            help="Local path of the dataset folder or individual file to upload.",
         )
         upload_dataset_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
         upload_dataset_parser.add_argument(
-            "--filename", type=str, default=None, help="Optional: override individual object filename on S3."
+            "--filename",
+            type=str,
+            default=None,
+            help="Optional: override individual object filename on S3.",
         )
         upload_dataset_parser.set_defaults(func=lambda args: UploadCommand(args, file_types="datasets"))
         # upload metric
         upload_metric_parser = parser.add_parser("upload_metric", help="Upload a metric to S3.")
         upload_metric_parser.add_argument(
-            "path", type=str, help="Local path of the metric folder or individual file to upload."
+            "path",
+            type=str,
+            help="Local path of the metric folder or individual file to upload.",
         )
         upload_metric_parser.add_argument("--organization", type=str, help="Optional: organization namespace.")
         upload_metric_parser.add_argument(
-            "--filename", type=str, default=None, help="Optional: override individual object filename on S3."
+            "--filename",
+            type=str,
+            default=None,
+            help="Optional: override individual object filename on S3.",
         )
         upload_metric_parser.set_defaults(func=lambda args: UploadCommand(args, file_types="metrics"))
 
@@ -197,7 +209,10 @@ class DeleteObjCommand(BaseUserCommand):
             exit(1)
         try:
             self._api.delete_obj(
-                token, filename=self.args.filename, organization=self.args.organization, file_types=self.file_types
+                token,
+                filename=self.args.filename,
+                organization=self.args.organization,
+                file_types=self.file_types,
             )
         except HTTPError as e:
             print(e)

@@ -12,7 +12,12 @@ parser.add_argument(
     required=True,
     help="Data path containing the CompGuessWhat?! datasets (files with 'jsonl.gz' extension)",
 )
-parser.add_argument("--examples", type=int, default=5, help="Number of games to consider in the dummy dataset")
+parser.add_argument(
+    "--examples",
+    type=int,
+    default=5,
+    help="Number of games to consider in the dummy dataset",
+)
 original_data_files = {
     "train": "compguesswhat.train.jsonl.gz",
     "valid": "compguesswhat.valid.jsonl.gz",

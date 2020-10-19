@@ -22,7 +22,9 @@ class IndexableDatasetTest(TestCase):
 
         dset: Dataset = self._create_dummy_dataset()
         dset = dset.map(
-            lambda ex, i: {"vecs": i * np.ones(5, dtype=np.float32)}, with_indices=True, keep_in_memory=True
+            lambda ex, i: {"vecs": i * np.ones(5, dtype=np.float32)},
+            with_indices=True,
+            keep_in_memory=True,
         )
         dset = dset.add_faiss_index("vecs", metric_type=faiss.METRIC_INNER_PRODUCT)
         scores, examples = dset.get_nearest_examples("vecs", np.ones(5, dtype=np.float32))
@@ -59,10 +61,14 @@ class IndexableDatasetTest(TestCase):
     def test_drop_index(self):
         dset: Dataset = self._create_dummy_dataset()
         dset.add_faiss_index_from_external_arrays(
-            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1), index_name="vecs"
+            external_arrays=np.ones((30, 5)) * np.arange(30).reshape(-1, 1),
+            index_name="vecs",
         )
         dset.drop_index("vecs")
-        self.assertRaises(MissingIndex, partial(dset.get_nearest_examples, "vecs2", np.ones(5, dtype=np.float32)))
+        self.assertRaises(
+            MissingIndex,
+            partial(dset.get_nearest_examples, "vecs2", np.ones(5, dtype=np.float32)),
+        )
 
     def test_add_elasticsearch_index(self):
         from elasticsearch import Elasticsearch

@@ -73,7 +73,9 @@ class GermEval14(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         GermEval14Config(
-            name="germeval_14", version=datasets.Version("2.0.0"), description="GermEval 2014 NER Shared Task dataset"
+            name="germeval_14",
+            version=datasets.Version("2.0.0"),
+            description="GermEval 2014 NER Shared Task dataset",
         ),
     ]
 
@@ -99,9 +101,18 @@ class GermEval14(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(_URLS)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_files["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_files["dev"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": downloaded_files["test"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):

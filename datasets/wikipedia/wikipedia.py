@@ -397,7 +397,11 @@ class Wikipedia(datasets.BeamBasedBuilder):
     # Use mirror (your.org) to avoid download caps.
 
     BUILDER_CONFIGS = [
-        WikipediaConfig(version=_VERSION, language=lang, date="20200501",)  # pylint:disable=g-complex-comprehension
+        WikipediaConfig(
+            version=_VERSION,
+            language=lang,
+            date="20200501",
+        )  # pylint:disable=g-complex-comprehension
         for lang in WIKIPEDIA_LANGUAGES
     ]
 
@@ -426,9 +430,11 @@ class Wikipedia(datasets.BeamBasedBuilder):
         with open(downloaded_files["info"], encoding="utf-8") as f:
             dump_info = json.load(f)
         multistream_dump_info = dump_info["jobs"]["articlesmultistreamdump"]
-        assert multistream_dump_info["status"] == "done", (
-            "Specified dump (%s) multistream status is not 'done': %s"
-            % (_base_url(lang), multistream_dump_info["status"],)
+        assert (
+            multistream_dump_info["status"] == "done"
+        ), "Specified dump (%s) multistream status is not 'done': %s" % (
+            _base_url(lang),
+            multistream_dump_info["status"],
         )
 
         for fname, info in multistream_dump_info["files"].items():
@@ -444,7 +450,8 @@ class Wikipedia(datasets.BeamBasedBuilder):
 
         return [
             datasets.SplitGenerator(  # pylint:disable=g-complex-comprehension
-                name=datasets.Split.TRAIN, gen_kwargs={"filepaths": downloaded_files["xml"], "language": lang}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepaths": downloaded_files["xml"], "language": lang},
             )
         ]
 
@@ -534,7 +541,14 @@ def _parse_and_clean_wikicode(raw_content, parser):
         return six.text_type(obj.tag) in {"ref", "table"}
 
     def rm_template(obj):
-        return obj.name.lower() in {"reflist", "notelist", "notelist-ua", "notelist-lr", "notelist-ur", "notelist-lg"}
+        return obj.name.lower() in {
+            "reflist",
+            "notelist",
+            "notelist-ua",
+            "notelist-lr",
+            "notelist-ur",
+            "notelist-lg",
+        }
 
     def try_remove_obj(obj, section):
         try:

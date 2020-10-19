@@ -48,7 +48,10 @@ class Quartz(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "choices": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                        {
+                            "text": datasets.Value("string"),
+                            "label": datasets.Value("string"),
+                        }
                     ),
                     "answerKey": datasets.Value("string"),
                     "para": datasets.Value("string"),

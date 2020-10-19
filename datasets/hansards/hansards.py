@@ -136,7 +136,10 @@ class Hansards(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"fr_files": fr_files["train"], "en_files": en_files["train"]},
+                gen_kwargs={
+                    "fr_files": fr_files["train"],
+                    "en_files": en_files["train"],
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
@@ -153,5 +156,8 @@ class Hansards(datasets.GeneratorBasedBuilder):
                 with open(en_file, "rb") as en:
                     for j, (fr_line, en_line) in enumerate(zip(fr, en)):
                         line_id = "{}:{}".format(fr_file, j)
-                        rec = {"fr": fr_line.decode("ISO-8859-1").strip(), "en": en_line.decode("ISO-8859-1").strip()}
+                        rec = {
+                            "fr": fr_line.decode("ISO-8859-1").strip(),
+                            "en": en_line.decode("ISO-8859-1").strip(),
+                        }
                         yield line_id, rec

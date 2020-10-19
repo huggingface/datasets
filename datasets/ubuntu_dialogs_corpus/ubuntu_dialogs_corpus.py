@@ -57,7 +57,9 @@ class UbuntuDialogsCorpus(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("2.0.0")
     BUILDER_CONFIGS = [
         UbuntuDialogsCorpusConfig(
-            name="train", features=["Context", "Utterance", "Label"], description="training features"
+            name="train",
+            features=["Context", "Utterance", "Label"],
+            description="training features",
         ),
         UbuntuDialogsCorpusConfig(
             name="dev_test",

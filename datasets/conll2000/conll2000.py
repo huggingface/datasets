@@ -68,7 +68,11 @@ class Conll2000(datasets.GeneratorBasedBuilder):
     """Conll2000 dataset."""
 
     BUILDER_CONFIGS = [
-        Conll2000Config(name="conll2000", version=datasets.Version("1.0.0"), description="Conll2000 dataset"),
+        Conll2000Config(
+            name="conll2000",
+            version=datasets.Version("1.0.0"),
+            description="Conll2000 dataset",
+        ),
     ]
 
     def _info(self):
@@ -96,8 +100,14 @@ class Conll2000(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_files["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": downloaded_files["test"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):
@@ -110,7 +120,12 @@ class Conll2000(datasets.GeneratorBasedBuilder):
             for line in f:
                 if line == "" or line == "\n":
                     if words:
-                        yield guid, {"id": str(guid), "words": words, "pos": pos, "chunk": chunk}
+                        yield guid, {
+                            "id": str(guid),
+                            "words": words,
+                            "pos": pos,
+                            "chunk": chunk,
+                        }
                         guid += 1
                         words = []
                         pos = []

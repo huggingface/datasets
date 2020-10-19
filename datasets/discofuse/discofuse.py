@@ -51,10 +51,14 @@ class Discofuse(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
         DiscofuseConfig(
-            name="discofuse-sport", description="sentence fusion", data_url=_URL_ + "discofuse_v1_sports.tar.gz"
+            name="discofuse-sport",
+            description="sentence fusion",
+            data_url=_URL_ + "discofuse_v1_sports.tar.gz",
         ),
         DiscofuseConfig(
-            name="discofuse-wikipedia", description="sentence fusion", data_url=_URL_ + "discofuse_v1_wikipedia.tar.gz"
+            name="discofuse-wikipedia",
+            description="sentence fusion",
+            data_url=_URL_ + "discofuse_v1_wikipedia.tar.gz",
         ),
     ]
 

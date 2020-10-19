@@ -94,7 +94,15 @@ class BuilderTest(TestCase):
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
             dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
+                os.path.exists(
+                    os.path.join(
+                        tmp_dir,
+                        "dummy_builder",
+                        "dummy",
+                        "0.0.0",
+                        "dummy_builder-train.arrow",
+                    )
+                )
             )
             self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
             self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
@@ -146,10 +154,12 @@ class BuilderTest(TestCase):
             self.assertEqual(len(dsets["train"]), 10)
             self.assertEqual(len(dsets["test"]), 10)
             self.assertDictEqual(
-                dsets["train"].features, Features({"text": Value("string"), "tokens": [Value("string")]})
+                dsets["train"].features,
+                Features({"text": Value("string"), "tokens": [Value("string")]}),
             )
             self.assertDictEqual(
-                dsets["test"].features, Features({"text": Value("string"), "tokens": [Value("string")]})
+                dsets["test"].features,
+                Features({"text": Value("string"), "tokens": [Value("string")]}),
             )
             self.assertListEqual(dsets["train"].column_names, ["text", "tokens"])
             self.assertListEqual(dsets["test"].column_names, ["text", "tokens"])
@@ -159,11 +169,15 @@ class BuilderTest(TestCase):
             self.assertIsInstance(dset, Dataset)
             self.assertEqual(dset.split, "train")
             self.assertEqual(len(dset), 10)
-            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
+            self.assertDictEqual(
+                dset.features,
+                Features({"text": Value("string"), "tokens": [Value("string")]}),
+            )
             self.assertListEqual(dset.column_names, ["text", "tokens"])
             self.assertGreater(dummy_builder.info.post_processing_size, 0)
             self.assertGreater(
-                dummy_builder.info.post_processed.resources_checksums["train"]["tokenized_dataset"]["num_bytes"], 0
+                dummy_builder.info.post_processed.resources_checksums["train"]["tokenized_dataset"]["num_bytes"],
+                0,
             )
             del dset
 
@@ -171,7 +185,10 @@ class BuilderTest(TestCase):
             self.assertIsInstance(dset, Dataset)
             self.assertEqual(dset.split, "train+test[:30%]")
             self.assertEqual(len(dset), 13)
-            self.assertDictEqual(dset.features, Features({"text": Value("string"), "tokens": [Value("string")]}))
+            self.assertDictEqual(
+                dset.features,
+                Features({"text": Value("string"), "tokens": [Value("string")]}),
+            )
             self.assertListEqual(dset.column_names, ["text", "tokens"])
             del dset
 
@@ -237,7 +254,9 @@ class BuilderTest(TestCase):
                 return dataset
             else:
                 dataset.add_faiss_index_from_external_arrays(
-                    external_arrays=np.ones((len(dataset), 8)), string_factory="Flat", index_name="my_index"
+                    external_arrays=np.ones((len(dataset), 8)),
+                    string_factory="Flat",
+                    index_name="my_index",
                 )
                 dataset.save_faiss_index("my_index", resources_paths["index"])
                 return dataset
@@ -282,7 +301,10 @@ class BuilderTest(TestCase):
             self.assertListEqual(dsets["train"].list_indexes(), ["my_index"])
             self.assertListEqual(dsets["test"].list_indexes(), ["my_index"])
             self.assertGreater(dummy_builder.info.post_processing_size, 0)
-            self.assertGreater(dummy_builder.info.post_processed.resources_checksums["train"]["index"]["num_bytes"], 0)
+            self.assertGreater(
+                dummy_builder.info.post_processed.resources_checksums["train"]["index"]["num_bytes"],
+                0,
+            )
             del dsets
 
             dset = dummy_builder.as_dataset("train")
@@ -322,7 +344,15 @@ class BuilderTest(TestCase):
             dummy_builder._post_processing_resources = types.MethodType(_post_processing_resources, dummy_builder)
             dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
+                os.path.exists(
+                    os.path.join(
+                        tmp_dir,
+                        "dummy_builder",
+                        "dummy",
+                        "0.0.0",
+                        "dummy_builder-train.arrow",
+                    )
+                )
             )
             self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
             self.assertDictEqual(
@@ -342,7 +372,15 @@ class BuilderTest(TestCase):
             dummy_builder._post_process = types.MethodType(_post_process, dummy_builder)
             dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
+                os.path.exists(
+                    os.path.join(
+                        tmp_dir,
+                        "dummy_builder",
+                        "dummy",
+                        "0.0.0",
+                        "dummy_builder-train.arrow",
+                    )
+                )
             )
             self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
             self.assertIsNone(dummy_builder.info.post_processed)
@@ -357,7 +395,9 @@ class BuilderTest(TestCase):
                 return dataset
             else:
                 dataset = dataset.add_faiss_index_from_external_arrays(
-                    external_arrays=np.ones((len(dataset), 8)), string_factory="Flat", index_name="my_index"
+                    external_arrays=np.ones((len(dataset), 8)),
+                    string_factory="Flat",
+                    index_name="my_index",
                 )
                 dataset.save_faiss_index("my_index", resources_paths["index"])
                 return dataset
@@ -371,7 +411,15 @@ class BuilderTest(TestCase):
             dummy_builder._post_processing_resources = types.MethodType(_post_processing_resources, dummy_builder)
             dummy_builder.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
             self.assertTrue(
-                os.path.exists(os.path.join(tmp_dir, "dummy_builder", "dummy", "0.0.0", "dummy_builder-train.arrow"))
+                os.path.exists(
+                    os.path.join(
+                        tmp_dir,
+                        "dummy_builder",
+                        "dummy",
+                        "0.0.0",
+                        "dummy_builder-train.arrow",
+                    )
+                )
             )
             self.assertDictEqual(dummy_builder.info.features, Features({"text": Value("string")}))
             self.assertIsNone(dummy_builder.info.post_processed)
@@ -388,7 +436,10 @@ class BuilderTest(TestCase):
             dummy_builder = DummyBuilder(cache_dir=tmp_dir, name="dummy")
             dummy_builder._prepare_split = types.MethodType(_prepare_split, dummy_builder)
             self.assertRaises(
-                ValueError, dummy_builder.download_and_prepare, try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD
+                ValueError,
+                dummy_builder.download_and_prepare,
+                try_from_hf_gcs=False,
+                download_mode=FORCE_REDOWNLOAD,
             )
             self.assertRaises(AssertionError, dummy_builder.as_dataset)
 
@@ -411,7 +462,13 @@ class BuilderTest(TestCase):
             self.assertEqual(dummy_builder.info.splits["train"].num_examples, 100)
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(tmp_dir, "dummy_generator_based_builder", "dummy", "0.0.0", "dataset_info.json")
+                    os.path.join(
+                        tmp_dir,
+                        "dummy_generator_based_builder",
+                        "dummy",
+                        "0.0.0",
+                        "dataset_info.json",
+                    )
                 )
             )
 
@@ -467,25 +524,37 @@ class BuilderTest(TestCase):
             self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
 
             dummy_builder = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, name="dummy", data_files={"train": dummy_data1, "test": dummy_data2}
+                cache_dir=tmp_dir,
+                name="dummy",
+                data_files={"train": dummy_data1, "test": dummy_data2},
             )
             other_builder = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, name="dummy", data_files={"train": dummy_data1, "test": dummy_data2}
-            )
-            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
-            other_builder = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, name="dummy", data_files={"train": [dummy_data1], "test": dummy_data2}
-            )
-            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
-            other_builder = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, name="dummy", data_files={"test": dummy_data2, "train": dummy_data1}
+                cache_dir=tmp_dir,
+                name="dummy",
+                data_files={"train": dummy_data1, "test": dummy_data2},
             )
             self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
             other_builder = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, name="dummy", data_files={"train": dummy_data1, "validation": dummy_data2}
+                cache_dir=tmp_dir,
+                name="dummy",
+                data_files={"train": [dummy_data1], "test": dummy_data2},
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir,
+                name="dummy",
+                data_files={"test": dummy_data2, "train": dummy_data1},
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir,
+                name="dummy",
+                data_files={"train": dummy_data1, "validation": dummy_data2},
             )
             self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
             other_builder = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, name="dummy", data_files={"train": [dummy_data1, dummy_data2], "test": dummy_data2}
+                cache_dir=tmp_dir,
+                name="dummy",
+                data_files={"train": [dummy_data1, dummy_data2], "test": dummy_data2},
             )
             self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)

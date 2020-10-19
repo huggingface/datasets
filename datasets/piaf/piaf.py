@@ -65,7 +65,11 @@ class Piaf(datasets.GeneratorBasedBuilder):
     _TRAINING_FILE = "piaf-v1.0.json"
 
     BUILDER_CONFIGS = [
-        PiafConfig(name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text",),
+        PiafConfig(
+            name="plain_text",
+            version=datasets.Version("1.0.0", ""),
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
@@ -78,7 +82,10 @@ class Piaf(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -94,7 +101,10 @@ class Piaf(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_files["train"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):
@@ -120,5 +130,8 @@ class Piaf(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

@@ -53,7 +53,10 @@ class SquadIt(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                     # These are the features of your dataset like images, labels ...
                 }
@@ -72,12 +75,21 @@ class SquadIt(datasets.GeneratorBasedBuilder):
         # TODO(squad_it): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {"train": os.path.join(_URL, _TRAIN_FILE), "test": os.path.join(_URL, _TEST_FILE)}
+        urls_to_download = {
+            "train": os.path.join(_URL, _TRAIN_FILE),
+            "test": os.path.join(_URL, _TEST_FILE),
+        }
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_files["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": downloaded_files["test"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):
@@ -99,5 +111,8 @@ class SquadIt(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

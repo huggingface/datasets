@@ -184,7 +184,10 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
 
-        wikipedia = datasets.load_dataset(path=self.config.wikipedia_name, name=self.config.wikipedia_version_name,)
+        wikipedia = datasets.load_dataset(
+            path=self.config.wikipedia_name,
+            name=self.config.wikipedia_version_name,
+        )
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"wikipedia": wikipedia}),
@@ -198,7 +201,10 @@ class WikiSnippets(datasets.GeneratorBasedBuilder):
             dset = wikipedia[split]
             split_function = _SPLIT_FUCNTION_MAP[self.config.wikipedia_name]
             for doc in generate_snippets(
-                dset, split_function, passage_len=self.config.snippets_length, overlap=self.config.snippets_overlap
+                dset,
+                split_function,
+                passage_len=self.config.snippets_length,
+                overlap=self.config.snippets_overlap,
             ):
                 id_ = doc["_id"]
                 yield id_, doc

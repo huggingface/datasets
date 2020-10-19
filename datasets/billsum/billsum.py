@@ -82,15 +82,24 @@ class Billsum(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"path": os.path.join(dl_path, "us_train_data_final_OFFICIAL.jsonl"), "key": "bill_id"},
+                gen_kwargs={
+                    "path": os.path.join(dl_path, "us_train_data_final_OFFICIAL.jsonl"),
+                    "key": "bill_id",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"path": os.path.join(dl_path, "us_test_data_final_OFFICIAL.jsonl"), "key": "bill_id"},
+                gen_kwargs={
+                    "path": os.path.join(dl_path, "us_test_data_final_OFFICIAL.jsonl"),
+                    "key": "bill_id",
+                },
             ),
             datasets.SplitGenerator(
                 name="ca_test",
-                gen_kwargs={"path": os.path.join(dl_path, "ca_test_data_final_OFFICIAL.jsonl"), "key": "external_id"},
+                gen_kwargs={
+                    "path": os.path.join(dl_path, "ca_test_data_final_OFFICIAL.jsonl"),
+                    "key": "external_id",
+                },
             ),
         ]
 

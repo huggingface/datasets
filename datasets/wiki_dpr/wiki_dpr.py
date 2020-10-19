@@ -92,7 +92,11 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
             )
             if self.config.with_embeddings
             else datasets.Features(
-                {"id": datasets.Value("string"), "text": datasets.Value("string"), "title": datasets.Value("string")}
+                {
+                    "id": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                    "title": datasets.Value("string"),
+                }
             ),
             supervised_keys=None,
             homepage="https://github.com/facebookresearch/DPR",
@@ -181,7 +185,9 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                     ivf_index.own_fields = True
                     quantizer.this.disown()
                     dataset.add_faiss_index(
-                        "embeddings", train_size=train_size, custom_index=ivf_index,
+                        "embeddings",
+                        train_size=train_size,
+                        custom_index=ivf_index,
                     )
                 logging.info("Saving wiki_dpr faiss index")
                 dataset.save_faiss_index("embeddings", index_file)

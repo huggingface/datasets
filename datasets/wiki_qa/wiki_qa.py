@@ -69,10 +69,12 @@ class WikiQa(datasets.GeneratorBasedBuilder):
         # dl_dir = os.path.join(dl_dir, '')
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, "WikiQA-test.tsv")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "WikiQA-test.tsv")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, "WikiQA-dev.tsv")}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(dl_dir, "WikiQA-dev.tsv")},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,

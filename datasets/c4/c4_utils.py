@@ -260,7 +260,10 @@ def _emit_line_to_urls(el, counter_inc_fn):
     urls = list(urls)
     # Hash urls and sort to have a consistent, but unbiased, selection when the
     # same urls exist for multiple lines.
-    skip_url = min(urls, key=lambda x: hashlib.md5(tf.compat.as_text(x).encode("utf-8")).hexdigest())
+    skip_url = min(
+        urls,
+        key=lambda x: hashlib.md5(tf.compat.as_text(x).encode("utf-8")).hexdigest(),
+    )
     for url in urls:
         if url != skip_url:
             yield url, line

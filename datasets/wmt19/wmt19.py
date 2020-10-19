@@ -76,5 +76,9 @@ class Wmt19(Wmt):
                 "rapid_2019",
             ]
             + CWMT_SUBSET_NAMES,
-            datasets.Split.VALIDATION: ["euelections_dev2019", "newsdev2019", "newstest2018"],
+            datasets.Split.VALIDATION: [
+                "euelections_dev2019",
+                "newsdev2019",
+                "newstest2018",
+            ],
         }

@@ -74,7 +74,11 @@ class CoarseDiscourse(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "coarse-discourse-master", "coarse_discourse_dataset.json")
+                    "filepath": os.path.join(
+                        dl_dir,
+                        "coarse-discourse-master",
+                        "coarse_discourse_dataset.json",
+                    )
                 },
             ),
         ]
@@ -113,5 +117,9 @@ class CoarseDiscourse(datasets.GeneratorBasedBuilder):
                         "id_post": id_post,
                         "post_depth": post_depth,
                         "in_reply_to": in_reply_to,
-                        "annotations": {"annotator": annotators, "link_to_post": link_posts, "main_type": main_types},
+                        "annotations": {
+                            "annotator": annotators,
+                            "link_to_post": link_posts,
+                            "main_type": main_types,
+                        },
                     }

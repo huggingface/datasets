@@ -50,7 +50,13 @@ class Arcd(datasets.GeneratorBasedBuilder):
     _DEV_FILE = "arcd-test.json"
     _TRAINING_FILE = "arcd-train.json"
 
-    BUILDER_CONFIGS = [ArcdConfig(name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text",)]
+    BUILDER_CONFIGS = [
+        ArcdConfig(
+            name="plain_text",
+            version=datasets.Version("1.0.0", ""),
+            description="Plain text",
+        )
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -62,7 +68,10 @@ class Arcd(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32")}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -81,8 +90,14 @@ class Arcd(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_files["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_files["dev"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):

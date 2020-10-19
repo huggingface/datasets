@@ -29,7 +29,9 @@ def benchmark_map_filter():
     with tempfile.TemporaryDirectory() as tmp_dir:
         features = datasets.Features({"text": datasets.Value("string"), "numbers": datasets.Value("float32")})
         dataset = generate_example_dataset(
-            os.path.join(tmp_dir, "dataset.arrow"), features, num_examples=SPEED_TEST_N_EXAMPLES
+            os.path.join(tmp_dir, "dataset.arrow"),
+            features,
+            num_examples=SPEED_TEST_N_EXAMPLES,
         )
 
         tokenizer = transformers.AutoTokenizer.from_pretrained("bert-base-cased", use_fast=True)

@@ -239,7 +239,10 @@ class LocalDatasetTest(parameterized.TestCase):
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
             dataset = load_dataset(
-                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                path,
+                name=name,
+                cache_dir=temp_cache_dir,
+                download_mode=GenerateMode.FORCE_REDOWNLOAD,
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
@@ -256,7 +259,10 @@ class LocalDatasetTest(parameterized.TestCase):
         for name in config_names:
             with tempfile.TemporaryDirectory() as temp_cache_dir:
                 dataset = load_dataset(
-                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                    path,
+                    name=name,
+                    cache_dir=temp_cache_dir,
+                    download_mode=GenerateMode.FORCE_REDOWNLOAD,
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
@@ -276,7 +282,10 @@ class DistributedDatasetTest(TestCase):
             data_name = "./datasets/csv"
             data_base_path = os.path.join(data_name, "dummy/0.0.0/dummy_data.zip")
             local_path = cached_path(
-                data_base_path, cache_dir=tmp_dir, extract_compressed_file=True, force_extract=True
+                data_base_path,
+                cache_dir=tmp_dir,
+                extract_compressed_file=True,
+                force_extract=True,
             )
             datafiles = {
                 "train": os.path.join(local_path, "dummy_data/train.csv"),
@@ -336,7 +345,10 @@ class RemoteDatasetTest(parameterized.TestCase):
         name = builder_cls.BUILDER_CONFIGS[0].name if builder_cls.BUILDER_CONFIGS else None
         with tempfile.TemporaryDirectory() as temp_cache_dir:
             dataset = load_dataset(
-                path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                path,
+                name=name,
+                cache_dir=temp_cache_dir,
+                download_mode=GenerateMode.FORCE_REDOWNLOAD,
             )
             for split in dataset.keys():
                 self.assertTrue(len(dataset[split]) > 0)
@@ -353,7 +365,10 @@ class RemoteDatasetTest(parameterized.TestCase):
         for name in config_names:
             with tempfile.TemporaryDirectory() as temp_cache_dir:
                 dataset = load_dataset(
-                    path, name=name, cache_dir=temp_cache_dir, download_mode=GenerateMode.FORCE_REDOWNLOAD
+                    path,
+                    name=name,
+                    cache_dir=temp_cache_dir,
+                    download_mode=GenerateMode.FORCE_REDOWNLOAD,
                 )
                 for split in dataset.keys():
                     self.assertTrue(len(dataset[split]) > 0)
@@ -370,14 +385,20 @@ class TextTest(TestCase):
                 "\n".join("foo" for _ in range(n_samples))
             )
             ds = load_dataset(
-                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
+                "./datasets/text",
+                data_files=os.path.join(tmp_dir, "text.txt"),
+                cache_dir=tmp_dir,
+                split="train",
             )
             data_file = ds._data_files[0]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_samples)
             del ds
             ds = load_dataset(
-                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
+                "./datasets/text",
+                data_files=os.path.join(tmp_dir, "text.txt"),
+                cache_dir=tmp_dir,
+                split="train",
             )
             self.assertEqual(ds._data_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
@@ -387,7 +408,10 @@ class TextTest(TestCase):
                 "\n".join("bar" for _ in range(n_samples))
             )
             ds = load_dataset(
-                "./datasets/text", data_files=os.path.join(tmp_dir, "text.txt"), cache_dir=tmp_dir, split="train"
+                "./datasets/text",
+                data_files=os.path.join(tmp_dir, "text.txt"),
+                cache_dir=tmp_dir,
+                split="train",
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
@@ -408,14 +432,20 @@ class CsvTest(TestCase):
                 "\n".join(",".join(["foo", "bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset(
-                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table.csv"),
+                cache_dir=tmp_dir,
+                split="train",
             )
             data_file = ds._data_files[0]
             fingerprint = ds._fingerprint
             self.assertEqual(len(ds), n_rows)
             del ds
             ds = load_dataset(
-                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table.csv"),
+                cache_dir=tmp_dir,
+                split="train",
             )
             self.assertEqual(ds._data_files[0], data_file)
             self.assertEqual(ds._fingerprint, fingerprint)
@@ -435,7 +465,10 @@ class CsvTest(TestCase):
                 "\n".join(",".join(["Foo", "Bar"]) for _ in range(n_rows + 1))
             )
             ds = load_dataset(
-                "./datasets/csv", data_files=os.path.join(tmp_dir, "table.csv"), cache_dir=tmp_dir, split="train"
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table.csv"),
+                cache_dir=tmp_dir,
+                split="train",
             )
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)

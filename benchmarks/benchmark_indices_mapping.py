@@ -46,7 +46,9 @@ def benchmark_indices_mapping():
         print("generating dataset")
         features = datasets.Features({"text": datasets.Value("string"), "numbers": datasets.Value("float32")})
         dataset = generate_example_dataset(
-            os.path.join(tmp_dir, "dataset.arrow"), features, num_examples=SPEED_TEST_N_EXAMPLES
+            os.path.join(tmp_dir, "dataset.arrow"),
+            features,
+            num_examples=SPEED_TEST_N_EXAMPLES,
         )
         print("Functions")
         for func in functions:

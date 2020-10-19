@@ -103,7 +103,10 @@ class PyUtilsTest(TestCase):
             {k: v.tolist() for k, v in map_nested(int, sn1, map_numpy=True).items()},
             {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()},
         )
-        self.assertEqual(map_nested(np_sum, sn1, map_numpy=False, num_proc=num_proc), expected_map_nested_sn1_sum)
+        self.assertEqual(
+            map_nested(np_sum, sn1, map_numpy=False, num_proc=num_proc),
+            expected_map_nested_sn1_sum,
+        )
         self.assertEqual(
             {k: v.tolist() for k, v in map_nested(int, sn1, map_numpy=True, num_proc=num_proc).items()},
             {k: v.tolist() for k, v in expected_map_nested_sn1_int.items()},

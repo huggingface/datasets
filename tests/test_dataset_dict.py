@@ -41,7 +41,8 @@ class DatasetDictTest(TestCase):
         self.assertDictEqual(dset.column_names, {"train": ["a.b.c", "foo"], "test": ["a.b.c", "foo"]})
         self.assertListEqual(list(dset["train"].features.keys()), ["a.b.c", "foo"])
         self.assertDictEqual(
-            dset["train"].features, Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")})
+            dset["train"].features,
+            Features({"a.b.c": Sequence(Value("string")), "foo": Value("int64")}),
         )
         del dset
 
@@ -188,10 +189,15 @@ class DatasetDictTest(TestCase):
                 "test": os.path.join(tmp_dir, "test.arrow"),
             }
             mapped_dsets_2: DatasetDict = mapped_dsets_1.map(
-                lambda ex: {"bar": ["foo"] * len(ex["filename"])}, batched=True, cache_file_names=cache_file_names
+                lambda ex: {"bar": ["foo"] * len(ex["filename"])},
+                batched=True,
+                cache_file_names=cache_file_names,
             )
             self.assertListEqual(list(dsets.keys()), list(mapped_dsets_2.keys()))
-            self.assertListEqual(sorted(mapped_dsets_2["train"].column_names), sorted(["filename", "foo", "bar"]))
+            self.assertListEqual(
+                sorted(mapped_dsets_2["train"].column_names),
+                sorted(["filename", "foo", "bar"]),
+            )
             del dsets, mapped_dsets_1, mapped_dsets_2
 
     def test_filter(self):
@@ -207,7 +213,8 @@ class DatasetDictTest(TestCase):
                 "test": os.path.join(tmp_dir, "test.arrow"),
             }
             filtered_dsets_2: DatasetDict = filtered_dsets_1.filter(
-                lambda ex: int(ex["filename"].split("_")[-1]) < 5, cache_file_names=cache_file_names
+                lambda ex: int(ex["filename"].split("_")[-1]) < 5,
+                cache_file_names=cache_file_names,
             )
             self.assertListEqual(list(dsets.keys()), list(filtered_dsets_2.keys()))
             self.assertEqual(len(filtered_dsets_2["train"]), 5)
@@ -229,7 +236,9 @@ class DatasetDictTest(TestCase):
                 "test": os.path.join(tmp_dir, "test.arrow"),
             }
             sorted_dsets_2: DatasetDict = sorted_dsets_1.sort(
-                "filename", indices_cache_file_names=indices_cache_file_names, reverse=True
+                "filename",
+                indices_cache_file_names=indices_cache_file_names,
+                reverse=True,
             )
             self.assertListEqual(list(dsets.keys()), list(sorted_dsets_2.keys()))
             self.assertListEqual(
@@ -251,7 +260,9 @@ class DatasetDictTest(TestCase):
                 "test": 1234,
             }
             dsets_shuffled = dsets.shuffle(
-                seeds=seeds, indices_cache_file_names=indices_cache_file_names, load_from_cache_file=False
+                seeds=seeds,
+                indices_cache_file_names=indices_cache_file_names,
+                load_from_cache_file=False,
             )
             self.assertListEqual(dsets_shuffled["train"]["filename"], dsets_shuffled["test"]["filename"])
 
@@ -259,7 +270,10 @@ class DatasetDictTest(TestCase):
             self.assertEqual(dsets_shuffled["train"][0]["filename"], "my_name-train_028")
             self.assertEqual(dsets_shuffled["train"][2]["filename"], "my_name-train_010")
             self.assertDictEqual(dsets["train"].features, Features({"filename": Value("string")}))
-            self.assertDictEqual(dsets_shuffled["train"].features, Features({"filename": Value("string")}))
+            self.assertDictEqual(
+                dsets_shuffled["train"].features,
+                Features({"filename": Value("string")}),
+            )
 
             # Reproducibility
             indices_cache_file_names_2 = {
@@ -267,9 +281,14 @@ class DatasetDictTest(TestCase):
                 "test": os.path.join(tmp_dir, "test_2.arrow"),
             }
             dsets_shuffled_2 = dsets.shuffle(
-                seeds=seeds, indices_cache_file_names=indices_cache_file_names_2, load_from_cache_file=False
+                seeds=seeds,
+                indices_cache_file_names=indices_cache_file_names_2,
+                load_from_cache_file=False,
             )
-            self.assertListEqual(dsets_shuffled["train"]["filename"], dsets_shuffled_2["train"]["filename"])
+            self.assertListEqual(
+                dsets_shuffled["train"]["filename"],
+                dsets_shuffled_2["train"]["filename"],
+            )
 
             seeds = {
                 "train": 1234,
@@ -280,9 +299,14 @@ class DatasetDictTest(TestCase):
                 "test": os.path.join(tmp_dir, "test_3.arrow"),
             }
             dsets_shuffled_3 = dsets.shuffle(
-                seeds=seeds, indices_cache_file_names=indices_cache_file_names_3, load_from_cache_file=False
+                seeds=seeds,
+                indices_cache_file_names=indices_cache_file_names_3,
+                load_from_cache_file=False,
             )
-            self.assertNotEqual(dsets_shuffled_3["train"]["filename"], dsets_shuffled_3["test"]["filename"])
+            self.assertNotEqual(
+                dsets_shuffled_3["train"]["filename"],
+                dsets_shuffled_3["test"]["filename"],
+            )
             del dsets, dsets_shuffled, dsets_shuffled_2, dsets_shuffled_3
 
     def test_check_values_type(self):

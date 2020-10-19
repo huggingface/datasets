@@ -50,7 +50,11 @@ class Json(datasets.ArrowBasedBuilder):
                 files = [files]
             return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
-        for split_name in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]:
+        for split_name in [
+            datasets.Split.TRAIN,
+            datasets.Split.VALIDATION,
+            datasets.Split.TEST,
+        ]:
             if split_name in data_files:
                 files = data_files[split_name]
                 if isinstance(files, str):
@@ -79,7 +83,9 @@ class Json(datasets.ArrowBasedBuilder):
             else:
                 try:
                     pa_table = paj.read_json(
-                        file, read_options=self.config.pa_read_options, parse_options=self.config.pa_parse_options,
+                        file,
+                        read_options=self.config.pa_read_options,
+                        parse_options=self.config.pa_parse_options,
                     )
                 except pa.ArrowInvalid:
                     with open(file, encoding="utf-8") as f:

@@ -68,9 +68,15 @@ class DoqaConfig(datasets.BuilderConfig):
 class Doqa(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
-        DoqaConfig(name="cooking",),
-        DoqaConfig(name="movies",),
-        DoqaConfig(name="travel",),
+        DoqaConfig(
+            name="cooking",
+        ),
+        DoqaConfig(
+            name="movies",
+        ),
+        DoqaConfig(
+            name="travel",
+        ),
     ]
 
     def _info(self):
@@ -84,12 +90,18 @@ class Doqa(datasets.GeneratorBasedBuilder):
                     "question": datasets.Value("string"),
                     "id": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                     "followup": datasets.Value("string"),
                     "yesno": datasets.Value("string"),
                     "orig_answer": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -104,19 +116,34 @@ class Doqa(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-cooking-test-v2.1.json")
+                        "filepath": os.path.join(
+                            path,
+                            "doqa-v2.1",
+                            "doqa_dataset",
+                            "doqa-cooking-test-v2.1.json",
+                        )
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-cooking-dev-v2.1.json")
+                        "filepath": os.path.join(
+                            path,
+                            "doqa-v2.1",
+                            "doqa_dataset",
+                            "doqa-cooking-dev-v2.1.json",
+                        )
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-cooking-train-v2.1.json")
+                        "filepath": os.path.join(
+                            path,
+                            "doqa-v2.1",
+                            "doqa_dataset",
+                            "doqa-cooking-train-v2.1.json",
+                        )
                     },
                 ),
             ]
@@ -125,7 +152,12 @@ class Doqa(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-movies-test-v2.1.json")
+                        "filepath": os.path.join(
+                            path,
+                            "doqa-v2.1",
+                            "doqa_dataset",
+                            "doqa-movies-test-v2.1.json",
+                        )
                     },
                 )
             ]
@@ -134,7 +166,12 @@ class Doqa(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "filepath": os.path.join(path, "doqa-v2.1", "doqa_dataset", "doqa-travel-test-v2.1.json")
+                        "filepath": os.path.join(
+                            path,
+                            "doqa-v2.1",
+                            "doqa_dataset",
+                            "doqa-travel-test-v2.1.json",
+                        )
                     },
                 )
             ]
@@ -170,8 +207,14 @@ class Doqa(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id1,
-                            "answers": {"text": answer_text, "answer_start": answer_start,},
+                            "answers": {
+                                "text": answer_text,
+                                "answer_start": answer_start,
+                            },
                             "followup": followup,
                             "yesno": yesno,
-                            "orig_answer": {"text": orig_answer_text, "answer_start": orig_answer_start,},
+                            "orig_answer": {
+                                "text": orig_answer_text,
+                                "answer_start": orig_answer_start,
+                            },
                         }

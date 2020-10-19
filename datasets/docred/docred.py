@@ -84,18 +84,31 @@ class DocRed(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": downloads["dev"], "rel_info": downloads["rel_info"]},
+                gen_kwargs={
+                    "filepath": downloads["dev"],
+                    "rel_info": downloads["rel_info"],
+                },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": downloads["test"], "rel_info": downloads["rel_info"]}
+                name=datasets.Split.TEST,
+                gen_kwargs={
+                    "filepath": downloads["test"],
+                    "rel_info": downloads["rel_info"],
+                },
             ),
             datasets.SplitGenerator(
                 name="train_annotated",
-                gen_kwargs={"filepath": downloads["train_annotated"], "rel_info": downloads["rel_info"]},
+                gen_kwargs={
+                    "filepath": downloads["train_annotated"],
+                    "rel_info": downloads["rel_info"],
+                },
             ),
             datasets.SplitGenerator(
                 name="train_distant",
-                gen_kwargs={"filepath": downloads["train_distant"], "rel_info": downloads["rel_info"]},
+                gen_kwargs={
+                    "filepath": downloads["train_distant"],
+                    "rel_info": downloads["rel_info"],
+                },
             ),
         ]
 

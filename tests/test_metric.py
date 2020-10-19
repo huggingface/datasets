@@ -59,7 +59,13 @@ def metric_compute(arg):
     On base level to be pickable.
     """
     process_id, preds, refs, exp_id, data_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    metric = DummyMetric(
+        num_process=2,
+        process_id=process_id,
+        experiment_id=exp_id,
+        data_dir=data_dir,
+        timeout=5,
+    )
     time.sleep(wait)
     return metric.compute(predictions=preds, references=refs)
 
@@ -69,7 +75,13 @@ def metric_add_batch_and_compute(arg):
     On base level to be pickable.
     """
     process_id, preds, refs, exp_id, data_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    metric = DummyMetric(
+        num_process=2,
+        process_id=process_id,
+        experiment_id=exp_id,
+        data_dir=data_dir,
+        timeout=5,
+    )
     time.sleep(wait)
     metric.add_batch(predictions=preds, references=refs)
     return metric.compute()
@@ -80,7 +92,13 @@ def metric_add_and_compute(arg):
     On base level to be pickable.
     """
     process_id, preds, refs, exp_id, data_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    metric = DummyMetric(
+        num_process=2,
+        process_id=process_id,
+        experiment_id=exp_id,
+        data_dir=data_dir,
+        timeout=5,
+    )
     time.sleep(wait)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
@@ -92,7 +110,13 @@ def metric_add_and_compute_exp_id(arg):
     On base level to be pickable.
     """
     process_id, preds, refs, exp_id, data_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    metric = DummyMetric(
+        num_process=2,
+        process_id=process_id,
+        experiment_id=exp_id,
+        data_dir=data_dir,
+        timeout=5,
+    )
     time.sleep(wait)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
@@ -145,16 +169,23 @@ class TestMetric(TestCase):
         other_expected_results = DummyMetric.other_expected_results()
 
         metric = DummyMetric(experiment_id="test_concurrent_metrics")
-        other_metric = DummyMetric(experiment_id="test_concurrent_metrics",)
+        other_metric = DummyMetric(
+            experiment_id="test_concurrent_metrics",
+        )
 
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
         self.assertDictEqual(
-            other_expected_results, other_metric.compute(predictions=other_preds, references=other_refs)
+            other_expected_results,
+            other_metric.compute(predictions=other_preds, references=other_refs),
         )
         del metric, other_metric
 
-        metric = DummyMetric(experiment_id="test_concurrent_metrics",)
-        other_metric = DummyMetric(experiment_id="test_concurrent_metrics",)
+        metric = DummyMetric(
+            experiment_id="test_concurrent_metrics",
+        )
+        other_metric = DummyMetric(
+            experiment_id="test_concurrent_metrics",
+        )
         metric.add_batch(predictions=preds, references=refs)
         other_metric.add_batch(predictions=other_preds, references=other_refs)
         self.assertDictEqual(expected_results, metric.compute())
@@ -173,7 +204,8 @@ class TestMetric(TestCase):
 
         self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
         self.assertDictEqual(
-            other_expected_results, other_metric.compute(predictions=other_preds, references=other_refs)
+            other_expected_results,
+            other_metric.compute(predictions=other_preds, references=other_refs),
         )
 
         metric = DummyMetric(experiment_id="test_concurrent_metrics", keep_in_memory=True)
@@ -192,7 +224,10 @@ class TestMetric(TestCase):
 
     def test_distributed_metrics(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            (preds_0, refs_0), (preds_1, refs_1) = DummyMetric.distributed_predictions_and_references()
+            (preds_0, refs_0), (
+                preds_1,
+                refs_1,
+            ) = DummyMetric.distributed_predictions_and_references()
             expected_results = DummyMetric.distributed_expected_results()
 
             pool = Pool()

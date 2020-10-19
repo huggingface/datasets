@@ -80,7 +80,10 @@ class BLEURT(datasets.Metric):
                 }
             ),
             codebase_urls=["https://github.com/google-research/bleurt"],
-            reference_urls=["https://github.com/google-research/bleurt", "https://arxiv.org/abs/2004.04696"],
+            reference_urls=[
+                "https://github.com/google-research/bleurt",
+                "https://arxiv.org/abs/2004.04696",
+            ],
         )
 
     def _download_and_prepare(self, dl_manager):

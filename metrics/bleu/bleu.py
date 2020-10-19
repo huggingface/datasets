@@ -16,7 +16,9 @@
 
 import datasets
 
-from .nmt_bleu import compute_bleu  # From: https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py
+from .nmt_bleu import (
+    compute_bleu,
+)  # From: https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py
 
 
 _CITATION = """\
@@ -86,7 +88,8 @@ class Bleu(datasets.Metric):
                 {
                     "predictions": datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
                     "references": datasets.Sequence(
-                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"), id="references"
+                        datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
+                        id="references",
                     ),
                 }
             ),
@@ -99,7 +102,10 @@ class Bleu(datasets.Metric):
 
     def _compute(self, predictions, references, max_order=4, smooth=False):
         score = compute_bleu(
-            reference_corpus=references, translation_corpus=predictions, max_order=max_order, smooth=smooth
+            reference_corpus=references,
+            translation_corpus=predictions,
+            max_order=max_order,
+            smooth=smooth,
         )
         (bleu, precisions, bp, ratio, translation_length, reference_length) = score
         return {

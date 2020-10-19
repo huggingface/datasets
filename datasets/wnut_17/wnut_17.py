@@ -84,7 +84,9 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         WNUT_17Config(
-            name="wnut_17", version=datasets.Version("1.0.0"), description="The WNUT 17 Emerging Entities Dataset"
+            name="wnut_17",
+            version=datasets.Version("1.0.0"),
+            description="The WNUT 17 Emerging Entities Dataset",
         ),
     ]
 
@@ -113,9 +115,18 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_files["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_files["dev"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": downloaded_files["test"]},
+            ),
         ]
 
     def _generate_examples(self, filepath):
@@ -138,7 +149,11 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
                     assert len(current_tokens) == len(current_labels), "💔 between len of tokens & labels"
                     sentence = (
                         sentence_counter,
-                        {"id": str(sentence_counter), "words": current_tokens, "ner": current_labels,},
+                        {
+                            "id": str(sentence_counter),
+                            "words": current_tokens,
+                            "ner": current_labels,
+                        },
                     )
                     sentence_counter += 1
                     current_tokens = []

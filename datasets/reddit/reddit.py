@@ -51,7 +51,14 @@ _URL = "https://zenodo.org/record/1043504/files/corpus-webis-tldr-17.zip?downloa
 
 _DOCUMENT = "content"
 _SUMMARY = "summary"
-_ADDITIONAL_FEATURES = ["author", "body", "normalizedBody", "subreddit", "subreddit_id", "id"]
+_ADDITIONAL_FEATURES = [
+    "author",
+    "body",
+    "normalizedBody",
+    "subreddit",
+    "subreddit_id",
+    "id",
+]
 
 
 class Reddit(datasets.GeneratorBasedBuilder):
@@ -75,7 +82,8 @@ class Reddit(datasets.GeneratorBasedBuilder):
         dl_path = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"path": os.path.join(dl_path, "corpus-webis-tldr-17.json")},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(dl_path, "corpus-webis-tldr-17.json")},
             )
         ]
 

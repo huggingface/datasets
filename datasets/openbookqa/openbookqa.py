@@ -93,7 +93,10 @@ class Openbookqa(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                     "question_stem": datasets.Value("string"),
                     "choices": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "label": datasets.Value("string")}
+                        {
+                            "text": datasets.Value("string"),
+                            "label": datasets.Value("string"),
+                        }
                     ),
                     "answerKey": datasets.Value("string"),
                 }

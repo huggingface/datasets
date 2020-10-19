@@ -15,7 +15,10 @@ SPEED_TEST_SHAPE = (100, 100)
 SPEED_TEST_N_EXAMPLES = 100
 
 DEFAULT_FEATURES = datasets.Features(
-    {"text": Array2D(SHAPE_TEST_1, dtype="float32"), "image": Array2D(SHAPE_TEST_2, dtype="float32")}
+    {
+        "text": Array2D(SHAPE_TEST_1, dtype="float32"),
+        "image": Array2D(SHAPE_TEST_2, dtype="float32"),
+    }
 )
 
 RESULTS_BASEPATH, RESULTS_FILENAME = os.path.split(__file__)
@@ -34,7 +37,8 @@ def write(my_features, dummy_data, tmp_dir):
 @get_duration
 def read_unformated(feats, tmp_dir):
     dataset = datasets.Dataset.from_file(
-        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+        filename=os.path.join(tmp_dir, "beta.arrow"),
+        info=datasets.DatasetInfo(features=feats),
     )
     for _ in dataset:
         pass
@@ -43,7 +47,8 @@ def read_unformated(feats, tmp_dir):
 @get_duration
 def read_formatted_as_numpy(feats, tmp_dir):
     dataset = datasets.Dataset.from_file(
-        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+        filename=os.path.join(tmp_dir, "beta.arrow"),
+        info=datasets.DatasetInfo(features=feats),
     )
     dataset.set_format("numpy")
     for _ in dataset:
@@ -54,7 +59,8 @@ def read_formatted_as_numpy(feats, tmp_dir):
 def read_batch_unformated(feats, tmp_dir):
     batch_size = 10
     dataset = datasets.Dataset.from_file(
-        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+        filename=os.path.join(tmp_dir, "beta.arrow"),
+        info=datasets.DatasetInfo(features=feats),
     )
     for i in range(0, len(dataset), batch_size):
         _ = dataset[i : i + batch_size]
@@ -64,7 +70,8 @@ def read_batch_unformated(feats, tmp_dir):
 def read_batch_formatted_as_numpy(feats, tmp_dir):
     batch_size = 10
     dataset = datasets.Dataset.from_file(
-        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+        filename=os.path.join(tmp_dir, "beta.arrow"),
+        info=datasets.DatasetInfo(features=feats),
     )
     dataset.set_format("numpy")
     for i in range(0, len(dataset), batch_size):
@@ -74,7 +81,8 @@ def read_batch_formatted_as_numpy(feats, tmp_dir):
 @get_duration
 def read_col_unformated(feats, tmp_dir):
     dataset = datasets.Dataset.from_file(
-        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+        filename=os.path.join(tmp_dir, "beta.arrow"),
+        info=datasets.DatasetInfo(features=feats),
     )
     for col in feats:
         _ = dataset[col]
@@ -83,7 +91,8 @@ def read_col_unformated(feats, tmp_dir):
 @get_duration
 def read_col_formatted_as_numpy(feats, tmp_dir):
     dataset = datasets.Dataset.from_file(
-        filename=os.path.join(tmp_dir, "beta.arrow"), info=datasets.DatasetInfo(features=feats)
+        filename=os.path.join(tmp_dir, "beta.arrow"),
+        info=datasets.DatasetInfo(features=feats),
     )
     dataset.set_format("numpy")
     for col in feats:
@@ -114,7 +123,9 @@ def benchmark_array_xd():
         # )
         feats = datasets.Features({"image": datasets.Sequence(datasets.Sequence(datasets.Value("float32")))})
         data = generate_examples(
-            features=feats, num_examples=SPEED_TEST_N_EXAMPLES, seq_shapes={"image": SPEED_TEST_SHAPE}
+            features=feats,
+            num_examples=SPEED_TEST_N_EXAMPLES,
+            seq_shapes={"image": SPEED_TEST_SHAPE},
         )
         times["write_nested_sequence"] = write(feats, data, tmp_dir)
         for read_func in read_functions:

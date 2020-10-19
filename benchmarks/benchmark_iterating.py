@@ -52,8 +52,14 @@ def benchmark_iterating():
         (read_formatted, {"type": "pandas", "length": SMALL_TEST}),
         (read_formatted, {"type": "torch", "length": SMALL_TEST}),
         (read_formatted, {"type": "tensorflow", "length": SMALL_TEST}),
-        (read_formatted_batch, {"type": "numpy", "length": SMALL_TEST, "batch_size": 10}),
-        (read_formatted_batch, {"type": "numpy", "length": SMALL_TEST, "batch_size": 1_000}),
+        (
+            read_formatted_batch,
+            {"type": "numpy", "length": SMALL_TEST, "batch_size": 10},
+        ),
+        (
+            read_formatted_batch,
+            {"type": "numpy", "length": SMALL_TEST, "batch_size": 1_000},
+        ),
     ]
 
     functions_shuffled = [
@@ -63,13 +69,22 @@ def benchmark_iterating():
         (read_batch, {"length": SPEED_TEST_N_EXAMPLES, "batch_size": 100}),
         (read_batch, {"length": SPEED_TEST_N_EXAMPLES, "batch_size": 1_000}),
         (read_formatted, {"type": "numpy", "length": SMALL_TEST}),
-        (read_formatted_batch, {"type": "numpy", "length": SMALL_TEST, "batch_size": 10}),
-        (read_formatted_batch, {"type": "numpy", "length": SMALL_TEST, "batch_size": 1_000}),
+        (
+            read_formatted_batch,
+            {"type": "numpy", "length": SMALL_TEST, "batch_size": 10},
+        ),
+        (
+            read_formatted_batch,
+            {"type": "numpy", "length": SMALL_TEST, "batch_size": 1_000},
+        ),
     ]
     with tempfile.TemporaryDirectory() as tmp_dir:
         print("generating dataset")
         features = datasets.Features(
-            {"list": datasets.Sequence(datasets.Value("float32")), "numbers": datasets.Value("float32")}
+            {
+                "list": datasets.Sequence(datasets.Value("float32")),
+                "numbers": datasets.Value("float32"),
+            }
         )
         dataset = generate_example_dataset(
             os.path.join(tmp_dir, "dataset.arrow"),

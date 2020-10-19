@@ -159,7 +159,11 @@ class HfApi:
         r.raise_for_status()
 
     def presign(
-        self, token: str, filename: str, organization: Optional[str] = None, file_types: Optional[str] = None
+        self,
+        token: str,
+        filename: str,
+        organization: Optional[str] = None,
+        file_types: Optional[str] = None,
     ) -> PresignedUrl:
         """
         Call HF API to get a presigned url to upload `filename` to S3.
@@ -207,7 +211,10 @@ class HfApi:
         return urls.access
 
     def list_objs(
-        self, token: str, organization: Optional[str] = None, file_types: Optional[str] = None
+        self,
+        token: str,
+        organization: Optional[str] = None,
+        file_types: Optional[str] = None,
     ) -> List[S3Obj]:
         """
         Call HF API to list all stored files for user (or one of their organizations).
@@ -223,7 +230,11 @@ class HfApi:
         return [S3Obj(**x) for x in d]
 
     def delete_obj(
-        self, token: str, filename: str, organization: Optional[str] = None, file_types: Optional[str] = None
+        self,
+        token: str,
+        filename: str,
+        organization: Optional[str] = None,
+        file_types: Optional[str] = None,
     ):
         """
         Call HF API to delete a file stored by user

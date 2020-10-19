@@ -377,7 +377,15 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
             description=_WIC_DESCRIPTION,
             # Note that start1, start2, end1, and end2 will be integers stored as
             # datasets.Value('int32').
-            features=["word", "sentence1", "sentence2", "start1", "start2", "end1", "end2"],
+            features=[
+                "word",
+                "sentence1",
+                "sentence2",
+                "start1",
+                "start2",
+                "end1",
+                "end2",
+            ],
             data_url="https://dl.fbaipublicfiles.com/glue/superglue/data/v2/WiC.zip",
             citation=_WIC_CITATION,
             url="https://pilehvar.github.io/wic/",
@@ -444,7 +452,12 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
                 }
             )
         elif self.config.name == "record":
-            features["idx"] = dict({"passage": datasets.Value("int32"), "query": datasets.Value("int32"),})
+            features["idx"] = dict(
+                {
+                    "passage": datasets.Value("int32"),
+                    "query": datasets.Value("int32"),
+                }
+            )
         else:
             features["idx"] = datasets.Value("int32")
 
@@ -480,15 +493,24 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"data_file": os.path.join(dl_dir, "train.jsonl"), "split": datasets.Split.TRAIN,},
+                gen_kwargs={
+                    "data_file": os.path.join(dl_dir, "train.jsonl"),
+                    "split": datasets.Split.TRAIN,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"data_file": os.path.join(dl_dir, "val.jsonl"), "split": datasets.Split.VALIDATION,},
+                gen_kwargs={
+                    "data_file": os.path.join(dl_dir, "val.jsonl"),
+                    "split": datasets.Split.VALIDATION,
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"data_file": os.path.join(dl_dir, "test.jsonl"), "split": datasets.Split.TEST,},
+                gen_kwargs={
+                    "data_file": os.path.join(dl_dir, "test.jsonl"),
+                    "split": datasets.Split.TEST,
+                },
             ),
         ]
 
@@ -502,13 +524,21 @@ class SuperGlue(datasets.GeneratorBasedBuilder):
                     for question in paragraph["questions"]:
                         for answer in question["answers"]:
                             label = answer.get("label")
-                            key = "%s_%s_%s" % (row["idx"], question["idx"], answer["idx"])
+                            key = "%s_%s_%s" % (
+                                row["idx"],
+                                question["idx"],
+                                answer["idx"],
+                            )
                             yield key, {
                                 "paragraph": paragraph["text"],
                                 "question": question["question"],
                                 "answer": answer["text"],
                                 "label": -1 if label is None else _cast_label(bool(label)),
-                                "idx": {"paragraph": row["idx"], "question": question["idx"], "answer": answer["idx"]},
+                                "idx": {
+                                    "paragraph": row["idx"],
+                                    "question": question["idx"],
+                                    "answer": answer["idx"],
+                                },
                             }
                 elif self.config.name == "record":
                     passage = row["passage"]

@@ -72,7 +72,10 @@ class MultiNliMismatch(datasets.GeneratorBasedBuilder):
     """MultiNLI: The Stanford Question Answering Dataset. Version 1.1."""
 
     BUILDER_CONFIGS = [
-        MultiNLIMismatchConfig(name="plain_text", description="Plain text",),
+        MultiNLIMismatchConfig(
+            name="plain_text",
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
@@ -123,4 +126,8 @@ class MultiNliMismatch(datasets.GeneratorBasedBuilder):
                 continue
             line = line.strip().decode("utf-8")
             split_line = line.split("\t")
-            yield idx, {"premise": split_line[5], "hypothesis": split_line[6], "label": split_line[0]}
+            yield idx, {
+                "premise": split_line[5],
+                "hypothesis": split_line[6],
+                "label": split_line[0],
+            }

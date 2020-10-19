@@ -102,7 +102,10 @@ class TypedSequence:
                     "Specified try_type alters data. Please check that the type/feature that you provided match the type/features of the data."
                 )
             return out
-        except (TypeError, pa.lib.ArrowInvalid) as e:  # handle type errors and overflows
+        except (
+            TypeError,
+            pa.lib.ArrowInvalid,
+        ) as e:  # handle type errors and overflows
             if trying_type:
                 try:
                     return pa.array(self.data, type=None)  # second chance
@@ -227,7 +230,9 @@ class ArrowWriter(object):
             col_type = schema.field(col).type if schema is not None else None
             col_try_type = try_schema.field(col).type if try_schema is not None and col in try_schema.names else None
             typed_sequence = TypedSequence(
-                [row[col] for row in self.current_rows], type=col_type, try_type=col_try_type
+                [row[col] for row in self.current_rows],
+                type=col_type,
+                try_type=col_try_type,
             )
             pa_array = pa.array(typed_sequence)
             inferred_type = pa_array.type
@@ -258,7 +263,9 @@ class ArrowWriter(object):
             self.write_on_file()
 
     def write_batch(
-        self, batch_examples: Dict[str, List[Any]], writer_batch_size: Optional[int] = None,
+        self,
+        batch_examples: Dict[str, List[Any]],
+        writer_batch_size: Optional[int] = None,
     ):
         """Write a batch of Example to file.
 
@@ -363,7 +370,9 @@ class BeamWriter(object):
             | "simplify" >> beam.Map(lambda ex: {k: json.dumps(v) for k, v in ex.items()})
             | "Save to parquet"
             >> beam.io.parquetio.WriteToParquet(
-                self._parquet_path, simplified_schema, shard_name_template="-SSSSS-of-NNNNN.parquet"
+                self._parquet_path,
+                simplified_schema,
+                shard_name_template="-SSSSS-of-NNNNN.parquet",
             )
         )
 
@@ -420,7 +429,12 @@ def parquet_to_arrow(sources, destination):
     not_verbose = bool(logger.getEffectiveLevel() > WARNING)
     for source in tqdm(sources, unit="sources", disable=not_verbose):
         pf = pa.parquet.ParquetFile(source)
-        for i in tqdm(range(pf.num_row_groups), unit="row_groups", leave=False, disable=not_verbose):
+        for i in tqdm(
+            range(pf.num_row_groups),
+            unit="row_groups",
+            leave=False,
+            disable=not_verbose,
+        ):
             df = pf.read_row_group(i).to_pandas()
             for col in df.columns:
                 df[col] = df[col].apply(json.loads)

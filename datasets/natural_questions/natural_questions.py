@@ -79,7 +79,10 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                         "url": datasets.Value("string"),
                         "html": datasets.Value("string"),
                         "tokens": datasets.features.Sequence(
-                            {"token": datasets.Value("string"), "is_html": datasets.Value("bool")}
+                            {
+                                "token": datasets.Value("string"),
+                                "is_html": datasets.Value("bool"),
+                            }
                         ),
                     },
                     "question": {
@@ -124,8 +127,14 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
             files = dl_manager.ship_files_with_pipeline(files, pipeline)
 
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepaths": files["train"]},),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepaths": files["validation"]},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepaths": files["train"]},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepaths": files["validation"]},
+            ),
         ]
 
     def _build_pcollection(self, pipeline, filepaths):
@@ -182,7 +191,10 @@ class NaturalQuestions(datasets.BeamBasedBuilder):
                             {"token": t["token"], "is_html": t["html_token"]} for t in ex_json["document_tokens"]
                         ],
                     },
-                    "question": {"text": ex_json["question_text"], "tokens": ex_json["question_tokens"]},
+                    "question": {
+                        "text": ex_json["question_text"],
+                        "tokens": ex_json["question_tokens"],
+                    },
                     "annotations": [_parse_annotation(an_json) for an_json in ex_json["annotations"]],
                 },
             )

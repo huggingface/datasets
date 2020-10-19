@@ -102,7 +102,10 @@ class BlendedSkillTalk(datasets.GeneratorBasedBuilder):
                     guided_messages.append(dialogs[2 * i + 1])
                 context = row["context_dataset"]
                 add_context = row["additional_context"] if context == "wizard_of_wikipedia" else ""
-                previous_utterance = [row["free_turker_utterance"], row["guided_turker_utterance"]]
+                previous_utterance = [
+                    row["free_turker_utterance"],
+                    row["guided_turker_utterance"],
+                ]
                 suggestions = row["suggestions"]
                 convai_suggestions = []
                 empathetic_suggestions = []

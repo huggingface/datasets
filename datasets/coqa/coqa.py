@@ -72,10 +72,12 @@ class Coqa(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"], "split": "train"}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": downloaded_files["train"], "split": "train"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"], "split": "validation"}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": downloaded_files["dev"], "split": "validation"},
             ),
         ]
 
@@ -95,5 +97,9 @@ class Coqa(datasets.GeneratorBasedBuilder):
                     "source": source,
                     "story": story,
                     "questions": questions,
-                    "answers": {"input_text": answers, "answer_start": answers_start, "answer_end": answers_end},
+                    "answers": {
+                        "input_text": answers,
+                        "answer_start": answers_start,
+                        "answer_end": answers_end,
+                    },
                 }

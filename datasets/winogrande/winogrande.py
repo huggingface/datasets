@@ -51,7 +51,11 @@ class Winogrande(datasets.GeneratorBasedBuilder):
     # TODO(winogrande): Set up version.
     VERSION = datasets.Version("1.1.0")
     BUILDER_CONFIGS = [
-        WinograndeConfig(name="winogrande_" + data_size, description="AI2 dataset", data_size=data_size)
+        WinograndeConfig(
+            name="winogrande_" + data_size,
+            description="AI2 dataset",
+            data_size=data_size,
+        )
         for data_size in _FORMATS
     ]
 
@@ -99,7 +103,10 @@ class Winogrande(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": os.path.join(data_dir, "test.jsonl"), "split": "test"},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, "test.jsonl"),
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,

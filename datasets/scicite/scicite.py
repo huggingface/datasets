@@ -52,7 +52,15 @@ The labels are:
 Method, Background, Result
 """
 
-_SOURCE_NAMES = ["properNoun", "andPhrase", "acronym", "etAlPhrase", "explicit", "acronymParen", "nan"]
+_SOURCE_NAMES = [
+    "properNoun",
+    "andPhrase",
+    "acronym",
+    "etAlPhrase",
+    "explicit",
+    "acronymParen",
+    "nan",
+]
 
 
 class Scicite(datasets.GeneratorBasedBuilder):
@@ -97,17 +105,24 @@ class Scicite(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         dl_paths = dl_manager.download_and_extract(
-            {"scicite": "https://s3-us-west-2.amazonaws.com/ai2-s2-research/scicite/scicite.tar.gz",}
+            {
+                "scicite": "https://s3-us-west-2.amazonaws.com/ai2-s2-research/scicite/scicite.tar.gz",
+            }
         )
         path = os.path.join(dl_paths["scicite"], "scicite")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"path": os.path.join(path, "train.jsonl")},
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"path": os.path.join(path, "train.jsonl")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"path": os.path.join(path, "dev.jsonl")},
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"path": os.path.join(path, "dev.jsonl")},
             ),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"path": os.path.join(path, "test.jsonl")},),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"path": os.path.join(path, "test.jsonl")},
+            ),
         ]
 
     def _generate_examples(self, path=None):

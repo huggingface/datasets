@@ -54,7 +54,23 @@ labels).
 
 _DATA_URL = "https://cims.nyu.edu/~sbowman/xnli/XNLI-1.0.zip"
 
-_LANGUAGES = ("ar", "bg", "de", "el", "en", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh")
+_LANGUAGES = (
+    "ar",
+    "bg",
+    "de",
+    "el",
+    "en",
+    "es",
+    "fr",
+    "hi",
+    "ru",
+    "sw",
+    "th",
+    "tr",
+    "ur",
+    "vi",
+    "zh",
+)
 
 
 class Xnli(datasets.GeneratorBasedBuilder):
@@ -62,7 +78,9 @@ class Xnli(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="plain_text", version=datasets.Version("1.0.0", ""), description="Plain text import of XNLI",
+            name="plain_text",
+            version=datasets.Version("1.0.0", ""),
+            description="Plain text import of XNLI",
         )
     ]
 
@@ -71,8 +89,12 @@ class Xnli(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "premise": datasets.features.Translation(languages=_LANGUAGES,),
-                    "hypothesis": datasets.features.TranslationVariableLanguages(languages=_LANGUAGES,),
+                    "premise": datasets.features.Translation(
+                        languages=_LANGUAGES,
+                    ),
+                    "hypothesis": datasets.features.TranslationVariableLanguages(
+                        languages=_LANGUAGES,
+                    ),
                     "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             ),
@@ -88,10 +110,12 @@ class Xnli(datasets.GeneratorBasedBuilder):
         data_dir = os.path.join(dl_dir, "XNLI-1.0")
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")}
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(data_dir, "xnli.test.tsv")},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(data_dir, "xnli.dev.tsv")},
             ),
         ]
 

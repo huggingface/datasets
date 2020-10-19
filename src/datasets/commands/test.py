@@ -29,7 +29,10 @@ class TestCommand(BaseTransformersCLICommand):
         test_parser = parser.add_parser("test")
         test_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         test_parser.add_argument(
-            "--cache_dir", type=str, default=None, help="Cache directory where the datasets are stored.",
+            "--cache_dir",
+            type=str,
+            default=None,
+            help="Cache directory where the datasets are stored.",
         )
         test_parser.add_argument(
             "--data_dir",
@@ -40,7 +43,9 @@ class TestCommand(BaseTransformersCLICommand):
         test_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         test_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
         test_parser.add_argument(
-            "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
+            "--ignore_verifications",
+            action="store_true",
+            help="Run the test without checksums and splits checks",
         )
         test_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
         test_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
@@ -77,10 +82,22 @@ class TestCommand(BaseTransformersCLICommand):
         if self._all_configs and len(builder_cls.BUILDER_CONFIGS) > 0:
             for config in builder_cls.BUILDER_CONFIGS:
                 builders.append(
-                    builder_cls(name=config.name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir)
+                    builder_cls(
+                        name=config.name,
+                        hash=hash,
+                        cache_dir=self._cache_dir,
+                        data_dir=self._data_dir,
+                    )
                 )
         else:
-            builders.append(builder_cls(name=name, hash=hash, cache_dir=self._cache_dir, data_dir=self._data_dir))
+            builders.append(
+                builder_cls(
+                    name=name,
+                    hash=hash,
+                    cache_dir=self._cache_dir,
+                    data_dir=self._data_dir,
+                )
+            )
 
         for builder in builders:
             builder.download_and_prepare(

@@ -57,7 +57,8 @@ class Scitail(datasets.GeneratorBasedBuilder):
             description="JSONL format used by SNLI with a JSON object corresponding to each entailment example in each line.",
         ),
         ScitailConfig(
-            name="tsv_format", description="Tab-separated format with three columns: premise hypothesis label"
+            name="tsv_format",
+            description="Tab-separated format with three columns: premise hypothesis label",
         ),
         ScitailConfig(
             name="dgem_format",
@@ -276,7 +277,11 @@ class Scitail(datasets.GeneratorBasedBuilder):
             elif self.config.name == "tsv_format":
                 data = csv.reader(f, delimiter="\t")
                 for id_, row in enumerate(data):
-                    yield id_, {"premise": row[0], "hypothesis": row[1], "label": row[2]}
+                    yield id_, {
+                        "premise": row[0],
+                        "hypothesis": row[1],
+                        "label": row[2],
+                    }
             elif self.config.name == "dgem_format":
                 data = csv.reader(f, delimiter="\t")
                 for id_, row in enumerate(data):

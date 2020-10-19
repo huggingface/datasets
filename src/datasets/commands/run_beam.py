@@ -4,7 +4,13 @@ from pathlib import Path
 from shutil import copyfile
 from typing import List
 
-from datasets.builder import FORCE_REDOWNLOAD, HF_DATASETS_CACHE, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
+from datasets.builder import (
+    FORCE_REDOWNLOAD,
+    HF_DATASETS_CACHE,
+    REUSE_CACHE_IF_EXISTS,
+    DatasetBuilder,
+    DownloadConfig,
+)
 from datasets.commands import BaseTransformersCLICommand
 from datasets.info import DATASET_INFOS_DICT_FILE_NAME
 from datasets.load import import_main_class, prepare_module
@@ -30,7 +36,10 @@ class RunBeamCommand(BaseTransformersCLICommand):
         run_beam_parser = parser.add_parser("run_beam")
         run_beam_parser.add_argument("--name", type=str, default=None, help="Dataset processing name")
         run_beam_parser.add_argument(
-            "--cache_dir", type=str, default=None, help="Cache directory where the datasets are stored.",
+            "--cache_dir",
+            type=str,
+            default=None,
+            help="Cache directory where the datasets are stored.",
         )
         run_beam_parser.add_argument(
             "--beam_pipeline_options",
@@ -47,7 +56,9 @@ class RunBeamCommand(BaseTransformersCLICommand):
         run_beam_parser.add_argument("--all_configs", action="store_true", help="Test all dataset configurations")
         run_beam_parser.add_argument("--save_infos", action="store_true", help="Save the dataset infos file")
         run_beam_parser.add_argument(
-            "--ignore_verifications", action="store_true", help="Run the test without checksums and splits checks"
+            "--ignore_verifications",
+            action="store_true",
+            help="Run the test without checksums and splits checks",
         )
         run_beam_parser.add_argument("--force_redownload", action="store_true", help="Force dataset redownload")
         run_beam_parser.add_argument("dataset", type=str, help="Name of the dataset to download")
@@ -104,7 +115,12 @@ class RunBeamCommand(BaseTransformersCLICommand):
                 )
         else:
             builders.append(
-                builder_cls(name=name, data_dir=self._data_dir, beam_options=beam_options, cache_dir=self._cache_dir)
+                builder_cls(
+                    name=name,
+                    data_dir=self._data_dir,
+                    beam_options=beam_options,
+                    cache_dir=self._cache_dir,
+                )
             )
 
         for builder in builders:

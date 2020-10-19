@@ -80,7 +80,9 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
             description="SQuADShifts New York Times article dataset.",
         ),
         SquadShiftsConfig(
-            name="reddit", version=datasets.Version("1.0.0", ""), description="SQuADShifts Reddit comment dataset.",
+            name="reddit",
+            version=datasets.Version("1.0.0", ""),
+            description="SQuADShifts Reddit comment dataset.",
         ),
         SquadShiftsConfig(
             name="amazon",
@@ -99,7 +101,10 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
                     "context": datasets.Value("string"),
                     "question": datasets.Value("string"),
                     "answers": datasets.features.Sequence(
-                        {"text": datasets.Value("string"), "answer_start": datasets.Value("int32"),}
+                        {
+                            "text": datasets.Value("string"),
+                            "answer_start": datasets.Value("int32"),
+                        }
                     ),
                 }
             ),
@@ -122,20 +127,30 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
         if self.config.name == "new_wiki" or self.config.name == "default":
             return [
                 datasets.SplitGenerator(
-                    name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["new_wiki"]}
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": downloaded_files["new_wiki"]},
                 ),
             ]
         elif self.config.name == "nyt":
             return [
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["nyt"]}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": downloaded_files["nyt"]},
+                ),
             ]
         elif self.config.name == "reddit":
             return [
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["reddit"]}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": downloaded_files["reddit"]},
+                ),
             ]
         elif self.config.name == "amazon":
             return [
-                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["amazon"]}),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={"filepath": downloaded_files["amazon"]},
+                ),
             ]
         else:
             raise ValueError("SQuADShifts dataset name {} not found!".format(self.config.name))
@@ -163,5 +178,8 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "id": id_,
-                            "answers": {"answer_start": answer_starts, "text": answers,},
+                            "answers": {
+                                "answer_start": answer_starts,
+                                "text": answers,
+                            },
                         }

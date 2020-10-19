@@ -137,7 +137,10 @@ class Qa4mreConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         if track.lower() not in PATHS[year]["_TRACKS"]:
-            raise ValueError("Incorrect track. Track should be one of the following: ", PATHS[year]["_TRACKS"])
+            raise ValueError(
+                "Incorrect track. Track should be one of the following: ",
+                PATHS[year]["_TRACKS"],
+            )
 
         if track.lower() != "main" and language.upper() != "EN":
             logging.warn("Only English documents available for pilot " "tracks. Setting English by default.")
@@ -145,7 +148,8 @@ class Qa4mreConfig(datasets.BuilderConfig):
 
         if track.lower() == "main" and language.upper() not in PATHS[year]["_LANGUAGES_MAIN"]:
             raise ValueError(
-                "Incorrect language for the main track. Correct options: ", PATHS[year]["_LANGUAGES_MAIN"]
+                "Incorrect language for the main track. Correct options: ",
+                PATHS[year]["_LANGUAGES_MAIN"],
             )
 
         self.year = year
@@ -205,7 +209,10 @@ class Qa4mre(datasets.GeneratorBasedBuilder):
                     "question_id": datasets.Value("string"),
                     "question_str": datasets.Value("string"),
                     "answer_options": datasets.features.Sequence(
-                        {"answer_id": datasets.Value("string"), "answer_str": datasets.Value("string")}
+                        {
+                            "answer_id": datasets.Value("string"),
+                            "answer_str": datasets.Value("string"),
+                        }
                     ),
                     "correct_answer_id": datasets.Value("string"),
                     "correct_answer_str": datasets.Value("string"),
@@ -259,4 +266,11 @@ class Qa4mre(datasets.GeneratorBasedBuilder):
                         document_id = document.attrib["d_id"]
                         document_str = document.text
                     for question in test.iter("q"):
-                        yield _get_question(topic_id, topic_name, test_id, document_id, document_str, question)
+                        yield _get_question(
+                            topic_id,
+                            topic_name,
+                            test_id,
+                            document_id,
+                            document_str,
+                            question,
+                        )

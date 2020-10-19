@@ -110,7 +110,8 @@ class WikiSQL(datasets.GeneratorBasedBuilder):
         """Make SQL query string. Based on https://github.com/salesforce/WikiSQL/blob/c2ed4f9b22db1cc2721805d53e6e76e07e2ccbdc/lib/query.py#L10"""
 
         rep = "SELECT {agg} {sel} FROM table".format(
-            agg=_AGG_OPS[agg], sel=columns[sel] if columns is not None else "col{}".format(sel)
+            agg=_AGG_OPS[agg],
+            sel=columns[sel] if columns is not None else "col{}".format(sel),
         )
 
         if conditions:
@@ -143,7 +144,10 @@ class WikiSQL(datasets.GeneratorBasedBuilder):
 
                 # Get human-readable version
                 row["sql"]["human_readable"] = self._convert_to_human_readable(
-                    row["sql"]["sel"], row["sql"]["agg"], row["table"]["header"], row["sql"]["conds"],
+                    row["sql"]["sel"],
+                    row["sql"]["agg"],
+                    row["table"]["header"],
+                    row["sql"]["conds"],
                 )
 
                 # Restructure sql->conds

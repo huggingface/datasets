@@ -70,7 +70,10 @@ class MultiNli(datasets.GeneratorBasedBuilder):
     """MultiNLI: The Stanford Question Answering Dataset. Version 1.1."""
 
     BUILDER_CONFIGS = [
-        MultiNLIConfig(name="plain_text", description="Plain text",),
+        MultiNLIConfig(
+            name="plain_text",
+            description="Plain text",
+        ),
     ]
 
     def _info(self):
@@ -106,8 +109,14 @@ class MultiNli(datasets.GeneratorBasedBuilder):
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
-            datasets.SplitGenerator(name="validation_matched", gen_kwargs={"filepath": matched_validation_path}),
-            datasets.SplitGenerator(name="validation_mismatched", gen_kwargs={"filepath": mismatched_validation_path}),
+            datasets.SplitGenerator(
+                name="validation_matched",
+                gen_kwargs={"filepath": matched_validation_path},
+            ),
+            datasets.SplitGenerator(
+                name="validation_mismatched",
+                gen_kwargs={"filepath": mismatched_validation_path},
+            ),
         ]
 
     def _generate_examples(self, filepath):
@@ -129,4 +138,8 @@ class MultiNli(datasets.GeneratorBasedBuilder):
             if split_line[0] == "-":
                 continue
             # Works for both splits even though dev has some extra human labels.
-            yield idx, {"premise": split_line[5], "hypothesis": split_line[6], "label": split_line[0]}
+            yield idx, {
+                "premise": split_line[5],
+                "hypothesis": split_line[6],
+                "label": split_line[0],
+            }

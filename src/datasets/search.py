@@ -38,12 +38,14 @@ class MissingIndex(Exception):
 
 SearchResults = NamedTuple("SearchResults", [("scores", List[float]), ("indices", List[int])])
 BatchedSearchResults = NamedTuple(
-    "BatchedSearchResults", [("total_scores", List[List[float]]), ("total_indices", List[List[int]])]
+    "BatchedSearchResults",
+    [("total_scores", List[List[float]]), ("total_indices", List[List[int]])],
 )
 
 NearestExamplesResults = NamedTuple("NearestExamplesResults", [("scores", List[float]), ("examples", dict)])
 BatchedNearestExamplesResults = NamedTuple(
-    "BatchedNearestExamplesResults", [("total_scores", List[List[float]]), ("total_examples", List[dict])]
+    "BatchedNearestExamplesResults",
+    [("total_scores", List[List[float]]), ("total_examples", List[dict])],
 )
 
 
@@ -123,9 +125,24 @@ class ElasticSearchIndex(BaseIndex):
             else {
                 "settings": {
                     "number_of_shards": 1,
-                    "analysis": {"analyzer": {"stop_standard": {"type": "standard", " stopwords": "_english_"}}},
+                    "analysis": {
+                        "analyzer": {
+                            "stop_standard": {
+                                "type": "standard",
+                                " stopwords": "_english_",
+                            }
+                        }
+                    },
                 },
-                "mappings": {"properties": {"text": {"type": "text", "analyzer": "standard", "similarity": "BM25"}}},
+                "mappings": {
+                    "properties": {
+                        "text": {
+                            "type": "text",
+                            "analyzer": "standard",
+                            "similarity": "BM25",
+                        }
+                    }
+                },
             }
         )
 
@@ -152,7 +169,9 @@ class ElasticSearchIndex(BaseIndex):
 
         # create the ES index
         for ok, action in es.helpers.streaming_bulk(
-            client=self.es_client, index=index_name, actions=passage_generator(),
+            client=self.es_client,
+            index=index_name,
+            actions=passage_generator(),
         ):
             progress.update(1)
             successes += ok
@@ -175,7 +194,16 @@ class ElasticSearchIndex(BaseIndex):
         """
         response = self.es_client.search(
             index=self.es_index_name,
-            body={"query": {"multi_match": {"query": query, "fields": ["text"], "type": "cross_fields"}}, "size": k},
+            body={
+                "query": {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ["text"],
+                        "type": "cross_fields",
+                    }
+                },
+                "size": k,
+            },
         )
         hits = response["hits"]["hits"]
         return SearchResults([hit["_score"] for hit in hits], [int(hit["_id"]) for hit in hits])
@@ -320,7 +348,11 @@ class FaissIndex(BaseIndex):
         faiss.write_index(index, file)
 
     @classmethod
-    def load(cls, file: str, device: Optional[int] = None,) -> "FaissIndex":
+    def load(
+        cls,
+        file: str,
+        device: Optional[int] = None,
+    ) -> "FaissIndex":
         """Deserialize the FaissIndex from disk"""
         faiss_index = cls(device=device)
         index = faiss.read_index(file)
@@ -391,7 +423,10 @@ class IndexableMixin:
         """
         index_name = index_name if index_name is not None else column
         self._indexes[index_name] = FaissIndex(
-            device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
+            device=device,
+            string_factory=string_factory,
+            metric_type=metric_type,
+            custom_index=custom_index,
         )
         self._indexes[index_name].add_vectors(self, column=column, train_size=train_size, faiss_verbose=faiss_verbose)
 
@@ -424,10 +459,16 @@ class IndexableMixin:
             faiss_verbose (:obj:`bool`, defaults to False): Enable the verbosity of the Faiss index.
         """
         self._indexes[index_name] = FaissIndex(
-            device=device, string_factory=string_factory, metric_type=metric_type, custom_index=custom_index
+            device=device,
+            string_factory=string_factory,
+            metric_type=metric_type,
+            custom_index=custom_index,
         )
         self._indexes[index_name].add_vectors(
-            external_arrays, column=None, train_size=train_size, faiss_verbose=faiss_verbose
+            external_arrays,
+            column=None,
+            train_size=train_size,
+            faiss_verbose=faiss_verbose,
         )
 
     def save_faiss_index(self, index_name: str, file: str):
@@ -444,7 +485,10 @@ class IndexableMixin:
         logger.info("Saved FaissIndex {} at {}".format(index_name, file))
 
     def load_faiss_index(
-        self, index_name: str, file: str, device: Optional[int] = None,
+        self,
+        index_name: str,
+        file: str,
+        device: Optional[int] = None,
     ):
         """Load a FaissIndex from disk.
         If you want to do additional configurations, you can have access to the faiss index object by doing `.get_index(index_name).faiss_index` to make it fit your needs
@@ -510,7 +554,11 @@ class IndexableMixin:
         """
         index_name = index_name if index_name is not None else column
         self._indexes[index_name] = ElasticSearchIndex(
-            host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
+            host=host,
+            port=port,
+            es_client=es_client,
+            es_index_name=es_index_name,
+            es_index_config=es_index_config,
         )
         self._indexes[index_name].add_documents(self, column=column)
 
@@ -557,7 +605,11 @@ class IndexableMixin:
             }
         """
         self._indexes[index_name] = ElasticSearchIndex(
-            host=host, port=port, es_client=es_client, es_index_name=es_index_name, es_index_config=es_index_config
+            host=host,
+            port=port,
+            es_client=es_client,
+            es_index_name=es_index_name,
+            es_index_config=es_index_config,
         )
 
     def drop_index(self, index_name: str):
@@ -633,5 +685,6 @@ class IndexableMixin:
         self._check_index_is_initialized(index_name)
         total_scores, total_indices = self.search_batch(index_name, queries, k)
         return BatchedNearestExamplesResults(
-            total_scores, [self[[i for i in indices if i >= 0]] for indices in total_indices]
+            total_scores,
+            [self[[i for i in indices if i >= 0]] for indices in total_indices],
         )

@@ -60,7 +60,13 @@ def size_str(size_in_bytes):
     if not size_in_bytes:
         return "Unknown size"
 
-    _NAME_LIST = [("PiB", 2 ** 50), ("TiB", 2 ** 40), ("GiB", 2 ** 30), ("MiB", 2 ** 20), ("KiB", 2 ** 10)]
+    _NAME_LIST = [
+        ("PiB", 2 ** 50),
+        ("TiB", 2 ** 40),
+        ("GiB", 2 ** 30),
+        ("MiB", 2 ** 20),
+        ("KiB", 2 ** 10),
+    ]
 
     size_in_bytes = float(size_in_bytes)
     for (name, size_bytes) in _NAME_LIST:
@@ -74,7 +80,9 @@ def is_notebook():
     """Returns True if running in a notebook (Colab, Jupyter) environement."""
     # Inspired from the tfdm autonotebook code
     try:
-        from IPython import get_ipython  # pylint: disable=import-outside-toplevel,g-import-not-at-top
+        from IPython import (
+            get_ipython,
+        )  # pylint: disable=import-outside-toplevel,g-import-not-at-top
 
         if "IPKernelApp" not in get_ipython().config:
             return False  # Run in a IPython terminal
@@ -111,7 +119,10 @@ class NonMutableDict(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        self._error_msg = kwargs.pop("error_msg", "Try to overwrite existing key: {key}",)
+        self._error_msg = kwargs.pop(
+            "error_msg",
+            "Try to overwrite existing key: {key}",
+        )
         if kwargs:
             raise ValueError("NonMutableDict cannot be initialized with kwargs.")
         super(NonMutableDict, self).__init__(*args, **kwargs)
@@ -450,7 +461,13 @@ def _save_code(pickler, obj):
 
 
 def copyfunc(func):
-    return types.FunctionType(func.__code__, func.__globals__, func.__name__, func.__defaults__, func.__closure__)
+    return types.FunctionType(
+        func.__code__,
+        func.__globals__,
+        func.__name__,
+        func.__defaults__,
+        func.__closure__,
+    )
 
 
 try:
