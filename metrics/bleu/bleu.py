@@ -16,9 +16,7 @@
 
 import datasets
 
-from .nmt_bleu import (
-    compute_bleu,
-)  # From: https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py
+from .nmt_bleu import compute_bleu  # From: https://github.com/tensorflow/nmt/blob/master/nmt/scripts/bleu.py
 
 
 _CITATION = """\

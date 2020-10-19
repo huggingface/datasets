@@ -4,13 +4,7 @@ from pathlib import Path
 from shutil import copyfile
 from typing import List
 
-from datasets.builder import (
-    FORCE_REDOWNLOAD,
-    HF_DATASETS_CACHE,
-    REUSE_CACHE_IF_EXISTS,
-    DatasetBuilder,
-    DownloadConfig,
-)
+from datasets.builder import FORCE_REDOWNLOAD, HF_DATASETS_CACHE, REUSE_CACHE_IF_EXISTS, DatasetBuilder, DownloadConfig
 from datasets.commands import BaseTransformersCLICommand
 from datasets.info import DATASET_INFOS_DICT_FILE_NAME
 from datasets.load import import_main_class, prepare_module

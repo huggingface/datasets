@@ -21,9 +21,7 @@ import scipy.stats
 
 import datasets
 
-from .gec_gleu import (
-    GLEU,
-)  # From: https://github.com/cnap/gec-ranking/blob/master/scripts/gleu.py
+from .gec_gleu import GLEU  # From: https://github.com/cnap/gec-ranking/blob/master/scripts/gleu.py
 
 
 _CITATION = """\

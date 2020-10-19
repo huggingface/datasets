@@ -2066,9 +2066,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             test_new_fingerprint (`Optional[str]`, defaults to `None`): the new fingerprint of the test set after transform.
                 If `None`, the new fingerprint is computed using a hash of the previous fingerprint, and the transform arguments
         """
-        from .dataset_dict import (
-            DatasetDict,
-        )  # import here because of circular dependency
+        from .dataset_dict import DatasetDict  # import here because of circular dependency
 
         if len(self.list_indexes()) > 0:
             raise DatasetTransformationNotAllowedError(

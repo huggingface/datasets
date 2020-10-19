@@ -80,9 +80,7 @@ def is_notebook():
     """Returns True if running in a notebook (Colab, Jupyter) environement."""
     # Inspired from the tfdm autonotebook code
     try:
-        from IPython import (
-            get_ipython,
-        )  # pylint: disable=import-outside-toplevel,g-import-not-at-top
+        from IPython import get_ipython  # pylint: disable=import-outside-toplevel,g-import-not-at-top
 
         if "IPKernelApp" not in get_ipython().config:
             return False  # Run in a IPython terminal

@@ -5,13 +5,7 @@ import numpy as np
 import pandas as pd
 
 from datasets.arrow_dataset import Dataset
-from datasets.features import (
-    Features,
-    Sequence,
-    Value,
-    _cast_to_python_objects,
-    cast_to_python_objects,
-)
+from datasets.features import Features, Sequence, Value, _cast_to_python_objects, cast_to_python_objects
 
 from .utils import require_tf, require_torch
 
