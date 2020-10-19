@@ -61,17 +61,18 @@ from a source against one or more references.
 Args:
     predictions: List of List of predicted labels (Estimated targets as returned by a tagger)
     references: List of List of reference labels (Ground truth (correct) target values)
-    suffix: True if the types are not in IOBs format False otherwise. default: False
+    suffix: True if the IOB prefix is after type, False otherwise. default: False
 Returns:
-    Overall:
-        'accuracy': accuracy,
-        'precision': precision,
-        'recall': recall,
-        'f1': F1 score, also known as balanced F-score or F-measure,
-    Per type:
-        'precision': precision,
-        'recall': recall,
-        'f1': F1 score, also known as balanced F-score or F-measure,
+    'scores': dict. Summary of the scores for overall and per type
+        Overall:
+            'accuracy': accuracy,
+            'precision': precision,
+            'recall': recall,
+            'f1': F1 score, also known as balanced F-score or F-measure,
+        Per type:
+            'precision': precision,
+            'recall': recall,
+            'f1': F1 score, also known as balanced F-score or F-measure
 """
 
 
