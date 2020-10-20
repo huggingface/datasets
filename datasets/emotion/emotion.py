@@ -26,9 +26,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Emotion is a dataset of English Twitter messages with eight basic emotions: anger, anticipation,
-disgust, fear, joy, sadness, surprise, and trust. For more detailed information please refer to the
-paper.
+Emotion is a dataset of English Twitter messages with six basic emotions: anger, fear, joy, love, sadness, and surprise. For more detailed information please refer to the paper.
 """
 _URL = "https://github.com/dair-ai/emotion_dataset"
 # use dl=1 to force browser to download data instead of displaying it
