@@ -40,7 +40,9 @@ class Emotion(datasets.GeneratorBasedBuilder):
         class_names = ["sadness", "joy", "love", "anger", "fear", "surprise"]
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"text": datasets.Value("string"), "label": datasets.ClassLabel(names=class_names)}),
+            features=datasets.Features(
+                {"text": datasets.Value("string"), "label": datasets.ClassLabel(names=class_names)}
+            ),
             supervised_keys=("text", "label"),
             homepage=_URL,
             citation=_CITATION,
