@@ -74,7 +74,7 @@ class NGT(datasets.GeneratorBasedBuilder):
         # Check what mpg files are required
         eaf_mpg_map = {}
         for key, eaf in tqdm(list(eaf_local_paths.items())):
-            with open(eaf, "r") as f:
+            with open(eaf, "r", encoding="utf-8") as f:
                 content = f.read()
                 dependencies = re.findall('MEDIA_DESCRIPTOR MEDIA_URL=\"(.*)\" MIME_TYPE=\"video/mpeg\"', content)
                 eaf_mpg_map[key] = [d.split("/")[-1] for d in dependencies]
