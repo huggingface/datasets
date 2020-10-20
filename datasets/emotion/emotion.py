@@ -37,9 +37,10 @@ _TEST_DOWNLOAD_URL = "https://www.dropbox.com/s/ikkqxfdbdec3fuj/test.txt?dl=1"
 
 class Emotion(datasets.GeneratorBasedBuilder):
     def _info(self):
+        class_names = ["sadness", "joy", "love", "anger", "fear", "surprise"]
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"text": datasets.Value("string"), "label": datasets.Value("string")}),
+            features=datasets.Features({"text": datasets.Value("string"), "label": datasets.ClassLabel(names=class_names)}),
             supervised_keys=("text", "label"),
             homepage=_URL,
             citation=_CITATION,
