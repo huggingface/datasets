@@ -86,7 +86,7 @@
 
 	*For the dummy data*:
 	```bash
-	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
+	RUN_SLOW=0 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
 	```
 
 6. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6, 7 and 8 of the section [*How to contribute to 🤗Datasets?*](#how-to-contribute-to-🤗Datasets). If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
