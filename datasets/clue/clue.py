@@ -303,7 +303,7 @@ class Clue(datasets.GeneratorBasedBuilder):
             label_classes=["neutral", "entailment", "contradiction"],
             label_column="label",
             data_url="https://github.com/CLUEbenchmark/OCNLI/archive/02d55cb3c7dc984682677b8dd81db6a1e4710720.zip",
-            data_dir="OCNLI-main/data/ocnli",
+            data_dir="OCNLI-02d55cb3c7dc984682677b8dd81db6a1e4710720/data/ocnli",
             url="https://arxiv.org/abs/2010.05444",
             citation=textwrap.dedent(
                 """\
