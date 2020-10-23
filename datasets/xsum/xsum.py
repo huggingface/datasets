@@ -37,9 +37,10 @@ _CITATION = """
 _DESCRIPTION = """
 Extreme Summarization (XSum) Dataset.
 
-There are two features:
+There are three features:
   - document: Input news article.
   - summary: One sentence summary of the article.
+  - id: BBC ID of the article.
 
 """
 
@@ -125,40 +126,29 @@ class Xsum(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(self, split_ids=None, data_dir=None):
+    def _generate_examples(self, split_ids, data_dir):
         """Yields examples."""
-        missing = 0
-        total_num = len(split_ids)
+
         for i in split_ids:
-            filename = os.path.join(data_dir, i + ".summary")
+            with open(os.path.join(data_dir, i + ".summary")) as f:
+                text = "".join([line for line in f.readlines() if line not in _REMOVE_LINES and line.strip()])
+                # Each file follows below format:
+                # [SN]URL[SN]
+                # http://somelink
+                #
+                # [SN]TITLE[SN]
+                # some intro
+                #
+                # [SN]FIRST-SENTENCE[SN]
+                # some intro
+                #
+                # [SN]RESTBODY[SN]
+                # text line.
+                # another text line.
+                # "another text line."
 
-            if os.path.exists(filename):
-                with open(filename) as f:
-
-                    text = "".join([line for line in f.readlines() if line not in _REMOVE_LINES and line.strip()])
-
-                    # Each file follows below format:
-                    # [SN]URL[SN]
-                    # http://somelink
-                    #
-                    # [SN]TITLE[SN]
-                    # some intro
-                    #
-                    # [SN]FIRST-SENTENCE[SN]
-                    # some intro
-                    #
-                    # [SN]RESTBODY[SN]
-                    # text line.
-                    # another text line.
-                    # "another text line."
-
-                    # According to the following issue, FIRST-SENTENCE
-                    # is the reference summary and TITLE is unused:
-                    # https://github.com/EdinburghNLP/XSum/issues/22
-                    segs = text.split("[SN]")
-                    yield i, {_DOCUMENT: segs[8].strip(), _SUMMARY: segs[6].strip(), _ID: i}
-            else:
-                missing += 1
-                logging.info("id %s missing.", i)
-        if missing:
-            logging.warning("%d out of %d examples are missing.", missing, total_num)
+                # According to the following issue, FIRST-SENTENCE
+                # is the reference summary and TITLE is unused:
+                # https://github.com/EdinburghNLP/XSum/issues/22
+                segs = text.split("[SN]")
+                yield i, {_DOCUMENT: segs[8].strip(), _SUMMARY: segs[6].strip(), _ID: i}
