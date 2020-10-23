@@ -289,6 +289,34 @@ class Clue(datasets.GeneratorBasedBuilder):
             ),
         ),
         ClueConfig(
+            name="ocnli",
+            description=textwrap.dedent(
+                """\
+            OCNLI stands for Original Chinese Natural Language Inference. It is a corpus for
+            Chinese Natural Language Inference, collected following closely the procedures of MNLI,
+            but with enhanced strategies aiming for more challenging inference pairs. We want to
+            emphasize we did not use human/machine translation in creating the dataset, and thus
+            our Chinese texts are original and not translated.
+            """
+            ),
+            text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
+            label_classes=["neutral", "entailment", "contradiction"],
+            label_column="label",
+            data_url="https://github.com/CLUEbenchmark/OCNLI/archive/02d55cb3c7dc984682677b8dd81db6a1e4710720.zip",
+            data_dir="OCNLI-02d55cb3c7dc984682677b8dd81db6a1e4710720/data/ocnli",
+            url="https://arxiv.org/abs/2010.05444",
+            citation=textwrap.dedent(
+                """\
+                  @inproceedings{ocnli,
+                    title={OCNLI: Original Chinese Natural Language Inference},
+                    author={Hai Hu and Kyle Richardson and Liang Xu and Lu Li and Sandra Kuebler and Larry Moss},
+                    booktitle={Findings of EMNLP},
+                    year={2020},
+                    url={https://arxiv.org/abs/2010.05444}
+                }"""
+            ),
+        ),
+        ClueConfig(
             name="diagnostics",
             description=textwrap.dedent(
                 """\
@@ -306,7 +334,7 @@ class Clue(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        if self.config.name in ["afqmc", "tnews", "iflytek", "cmnli", "diagnostics"]:
+        if self.config.name in ["afqmc", "tnews", "iflytek", "cmnli", "diagnostics", "ocnli"]:
             features = {
                 text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
             }
@@ -506,8 +534,8 @@ class Clue(datasets.GeneratorBasedBuilder):
 
                         elif self.config.label_column in row:
                             label = row[self.config.label_column]
-                            # Notice: some labels in CMNLI are missing. We drop these data.
-                            if self.config.name == "cmnli" and label == "-":
+                            # Notice: some labels in CMNLI and OCNLI are invalid. We drop these data.
+                            if self.config.name in ["cmnli", "ocnli"] and label == "-":
                                 continue
                             # For some tasks, the label is represented as 0 and 1 in the tsv
                             # files and needs to be cast to integer to work with the feature.
