@@ -66,7 +66,7 @@ _REMOVE_LINES = set(
         "Linkedin\n",
         "LinkedIn\n",
         "Copy this link\n",
-        "These are external links and will open in a new window\n"
+        "These are external links and will open in a new window\n",
     ]
 )
 
@@ -84,21 +84,18 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 {
                     _DOCUMENT: datasets.Value("string"),
                     _SUMMARY: datasets.Value("string"),
-                    _ID: datasets.Value("string")
+                    _ID: datasets.Value("string"),
                 }
             ),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset",
-            citation=_CITATION
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        files_to_download = {
-            "data": _URL_DATA,
-            "splits": _URL_SPLITS
-        }
+        files_to_download = {"data": _URL_DATA, "splits": _URL_SPLITS}
         downloaded_files = dl_manager.download_and_extract(files_to_download)
 
         return [
@@ -107,7 +104,7 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "split_path": downloaded_files["splits"],
                     "split_name": "train",
-                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data")
+                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data"),
                 },
             ),
             datasets.SplitGenerator(
@@ -115,7 +112,7 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "split_path": downloaded_files["splits"],
                     "split_name": "validation",
-                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data")
+                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data"),
                 },
             ),
             datasets.SplitGenerator(
@@ -123,7 +120,7 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 gen_kwargs={
                     "split_path": downloaded_files["splits"],
                     "split_name": "test",
-                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data")
+                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data"),
                 },
             ),
         ]
