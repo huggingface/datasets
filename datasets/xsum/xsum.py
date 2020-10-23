@@ -66,7 +66,7 @@ _REMOVE_LINES = set(
         "Linkedin\n",
         "LinkedIn\n",
         "Copy this link\n",
-        "These are external links and will open in a new window\n",
+        "These are external links and will open in a new window\n"
     ]
 )
 
@@ -74,9 +74,8 @@ _REMOVE_LINES = set(
 class Xsum(datasets.GeneratorBasedBuilder):
     """Extreme Summarization (XSum) Dataset."""
 
-    # Version 1.1.0 removes web contents.
-    VERSION = datasets.Version("1.1.0")
-    SUPPORTED_VERSIONS = [datasets.Version("1.0.0", "Dataset without cleaning.")]
+    # Version 1.2.0 expands coverage, includes ids, and removes web contents.
+    VERSION = datasets.Version("1.2.0")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -85,52 +84,58 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 {
                     _DOCUMENT: datasets.Value("string"),
                     _SUMMARY: datasets.Value("string"),
-                    _ID: datasets.Value("string"),
+                    _ID: datasets.Value("string")
                 }
             ),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset",
-            citation=_CITATION,
+            citation=_CITATION
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        data_path = dl_manager.download_and_extract(_URL_DATA)
-        splits_path = dl_manager.download(_URL_SPLITS)
-
-        with open(splits_path, "r") as f:
-            split_ids = json.load(f)
+        files_to_download = {
+            "data": _URL_DATA,
+            "splits": _URL_SPLITS
+        }
+        downloaded_files = dl_manager.download_and_extract(files_to_download)
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "split_ids": split_ids["train"],
-                    "data_dir": os.path.join(data_path, "bbc-summary-data"),
+                    "split_path": downloaded_files["splits"],
+                    "split_name": "train",
+                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data")
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "split_ids": split_ids["validation"],
-                    "data_dir": os.path.join(data_path, "bbc-summary-data"),
+                    "split_path": downloaded_files["splits"],
+                    "split_name": "validation",
+                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data")
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "split_ids": split_ids["test"],
-                    "data_dir": os.path.join(data_path, "bbc-summary-data")
+                    "split_path": downloaded_files["splits"],
+                    "split_name": "test",
+                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data")
                 },
             ),
         ]
 
-    def _generate_examples(self, split_ids, data_dir):
+    def _generate_examples(self, split_path, split_name, data_dir):
         """Yields examples."""
 
-        for i in split_ids:
-            with open(os.path.join(data_dir, i + ".summary")) as f:
+        with open(split_path, "r", encoding="utf-8") as f:
+            split_ids = json.load(f)
+
+        for i in split_ids[split_name]:
+            with open(os.path.join(data_dir, i + ".summary"), "r", encoding="utf-8") as f:
                 text = "".join([line for line in f.readlines() if line not in _REMOVE_LINES and line.strip()])
                 # Each file follows below format:
                 # [SN]URL[SN]
