@@ -702,7 +702,7 @@ class Dataset(DatasetInfoMixin, IndexableMixin):
             )
 
     def __repr__(self):
-        return f"Dataset(features: {self.features}, num_rows: {self.num_rows})"
+        return f"Dataset({{\n    features: {list(self.features.keys())},\n    num_rows: {self.num_rows}\n}})"
 
     @property
     def format(self):
