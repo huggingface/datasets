@@ -126,13 +126,7 @@ class Xsum(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, split_ids=None, data_dir=None):
-        """Yields examples.
-
-        2020-05-17: Changed from the huggingface code to support the raw
-        published data mentioned in the following issue:
-        https://github.com/EdinburghNLP/XSum/issues/20
-
-        """
+        """Yields examples."""
         missing = 0
         total_num = len(split_ids)
         for i in split_ids:
