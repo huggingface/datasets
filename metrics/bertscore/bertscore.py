@@ -75,9 +75,7 @@ class BERTScore(datasets.Metric):
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
-                    "references": datasets.Sequence(
-                        datasets.Value("string", id="sequence"), id="references"
-                    ),
+                    "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
                 }
             ),
             codebase_urls=["https://github.com/Tiiiger/bert_score"],
@@ -118,10 +116,7 @@ class BERTScore(datasets.Metric):
             baseline_path is not None,
         )
 
-        if (
-            not hasattr(self, "cached_bertscorer")
-            or self.cached_bertscorer.hash != hashcode
-        ):
+        if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
             self.cached_bertscorer = bert_score.BERTScorer(
                 model_type=model_type,
                 num_layers=num_layers,
