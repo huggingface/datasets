@@ -15,7 +15,6 @@
 """ BERTScore metric. """
 
 import bert_score
-
 import datasets
 
 
@@ -76,11 +75,16 @@ class BERTScore(datasets.Metric):
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
-                    "references": datasets.Sequence(datasets.Value("string", id="sequence"), id="references"),
+                    "references": datasets.Sequence(
+                        datasets.Value("string", id="sequence"), id="references"
+                    ),
                 }
             ),
             codebase_urls=["https://github.com/Tiiiger/bert_score"],
-            reference_urls=["https://github.com/Tiiiger/bert_score", "https://arxiv.org/abs/1904.09675"],
+            reference_urls=[
+                "https://github.com/Tiiiger/bert_score",
+                "https://arxiv.org/abs/1904.09675",
+            ],
         )
 
     def _compute(
@@ -98,7 +102,6 @@ class BERTScore(datasets.Metric):
         all_layers=False,
         rescale_with_baseline=False,
         baseline_path=None,
-
     ):
         if model_type is None:
             assert lang is not None, "either lang or model_type should be specified"
@@ -107,8 +110,18 @@ class BERTScore(datasets.Metric):
         if num_layers is None:
             num_layers = bert_score.utils.model2layers[model_type]
 
-        hashcode = bert_score.utils.get_hash(model_type, num_layers, idf, rescale_with_baseline, baseline_path is not None)
-        if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
+        hashcode = bert_score.utils.get_hash(
+            model_type,
+            num_layers,
+            idf,
+            rescale_with_baseline,
+            baseline_path is not None,
+        )
+
+        if (
+            not hasattr(self, "cached_bertscorer")
+            or self.cached_bertscorer.hash != hashcode
+        ):
             self.cached_bertscorer = bert_score.BERTScorer(
                 model_type=model_type,
                 num_layers=num_layers,
