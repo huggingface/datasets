@@ -97,6 +97,8 @@ class BERTScore(datasets.Metric):
         nthreads=4,
         all_layers=False,
         rescale_with_baseline=False,
+        baseline_path=None,
+
     ):
         if model_type is None:
             assert lang is not None, "either lang or model_type should be specified"
@@ -105,7 +107,7 @@ class BERTScore(datasets.Metric):
         if num_layers is None:
             num_layers = bert_score.utils.model2layers[model_type]
 
-        hashcode = bert_score.utils.get_hash(model_type, num_layers, idf, rescale_with_baseline)
+        hashcode = bert_score.utils.get_hash(model_type, num_layers, idf, rescale_with_baseline, baseline_path is not None)
         if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
             self.cached_bertscorer = bert_score.BERTScorer(
                 model_type=model_type,
@@ -117,6 +119,7 @@ class BERTScore(datasets.Metric):
                 device=device,
                 lang=lang,
                 rescale_with_baseline=rescale_with_baseline,
+                baseline_path=baseline_path,
             )
 
         (P, R, F) = self.cached_bertscorer.score(
