@@ -21,10 +21,10 @@ import contextlib
 import inspect
 import os
 import shutil
+import urllib
 from dataclasses import dataclass
 from functools import partial
 from typing import Dict, List, Optional, Union
-import urllib
 
 from filelock import FileLock
 
@@ -272,7 +272,9 @@ class DatasetBuilder:
         config_kwargs_to_add_to_suffix.pop("data_files", None)
         if config_kwargs_to_add_to_suffix:
             try:
-                suffix = ",".join(str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items())
+                suffix = ",".join(
+                    str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
+                )
             except TypeError:
                 suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
 
