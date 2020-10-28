@@ -538,7 +538,7 @@ class BuilderTest(TestCase):
                 cache_dir=tmp_dir, name="dummy", content="foo", times=2
             )
             other_builder = DummyGeneratorBasedBuilderWithConfig(
-                cache_dir=tmp_dir, name="dummy", content="foo", times=2
+                cache_dir=tmp_dir, name="dummy", times=2, content="foo"
             )
             self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
             self.assertIn("content=foo", dummy_builder.cache_dir)

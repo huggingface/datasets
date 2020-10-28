@@ -271,6 +271,10 @@ class DatasetBuilder:
         # data files are handled differently
         config_kwargs_to_add_to_suffix.pop("data_files", None)
         if config_kwargs_to_add_to_suffix:
+            # we don't care about the order of the kwargs
+            config_kwargs_to_add_to_suffix = {
+                k: config_kwargs_to_add_to_suffix[k] for k in sorted(config_kwargs_to_add_to_suffix)
+            }
             if all(isinstance(v, (str, bool, int, float)) for v in config_kwargs_to_add_to_suffix.values()):
                 suffix = ",".join(
                     str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
