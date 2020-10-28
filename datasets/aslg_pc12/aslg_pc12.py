@@ -16,10 +16,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import os
-
 import datasets
+
 
 _DESCRIPTION = """\
 A large synthetic collection of parallel English and ASL-Gloss texts.
@@ -50,10 +48,12 @@ class ASLGPC12(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            features=datasets.Features({
-                "gloss": datasets.Value("string"),  # American sign language gloss
-                "text": datasets.Value("string")  # English text
-            }),
+            features=datasets.Features(
+                {
+                    "gloss": datasets.Value("string"),  # American sign language gloss
+                    "text": datasets.Value("string"),  # English text
+                }
+            ),
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )
@@ -77,10 +77,7 @@ class ASLGPC12(datasets.GeneratorBasedBuilder):
         text_f = open(text_path, "r", encoding="utf-8")
 
         for i, (gloss, text) in enumerate(zip(gloss_f, text_f)):
-            yield i, {
-                "gloss": gloss,
-                "text": text
-            }
+            yield i, {"gloss": gloss, "text": text}
 
         gloss_f.close()
         text_f.close()
