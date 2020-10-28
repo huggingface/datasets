@@ -271,11 +271,12 @@ class DatasetBuilder:
         # data files are handled differently
         config_kwargs_to_add_to_suffix.pop("data_files", None)
         if config_kwargs_to_add_to_suffix:
-            try:
+            if all(isinstance(v, (str, bool, int, float)) for v in config_kwargs_to_add_to_suffix.values()):
                 suffix = ",".join(
-                    str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
+                    str(k) + "=" + urllib.parse.quote_plus(str(v))
+                    for k, v in config_kwargs_to_add_to_suffix.items()
                 )
-            except TypeError:
+            else:
                 suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
 
         if builder_config.data_files is not None:
