@@ -43,6 +43,7 @@ from .features import (
 from .info import DatasetInfo, MetricInfo
 from .inspect import inspect_dataset, inspect_metric, list_datasets, list_metrics
 from .load import import_main_class, load_dataset, load_from_disk, load_metric, prepare_module
+from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar
