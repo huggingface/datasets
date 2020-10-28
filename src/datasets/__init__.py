@@ -23,7 +23,6 @@ __version__ = "1.1.2"
 import pyarrow
 from pyarrow import total_allocated_bytes
 
-from . import datasets
 from .arrow_dataset import Dataset, concatenate_datasets
 from .arrow_reader import ArrowReader, ReadInstruction
 from .arrow_writer import ArrowWriter
@@ -44,7 +43,6 @@ from .features import (
 from .info import DatasetInfo, MetricInfo
 from .inspect import inspect_dataset, inspect_metric, list_datasets, list_metrics
 from .load import import_main_class, load_dataset, load_from_disk, load_metric, prepare_module
-from .metric import Metric
 from .splits import NamedSplit, Split, SplitBase, SplitDict, SplitGenerator, SplitInfo, SubSplitInfo, percent
 from .utils import *
 from .utils.tqdm_utils import disable_progress_bar
