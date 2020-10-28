@@ -58,7 +58,7 @@ class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
 
 class DummyGeneratorBasedBuilderWithConfigConfig(BuilderConfig):
 
-    def __init__(self, content="foo", *args, **kwargs):
+    def __init__(self, content="foo", times=2, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.content = content
 
@@ -74,7 +74,7 @@ class DummyGeneratorBasedBuilderWithConfig(GeneratorBasedBuilder):
 
     def _generate_examples(self):
         for i in range(100):
-            yield i, {"text": self.config.content}
+            yield i, {"text": self.config.content * self.config.times}
 
 
 class BuilderTest(TestCase):
@@ -535,8 +535,12 @@ class BuilderTest(TestCase):
 
     def test_cache_dir_for_config_kwargs(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            dummy_builder = DummyGeneratorBasedBuilderWithConfig(cache_dir=tmp_dir, name="dummy", content="foo")
-            other_builder = DummyGeneratorBasedBuilderWithConfig(cache_dir=tmp_dir, name="dummy", content="foo")
+            dummy_builder = DummyGeneratorBasedBuilderWithConfig(cache_dir=tmp_dir, name="dummy", content="foo", times=2)
+            other_builder = DummyGeneratorBasedBuilderWithConfig(cache_dir=tmp_dir, name="dummy", content="foo", times=2)
             self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
-            other_builder = DummyGeneratorBasedBuilderWithConfig(cache_dir=tmp_dir, name="dummy", content="bar")
+            self.assertIn('content=foo', dummy_builder.cache_dir)
+            self.assertIn('times=2', dummy_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilderWithConfig(cache_dir=tmp_dir, name="dummy", content="bar", times=2)
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilderWithConfig(cache_dir=tmp_dir, name="dummy", content="foo")
             self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
