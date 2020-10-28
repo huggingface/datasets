@@ -1,0 +1,53 @@
+{
+  "default": {
+    "description": "Synthetic English-ASL Gloss Parallel Corpus 2012\n",
+    "citation": "@inproceedings{othman2012english,\n  title={English-asl gloss parallel corpus 2012: Aslg-pc12},\n  author={Othman, Achraf and Jemni, Mohamed},\n  booktitle={5th Workshop on the Representation and Processing of Sign Languages: Interactions between Corpus and Lexicon LREC},\n  year={2012}\n}\n",
+    "homepage": "https://achrafothman.net/site/asl-smt/",
+    "license": "",
+    "features": {
+      "gloss": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      },
+      "text": {
+        "dtype": "string",
+        "id": null,
+        "_type": "Value"
+      }
+    },
+    "post_processed": null,
+    "supervised_keys": null,
+    "builder_name": "aslgp_c12",
+    "config_name": "default",
+    "version": {
+      "version_str": "0.0.1",
+      "description": null,
+      "major": 0,
+      "minor": 0,
+      "patch": 1
+    },
+    "splits": {
+      "train": {
+        "name": "train",
+        "num_bytes": 13497111,
+        "num_examples": 87710,
+        "dataset_name": "aslgp_c12"
+      }
+    },
+    "download_checksums": {
+      "https://www.achrafothman.net/aslsmt/corpus/sample-corpus-asl-en.asl": {
+        "num_bytes": 6457824,
+        "checksum": "e550698336419edaaedfc51882541eb033db83257fa2167900ac0db9fae91633"
+      },
+      "https://www.achrafothman.net/aslsmt/corpus/sample-corpus-asl-en.en": {
+        "num_bytes": 6315607,
+        "checksum": "889732ced6ceaeab352efd647de65ac29e1ac7adb1206b2703d9d35432924f6a"
+      }
+    },
+    "download_size": 12773431,
+    "post_processing_size": null,
+    "dataset_size": 13497111,
+    "size_in_bytes": 26270542
+  }
+}
