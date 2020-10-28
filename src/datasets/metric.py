@@ -346,7 +346,7 @@ class Metric(MetricInfoMixin):
 
             # Read the predictions and references
             try:
-                reader = ArrowReader(path=self.data_dir, info=DatasetInfo(features=self.features))
+                reader = ArrowReader(path="", info=DatasetInfo(features=self.features))
                 self.data = Dataset(**reader.read_files([{"filename": f} for f in file_paths]))
             except FileNotFoundError:
                 raise ValueError(
