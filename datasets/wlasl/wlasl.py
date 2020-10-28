@@ -20,8 +20,10 @@ import json
 import urllib.request
 from urllib.error import ContentTooShortError
 
-import datasets
 from tqdm import tqdm
+
+import datasets
+
 
 _DESCRIPTION = """
 A large-scale dataset for Word-Level American Sign Language
@@ -37,13 +39,15 @@ _CITATION = """\
 }
 """
 
-_URL = "https://raw.githubusercontent.com/dxli94/WLASL/0ac8108282aba99226e29c066cb8eab847ef62da/start_kit/WLASL_v0.3.json"
+_URL = (
+    "https://raw.githubusercontent.com/dxli94/WLASL/0ac8108282aba99226e29c066cb8eab847ef62da/start_kit/WLASL_v0.3.json"
+)
 
 _HOMEPAGE = "https://dxli94.github.io/WLASL/"
 
 _ASLPRO_HEADERS = [
     ("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7"),
-    ("Referer", "http://www.aslpro.com/cgi-bin/aslpro/aslpro.cgi")
+    ("Referer", "http://www.aslpro.com/cgi-bin/aslpro/aslpro.cgi"),
 ]
 
 
@@ -79,17 +83,19 @@ class WLASL(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            features=datasets.Features({
-                "video": datasets.Value("string"),  # Video path
-                "url": datasets.Value("string"),  # Remote file URL
-                "start": datasets.Value("int32"),  # Start frame
-                "end": datasets.Value("int32"),  # End frame
-                "fps": datasets.Value("int32"),  # Frames per Second
-                "signer_id": datasets.Value("int32"),  # Unique ID of signer
-                "bbox": datasets.features.Sequence(datasets.Value("int32")),  # Array of integers
-                "gloss": datasets.Value("string"),  # American sign language gloss
-                "gloss_variation": datasets.Value("int32"),  # Variation ID of gloss
-            }),
+            features=datasets.Features(
+                {
+                    "video": datasets.Value("string"),  # Video path
+                    "url": datasets.Value("string"),  # Remote file URL
+                    "start": datasets.Value("int32"),  # Start frame
+                    "end": datasets.Value("int32"),  # End frame
+                    "fps": datasets.Value("int32"),  # Frames per Second
+                    "signer_id": datasets.Value("int32"),  # Unique ID of signer
+                    "bbox": datasets.features.Sequence(datasets.Value("int32")),  # Array of integers
+                    "gloss": datasets.Value("string"),  # American sign language gloss
+                    "gloss_variation": datasets.Value("int32"),  # Variation ID of gloss
+                }
+            ),
             homepage=_HOMEPAGE,
             citation=_CITATION,
         )
@@ -146,13 +152,13 @@ class WLASL(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={"data_path": processed_path, "split": "test"},
-            )
+            ),
         ]
 
     def _generate_examples(self, data_path, split):
         """ Yields examples. """
 
-        with open(data_path, "r") as f:
+        with open(data_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
             counter = 0
