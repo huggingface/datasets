@@ -58,6 +58,7 @@ Args:
     at least one of `model_type` or `lang`. `lang` needs to be
     specified when `rescale_with_baseline` is True.
     `rescale_with_baseline` (bool): rescale bertscore with pre-computed baseline
+    `baseline_path` (str): customized baseline file.
 Returns:
     'precision': Precision,
     'recall': Recall,
@@ -110,11 +111,11 @@ class BERTScore(datasets.Metric):
             num_layers = bert_score.utils.model2layers[model_type]
 
         hashcode = bert_score.utils.get_hash(
-            model_type,
-            num_layers,
-            idf,
-            rescale_with_baseline,
-            baseline_path is not None,
+            model=model_type,
+            num_layers=num_layers,
+            idf=idf,
+            rescale_with_baseline=rescale_with_baseline,
+            use_custom_baseline=baseline_path is not None,
         )
 
         if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
