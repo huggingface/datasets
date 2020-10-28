@@ -58,8 +58,8 @@ def metric_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    process_id, preds, refs, exp_id, cache_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
     time.sleep(wait)
     return metric.compute(predictions=preds, references=refs)
 
@@ -68,8 +68,8 @@ def metric_add_batch_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    process_id, preds, refs, exp_id, cache_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
     time.sleep(wait)
     metric.add_batch(predictions=preds, references=refs)
     return metric.compute()
@@ -79,8 +79,8 @@ def metric_add_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    process_id, preds, refs, exp_id, cache_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
     time.sleep(wait)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
@@ -91,8 +91,8 @@ def metric_add_and_compute_exp_id(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, data_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, data_dir=data_dir, timeout=5)
+    process_id, preds, refs, exp_id, cache_dir, wait = arg
+    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
     time.sleep(wait)
     for pred, ref in zip(preds, refs):
         metric.add(prediction=pred, reference=ref)
@@ -137,6 +137,15 @@ class TestMetric(TestCase):
 
         metric = DummyMetric(keep_in_memory=True, experiment_id="test_dummy_metric")
         self.assertDictEqual({}, metric.compute(predictions=[], references=[]))
+
+    def test_metric_with_cache_dir(self):
+        preds, refs = DummyMetric.predictions_and_references()
+        expected_results = DummyMetric.expected_results()
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            metric = DummyMetric(experiment_id="test_dummy_metric", cache_dir=tmp_dir)
+            self.assertDictEqual(expected_results, metric.compute(predictions=preds, references=refs))
+            del metric
 
     def test_concurrent_metrics(self):
         preds, refs = DummyMetric.predictions_and_references()
@@ -292,7 +301,7 @@ class TestMetric(TestCase):
                     keep_in_memory=True,
                     num_process=2,
                     process_id=0,
-                    data_dir=tmp_dir,
+                    cache_dir=tmp_dir,
                 )
 
     def test_dummy_metric_pickle(self):
