@@ -21,12 +21,10 @@ class Pandas(datasets.ArrowBasedBuilder):
                 files = [files]
             return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"files": files})]
         splits = []
-        for split_name in [datasets.Split.TRAIN, datasets.Split.VALIDATION, datasets.Split.TEST]:
-            if split_name in data_files:
-                files = data_files[split_name]
-                if isinstance(files, str):
-                    files = [files]
-                splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
+        for split_name, files in data_files.items():
+            if isinstance(files, str):
+                files = [files]
+            splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
 
     def _generate_tables(self, files):
