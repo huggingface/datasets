@@ -2,10 +2,10 @@ import logging
 
 import numpy as np
 import torch
-from transformers import PreTrainedTokenizer
 
 import datasets
 import metrics.fidelity.utility as utility
+
 
 logger = logging.getLogger(__name__)
 
@@ -70,97 +70,97 @@ Returns:
 
 
 class Fidelity(datasets.Metric):
-	def _info(self):
-		return datasets.MetricInfo(
-			description=_DESCRIPTION,
-			citation=_CITATION,
-			inputs_description=_KWARGS_DESCRIPTION,
-			features=datasets.Features(
-				{
-					"predictions": datasets.Value("float", id="sequence"),
-					"prob_y_hat": datasets.Value("float", id="sequence"),
-					"prob_y_hat_alpha": datasets.Value("float", id="sequence"),
-					"null_difference": datasets.Value("float", id="sequence"),
-					"mode": datasets.Value("string", id="sequence"),
-					"normalization": datasets.Value("bool", id="sequence"),
-				}
-			),
-		)
+    def _info(self):
+        return datasets.MetricInfo(
+            description=_DESCRIPTION,
+            citation=_CITATION,
+            inputs_description=_KWARGS_DESCRIPTION,
+            features=datasets.Features(
+                {
+                    "predictions": datasets.Value("float", id="sequence"),
+                    "prob_y_hat": datasets.Value("float", id="sequence"),
+                    "prob_y_hat_alpha": datasets.Value("float", id="sequence"),
+                    "null_difference": datasets.Value("float", id="sequence"),
+                    "mode": datasets.Value("string", id="sequence"),
+                    "normalization": datasets.Value("bool", id="sequence"),
+                }
+            ),
+        )
 
-	def _compute(
-			self,
-			predictions: np.ndarray = None,
-			prob_y_hat: np.ndarray = None,
-			prob_y_hat_alpha: np.ndarray = None,
-			null_difference: np.ndarray = None,
-			model: torch.nn.Module = None,
-			pad_token_id: int = None,
-			input_ids: torch.Tensor = None,
-			alpha: list = None,
-			attention_masks: torch.Tensor = None,
-			fidelity_type: str = "sufficiency",
-			clip: bool = True,
-			normalization: bool = True,
-			reduction: str = 'mean',
-			binarization_threshold: float = 0.5
-	):
+    def _compute(
+        self,
+        predictions: np.ndarray = None,
+        prob_y_hat: np.ndarray = None,
+        prob_y_hat_alpha: np.ndarray = None,
+        null_difference: np.ndarray = None,
+        model: torch.nn.Module = None,
+        pad_token_id: int = None,
+        input_ids: torch.Tensor = None,
+        alpha: list = None,
+        attention_masks: torch.Tensor = None,
+        fidelity_type: str = "sufficiency",
+        clip: bool = True,
+        normalization: bool = True,
+        reduction: str = "mean",
+        binarization_threshold: float = 0.5,
+    ):
 
-		if normalization:
-			if (
-					(predictions is None)
-					and (prob_y_hat is None or prob_y_hat_alpha is None or null_difference is None)
-					and (model is None or input_ids is None or alpha is None)
-			):
-				return "Please provide either predictions or model and inputs to compute predictions"
-		else:
-			if (
-					(predictions is None)
-					and (prob_y_hat is None or prob_y_hat_alpha is None)
-					and (model is None or input_ids is None or alpha is None)
-			):
-				return "Please provide either predictions or model and inputs to compute predictions"
+        if normalization:
+            if (
+                (predictions is None)
+                and (prob_y_hat is None or prob_y_hat_alpha is None or null_difference is None)
+                and (model is None or input_ids is None or alpha is None)
+            ):
+                return "Please provide either predictions or model and inputs to compute predictions"
+        else:
+            if (
+                (predictions is None)
+                and (prob_y_hat is None or prob_y_hat_alpha is None)
+                and (model is None or input_ids is None or alpha is None)
+            ):
+                return "Please provide either predictions or model and inputs to compute predictions"
 
-		if prob_y_hat is None:
-			predictions, prob_y_hat = utility.compute_predictions(
-				input_ids=input_ids, model=model, attention_masks=attention_masks
-			)
-			prob_y_hat = prob_y_hat[np.arange(len(prob_y_hat)), predictions]
+        if prob_y_hat is None:
+            predictions, prob_y_hat = utility.compute_predictions(
+                input_ids=input_ids, model=model, attention_masks=attention_masks
+            )
+            prob_y_hat = prob_y_hat[np.arange(len(prob_y_hat)), predictions]
 
-		if prob_y_hat_alpha is None:
-			input_ids_reduced, attention_masks_reduced = utility.reduce_input_with_rationale(
-				input_ids=input_ids, alpha=alpha, pad_token_id=pad_token_id, fidelity_type=fidelity_type
-			)
+        if prob_y_hat_alpha is None:
+            input_ids_reduced, attention_masks_reduced = utility.reduce_input_with_rationale(
+                input_ids=input_ids, alpha=alpha, pad_token_id=pad_token_id, fidelity_type=fidelity_type
+            )
 
-			predictions_alpha, prob_y_hat_alpha = utility.compute_predictions(
-				input_ids=input_ids_reduced, model=model, attention_masks=attention_masks_reduced
-			)
-			prob_y_hat_alpha = prob_y_hat_alpha[np.arange(len(prob_y_hat_alpha)), predictions]
+            predictions_alpha, prob_y_hat_alpha = utility.compute_predictions(
+                input_ids=input_ids_reduced, model=model, attention_masks=attention_masks_reduced
+            )
+            prob_y_hat_alpha = prob_y_hat_alpha[np.arange(len(prob_y_hat_alpha)), predictions]
 
-		# Calculating fidelity value
-		fidelity = utility.compute_fidelity(
-			prob_y_hat=prob_y_hat,
-			prob_y_hat_alpha=prob_y_hat_alpha,
-			fidelity_type=fidelity_type,
-			dataset_level=False,
-			clip=clip,
-		)
+        # Calculating fidelity value
+        fidelity = utility.compute_fidelity(
+            prob_y_hat=prob_y_hat,
+            prob_y_hat_alpha=prob_y_hat_alpha,
+            fidelity_type=fidelity_type,
+            dataset_level=False,
+            clip=clip,
+        )
 
-		if normalization:
-			if null_difference is None:
-				null_difference = utility.compute_null_diff(
-					input_ids=input_ids,
-					model=model,
-					predictions=predictions,
-					prob_y_hat=prob_y_hat,
-					pad_token_id=pad_token_id,
-				)
+        if normalization:
+            if null_difference is None:
+                null_difference = utility.compute_null_diff(
+                    input_ids=input_ids,
+                    model=model,
+                    predictions=predictions,
+                    prob_y_hat=prob_y_hat,
+                    pad_token_id=pad_token_id,
+                )
 
-			# Normalizing fidelity value
-			fidelity = utility.normalize_item_set_fidelity(
-				fidelity=fidelity, null_difference=null_difference, fidelity_type=fidelity_type, clip=clip
-			)
+            # Normalizing fidelity value
+            fidelity = utility.normalize_item_set_fidelity(
+                fidelity=fidelity, null_difference=null_difference, fidelity_type=fidelity_type, clip=clip
+            )
 
-		if reduction == 'mean':
-			return np.mean(fidelity)
-		elif reduction is None:
-			return fidelity
+        if reduction == "mean":
+            return np.mean(fidelity)
+        elif reduction is None:
+            return fidelity

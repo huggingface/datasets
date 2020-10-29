@@ -8,11 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 def compute_fidelity(
-        prob_y_hat: np.ndarray,
-        prob_y_hat_alpha: np.ndarray,
-        fidelity_type: str = "sufficiency",
-        clip: bool = True,
-        dataset_level: bool = False):
+    prob_y_hat: np.ndarray,
+    prob_y_hat_alpha: np.ndarray,
+    fidelity_type: str = "sufficiency",
+    clip: bool = True,
+    dataset_level: bool = False,
+):
     """
     clip=False ERASER's definition of sufficiency and comprehensiveness (DeYoung et al. 2019)
     clip=True Clip the fidelity values between 0 and 1 (Carton et al. 2020)
@@ -36,12 +37,7 @@ def compute_fidelity(
         return mean_difference
 
 
-def normalize_item_fidelity(
-        fidelity: float,
-        null_difference: float,
-        fidelity_type: str,
-        clip: bool,
-        eps: float):
+def normalize_item_fidelity(fidelity: float, null_difference: float, fidelity_type: str, clip: bool, eps: float):
     """
     Normalize a fidelity value given the null difference value
     :param fidelity: sufficiency or comprehensiveness metric
@@ -74,11 +70,12 @@ def normalize_item_fidelity(
 
 
 def normalize_item_set_fidelity(
-        fidelity: np.ndarray,
-        null_difference: np.ndarray,
-        fidelity_type: str = "sufficiency",
-        clip: bool = True,
-        eps: float = 1e-5):
+    fidelity: np.ndarray,
+    null_difference: np.ndarray,
+    fidelity_type: str = "sufficiency",
+    clip: bool = True,
+    eps: float = 1e-5,
+):
     """
     Normalize a list of fidelity values given the null difference values
     :param fidelity: sufficiency or comprehensiveness metric
@@ -103,10 +100,7 @@ def normalize_item_set_fidelity(
     return normalized_fidelity
 
 
-def compute_predictions(
-        input_ids: torch.Tensor,
-        model: torch.nn.Module,
-        attention_masks: torch.Tensor = None):
+def compute_predictions(input_ids: torch.Tensor, model: torch.nn.Module, attention_masks: torch.Tensor = None):
     """
     Compute the prediction for given input_ids, model and attention masks
     This function returns numpy arrays of labels and probabilities associated with that label
@@ -120,8 +114,8 @@ def compute_predictions(
     else:
         result = model.forward(input_ids=input_ids.to(model.device))
 
-    result["probs"] = torch.nn.functional.softmax(result['logits'], dim=1)
-    result['py_index'] = torch.argmax(result['probs'], dim=1)
+    result["probs"] = torch.nn.functional.softmax(result["logits"], dim=1)
+    result["py_index"] = torch.argmax(result["probs"], dim=1)
 
     if model.device == "cuda":
         result["py_index"] = result["py_index"].detach().cpu()
@@ -131,11 +125,8 @@ def compute_predictions(
 
 
 def compute_null_diff(
-        input_ids: torch.Tensor,
-        model: torch.nn.Module,
-        predictions: np.ndarray,
-        prob_y_hat: np.ndarray,
-        pad_token_id: int):
+    input_ids: torch.Tensor, model: torch.nn.Module, predictions: np.ndarray, prob_y_hat: np.ndarray, pad_token_id: int
+):
     """
     Calculate the null difference which helps in accounting for model-dependent baseline performance
     null difference = max(0, p(y_hat/x) - p(y_hat/x, 0))
@@ -148,7 +139,8 @@ def compute_null_diff(
     :return: null difference
     """
     input_ids_reduced, attention_mask_reduced = reduce_input_with_rationale(
-        input_ids=input_ids, alpha=None, pad_token_id=pad_token_id)
+        input_ids=input_ids, alpha=None, pad_token_id=pad_token_id
+    )
 
     predictions_0, prob_y_hat_0 = compute_predictions(
         input_ids=input_ids_reduced, model=model, attention_masks=attention_mask_reduced
@@ -163,10 +155,8 @@ def compute_null_diff(
 
 
 def reduce_input_with_rationale(
-        input_ids: torch.Tensor,
-        alpha: list = None,
-        pad_token_id: int = None,
-        fidelity_type: str = "sufficiency"):
+    input_ids: torch.Tensor, alpha: list = None, pad_token_id: int = None, fidelity_type: str = "sufficiency"
+):
     """
     Reduce the input_ids based on the alpha values or the rationale values
     sufficiency - reduce by keeping only the tokens which are in the rationale
