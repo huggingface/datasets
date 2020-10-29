@@ -73,7 +73,9 @@ def metric_compute(arg):
     metric = None
     try:
         process_id, preds, refs, exp_id, cache_dir, wait = arg
-        metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
+        metric = DummyMetric(
+            num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5
+        )
         time.sleep(wait)
         results = metric.compute(predictions=preds, references=refs)
         return results
@@ -88,7 +90,9 @@ def metric_add_batch_and_compute(arg):
     metric = None
     try:
         process_id, preds, refs, exp_id, cache_dir, wait = arg
-        metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
+        metric = DummyMetric(
+            num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5
+        )
         time.sleep(wait)
         metric.add_batch(predictions=preds, references=refs)
         results = metric.compute()
@@ -104,7 +108,9 @@ def metric_add_and_compute(arg):
     metric = None
     try:
         process_id, preds, refs, exp_id, cache_dir, wait = arg
-        metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
+        metric = DummyMetric(
+            num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5
+        )
         time.sleep(wait)
         for pred, ref in zip(preds, refs):
             metric.add(prediction=pred, reference=ref)
@@ -121,7 +127,9 @@ def metric_add_and_compute_exp_id(arg):
     metric = None
     try:
         process_id, preds, refs, exp_id, cache_dir, wait = arg
-        metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
+        metric = DummyMetric(
+            num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5
+        )
         time.sleep(wait)
         for pred, ref in zip(preds, refs):
             metric.add(prediction=pred, reference=ref)
