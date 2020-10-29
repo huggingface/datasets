@@ -104,7 +104,7 @@ class ASNQ(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
-        with open(filepath) as tsvfile:
+        with open(filepath, encoding="utf-8") as tsvfile:
             tsvreader = csv.reader(tsvfile, delimiter="\t")
             for id_, row in enumerate(tsvreader):
                 sentence1, sentence2, label = row
