@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 
 _CITATION = """
 @inproceedings{carton+rathore+tan:20,
-	 author = {Samuel Carton and Anirudh Rathore and Chenhao Tan},
-	 title = {Evaluating and Characterizing Human Rationales},
-	 year = {2020},
-	 booktitle = {Proceedings of EMNLP}
+     author = {Samuel Carton and Anirudh Rathore and Chenhao Tan},
+     title = {Evaluating and Characterizing Human Rationales},
+     year = {2020},
+     booktitle = {Proceedings of EMNLP}
 }
 """
 
@@ -50,22 +50,22 @@ References:
 _KWARGS_DESCRIPTION = """
 Under Construction
 Args:
-	`predictions`: (numpy array) y_hat
-	`prob_y_hat`: (numpy array) P(y_hat/x)
-	`prob_y_hat_alpha`: (numpy array) P(y_hat/x, alpha)
-	`null_difference`: (numpy array) max(0, P(y_hat/x) - P(y_hat/x, 0))
-	`model`: (pytorch nn Module) model to compute predictions
-	`pad_token_id`: padding token id for the corresponding tokenizer
-	`input_ids`: (torch.tensor) tensor of input ids
-	`alpha`: (list) 0s and 1s corresponding to the presence of a token in the rationale
-	`attention_masks`: [Optional] (torch.tensor) tensor of attention masks
-	`fidelity_type`: [Default="sufficiency"] (str) sufficiency or comprehensiveness
-	`clip`: [Default=True] (bool) true for clipping the fidelity values between 0 and 1
-	`normalization`: [Default=True] (bool) true for adjusting fidelity scores to account for baseline model behavior
-	`reduction`: [Default='mean'] (str) option for returning the entire array of fidelities or mean of that
-	`binarization_threshold`: [Default=0.5] >= 0.5 corresponds to 1 and 0 otherwise when binarizing alpha values
+    `predictions`: (numpy array) y_hat
+    `prob_y_hat`: (numpy array) P(y_hat/x)
+    `prob_y_hat_alpha`: (numpy array) P(y_hat/x, alpha)
+    `null_difference`: (numpy array) max(0, P(y_hat/x) - P(y_hat/x, 0))
+    `model`: (pytorch nn Module) model to compute predictions
+    `pad_token_id`: padding token id for the corresponding tokenizer
+    `input_ids`: (torch.tensor) tensor of input ids
+    `alpha`: (list) 0s and 1s corresponding to the presence of a token in the rationale
+    `attention_masks`: [Optional] (torch.tensor) tensor of attention masks
+    `fidelity_type`: [Default="sufficiency"] (str) sufficiency or comprehensiveness
+    `clip`: [Default=True] (bool) true for clipping the fidelity values between 0 and 1
+    `normalization`: [Default=True] (bool) true for adjusting fidelity scores to account for baseline model behavior
+    `reduction`: [Default='mean'] (str) option for returning the entire array of fidelities or mean of that
+    `binarization_threshold`: [Default=0.5] >= 0.5 corresponds to 1 and 0 otherwise when binarizing alpha values
 Returns:
-	`fidelity`: 
+    `fidelity`: 
 """
 
 
