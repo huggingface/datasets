@@ -34,7 +34,7 @@ sufficiency(x, y_hat, alpha) = 1 - max(0, P(y_hat/x) - P(y_hat/x, alpha))
 comprehensiveness(x, y_hat, alpha) = max(0, P(y_hat/x) - P(y_hat/x, alpha))
 null difference = max(0, P(y_hat/x) - P(y_hat/x, 0))
 normalized_sufficiency(x, y_hat, alpha) = (sufficiency(x, y_hat, alpha) - sufficiency(x, y_hat, 0)) / null difference
-normalized_comp(x, y_hat, alpha) = comprehensiveness(x, y_hat, alpha) / null difference 
+normalized_comp(x, y_hat, alpha) = comprehensiveness(x, y_hat, alpha) / null difference
 
 References:
 - Samuel Carton, Anirudh Rathore, and Chenhao Tan. 2020. Evaluating and Characterizing Human Rationales.
@@ -65,7 +65,7 @@ Args:
     `reduction`: [Default='mean'] (str) option for returning the entire array of fidelities or mean of that
     `binarization_threshold`: [Default=0.5] >= 0.5 corresponds to 1 and 0 otherwise when binarizing alpha values
 Returns:
-    `fidelity`: 
+    `fidelity`:
 """
 
 
