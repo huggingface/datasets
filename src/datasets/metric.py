@@ -269,6 +269,11 @@ class Metric(MetricInfoMixin):
         We wait for timeout second to let all the distributed node finish their tasks (default is 100 seconds).
         """
         if self.num_process == 1:
+            if self.cache_file_name is None:
+                raise ValueError(
+                    "Metric cache file doesn't exist. Please make sure that you call `add` or `add_batch` "
+                    "at least once before calling `compute`."
+                )
             file_paths = [self.cache_file_name]
         else:
             file_paths = [
