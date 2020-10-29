@@ -244,7 +244,7 @@ class Metric(MetricInfoMixin):
                 # We raise an error
                 if self.num_process != 1:
                     raise ValueError(
-                        f"Another metric instance is already using the local cache file at {file_path}. "
+                        f"Error in _create_cache_file: another metric instance is already using the local cache file at {file_path}. "
                         f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
                         f"between distributed metric instances."
                     )
@@ -394,6 +394,8 @@ class Metric(MetricInfoMixin):
 
             if self.buf_writer is not None:
                 self.buf_writer = None
+                del self.data
+                self.data = None
             else:
                 # Release locks and delete all the cache files
                 for filelock, file_path in zip(self.filelocks, self.file_paths):
@@ -452,7 +454,7 @@ class Metric(MetricInfoMixin):
                     self.rendez_vous_lock.acquire(timeout=timeout)
                 except TimeoutError:
                     raise ValueError(
-                        f"Another metric instance is already using the local cache file at {file_path}. "
+                        f"Error in _init_writer: another metric instance is already using the local cache file at {file_path}. "
                         f"Please specify an experiment_id (currently: {self.experiment_id}) to avoid colision "
                         f"between distributed metric instances."
                     )
@@ -534,7 +536,9 @@ class Metric(MetricInfoMixin):
         raise NotImplementedError
 
     def __del__(self):
-        if hasattr(self, "data"):
-            del self.data
-        if hasattr(self, "writer"):
-            del self.writer
+        if self.filelock is not None:
+            self.filelock.release()
+        if self.rendez_vous_lock is not None:
+            self.rendez_vous_lock.release()
+        del self.writer
+        del self.data

@@ -54,49 +54,89 @@ class DummyMetric(Metric):
         return {"accuracy": 0.75, "set_equality": False}
 
 
+def properly_del_metric(metric):
+    """properly delete a metric on windows if the process is killed during multiprocessing"""
+    if metric is not None:
+        if metric.filelock is not None:
+            metric.filelock.release()
+        if metric.rendez_vous_lock is not None:
+            metric.rendez_vous_lock.release()
+        del metric.writer
+        del metric.data
+        del metric
+
+
 def metric_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, cache_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
-    time.sleep(wait)
-    return metric.compute(predictions=preds, references=refs)
+    metric = None
+    try:
+        process_id, preds, refs, exp_id, cache_dir, wait = arg
+        metric = DummyMetric(
+            num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5
+        )
+        time.sleep(wait)
+        results = metric.compute(predictions=preds, references=refs)
+        return results
+    finally:
+        properly_del_metric(metric)
 
 
 def metric_add_batch_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, cache_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
-    time.sleep(wait)
-    metric.add_batch(predictions=preds, references=refs)
-    return metric.compute()
+    metric = None
+    try:
+        process_id, preds, refs, exp_id, cache_dir, wait = arg
+        metric = DummyMetric(
+            num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5
+        )
+        time.sleep(wait)
+        metric.add_batch(predictions=preds, references=refs)
+        results = metric.compute()
+        return results
+    finally:
+        properly_del_metric(metric)
 
 
 def metric_add_and_compute(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, cache_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
-    time.sleep(wait)
-    for pred, ref in zip(preds, refs):
-        metric.add(prediction=pred, reference=ref)
-    return metric.compute()
+    metric = None
+    try:
+        process_id, preds, refs, exp_id, cache_dir, wait = arg
+        metric = DummyMetric(
+            num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5
+        )
+        time.sleep(wait)
+        for pred, ref in zip(preds, refs):
+            metric.add(prediction=pred, reference=ref)
+        results = metric.compute()
+        return results
+    finally:
+        properly_del_metric(metric)
 
 
 def metric_add_and_compute_exp_id(arg):
     """Thread worker function for distributed evaluation testing.
     On base level to be pickable.
     """
-    process_id, preds, refs, exp_id, cache_dir, wait = arg
-    metric = DummyMetric(num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5)
-    time.sleep(wait)
-    for pred, ref in zip(preds, refs):
-        metric.add(prediction=pred, reference=ref)
-    return metric.compute()
+    metric = None
+    try:
+        process_id, preds, refs, exp_id, cache_dir, wait = arg
+        metric = DummyMetric(
+            num_process=2, process_id=process_id, experiment_id=exp_id, cache_dir=cache_dir, timeout=5
+        )
+        time.sleep(wait)
+        for pred, ref in zip(preds, refs):
+            metric.add(prediction=pred, reference=ref)
+        results = metric.compute()
+        return results
+    finally:
+        properly_del_metric(metric)
 
 
 class TestMetric(TestCase):
@@ -210,7 +250,7 @@ class TestMetric(TestCase):
             (preds_0, refs_0), (preds_1, refs_1) = DummyMetric.distributed_predictions_and_references()
             expected_results = DummyMetric.distributed_expected_results()
 
-            pool = Pool()
+            pool = Pool(processes=4)
 
             results = pool.map(
                 metric_compute,
