@@ -109,8 +109,9 @@ class Fidelity(datasets.Metric):
             predictions["y_hat"], predictions["prob_y_hat"] = utility.compute_predictions(
                 input_ids=input_ids, model=model, attention_masks=attention_masks
             )
-            predictions["prob_y_hat"] = predictions["prob_y_hat"][np.arange(len(predictions["prob_y_hat"])),
-                                                                  predictions["y_hat"]]
+            predictions["prob_y_hat"] = predictions["prob_y_hat"][
+                np.arange(len(predictions["prob_y_hat"])), predictions["y_hat"]
+            ]
 
         if "prob_y_hat_alpha" not in predictions.keys() or predictions["prob_y_hat_alpha"] is None:
             input_ids_reduced, attention_masks_reduced = utility.reduce_input_with_rationale(
@@ -120,8 +121,9 @@ class Fidelity(datasets.Metric):
             predictions["predictions_alpha"], predictions["prob_y_hat_alpha"] = utility.compute_predictions(
                 input_ids=input_ids_reduced, model=model, attention_masks=attention_masks_reduced
             )
-            predictions["prob_y_hat_alpha"] = predictions["prob_y_hat_alpha"][np.arange(
-                len(predictions["prob_y_hat_alpha"])), predictions["y_hat"]]
+            predictions["prob_y_hat_alpha"] = predictions["prob_y_hat_alpha"][
+                np.arange(len(predictions["prob_y_hat_alpha"])), predictions["y_hat"]
+            ]
 
         # Calculating fidelity value
         fidelity = utility.compute_fidelity(
@@ -147,7 +149,7 @@ class Fidelity(datasets.Metric):
                 fidelity=fidelity,
                 null_difference=predictions["null_difference"],
                 fidelity_type=fidelity_type,
-                clip=clip
+                clip=clip,
             )
 
         if reduction == "mean":
