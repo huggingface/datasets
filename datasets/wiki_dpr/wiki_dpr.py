@@ -90,8 +90,14 @@ class WikiDprConfig(datasets.BuilderConfig):
 class WikiDpr(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = WikiDprConfig
     BUILDER_CONFIGS = [
-        WikiDprConfig(embeddings_name=embeddings_name, with_index=(index_name != "no_index"), index_name=index_name, version=datasets.Version("0.0.0"))
-        for embeddings_name in ("nq", "multiset") for index_name in ("exact", "compressed", "no_index")
+        WikiDprConfig(
+            embeddings_name=embeddings_name,
+            with_index=(index_name != "no_index"),
+            index_name=index_name,
+            version=datasets.Version("0.0.0"),
+        )
+        for embeddings_name in ("nq", "multiset")
+        for index_name in ("exact", "compressed", "no_index")
     ]
 
     def _info(self):
