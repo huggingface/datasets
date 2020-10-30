@@ -249,7 +249,7 @@ class DatasetBuilder:
         if is_custom:
             logger.warning("Using custom data configuration %s", name)
         else:
-            if builder_config is not self.builder_configs[name]:
+            if builder_config != self.builder_configs[name]:
                 raise ValueError(
                     "Cannot name a custom BuilderConfig the same as an available "
                     "BuilderConfig. Change the name. Available BuilderConfigs: %s"
@@ -259,6 +259,7 @@ class DatasetBuilder:
                 raise ValueError("BuilderConfig %s must have a version" % name)
             # if not builder_config.description:
             #     raise ValueError("BuilderConfig %s must have a description" % name)
+            return builder_config  # found existing configuration
         if not name:
             raise ValueError("BuilderConfig must have a name, got %s" % name)
 

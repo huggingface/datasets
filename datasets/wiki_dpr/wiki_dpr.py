@@ -80,15 +80,19 @@ class WikiDprConfig(datasets.BuilderConfig):
 
         prefix = f"{wiki_split}.{embeddings_name}."
         if self.index_name == "exact":
-            self.index_file = prefix + "IndexHNSWFlat-IP-{split}.faiss"
+            self.index_file = prefix + "HNSW128-IP-{split}.faiss"
         else:
-            self.index_file = prefix + "IVFPQ4096_HNSW32_PQ64-IP-{split}.faiss"
+            self.index_file = prefix + "IVF4096_HNSW128_PQ128-IP-{split}.faiss"
         if self.dummy:
             self.index_file = "dummy." + self.index_file
 
 
 class WikiDpr(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = WikiDprConfig
+    BUILDER_CONFIGS = [
+        WikiDprConfig(embeddings_name=embeddings_name, with_index=(index_name != "no_index"), index_name=index_name, version=datasets.Version("0.0.0"))
+        for embeddings_name in ("nq", "multiset") for index_name in ("exact", "compressed", "no_index")
+    ]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -180,16 +184,18 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                     raise ValueError("Couldn't build the index because there are no embeddings.")
                 import faiss
 
+                d = 768
                 train_size = self.config.index_train_size
                 logging.info("Building wiki_dpr faiss index")
                 if self.config.index_name == "exact":
-                    d = 768
                     index = faiss.IndexHNSWFlat(d, 128, faiss.METRIC_INNER_PRODUCT)
+                    index.hndw.efConstruction = 200
                     dataset.add_faiss_index("embeddings", custom_index=index)
                 else:
-                    d = 768
-                    quantizer = faiss.IndexHNSWFlat(d, 32, faiss.METRIC_INNER_PRODUCT)
-                    ivf_index = faiss.IndexIVFPQ(quantizer, d, 4096, 64, 8, faiss.METRIC_INNER_PRODUCT)
+                    quantizer = faiss.IndexHNSWFlat(d, 128, faiss.METRIC_INNER_PRODUCT)
+                    quantizer.hndw.efConstruction = 200
+                    ivf_index = faiss.IndexIVFPQ(quantizer, d, 4096, 128, 8, faiss.METRIC_INNER_PRODUCT)
+                    ivf_index.nprobe = 512
                     ivf_index.own_fields = True
                     quantizer.this.disown()
                     dataset.add_faiss_index(
