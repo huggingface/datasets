@@ -49,7 +49,7 @@ References:
 
 _KWARGS_DESCRIPTION = """
 Args:
-    `predictions`: (dict) 
+    `predictions`: (dict)
     keys
         `y_hat`: (numpy array) y_hat is the predicted label by the model on a particular input
         `prob_y_hat`: (numpy array) P(y_hat/x) is the probability of the predicted label when the input contains
@@ -58,7 +58,7 @@ Args:
         is reduced subject to alpha. Alpha denotes whether a token from the input is included in the input to the model
         or not. alpha in [0, 1]. We use a binarization threshold which is 0.5 by default by which we binarize the alpha
         values for either selecting the token or omitting it.
-        `null_difference`: (numpy array) max(0, P(y_hat/x) - P(y_hat/x, 0)) is the difference between the probability 
+        `null_difference`: (numpy array) max(0, P(y_hat/x) - P(y_hat/x, 0)) is the difference between the probability
         of the predicted label when full information is provided and the probability when zero information is provided(
         when alpha is 0 for all the input tokens)
     `model`: (pytorch nn Module) model to compute predictions
