@@ -47,14 +47,14 @@ ASNQ is a dataset for answer sentence selection derived from
 Google's Natural Questions (NQ) dataset (Kwiatkowski et al. 2019).
 
 Each example contains a question, candidate sentence, label indicating whether or not
-the sentence answers the question, and two additional features -- 
-sentence_in_long_answer and short_answer_in_sentence indicating whether ot not the 
+the sentence answers the question, and two additional features --
+sentence_in_long_answer and short_answer_in_sentence indicating whether ot not the
 candidate sentence is contained in the long_answer and if the short_answer is in the candidate sentence.
 
-For more details please see 
+For more details please see
 https://arxiv.org/pdf/1911.04118.pdf
 
-and 
+and
 
 https://research.google/pubs/pub47761/
 """
@@ -85,7 +85,7 @@ class ASNQ(datasets.GeneratorBasedBuilder):
                     "sentence": datasets.Value("string"),
                     "label": datasets.ClassLabel(names=["neg", "pos"]),
                     "sentence_in_long_answer": datasets.Value("bool"),
-                    "short_answer_in_sentence": datasets.Value("bool")
+                    "short_answer_in_sentence": datasets.Value("bool"),
                 }
             ),
             # No default supervised_keys
@@ -121,7 +121,7 @@ class ASNQ(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples.
+        """Yields examples.
 
         Original dataset contains labels '1', '2', '3' and '4', with labels
         '1', '2' and '3' considered negative (sentence does not answer the question),
@@ -131,17 +131,21 @@ class ASNQ(datasets.GeneratorBasedBuilder):
 
         # Mapping of dataset's original labels to a tuple of
         # (label, sentence_in_long_answer, short_answer_in_sentence)
-        label_map = {'1': ('neg', False, False),
-                     '2': ('neg', False, True),
-                     '3': ('neg', True, False),
-                     '4': ('pos', True, True)}
+        label_map = {
+            "1": ("neg", False, False),
+            "2": ("neg", False, True),
+            "3": ("neg", True, False),
+            "4": ("pos", True, True),
+        }
         with open(filepath, encoding="utf-8") as tsvfile:
             tsvreader = csv.reader(tsvfile, delimiter="\t")
             for id_, row in enumerate(tsvreader):
                 question, sentence, orig_label = row
                 label, sentence_in_long_answer, short_answer_in_sentence = label_map[orig_label]
-                yield id_, {"question": question,
-                            "sentence": sentence,
-                            "label": label,
-                            "sentence_in_long_answer": sentence_in_long_answer,
-                            "short_answer_in_sentence": short_answer_in_sentence}
+                yield id_, {
+                    "question": question,
+                    "sentence": sentence,
+                    "label": label,
+                    "sentence_in_long_answer": sentence_in_long_answer,
+                    "short_answer_in_sentence": short_answer_in_sentence,
+                }
