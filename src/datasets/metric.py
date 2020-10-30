@@ -545,5 +545,7 @@ class Metric(MetricInfoMixin):
             self.filelock.release()
         if self.rendez_vous_lock is not None:
             self.rendez_vous_lock.release()
-        del self.writer
-        del self.data
+        if hasattr(self, "writer"):  # in case it was already deleted
+            del self.writer
+        if hasattr(self, "data"):  # in case it was already deleted
+            del self.data
