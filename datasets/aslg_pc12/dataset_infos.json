@@ -1,6 +1,6 @@
 {
   "default": {
-    "description": "Synthetic English-ASL Gloss Parallel Corpus 2012\n",
+    "description": "A large synthetic collection of parallel English and ASL-Gloss texts.\nThere are two string features: text, and gloss.\n",
     "citation": "@inproceedings{othman2012english,\n  title={English-asl gloss parallel corpus 2012: Aslg-pc12},\n  author={Othman, Achraf and Jemni, Mohamed},\n  booktitle={5th Workshop on the Representation and Processing of Sign Languages: Interactions between Corpus and Lexicon LREC},\n  year={2012}\n}\n",
     "homepage": "https://achrafothman.net/site/asl-smt/",
     "license": "",
@@ -30,8 +30,20 @@
     "splits": {
       "train": {
         "name": "train",
-        "num_bytes": 13497111,
-        "num_examples": 87710,
+        "num_bytes": 9641370,
+        "num_examples": 62650,
+        "dataset_name": "aslgp_c12"
+      },
+      "validation": {
+        "name": "validation",
+        "num_bytes": 1929648,
+        "num_examples": 12530,
+        "dataset_name": "aslgp_c12"
+      },
+      "test": {
+        "name": "test",
+        "num_bytes": 1926113,
+        "num_examples": 12530,
         "dataset_name": "aslgp_c12"
       }
     },
@@ -47,7 +59,7 @@
     },
     "download_size": 12773431,
     "post_processing_size": null,
-    "dataset_size": 13497111,
-    "size_in_bytes": 26270542
+    "dataset_size": 13497131,
+    "size_in_bytes": 26270562
   }
 }

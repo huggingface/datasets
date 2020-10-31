@@ -66,18 +66,28 @@ class ASLGPC12(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"gloss_path": gloss_path, "text_path": text_path},
-            )
+                gen_kwargs={"gloss_path": gloss_path, "text_path": text_path, "split": "train"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"gloss_path": gloss_path, "text_path": text_path, "split": "dev"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                gen_kwargs={"gloss_path": gloss_path, "text_path": text_path, "split": "test"},
+            ),
         ]
 
-    def _generate_examples(self, gloss_path, text_path):
+    def _generate_examples(self, gloss_path, text_path, split):
         """ Yields examples. """
 
         gloss_f = open(gloss_path, "r", encoding="utf-8")
         text_f = open(text_path, "r", encoding="utf-8")
 
         for i, (gloss, text) in enumerate(zip(gloss_f, text_f)):
-            yield i, {"gloss": gloss, "text": text}
+            # Test and Dev splits get 1/7th of the data (~14%) each
+            if (i % 7 == 0 and split == "test") or (i % 7 == 1 and split == "dev") or (i % 7 > 1 and split == "train"):
+                yield i, {"gloss": gloss, "text": text}
 
         gloss_f.close()
         text_f.close()
