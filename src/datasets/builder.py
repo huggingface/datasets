@@ -21,6 +21,7 @@ import contextlib
 import inspect
 import os
 import shutil
+import urllib
 from dataclasses import dataclass
 from functools import partial
 from typing import Dict, List, Optional, Union
@@ -54,6 +55,8 @@ logger = get_logger(__name__)
 FORCE_REDOWNLOAD = GenerateMode.FORCE_REDOWNLOAD
 REUSE_CACHE_IF_EXISTS = GenerateMode.REUSE_CACHE_IF_EXISTS
 REUSE_DATASET_IF_EXISTS = GenerateMode.REUSE_DATASET_IF_EXISTS
+
+MAX_DIRECTORY_NAME_LENGTH = 255
 
 
 class InvalidConfigName(ValueError):
@@ -157,6 +160,7 @@ class DatasetBuilder:
             config_kwargs["features"] = features
         self.config = self._create_builder_config(
             name,
+            custom_features=features,
             **config_kwargs,
         )
 
@@ -207,7 +211,7 @@ class DatasetBuilder:
         """Empty DatasetInfo if doesn't exist"""
         return self.get_all_exported_dataset_infos().get(self.config.name, DatasetInfo())
 
-    def _create_builder_config(self, name=None, **config_kwargs):
+    def _create_builder_config(self, name=None, custom_features=None, **config_kwargs):
         """Create and validate BuilderConfig object.
         Uses the first configuration in self.BUILDER_CONFIGS if name is None
         config_kwargs override the defaults kwargs in config
@@ -241,8 +245,6 @@ class DatasetBuilder:
                 setattr(builder_config, key, value)
 
         name = builder_config.name
-        if not name:
-            raise ValueError("BuilderConfig must have a name, got %s" % name)
         is_custom = name not in self.builder_configs
         if is_custom:
             logger.warning("Using custom data configuration %s", name)
@@ -257,8 +259,33 @@ class DatasetBuilder:
                 raise ValueError("BuilderConfig %s must have a version" % name)
             # if not builder_config.description:
             #     raise ValueError("BuilderConfig %s must have a description" % name)
+        if not name:
+            raise ValueError("BuilderConfig must have a name, got %s" % name)
+
+        # Possibly add a suffix to the name to handle custom features/data_files/config_kwargs
+        suffix: Optional[str] = None
+        config_kwargs_to_add_to_suffix = dict(config_kwargs)
+        # name and version are already used to build the cache directory
+        config_kwargs_to_add_to_suffix.pop("name", None)
+        config_kwargs_to_add_to_suffix.pop("version", None)
+        # data files are handled differently
+        config_kwargs_to_add_to_suffix.pop("data_files", None)
+        if config_kwargs_to_add_to_suffix:
+            # we don't care about the order of the kwargs
+            config_kwargs_to_add_to_suffix = {
+                k: config_kwargs_to_add_to_suffix[k] for k in sorted(config_kwargs_to_add_to_suffix)
+            }
+            if all(isinstance(v, (str, bool, int, float)) for v in config_kwargs_to_add_to_suffix.values()):
+                suffix = ",".join(
+                    str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
+                )
+            else:
+                suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
+
         if builder_config.data_files is not None:
             m = Hasher()
+            if suffix:
+                m.update(suffix)
             if isinstance(builder_config.data_files, str):
                 data_files = {"train": [builder_config.data_files]}
             elif isinstance(builder_config.data_files, (tuple, list)):
@@ -275,9 +302,20 @@ class DatasetBuilder:
                 for data_file in data_files[key]:
                     m.update(os.path.abspath(data_file))
                     m.update(str(os.path.getmtime(data_file)))
-            if hasattr(builder_config, "features"):
-                m.update(builder_config.features)
-            builder_config.name += "-" + m.hexdigest()
+            suffix = m.hexdigest()
+
+        if custom_features is not None:
+            m = Hasher()
+            if suffix:
+                m.update(suffix)
+            m.update(custom_features)
+            suffix = m.hexdigest()
+
+        if suffix:
+            new_name = builder_config.name + "-" + suffix
+            if len(new_name) > MAX_DIRECTORY_NAME_LENGTH:
+                new_name = builder_config.name + "-" + Hasher.hash(suffix)
+            builder_config.name = new_name
         return builder_config
 
     @utils.classproperty

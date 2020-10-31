@@ -1,6 +1,7 @@
 import contextlib
 import json
 import os
+import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -106,7 +107,9 @@ class DatasetDict(dict):
             dataset.cleanup_cache_files()
 
     def __repr__(self):
-        return f"DatasetDict({super().__repr__()})"
+        repr = "\n".join([f"{k}: {v}" for k, v in self.items()])
+        repr = re.sub(r"^", " " * 4, repr, 0, re.M)
+        return f"DatasetDict({{\n{repr}\n}})"
 
     def cast_(self, features: Features):
         """

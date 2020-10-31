@@ -12,7 +12,12 @@ parser.add_argument(
     required=True,
     help="Data path containing the CompGuessWhat?! datasets (files with 'jsonl.gz' extension)",
 )
-parser.add_argument("--examples", type=int, default=5, help="Number of games to consider in the dummy dataset")
+parser.add_argument(
+    "--examples",
+    type=int,
+    default=5,
+    help="Number of games to consider in the dummy dataset",
+)
 original_data_files = {
     "train": "compguesswhat.train.jsonl.gz",
     "valid": "compguesswhat.valid.jsonl.gz",
@@ -74,7 +79,7 @@ def main(args):
     with open(dataset_info_path, encoding="utf-8") as in_file:
         dataset_info = json.load(in_file)
 
-    dataset_version = dataset_info["default"]["version"]["version_str"]
+    dataset_version = dataset_info["compguesswhat-original"]["version"]["version_str"]
 
     print(f"Creating dummy data for CompGuessWhat?! {dataset_version}")
 
