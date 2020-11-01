@@ -27,7 +27,7 @@ _CITATION = """\
 @inproceedings{budur-etal-2020-data,
     title = "Data and Representation for Turkish Natural Language Inference",
     author = "Budur, Emrah and
-      \"{O}z\c{c}elik, R{\i}za and
+      \"{O}zçelik, Rıza and
       G\"{u}ng\"{o}r, Tunga",
     booktitle = "Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)",
     month = nov,
