@@ -192,7 +192,7 @@ class AmazonUSReviews(datasets.GeneratorBasedBuilder):
             The features.
         """
 
-        with open(file_path, "r") as tsvfile:
+        with open(file_path, "r", encoding="utf-8") as tsvfile:
             # Need to disable quoting - as dataset contains invalid double quotes.
             reader = csv.DictReader(tsvfile, dialect="excel-tab", quoting=csv.QUOTE_NONE)
             for i, row in enumerate(reader):
