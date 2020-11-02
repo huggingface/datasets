@@ -20,8 +20,10 @@ import os
 import re
 from dataclasses import dataclass
 
-import datasets
 from tqdm import tqdm
+
+import datasets
+
 
 _DESCRIPTION = """
 A small American Sign Language corpus annotated with non-manual features
