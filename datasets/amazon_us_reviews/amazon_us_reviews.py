@@ -106,17 +106,12 @@ _DL_URLS = {
 class AmazonUSReviewsConfig(datasets.BuilderConfig):
     """BuilderConfig for AmazonUSReviews."""
 
-    def __init__(self, data=None, **kwargs):
+    def __init__(self, **kwargs):
         """Constructs a AmazonUSReviewsConfig.
         Args:
-            data: `str`, one of `_DATA_OPTIONS`.
             **kwargs: keyword arguments forwarded to super.
         """
-        if data not in _DATA_OPTIONS:
-            raise ValueError("data must be one of %s" % _DATA_OPTIONS)
-
-        super(AmazonUSReviewsConfig, self).__init__(**kwargs)
-        self.data = data
+        super(AmazonUSReviewsConfig, self).__init__(version=datasets.Version("0.1.0", ""), **kwargs),
 
 
 class AmazonUSReviews(datasets.GeneratorBasedBuilder):
@@ -129,8 +124,6 @@ class AmazonUSReviews(datasets.GeneratorBasedBuilder):
                 f"A dataset consisting of reviews of Amazon {config_name} products in US marketplace. Each product "
                 "has its own version as specified with it."
             ),
-            version=datasets.Version("0.1.0", ""),
-            data=config_name,
         )
         for config_name in _DATA_OPTIONS
     ]
