@@ -10,6 +10,23 @@
         "id": null,
         "_type": "Value"
       },
+      "sentences": {
+        "feature": {
+          "gloss": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          },
+          "text": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          }
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
+      },
       "videos": {
         "feature": {
           "dtype": "string",
@@ -35,19 +52,19 @@
     "splits": {
       "train": {
         "name": "train",
-        "num_bytes": 404752,
+        "num_bytes": 555842,
         "num_examples": 620,
         "dataset_name": "ncslgr"
       },
       "validation": {
         "name": "validation",
-        "num_bytes": 81766,
+        "num_bytes": 117911,
         "num_examples": 125,
         "dataset_name": "ncslgr"
       },
       "test": {
         "name": "test",
-        "num_bytes": 81688,
+        "num_bytes": 109814,
         "num_examples": 125,
         "dataset_name": "ncslgr"
       }
@@ -64,8 +81,8 @@
     },
     "download_size": 4113829143,
     "post_processing_size": null,
-    "dataset_size": 568206,
-    "size_in_bytes": 4114397349
+    "dataset_size": 783567,
+    "size_in_bytes": 4114612710
   },
   "annotations": {
     "description": "\nA small American Sign Language corpus annotated with non-manual features\n",
@@ -77,6 +94,23 @@
         "dtype": "string",
         "id": null,
         "_type": "Value"
+      },
+      "sentences": {
+        "feature": {
+          "gloss": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          },
+          "text": {
+            "dtype": "string",
+            "id": null,
+            "_type": "Value"
+          }
+        },
+        "length": -1,
+        "id": null,
+        "_type": "Sequence"
       },
       "videos": {
         "feature": {
@@ -103,19 +137,19 @@
     "splits": {
       "train": {
         "name": "train",
-        "num_bytes": 111440,
+        "num_bytes": 262530,
         "num_examples": 620,
         "dataset_name": "ncslgr"
       },
       "validation": {
         "name": "validation",
-        "num_bytes": 22497,
+        "num_bytes": 58642,
         "num_examples": 125,
         "dataset_name": "ncslgr"
       },
       "test": {
         "name": "test",
-        "num_bytes": 22488,
+        "num_bytes": 50614,
         "num_examples": 125,
         "dataset_name": "ncslgr"
       }
@@ -128,7 +162,7 @@
     },
     "download_size": 5335358,
     "post_processing_size": null,
-    "dataset_size": 156425,
-    "size_in_bytes": 5491783
+    "dataset_size": 371786,
+    "size_in_bytes": 5707144
   }
 }
