@@ -78,6 +78,12 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "eaf": datasets.Value("string"),  # EAF path
+                    "sentences": datasets.features.Sequence(
+                        {
+                            "gloss": datasets.Value("string"),  # ASL Gloss
+                            "text": datasets.Value("string"),  # English Text
+                        }
+                    ),
                     "videos": datasets.features.Sequence(datasets.Value("string")),  # Videos paths
                 }
             ),
@@ -106,17 +112,40 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
             ),
         ]
 
+    def _extract_sentences(self, elan_xml: str):
+        def get_tier_values(name: str):
+            tiers = re.findall('TIER_ID="' + name + '">([\\s\\S]*?)</TIER>', elan_xml)
+            if len(tiers) == 0:
+                return []
+            tier = tiers[0]
+            return [
+                (int(s[2:]), int(e[2:]), t)
+                for s, e, t in re.findall(
+                    'TIME_SLOT_REF1="(.*)" TIME_SLOT_REF2="(.*)">\n.*<ANNOTATION_VALUE>(.*?)</ANNOTATION_VALUE>', tier
+                )
+            ]
+
+        gloss = get_tier_values("main gloss")
+        texts = get_tier_values("English translation")
+
+        for s, e, text in texts:
+            relevant_gloss = [t for (s2, e2, t) in gloss if s2 >= s and e2 <= e]
+            yield {"gloss": " ".join(relevant_gloss), "text": text}
+
     def _generate_examples(self, eaf_path: str, videos_path: str, split: str):
         """ Yields examples. """
 
         for i, eaf_file in enumerate(tqdm(os.listdir(eaf_path))):
             eaf_file_path = os.path.join(eaf_path, eaf_file)
             videos = []
-            if self.config.videos:
-                with open(eaf_file_path, "r", encoding="utf-8") as f:
-                    content = f.read()
+            with open(eaf_file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+                if self.config.videos:
                     videos_relative = re.findall('RELATIVE_MEDIA_URL="(.*)"', content)
                     videos = [os.path.join(videos_path, v[3:]) for v in videos_relative]
 
+                sentences = list(self._extract_sentences(content))
+
             if (i % 7 == 0 and split == "test") or (i % 7 == 1 and split == "dev") or (i % 7 > 1 and split == "train"):
-                yield i, {"eaf": eaf_file_path, "videos": videos}
+                yield i, {"eaf": eaf_file_path, "videos": videos, "sentences": sentences}
