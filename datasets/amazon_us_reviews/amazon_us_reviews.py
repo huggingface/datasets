@@ -106,7 +106,7 @@ _DL_URLS = {
 class AmazonUSReviewsConfig(datasets.BuilderConfig):
     """BuilderConfig for AmazonUSReviews."""
 
-    def __init__(self, *, data=None, **kwargs):
+    def __init__(self, data=None, **kwargs):
         """Constructs a AmazonUSReviewsConfig.
         Args:
             data: `str`, one of `_DATA_OPTIONS`.
