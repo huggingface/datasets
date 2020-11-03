@@ -48,66 +48,54 @@ Each Dataset contains the following columns:
     review_date       - The date the review was written.
 """
 
-_DATA_OPTIONS_V1_00 = [
-    "Wireless",
-    "Watches",
-    "Video_Games",
-    "Video_DVD",
-    "Video",
-    "Toys",
-    "Tools",
-    "Sports",
-    "Software",
-    "Shoes",
-    "Pet_Products",
-    "Personal_Care_Appliances",
-    "PC",
-    "Outdoors",
-    "Office_Products",
-    "Musical_Instruments",
-    "Music",
-    "Mobile_Electronics",
-    "Mobile_Apps",
-    "Major_Appliances",
-    "Luggage",
-    "Lawn_and_Garden",
-    "Kitchen",
-    "Jewelry",
-    "Home_Improvement",
-    "Home_Entertainment",
-    "Home",
-    "Health_Personal_Care",
-    "Grocery",
-    "Gift_Card",
-    "Furniture",
-    "Electronics",
-    "Digital_Video_Games",
-    "Digital_Video_Download",
-    "Digital_Software",
-    "Digital_Music_Purchase",
-    "Digital_Ebook_Purchase",
-    "Camera",
-    "Books",
-    "Beauty",
-    "Baby",
-    "Automotive",
-    "Apparel",
+_DATA_OPTIONS = [
+    "Wireless_v1_00",
+    "Watches_v1_00",
+    "Video_Games_v1_00",
+    "Video_DVD_v1_00",
+    "Video_v1_00",
+    "Toys_v1_00",
+    "Tools_v1_00",
+    "Sports_v1_00",
+    "Software_v1_00",
+    "Shoes_v1_00",
+    "Pet_Products_v1_00",
+    "Personal_Care_Appliances_v1_00",
+    "PC_v1_00",
+    "Outdoors_v1_00",
+    "Office_Products_v1_00",
+    "Musical_Instruments_v1_00",
+    "Music_v1_00",
+    "Mobile_Electronics_v1_00",
+    "Mobile_Apps_v1_00",
+    "Major_Appliances_v1_00",
+    "Luggage_v1_00",
+    "Lawn_and_Garden_v1_00",
+    "Kitchen_v1_00",
+    "Jewelry_v1_00",
+    "Home_Improvement_v1_00",
+    "Home_Entertainment_v1_00",
+    "Home_v1_00",
+    "Health_Personal_Care_v1_00",
+    "Grocery_v1_00",
+    "Gift_Card_v1_00",
+    "Furniture_v1_00",
+    "Electronics_v1_00",
+    "Digital_Video_Games_v1_00",
+    "Digital_Video_Download_v1_00",
+    "Digital_Software_v1_00",
+    "Digital_Music_Purchase_v1_00",
+    "Digital_Ebook_Purchase_v1_00",
+    "Camera_v1_00",
+    "Books_v1_00",
+    "Beauty_v1_00",
+    "Baby_v1_00",
+    "Automotive_v1_00",
+    "Apparel_v1_00",
+    "Digital_Ebook_Purchase_v1_01",
+    "Books_v1_01",
+    "Books_v1_02",
 ]
-
-_DATA_OPTIONS_V1_01 = ["Digital_Ebook_Purchase", "Books"]
-
-_DATA_OPTIONS_V1_02 = ["Books"]
-
-_DATA_OPTIONS = []
-
-for entry in _DATA_OPTIONS_V1_00:
-    _DATA_OPTIONS.append(entry + "_v1_00")
-
-for entry in _DATA_OPTIONS_V1_01:
-    _DATA_OPTIONS.append(entry + "_v1_01")
-
-for entry in _DATA_OPTIONS_V1_02:
-    _DATA_OPTIONS.append(entry + "_v1_02")
 
 _DL_URLS = {
     name: "https://s3.amazonaws.com/amazon-reviews-pds/tsv/amazon_reviews_us_" + name + ".tsv.gz"
