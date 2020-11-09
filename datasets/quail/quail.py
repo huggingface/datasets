@@ -49,19 +49,15 @@ class QuailConfig(datasets.BuilderConfig):
 class Quail(datasets.GeneratorBasedBuilder):
     """QuAIL: The Stanford Question Answering Dataset. Version 1.1."""
 
-    _CHALLENGE_SET = "https://raw.githubusercontent.com/text-machine-lab/quail/master/quail_challenge_set/quail_1.2_challenge_set.xml"
-    _DEV_SET = (
-        "https://raw.githubusercontent.com/text-machine-lab/quail/master/quail_v1.2/xml/ordered/quail_1.2_dev.xml"
-    )
-    _TRAIN_SET = (
-        "https://raw.githubusercontent.com/text-machine-lab/quail/master/quail_v1.2/xml/ordered/quail_1.2_train.xml"
-    )
+    _CHALLENGE_SET = "https://raw.githubusercontent.com/text-machine-lab/quail/master/quail_v1.3/xml/randomized/quail_1.3_challenge_randomized.xml"
+    _DEV_SET = "https://raw.githubusercontent.com/text-machine-lab/quail/master/quail_v1.3/xml/randomized/quail_1.3_dev_randomized.xml"
+    _TRAIN_SET = "https://raw.githubusercontent.com/text-machine-lab/quail/master/quail_v1.3/xml/randomized/quail_1.3_train_randomized.xml"
 
     BUILDER_CONFIGS = [
         QuailConfig(
             name="quail",
-            version=datasets.Version("1.2.0", ""),
-            description="Quail dataset 1.2.0",
+            version=datasets.Version("1.3.0", ""),
+            description="Quail dataset 1.3.0",
         ),
     ]
 
