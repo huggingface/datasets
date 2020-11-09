@@ -3,6 +3,7 @@ from types import CodeType, FunctionType
 from unittest import TestCase
 
 import datasets
+from unittest.mock import patch
 
 from .utils import require_regex, require_transformers
 
@@ -133,6 +134,27 @@ class RecurseDumpTest(TestCase):
         hash3 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)
+
+    def test_recurse_dump_for_function_with_shuffled_globals(self):
+        foo, bar = [0], [1]
+
+        def func():
+            return foo, bar
+        func.__module__ = "__main__"
+
+        def globalvars_mock1_side_effect(func, *args, **kwargs):
+            return {"foo": foo, "bar": bar}
+
+        def globalvars_mock2_side_effect(func, *args, **kwargs):
+            return {"bar": bar, "foo": foo}
+
+        with patch("dill.detect.globalvars", side_effect=globalvars_mock1_side_effect) as globalvars_mock1:
+            hash1 = md5(datasets.utils.dumps(func)).hexdigest()
+            self.assertGreater(globalvars_mock1.call_count, 0)
+        with patch("dill.detect.globalvars", side_effect=globalvars_mock2_side_effect) as globalvars_mock2:
+            hash2 = md5(datasets.utils.dumps(func)).hexdigest()
+            self.assertGreater(globalvars_mock2.call_count, 0)
+        self.assertEqual(hash1, hash2)
 
 
 class TypeHintDumpTest(TestCase):
