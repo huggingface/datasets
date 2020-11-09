@@ -99,13 +99,15 @@ class Seqeval(datasets.Metric):
         report.pop("weighted avg")
         overall_score = report.pop("micro avg")
 
-        scores = {}
-        for type_name, score in report.items():
-            scores[type_name]["precision"] = score["precision"]
-            scores[type_name]["recall"] = score["recall"]
-            scores[type_name]["f1"] = score["f1-score"]
-            scores[type_name]["number"] = score["support"]
-
+        scores = {
+            type_name: {
+                "precision": score["precision"],
+                "recall": score["recall"],
+                "f1": score["f1-score"],
+                "number": score["support"],
+            }
+            for type_name, score in report.items()
+        }
         scores["overall_precision"] = overall_score["precision"]
         scores["overall_recall"] = overall_score["recall"]
         scores["overall_f1"] = overall_score["f1-score"]
