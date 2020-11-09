@@ -1,9 +1,9 @@
 from hashlib import md5
 from types import CodeType, FunctionType
 from unittest import TestCase
+from unittest.mock import patch
 
 import datasets
-from unittest.mock import patch
 
 from .utils import require_regex, require_transformers
 
@@ -140,6 +140,7 @@ class RecurseDumpTest(TestCase):
 
         def func():
             return foo, bar
+
         func.__module__ = "__main__"
 
         def globalvars_mock1_side_effect(func, *args, **kwargs):

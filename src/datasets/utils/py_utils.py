@@ -524,7 +524,7 @@ def save_function(pickler, obj):
     """
     if not dill._dill._locate_function(obj):
         dill._dill.log.info("F1: %s" % obj)
-        if getattr(pickler, '_recurse', False):
+        if getattr(pickler, "_recurse", False):
             # recurse to get all globals referred to by obj
             globalvars = dill.detect.globalvars
             globs = globalvars(obj, recurse=True, builtin=True)
@@ -539,41 +539,51 @@ def save_function(pickler, obj):
         # Only this line is different from the original implementation:
         globs = {k: globs[k] for k in sorted(globs.keys())}
         # The rest is the same as in the original dill implementation
-        _byref = getattr(pickler, '_byref', None)
-        _recurse = getattr(pickler, '_recurse', None)
+        _byref = getattr(pickler, "_byref", None)
+        _recurse = getattr(pickler, "_recurse", None)
         _memo = (id(obj) in dill._dill.stack) and (_recurse is not None)
         dill._dill.stack[id(obj)] = len(dill._dill.stack), obj
         if dill._dill.PY3:
-            _super = ('super' in getattr(obj.__code__, 'co_names', ())) and (_byref is not None)
+            _super = ("super" in getattr(obj.__code__, "co_names", ())) and (_byref is not None)
             if _super:
                 pickler._byref = True
             if _memo:
                 pickler._recurse = False
-            fkwdefaults = getattr(obj, '__kwdefaults__', None)
-            pickler.save_reduce(dill._dill._create_function, (obj.__code__,
-                                globs, obj.__name__,
-                                obj.__defaults__, obj.__closure__,
-                                obj.__dict__, fkwdefaults), obj=obj)
+            fkwdefaults = getattr(obj, "__kwdefaults__", None)
+            pickler.save_reduce(
+                dill._dill._create_function,
+                (obj.__code__, globs, obj.__name__, obj.__defaults__, obj.__closure__, obj.__dict__, fkwdefaults),
+                obj=obj,
+            )
         else:
-            _super = ('super' in getattr(obj.func_code, 'co_names', ())) and (_byref is not None) and getattr(pickler, '_recurse', False)
+            _super = (
+                ("super" in getattr(obj.func_code, "co_names", ()))
+                and (_byref is not None)
+                and getattr(pickler, "_recurse", False)
+            )
             if _super:
                 pickler._byref = True
             if _memo:
                 pickler._recurse = False
-            pickler.save_reduce(dill._dill._create_function, (obj.func_code,
-                                globs, obj.func_name,
-                                obj.func_defaults, obj.func_closure,
-                                obj.__dict__), obj=obj)
+            pickler.save_reduce(
+                dill._dill._create_function,
+                (obj.func_code, globs, obj.func_name, obj.func_defaults, obj.func_closure, obj.__dict__),
+                obj=obj,
+            )
         if _super:
             pickler._byref = _byref
         if _memo:
             pickler._recurse = _recurse
-        if dill._dill.OLDER and not _byref and (_super or (not _super and _memo) or (not _super and not _memo and _recurse)):
+        if (
+            dill._dill.OLDER
+            and not _byref
+            and (_super or (not _super and _memo) or (not _super and not _memo and _recurse))
+        ):
             pickler.clear_memo()
         dill._dill.log.info("# F1")
     else:
         dill._dill.log.info("F2: %s" % obj)
-        name = getattr(obj, '__qualname__', getattr(obj, '__name__', None))
+        name = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
         dill._dill.StockPickler.save_global(pickler, obj, name=name)
         dill._dill.log.info("# F2")
     return
