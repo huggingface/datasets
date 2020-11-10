@@ -554,15 +554,15 @@ class BuilderTest(TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             self.assertEqual(DummyGeneratorBasedBuilder._writer_batch_size, None)
             dummy_builder1 = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, name="dummy1",
+                cache_dir=tmp_dir,
+                name="dummy1",
             )
             DummyGeneratorBasedBuilder._writer_batch_size = 5
             dummy_builder2 = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, name="dummy2",
+                cache_dir=tmp_dir,
+                name="dummy2",
             )
-            dummy_builder3 = DummyGeneratorBasedBuilder(
-                cache_dir=tmp_dir, name="dummy3", writer_batch_size=10
-            )
+            dummy_builder3 = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy3", writer_batch_size=10)
             dummy_builder1.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
             dummy_builder2.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
             dummy_builder3.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
