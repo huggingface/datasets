@@ -105,13 +105,11 @@ An example ID is '0001d1afc246a7964130f43ae940af6bc6c57f01'. These are heximal f
 
 ### Free text description for context (e.g. describe difference between title / selftext / body in Reddit data) and example
 
-For each ID, there is a string for the article, a string for the highlightss, and a string for the id. See the [CNN / Daily Mail dataset viewer](https://huggingface.co/nlp/viewer/?dataset=cnn_dailymail&config=3.0.0) to explore more examples.
+For each ID, there is a string for the article, a string for the highlights, and a string for the id. See the [CNN / Daily Mail dataset viewer](https://huggingface.co/nlp/viewer/?dataset=cnn_dailymail&config=3.0.0) to explore more examples.
 
-ID | Premise | Hypothesis | Label
----|---------|------------|-------
-0	| Two women are embracing while holding to go packages.	| The sisters are hugging goodbye while holding to go packages after just eating lunch.	| 1
-1	| Two women are embracing while holding to go packages.	| Two woman are holding packages.	| 0
-2	| Two women are embracing while holding to go packages.	| The men are fighting outside a deli. | 2
+ID | Article | Hightlights 
+---|---------|------------
+0054d6d30dbcad772e20b22771153a2a9cbeaf62 | (CNN) -- An American woman died aboard a cruise ship that docked at Rio de Janeiro on Tuesday, the same ship on which 86 passengers previously fell ill, according to the state-run Brazilian news agency, Agencia Brasil. The American tourist died aboard the MS Veendam, owned by cruise operator Holland America. Federal Police told Agencia Brasil that forensic doctors were investigating her death. The ship's doctors told police that the woman was elderly and suffered from diabetes and hypertension, according the agency. The other passengers came down with diarrhea prior to her death during an earlier part of the trip, the ship's doctors said. The Veendam left New York 36 days ago for a South America tour.	| The sisters are hugging goodbye while holding to go packages after just eating lunch.	| The elderly woman suffered from diabetes and hypertension, ship's doctors say .\nPreviously, 86 passengers had fallen ill on the ship, Agencia Brasil says .
 
 ### Suggested metrics / models:
 
