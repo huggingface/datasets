@@ -22,39 +22,28 @@ import os
 
 import datasets
 
-
-_CITATION = """\
-@inproceedings{budur-etal-2020-data,
-    title = "Data and Representation for Turkish Natural Language Inference",
-    author = "Budur, Emrah and
-      \"{O}zçelik, Rıza and
-      G\"{u}ng\"{o}r, Tunga",
-    booktitle = "Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)",
-    month = nov,
-    year = "2020",
-    address = "Online",
-    publisher = "Association for Computational Linguistics",
-    abstract = "Large annotated datasets in NLP are overwhelmingly in English. This is an obstacle to progress in other languages. Unfortunately, obtaining new annotated resources for each task in each language would be prohibitively expensive. At the same time, commercial machine translation systems are now robust. Can we leverage these systems to translate English-language datasets automatically? In this paper, we offer a positive response for natural language inference (NLI) in Turkish. We translated two large English NLI datasets into Turkish and had a team of experts validate their translation quality and fidelity to the original labels. Using these datasets, we address core issues of representation for Turkish NLI. We find that in-language embeddings are essential and that morphological parsing can be avoided where the training set is large. Finally, we show that models trained on our machine-translated datasets are successful on human-translated evaluation sets. We share all code, models, and data publicly.",
-}
-"""
-
-_DESCRIPTION = """\
-The Natural Language Inference in Turkish (NLI-TR) is a set of two large scale datasets that were obtained by translating the foundational NLI corpora (SNLI and MNLI) using Amazon Translate.
-"""
-
-_HOMEPAGE = "https://github.com/boun-tabi/NLI-TR"
-
-
 class NLITRConfig(datasets.BuilderConfig):
     """ BuilderConfig for NLI-TR"""
 
     def __init__(self, version=None, data_url=None, data_dir=None, **kwargs):
         super(NLITRConfig, self).__init__(version=datasets.Version(version, ""), **kwargs)
         self.data_url = data_url
-        self.data_dir = data_dir
-        self.description = _DESCRIPTION
-        self.homepage = _HOMEPAGE
-        self.citation = _CITATION
+        self.description = "The Natural Language Inference in Turkish (NLI-TR) is a set of two large scale datasets that were obtained by translating the foundational NLI corpora (SNLI and MNLI) using Amazon Translate."
+        self.homepage = "https://github.com/boun-tabi/NLI-TR"
+        self.citation = """\
+                @inproceedings{budur-etal-2020-data,
+                    title = "Data and Representation for Turkish Natural Language Inference",
+                    author = "Budur, Emrah and
+                      \"{O}z\c{c}elik, R{\i}za and
+                      G\"{u}ng\"{o}r, Tunga",
+                    booktitle = "Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+                    month = nov,
+                    year = "2020",
+                    address = "Online",
+                    publisher = "Association for Computational Linguistics",
+                    abstract = "Large annotated datasets in NLP are overwhelmingly in English. This is an obstacle to progress in other languages. Unfortunately, obtaining new annotated resources for each task in each language would be prohibitively expensive. At the same time, commercial machine translation systems are now robust. Can we leverage these systems to translate English-language datasets automatically? In this paper, we offer a positive response for natural language inference (NLI) in Turkish. We translated two large English NLI datasets into Turkish and had a team of experts validate their translation quality and fidelity to the original labels. Using these datasets, we address core issues of representation for Turkish NLI. We find that in-language embeddings are essential and that morphological parsing can be avoided where the training set is large. Finally, we show that models trained on our machine-translated datasets are successful on human-translated evaluation sets. We share all code, models, and data publicly.",
+                }
+                """
 
 
 class NliTr(datasets.GeneratorBasedBuilder):
