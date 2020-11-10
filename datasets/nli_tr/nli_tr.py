@@ -51,17 +51,13 @@ class NLITRConfig(datasets.BuilderConfig):
     def __init__(self, version=None, data_url=None, data_dir=None, **kwargs):
         super(NLITRConfig, self).__init__(version=datasets.Version(version, ""), **kwargs)
         self.data_url = data_url
-        self.data_dir = data_dir
-        self.description = _DESCRIPTION
-        self.homepage = _HOMEPAGE
-        self.citation = _CITATION
 
 
 class NliTr(datasets.GeneratorBasedBuilder):
     """NLI-TR: The Turkish translation of SNLI and MultiNLI datasets using Amazon Translate."""
 
     VERSION = datasets.Version("1.0.0")
-
+    BUILDER_CONFIG_CLASS = NLITRConfig
     BUILDER_CONFIGS = [
         NLITRConfig(
             name="snli_tr",
@@ -85,11 +81,11 @@ class NliTr(datasets.GeneratorBasedBuilder):
             }
         )
         return datasets.DatasetInfo(
-            description=self.config.description,
+            description=_DESCRIPTION,
             features=datasets.Features(features),
             supervised_keys=None,
-            homepage=self.config.homepage,
-            citation=self.config.citation,
+            homepage=_HOMEPAGE,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
