@@ -572,3 +572,4 @@ class BuilderTest(TestCase):
             self.assertEqual(len(dataset2._data[0].chunks), 20)
             dataset3 = dummy_builder3.as_dataset("train")
             self.assertEqual(len(dataset3._data[0].chunks), 10)
+            del dataset1, dataset2, dataset3
