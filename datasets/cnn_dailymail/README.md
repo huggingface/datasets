@@ -122,7 +122,7 @@ ID | Article | Hightlights
 
 ### Other known limitations
 
-News articles have been shown to conform to writing conventions in which important information is primarily presented in the first third of the article (https://www.aclweb.org/anthology/D19-1051.pdf). [Chen et al (2016)](https://www.aclweb.org/anthology/P16-1223.pdf) conducted a manual study of 100 random instances of the first version of the dataset and found 25% of the samples to be difficult even for humans to answer correctly due to ambiguity and coreference errors. 
+News articles have been shown to conform to writing conventions in which important information is primarily presented in the first third of the article [(Kryściński et al, 2019)](https://www.aclweb.org/anthology/D19-1051.pdf). [Chen et al (2016)](https://www.aclweb.org/anthology/P16-1223.pdf) conducted a manual study of 100 random instances of the first version of the dataset and found 25% of the samples to be difficult even for humans to answer correctly due to ambiguity and coreference errors. 
 
 ## Licensing information
 
