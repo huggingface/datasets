@@ -51,7 +51,7 @@ class NliTr(datasets.GeneratorBasedBuilder):
     """NLI-TR: The Turkish translation of SNLI and MultiNLI datasets using Amazon Translate."""
 
     VERSION = datasets.Version("1.0.0")
-
+    BUILDER_CONFIG_CLASS = NLITRConfig
     BUILDER_CONFIGS = [
         NLITRConfig(
             name="snli_tr",
