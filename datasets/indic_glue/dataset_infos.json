@@ -172,5 +172,335 @@
         "post_processing_size": null,
         "dataset_size": 283059,
         "size_in_bytes": 874308
+    },
+    "wnli.en": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nThe Winograd Schema Challenge (Levesque et al., 2011) is a reading comprehension task\nin which a system must read a sentence with a pronoun and select the referent of that pronoun from\na list of choices. The examples are manually constructed to foil simple statistical methods: Each\none is contingent on contextual information provided by a single word or phrase in the sentence.\nTo convert the problem into sentence pair classification, we construct sentence pairs by replacing\nthe ambiguous pronoun with each possible referent. The task is to predict if the sentence with the\npronoun substituted is entailed by the original sentence. We use a small evaluation set consisting of\nnew examples derived from fiction books that was shared privately by the authors of the original\ncorpus. While the included training set is balanced between two classes, the test set is imbalanced\nbetween them (65% not entailment). Also, due to a data quirk, the development set is adversarial:\nhypotheses are sometimes shared between training and development examples, so if a model memorizes the\ntraining examples, they will predict the wrong label on corresponding development set\nexample. As with QNLI, each example is evaluated separately, so there is not a systematic correspondence\nbetween a model's score on this task and its score on the unconverted original task. We\ncall converted dataset WNLI (Winograd NLI). The dataset is available in 3 languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
+        "license": "",
+        "features": {
+            "sentence1": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "sentence2": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "label": {
+                "dtype": "int32",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wnli.en",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 102037,
+                "num_examples": 635,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 11602,
+                "num_examples": 71,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wnli-translated.tar.gz": {
+                "num_bytes": 591249,
+                "checksum": "7babf4a8250bf727e6cd55a4c5e1d4564f01317e91adea45f8eb57b9887b048b"
+            }
+        },
+        "download_size": 591249,
+        "post_processing_size": null,
+        "dataset_size": 113639,
+        "size_in_bytes": 704888
+    },
+    "copa.en": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nThe Choice Of Plausible Alternatives (COPA) evaluation provides researchers with a tool for assessing \nprogress in open-domain commonsense causal reasoning. COPA consists of 1000 questions, split equally \ninto development and test sets of 500 questions each. Each question is composed of a premise and two \nalternatives, where the task is to select the alternative that more plausibly has a causal relation \nwith the premise. The correct alternative is randomized so that the expected performance of randomly \nguessing is 50%. The dataset is available is 3 languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
+        "license": "",
+        "features": {
+            "premise": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "choice1": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "choice2": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "question": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "label": {
+                "dtype": "int32",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "copa.en",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 46049,
+                "num_examples": 400,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 11695,
+                "num_examples": 100,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz": {
+                "num_bytes": 757679,
+                "checksum": "5f30e91c4071c7fc0f1cbe85195def7aa42637d90df313dc9b85db7f9676d008"
+            }
+        },
+        "download_size": 757679,
+        "post_processing_size": null,
+        "dataset_size": 57744,
+        "size_in_bytes": 815423
+    },
+    "copa.hi": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nThe Choice Of Plausible Alternatives (COPA) evaluation provides researchers with a tool for assessing \nprogress in open-domain commonsense causal reasoning. COPA consists of 1000 questions, split equally \ninto development and test sets of 500 questions each. Each question is composed of a premise and two \nalternatives, where the task is to select the alternative that more plausibly has a causal relation \nwith the premise. The correct alternative is randomized so that the expected performance of randomly \nguessing is 50%. The dataset is available is 3 languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
+        "license": "",
+        "features": {
+            "premise": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "choice1": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "choice2": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "question": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "label": {
+                "dtype": "int32",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "copa.hi",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 93392,
+                "num_examples": 362,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 23575,
+                "num_examples": 88,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz": {
+                "num_bytes": 757679,
+                "checksum": "5f30e91c4071c7fc0f1cbe85195def7aa42637d90df313dc9b85db7f9676d008"
+            }
+        },
+        "download_size": 757679,
+        "post_processing_size": null,
+        "dataset_size": 116967,
+        "size_in_bytes": 874646
+    },
+    "copa.gu": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nThe Choice Of Plausible Alternatives (COPA) evaluation provides researchers with a tool for assessing \nprogress in open-domain commonsense causal reasoning. COPA consists of 1000 questions, split equally \ninto development and test sets of 500 questions each. Each question is composed of a premise and two \nalternatives, where the task is to select the alternative that more plausibly has a causal relation \nwith the premise. The correct alternative is randomized so that the expected performance of randomly \nguessing is 50%. The dataset is available is 3 languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
+        "license": "",
+        "features": {
+            "premise": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "choice1": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "choice2": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "question": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "label": {
+                "dtype": "int32",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "copa.gu",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 92113,
+                "num_examples": 362,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 23466,
+                "num_examples": 88,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz": {
+                "num_bytes": 757679,
+                "checksum": "5f30e91c4071c7fc0f1cbe85195def7aa42637d90df313dc9b85db7f9676d008"
+            }
+        },
+        "download_size": 757679,
+        "post_processing_size": null,
+        "dataset_size": 115579,
+        "size_in_bytes": 873258
+    },
+    "copa.mr": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nThe Choice Of Plausible Alternatives (COPA) evaluation provides researchers with a tool for assessing \nprogress in open-domain commonsense causal reasoning. COPA consists of 1000 questions, split equally \ninto development and test sets of 500 questions each. Each question is composed of a premise and two \nalternatives, where the task is to select the alternative that more plausibly has a causal relation \nwith the premise. The correct alternative is randomized so that the expected performance of randomly \nguessing is 50%. The dataset is available is 3 languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
+        "license": "",
+        "features": {
+            "premise": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "choice1": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "choice2": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "question": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "label": {
+                "dtype": "int32",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "copa.mr",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 93457,
+                "num_examples": 362,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 23890,
+                "num_examples": 88,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz": {
+                "num_bytes": 757679,
+                "checksum": "5f30e91c4071c7fc0f1cbe85195def7aa42637d90df313dc9b85db7f9676d008"
+            }
+        },
+        "download_size": 757679,
+        "post_processing_size": null,
+        "dataset_size": 117347,
+        "size_in_bytes": 875026
     }
 }

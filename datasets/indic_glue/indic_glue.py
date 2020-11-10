@@ -45,9 +45,14 @@ _DESCRIPTIONS = {
         call converted dataset WNLI (Winograd NLI). The dataset is available in 3 languages.
         """
     ),
-    'ner': textwrap.dedent(
+    'copa': textwrap.dedent(
         """
-        REPLACE
+        The Choice Of Plausible Alternatives (COPA) evaluation provides researchers with a tool for assessing 
+        progress in open-domain commonsense causal reasoning. COPA consists of 1000 questions, split equally 
+        into development and test sets of 500 questions each. Each question is composed of a premise and two 
+        alternatives, where the task is to select the alternative that more plausibly has a causal relation 
+        with the premise. The correct alternative is randomized so that the expected performance of randomly 
+        guessing is 50%. The dataset is available is 3 languages.
         """
     ),
     'wstp': textwrap.dedent(
@@ -78,7 +83,7 @@ _CITATIONS = {
         REPLACE
         """
     ),
-    'ner': textwrap.dedent(
+    'copa': textwrap.dedent(
         """
         REPLACE
         """
@@ -106,8 +111,8 @@ _CITATIONS = {
 }
 
 _TEXT_FEATURES = {
-    'wnli': {'sentence1': 'sentence1', 'sentence2': 'sentence2', 'label': 'label'},
-    'ner': {},
+    'wnli': {'sentence1': 'sentence1', 'sentence2': 'sentence2'},
+    'copa': {'premise': 'premise', 'choice1': 'choice1', 'choice2': 'choice2', 'question': 'question'},
     'wstp': {},
     'csmcq': {},
     'ncc': {},
@@ -116,7 +121,7 @@ _TEXT_FEATURES = {
 
 _DATA_URLS = {
     'wnli': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wnli-translated.tar.gz',
-    'ner': '',
+    'copa': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz',
     'wstp': '',
     'csmcq': '',
     'ncc': '',
@@ -125,7 +130,7 @@ _DATA_URLS = {
 
 _URLS = {
     'wnli': 'https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference',
-    'ner': '',
+    'copa': 'https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference',
     'wstp': '',
     'csmcq': '',
     'ncc': '',
@@ -134,8 +139,8 @@ _URLS = {
 
 _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
 
-_WNLI_LANGS = ['hi', 'gu', 'mr']
-_NER_LANGS = []
+_WNLI_LANGS = ['en', 'hi', 'gu', 'mr']
+_COPA_LANGS = ['en', 'hi', 'gu', 'mr']
 _WSTP_LANGS = ['as', 'bn', 'gu', 'hi', 'kn', 'ml', 'mr', 'or', 'pa', 'ta', 'te']
 _CSMCQ_LANGS = []
 _NCC_LANGS = []
@@ -146,8 +151,8 @@ _NAMES = []
 for lang in _WNLI_LANGS:
     _NAMES.append(f'wnli.{lang}')
 
-# for lang in _NER_LANGS:
-#     _NAMES.append(f'ner.{lang}')
+for lang in _COPA_LANGS:
+    _NAMES.append(f'copa.{lang}')
 
 # for lang in _WSTP_LANGS:
 #     _NAMES.append(f'wstp.{lang}')
@@ -197,7 +202,6 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
-        # features["idx"] = datasets.Value("int32")
         features['label'] = datasets.Value('int32')
 
         return datasets.DatasetInfo(
@@ -237,10 +241,39 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 # )
             ]
 
+        if self.config.name.startswith('copa'):
+            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            task_name = self._get_task_name_from_data_url(self.config.data_url)
+            dl_dir = os.path.join(dl_dir, task_name + '/' + self.config.name.split('.')[1])
+
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "train.jsonl"),
+                        "split": datasets.Split.TRAIN,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "val.jsonl"),
+                        "split": datasets.Split.VALIDATION,
+                    },
+                ),
+                # datasets.SplitGenerator(
+                #     name=datasets.Split.TEST,
+                #     gen_kwargs={
+                #         "datafile": os.path.join(dl_dir, "test.csv"),
+                #         "split": datasets.Split.TEST,
+                #     },
+                # )
+            ]
+
     def _generate_examples(self, **args):
         """Yields examples."""
-        # print('----------------------------------------')
         filepath = args['datafile']
+
         if self.config.name.startswith('wnli'):
             with open(filepath, encoding='utf-8') as f:
                 data = csv.DictReader(f)
@@ -248,6 +281,20 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     yield id_, {
                         'sentence1': row['sentence1'],
                         'sentence2': row['sentence2'],
+                        'label': row['label']
+                    }
+
+        if self.config.name.startswith('copa'):
+            with open(filepath, 'r') as f:
+                lines = f.readlines()
+                data = map(lambda l: json.loads(l), lines)
+                data = list(data)
+                for id_, row in enumerate(data):
+                    yield id_, {
+                        'premise': row['premise'],
+                        'choice1': row['choice1'],
+                        'choice2': row['choice2'],
+                        'question': row['question'],
                         'label': row['label']
                     }
 
