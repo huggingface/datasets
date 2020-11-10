@@ -14,8 +14,9 @@
 # limitations under the License.
 """Accuracy metric."""
 
-import datasets
 from sklearn.metrics import accuracy_score
+
+import datasets
 
 
 _DESCRIPTION = """
@@ -44,11 +45,13 @@ class Accuracy(datasets.Metric):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=datasets.Features({
-                'predictions': datasets.Value('int'),
-                'references': datasets.Value('int'),
-            }),
-            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html"]
+            features=datasets.Features(
+                {
+                    "predictions": datasets.Value("int"),
+                    "references": datasets.Value("int"),
+                }
+            ),
+            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html"],
         )
 
     def _compute(self, predictions, references, normalize=True, sample_weight=None):

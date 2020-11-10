@@ -14,8 +14,9 @@
 # limitations under the License.
 """Recall metric."""
 
-import datasets
 from sklearn.metrics import recall_score
+
+import datasets
 
 
 _DESCRIPTION = """
@@ -62,11 +63,13 @@ class Recall(datasets.Metric):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=datasets.Features({
-                'predictions': datasets.Value('int'),
-                'references': datasets.Value('int'),
-            }),
-            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html"]
+            features=datasets.Features(
+                {
+                    "predictions": datasets.Value("int"),
+                    "references": datasets.Value("int"),
+                }
+            ),
+            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html"],
         )
 
     def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):

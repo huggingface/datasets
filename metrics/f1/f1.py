@@ -14,8 +14,9 @@
 # limitations under the License.
 """F1 metric."""
 
-import datasets
 from sklearn.metrics import f1_score
+
+import datasets
 
 
 _DESCRIPTION = """
@@ -60,11 +61,13 @@ class F1(datasets.Metric):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             inputs_description=_KWARGS_DESCRIPTION,
-            features=datasets.Features({
-                'predictions': datasets.Value('int'),
-                'references': datasets.Value('int'),
-            }),
-            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html"]
+            features=datasets.Features(
+                {
+                    "predictions": datasets.Value("int"),
+                    "references": datasets.Value("int"),
+                }
+            ),
+            reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html"],
         )
 
     def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
