@@ -836,8 +836,8 @@ class GeneratorBasedBuilder(DatasetBuilder):
     _writer_batch_size = None
 
     def __init__(self, *args, **kwargs):
+        self._writer_batch_size = kwargs.pop("writer_batch_size", self._writer_batch_size)
         super(GeneratorBasedBuilder, self).__init__(*args, **kwargs)
-        self._writer_batch_size = kwargs.get("writer_batch_size", self._writer_batch_size)
 
     @abc.abstractmethod
     def _generate_examples(self, **kwargs):

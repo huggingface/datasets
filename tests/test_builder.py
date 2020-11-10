@@ -549,3 +549,26 @@ class BuilderTest(TestCase):
             self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
             other_builder = DummyGeneratorBasedBuilderWithConfig(cache_dir=tmp_dir, name="dummy", content="foo")
             self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+
+    def test_custom_writer_batch_size(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self.assertEqual(DummyGeneratorBasedBuilder._writer_batch_size, None)
+            dummy_builder1 = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy1",
+            )
+            DummyGeneratorBasedBuilder._writer_batch_size = 5
+            dummy_builder2 = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy2",
+            )
+            dummy_builder3 = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir, name="dummy3", writer_batch_size=10
+            )
+            dummy_builder1.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
+            dummy_builder2.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
+            dummy_builder3.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
+            dataset1 = dummy_builder1.as_dataset("train")
+            self.assertEqual(len(dataset1._data[0].chunks), 1)
+            dataset2 = dummy_builder2.as_dataset("train")
+            self.assertEqual(len(dataset2._data[0].chunks), 20)
+            dataset3 = dummy_builder3.as_dataset("train")
+            self.assertEqual(len(dataset3._data[0].chunks), 10)
