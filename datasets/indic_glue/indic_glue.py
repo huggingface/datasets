@@ -8,6 +8,7 @@ import os
 import textwrap
 
 import six
+import pandas as pd
 
 import datasets
 
@@ -55,9 +56,10 @@ _DESCRIPTIONS = {
         guessing is 50%. The dataset is available is 3 languages.
         """
     ),
-    'wstp': textwrap.dedent(
+    'sna': textwrap.dedent(
         """
-        REPLACE
+        This dataset is a collection of Bengali News articles. The dataset is used for classifying articles into
+        5 different classes namely international, state, kolkata, entertainment and sports.
         """
     ),
     'csmcq': textwrap.dedent(
@@ -88,7 +90,7 @@ _CITATIONS = {
         REPLACE
         """
     ),
-    'wstp': textwrap.dedent(
+    'sna': textwrap.dedent(
         """
         REPLACE
         """
@@ -113,7 +115,7 @@ _CITATIONS = {
 _TEXT_FEATURES = {
     'wnli': {'sentence1': 'sentence1', 'sentence2': 'sentence2'},
     'copa': {'premise': 'premise', 'choice1': 'choice1', 'choice2': 'choice2', 'question': 'question'},
-    'wstp': {},
+    'sna': {'text': 'text', 'label': 'label'},
     'csmcq': {},
     'ncc': {},
     'clsr': {}
@@ -122,7 +124,7 @@ _TEXT_FEATURES = {
 _DATA_URLS = {
     'wnli': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wnli-translated.tar.gz',
     'copa': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz',
-    'wstp': '',
+    'sna': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/soham-articles.tar.gz',
     'csmcq': '',
     'ncc': '',
     'clsr': ''
@@ -131,7 +133,7 @@ _DATA_URLS = {
 _URLS = {
     'wnli': 'https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference',
     'copa': 'https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference',
-    'wstp': '',
+    'sna': 'https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification',
     'csmcq': '',
     'ncc': '',
     'clsr': ''
@@ -141,6 +143,7 @@ _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
 
 _WNLI_LANGS = ['en', 'hi', 'gu', 'mr']
 _COPA_LANGS = ['en', 'hi', 'gu', 'mr']
+_SNA_LANGS = ['bn']
 _WSTP_LANGS = ['as', 'bn', 'gu', 'hi', 'kn', 'ml', 'mr', 'or', 'pa', 'ta', 'te']
 _CSMCQ_LANGS = []
 _NCC_LANGS = []
@@ -154,8 +157,8 @@ for lang in _WNLI_LANGS:
 for lang in _COPA_LANGS:
     _NAMES.append(f'copa.{lang}')
 
-# for lang in _WSTP_LANGS:
-#     _NAMES.append(f'wstp.{lang}')
+for lang in _SNA_LANGS:
+    _NAMES.append(f'sna.{lang}')
 
 # for lang in _CSMCQ_LANGS:
 #     _NAMES.append(f'csmcq.{lang}')
@@ -202,7 +205,8 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
-        features['label'] = datasets.Value('int32')
+        if self.config.name.startswith('wnli') or self.config.name.startswith('copa'):
+            features['label'] = datasets.Value('int32')
 
         return datasets.DatasetInfo(
             description=_INDIC_GLUE_DECSRIPTION + '\n' +self.config.description,
@@ -270,6 +274,35 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 # )
             ]
 
+        if self.config.name.startswith('sna'):
+            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            task_name = self._get_task_name_from_data_url(self.config.data_url)
+            dl_dir = os.path.join(dl_dir, task_name + '/' + self.config.name.split('.')[1])
+
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "bn-train.csv"),
+                        "split": datasets.Split.TRAIN,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "bn-valid.csv"),
+                        "split": datasets.Split.VALIDATION,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "bn-test.csv"),
+                        "split": datasets.Split.TEST,
+                    },
+                )
+            ]
+
     def _generate_examples(self, **args):
         """Yields examples."""
         filepath = args['datafile']
@@ -297,6 +330,14 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                         'question': row['question'],
                         'label': row['label']
                     }
+
+        if self.config.name.startswith('sna'):
+            df = pd.read_csv(filepath, names=['label', 'text'])
+            for id_, row in df.iterrows():
+                yield id_, {
+                    'text': row['text'],
+                    'label': row['label']
+                }
 
     def _get_task_name_from_data_url(self, data_url):
         return data_url.split("/")[-1].split(".")[0]
