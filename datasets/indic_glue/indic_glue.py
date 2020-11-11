@@ -4,14 +4,15 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import json
+import math
 import os
 import textwrap
-import math
 
-import six
 import pandas as pd
+import six
 
 import datasets
+
 
 _INDIC_GLUE_CITATION = """\
     @inproceedings{kakwani2020indicnlpsuite,
@@ -28,7 +29,7 @@ _INDIC_GLUE_DECSRIPTION = """\
     IndicGLUE is a natural language understanding benchmark that we propose.
 """
 _DESCRIPTIONS = {
-    'wnli': textwrap.dedent(
+    "wnli": textwrap.dedent(
         """
         The Winograd Schema Challenge (Levesque et al., 2011) is a reading comprehension task
         in which a system must read a sentence with a pronoun and select the referent of that pronoun from
@@ -47,7 +48,7 @@ _DESCRIPTIONS = {
         call converted dataset WNLI (Winograd NLI). The dataset is available in 3 languages.
         """
     ),
-    'copa': textwrap.dedent(
+    "copa": textwrap.dedent(
         """
         The Choice Of Plausible Alternatives (COPA) evaluation provides researchers with a tool for assessing 
         progress in open-domain commonsense causal reasoning. COPA consists of 1000 questions, split equally 
@@ -57,95 +58,95 @@ _DESCRIPTIONS = {
         guessing is 50%. The dataset is available is 3 languages.
         """
     ),
-    'sna': textwrap.dedent(
+    "sna": textwrap.dedent(
         """
         This dataset is a collection of Bengali News articles. The dataset is used for classifying articles into
         5 different classes namely international, state, kolkata, entertainment and sports.
         """
     ),
-    'csqa': textwrap.dedent(
+    "csqa": textwrap.dedent(
         """
         REPLACE
         """
     ),
-    'ncc': textwrap.dedent(
+    "ncc": textwrap.dedent(
         """
         REPLACE
         """
     ),
-    'clsr': textwrap.dedent(
+    "clsr": textwrap.dedent(
         """
         REPLACE
         """
-    )
+    ),
 }
 
 _CITATIONS = {
-    'wnli': textwrap.dedent(
+    "wnli": textwrap.dedent(
         """
         REPLACE
         """
     ),
-    'copa': textwrap.dedent(
+    "copa": textwrap.dedent(
         """
         REPLACE
         """
     ),
-    'sna': textwrap.dedent(
+    "sna": textwrap.dedent(
         """
         REPLACE
         """
     ),
-    'csqa': textwrap.dedent(
+    "csqa": textwrap.dedent(
         """
         REPLACE
         """
     ),
-    'ncc': textwrap.dedent(
+    "ncc": textwrap.dedent(
         """
         REPLACE
         """
     ),
-    'clsr': textwrap.dedent(
+    "clsr": textwrap.dedent(
         """
         REPLACE
         """
-    )
+    ),
 }
 
 _TEXT_FEATURES = {
-    'wnli': {'sentence1': 'sentence1', 'sentence2': 'sentence2'},
-    'copa': {'premise': 'premise', 'choice1': 'choice1', 'choice2': 'choice2', 'question': 'question'},
-    'sna': {'text': 'text', 'label': 'label'},
-    'csqa': {'question': 'question', 'answer': 'answer', 'category': 'category', "title": 'title'},
-    'ncc': {},
-    'clsr': {}
+    "wnli": {"sentence1": "sentence1", "sentence2": "sentence2"},
+    "copa": {"premise": "premise", "choice1": "choice1", "choice2": "choice2", "question": "question"},
+    "sna": {"text": "text", "label": "label"},
+    "csqa": {"question": "question", "answer": "answer", "category": "category", "title": "title"},
+    "ncc": {},
+    "clsr": {},
 }
 
 _DATA_URLS = {
-    'wnli': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wnli-translated.tar.gz',
-    'copa': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz',
-    'sna': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/soham-articles.tar.gz',
-    'csqa': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-cloze.tar.gz',
-    'ncc': '',
-    'clsr': ''
+    "wnli": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wnli-translated.tar.gz",
+    "copa": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz",
+    "sna": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/soham-articles.tar.gz",
+    "csqa": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-cloze.tar.gz",
+    "ncc": "",
+    "clsr": "",
 }
 
 _URLS = {
-    'wnli': 'https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference',
-    'copa': 'https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference',
-    'sna': 'https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification',
-    'csqa': 'https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering',
-    'ncc': '',
-    'clsr': ''
+    "wnli": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
+    "copa": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
+    "sna": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
+    "csqa": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
+    "ncc": "",
+    "clsr": "",
 }
 
 _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
 
-_WNLI_LANGS = ['en', 'hi', 'gu', 'mr']
-_COPA_LANGS = ['en', 'hi', 'gu', 'mr']
-_SNA_LANGS = ['bn']
-_CSQA_LANGS = ['as', 'bn', 'gu', 'hi', 'kn', 'ml', 'mr', 'or', 'pa', 'ta', 'te']
+_WNLI_LANGS = ["en", "hi", "gu", "mr"]
+_COPA_LANGS = ["en", "hi", "gu", "mr"]
+_SNA_LANGS = ["bn"]
+_CSQA_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "te"]
 _CSMCQ_LANGS = []
 _NCC_LANGS = []
 _CLSR_LANGS = []
@@ -153,16 +154,16 @@ _CLSR_LANGS = []
 _NAMES = []
 
 for lang in _WNLI_LANGS:
-    _NAMES.append(f'wnli.{lang}')
+    _NAMES.append(f"wnli.{lang}")
 
 for lang in _COPA_LANGS:
-    _NAMES.append(f'copa.{lang}')
+    _NAMES.append(f"copa.{lang}")
 
 for lang in _SNA_LANGS:
-    _NAMES.append(f'sna.{lang}')
+    _NAMES.append(f"sna.{lang}")
 
 for lang in _CSQA_LANGS:
-    _NAMES.append(f'csqa.{lang}')
+    _NAMES.append(f"csqa.{lang}")
 
 # for lang in _NCC_LANGS:
 #     _NAMES.append(f'ncc.{lang}')
@@ -170,13 +171,14 @@ for lang in _CSQA_LANGS:
 # for lang in _CLSR_LANGS:
 #     _NAMES.append(f'clsr.{lang}')
 
+
 class IndicGlueConfig(datasets.BuilderConfig):
     """BuilderConfig for IndicGLUE."""
 
     def __init__(self, data_url, citation, url, text_features, **kwargs):
         """
         Args:
-          
+
           data_url: `string`, url to download the zip file from.
           citation: `string`, citation for the data set.
           url: `string`, url for information about the data set.
@@ -190,43 +192,44 @@ class IndicGlueConfig(datasets.BuilderConfig):
         self.url = url
         self.text_features = text_features
 
+
 class IndicGlue(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         IndicGlueConfig(
             name=name,
-            description=_DESCRIPTIONS[name.split('.')[0]],
-            text_features=_TEXT_FEATURES[name.split('.')[0]],
-            data_url=_DATA_URLS[name.split('.')[0]],
-            citation=_CITATIONS[name.split('.')[0]],
-            url=_URLS[name.split('.')[0]]
+            description=_DESCRIPTIONS[name.split(".")[0]],
+            text_features=_TEXT_FEATURES[name.split(".")[0]],
+            data_url=_DATA_URLS[name.split(".")[0]],
+            citation=_CITATIONS[name.split(".")[0]],
+            url=_URLS[name.split(".")[0]],
         )
         for name in _NAMES
     ]
 
     def _info(self):
         features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
-        
-        if self.config.name.startswith('wnli') or self.config.name.startswith('copa'):
-            features['label'] = datasets.Value('int32')
 
-        if self.config.name.startswith('csqa'):
-            features['options'] = datasets.features.Sequence(datasets.Value("string"))
-            features['out_of_context_options'] = datasets.features.Sequence(datasets.Value("string"))
+        if self.config.name.startswith("wnli") or self.config.name.startswith("copa"):
+            features["label"] = datasets.Value("int32")
+
+        if self.config.name.startswith("csqa"):
+            features["options"] = datasets.features.Sequence(datasets.Value("string"))
+            features["out_of_context_options"] = datasets.features.Sequence(datasets.Value("string"))
 
         return datasets.DatasetInfo(
-            description=_INDIC_GLUE_DECSRIPTION + '\n' +self.config.description,
+            description=_INDIC_GLUE_DECSRIPTION + "\n" + self.config.description,
             features=datasets.Features(features),
             homepage=self.config.url,
-            citation=_INDIC_GLUE_CITATION + '\n' + self.config.citation
+            citation=_INDIC_GLUE_CITATION + "\n" + self.config.citation,
         )
 
     def _split_generators(self, dl_manager):
 
-        if self.config.name.startswith('wnli'):
+        if self.config.name.startswith("wnli"):
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + '/' + self.config.name.split('.')[1])
+            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -251,10 +254,10 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 # )
             ]
 
-        if self.config.name.startswith('copa'):
+        if self.config.name.startswith("copa"):
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + '/' + self.config.name.split('.')[1])
+            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
 
             return [
                 datasets.SplitGenerator(
@@ -280,10 +283,10 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 # )
             ]
 
-        if self.config.name.startswith('sna'):
+        if self.config.name.startswith("sna"):
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
-            dl_dir = os.path.join(dl_dir, task_name + '/' + self.config.name.split('.')[1])
+            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
 
             return [
                 datasets.SplitGenerator(
@@ -306,10 +309,10 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                         "datafile": os.path.join(dl_dir, "bn-test.csv"),
                         "split": datasets.Split.TEST,
                     },
-                )
+                ),
             ]
 
-        if self.config.name.startswith('csqa'):
+        if self.config.name.startswith("csqa"):
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
             dl_dir = os.path.join(dl_dir, task_name)
@@ -340,53 +343,48 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, **args):
         """Yields examples."""
-        filepath = args['datafile']
+        filepath = args["datafile"]
 
-        if self.config.name.startswith('wnli'):
-            with open(filepath, encoding='utf-8') as f:
+        if self.config.name.startswith("wnli"):
+            with open(filepath, encoding="utf-8") as f:
                 data = csv.DictReader(f)
                 for id_, row in enumerate(data):
-                    yield id_, {
-                        'sentence1': row['sentence1'],
-                        'sentence2': row['sentence2'],
-                        'label': row['label']
-                    }
+                    yield id_, {"sentence1": row["sentence1"], "sentence2": row["sentence2"], "label": row["label"]}
 
-        if self.config.name.startswith('copa'):
-            with open(filepath, 'r') as f:
+        if self.config.name.startswith("copa"):
+            with open(filepath, "r") as f:
                 lines = f.readlines()
                 data = map(lambda l: json.loads(l), lines)
                 data = list(data)
                 for id_, row in enumerate(data):
                     yield id_, {
-                        'premise': row['premise'],
-                        'choice1': row['choice1'],
-                        'choice2': row['choice2'],
-                        'question': row['question'],
-                        'label': row['label']
+                        "premise": row["premise"],
+                        "choice1": row["choice1"],
+                        "choice2": row["choice2"],
+                        "question": row["question"],
+                        "label": row["label"],
                     }
 
-        if self.config.name.startswith('sna'):
-            df = pd.read_csv(filepath, names=['label', 'text'])
+        if self.config.name.startswith("sna"):
+            df = pd.read_csv(filepath, names=["label", "text"])
             for id_, row in df.iterrows():
-                yield id_, {
-                    'text': row['text'],
-                    'label': row['label']
-                }
+                yield id_, {"text": row["text"], "label": row["label"]}
 
-        if self.config.name.startswith('csqa'):
+        if self.config.name.startswith("csqa"):
             with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
-                df = pd.DataFrame(data['cloze_data'])
-                df['out_of_context_options'].loc[df['out_of_context_options'].isnull()] = df['out_of_context_options'].loc[df['out_of_context_options'].isnull()].apply(lambda x: [])
+                df = pd.DataFrame(data["cloze_data"])
+                df["out_of_context_options"].loc[df["out_of_context_options"].isnull()] = (
+                    df["out_of_context_options"].loc[df["out_of_context_options"].isnull()].apply(lambda x: [])
+                )
                 for id_, row in df.iterrows():
                     yield id_, {
-                        'question': row['question'],
-                        'answer': row['answer'],
-                        'category': row['category'],
-                        'title': row['title'],
-                        'out_of_context_options': row['out_of_context_options'],
-                        'options': row['options']
+                        "question": row["question"],
+                        "answer": row["answer"],
+                        "category": row["category"],
+                        "title": row["title"],
+                        "out_of_context_options": row["out_of_context_options"],
+                        "options": row["options"],
                     }
 
     def _get_task_name_from_data_url(self, data_url):
