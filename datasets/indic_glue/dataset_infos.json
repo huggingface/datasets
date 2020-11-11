@@ -563,7 +563,7 @@
         "size_in_bytes": 69371084
     },
     "csqa.as": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -640,7 +640,7 @@
         "size_in_bytes": 68899871
     },
     "csqa.bn": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -717,7 +717,7 @@
         "size_in_bytes": 119770462
     },
     "csqa.gu": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -794,7 +794,7 @@
         "size_in_bytes": 94231019
     },
     "csqa.hi": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -871,7 +871,7 @@
         "size_in_bytes": 105508791
     },
     "csqa.kn": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -948,7 +948,7 @@
         "size_in_bytes": 86299196
     },
     "csqa.ml": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -1025,7 +1025,7 @@
         "size_in_bytes": 112320248
     },
     "csqa.mr": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -1102,7 +1102,7 @@
         "size_in_bytes": 78766554
     },
     "csqa.or": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -1179,7 +1179,7 @@
         "size_in_bytes": 67661713
     },
     "csqa.pa": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -1256,7 +1256,7 @@
         "size_in_bytes": 70905445
     },
     "csqa.ta": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -1333,7 +1333,7 @@
         "size_in_bytes": 126967925
     },
     "csqa.te": {
-        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nGiven a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 \ncandidate entities. The dataset contains around 239k examples across 11 languages.\n",
         "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
         "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
         "license": "",
@@ -1408,5 +1408,929 @@
         "post_processing_size": null,
         "dataset_size": 58785157,
         "size_in_bytes": 123884473
+    },
+    "wstp.as": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.as",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 13581364,
+                "num_examples": 5000,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 1698996,
+                "num_examples": 625,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 1697678,
+                "num_examples": 626,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 16978038,
+        "size_in_bytes": 258985140
+    },
+    "wstp.bn": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.bn",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 143340597,
+                "num_examples": 47580,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 17759264,
+                "num_examples": 5947,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 17633893,
+                "num_examples": 5948,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 178733754,
+        "size_in_bytes": 420740856
+    },
+    "wstp.gu": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.gu",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 39353520,
+                "num_examples": 10004,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 4887780,
+                "num_examples": 1251,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 4699186,
+                "num_examples": 1251,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 48940486,
+        "size_in_bytes": 290947588
+    },
+    "wstp.hi": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.hi",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 158529718,
+                "num_examples": 44069,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 19371932,
+                "num_examples": 5509,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 19593029,
+                "num_examples": 5509,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 197494679,
+        "size_in_bytes": 439501781
+    },
+    "wstp.kn": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.kn",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 139950425,
+                "num_examples": 35379,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 17789810,
+                "num_examples": 4422,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 17897059,
+                "num_examples": 4423,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 175637294,
+        "size_in_bytes": 417644396
+    },
+    "wstp.ml": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.ml",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 88360588,
+                "num_examples": 27527,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 11193368,
+                "num_examples": 3441,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 11150942,
+                "num_examples": 3441,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 110704898,
+        "size_in_bytes": 352712000
+    },
+    "wstp.mr": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.mr",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 28302397,
+                "num_examples": 10446,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 3328826,
+                "num_examples": 1306,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 3631712,
+                "num_examples": 1306,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 35262935,
+        "size_in_bytes": 277270037
+    },
+    "wstp.or": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.or",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 10900034,
+                "num_examples": 4015,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 1264963,
+                "num_examples": 502,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 1344680,
+                "num_examples": 502,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 13509677,
+        "size_in_bytes": 255516779
+    },
+    "wstp.pa": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.pa",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 22189758,
+                "num_examples": 8772,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 2789214,
+                "num_examples": 1097,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 2685795,
+                "num_examples": 1097,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 27664767,
+        "size_in_bytes": 269671869
+    },
+    "wstp.ta": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.ta",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 151929358,
+                "num_examples": 48940,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 18817195,
+                "num_examples": 6117,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 18815099,
+                "num_examples": 6118,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 189561652,
+        "size_in_bytes": 431568754
+    },
+    "wstp.te": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nPredict the correct title for a Wikipedia section from a given list of four candidate titles. \nThe dataset has 400k examples across 11 Indian languages.\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
+        "license": "",
+        "features": {
+            "sectionText": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "correctTitle": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleA": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleB": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleC": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "titleD": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "url": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "wstp.te",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 151696915,
+                "num_examples": 80000,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 19003197,
+                "num_examples": 10000,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 18991941,
+                "num_examples": 10000,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz": {
+                "num_bytes": 242007102,
+                "checksum": "e51220dffab5e5e0c9befe49f059fcf624cb7f0ebd854cd7cb7fa732d8f72011"
+            }
+        },
+        "download_size": 242007102,
+        "post_processing_size": null,
+        "dataset_size": 189692053,
+        "size_in_bytes": 431699155
     }
 }

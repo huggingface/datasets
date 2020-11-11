@@ -1,4 +1,4 @@
-"""The IndicGLUE bencjmark."""
+"""The IndicGLUE benchmark."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -70,9 +70,10 @@ _DESCRIPTIONS = {
         candidate entities. The dataset contains around 239k examples across 11 languages.
         """
     ),
-    "ncc": textwrap.dedent(
+    "wstp": textwrap.dedent(
         """
-        REPLACE
+        Predict the correct title for a Wikipedia section from a given list of four candidate titles. 
+        The dataset has 400k examples across 11 Indian languages.
         """
     ),
     "clsr": textwrap.dedent(
@@ -103,7 +104,7 @@ _CITATIONS = {
         REPLACE
         """
     ),
-    "ncc": textwrap.dedent(
+    "wstp": textwrap.dedent(
         """
         REPLACE
         """
@@ -120,7 +121,15 @@ _TEXT_FEATURES = {
     "copa": {"premise": "premise", "choice1": "choice1", "choice2": "choice2", "question": "question"},
     "sna": {"text": "text", "label": "label"},
     "csqa": {"question": "question", "answer": "answer", "category": "category", "title": "title"},
-    "ncc": {},
+    "wstp": {
+        "sectionText": "sectionText",
+        "correctTitle": "correctTitle",
+        "titleA": "titleA",
+        "titleB": "titleB",
+        "titleC": "titleC",
+        "titleD": "titleD",
+        "url": "url",
+    },
     "clsr": {},
 }
 
@@ -129,7 +138,7 @@ _DATA_URLS = {
     "copa": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz",
     "sna": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/soham-articles.tar.gz",
     "csqa": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-cloze.tar.gz",
-    "ncc": "",
+    "wstp": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz",
     "clsr": "",
 }
 
@@ -138,7 +147,7 @@ _URLS = {
     "copa": "https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference",
     "sna": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
     "csqa": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
-    "ncc": "",
+    "wstp": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
     "clsr": "",
 }
 
@@ -148,8 +157,7 @@ _WNLI_LANGS = ["en", "hi", "gu", "mr"]
 _COPA_LANGS = ["en", "hi", "gu", "mr"]
 _SNA_LANGS = ["bn"]
 _CSQA_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "te"]
-_CSMCQ_LANGS = []
-_NCC_LANGS = []
+_WSTP_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "te"]
 _CLSR_LANGS = []
 
 _NAMES = []
@@ -166,8 +174,8 @@ for lang in _SNA_LANGS:
 for lang in _CSQA_LANGS:
     _NAMES.append(f"csqa.{lang}")
 
-# for lang in _NCC_LANGS:
-#     _NAMES.append(f'ncc.{lang}')
+for lang in _WSTP_LANGS:
+    _NAMES.append(f"wstp.{lang}")
 
 # for lang in _CLSR_LANGS:
 #     _NAMES.append(f'clsr.{lang}')
@@ -342,6 +350,60 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 )
             ]
 
+        if self.config.name.startswith("wstp"):
+            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            task_name = self._get_task_name_from_data_url(self.config.data_url)
+            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+
+            if self.config.name.split(".")[1] == "te":
+                return [
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TRAIN,
+                        gen_kwargs={
+                            "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.json"),
+                            "split": datasets.Split.TRAIN,
+                        },
+                    ),
+                    datasets.SplitGenerator(
+                        name=datasets.Split.VALIDATION,
+                        gen_kwargs={
+                            "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-valid.json"),
+                            "split": datasets.Split.VALIDATION,
+                        },
+                    ),
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TEST,
+                        gen_kwargs={
+                            "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.json"),
+                            "split": datasets.Split.TEST,
+                        },
+                    ),
+                ]
+
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.csv"),
+                        "split": datasets.Split.TRAIN,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-valid.csv"),
+                        "split": datasets.Split.VALIDATION,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.csv"),
+                        "split": datasets.Split.TEST,
+                    },
+                ),
+            ]
+
     def _generate_examples(self, **args):
         """Yields examples."""
         filepath = args["datafile"]
@@ -387,6 +449,19 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                         "out_of_context_options": row["out_of_context_options"],
                         "options": row["options"],
                     }
+
+        if self.config.name.startswith("wstp"):
+            df = pd.read_json(filepath)
+            for id_, row in df.iterrows():
+                yield id_, {
+                    "sectionText": row["sectionText"],
+                    "correctTitle": row["correctTitle"],
+                    "titleA": row["titleA"],
+                    "titleB": row["titleB"],
+                    "titleC": row["titleC"],
+                    "titleD": row["titleD"],
+                    "url": row["url"],
+                }
 
     def _get_task_name_from_data_url(self, data_url):
         return data_url.split("/")[-1].split(".")[0]
