@@ -48,7 +48,7 @@ _HOMEPAGE = "https://github.com/boun-tabi/NLI-TR"
 class NLITRConfig(datasets.BuilderConfig):
     """ BuilderConfig for NLI-TR"""
 
-    def __init__(self, version=None, data_url=None, data_dir=None, **kwargs):
+    def __init__(self, version=None, data_url=None, **kwargs):
         super(NLITRConfig, self).__init__(version=datasets.Version(version, ""), **kwargs)
         self.data_url = data_url
 
