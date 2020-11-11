@@ -66,7 +66,8 @@ _DESCRIPTIONS = {
     ),
     "csqa": textwrap.dedent(
         """
-        REPLACE
+        Given a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 
+        candidate entities. The dataset contains around 239k examples across 11 languages.
         """
     ),
     "ncc": textwrap.dedent(
