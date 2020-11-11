@@ -6,6 +6,7 @@ import csv
 import json
 import os
 import textwrap
+import math
 
 import six
 import pandas as pd
@@ -62,7 +63,7 @@ _DESCRIPTIONS = {
         5 different classes namely international, state, kolkata, entertainment and sports.
         """
     ),
-    'csmcq': textwrap.dedent(
+    'csqa': textwrap.dedent(
         """
         REPLACE
         """
@@ -95,7 +96,7 @@ _CITATIONS = {
         REPLACE
         """
     ),
-    'csmcq': textwrap.dedent(
+    'csqa': textwrap.dedent(
         """
         REPLACE
         """
@@ -116,7 +117,7 @@ _TEXT_FEATURES = {
     'wnli': {'sentence1': 'sentence1', 'sentence2': 'sentence2'},
     'copa': {'premise': 'premise', 'choice1': 'choice1', 'choice2': 'choice2', 'question': 'question'},
     'sna': {'text': 'text', 'label': 'label'},
-    'csmcq': {},
+    'csqa': {'question': 'question', 'answer': 'answer', 'category': 'category', "title": 'title'},
     'ncc': {},
     'clsr': {}
 }
@@ -125,7 +126,7 @@ _DATA_URLS = {
     'wnli': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wnli-translated.tar.gz',
     'copa': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/copa-translated.tar.gz',
     'sna': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/soham-articles.tar.gz',
-    'csmcq': '',
+    'csqa': 'https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-cloze.tar.gz',
     'ncc': '',
     'clsr': ''
 }
@@ -134,7 +135,7 @@ _URLS = {
     'wnli': 'https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference',
     'copa': 'https://indicnlp.ai4bharat.org/indic-glue/#natural-language-inference',
     'sna': 'https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification',
-    'csmcq': '',
+    'csqa': 'https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering',
     'ncc': '',
     'clsr': ''
 }
@@ -144,7 +145,7 @@ _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
 _WNLI_LANGS = ['en', 'hi', 'gu', 'mr']
 _COPA_LANGS = ['en', 'hi', 'gu', 'mr']
 _SNA_LANGS = ['bn']
-_WSTP_LANGS = ['as', 'bn', 'gu', 'hi', 'kn', 'ml', 'mr', 'or', 'pa', 'ta', 'te']
+_CSQA_LANGS = ['as', 'bn', 'gu', 'hi', 'kn', 'ml', 'mr', 'or', 'pa', 'ta', 'te']
 _CSMCQ_LANGS = []
 _NCC_LANGS = []
 _CLSR_LANGS = []
@@ -160,8 +161,8 @@ for lang in _COPA_LANGS:
 for lang in _SNA_LANGS:
     _NAMES.append(f'sna.{lang}')
 
-# for lang in _CSMCQ_LANGS:
-#     _NAMES.append(f'csmcq.{lang}')
+for lang in _CSQA_LANGS:
+    _NAMES.append(f'csqa.{lang}')
 
 # for lang in _NCC_LANGS:
 #     _NAMES.append(f'ncc.{lang}')
@@ -205,8 +206,13 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        
         if self.config.name.startswith('wnli') or self.config.name.startswith('copa'):
             features['label'] = datasets.Value('int32')
+
+        if self.config.name.startswith('csqa'):
+            features['options'] = datasets.features.Sequence(datasets.Value("string"))
+            features['out_of_context_options'] = datasets.features.Sequence(datasets.Value("string"))
 
         return datasets.DatasetInfo(
             description=_INDIC_GLUE_DECSRIPTION + '\n' +self.config.description,
@@ -303,6 +309,35 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 )
             ]
 
+        if self.config.name.startswith('csqa'):
+            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            task_name = self._get_task_name_from_data_url(self.config.data_url)
+            dl_dir = os.path.join(dl_dir, task_name)
+
+            return [
+                # datasets.SplitGenerator(
+                #     name=datasets.Split.TRAIN,
+                #     gen_kwargs={
+                #         "datafile": os.path.join(dl_dir, "bn-train.csv"),
+                #         "split": datasets.Split.TRAIN,
+                #     },
+                # ),
+                # datasets.SplitGenerator(
+                #     name=datasets.Split.VALIDATION,
+                #     gen_kwargs={
+                #         "datafile": os.path.join(dl_dir, "bn-valid.csv"),
+                #         "split": datasets.Split.VALIDATION,
+                #     },
+                # ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}.json"),
+                        "split": datasets.Split.TEST,
+                    },
+                )
+            ]
+
     def _generate_examples(self, **args):
         """Yields examples."""
         filepath = args['datafile']
@@ -338,6 +373,21 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     'text': row['text'],
                     'label': row['label']
                 }
+
+        if self.config.name.startswith('csqa'):
+            with open(filepath, encoding="utf-8") as f:
+                data = json.load(f)
+                df = pd.DataFrame(data['cloze_data'])
+                df['out_of_context_options'].loc[df['out_of_context_options'].isnull()] = df['out_of_context_options'].loc[df['out_of_context_options'].isnull()].apply(lambda x: [])
+                for id_, row in df.iterrows():
+                    yield id_, {
+                        'question': row['question'],
+                        'answer': row['answer'],
+                        'category': row['category'],
+                        'title': row['title'],
+                        'out_of_context_options': row['out_of_context_options'],
+                        'options': row['options']
+                    }
 
     def _get_task_name_from_data_url(self, data_url):
         return data_url.split("/")[-1].split(".")[0]
