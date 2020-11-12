@@ -86,6 +86,11 @@ _DESCRIPTIONS = {
         REPLACE
         """
     ),
+    "cvit-mkb-clsr": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _CITATIONS = {
@@ -124,6 +129,11 @@ _CITATIONS = {
         REPLACE
         """
     ),
+    "cvit-mkb-clsr": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _TEXT_FEATURES = {
@@ -142,6 +152,7 @@ _TEXT_FEATURES = {
     },
     "inltkh": {"label": "label", "text": "text"},
     "bbca": {"label": "label", "text": "text"},
+    "cvit-mkb-clsr": {"sentence1": "sentence1", "sentence2": "sentence2"},
 }
 
 _DATA_URLS = {
@@ -152,6 +163,7 @@ _DATA_URLS = {
     "wstp": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz",
     "inltkh": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/inltk-headlines.tar.gz",
     "bbca": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/bbc-articles.tar.gz",
+    "cvit-mkb-clsr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/cvit-mkb.tar.gz",
 }
 
 _URLS = {
@@ -162,6 +174,7 @@ _URLS = {
     "wstp": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
     "inltkh": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
     "bbca": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
+    "cvit-mkb-clsr": "https://indicnlp.ai4bharat.org/indic-glue/#cross-lingual-sentence-retrieval",
 }
 
 _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
@@ -173,6 +186,7 @@ _CSQA_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "te"]
 _WSTP_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "te"]
 _iNLTKH_LANGS = ["gu", "ml", "mr", "ta", "te"]
 _BBCA_LANGS = ["hi"]
+_CVIT_MKB_CLSR = ["en-bn", "en-gu", "en-hi", "en-ml", "en-mr", "en-or", "en-ta", "en-te", "en-ur"]
 
 _NAMES = []
 
@@ -196,6 +210,9 @@ for lang in _iNLTKH_LANGS:
 
 for lang in _BBCA_LANGS:
     _NAMES.append(f"bbca.{lang}")
+
+for lang in _CVIT_MKB_CLSR:
+    _NAMES.append(f"cvit-mkb-clsr.{lang}")
 
 
 class IndicGlueConfig(datasets.BuilderConfig):
@@ -472,6 +489,24 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 ),
             ]
 
+        if self.config.name.startswith("cvit"):
+            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            task_name = self._get_task_name_from_data_url(self.config.data_url)
+            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+            print("----------------------------")
+            print(self.config.name.split(".")[1])
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "datafile": None,
+                        "src": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[0]}"),
+                        "tgt": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[1]}"),
+                        "split": datasets.Split.TRAIN,
+                    },
+                ),
+            ]
+
     def _generate_examples(self, **args):
         """Yields examples."""
         filepath = args["datafile"]
@@ -535,6 +570,16 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             df = pd.read_csv(filepath, names=["label", "text"])
             for id_, row in df.iterrows():
                 yield id_, {"text": row["text"], "label": row["label"]}
+
+        if self.config.name.startswith("cvit"):
+            source = args["src"]
+            target = args["tgt"]
+
+            src, tgt = open(source, "r"), open(target, "r")
+            src, tgt = src.readlines(), tgt.readlines()
+
+            for id_, row in enumerate(zip(src, tgt)):
+                yield id_, {"sentence1": row[0], "sentence2": row[1]}
 
     def _get_task_name_from_data_url(self, data_url):
         return data_url.split("/")[-1].split(".")[0]
