@@ -1,0 +1,14 @@
+, None I-PER
+অনুজ None I-PER
+
+মাৰ্টিন মাৰ্টিন_লুথাৰ_কিং,_অনুজ মাৰ্টিন_লুথাৰ_কিং,_অনুজ PER 0.999995432616 Martin_Luther_King,_Jr. B-PER
+লুথাৰ None I-PER
+কিং None I-PER
+, None I-PER
+অনুজ None I-PER
+
+মাৰ্টিন মাৰ্টিন_লুথাৰ_কিং,_অনুজ মাৰ্টিন_লুথাৰ_কিং,_অনুজ PER 0.999995432616 Martin_Luther_King,_Jr. B-PER
+লুথাৰ None I-PER
+কিং None I-PER
+, None I-PER
+অনুজ None I-PER

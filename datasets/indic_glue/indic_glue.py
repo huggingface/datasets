@@ -111,6 +111,11 @@ _DESCRIPTIONS = {
         REPLACE
         """
     ),
+    "wiki-ner": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _CITATIONS = {
@@ -174,6 +179,11 @@ _CITATIONS = {
         REPLACE
         """
     ),
+    "wiki-ner": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _TEXT_FEATURES = {
@@ -197,6 +207,7 @@ _TEXT_FEATURES = {
     "iitp-pr": {"label": "label", "text": "text"},
     "actsa-sc": {"text": "text"},
     "md": {"sentence": "sentence", "discourse_mode": "discourse_mode"},
+    "wiki-ner": {},
 }
 
 _DATA_URLS = {
@@ -212,6 +223,7 @@ _DATA_URLS = {
     "iitp-pr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-product-reviews.tar.gz",
     "actsa-sc": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/actsa.tar.gz",
     "md": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/midas-discourse.tar.gz",
+    "wiki-ner": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wikiann-ner.tar.gz",
 }
 
 _URLS = {
@@ -227,6 +239,7 @@ _URLS = {
     "iitp-pr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
     "actsa-sc": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
     "md": "https://indicnlp.ai4bharat.org/indic-glue/#discourse-analysis",
+    "wiki-ner": "https://indicnlp.ai4bharat.org/indic-glue/#named-entity-recognition",
 }
 
 _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
@@ -243,6 +256,7 @@ _IITP_MR_LANGS = ["hi"]
 _IITP_PR_LANGS = ["hi"]
 _ACTSA_LANGS = ["te"]
 _MD_LANGS = ["hi"]
+_WIKI_NER_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "te"]
 
 _NAMES = []
 
@@ -281,6 +295,9 @@ for lang in _ACTSA_LANGS:
 
 for lang in _MD_LANGS:
     _NAMES.append(f"md.{lang}")
+
+for lang in _WIKI_NER_LANGS:
+    _NAMES.append(f"wiki-ner.{lang}")
 
 
 class IndicGlueConfig(datasets.BuilderConfig):
@@ -335,6 +352,13 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("md"):
             features["story_number"] = datasets.Value("int32")
             features["id"] = datasets.Value("int32")
+
+        if self.config.name.startswith("wiki-ner"):
+            features["tokens"] = datasets.features.Sequence(datasets.Value("string"))
+            features["labels"] = datasets.features.Sequence(datasets.Value("string"))
+            features["additional_info"] = datasets.features.Sequence(
+                datasets.features.Sequence(datasets.Value("string"))
+            )
 
         return datasets.DatasetInfo(
             description=_INDIC_GLUE_DECSRIPTION + "\n" + self.config.description,
@@ -575,22 +599,13 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
 
             return [
-                # datasets.SplitGenerator(
-                #     name=datasets.Split.TEST,
-                #     gen_kwargs={
-                #         "datafile": None,
-                #         "src": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[0]}"),
-                #         "tgt": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[1]}"),
-                #         "split": datasets.Split.TEST,
-                #     },
-                # ),
                 datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
+                    name=datasets.Split.TEST,
                     gen_kwargs={
                         "datafile": None,
                         "src": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[0]}"),
                         "tgt": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[1]}"),
-                        "split": datasets.Split.TRAIN,
+                        "split": datasets.Split.TEST,
                     },
                 )
             ]
@@ -619,6 +634,35 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.TEST,
                     gen_kwargs={
                         "datafile": os.path.join(dl_dir, "test.json"),
+                        "split": datasets.Split.TEST,
+                    },
+                ),
+            ]
+
+        if self.config.name.startswith("wiki-ner"):
+            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            task_name = self._get_task_name_from_data_url(self.config.data_url)
+            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.txt"),
+                        "split": datasets.Split.TRAIN,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-valid.txt"),
+                        "split": datasets.Split.VALIDATION,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.txt"),
                         "split": datasets.Split.TEST,
                     },
                 ),
@@ -712,6 +756,24 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     "discourse_mode": row["Discourse Mode"],
                     "id": row["id"],
                 }
+
+        if self.config.name.startswith("wiki-ner"):
+            with open(filepath, "r") as f:
+                data = f.readlines()
+                for id_, row in enumerate(data):
+                    tokens = []
+                    labels = []
+                    infos = []
+
+                    row = row.split()
+
+                    if len(row) == 0:
+                        yield id_, {"tokens": tokens, "labels": labels, "additional_info": infos}
+                        continue
+
+                    tokens.append(row[0])
+                    labels.append(row[-1])
+                    infos.append(row[1:-1])
 
     def _get_task_name_from_data_url(self, data_url):
         return data_url.split("/")[-1].split(".")[0]

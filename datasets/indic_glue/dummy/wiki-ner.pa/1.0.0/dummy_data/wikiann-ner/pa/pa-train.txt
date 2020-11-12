@@ -1,0 +1,27 @@
+ਖੇਤਰੀ None O
+ਪਾਠ None O
+ਪੁਸਤਕ None O
+ਵਿਕਰੀ None O
+ਡੀਪੂ None O
+ਮੋਗਾ ਮੋਗਾ ਮੋਗਾ GPE 1.0 Moga,_Punjab B-LOC
+
+ਖੇਤਰੀ None O
+ਪਾਠ None O
+ਪੁਸਤਕ None O
+ਵਿਕਰੀ None O
+ਡੀਪੂ None O
+ਪਠਾਨਕੋਟ ਪਠਾਨਕੋਟ_ਜ਼ਿਲ੍ਹਾ ਪਠਾਨਕੋਟ GPE 0.999999999886 Pathankot_district B-LOC
+
+ਖੇਤਰੀ None O
+ਪਾਠ None O
+ਪੁਸਤਕ None O
+ਵਿਕਰੀ None O
+ਡੀਪੂ None O
+ਪਟਿਆਲਾ ਪਟਿਆਲਾ ਪਟਿਆਲਾ GPE 1.0 Patiala B-LOC
+
+ਖੇਤਰੀ None O
+ਪਾਠ None O
+ਪੁਸਤਕ None O
+ਵਿਕਰੀ None O
+ਡੀਪੂ None O
+ਰੂਪਨਗਰ ਰੂਪਨਗਰ_ਜ਼ਿਲ੍ਹਾ ਰੂਪਨਗਰ GPE 0.999999999988 Rupnagar_district B-LOC

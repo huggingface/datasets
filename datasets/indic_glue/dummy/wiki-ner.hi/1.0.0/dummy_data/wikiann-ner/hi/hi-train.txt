@@ -1,0 +1,21 @@
+जिंदगी None O
+एक None O
+रिहर्सल None O
+विष्णु विष्णु_प्रभाकर विष्णु_प्रभाकर PER 0.997534655212 Vishnu_Prabhakar B-PER
+प्रभाकर None I-PER
+द्वारा None O
+रचित None O
+कहानी None O
+संग्रह None O
+है। None O
+
+न्यूटन न्यूटन_का_शीतलन_का_नियम न्यूटन_का_शीतलन_का_नियम ORG 0.734924935788 Newton's_law_of_cooling B-ORG
+का None I-ORG
+शीतलन None I-ORG
+का None I-ORG
+नियम None I-ORG
+
+पुनर्प्रेषित None O
+शाह शाह_आलम_द्वितीय शाह_आलम_द्वितीय PER 0.999972969802 Shah_Alam_II B-PER
+आलम None I-PER
+द्वितीय None I-PER
