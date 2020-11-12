@@ -68,7 +68,8 @@ The data consists of news articles and highlight sentences. In the question answ
 
 ### How was the data collected?
 
-The code for the original data collection is available at https://github.com/deepmind/rc-data. The articles were downloaded using archives of www.cnn.com and www.dailymail.co.uk on the Wayback Machine. Articles were not included in the Version 1.0.0 collection if they exceeded 2000 tokens. Due to accessibility issues with the Wayback Machine, Kyunghyun Cho has made the datasets available at https://cs.nyu.edu/~kcho/DMQA/. An updated version of the code that does not anonymize the data is available at https://github.com/abisee/cnn-dailymail. 
+The code for the original data collection is available at <https://github.com/deepmind/rc-data>. The articles were downloaded using archives of <www.cnn.com> and <www.dailymail.co.uk> on the Wayback Machine. Articles were not included in the Version 1.0.0 collection if they exceeded 2000 tokens. Due to accessibility issues with the Wayback Machine, Kyunghyun Cho has made the datasets available at <https://cs.nyu.edu/~kcho/DMQA/>. An updated version of the code that does not anonymize the data is available at <https://github.com/abisee/cnn-dailymail>. 
+
 
 ### Normalization information
 
