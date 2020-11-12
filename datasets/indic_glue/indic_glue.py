@@ -78,42 +78,50 @@ _DESCRIPTIONS = {
     ),
     "inltkh": textwrap.dedent(
         """
-        REPLACE
+        Obtained from inltk project. The corpus is a collection of headlines tagged with their news category. 
+        Available for langauges: gu, ml, mr and ta.
         """
     ),
     "bbca": textwrap.dedent(
         """
-        REPLACE
+        This release consists of 4335 Hindi documents with tags from the BBC Hindi News website.
         """
     ),
     "cvit-mkb-clsr": textwrap.dedent(
         """
-        REPLACE
+        CVIT Maan ki Baat Dataset - Given a sentence in language $L_1$ the task is to retrieve its translation 
+        from a set of candidate sentences in language $L_2$. 
+        The dataset contains around 39k parallel sentence pairs across 8 Indian languages. 
         """
     ),
     "iitp-mr": textwrap.dedent(
         """
-        REPLACE
+        IIT Patna Product Reviews: Sentiment analysis corpus for product reviews posted in Hindi.
         """
     ),
     "iitp-pr": textwrap.dedent(
         """
-        REPLACE
+        IIT Patna Product Reviews: Sentiment analysis corpus for product reviews posted in Hindi.
         """
     ),
     "actsa-sc": textwrap.dedent(
         """
-        REPLACE
+        ACTSA Corpus: Sentiment analysis corpus for Telugu sentences.
         """
     ),
     "md": textwrap.dedent(
         """
-        REPLACE
+        The Hindi Discourse Analysis dataset is a corpus for analyzing discourse modes present in its sentences. 
+        It contains sentences from stories written by 11 famous authors from the 20th Century. 4-5 stories by 
+        each author have been selected which were available in the public domain resulting in a collection of 53 stories. 
+        Most of these short stories were originally written in Hindi but some of them were written in other Indian languages 
+        and later translated to Hindi.
         """
     ),
     "wiki-ner": textwrap.dedent(
         """
-        REPLACE
+        The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been constructed using 
+        the linked entities in Wikipedia pages for 282 different languages including Danish.
         """
     ),
 }
@@ -121,67 +129,166 @@ _DESCRIPTIONS = {
 _CITATIONS = {
     "wnli": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{kakwani2020indicnlpsuite,
+    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
+    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
+    year={2020},
+    booktitle={Findings of EMNLP},
+}
         """
     ),
     "copa": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{kakwani2020indicnlpsuite,
+    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
+    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
+    year={2020},
+    booktitle={Findings of EMNLP},
+}
         """
     ),
     "sna": textwrap.dedent(
         """
-        REPLACE
+        https://www.kaggle.com/csoham/classification-bengali-news-articles-indicnlp
         """
     ),
     "csqa": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{kakwani2020indicnlpsuite,
+    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
+    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
+    year={2020},
+    booktitle={Findings of EMNLP},
+}
         """
     ),
     "wstp": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{kakwani2020indicnlpsuite,
+    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
+    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
+    year={2020},
+    booktitle={Findings of EMNLP},
+}
         """
     ),
     "inltkh": textwrap.dedent(
         """
-        REPLACE
+        https://github.com/goru001/inltk
         """
     ),
     "bbca": textwrap.dedent(
         """
-        REPLACE
+        https://github.com/NirantK/hindi2vec/releases/tag/bbc-hindi-v0.1
         """
     ),
     "cvit-mkb-clsr": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{siripragada-etal-2020-multilingual,
+        title = "A Multilingual Parallel Corpora Collection Effort for {I}ndian Languages",
+        author = "Siripragada, Shashank  and
+        Philip, Jerin  and
+        Namboodiri, Vinay P.  and
+        Jawahar, C V",
+        booktitle = "Proceedings of the 12th Language Resources and Evaluation Conference",
+        month = may,
+        year = "2020",
+        address = "Marseille, France",
+        publisher = "European Language Resources Association",
+        url = "https://www.aclweb.org/anthology/2020.lrec-1.462",
+        pages = "3743--3751",
+        abstract = "We present sentence aligned parallel corpora across 10 Indian Languages - Hindi, Telugu, Tamil, Malayalam, Gujarati, Urdu, Bengali, Oriya, Marathi, Punjabi, and English - many of which are categorized as low resource. The corpora are compiled from online sources which have content shared across languages. The corpora presented significantly extends present resources that are either not large enough or are restricted to a specific domain (such as health). We also provide a separate test corpus compiled from an independent online source that can be independently used for validating the performance in 10 Indian languages. Alongside, we report on the methods of constructing such corpora using tools enabled by recent advances in machine translation and cross-lingual retrieval using deep neural network based methods.",
+        language = "English",
+        ISBN = "979-10-95546-34-4",
+    }
         """
     ),
     "iitp-mr": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{akhtar-etal-2016-hybrid,
+        title = "A Hybrid Deep Learning Architecture for Sentiment Analysis",
+        author = "Akhtar, Md Shad  and
+        Kumar, Ayush  and
+        Ekbal, Asif  and
+        Bhattacharyya, Pushpak",
+        booktitle = "Proceedings of {COLING} 2016, the 26th International Conference on Computational Linguistics: Technical Papers",
+        month = dec,
+        year = "2016",
+        address = "Osaka, Japan",
+        publisher = "The COLING 2016 Organizing Committee",
+        url = "https://www.aclweb.org/anthology/C16-1047",
+        pages = "482--493",
+        abstract = "In this paper, we propose a novel hybrid deep learning archtecture which is highly efficient for sentiment analysis in resource-poor languages. We learn sentiment embedded vectors from the Convolutional Neural Network (CNN). These are augmented to a set of optimized features selected through a multi-objective optimization (MOO) framework. The sentiment augmented optimized vector obtained at the end is used for the training of SVM for sentiment classification. We evaluate our proposed approach for coarse-grained (i.e. sentence level) as well as fine-grained (i.e. aspect level) sentiment analysis on four Hindi datasets covering varying domains. In order to show that our proposed method is generic in nature we also evaluate it on two benchmark English datasets. Evaluation shows that the results of the proposed method are consistent across all the datasets and often outperforms the state-of-art systems. To the best of our knowledge, this is the very first attempt where such a deep learning model is used for less-resourced languages such as Hindi.",
+}
         """
     ),
     "iitp-pr": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{akhtar-etal-2016-hybrid,
+        title = "A Hybrid Deep Learning Architecture for Sentiment Analysis",
+        author = "Akhtar, Md Shad  and
+        Kumar, Ayush  and
+        Ekbal, Asif  and
+        Bhattacharyya, Pushpak",
+        booktitle = "Proceedings of {COLING} 2016, the 26th International Conference on Computational Linguistics: Technical Papers",
+        month = dec,
+        year = "2016",
+        address = "Osaka, Japan",
+        publisher = "The COLING 2016 Organizing Committee",
+        url = "https://www.aclweb.org/anthology/C16-1047",
+        pages = "482--493",
+        abstract = "In this paper, we propose a novel hybrid deep learning archtecture which is highly efficient for sentiment analysis in resource-poor languages. We learn sentiment embedded vectors from the Convolutional Neural Network (CNN). These are augmented to a set of optimized features selected through a multi-objective optimization (MOO) framework. The sentiment augmented optimized vector obtained at the end is used for the training of SVM for sentiment classification. We evaluate our proposed approach for coarse-grained (i.e. sentence level) as well as fine-grained (i.e. aspect level) sentiment analysis on four Hindi datasets covering varying domains. In order to show that our proposed method is generic in nature we also evaluate it on two benchmark English datasets. Evaluation shows that the results of the proposed method are consistent across all the datasets and often outperforms the state-of-art systems. To the best of our knowledge, this is the very first attempt where such a deep learning model is used for less-resourced languages such as Hindi.",
+    }
         """
     ),
     "actsa-sc": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{mukku-mamidi-2017-actsa,
+        title = "{ACTSA}: Annotated Corpus for {T}elugu Sentiment Analysis",
+        author = "Mukku, Sandeep Sricharan  and
+        Mamidi, Radhika",
+        booktitle = "Proceedings of the First Workshop on Building Linguistically Generalizable {NLP} Systems",
+        month = sep,
+        year = "2017",
+        address = "Copenhagen, Denmark",
+        publisher = "Association for Computational Linguistics",
+        url = "https://www.aclweb.org/anthology/W17-5408",
+        doi = "10.18653/v1/W17-5408",
+        pages = "54--58",
+        abstract = "Sentiment analysis deals with the task of determining the polarity of a document or sentence and has received a lot of attention in recent years for the English language. With the rapid growth of social media these days, a lot of data is available in regional languages besides English. Telugu is one such regional language with abundant data available in social media, but it{'}s hard to find a labelled data of sentences for Telugu Sentiment Analysis. In this paper, we describe an effort to build a gold-standard annotated corpus of Telugu sentences to support Telugu Sentiment Analysis. The corpus, named ACTSA (Annotated Corpus for Telugu Sentiment Analysis) has a collection of Telugu sentences taken from different sources which were then pre-processed and manually annotated by native Telugu speakers using our annotation guidelines. In total, we have annotated 5457 sentences, which makes our corpus the largest resource currently available. The corpus and the annotation guidelines are made publicly available.",
+    }
         """
     ),
     "md": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{Dhanwal2020AnAD,
+        title={An Annotated Dataset of Discourse Modes in Hindi Stories},
+        author={Swapnil Dhanwal and Hritwik Dutta and Hitesh Nankani and Nilay Shrivastava and Y. Kumar and Junyi Jessy Li and Debanjan Mahata and Rakesh Gosangi and Haimin Zhang and R. R. Shah and Amanda Stent},
+        booktitle={LREC},
+        year={2020}
+        }
         """
     ),
     "wiki-ner": textwrap.dedent(
         """
-        REPLACE
+        @inproceedings{pan-etal-2017-cross,
+        title = "Cross-lingual Name Tagging and Linking for 282 Languages",
+        author = "Pan, Xiaoman  and
+        Zhang, Boliang  and
+        May, Jonathan  and
+        Nothman, Joel  and
+        Knight, Kevin  and
+        Ji, Heng",
+        booktitle = "Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+        month = jul,
+        year = "2017",
+        address = "Vancouver, Canada",
+        publisher = "Association for Computational Linguistics",
+        url = "https://www.aclweb.org/anthology/P17-1178",
+        doi = "10.18653/v1/P17-1178",
+        pages = "1946--1958",
+        abstract = "The ambitious goal of this work is to develop a cross-lingual name tagging and linking framework for 282 languages that exist in Wikipedia. Given a document in any of these languages, our framework is able to identify name mentions, assign a coarse-grained or fine-grained type to each mention, and link it to an English Knowledge Base (KB) if it is linkable. We achieve this goal by performing a series of new KB mining methods: generating {``}silver-standard{''} annotations by transferring annotations from English to other languages through cross-lingual links and KB properties, refining annotations through self-training and topic selection, deriving language-specific morphology features from anchor links, and mining word translation pairs from cross-lingual links. Both name tagging and linking results for 282 languages are promising on Wikipedia data and on-Wikipedia data.",
+    }
         """
     ),
 }
