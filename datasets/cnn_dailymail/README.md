@@ -51,7 +51,8 @@ The data was originally collected by Karl Moritz Hermann, Tomáš Kočiský, Edw
 
 Ramesh Nallapati, Bowen Zhou, Cicero dos Santos, and Bing Xiang of IMB Watson and Çağlar Gu̇lçehre of Université de Montréal modified Hermann et al's collection scripts to restore the data to a summary format. They also produced both anonymized and non-anonymized versions.
 
-The code for the non-anonymized version is made publicly available by Abigail See of Stanford University, Peter J. Liu of Google Brain and Christopher D. Manning of Stanford University at https://github.com/abisee/cnn-dailymail. The work at Stanford University was supported by the DARPA DEFT ProgramAFRL contract no. FA8750-13-2-0040.
+The code for the non-anonymized version is made publicly available by Abigail See of Stanford University, Peter J. Liu of Google Brain and Christopher D. Manning of Stanford University at <https://github.com/abisee/cnn-dailymail>. The work at Stanford University was supported by the DARPA DEFT ProgramAFRL contract no. FA8750-13-2-0040.
+
 
 ### Who are the language producers (who wrote the text / created the base content)?
 
