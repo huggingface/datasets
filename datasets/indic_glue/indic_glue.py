@@ -91,6 +91,11 @@ _DESCRIPTIONS = {
         REPLACE
         """
     ),
+    "iitp-mr": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _CITATIONS = {
@@ -134,6 +139,11 @@ _CITATIONS = {
         REPLACE
         """
     ),
+    "iitp-mr": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _TEXT_FEATURES = {
@@ -153,6 +163,7 @@ _TEXT_FEATURES = {
     "inltkh": {"label": "label", "text": "text"},
     "bbca": {"label": "label", "text": "text"},
     "cvit-mkb-clsr": {"sentence1": "sentence1", "sentence2": "sentence2"},
+    "iitp-mr": {"label": "label", "text": "text"},
 }
 
 _DATA_URLS = {
@@ -164,6 +175,7 @@ _DATA_URLS = {
     "inltkh": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/inltk-headlines.tar.gz",
     "bbca": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/bbc-articles.tar.gz",
     "cvit-mkb-clsr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/cvit-mkb.tar.gz",
+    "iitp-mr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-movie-reviews.tar.gz",
 }
 
 _URLS = {
@@ -175,6 +187,7 @@ _URLS = {
     "inltkh": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
     "bbca": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
     "cvit-mkb-clsr": "https://indicnlp.ai4bharat.org/indic-glue/#cross-lingual-sentence-retrieval",
+    "iitp-mr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
 }
 
 _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
@@ -187,32 +200,36 @@ _WSTP_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "te"]
 _iNLTKH_LANGS = ["gu", "ml", "mr", "ta", "te"]
 _BBCA_LANGS = ["hi"]
 _CVIT_MKB_CLSR = ["en-bn", "en-gu", "en-hi", "en-ml", "en-mr", "en-or", "en-ta", "en-te", "en-ur"]
+_IITP_MR_LANGS = ["hi"]
 
 _NAMES = []
 
-# for lang in _WNLI_LANGS:
-#     _NAMES.append(f"wnli.{lang}")
+for lang in _WNLI_LANGS:
+    _NAMES.append(f"wnli.{lang}")
 
-# for lang in _COPA_LANGS:
-#     _NAMES.append(f"copa.{lang}")
+for lang in _COPA_LANGS:
+    _NAMES.append(f"copa.{lang}")
 
-# for lang in _SNA_LANGS:
-#     _NAMES.append(f"sna.{lang}")
+for lang in _SNA_LANGS:
+    _NAMES.append(f"sna.{lang}")
 
-# for lang in _CSQA_LANGS:
-#     _NAMES.append(f"csqa.{lang}")
+for lang in _CSQA_LANGS:
+    _NAMES.append(f"csqa.{lang}")
 
-# for lang in _WSTP_LANGS:
-#     _NAMES.append(f"wstp.{lang}")
+for lang in _WSTP_LANGS:
+    _NAMES.append(f"wstp.{lang}")
 
-# for lang in _iNLTKH_LANGS:
-#     _NAMES.append(f"inltkh.{lang}")
+for lang in _iNLTKH_LANGS:
+    _NAMES.append(f"inltkh.{lang}")
 
-# for lang in _BBCA_LANGS:
-#     _NAMES.append(f"bbca.{lang}")
+for lang in _BBCA_LANGS:
+    _NAMES.append(f"bbca.{lang}")
 
 for lang in _CVIT_MKB_CLSR:
     _NAMES.append(f"cvit-mkb-clsr.{lang}")
+
+for lang in _IITP_MR_LANGS:
+    _NAMES.append(f"iitp-mr.{lang}")
 
 
 class IndicGlueConfig(datasets.BuilderConfig):
@@ -438,7 +455,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 ),
             ]
 
-        if self.config.name.startswith("inltkh"):
+        if self.config.name.startswith("inltkh") or self.config.name.startswith("iitp"):
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
             dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
@@ -574,7 +591,11 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     "url": row["url"],
                 }
 
-        if self.config.name.startswith("inltkh") or self.config.name.startswith("bbca"):
+        if (
+            self.config.name.startswith("inltkh")
+            or self.config.name.startswith("bbca")
+            or self.config.name.startswith("iitp")
+        ):
             df = pd.read_csv(filepath, names=["label", "text"])
             for id_, row in df.iterrows():
                 yield id_, {"text": row["text"], "label": row["label"]}
