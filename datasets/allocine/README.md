@@ -114,9 +114,8 @@ The social biases of this dataset have not yet been investigated.
 
 ### Other known limitations
 
-The limitations of the Allociné dataset have not yet been investigated, however [Staliūnaitė and Bonfil (2017)](https://www.aclweb.org/anthology/W17-5410.pdf) detail linguistic phenomena that are generally present in sentiment analysis but difficult for models to accurately label, such as negation, adverbial modifiiers, and reviewer pragmatics. 
+The limitations of the Allociné dataset have not yet been investigated, however [Staliūnaitė and Bonfil (2017)](https://www.aclweb.org/anthology/W17-5410.pdf) detail linguistic phenomena that are generally present in sentiment analysis but difficult for models to accurately label, such as negation, adverbial modifiers, and reviewer pragmatics. 
 
 ## Licensing information
 
 The Allociné dataset is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-
