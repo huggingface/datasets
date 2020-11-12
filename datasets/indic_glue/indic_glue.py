@@ -81,6 +81,11 @@ _DESCRIPTIONS = {
         REPLACE
         """
     ),
+    "bbca": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _CITATIONS = {
@@ -114,6 +119,11 @@ _CITATIONS = {
         REPLACE
         """
     ),
+    "bbca": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _TEXT_FEATURES = {
@@ -131,6 +141,7 @@ _TEXT_FEATURES = {
         "url": "url",
     },
     "inltkh": {"label": "label", "text": "text"},
+    "bbca": {"label": "label", "text": "text"},
 }
 
 _DATA_URLS = {
@@ -140,6 +151,7 @@ _DATA_URLS = {
     "csqa": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-cloze.tar.gz",
     "wstp": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/wiki-section-titles.tar.gz",
     "inltkh": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/inltk-headlines.tar.gz",
+    "bbca": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/bbc-articles.tar.gz",
 }
 
 _URLS = {
@@ -149,6 +161,7 @@ _URLS = {
     "csqa": "https://indicnlp.ai4bharat.org/indic-glue/#cloze-style-question-answering",
     "wstp": "https://indicnlp.ai4bharat.org/indic-glue/#wikipedia-section-title-prediction",
     "inltkh": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
+    "bbca": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
 }
 
 _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
@@ -159,6 +172,7 @@ _SNA_LANGS = ["bn"]
 _CSQA_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "te"]
 _WSTP_LANGS = ["as", "bn", "gu", "hi", "kn", "ml", "mr", "or", "pa", "ta", "te"]
 _iNLTKH_LANGS = ["gu", "ml", "mr", "ta", "te"]
+_BBCA_LANGS = ["hi"]
 
 _NAMES = []
 
@@ -179,6 +193,9 @@ for lang in _WSTP_LANGS:
 
 for lang in _iNLTKH_LANGS:
     _NAMES.append(f"inltkh.{lang}")
+
+for lang in _BBCA_LANGS:
+    _NAMES.append(f"bbca.{lang}")
 
 
 class IndicGlueConfig(datasets.BuilderConfig):
@@ -433,6 +450,28 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 ),
             ]
 
+        if self.config.name.startswith("bbca"):
+            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            task_name = self._get_task_name_from_data_url(self.config.data_url)
+            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.csv"),
+                        "split": datasets.Split.TRAIN,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.csv"),
+                        "split": datasets.Split.TEST,
+                    },
+                ),
+            ]
+
     def _generate_examples(self, **args):
         """Yields examples."""
         filepath = args["datafile"]
@@ -492,7 +531,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     "url": row["url"],
                 }
 
-        if self.config.name.startswith("inltkh"):
+        if self.config.name.startswith("inltkh") or self.config.name.startswith("bbca"):
             df = pd.read_csv(filepath, names=["label", "text"])
             for id_, row in df.iterrows():
                 yield id_, {"text": row["text"], "label": row["label"]}
