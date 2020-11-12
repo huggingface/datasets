@@ -190,26 +190,26 @@ _CVIT_MKB_CLSR = ["en-bn", "en-gu", "en-hi", "en-ml", "en-mr", "en-or", "en-ta",
 
 _NAMES = []
 
-for lang in _WNLI_LANGS:
-    _NAMES.append(f"wnli.{lang}")
+# for lang in _WNLI_LANGS:
+#     _NAMES.append(f"wnli.{lang}")
 
-for lang in _COPA_LANGS:
-    _NAMES.append(f"copa.{lang}")
+# for lang in _COPA_LANGS:
+#     _NAMES.append(f"copa.{lang}")
 
-for lang in _SNA_LANGS:
-    _NAMES.append(f"sna.{lang}")
+# for lang in _SNA_LANGS:
+#     _NAMES.append(f"sna.{lang}")
 
-for lang in _CSQA_LANGS:
-    _NAMES.append(f"csqa.{lang}")
+# for lang in _CSQA_LANGS:
+#     _NAMES.append(f"csqa.{lang}")
 
-for lang in _WSTP_LANGS:
-    _NAMES.append(f"wstp.{lang}")
+# for lang in _WSTP_LANGS:
+#     _NAMES.append(f"wstp.{lang}")
 
-for lang in _iNLTKH_LANGS:
-    _NAMES.append(f"inltkh.{lang}")
+# for lang in _iNLTKH_LANGS:
+#     _NAMES.append(f"inltkh.{lang}")
 
-for lang in _BBCA_LANGS:
-    _NAMES.append(f"bbca.{lang}")
+# for lang in _BBCA_LANGS:
+#     _NAMES.append(f"bbca.{lang}")
 
 for lang in _CVIT_MKB_CLSR:
     _NAMES.append(f"cvit-mkb-clsr.{lang}")
@@ -493,9 +493,17 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
             dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
-            print("----------------------------")
-            print(self.config.name.split(".")[1])
+
             return [
+                # datasets.SplitGenerator(
+                #     name=datasets.Split.TEST,
+                #     gen_kwargs={
+                #         "datafile": None,
+                #         "src": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[0]}"),
+                #         "tgt": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[1]}"),
+                #         "split": datasets.Split.TEST,
+                #     },
+                # ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
@@ -504,7 +512,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                         "tgt": os.path.join(dl_dir, f"mkb.{self.config.name.split('.')[1].split('-')[1]}"),
                         "split": datasets.Split.TRAIN,
                     },
-                ),
+                )
             ]
 
     def _generate_examples(self, **args):
