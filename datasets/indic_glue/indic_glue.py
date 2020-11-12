@@ -101,6 +101,11 @@ _DESCRIPTIONS = {
         REPLACE
         """
     ),
+    "actsa-sc": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _CITATIONS = {
@@ -154,6 +159,11 @@ _CITATIONS = {
         REPLACE
         """
     ),
+    "actsa-sc": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _TEXT_FEATURES = {
@@ -175,6 +185,7 @@ _TEXT_FEATURES = {
     "cvit-mkb-clsr": {"sentence1": "sentence1", "sentence2": "sentence2"},
     "iitp-mr": {"label": "label", "text": "text"},
     "iitp-pr": {"label": "label", "text": "text"},
+    "actsa-sc": {"text": "text"},
 }
 
 _DATA_URLS = {
@@ -188,6 +199,7 @@ _DATA_URLS = {
     "cvit-mkb-clsr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/cvit-mkb.tar.gz",
     "iitp-mr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-movie-reviews.tar.gz",
     "iitp-pr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-product-reviews.tar.gz",
+    "actsa-sc": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/actsa.tar.gz",
 }
 
 _URLS = {
@@ -201,6 +213,7 @@ _URLS = {
     "cvit-mkb-clsr": "https://indicnlp.ai4bharat.org/indic-glue/#cross-lingual-sentence-retrieval",
     "iitp-mr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
     "iitp-pr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
+    "actsa-sc": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
 }
 
 _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
@@ -215,6 +228,7 @@ _BBCA_LANGS = ["hi"]
 _CVIT_MKB_CLSR = ["en-bn", "en-gu", "en-hi", "en-ml", "en-mr", "en-or", "en-ta", "en-te", "en-ur"]
 _IITP_MR_LANGS = ["hi"]
 _IITP_PR_LANGS = ["hi"]
+_ACTSA_LANGS = ["te"]
 
 _NAMES = []
 
@@ -247,6 +261,10 @@ for lang in _IITP_MR_LANGS:
 
 for lang in _IITP_PR_LANGS:
     _NAMES.append(f"iitp-pr.{lang}")
+
+for lang in _ACTSA_LANGS:
+    _NAMES.append(f"actsa-sc.{lang}")
+
 
 class IndicGlueConfig(datasets.BuilderConfig):
     """BuilderConfig for IndicGLUE."""
@@ -286,7 +304,11 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
 
-        if self.config.name.startswith("wnli") or self.config.name.startswith("copa"):
+        if (
+            self.config.name.startswith("wnli")
+            or self.config.name.startswith("copa")
+            or self.config.name.startswith("actsa")
+        ):
             features["label"] = datasets.Value("int32")
 
         if self.config.name.startswith("csqa"):
@@ -471,7 +493,11 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 ),
             ]
 
-        if self.config.name.startswith("inltkh") or self.config.name.startswith("iitp"):
+        if (
+            self.config.name.startswith("inltkh")
+            or self.config.name.startswith("iitp")
+            or self.config.name.startswith("actsa")
+        ):
             dl_dir = dl_manager.download_and_extract(self.config.data_url)
             task_name = self._get_task_name_from_data_url(self.config.data_url)
             dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
@@ -611,6 +637,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             self.config.name.startswith("inltkh")
             or self.config.name.startswith("bbca")
             or self.config.name.startswith("iitp")
+            or self.config.name.startswith("actsa")
         ):
             df = pd.read_csv(filepath, names=["label", "text"])
             for id_, row in df.iterrows():
