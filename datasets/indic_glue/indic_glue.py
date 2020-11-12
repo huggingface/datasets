@@ -96,6 +96,11 @@ _DESCRIPTIONS = {
         REPLACE
         """
     ),
+    "iitp-pr": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _CITATIONS = {
@@ -144,6 +149,11 @@ _CITATIONS = {
         REPLACE
         """
     ),
+    "iitp-pr": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _TEXT_FEATURES = {
@@ -164,6 +174,7 @@ _TEXT_FEATURES = {
     "bbca": {"label": "label", "text": "text"},
     "cvit-mkb-clsr": {"sentence1": "sentence1", "sentence2": "sentence2"},
     "iitp-mr": {"label": "label", "text": "text"},
+    "iitp-pr": {"label": "label", "text": "text"},
 }
 
 _DATA_URLS = {
@@ -176,6 +187,7 @@ _DATA_URLS = {
     "bbca": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/bbc-articles.tar.gz",
     "cvit-mkb-clsr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/cvit-mkb.tar.gz",
     "iitp-mr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-movie-reviews.tar.gz",
+    "iitp-pr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-product-reviews.tar.gz",
 }
 
 _URLS = {
@@ -188,6 +200,7 @@ _URLS = {
     "bbca": "https://indicnlp.ai4bharat.org/indic-glue/#news-category-classification",
     "cvit-mkb-clsr": "https://indicnlp.ai4bharat.org/indic-glue/#cross-lingual-sentence-retrieval",
     "iitp-mr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
+    "iitp-pr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
 }
 
 _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
@@ -201,6 +214,7 @@ _iNLTKH_LANGS = ["gu", "ml", "mr", "ta", "te"]
 _BBCA_LANGS = ["hi"]
 _CVIT_MKB_CLSR = ["en-bn", "en-gu", "en-hi", "en-ml", "en-mr", "en-or", "en-ta", "en-te", "en-ur"]
 _IITP_MR_LANGS = ["hi"]
+_IITP_PR_LANGS = ["hi"]
 
 _NAMES = []
 
@@ -231,6 +245,8 @@ for lang in _CVIT_MKB_CLSR:
 for lang in _IITP_MR_LANGS:
     _NAMES.append(f"iitp-mr.{lang}")
 
+for lang in _IITP_PR_LANGS:
+    _NAMES.append(f"iitp-pr.{lang}")
 
 class IndicGlueConfig(datasets.BuilderConfig):
     """BuilderConfig for IndicGLUE."""
