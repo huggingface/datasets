@@ -3280,5 +3280,74 @@
         "post_processing_size": null,
         "dataset_size": 1683659,
         "size_in_bytes": 2062541
+    },
+    "md.hi": {
+        "description": "    To thoroughly evaluate language models on Indian languages, \n    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. \n    IndicGLUE is a natural language understanding benchmark that we propose.\n\n\nREPLACE\n",
+        "citation": "    @inproceedings{kakwani2020indicnlpsuite,\n    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},\n    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},\n    year={2020},\n    booktitle={Findings of EMNLP},\n}\n\n\nREPLACE\n",
+        "homepage": "https://indicnlp.ai4bharat.org/indic-glue/#discourse-analysis",
+        "license": "",
+        "features": {
+            "sentence": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "discourse_mode": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "story_number": {
+                "dtype": "int32",
+                "id": null,
+                "_type": "Value"
+            },
+            "id": {
+                "dtype": "int32",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "indic_glue",
+        "config_name": "md.hi",
+        "version": {
+            "version_str": "1.0.0",
+            "description": "",
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 1672117,
+                "num_examples": 7974,
+                "dataset_name": "indic_glue"
+            },
+            "validation": {
+                "name": "validation",
+                "num_bytes": 211195,
+                "num_examples": 997,
+                "dataset_name": "indic_glue"
+            },
+            "test": {
+                "name": "test",
+                "num_bytes": 210183,
+                "num_examples": 997,
+                "dataset_name": "indic_glue"
+            }
+        },
+        "download_checksums": {
+            "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/midas-discourse.tar.gz": {
+                "num_bytes": 1048441,
+                "checksum": "37ccd01a16525edce4faf9b6e4a4aca08e7e171f83bcc2ef9a86660c5feecd07"
+            }
+        },
+        "download_size": 1048441,
+        "post_processing_size": null,
+        "dataset_size": 2093495,
+        "size_in_bytes": 3141936
     }
 }

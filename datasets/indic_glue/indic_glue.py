@@ -106,6 +106,11 @@ _DESCRIPTIONS = {
         REPLACE
         """
     ),
+    "md": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _CITATIONS = {
@@ -164,6 +169,11 @@ _CITATIONS = {
         REPLACE
         """
     ),
+    "md": textwrap.dedent(
+        """
+        REPLACE
+        """
+    ),
 }
 
 _TEXT_FEATURES = {
@@ -186,6 +196,7 @@ _TEXT_FEATURES = {
     "iitp-mr": {"label": "label", "text": "text"},
     "iitp-pr": {"label": "label", "text": "text"},
     "actsa-sc": {"text": "text"},
+    "md": {"sentence": "sentence", "discourse_mode": "discourse_mode"},
 }
 
 _DATA_URLS = {
@@ -200,6 +211,7 @@ _DATA_URLS = {
     "iitp-mr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-movie-reviews.tar.gz",
     "iitp-pr": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/iitp-product-reviews.tar.gz",
     "actsa-sc": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/actsa.tar.gz",
+    "md": "https://storage.googleapis.com/ai4bharat-public-indic-nlp-corpora/evaluations/midas-discourse.tar.gz",
 }
 
 _URLS = {
@@ -214,6 +226,7 @@ _URLS = {
     "iitp-mr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
     "iitp-pr": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
     "actsa-sc": "https://indicnlp.ai4bharat.org/indic-glue/#sentiment-analysis",
+    "md": "https://indicnlp.ai4bharat.org/indic-glue/#discourse-analysis",
 }
 
 _INDIC_GLUE_URL = "https://indicnlp.ai4bharat.org/indic-glue/"
@@ -229,6 +242,7 @@ _CVIT_MKB_CLSR = ["en-bn", "en-gu", "en-hi", "en-ml", "en-mr", "en-or", "en-ta",
 _IITP_MR_LANGS = ["hi"]
 _IITP_PR_LANGS = ["hi"]
 _ACTSA_LANGS = ["te"]
+_MD_LANGS = ["hi"]
 
 _NAMES = []
 
@@ -264,6 +278,9 @@ for lang in _IITP_PR_LANGS:
 
 for lang in _ACTSA_LANGS:
     _NAMES.append(f"actsa-sc.{lang}")
+
+for lang in _MD_LANGS:
+    _NAMES.append(f"md.{lang}")
 
 
 class IndicGlueConfig(datasets.BuilderConfig):
@@ -314,6 +331,10 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         if self.config.name.startswith("csqa"):
             features["options"] = datasets.features.Sequence(datasets.Value("string"))
             features["out_of_context_options"] = datasets.features.Sequence(datasets.Value("string"))
+
+        if self.config.name.startswith("md"):
+            features["story_number"] = datasets.Value("int32")
+            features["id"] = datasets.Value("int32")
 
         return datasets.DatasetInfo(
             description=_INDIC_GLUE_DECSRIPTION + "\n" + self.config.description,
@@ -574,6 +595,35 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 )
             ]
 
+        if self.config.name.startswith("md"):
+            dl_dir = dl_manager.download_and_extract(self.config.data_url)
+            task_name = self._get_task_name_from_data_url(self.config.data_url)
+            dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
+
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "train.json"),
+                        "split": datasets.Split.TRAIN,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "val.json"),
+                        "split": datasets.Split.VALIDATION,
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "test.json"),
+                        "split": datasets.Split.TEST,
+                    },
+                ),
+            ]
+
     def _generate_examples(self, **args):
         """Yields examples."""
         filepath = args["datafile"]
@@ -652,6 +702,16 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
 
             for id_, row in enumerate(zip(src, tgt)):
                 yield id_, {"sentence1": row[0], "sentence2": row[1]}
+
+        if self.config.name.startswith("md"):
+            df = pd.read_json(filepath)
+            for id_, row in df.iterrows():
+                yield id_, {
+                    "story_number": row["Story_no"],
+                    "sentence": row["Sentence"],
+                    "discourse_mode": row["Discourse Mode"],
+                    "id": row["id"],
+                }
 
     def _get_task_name_from_data_url(self, data_url):
         return data_url.split("/")[-1].split(".")[0]
