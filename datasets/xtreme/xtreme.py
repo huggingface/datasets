@@ -361,9 +361,9 @@ _TEXT_FEATURES = {
     "tatoeba": {"source_sentence": "", "target_sentence": "", "source_lang": "", "target_lang": ""},
     "bucc18": {"source_sentence": "", "target_sentence": "", "source_lang": "", "target_lang": ""},
     "PAWS-X": {"sentence1": "sentence1", "sentence2": "sentence2"},
-    "udpos": {"word": "", "pos_tag": ""},
+    "udpos": {"token": "", "pos_tag": ""},
     "SQuAD": {"id": "id", "title": "title", "context": "context", "question": "question", "answers": "answers"},
-    "PAN-X": {"words": "", "ner": "", "lang": ""},
+    "PAN-X": {"tokens": "", "ner_tags": "", "lang": ""},
 }
 _DATA_URLS = {
     "tydiqa": "https://storage.googleapis.com/tydiqa/",
@@ -450,12 +450,46 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             features["label"] = datasets.Value("string")
         if self.config.name == "XNLI":
             features["gold_label"] = datasets.Value("string")
+        
+        if self.config.name.startswith("udpos"):
+            features = datasets.Features(
+                {
+                    "token": datasets.Value("string"),
+                    "pos_tag": datasets.features.ClassLabel(names=[
+                        "ADJ",
+                        "ADP",
+                        "ADV",
+                        "AUX",
+                        "CCONJ",
+                        "DET",
+                        "INTJ",
+                        "NOUN",
+                        "NUM",
+                        "PART",
+                        "PRON",
+                        "PROPN",
+                        "PUNCT",
+                        "SCONJ",
+                        "SYM",
+                        "VERB",
+                        "X",
+                    ]),
+                }
+            )
 
         if self.config.name.startswith("PAN-X"):
             features = datasets.Features(
                 {
-                    "words": datasets.Sequence(datasets.Value("string")),
-                    "ner": datasets.Sequence(datasets.Value("string")),
+                    "tokens": datasets.Sequence(datasets.Value("string")),
+                    "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=[
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC",
+                    ])),
                     "langs": datasets.Sequence(datasets.Value("string")),
                 }
             )
@@ -885,19 +919,19 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                     data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
                     for id_row, row in enumerate(data):
                         if len(row) >= 10 and row[1] != "_":
-                            yield str(id_file) + "_" + str(id_row), {"word": row[1], "pos_tag": row[3]}
+                            yield str(id_file) + "_" + str(id_row), {"token": row[1], "pos_tag": row[3]}
         if self.config.name.startswith("PAN-X"):
             guid_index = 1
             with open(filepath, encoding="utf-8") as f:
-                words = []
+                tokens = []
                 ner_tags = []
                 langs = []
                 for line in f:
                     if line.startswith("-DOCSTART-") or line == "" or line == "\n":
-                        if words:
-                            yield guid_index, {"words": words, "ner": ner_tags, "langs": langs}
+                        if tokens:
+                            yield guid_index, {"tokens": tokens, "ner_tags": ner_tags, "langs": langs}
                             guid_index += 1
-                            words = []
+                            tokens = []
                             ner_tags = []
                             langs = []
                     else:
@@ -905,7 +939,7 @@ class Xtreme(datasets.GeneratorBasedBuilder):
                         splits = line.split("\t")
                         # strip out en: prefix
                         langs.append(splits[0][:2])
-                        words.append(splits[0][3:])
+                        tokens.append(splits[0][3:])
                         if len(splits) > 1:
                             ner_tags.append(splits[-1].replace("\n", ""))
                         else:

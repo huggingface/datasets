@@ -85,8 +85,60 @@ class GermEval14(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                     "source": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "labels": datasets.Sequence(datasets.Value("string")),
-                    "nested-labels": datasets.Sequence(datasets.Value("string")),
+                    "labels": datasets.Sequence(datasets.features.ClassLabel(names=[
+                        "O"
+                        "B-LOC"
+                        "I-LOC"
+                        "B-LOCderiv"
+                        "I-LOCderiv"
+                        "B-LOCpart"
+                        "I-LOCpart"
+                        "B-ORG"
+                        "I-ORG"
+                        "B-ORGderiv"
+                        "I-ORGderiv"
+                        "B-ORGpart"
+                        "I-ORGpart"
+                        "B-OTH"
+                        "I-OTH"
+                        "B-OTHderiv"
+                        "I-OTHderiv"
+                        "B-OTHpart"
+                        "I-OTHpart"
+                        "B-PER"
+                        "I-PER"
+                        "B-PERderiv"
+                        "I-PERderiv"
+                        "B-PERpart"
+                        "I-PERpart"
+                    ])),
+                    "nested-labels": datasets.Sequence(datasets.features.ClassLabel(names=[
+                        "O"
+                        "B-LOC"
+                        "I-LOC"
+                        "B-LOCderiv"
+                        "I-LOCderiv"
+                        "B-LOCpart"
+                        "I-LOCpart"
+                        "B-ORG"
+                        "I-ORG"
+                        "B-ORGderiv"
+                        "I-ORGderiv"
+                        "B-ORGpart"
+                        "I-ORGpart"
+                        "B-OTH"
+                        "I-OTH"
+                        "B-OTHderiv"
+                        "I-OTHderiv"
+                        "B-OTHpart"
+                        "I-OTHpart"
+                        "B-PER"
+                        "I-PER"
+                        "B-PERderiv"
+                        "I-PERderiv"
+                        "B-PERpart"
+                        "I-PERpart"
+                    ])),
                 }
             ),
             supervised_keys=None,

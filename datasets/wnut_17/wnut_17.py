@@ -94,8 +94,22 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "words": datasets.Sequence(datasets.Value("string")),
-                    "ner": datasets.Sequence(datasets.Value("string")),
+                    "tokens": datasets.Sequence(datasets.Value("string")),
+                    "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=[
+                        "O",
+                        "B-corporation",
+                        "I-corporation",
+                        "B-creative-work",
+                        "I-creative-work",
+                        "B-group",
+                        "I-group",
+                        "B-location",
+                        "I-location",
+                        "B-person",
+                        "I-person",
+                        "B-product",
+                        "I-product",
+                    ]),
                 }
             ),
             supervised_keys=None,
@@ -140,8 +154,8 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
                         sentence_counter,
                         {
                             "id": str(sentence_counter),
-                            "words": current_tokens,
-                            "ner": current_labels,
+                            "tokens": current_tokens,
+                            "ner_tags": current_labels,
                         },
                     )
                     sentence_counter += 1
@@ -152,6 +166,6 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
             if current_tokens:
                 yield sentence_counter, {
                     "id": str(sentence_counter),
-                    "words": current_tokens,
-                    "ner": current_labels,
+                    "tokens": current_tokens,
+                    "ner_tags": current_labels,
                 }
