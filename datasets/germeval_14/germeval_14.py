@@ -88,62 +88,62 @@ class GermEval14(datasets.GeneratorBasedBuilder):
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
-                                "O"
-                                "B-LOC"
-                                "I-LOC"
-                                "B-LOCderiv"
-                                "I-LOCderiv"
-                                "B-LOCpart"
-                                "I-LOCpart"
-                                "B-ORG"
-                                "I-ORG"
-                                "B-ORGderiv"
-                                "I-ORGderiv"
-                                "B-ORGpart"
-                                "I-ORGpart"
-                                "B-OTH"
-                                "I-OTH"
-                                "B-OTHderiv"
-                                "I-OTHderiv"
-                                "B-OTHpart"
-                                "I-OTHpart"
-                                "B-PER"
-                                "I-PER"
-                                "B-PERderiv"
-                                "I-PERderiv"
-                                "B-PERpart"
-                                "I-PERpart"
+                                "O",
+                                "B-LOC",
+                                "I-LOC",
+                                "B-LOCderiv",
+                                "I-LOCderiv",
+                                "B-LOCpart",
+                                "I-LOCpart",
+                                "B-ORG",
+                                "I-ORG",
+                                "B-ORGderiv",
+                                "I-ORGderiv",
+                                "B-ORGpart",
+                                "I-ORGpart",
+                                "B-OTH",
+                                "I-OTH",
+                                "B-OTHderiv",
+                                "I-OTHderiv",
+                                "B-OTHpart",
+                                "I-OTHpart",
+                                "B-PER",
+                                "I-PER",
+                                "B-PERderiv",
+                                "I-PERderiv",
+                                "B-PERpart",
+                                "I-PERpart",
                             ]
                         )
                     ),
                     "nested_ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
-                                "O"
-                                "B-LOC"
-                                "I-LOC"
-                                "B-LOCderiv"
-                                "I-LOCderiv"
-                                "B-LOCpart"
-                                "I-LOCpart"
-                                "B-ORG"
-                                "I-ORG"
-                                "B-ORGderiv"
-                                "I-ORGderiv"
-                                "B-ORGpart"
-                                "I-ORGpart"
-                                "B-OTH"
-                                "I-OTH"
-                                "B-OTHderiv"
-                                "I-OTHderiv"
-                                "B-OTHpart"
-                                "I-OTHpart"
-                                "B-PER"
-                                "I-PER"
-                                "B-PERderiv"
-                                "I-PERderiv"
-                                "B-PERpart"
-                                "I-PERpart"
+                                "O",
+                                "B-LOC",
+                                "I-LOC",
+                                "B-LOCderiv",
+                                "I-LOCderiv",
+                                "B-LOCpart",
+                                "I-LOCpart",
+                                "B-ORG",
+                                "I-ORG",
+                                "B-ORGderiv",
+                                "I-ORGderiv",
+                                "B-ORGpart",
+                                "I-ORGpart",
+                                "B-OTH",
+                                "I-OTH",
+                                "B-OTHderiv",
+                                "I-OTHderiv",
+                                "B-OTHpart",
+                                "I-OTHpart",
+                                "B-PER",
+                                "I-PER",
+                                "B-PERderiv",
+                                "I-PERderiv",
+                                "B-PERpart",
+                                "I-PERpart",
                             ]
                         )
                     ),
