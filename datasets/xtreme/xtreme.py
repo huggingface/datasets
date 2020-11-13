@@ -450,30 +450,32 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             features["label"] = datasets.Value("string")
         if self.config.name == "XNLI":
             features["gold_label"] = datasets.Value("string")
-        
+
         if self.config.name.startswith("udpos"):
             features = datasets.Features(
                 {
                     "token": datasets.Value("string"),
-                    "pos_tag": datasets.features.ClassLabel(names=[
-                        "ADJ",
-                        "ADP",
-                        "ADV",
-                        "AUX",
-                        "CCONJ",
-                        "DET",
-                        "INTJ",
-                        "NOUN",
-                        "NUM",
-                        "PART",
-                        "PRON",
-                        "PROPN",
-                        "PUNCT",
-                        "SCONJ",
-                        "SYM",
-                        "VERB",
-                        "X",
-                    ]),
+                    "pos_tag": datasets.features.ClassLabel(
+                        names=[
+                            "ADJ",
+                            "ADP",
+                            "ADV",
+                            "AUX",
+                            "CCONJ",
+                            "DET",
+                            "INTJ",
+                            "NOUN",
+                            "NUM",
+                            "PART",
+                            "PRON",
+                            "PROPN",
+                            "PUNCT",
+                            "SCONJ",
+                            "SYM",
+                            "VERB",
+                            "X",
+                        ]
+                    ),
                 }
             )
 
@@ -481,15 +483,19 @@ class Xtreme(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=[
-                        "O",
-                        "B-PER",
-                        "I-PER",
-                        "B-ORG",
-                        "I-ORG",
-                        "B-LOC",
-                        "I-LOC",
-                    ])),
+                    "ner_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "O",
+                                "B-PER",
+                                "I-PER",
+                                "B-ORG",
+                                "I-ORG",
+                                "B-LOC",
+                                "I-LOC",
+                            ]
+                        )
+                    ),
                     "langs": datasets.Sequence(datasets.Value("string")),
                 }
             )

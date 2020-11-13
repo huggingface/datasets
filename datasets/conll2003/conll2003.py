@@ -83,17 +83,21 @@ class Conll2003(datasets.GeneratorBasedBuilder):
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "pos": datasets.Sequence(datasets.Value("string")),
                     "chunk": datasets.Sequence(datasets.Value("string")),
-                    "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=[
-                        "O",
-                        "B-PER",
-                        "I-PER",
-                        "B-ORG",
-                        "I-ORG",
-                        "B-LOC",
-                        "I-LOC",
-                        "B-MISC",
-                        "I-MISC",
-                    ])),
+                    "ner_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "O",
+                                "B-PER",
+                                "I-PER",
+                                "B-ORG",
+                                "I-ORG",
+                                "B-LOC",
+                                "I-LOC",
+                                "B-MISC",
+                                "I-MISC",
+                            ]
+                        )
+                    ),
                 }
             ),
             supervised_keys=None,
@@ -127,7 +131,13 @@ class Conll2003(datasets.GeneratorBasedBuilder):
             for line in f:
                 if line.startswith("-DOCSTART-") or line == "" or line == "\n":
                     if tokens:
-                        yield guid, {"id": str(guid), "tokens": tokens, "pos_tags": pos_tags, "chunk_tags": chunk_tags, "ner_tags": ner_tags}
+                        yield guid, {
+                            "id": str(guid),
+                            "tokens": tokens,
+                            "pos_tags": pos_tags,
+                            "chunk_tags": chunk_tags,
+                            "ner_tags": ner_tags,
+                        }
                         guid += 1
                         tokens = []
                         pos_tags = []
@@ -141,4 +151,10 @@ class Conll2003(datasets.GeneratorBasedBuilder):
                     chunk_tags.append(splits[2])
                     ner_tags.append(splits[3].rstrip())
             # last example
-            yield guid, {"id": str(guid), "tokens": tokens, "pos_tags": pos_tags, "chunk_tags": chunk_tags, "ner_tags": ner_tags}
+            yield guid, {
+                "id": str(guid),
+                "tokens": tokens,
+                "pos_tags": pos_tags,
+                "chunk_tags": chunk_tags,
+                "ner_tags": ner_tags,
+            }

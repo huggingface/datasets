@@ -95,21 +95,25 @@ class WNUT_17(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=[
-                        "O",
-                        "B-corporation",
-                        "I-corporation",
-                        "B-creative-work",
-                        "I-creative-work",
-                        "B-group",
-                        "I-group",
-                        "B-location",
-                        "I-location",
-                        "B-person",
-                        "I-person",
-                        "B-product",
-                        "I-product",
-                    ]),
+                    "ner_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "O",
+                                "B-corporation",
+                                "I-corporation",
+                                "B-creative-work",
+                                "I-creative-work",
+                                "B-group",
+                                "I-group",
+                                "B-location",
+                                "I-location",
+                                "B-person",
+                                "I-person",
+                                "B-product",
+                                "I-product",
+                            ]
+                        )
+                    ),
                 }
             ),
             supervised_keys=None,
