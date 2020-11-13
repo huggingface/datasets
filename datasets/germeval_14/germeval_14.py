@@ -85,7 +85,7 @@ class GermEval14(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                     "source": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "labels": datasets.Sequence(
+                    "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
                                 "O"
@@ -116,7 +116,7 @@ class GermEval14(datasets.GeneratorBasedBuilder):
                             ]
                         )
                     ),
-                    "nested-labels": datasets.Sequence(
+                    "nested_ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
                                 "O"
@@ -170,8 +170,8 @@ class GermEval14(datasets.GeneratorBasedBuilder):
             data = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             current_source = ""
             current_tokens = []
-            current_labels = []
-            current_nested_labels = []
+            current_ner_tags = []
+            current_nested_ner_tags = []
             sentence_counter = 0
             for row in data:
                 if row:
@@ -180,37 +180,39 @@ class GermEval14(datasets.GeneratorBasedBuilder):
                         continue
                     id_, token, label, nested_label = row[:4]
                     current_tokens.append(token)
-                    current_labels.append(label)
-                    current_nested_labels.append(nested_label)
+                    current_ner_tags.append(label)
+                    current_nested_ner_tags.append(nested_label)
                 else:
                     # New sentence
                     if not current_tokens:
                         # Consecutive empty lines will cause empty sentences
                         continue
-                    assert len(current_tokens) == len(current_labels), "💔 between len of tokens & labels"
-                    assert len(current_labels) == len(current_nested_labels), "💔 between len of labels & nested labels"
+                    assert len(current_tokens) == len(current_ner_tags), "💔 between len of tokens & labels"
+                    assert len(current_ner_tags) == len(
+                        current_nested_ner_tags
+                    ), "💔 between len of labels & nested labels"
                     assert current_source, "💥 Source for new sentence was not set"
                     sentence = (
                         sentence_counter,
                         {
                             "id": str(sentence_counter),
                             "tokens": current_tokens,
-                            "labels": current_labels,
-                            "nested-labels": current_nested_labels,
+                            "ner_tags": current_ner_tags,
+                            "nested_ner_tags": current_nested_ner_tags,
                             "source": current_source,
                         },
                     )
                     sentence_counter += 1
                     current_tokens = []
-                    current_labels = []
-                    current_nested_labels = []
+                    current_ner_tags = []
+                    current_nested_ner_tags = []
                     current_source = ""
                     yield sentence
             # Don't forget last sentence in dataset 🧐
             yield sentence_counter, {
                 "id": str(sentence_counter),
                 "tokens": current_tokens,
-                "labels": current_labels,
-                "nested-labels": current_nested_labels,
+                "ner_tags": current_ner_tags,
+                "nested_ner_tags": current_nested_ner_tags,
                 "source": current_source,
             }

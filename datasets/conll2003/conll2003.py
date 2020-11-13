@@ -81,8 +81,85 @@ class Conll2003(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "pos": datasets.Sequence(datasets.Value("string")),
-                    "chunk": datasets.Sequence(datasets.Value("string")),
+                    "pos_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "''"
+                                "#"
+                                "$"
+                                "("
+                                ")"
+                                ","
+                                "."
+                                ":"
+                                "``"
+                                "CC"
+                                "CD"
+                                "DT"
+                                "EX"
+                                "FW"
+                                "IN"
+                                "JJ"
+                                "JJR"
+                                "JJS"
+                                "MD"
+                                "NN"
+                                "NNP"
+                                "NNPS"
+                                "NNS"
+                                "PDT"
+                                "POS"
+                                "PRP"
+                                "PRP$"
+                                "RB"
+                                "RBR"
+                                "RBS"
+                                "RP"
+                                "SYM"
+                                "TO"
+                                "UH"
+                                "VB"
+                                "VBD"
+                                "VBG"
+                                "VBN"
+                                "VBP"
+                                "VBZ"
+                                "WDT"
+                                "WP"
+                                "WP$"
+                                "WRB"
+                            ]
+                        )
+                    ),
+                    "chunk_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "O",
+                                "B-ADJP",
+                                "I-ADJP",
+                                "B-ADVP",
+                                "I-ADVP",
+                                "B-CONJP",
+                                "I-CONJP",
+                                "B-INTJ",
+                                "I-INTJ",
+                                "B-LST",
+                                "I-LST",
+                                "B-NP",
+                                "I-NP",
+                                "B-PP",
+                                "I-PP",
+                                "B-PRT",
+                                "I-PRT",
+                                "B-SBAR",
+                                "I-SBAR",
+                                "B-UCP",
+                                "I-UCP",
+                                "B-VP",
+                                "I-VP",
+                            ]
+                        )
+                    ),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
