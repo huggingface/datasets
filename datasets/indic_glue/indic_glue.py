@@ -130,21 +130,33 @@ _CITATIONS = {
     "wnli": textwrap.dedent(
         """
         @inproceedings{kakwani2020indicnlpsuite,
-    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
-    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
-    year={2020},
-    booktitle={Findings of EMNLP},
-}
+        title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
+        author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
+        year={2020},
+        booktitle={Findings of EMNLP},
+    }
+        @inproceedings{Levesque2011TheWS,
+        title={The Winograd Schema Challenge},
+        author={H. Levesque and E. Davis and L. Morgenstern},
+        booktitle={KR},
+        year={2011}
+        }
         """
     ),
     "copa": textwrap.dedent(
         """
         @inproceedings{kakwani2020indicnlpsuite,
-    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
-    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
-    year={2020},
-    booktitle={Findings of EMNLP},
-}
+        title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
+        author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
+        year={2020},
+        booktitle={Findings of EMNLP},
+    }
+        @inproceedings{Gordon2011SemEval2012T7,
+        title={SemEval-2012 Task 7: Choice of Plausible Alternatives: An Evaluation of Commonsense Causal Reasoning},
+        author={Andrew S. Gordon and Zornitsa Kozareva and Melissa Roemmele},
+        booktitle={SemEval@NAACL-HLT},
+        year={2011}
+        }
         """
     ),
     "sna": textwrap.dedent(
