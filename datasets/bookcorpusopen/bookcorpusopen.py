@@ -28,9 +28,14 @@ _DESCRIPTION = """\
 Books are a rich source of both fine-grained information, how a character, \
 an object or a scene looks like, as well as high-level semantics, what \
 someone is thinking, feeling and how these states evolve through a story.\
-This work aims to align books to their movie releases in order to provide\
-rich descriptive explanations for visual content that go semantically far\
-beyond the captions available in current datasets. \
+
+This version of bookcorpus has 17868 dataset items (books). Each item contains \
+two fields: title and text. The title is the name of the book (just the file name) \
+while text contains unprocessed book text. The bookcorpus has been prepared by \
+Shawn Presser and is generously hosted by The-Eye. The-Eye is a non-profit, community \
+driven platform dedicated to the archiving and long-term preservation of any and \
+all data including but by no means limited to... websites, books, games, software, \
+video, audio, other digital-obscura and ideas.
 """
 
 _CITATION = """\
@@ -42,8 +47,8 @@ _CITATION = """\
     year = {2015}
 }
 """
-
-URL = "https://the-eye.eu/public/AI/pile_preliminary_components/books1.tar.gz"
+_PROJECT_URL = "https://github.com/soskek/bookcorpus/issues/27"
+_DOWNLOAD_URL = "https://the-eye.eu/public/AI/pile_preliminary_components/books1.tar.gz"
 
 
 class BookCorpusOpenConfig(datasets.BuilderConfig):
@@ -77,19 +82,20 @@ class BookCorpusOpen(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=None,
-            homepage="https://github.com/soskek/bookcorpus/issues/27",
+            homepage=_PROJECT_URL,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        arch_path = dl_manager.download_and_extract(URL)
+        arch_path = dl_manager.download_and_extract(_DOWNLOAD_URL)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"directory": arch_path}),
         ]
 
     def _generate_examples(self, directory):
-        book_files = glob.glob(directory + "/**/*.epub.txt", recursive=True)
+        book_files = glob.glob(directory + "**/*.epub.txt", recursive=True)
+        book_files = sorted(book_files)
         _id = 0
         for book_file_path in book_files:
             path = pathlib.PurePath(book_file_path)
