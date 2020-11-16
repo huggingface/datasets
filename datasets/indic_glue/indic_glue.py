@@ -24,10 +24,10 @@ _INDIC_GLUE_CITATION = """\
 """
 
 _INDIC_GLUE_DECSRIPTION = """\
-    To thoroughly evaluate language models on Indian languages, 
-    we need a robust NLU benchmark consisting of a wide variety of tasks and covering all the Indian languages. 
-    IndicGLUE is a natural language understanding benchmark that we propose.
+    IndicGLUE is a natural language understanding benchmark for Indian languages. It contains a wide
+    variety of tasks and covers 11 major Indian languages - as, bn, gu, hi, kn, ml, mr, or, pa, ta, te.
 """
+
 _DESCRIPTIONS = {
     "wnli": textwrap.dedent(
         """
@@ -45,7 +45,8 @@ _DESCRIPTIONS = {
         training examples, they will predict the wrong label on corresponding development set
         example. As with QNLI, each example is evaluated separately, so there is not a systematic correspondence
         between a model's score on this task and its score on the unconverted original task. We
-        call converted dataset WNLI (Winograd NLI). The dataset is available in 3 languages.
+        call converted dataset WNLI (Winograd NLI). This dataset is translated and publicly released for 3
+        Indian languages by AI4Bharat.
         """
     ),
     "copa": textwrap.dedent(
@@ -55,7 +56,7 @@ _DESCRIPTIONS = {
         into development and test sets of 500 questions each. Each question is composed of a premise and two 
         alternatives, where the task is to select the alternative that more plausibly has a causal relation 
         with the premise. The correct alternative is randomized so that the expected performance of randomly 
-        guessing is 50%. The dataset is available is 3 languages.
+        guessing is 50%. This dataset is translated and publicly released for 3 languages by AI4Bharat.
         """
     ),
     "sna": textwrap.dedent(
@@ -134,7 +135,7 @@ _CITATIONS = {
         author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
         year={2020},
         booktitle={Findings of EMNLP},
-    }
+        }
         @inproceedings{Levesque2011TheWS,
         title={The Winograd Schema Challenge},
         author={H. Levesque and E. Davis and L. Morgenstern},
@@ -150,7 +151,7 @@ _CITATIONS = {
         author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
         year={2020},
         booktitle={Findings of EMNLP},
-    }
+        }
         @inproceedings{Gordon2011SemEval2012T7,
         title={SemEval-2012 Task 7: Choice of Plausible Alternatives: An Evaluation of Commonsense Causal Reasoning},
         author={Andrew S. Gordon and Zornitsa Kozareva and Melissa Roemmele},
@@ -167,21 +168,21 @@ _CITATIONS = {
     "csqa": textwrap.dedent(
         """
         @inproceedings{kakwani2020indicnlpsuite,
-    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
-    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
-    year={2020},
-    booktitle={Findings of EMNLP},
-}
+        title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
+        author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
+        year={2020},
+        booktitle={Findings of EMNLP},
+        }
         """
     ),
     "wstp": textwrap.dedent(
         """
         @inproceedings{kakwani2020indicnlpsuite,
-    title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
-    author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
-    year={2020},
-    booktitle={Findings of EMNLP},
-}
+        title={{IndicNLPSuite: Monolingual Corpora, Evaluation Benchmarks and Pre-trained Multilingual Language Models for Indian Languages}},
+        author={Divyanshu Kakwani and Anoop Kunchukuttan and Satish Golla and Gokul N.C. and Avik Bhattacharyya and Mitesh M. Khapra and Pratyush Kumar},
+        year={2020},
+        booktitle={Findings of EMNLP},
+        }
         """
     ),
     "inltkh": textwrap.dedent(
@@ -212,7 +213,7 @@ _CITATIONS = {
         abstract = "We present sentence aligned parallel corpora across 10 Indian Languages - Hindi, Telugu, Tamil, Malayalam, Gujarati, Urdu, Bengali, Oriya, Marathi, Punjabi, and English - many of which are categorized as low resource. The corpora are compiled from online sources which have content shared across languages. The corpora presented significantly extends present resources that are either not large enough or are restricted to a specific domain (such as health). We also provide a separate test corpus compiled from an independent online source that can be independently used for validating the performance in 10 Indian languages. Alongside, we report on the methods of constructing such corpora using tools enabled by recent advances in machine translation and cross-lingual retrieval using deep neural network based methods.",
         language = "English",
         ISBN = "979-10-95546-34-4",
-    }
+        }
         """
     ),
     "iitp-mr": textwrap.dedent(
