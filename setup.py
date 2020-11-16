@@ -78,8 +78,6 @@ REQUIRED_PKGS = [
     "tqdm>=4.27,<4.50.0",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
-    # filesystem locks e.g. to prevent parallel downloads
-    "filelock",
     # for fast hashing
     "xxhash",
     # for better multiprocessing
