@@ -64,7 +64,34 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            features=datasets.Features({"sentence": datasets.Value("string"), "relation": datasets.Value("string")}),
+            features=datasets.Features(
+                {
+                    "sentence": datasets.Value("string"),
+                    "relation": datasets.ClassLabel(
+                        names=[
+                            "Cause-Effect(e1,e2)",
+                            "Cause-Effect(e2,e1)",
+                            "Component-Whole(e1,e2)",
+                            "Component-Whole(e2,e1)",
+                            "Content-Container(e1,e2)",
+                            "Content-Container(e2,e1)",
+                            "Entity-Destination(e1,e2)",
+                            "Entity-Destination(e2,e1)",
+                            "Entity-Origin(e1,e2)",
+                            "Entity-Origin(e2,e1)",
+                            "Instrument-Agency(e1,e2)",
+                            "Instrument-Agency(e2,e1)",
+                            "Member-Collection(e1,e2)",
+                            "Member-Collection(e2,e1)",
+                            "Message-Topic(e1,e2)",
+                            "Message-Topic(e2,e1)",
+                            "Product-Producer(e1,e2)",
+                            "Product-Producer(e2,e1)",
+                            "Other",
+                        ]
+                    ),
+                }
+            ),
             # If there's a common (input, target) tuple from the features,
             # specify them here. They'll be used if as_supervised=True in
             # builder.as_dataset.
