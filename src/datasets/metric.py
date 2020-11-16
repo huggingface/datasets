@@ -32,8 +32,8 @@ from .info import DatasetInfo, MetricInfo
 from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
-from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.file_utils import DownloadConfig
+from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.logging import get_logger
 
 

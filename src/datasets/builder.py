@@ -43,8 +43,8 @@ from .info import (
 from .naming import camelcase_to_snakecase, filename_prefix_for_split
 from .splits import Split, SplitDict, SplitGenerator
 from .utils.download_manager import DownloadManager, GenerateMode
-from .utils.filelock import FileLock
 from .utils.file_utils import HF_DATASETS_CACHE, DownloadConfig, is_remote_url
+from .utils.filelock import FileLock
 from .utils.info_utils import get_size_checksum_dict, verify_checksums, verify_splits
 from .utils.logging import WARNING, get_logger
 
