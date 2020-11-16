@@ -58,9 +58,9 @@ class KorNli(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     # These are the features of your dataset like images, labels ...
-                    "sentence1": datasets.Value("string"),
-                    "sentence2": datasets.Value("string"),
-                    "gold_label": datasets.Value("string"),
+                    "premise": datasets.Value("string"),
+                    "hypothesis": datasets.Value("string"),
+                    "label": datasets.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -113,9 +113,11 @@ class KorNli(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         # TODO(kor_nli): Yields (key, example) tuples from the dataset
         with open(filepath, encoding="utf-8") as f:
-            data = csv.DictReader(f, dialect="excel-tab")
-            for id_, row in enumerate(data):
-
+            next(f)  # skip headers
+            columns = ("premise", "hypothesis", "label")
+            for id_, row in enumerate(f):
+                row = row.strip().split("\t")
                 if len(row) != 3:
                     continue
+                row = dict(zip(columns, row))
                 yield id_, row
