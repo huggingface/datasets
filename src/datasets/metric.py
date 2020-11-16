@@ -22,7 +22,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
-from filelock import BaseFileLock, FileLock, Timeout
 
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
