@@ -19,6 +19,7 @@
 from __future__ import absolute_import, division, print_function
 
 import glob
+import os
 import pathlib
 
 import datasets
@@ -94,7 +95,8 @@ class BookCorpusOpen(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, directory):
-        book_files = glob.glob(directory + "**/*.epub.txt", recursive=True)
+        glob_target = os.path.join(directory, "**/*.epub.txt")
+        book_files = glob.glob(glob_target, recursive=True)
         book_files = sorted(book_files)
         _id = 0
         for book_file_path in book_files:
