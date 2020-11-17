@@ -67,7 +67,7 @@ Here is for instance the :func:`datasets.Dataset._info` for the SQuAD dataset fo
         )
 
 
-The :class:`datasets.Features` define the structure for each examples and can define arbitrary nested objects with fields of various types. More details on the available ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`datasets.Features`. Many examples of features can also be found in the various `dataset scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__ and even directly inspected on the `datasets viewer <https://huggingface.co/docs/datasets/viewer>`__.
+The :class:`datasets.Features` define the structure for each examples and can define arbitrary nested objects with fields of various types. More details on the available ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`datasets.Features`. Many examples of features can also be found in the various `dataset scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__ and even directly inspected on the `datasets viewer <https://huggingface.co/nlp/viewer>`__.
 
 Here are the features of the SQuAD dataset for instance, which is taken from the `squad dataset loading script <https://github.com/huggingface/datasets/tree/master/datasets/squad/squad.py>`__:
 
@@ -229,6 +229,10 @@ Here again, let's take the simple example of the `squad dataset loading script <
 The input argument is the ``filepath`` provided in the :obj:`gen_kwargs` of each :class:`datasets.SplitGenerator` returned by the :func:`datasets.DatasetBuilder._split_generator` method.
 
 The method reads and parses the inputs files and yields a tuple constituted of an ``id_`` (can be arbitrary but should be unique (for backward compatibility with TensorFlow datasets) and an example. The example is a dictionary with the same structure and element types as the ``features`` defined in :func:`datasets.DatasetBuilder._info`.
+
+.. note::
+
+	Since generating a dataset is based on a python generator, then it doesn't load all the data in memory and therefore it can handle pretty big datasets. However before being flushed to the dataset file on disk, the generated samples are stored in the :obj:`ArrowWriter` buffer so that they are written by batch. If your dataset's samples take a lot of memory (with images or videos), then make sure to speficy a low value for the `_writer_batch_size` class attribute of the dataset builder class. We recommend to not exceed 200MB.
 
 Specifying several dataset configurations
 -------------------------------------------------

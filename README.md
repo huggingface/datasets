@@ -36,7 +36,7 @@
 
 `🤗Datasets` has many interesting features (beside easy sharing and accessing datasets/metrics):
 
-- Built-in interoperability with Numpy, Pandas, PyTorch and Tensorflow 2
+- Built-in interoperability with NumPy, pandas, PyTorch and Tensorflow 2
 - Lightweight and fast with a transparent and pythonic API
 - Strive on large datasets: `🤗Datasets` naturally frees the user from RAM memory limitation, all datasets are memory-mapped on drive by default.
 - Smart caching: never wait for your data to process several times
@@ -61,13 +61,13 @@ For more details on installation, check the installation page in the documentati
 
 ## Using with PyTorch/TensorFlow/pandas
 
-If you plan to use `🤗Datasets` with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install PyTorch, Tensorflow or pandas.
+If you plan to use `🤗Datasets` with PyTorch (1.0+), TensorFlow (2.2+) or pandas, you should also install PyTorch, TensorFlow or pandas.
 
-For more details on using the library with NumPy, pandas, PyTorch or Tensorflow, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html
+For more details on using the library with NumPy, pandas, PyTorch or TensorFlow, check the quick tour page in the documentation: https://huggingface.co/docs/datasets/quicktour.html
 
 # Usage
 
-Using `🤗Datasets` is made to be very simple to use, the main methods are:
+`🤗Datasets` is made to be very simple to use. The main methods are:
 
 - `datasets.list_datasets()` to list the available datasets
 - `datasets.load_dataset(dataset_name, **kwargs)` to instantiate a dataset
@@ -101,7 +101,7 @@ For more details on using the library, check the quick tour page in the document
 - Writing your own dataset loading script: https://huggingface.co/docs/datasets/add_dataset.html
 - etc
 
-Another introduction to `🤗Datasets` is the tutorial on Google Colab which is here:
+Another introduction to `🤗Datasets` is the tutorial on Google Colab here:
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/huggingface/datasets/blob/master/notebooks/Overview.ipynb)
 
 # Main differences between `datasets` and `tfds`
@@ -109,12 +109,12 @@ Another introduction to `🤗Datasets` is the tutorial on Google Colab which is 
 If you are familiar with the great `Tensorflow Datasets`, here are the main differences between `datasets` and `tfds`:
 - the scripts in `🤗Datasets` are not provided within the library but are queried, downloaded/cached and dynamically loaded upon request
 - `🤗Datasets` also provides evaluation metrics in a similar fashion to the datasets, i.e. as dynamically installed scripts with a unified API. This gives access to the pair of a benchmark dataset and a benchmark metric for instance for benchmarks like [SQuAD](https://rajpurkar.github.io/SQuAD-explorer/) or [GLUE](https://gluebenchmark.com/).
-- the backend serialization of `🤗Datasets` is based on [Apache Arrow](https://arrow.apache.org/) instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache)
+- the backend serialization of `🤗Datasets` is based on [Apache Arrow](https://arrow.apache.org/) instead of TF Records and leverage python dataclasses for info and features with some diverging features (we mostly don't do encoding and store the raw data as much as possible in the backend serialization cache).
 - the user-facing dataset object of `🤗Datasets` is not a `tf.data.Dataset` but a built-in framework-agnostic dataset class with methods inspired by what we like in `tf.data` (like a `map()` method). It basically wraps a memory-mapped Arrow table cache.
 
 # Disclaimers
 
-Similarly to Tensorflow Dataset, `🤗Datasets` is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use the dataset. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
+Similar to TensorFlow Datasets, `🤗Datasets` is a utility library that downloads and prepares public datasets. We do not host or distribute these datasets, vouch for their quality or fairness, or claim that you have license to use them. It is your responsibility to determine whether you have permission to use the dataset under the dataset's license.
 
 If you're a dataset owner and wish to update any part of it (description, citation, etc.), or do not want your dataset to be included in this library, please get in touch through a [GitHub issue](https://github.com/huggingface/datasets/issues/new). Thanks for your contribution to the ML community!
 

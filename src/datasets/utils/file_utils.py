@@ -24,10 +24,10 @@ from ftplib import FTP, FTP_TLS
 
 import numpy as np
 import requests
-from filelock import FileLock
 from tqdm.auto import tqdm
 
 from .. import __version__
+from .filelock import FileLock
 from .logging import WARNING, get_logger
 
 

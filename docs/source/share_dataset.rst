@@ -102,8 +102,31 @@ Push the changes to your account using:
 
 Sharing a "community provided" dataset
 -----------------------------------------
+Make a data directory, for example called ``my_local_dataset``, containing, at a minimum, ``my_local_dataset/my_local_dataset.py``, but also whatever other files your dataset needs.
 
-[UNDER CONSTRUCTION]
+Then, simply upload with ``datasets-cli`` from the command line:
+
+.. code::
+
+   datasets-cli login  # use your huggingface.co credentials, only needs to be run once.
+   datasets-cli upload_dataset my_local_dataset
+
+
+
+
+This uploads the dataset to your personal account. If you want your model to be namespaced by your organization name
+rather than your username, add the following flag to any command:
+
+.. code-block::
+
+    --organization organization_name
+
+After ``upload_dataset``, the following python code should work:
+
+.. code::
+
+    import datasets
+    datasets.load_dataset('my_username/my_local_dataset')
 
 
 .. _adding-tests:
