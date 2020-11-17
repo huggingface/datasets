@@ -399,7 +399,9 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
 
 def http_head(url, proxies=None, user_agent=None, cookies=None, allow_redirects=True, timeout=10) -> requests.Response:
     headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
-    response = requests.head(url, proxies=proxies, headers=headers, cookies=cookies, allow_redirects=allow_redirects, timeout=timeout)
+    response = requests.head(
+        url, proxies=proxies, headers=headers, cookies=cookies, allow_redirects=allow_redirects, timeout=timeout
+    )
     return response
 
 
