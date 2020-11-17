@@ -25,7 +25,6 @@ from PIL import Image
 
 import datasets
 
-
 _DESCRIPTION = """\
 Parallel Corpus of Sign Language Video, Gloss and Translation
 """
@@ -63,6 +62,8 @@ class RWTHPhoenixWeather2014TConfig(datasets.BuilderConfig):
 
 class RWTHPhoenixWeather2014T(datasets.GeneratorBasedBuilder):
     """RWTH-PHOENIX-Weather 2014 T: Parallel Corpus of Sign Language Video, Gloss and Translation"""
+
+    _writer_batch_size = 10  # Keeping a large batch can face memory constraints
 
     BUILDER_CONFIGS = [
         RWTHPhoenixWeather2014TConfig(
