@@ -17,6 +17,7 @@
 import os
 from logging import getLogger
 
+import numpy as np
 from bleurt import score  # From: git+https://github.com/google-research/bleurt.git
 
 import datasets
@@ -73,6 +74,7 @@ class BLEURT(datasets.Metric):
             citation=_CITATION,
             homepage="https://github.com/google-research/bleurt",
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=["bleurt_mean", "bleurt_std"],
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
@@ -103,4 +105,4 @@ class BLEURT(datasets.Metric):
 
     def _compute(self, predictions, references):
         scores = self.scorer.score(references=references, candidates=predictions)
-        return {"scores": scores}
+        return {"bleurt_mean": np.mean(scores), "bleurt_std": np.std(scores)}

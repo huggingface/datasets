@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ BLEU metric. """
+import re
 
 import datasets
 
@@ -78,10 +79,23 @@ Returns:
 
 class Bleu(datasets.Metric):
     def _info(self):
+        if self.config_name == "default":
+            self.max_order = 4
+        else:
+            if not re.match("^max_order\.[0-9]+$", self.config_name):
+                raise KeyError(
+                    "You should supply a valid configuration name. "
+                    "For example 'max_order.1' for max_order=1 or 'max_order.1' for max_order=2. "
+                    "Default max n-grams order is 4."
+                )
+            self.max_order = int(self.config_name[len("max_order.") :])
+        output_names = ["bleu", "brevity_penalty", "length_ratio", "translation_length", "reference_length"]
+        output_names += [f"precision_{i}" for i in range(1, self.max_order + 1)]
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=output_names,
             features=datasets.Features(
                 {
                     "predictions": datasets.Sequence(datasets.Value("string", id="token"), id="sequence"),
@@ -97,16 +111,18 @@ class Bleu(datasets.Metric):
             ],
         )
 
-    def _compute(self, predictions, references, max_order=4, smooth=False):
+    def _compute(self, predictions, references, smooth=False):
         score = compute_bleu(
-            reference_corpus=references, translation_corpus=predictions, max_order=max_order, smooth=smooth
+            reference_corpus=references, translation_corpus=predictions, max_order=self.max_order, smooth=smooth
         )
         (bleu, precisions, bp, ratio, translation_length, reference_length) = score
-        return {
+        output = {
             "bleu": bleu,
-            "precisions": precisions,
             "brevity_penalty": bp,
             "length_ratio": ratio,
             "translation_length": translation_length,
             "reference_length": reference_length,
         }
+        for i in range(1, self.max_order + 1):
+            output[f"precision_{i}"] = precisions[i - 1]
+        return output

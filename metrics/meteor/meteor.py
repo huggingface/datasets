@@ -74,6 +74,7 @@ class Meteor(datasets.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=["meteor_mean", "meteor_std"],
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
@@ -93,4 +94,4 @@ class Meteor(datasets.Metric):
             for ref, pred in zip(references, predictions)
         ]
 
-        return {"meteor": np.mean(scores)}
+        return {"meteor_mean": np.mean(scores), "meteor_std": np.std(scores)}

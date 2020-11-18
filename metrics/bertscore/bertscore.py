@@ -74,6 +74,7 @@ class BERTScore(datasets.Metric):
             citation=_CITATION,
             homepage="https://github.com/Tiiiger/bert_score",
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=["f1", "precision", "recall"],
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("string", id="sequence"),
@@ -117,7 +118,6 @@ class BERTScore(datasets.Metric):
             rescale_with_baseline=rescale_with_baseline,
             use_custom_baseline=baseline_path is not None,
         )
-
         if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
             self.cached_bertscorer = bert_score.BERTScorer(
                 model_type=model_type,
@@ -142,7 +142,6 @@ class BERTScore(datasets.Metric):
             "precision": P,
             "recall": R,
             "f1": F,
-            "hashcode": hashcode,
         }
         return output_dict
 

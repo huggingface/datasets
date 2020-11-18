@@ -65,24 +65,33 @@ Args:
 Returns:
     'scores': dict. Summary of the scores for overall and per type
         Overall:
-            'accuracy': accuracy,
-            'precision': precision,
-            'recall': recall,
-            'f1': F1 score, also known as balanced F-score or F-measure,
-        Per type:
-            'precision': precision,
-            'recall': recall,
-            'f1': F1 score, also known as balanced F-score or F-measure
+            'overall_accuracy': accuracy,
+            'overall_precision': precision,
+            'overall_recall': recall,
+            'overall_f1': F1 score, also known as balanced F-score or F-measure,
+        Per type specified in `entities_names` in load_metric or the class init method:
+            '<entity>/precision': precision,
+            '<entity>/recall': recall,
+            '<entity>/f1': F1 score, also known as balanced F-score or F-measure
+            '<entity>/support': number of labels for this entity
 """
 
 
 class Seqeval(datasets.Metric):
+    def __init__(self, *args, **kwargs):
+        self.entities_names = kwargs.pop("entities_names", [])
+        super().__init__(*args, **kwargs)
+
     def _info(self):
+        metrics = ["precision", "recall", "f1", "support"]
+        output_names = ["overall_precision", "overall_recall", "overall_f1", "overall_accuracy"]
+        output_names += [f"{type_name}/{metric}" for metric in metrics for type_name in self.entities_names]
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             homepage="https://github.com/chakki-works/seqeval",
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=output_names,
             features=datasets.Features(
                 {
                     "predictions": datasets.Sequence(datasets.Value("string", id="label"), id="sequence"),
@@ -99,15 +108,16 @@ class Seqeval(datasets.Metric):
         report.pop("weighted avg")
         overall_score = report.pop("micro avg")
 
-        scores = {
-            type_name: {
-                "precision": score["precision"],
-                "recall": score["recall"],
-                "f1": score["f1-score"],
-                "number": score["support"],
-            }
-            for type_name, score in report.items()
-        }
+        scores = {}
+        for type_name, score in report.items():
+            scores.update(
+                {
+                    f"{type_name}/precision": score["precision"],
+                    f"{type_name}/recall": score["recall"],
+                    f"{type_name}/f1": score["f1-score"],
+                    f"{type_name}/support": score["support"],
+                }
+            )
         scores["overall_precision"] = overall_score["precision"]
         scores["overall_recall"] = overall_score["recall"]
         scores["overall_f1"] = overall_score["f1-score"]

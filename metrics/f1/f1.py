@@ -76,6 +76,7 @@ class F1(datasets.Metric):
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=["f1"],
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("int32"),

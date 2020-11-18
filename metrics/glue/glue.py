@@ -94,10 +94,25 @@ class Glue(datasets.Metric):
                 '["sst2", "mnli", "mnli_mismatched", "mnli_matched", '
                 '"cola", "stsb", "mrpc", "qqp", "qnli", "rte", "wnli", "hans"]'
             )
+        output_names_per_config = {
+            "sst2": ["accuracy"],
+            "mnli": ["accuracy"],
+            "mnli_mismatched": ["accuracy"],
+            "mnli_matched": ["accuracy"],
+            "cola": ["matthews_correlation"],
+            "stsb": ["pearson", "spearmanr"],
+            "mrpc": ["accuracy", "f1"],
+            "qqp": ["accuracy", "f1"],
+            "qnli": ["accuracy"],
+            "rte": ["accuracy"],
+            "wnli": ["accuracy"],
+            "hans": ["accuracy"],
+        }
         return datasets.MetricInfo(
             description=_DESCRIPTION,
             citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
+            output_names=output_names_per_config[self.config_name],
             features=datasets.Features(
                 {
                     "predictions": datasets.Value("int64" if self.config_name != "stsb" else "float32"),
