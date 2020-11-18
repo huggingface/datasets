@@ -82,7 +82,7 @@ class Bleu(datasets.Metric):
         if self.config_name == "default":
             self.max_order = 4
         else:
-            if not re.match("^max_order\.[0-9]+$", self.config_name):
+            if not re.match(r"^max_order\.[0-9]+$", self.config_name):
                 raise KeyError(
                     "You should supply a valid configuration name. "
                     "For example 'max_order.1' for max_order=1 or 'max_order.1' for max_order=2. "
