@@ -196,8 +196,8 @@ def hf_bucket_url(identifier: str, filename: str, use_cdn=False, dataset=True) -
     return "/".join((endpoint, identifier, filename))
 
 
-def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True) -> requests.models.Response:
-    return requests.head(hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset))
+def head_hf_s3(identifier: str, filename: str, use_cdn=False, dataset=True) -> requests.Response:
+    return http_head(hf_bucket_url(identifier=identifier, filename=filename, use_cdn=use_cdn, dataset=dataset))
 
 
 def hf_github_url(path: str, name: str, dataset=True, version: Optional[str] = None) -> str:
@@ -359,7 +359,7 @@ def cached_path(
     return output_path
 
 
-def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
+def get_datasets_user_agent(user_agent: Optional[Union[str, dict]] = None) -> str:
     ua = "datasets/{}; python/{}".format(__version__, sys.version.split()[0])
     if is_torch_available():
         ua += "; torch/{}".format(torch.__version__)
@@ -369,7 +369,11 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
         ua += "; " + "; ".join("{}/{}".format(k, v) for k, v in user_agent.items())
     elif isinstance(user_agent, str):
         ua += "; " + user_agent
-    headers = {"user-agent": ua}
+    return ua
+
+
+def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
+    headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
     if resume_size > 0:
         headers["Range"] = "bytes=%d-" % (resume_size,)
     response = requests.get(url, stream=True, proxies=proxies, headers=headers, cookies=cookies)
@@ -391,6 +395,14 @@ def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cooki
             progress.update(len(chunk))
             temp_file.write(chunk)
     progress.close()
+
+
+def http_head(url, proxies=None, user_agent=None, cookies=None, allow_redirects=True, timeout=10) -> requests.Response:
+    headers = {"user-agent": get_datasets_user_agent(user_agent=user_agent)}
+    response = requests.head(
+        url, proxies=proxies, headers=headers, cookies=cookies, allow_redirects=allow_redirects, timeout=timeout
+    )
+    return response
 
 
 def get_from_cache(
@@ -441,7 +453,7 @@ def get_from_cache(
     # We don't have the file locally or we need an eTag
     if not local_files_only:
         try:
-            response = requests.head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
+            response = http_head(url, allow_redirects=True, proxies=proxies, timeout=etag_timeout)
             if response.status_code == 200:  # ok
                 etag = response.headers.get("ETag") if use_etag else None
                 for k, v in response.cookies.items():
