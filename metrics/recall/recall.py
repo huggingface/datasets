@@ -57,16 +57,31 @@ Returns:
     recall: Recall score.
 """
 
+_CITATION = """\
+@article{scikit-learn,
+  title={Scikit-learn: Machine Learning in {P}ython},
+  author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V.
+         and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.
+         and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and
+         Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},
+  journal={Journal of Machine Learning Research},
+  volume={12},
+  pages={2825--2830},
+  year={2011}
+}
+"""
+
 
 class Recall(datasets.Metric):
     def _info(self):
         return datasets.MetricInfo(
             description=_DESCRIPTION,
+            citation=_CITATION,
             inputs_description=_KWARGS_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "predictions": datasets.Value("int"),
-                    "references": datasets.Value("int"),
+                    "predictions": datasets.Value("int32"),
+                    "references": datasets.Value("int32"),
                 }
             ),
             reference_urls=["https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html"],
@@ -74,5 +89,12 @@ class Recall(datasets.Metric):
 
     def _compute(self, predictions, references, labels=None, pos_label=1, average="binary", sample_weight=None):
         return {
-            "recall": recall_score(references, predictions, labels, pos_label, average, sample_weight),
+            "recall": recall_score(
+                references,
+                predictions,
+                labels=labels,
+                pos_label=pos_label,
+                average=average,
+                sample_weight=sample_weight,
+            ),
         }
