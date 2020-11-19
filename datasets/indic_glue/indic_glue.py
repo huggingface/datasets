@@ -508,13 +508,13 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                         "split": datasets.Split.VALIDATION,
                     },
                 ),
-                # datasets.SplitGenerator(
-                #     name=datasets.Split.TEST,
-                #     gen_kwargs={
-                #         "datafile": os.path.join(dl_dir, "test.csv"),
-                #         "split": datasets.Split.TEST,
-                #     },
-                # )
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "test.csv"),
+                        "split": datasets.Split.TEST,
+                    },
+                )
             ]
 
         if self.config.name.startswith("copa"):
@@ -537,13 +537,13 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                         "split": datasets.Split.VALIDATION,
                     },
                 ),
-                # datasets.SplitGenerator(
-                #     name=datasets.Split.TEST,
-                #     gen_kwargs={
-                #         "datafile": os.path.join(dl_dir, "test.csv"),
-                #         "split": datasets.Split.TEST,
-                #     },
-                # )
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "datafile": os.path.join(dl_dir, "test.csv"),
+                        "split": datasets.Split.TEST,
+                    },
+                )
             ]
 
         if self.config.name.startswith("sna"):
@@ -581,20 +581,6 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             dl_dir = os.path.join(dl_dir, task_name)
 
             return [
-                # datasets.SplitGenerator(
-                #     name=datasets.Split.TRAIN,
-                #     gen_kwargs={
-                #         "datafile": os.path.join(dl_dir, "bn-train.csv"),
-                #         "split": datasets.Split.TRAIN,
-                #     },
-                # ),
-                # datasets.SplitGenerator(
-                #     name=datasets.Split.VALIDATION,
-                #     gen_kwargs={
-                #         "datafile": os.path.join(dl_dir, "bn-valid.csv"),
-                #         "split": datasets.Split.VALIDATION,
-                #     },
-                # ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
@@ -796,7 +782,10 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             with open(filepath, encoding="utf-8") as f:
                 data = csv.DictReader(f)
                 for id_, row in enumerate(data):
-                    yield id_, {"sentence1": row["sentence1"], "sentence2": row["sentence2"], "label": row["label"]}
+                    if 'label' in row.keys():
+                        yield id_, {"sentence1": row["sentence1"], "sentence2": row["sentence2"], "label": row["label"]}
+                    else:
+                        yield id_, {"sentence1": row["sentence1"], "sentence2": row["sentence2"], "label": None}
 
         if self.config.name.startswith("copa"):
             with open(filepath, "r") as f:
@@ -804,13 +793,22 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 data = map(lambda l: json.loads(l), lines)
                 data = list(data)
                 for id_, row in enumerate(data):
-                    yield id_, {
-                        "premise": row["premise"],
-                        "choice1": row["choice1"],
-                        "choice2": row["choice2"],
-                        "question": row["question"],
-                        "label": row["label"],
-                    }
+                    if 'label' in row.keys():
+                        yield id_, {
+                            "premise": row["premise"],
+                            "choice1": row["choice1"],
+                            "choice2": row["choice2"],
+                            "question": row["question"],
+                            "label": row["label"],
+                        }
+                    else:
+                        yield id_, {
+                            "premise": row["premise"],
+                            "choice1": row["choice1"],
+                            "choice2": row["choice2"],
+                            "question": row["question"],
+                            "label": None,
+                        }
 
         if self.config.name.startswith("sna"):
             df = pd.read_csv(filepath, names=["label", "text"])
