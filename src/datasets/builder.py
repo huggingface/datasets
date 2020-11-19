@@ -267,7 +267,7 @@ class DatasetBuilder:
         config_kwargs_to_add_to_suffix.pop("version", None)
         # data files are handled differently
         config_kwargs_to_add_to_suffix.pop("data_files", None)
-        # data files are handled differently
+        # data dir is ignored (when specified it points to the manually downloaded data)
         config_kwargs_to_add_to_suffix.pop("data_dir", None)
         if config_kwargs_to_add_to_suffix:
             # we don't care about the order of the kwargs
@@ -278,7 +278,7 @@ class DatasetBuilder:
                 suffix = ",".join(
                     str(k) + "=" + urllib.parse.quote_plus(str(v)) for k, v in config_kwargs_to_add_to_suffix.items()
                 )
-                if len(suffix) > 16:
+                if len(suffix) > 32:  # hash if too long
                     suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
             else:
                 suffix = Hasher.hash(config_kwargs_to_add_to_suffix)
