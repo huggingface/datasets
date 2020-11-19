@@ -84,6 +84,7 @@ class Conll2003(datasets.GeneratorBasedBuilder):
                     "pos_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
+                                '"',
                                 "''",
                                 "#",
                                 "$",
@@ -102,11 +103,13 @@ class Conll2003(datasets.GeneratorBasedBuilder):
                                 "JJ",
                                 "JJR",
                                 "JJS",
+                                "LS",
                                 "MD",
                                 "NN",
                                 "NNP",
                                 "NNPS",
                                 "NNS",
+                                "NN|SYM",
                                 "PDT",
                                 "POS",
                                 "PRP",
