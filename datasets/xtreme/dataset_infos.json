@@ -236,7 +236,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -246,11 +246,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -281,19 +291,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 239551,
+                "num_bytes": 259709,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 236684,
+                "num_bytes": 257204,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 1217838,
+                "num_bytes": 1321396,
                 "num_examples": 5000,
                 "dataset_name": "xtreme"
             }
@@ -301,8 +311,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 1694073,
-        "size_in_bytes": 1694073
+        "dataset_size": 1838309,
+        "size_in_bytes": 1838309
     },
     "PAN-X.ar": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -310,7 +320,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -320,11 +330,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -355,19 +375,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1767262,
+                "num_bytes": 1808303,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1772202,
+                "num_bytes": 1811983,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3550732,
+                "num_bytes": 3634136,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -375,8 +395,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 7090196,
-        "size_in_bytes": 7090196
+        "dataset_size": 7254422,
+        "size_in_bytes": 7254422
     },
     "PAN-X.bg": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -384,7 +404,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -394,11 +414,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -429,19 +459,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 2181188,
+                "num_bytes": 2310314,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 2176649,
+                "num_bytes": 2306158,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 4344393,
+                "num_bytes": 4600773,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -449,8 +479,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 8702230,
-        "size_in_bytes": 8702230
+        "dataset_size": 9217245,
+        "size_in_bytes": 9217245
     },
     "PAN-X.bn": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -458,7 +488,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -468,11 +498,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -503,19 +543,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 160505,
+                "num_bytes": 159088,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 160371,
+                "num_bytes": 159282,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 1582989,
+                "num_bytes": 1568845,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             }
@@ -523,8 +563,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 1903865,
-        "size_in_bytes": 1903865
+        "dataset_size": 1887215,
+        "size_in_bytes": 1887215
     },
     "PAN-X.de": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -532,7 +572,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -542,11 +582,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -577,19 +627,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 2203146,
+                "num_bytes": 2381565,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 2200673,
+                "num_bytes": 2377639,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 4407607,
+                "num_bytes": 4762352,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -597,8 +647,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 8811426,
-        "size_in_bytes": 8811426
+        "dataset_size": 9521556,
+        "size_in_bytes": 9521556
     },
     "PAN-X.el": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -606,7 +656,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -616,11 +666,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -651,19 +711,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 2371024,
+                "num_bytes": 2533806,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 2380236,
+                "num_bytes": 2547594,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 4735199,
+                "num_bytes": 5063176,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -671,8 +731,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 9486459,
-        "size_in_bytes": 9486459
+        "dataset_size": 10144576,
+        "size_in_bytes": 10144576
     },
     "PAN-X.en": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -680,7 +740,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -690,11 +750,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -725,19 +795,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1837109,
+                "num_bytes": 1920069,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1833214,
+                "num_bytes": 1916220,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3658428,
+                "num_bytes": 3823474,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -745,8 +815,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 7328751,
-        "size_in_bytes": 7328751
+        "dataset_size": 7659763,
+        "size_in_bytes": 7659763
     },
     "PAN-X.es": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -754,7 +824,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -764,11 +834,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -799,19 +879,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1549018,
+                "num_bytes": 1592525,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1557058,
+                "num_bytes": 1602291,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3111588,
+                "num_bytes": 3199161,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -819,8 +899,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 6217664,
-        "size_in_bytes": 6217664
+        "dataset_size": 6393977,
+        "size_in_bytes": 6393977
     },
     "PAN-X.et": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -828,7 +908,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -838,11 +918,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -873,19 +963,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1899215,
+                "num_bytes": 2030160,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1890202,
+                "num_bytes": 2021409,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 2827532,
+                "num_bytes": 3023211,
                 "num_examples": 15000,
                 "dataset_name": "xtreme"
             }
@@ -893,8 +983,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 6616949,
-        "size_in_bytes": 6616949
+        "dataset_size": 7074780,
+        "size_in_bytes": 7074780
     },
     "PAN-X.eu": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -902,7 +992,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -912,11 +1002,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -947,19 +1047,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 2128536,
+                "num_bytes": 2296335,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 2087232,
+                "num_bytes": 2249835,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 2124195,
+                "num_bytes": 2292327,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             }
@@ -967,8 +1067,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 6339963,
-        "size_in_bytes": 6339963
+        "dataset_size": 6838497,
+        "size_in_bytes": 6838497
     },
     "PAN-X.fa": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -976,7 +1076,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -986,11 +1086,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1021,19 +1131,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1764371,
+                "num_bytes": 1782306,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1753591,
+                "num_bytes": 1770284,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3497908,
+                "num_bytes": 3529354,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -1041,8 +1151,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 7015870,
-        "size_in_bytes": 7015870
+        "dataset_size": 7081944,
+        "size_in_bytes": 7081944
     },
     "PAN-X.fi": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1050,7 +1160,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1060,11 +1170,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1095,19 +1215,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1985779,
+                "num_bytes": 2131769,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1986125,
+                "num_bytes": 2130665,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3984284,
+                "num_bytes": 4273793,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -1115,8 +1235,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 7956188,
-        "size_in_bytes": 7956188
+        "dataset_size": 8536227,
+        "size_in_bytes": 8536227
     },
     "PAN-X.fr": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1124,7 +1244,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1134,11 +1254,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1169,19 +1299,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1603746,
+                "num_bytes": 1664190,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1614095,
+                "num_bytes": 1675785,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3211052,
+                "num_bytes": 3335424,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -1189,8 +1319,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 6428893,
-        "size_in_bytes": 6428893
+        "dataset_size": 6675399,
+        "size_in_bytes": 6675399
     },
     "PAN-X.he": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1198,7 +1328,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1208,11 +1338,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1243,19 +1383,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 2197853,
+                "num_bytes": 2332760,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 2184710,
+                "num_bytes": 2318756,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 4393912,
+                "num_bytes": 4667100,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -1263,8 +1403,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 8776475,
-        "size_in_bytes": 8776475
+        "dataset_size": 9318616,
+        "size_in_bytes": 9318616
     },
     "PAN-X.hi": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1272,7 +1412,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1282,11 +1422,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1317,19 +1467,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 186447,
+                "num_bytes": 190671,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 191567,
+                "num_bytes": 196190,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 941987,
+                "num_bytes": 964212,
                 "num_examples": 5000,
                 "dataset_name": "xtreme"
             }
@@ -1337,8 +1487,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 1320001,
-        "size_in_bytes": 1320001
+        "dataset_size": 1351073,
+        "size_in_bytes": 1351073
     },
     "PAN-X.hu": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1346,7 +1496,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1356,11 +1506,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1391,19 +1551,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 2056027,
+                "num_bytes": 2211851,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 2088513,
+                "num_bytes": 2249779,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 4181015,
+                "num_bytes": 4499914,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -1411,8 +1571,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 8325555,
-        "size_in_bytes": 8325555
+        "dataset_size": 8961544,
+        "size_in_bytes": 8961544
     },
     "PAN-X.id": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1420,7 +1580,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1430,11 +1590,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1465,19 +1635,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1488200,
+                "num_bytes": 1537979,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1488821,
+                "num_bytes": 1536879,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 2984364,
+                "num_bytes": 3084007,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -1485,8 +1655,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 5961385,
-        "size_in_bytes": 5961385
+        "dataset_size": 6158865,
+        "size_in_bytes": 6158865
     },
     "PAN-X.it": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1494,7 +1664,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1504,11 +1674,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1539,19 +1719,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1799110,
+                "num_bytes": 1908529,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1818323,
+                "num_bytes": 1928408,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3650086,
+                "num_bytes": 3874663,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -1559,8 +1739,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 7267519,
-        "size_in_bytes": 7267519
+        "dataset_size": 7711600,
+        "size_in_bytes": 7711600
     },
     "PAN-X.ja": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1568,7 +1748,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1578,11 +1758,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1613,19 +1803,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 5731159,
+                "num_bytes": 6323003,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 5837263,
+                "num_bytes": 6448960,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 11484238,
+                "num_bytes": 12670401,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -1633,8 +1823,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 23052660,
-        "size_in_bytes": 23052660
+        "dataset_size": 25442364,
+        "size_in_bytes": 25442364
     },
     "PAN-X.jv": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1642,7 +1832,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1652,11 +1842,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1687,19 +1887,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 13849,
+                "num_bytes": 14600,
                 "num_examples": 100,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 15967,
+                "num_bytes": 16917,
                 "num_examples": 100,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 15277,
+                "num_bytes": 16106,
                 "num_examples": 100,
                 "dataset_name": "xtreme"
             }
@@ -1707,8 +1907,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 45093,
-        "size_in_bytes": 45093
+        "dataset_size": 47623,
+        "size_in_bytes": 47623
     },
     "PAN-X.ka": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1716,7 +1916,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1726,11 +1926,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1761,19 +1971,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 2673984,
+                "num_bytes": 2806901,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 2689735,
+                "num_bytes": 2824641,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 2647372,
+                "num_bytes": 2777362,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             }
@@ -1781,8 +1991,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 8011091,
-        "size_in_bytes": 8011091
+        "dataset_size": 8408904,
+        "size_in_bytes": 8408904
     },
     "PAN-X.kk": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1790,7 +2000,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1800,11 +2010,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1835,19 +2055,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 223564,
+                "num_bytes": 238109,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 222452,
+                "num_bytes": 236724,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 225665,
+                "num_bytes": 240276,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             }
@@ -1855,8 +2075,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 671681,
-        "size_in_bytes": 671681
+        "dataset_size": 715109,
+        "size_in_bytes": 715109
     },
     "PAN-X.ko": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1864,7 +2084,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1874,11 +2094,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1909,19 +2139,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 2001509,
+                "num_bytes": 2138167,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1999935,
+                "num_bytes": 2138294,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 4007596,
+                "num_bytes": 4284733,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -1929,8 +2159,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 8009040,
-        "size_in_bytes": 8009040
+        "dataset_size": 8561194,
+        "size_in_bytes": 8561194
     },
     "PAN-X.ml": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -1938,7 +2168,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -1948,11 +2178,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -1983,19 +2223,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 280356,
+                "num_bytes": 290755,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 267505,
+                "num_bytes": 276926,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 2761268,
+                "num_bytes": 2865204,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             }
@@ -2003,8 +2243,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 3309129,
-        "size_in_bytes": 3309129
+        "dataset_size": 3432885,
+        "size_in_bytes": 3432885
     },
     "PAN-X.mr": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2012,7 +2252,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2022,11 +2262,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2057,19 +2307,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 235886,
+                "num_bytes": 245358,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 245728,
+                "num_bytes": 255904,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 1200208,
+                "num_bytes": 1248259,
                 "num_examples": 5000,
                 "dataset_name": "xtreme"
             }
@@ -2077,8 +2327,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 1681822,
-        "size_in_bytes": 1681822
+        "dataset_size": 1749521,
+        "size_in_bytes": 1749521
     },
     "PAN-X.ms": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2086,7 +2336,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2096,11 +2346,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2131,19 +2391,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 143962,
+                "num_bytes": 147515,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 143474,
+                "num_bytes": 147168,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 2891221,
+                "num_bytes": 2965048,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -2151,8 +2411,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 3178657,
-        "size_in_bytes": 3178657
+        "dataset_size": 3259731,
+        "size_in_bytes": 3259731
     },
     "PAN-X.my": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2160,7 +2420,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2170,11 +2430,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2205,19 +2475,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 38801,
+                "num_bytes": 40428,
                 "num_examples": 100,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 36050,
+                "num_bytes": 37366,
                 "num_examples": 100,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 31697,
+                "num_bytes": 32735,
                 "num_examples": 100,
                 "dataset_name": "xtreme"
             }
@@ -2225,8 +2495,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 106548,
-        "size_in_bytes": 106548
+        "dataset_size": 110529,
+        "size_in_bytes": 110529
     },
     "PAN-X.nl": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2234,7 +2504,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2244,11 +2514,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2279,19 +2559,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1884498,
+                "num_bytes": 2016856,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1905080,
+                "num_bytes": 2038638,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3794646,
+                "num_bytes": 4062189,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -2299,8 +2579,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 7584224,
-        "size_in_bytes": 7584224
+        "dataset_size": 8117683,
+        "size_in_bytes": 8117683
     },
     "PAN-X.pt": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2308,7 +2588,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2318,11 +2598,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2353,19 +2643,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1532155,
+                "num_bytes": 1575141,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1520256,
+                "num_bytes": 1562625,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3061472,
+                "num_bytes": 3149283,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -2373,8 +2663,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 6113883,
-        "size_in_bytes": 6113883
+        "dataset_size": 6287049,
+        "size_in_bytes": 6287049
     },
     "PAN-X.ru": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2382,7 +2672,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2392,11 +2682,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2427,19 +2727,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1963572,
+                "num_bytes": 2053169,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1983441,
+                "num_bytes": 2074145,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3944940,
+                "num_bytes": 4121791,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -2447,8 +2747,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 7891953,
-        "size_in_bytes": 7891953
+        "dataset_size": 8249105,
+        "size_in_bytes": 8249105
     },
     "PAN-X.sw": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2456,7 +2756,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2466,11 +2766,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2501,19 +2811,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 132333,
+                "num_bytes": 136368,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 135953,
+                "num_bytes": 140231,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 132388,
+                "num_bytes": 135911,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             }
@@ -2521,8 +2831,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 400674,
-        "size_in_bytes": 400674
+        "dataset_size": 412510,
+        "size_in_bytes": 412510
     },
     "PAN-X.ta": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2530,7 +2840,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2540,11 +2850,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2575,19 +2895,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 266926,
+                "num_bytes": 277625,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 268043,
+                "num_bytes": 278114,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3966656,
+                "num_bytes": 4122130,
                 "num_examples": 15000,
                 "dataset_name": "xtreme"
             }
@@ -2595,8 +2915,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 4501625,
-        "size_in_bytes": 4501625
+        "dataset_size": 4677869,
+        "size_in_bytes": 4677869
     },
     "PAN-X.te": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2604,7 +2924,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2614,11 +2934,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2649,19 +2979,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 278149,
+                "num_bytes": 293281,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 281606,
+                "num_bytes": 296963,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 280165,
+                "num_bytes": 295410,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             }
@@ -2669,8 +2999,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 839920,
-        "size_in_bytes": 839920
+        "dataset_size": 885654,
+        "size_in_bytes": 885654
     },
     "PAN-X.th": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2678,7 +3008,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2688,11 +3018,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2723,19 +3063,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 12083128,
+                "num_bytes": 13262737,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 12353838,
+                "num_bytes": 13586928,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 24670938,
+                "num_bytes": 27133029,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -2743,8 +3083,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 49107904,
-        "size_in_bytes": 49107904
+        "dataset_size": 53982694,
+        "size_in_bytes": 53982694
     },
     "PAN-X.tl": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2752,7 +3092,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2762,11 +3102,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2797,19 +3147,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 115005,
+                "num_bytes": 114156,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 118419,
+                "num_bytes": 117904,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 1175421,
+                "num_bytes": 1168717,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             }
@@ -2817,8 +3167,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 1408845,
-        "size_in_bytes": 1408845
+        "dataset_size": 1400777,
+        "size_in_bytes": 1400777
     },
     "PAN-X.tr": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2826,7 +3176,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2836,11 +3186,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2871,19 +3231,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1805618,
+                "num_bytes": 1915352,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1801374,
+                "num_bytes": 1911503,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3564396,
+                "num_bytes": 3779170,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -2891,8 +3251,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 7171388,
-        "size_in_bytes": 7171388
+        "dataset_size": 7606025,
+        "size_in_bytes": 7606025
     },
     "PAN-X.ur": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2900,7 +3260,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2910,11 +3270,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -2945,19 +3315,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 152455,
+                "num_bytes": 152148,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 152273,
+                "num_bytes": 151922,
                 "num_examples": 1000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3076665,
+                "num_bytes": 3072276,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -2965,8 +3335,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 3381393,
-        "size_in_bytes": 3381393
+        "dataset_size": 3376346,
+        "size_in_bytes": 3376346
     },
     "PAN-X.vi": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -2974,7 +3344,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -2984,11 +3354,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -3019,19 +3399,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 1535777,
+                "num_bytes": 1565143,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 1548007,
+                "num_bytes": 1580216,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 3092742,
+                "num_bytes": 3153227,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -3039,8 +3419,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 6176526,
-        "size_in_bytes": 6176526
+        "dataset_size": 6298586,
+        "size_in_bytes": 6298586
     },
     "PAN-X.yo": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -3048,7 +3428,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -3058,11 +3438,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -3093,19 +3483,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 13230,
+                "num_bytes": 13245,
                 "num_examples": 100,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 13392,
+                "num_bytes": 13533,
                 "num_examples": 100,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 14353,
+                "num_bytes": 14709,
                 "num_examples": 100,
                 "dataset_name": "xtreme"
             }
@@ -3113,8 +3503,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 40975,
-        "size_in_bytes": 40975
+        "dataset_size": 41487,
+        "size_in_bytes": 41487
     },
     "PAN-X.zh": {
         "description": "The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been\nconstructed using the linked entities in Wikipedia pages for 282 different languages including Danish. The dataset\ncan be loaded with the DaNLP package:\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
@@ -3122,7 +3512,7 @@
         "homepage": "https://github.com/google-research/xtreme\t",
         "license": "",
         "features": {
-            "words": {
+            "tokens": {
                 "feature": {
                     "dtype": "string",
                     "id": null,
@@ -3132,11 +3522,21 @@
                 "id": null,
                 "_type": "Sequence"
             },
-            "ner": {
+            "ner_tags": {
                 "feature": {
-                    "dtype": "string",
+                    "num_classes": 7,
+                    "names": [
+                        "O",
+                        "B-PER",
+                        "I-PER",
+                        "B-ORG",
+                        "I-ORG",
+                        "B-LOC",
+                        "I-LOC"
+                    ],
+                    "names_file": null,
                     "id": null,
-                    "_type": "Value"
+                    "_type": "ClassLabel"
                 },
                 "length": -1,
                 "id": null,
@@ -3167,19 +3567,19 @@
         "splits": {
             "validation": {
                 "name": "validation",
-                "num_bytes": 4070883,
+                "num_bytes": 4491325,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "test": {
                 "name": "test",
-                "num_bytes": 3959169,
+                "num_bytes": 4363172,
                 "num_examples": 10000,
                 "dataset_name": "xtreme"
             },
             "train": {
                 "name": "train",
-                "num_bytes": 8007685,
+                "num_bytes": 8832051,
                 "num_examples": 20000,
                 "dataset_name": "xtreme"
             }
@@ -3187,8 +3587,8 @@
         "download_checksums": {},
         "download_size": 0,
         "post_processing_size": null,
-        "dataset_size": 16037737,
-        "size_in_bytes": 16037737
+        "dataset_size": 17686548,
+        "size_in_bytes": 17686548
     },
     "MLQA.ar.ar": {
         "description": "      MLQA (MultiLingual Question Answering) is a benchmark dataset for evaluating cross-lingual question answering performance.\nMLQA consists of over 5K extractive QA instances (12K in English) in SQuAD format in seven languages - English, Arabic,\nGerman, Spanish, Hindi, Vietnamese and Simplified Chinese. MLQA is highly parallel, with QA instances parallel between\n4 different languages on average.\nThe Cross-lingual TRansfer Evaluation of Multilingual Encoders (XTREME) benchmark is a benchmark for the evaluation of\nthe cross-lingual generalization ability of pre-trained multilingual models. It covers 40 typologically diverse languages\n(spanning 12 language families) and includes nine tasks that collectively require reasoning about different levels of\nsyntax and semantics. The languages in XTREME are selected to maximize language diversity, coverage in existing tasks,\nand availability of training data. Among these are many under-studied languages, such as the Dravidian languages Tamil\n(spoken in southern India, Sri Lanka, and Singapore), Telugu and Malayalam (spoken mainly in southern India), and the\nNiger-Congo languages Swahili and Yoruba, spoken in Africa.\n",
