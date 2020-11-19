@@ -21,6 +21,7 @@ class CsvConfig(datasets.BuilderConfig):
     delimiter: Optional[str] = None
     header: Optional[Union[int, List[int], str]] = "infer"
     names: Optional[List[str]] = None
+    column_names: Optional[List[str]] = None
     index_col: Optional[Union[int, str, List[int], List[str]]] = None
     usecols: Optional[Union[List[int], List[str]]] = None
     prefix: Optional[str] = None
@@ -57,6 +58,8 @@ class CsvConfig(datasets.BuilderConfig):
     def __post_init__(self):
         if self.delimiter is not None:
             self.sep = self.delimiter
+        if self.column_names is not None:
+            self.names = self.column_names
 
 
 class Csv(datasets.ArrowBasedBuilder):
