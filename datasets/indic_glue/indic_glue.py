@@ -499,6 +499,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "datafile": os.path.join(dl_dir, "train.csv"),
                         "split": datasets.Split.TRAIN,
+                        "key": "train-split",
                     },
                 ),
                 datasets.SplitGenerator(
@@ -506,6 +507,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "datafile": os.path.join(dl_dir, "dev.csv"),
                         "split": datasets.Split.VALIDATION,
+                        "key": "val-split",
                     },
                 ),
                 datasets.SplitGenerator(
@@ -513,8 +515,9 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "datafile": os.path.join(dl_dir, "test.csv"),
                         "split": datasets.Split.TEST,
+                        "key": "test-split",
                     },
-                )
+                ),
             ]
 
         if self.config.name.startswith("copa"):
@@ -528,6 +531,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "datafile": os.path.join(dl_dir, "train.jsonl"),
                         "split": datasets.Split.TRAIN,
+                        "key": "train-split",
                     },
                 ),
                 datasets.SplitGenerator(
@@ -535,15 +539,17 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     gen_kwargs={
                         "datafile": os.path.join(dl_dir, "val.jsonl"),
                         "split": datasets.Split.VALIDATION,
+                        "key": "val-split",
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, "test.csv"),
+                        "datafile": os.path.join(dl_dir, "test.jsonl"),
                         "split": datasets.Split.TEST,
+                        "key": "test-split",
                     },
-                )
+                ),
             ]
 
         if self.config.name.startswith("sna"):
@@ -779,35 +785,47 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
         filepath = args["datafile"]
 
         if self.config.name.startswith("wnli"):
-            with open(filepath, encoding="utf-8") as f:
-                data = csv.DictReader(f)
-                for id_, row in enumerate(data):
-                    if 'label' in row.keys():
-                        yield id_, {"sentence1": row["sentence1"], "sentence2": row["sentence2"], "label": row["label"]}
-                    else:
-                        yield id_, {"sentence1": row["sentence1"], "sentence2": row["sentence2"], "label": None}
+            if args["key"] == "test-split":
+                with open(filepath, encoding="utf-8") as f:
+                    data = csv.DictReader(f)
+                    for id_, row in enumerate(data):
+                        yield id_, {"sentence1": row["sentence1"], "sentence2": row["sentence2"], "label": -1}
+            else:
+                with open(filepath, encoding="utf-8") as f:
+                    data = csv.DictReader(f)
+                    for id_, row in enumerate(data):
+                        yield id_, {
+                            "sentence1": row["sentence1"],
+                            "sentence2": row["sentence2"],
+                            "label": row["label"],
+                        }
 
         if self.config.name.startswith("copa"):
-            with open(filepath, "r") as f:
-                lines = f.readlines()
-                data = map(lambda l: json.loads(l), lines)
-                data = list(data)
-                for id_, row in enumerate(data):
-                    if 'label' in row.keys():
+            if args["key"] == "test-split":
+                with open(filepath, "r") as f:
+                    lines = f.readlines()
+                    data = map(lambda l: json.loads(l), lines)
+                    data = list(data)
+                    for id_, row in enumerate(data):
+                        yield id_, {
+                            "premise": row["premise"],
+                            "choice1": row["choice1"],
+                            "choice2": row["choice2"],
+                            "question": row["question"],
+                            "label": 0,
+                        }
+            else:
+                with open(filepath, "r") as f:
+                    lines = f.readlines()
+                    data = map(lambda l: json.loads(l), lines)
+                    data = list(data)
+                    for id_, row in enumerate(data):
                         yield id_, {
                             "premise": row["premise"],
                             "choice1": row["choice1"],
                             "choice2": row["choice2"],
                             "question": row["question"],
                             "label": row["label"],
-                        }
-                    else:
-                        yield id_, {
-                            "premise": row["premise"],
-                            "choice1": row["choice1"],
-                            "choice2": row["choice2"],
-                            "question": row["question"],
-                            "label": None,
                         }
 
         if self.config.name.startswith("sna"):
