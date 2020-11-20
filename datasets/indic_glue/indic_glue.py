@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import json
-import math
 import os
 import textwrap
 
@@ -51,11 +50,11 @@ _DESCRIPTIONS = {
     ),
     "copa": textwrap.dedent(
         """
-        The Choice Of Plausible Alternatives (COPA) evaluation provides researchers with a tool for assessing 
-        progress in open-domain commonsense causal reasoning. COPA consists of 1000 questions, split equally 
-        into development and test sets of 500 questions each. Each question is composed of a premise and two 
-        alternatives, where the task is to select the alternative that more plausibly has a causal relation 
-        with the premise. The correct alternative is randomized so that the expected performance of randomly 
+        The Choice Of Plausible Alternatives (COPA) evaluation provides researchers with a tool for assessing
+        progress in open-domain commonsense causal reasoning. COPA consists of 1000 questions, split equally
+        into development and test sets of 500 questions each. Each question is composed of a premise and two
+        alternatives, where the task is to select the alternative that more plausibly has a causal relation
+        with the premise. The correct alternative is randomized so that the expected performance of randomly
         guessing is 50%. This dataset is translated and publicly released for 3 languages by AI4Bharat.
         """
     ),
@@ -67,19 +66,19 @@ _DESCRIPTIONS = {
     ),
     "csqa": textwrap.dedent(
         """
-        Given a text with an entity randomly masked, the task is to predict that masked entity from a list of 4 
+        Given a text with an entity randomly masked, the task is to predict that masked entity from a list of 4
         candidate entities. The dataset contains around 239k examples across 11 languages.
         """
     ),
     "wstp": textwrap.dedent(
         """
-        Predict the correct title for a Wikipedia section from a given list of four candidate titles. 
+        Predict the correct title for a Wikipedia section from a given list of four candidate titles.
         The dataset has 400k examples across 11 Indian languages.
         """
     ),
     "inltkh": textwrap.dedent(
         """
-        Obtained from inltk project. The corpus is a collection of headlines tagged with their news category. 
+        Obtained from inltk project. The corpus is a collection of headlines tagged with their news category.
         Available for langauges: gu, ml, mr and ta.
         """
     ),
@@ -90,9 +89,9 @@ _DESCRIPTIONS = {
     ),
     "cvit-mkb-clsr": textwrap.dedent(
         """
-        CVIT Maan ki Baat Dataset - Given a sentence in language $L_1$ the task is to retrieve its translation 
-        from a set of candidate sentences in language $L_2$. 
-        The dataset contains around 39k parallel sentence pairs across 8 Indian languages. 
+        CVIT Maan ki Baat Dataset - Given a sentence in language $L_1$ the task is to retrieve its translation
+        from a set of candidate sentences in language $L_2$.
+        The dataset contains around 39k parallel sentence pairs across 8 Indian languages.
         """
     ),
     "iitp-mr": textwrap.dedent(
@@ -112,16 +111,16 @@ _DESCRIPTIONS = {
     ),
     "md": textwrap.dedent(
         """
-        The Hindi Discourse Analysis dataset is a corpus for analyzing discourse modes present in its sentences. 
-        It contains sentences from stories written by 11 famous authors from the 20th Century. 4-5 stories by 
-        each author have been selected which were available in the public domain resulting in a collection of 53 stories. 
-        Most of these short stories were originally written in Hindi but some of them were written in other Indian languages 
+        The Hindi Discourse Analysis dataset is a corpus for analyzing discourse modes present in its sentences.
+        It contains sentences from stories written by 11 famous authors from the 20th Century. 4-5 stories by
+        each author have been selected which were available in the public domain resulting in a collection of 53 stories.
+        Most of these short stories were originally written in Hindi but some of them were written in other Indian languages
         and later translated to Hindi.
         """
     ),
     "wiki-ner": textwrap.dedent(
         """
-        The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been constructed using 
+        The WikiANN dataset (Pan et al. 2017) is a dataset with NER annotations for PER, ORG and LOC. It has been constructed using
         the linked entities in Wikipedia pages for 282 different languages including Danish.
         """
     ),
@@ -777,7 +776,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
 
         if self.config.name.startswith("copa"):
             if args["key"] == "test-split":
-                with open(filepath, "r") as f:
+                with open(filepath, "r", encoding="utf-8") as f:
                     lines = f.readlines()
                     data = map(lambda l: json.loads(l), lines)
                     data = list(data)
@@ -790,7 +789,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                             "label": 0,
                         }
             else:
-                with open(filepath, "r") as f:
+                with open(filepath, "r", encoding="utf-8") as f:
                     lines = f.readlines()
                     data = map(lambda l: json.loads(l), lines)
                     data = list(data)
@@ -852,7 +851,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             source = args["src"]
             target = args["tgt"]
 
-            src, tgt = open(source, "r"), open(target, "r")
+            src, tgt = open(source, "r", encoding="utf-8"), open(target, "r", encoding="utf-8")
             src, tgt = src.readlines(), tgt.readlines()
 
             for id_, row in enumerate(zip(src, tgt)):
@@ -869,7 +868,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 }
 
         if self.config.name.startswith("wiki-ner"):
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 data = f.readlines()
                 for id_, row in enumerate(data):
                     tokens = []
