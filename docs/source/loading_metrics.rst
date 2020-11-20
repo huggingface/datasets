@@ -83,7 +83,7 @@ You can use a local metric script just by providing its path instead of the usua
 .. code-block::
 
     >>> from datasets import load_metric
-    >>> dataset = load_metric('PATH/TO/MY/METRIC/SCRIPT')
+    >>> metric = load_metric('PATH/TO/MY/METRIC/SCRIPT')
     >>>
     >>> # Example of typical usage
     >>> for batch in dataset:

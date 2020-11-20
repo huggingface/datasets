@@ -80,10 +80,104 @@ class Conll2003(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "words": datasets.Sequence(datasets.Value("string")),
-                    "pos": datasets.Sequence(datasets.Value("string")),
-                    "chunk": datasets.Sequence(datasets.Value("string")),
-                    "ner": datasets.Sequence(datasets.Value("string")),
+                    "tokens": datasets.Sequence(datasets.Value("string")),
+                    "pos_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                '"',
+                                "''",
+                                "#",
+                                "$",
+                                "(",
+                                ")",
+                                ",",
+                                ".",
+                                ":",
+                                "``",
+                                "CC",
+                                "CD",
+                                "DT",
+                                "EX",
+                                "FW",
+                                "IN",
+                                "JJ",
+                                "JJR",
+                                "JJS",
+                                "LS",
+                                "MD",
+                                "NN",
+                                "NNP",
+                                "NNPS",
+                                "NNS",
+                                "NN|SYM",
+                                "PDT",
+                                "POS",
+                                "PRP",
+                                "PRP$",
+                                "RB",
+                                "RBR",
+                                "RBS",
+                                "RP",
+                                "SYM",
+                                "TO",
+                                "UH",
+                                "VB",
+                                "VBD",
+                                "VBG",
+                                "VBN",
+                                "VBP",
+                                "VBZ",
+                                "WDT",
+                                "WP",
+                                "WP$",
+                                "WRB",
+                            ]
+                        )
+                    ),
+                    "chunk_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "O",
+                                "B-ADJP",
+                                "I-ADJP",
+                                "B-ADVP",
+                                "I-ADVP",
+                                "B-CONJP",
+                                "I-CONJP",
+                                "B-INTJ",
+                                "I-INTJ",
+                                "B-LST",
+                                "I-LST",
+                                "B-NP",
+                                "I-NP",
+                                "B-PP",
+                                "I-PP",
+                                "B-PRT",
+                                "I-PRT",
+                                "B-SBAR",
+                                "I-SBAR",
+                                "B-UCP",
+                                "I-UCP",
+                                "B-VP",
+                                "I-VP",
+                            ]
+                        )
+                    ),
+                    "ner_tags": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "O",
+                                "B-PER",
+                                "I-PER",
+                                "B-ORG",
+                                "I-ORG",
+                                "B-LOC",
+                                "I-LOC",
+                                "B-MISC",
+                                "I-MISC",
+                            ]
+                        )
+                    ),
                 }
             ),
             supervised_keys=None,
@@ -110,25 +204,37 @@ class Conll2003(datasets.GeneratorBasedBuilder):
         logging.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             guid = 0
-            words = []
-            pos = []
-            chunk = []
-            ner = []
+            tokens = []
+            pos_tags = []
+            chunk_tags = []
+            ner_tags = []
             for line in f:
                 if line.startswith("-DOCSTART-") or line == "" or line == "\n":
-                    if words:
-                        yield guid, {"id": str(guid), "words": words, "pos": pos, "chunk": chunk, "ner": ner}
+                    if tokens:
+                        yield guid, {
+                            "id": str(guid),
+                            "tokens": tokens,
+                            "pos_tags": pos_tags,
+                            "chunk_tags": chunk_tags,
+                            "ner_tags": ner_tags,
+                        }
                         guid += 1
-                        words = []
-                        pos = []
-                        chunk = []
-                        ner = []
+                        tokens = []
+                        pos_tags = []
+                        chunk_tags = []
+                        ner_tags = []
                 else:
                     # conll2003 tokens are space separated
                     splits = line.split(" ")
-                    words.append(splits[0])
-                    pos.append(splits[1])
-                    chunk.append(splits[2])
-                    ner.append(splits[3].rstrip())
+                    tokens.append(splits[0])
+                    pos_tags.append(splits[1])
+                    chunk_tags.append(splits[2])
+                    ner_tags.append(splits[3].rstrip())
             # last example
-            yield guid, {"id": str(guid), "words": words, "pos": pos, "chunk": chunk, "ner": ner}
+            yield guid, {
+                "id": str(guid),
+                "tokens": tokens,
+                "pos_tags": pos_tags,
+                "chunk_tags": chunk_tags,
+                "ner_tags": ner_tags,
+            }

@@ -78,8 +78,6 @@ REQUIRED_PKGS = [
     "tqdm>=4.27,<4.50.0",
     # dataclasses for Python versions that don't have it
     "dataclasses;python_version<'3.7'",
-    # filesystem locks e.g. to prevent parallel downloads
-    "filelock",
     # for fast hashing
     "xxhash",
     # for better multiprocessing
@@ -136,7 +134,7 @@ EXTRAS_REQUIRE = {
 
 setup(
     name='datasets',
-    version="1.1.2",
+    version="1.1.3",
     description=DOCLINES[0],
     long_description='\n'.join(DOCLINES[2:]),
     author='HuggingFace Inc.',
