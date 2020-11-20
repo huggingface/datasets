@@ -27,8 +27,6 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 from urllib.parse import urlparse
 
-from filelock import FileLock
-
 from .arrow_dataset import Dataset
 from .builder import DatasetBuilder
 from .dataset_dict import DatasetDict
@@ -38,6 +36,7 @@ from .metric import Metric
 from .splits import Split
 from .utils.download_manager import GenerateMode
 from .utils.file_utils import HF_MODULES_CACHE, DownloadConfig, cached_path, head_hf_s3, hf_bucket_url, hf_github_url
+from .utils.filelock import FileLock
 from .utils.logging import get_logger
 from .utils.version import Version
 
