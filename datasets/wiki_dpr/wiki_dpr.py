@@ -80,7 +80,7 @@ class WikiDprConfig(datasets.BuilderConfig):
 
         prefix = f"{wiki_split}.{embeddings_name}."
         if self.index_name == "exact":
-            self.index_file = prefix + "HNSW128-IP-{split}.faiss"
+            self.index_file = prefix + "HNSW128_SQ8-IP-{split}.faiss"
         else:
             self.index_file = prefix + "IVF4096_HNSW128_PQ128-IP-{split}.faiss"
         if self.dummy:
@@ -174,7 +174,7 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
         if resource_name == "embeddings_index":
             try:
                 downloaded_resources = dl_manager.download_and_extract(
-                    {"embeddings_index": os.path.join(_INDEX_URL, self.config.index_file.format(split=split))}
+                    {"embeddings_index": _INDEX_URL + "/" + self.config.index_file.format(split=split)}
                 )
                 return downloaded_resources["embeddings_index"]
             except (FileNotFoundError, ConnectionError):  # index doesn't exist
@@ -195,13 +195,15 @@ class WikiDpr(datasets.GeneratorBasedBuilder):
                 logging.info("Building wiki_dpr faiss index")
                 if self.config.index_name == "exact":
                     index = faiss.IndexHNSWFlat(d, 128, faiss.METRIC_INNER_PRODUCT)
-                    index.hndw.efConstruction = 200
+                    index.hnsw.efConstruction = 200
+                    index.hnsw.efSearch = 128
                     dataset.add_faiss_index("embeddings", custom_index=index)
                 else:
                     quantizer = faiss.IndexHNSWFlat(d, 128, faiss.METRIC_INNER_PRODUCT)
-                    quantizer.hndw.efConstruction = 200
+                    quantizer.hnsw.efConstruction = 200
+                    quantizer.hnsw.efSearch = 128
                     ivf_index = faiss.IndexIVFPQ(quantizer, d, 4096, 128, 8, faiss.METRIC_INNER_PRODUCT)
-                    ivf_index.nprobe = 512
+                    ivf_index.nprobe = 64
                     ivf_index.own_fields = True
                     quantizer.this.disown()
                     dataset.add_faiss_index(
