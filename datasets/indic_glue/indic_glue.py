@@ -601,50 +601,25 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             task_name = self._get_task_name_from_data_url(self.config.data_url)
             dl_dir = os.path.join(dl_dir, task_name + "/" + self.config.name.split(".")[1])
 
-            if self.config.name.split(".")[1] == "te":
-                return [
-                    datasets.SplitGenerator(
-                        name=datasets.Split.TRAIN,
-                        gen_kwargs={
-                            "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.json"),
-                            "split": datasets.Split.TRAIN,
-                        },
-                    ),
-                    datasets.SplitGenerator(
-                        name=datasets.Split.VALIDATION,
-                        gen_kwargs={
-                            "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-valid.json"),
-                            "split": datasets.Split.VALIDATION,
-                        },
-                    ),
-                    datasets.SplitGenerator(
-                        name=datasets.Split.TEST,
-                        gen_kwargs={
-                            "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.json"),
-                            "split": datasets.Split.TEST,
-                        },
-                    ),
-                ]
-
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.csv"),
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-train.json"),
                         "split": datasets.Split.TRAIN,
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-valid.csv"),
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-valid.json"),
                         "split": datasets.Split.VALIDATION,
                     },
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
                     gen_kwargs={
-                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.csv"),
+                        "datafile": os.path.join(dl_dir, f"{self.config.name.split('.')[1]}-test.json"),
                         "split": datasets.Split.TEST,
                     },
                 ),
