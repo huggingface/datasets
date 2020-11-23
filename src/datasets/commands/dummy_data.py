@@ -1,16 +1,16 @@
+import json
 import logging
 import os
-import json
 import shutil
 from argparse import ArgumentParser
-from typing import Optional
-
 from pathlib import Path
+from typing import Optional
 
 from datasets.commands import BaseTransformersCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
+from datasets.utils.file_utils import DownloadConfig
 from datasets.utils.filelock import logger as filelock_logger
 from datasets.utils.logging import get_logger
 from datasets.utils.py_utils import map_nested
@@ -26,11 +26,11 @@ def test_command_factory(args):
         args.n_lines,
         args.json_field,
         args.keep_uncompressed,
+        args.cache_dir,
     )
 
 
 class DummyDataGeneratorDownloadManager(DownloadManager):
-
     def __init__(self, mock_download_manager, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mock_download_manager = mock_download_manager
@@ -51,13 +51,19 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         map_nested(self.expected_dummy_paths.append, dummy_output, map_tuple=True)
         return output
 
-    def auto_generate_dummy_data_folder(self, n_lines=10, json_field: Optional[str] = None):
+    def auto_generate_dummy_data_folder(self, n_lines=5, json_field: Optional[str] = None):
         for src_path, relative_dst_path in zip(self.downloaded_paths, self.expected_dummy_paths):
-            dst_path = os.path.join("datasets", self.mock_download_manager.dataset_name, self.mock_download_manager.dummy_data_folder, relative_dst_path)
+            dst_path = os.path.join(
+                "datasets",
+                self.mock_download_manager.dataset_name,
+                self.mock_download_manager.dummy_data_folder,
+                relative_dst_path,
+            )
             self._create_dummy_data(src_path, dst_path, n_lines=n_lines, json_field=json_field)
 
     def _create_dummy_data(self, src_path: str, dst_path: str, n_lines: int, json_field: Optional[str] = None):
         if os.path.isfile(src_path):
+            logger.debug(f"Trying to generate dummy data file {dst_path}")
             line_by_line_extensions = [".txt", ".csv", ".jsonl", ".tsv"]
             if any(dst_path.endswith(extension) for extension in line_by_line_extensions):
                 Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
@@ -106,10 +112,29 @@ class DummyDataCommand(BaseTransformersCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("dummy_data")
-        test_parser.add_argument("--auto_generate", action="store_true", help="Try to automatically generate dummy data")
-        test_parser.add_argument("--n_lines", type=int, default=10, help="number of lines used when auto-generating dummy data")
-        test_parser.add_argument("--json_field", type=str, default=None, help="optional, json field to read the data from when auto-generating dummy data")
-        test_parser.add_argument("--keep_uncompressed", action="store_true", help="don't compress the dummy data folders when auto-generating dummy data")
+        test_parser.add_argument(
+            "--auto_generate", action="store_true", help="Try to automatically generate dummy data"
+        )
+        test_parser.add_argument(
+            "--n_lines", type=int, default=5, help="number of lines used when auto-generating dummy data"
+        )
+        test_parser.add_argument(
+            "--json_field",
+            type=str,
+            default=None,
+            help="optional, json field to read the data from when auto-generating dummy data",
+        )
+        test_parser.add_argument(
+            "--keep_uncompressed",
+            action="store_true",
+            help="don't compress the dummy data folders when auto-generating dummy data",
+        )
+        test_parser.add_argument(
+            "--cache_dir",
+            type=str,
+            default=None,
+            help="cache directory to download and cache files when auto-generating dummy data",
+        )
         test_parser.add_argument("path_to_dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=test_command_factory)
 
@@ -120,6 +145,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         n_lines: int,
         json_field: Optional[str],
         keep_uncompressed: bool,
+        cache_dir: Optional[str],
     ):
         self._path_to_dataset = path_to_dataset
         if os.path.isdir(path_to_dataset):
@@ -130,6 +156,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         self._n_lines = n_lines
         self._json_field = json_field
         self._keep_uncompressed = keep_uncompressed
+        self._cache_dir = cache_dir
 
     def run(self):
         filelock_logger().setLevel(level=logging.WARNING)
@@ -147,9 +174,9 @@ class DummyDataCommand(BaseTransformersCLICommand):
                 version = config.version
                 name = config.name
 
-            dataset_builder = builder_cls(name=name, hash=hash)
+            dataset_builder = builder_cls(name=name, hash=hash, cache_dir=self._cache_dir)
             mock_dl_manager = MockDownloadManager(
-                dataset_name=self._dataset_name, config=config, version=version, is_local=True
+                dataset_name=self._dataset_name, config=config, version=version, is_local=True,
             )
 
             if self._auto_generate:
@@ -170,11 +197,15 @@ class DummyDataCommand(BaseTransformersCLICommand):
         base_name = os.path.join(root_dir, "dummy_data")
         base_dir = "dummy_data"
         logger.info(f"Compressing dummy data folder to '{base_name}.zip'")
-        shutil.make_archive(base_name, 'zip', root_dir, base_dir)
+        shutil.make_archive(base_name, "zip", root_dir, base_dir)
         shutil.rmtree(base_name)
 
     def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager):
-        dl_manager = DummyDataGeneratorDownloadManager(dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager)
+        dl_cache_dir = os.path.join(dataset_builder._cache_dir_root, "downloads")
+        download_config = DownloadConfig(cache_dir=dl_cache_dir)
+        dl_manager = DummyDataGeneratorDownloadManager(
+            dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config
+        )
         dataset_builder._split_generators(dl_manager)
         dl_manager.auto_generate_dummy_data_folder(n_lines=self._n_lines, json_field=self._json_field)
 
@@ -245,7 +276,9 @@ class DummyDataCommand(BaseTransformersCLICommand):
         else:
             dummy_data_guidance_print += f"-After all dummy data files are created, they should be zipped recursively to '{dummy_file_name}.zip' with the command `zip -r {dummy_file_name}.zip {dummy_file_name}/` \n\n"
 
-            dummy_data_guidance_print += f"-You can now delete the folder '{dummy_file_name}' with the command `rm -r {dummy_file_name}` \n\n"
+            dummy_data_guidance_print += (
+                f"-You can now delete the folder '{dummy_file_name}' with the command `rm -r {dummy_file_name}` \n\n"
+            )
 
             dummy_data_guidance_print += f"- To get the folder '{dummy_file_name}' back for further changes to the dummy data, simply unzip {dummy_file_name}.zip with the command `unzip {dummy_file_name}.zip` \n\n"
 
