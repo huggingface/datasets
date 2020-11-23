@@ -22,7 +22,7 @@ from datetime import datetime
 from functools import partial
 from typing import Dict, Union
 
-from .file_utils import HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
+from .file_utils import DownloadConfig, HF_DATASETS_CACHE, cached_path, get_from_cache, hash_url_to_filename
 from .info_utils import get_size_checksum_dict
 from .logging import get_logger
 from .py_utils import flatten_nested, map_nested, size_str
@@ -62,15 +62,14 @@ class DownloadManager(object):
 
         Args:
             data_dir: can be used to specify a manual directory to get the files from.
-            cache_dir: `str`, path to directory where downloads are stored.
-            extract_dir: `str`, path to directory where artifacts are extracted.
             dataset_name: `str`, name of dataset this instance will be used for. If
                 provided, downloads will contain which datasets they were used for.
-            force_download: `bool`, default to False. If True, always [re]download.
+            download_config: `DownloadConfig` to specify the cache directory and other
+                download options
         """
         self._dataset_name = dataset_name
         self._data_dir = data_dir
-        self._download_config = download_config
+        self._download_config = download_config or DownloadConfig()
         # To record what is being used: {url: {num_bytes: int, checksum: str}}
         self._recorded_sizes_checksums: Dict[str, Dict[str, Union[int, str]]] = {}
 
