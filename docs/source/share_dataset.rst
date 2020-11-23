@@ -246,6 +246,14 @@ This command will output instructions specifically tailored to your dataset and 
 	- Make sure you have created the file 'dummy_data.zip' in './datasets/my-dataset/dummy/1.1.0' 
 	===================================================================================
 
+There is a tool that automatically generates dummy data for you but it only works with some types of data files such as txt, csv, tsv, jsonl and json.
+If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
+
+.. code-block::
+
+	python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+
+
 3. Testing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
