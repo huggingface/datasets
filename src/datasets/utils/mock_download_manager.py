@@ -29,13 +29,17 @@ logger = get_logger(__name__)
 
 class MockDownloadManager(object):
     dummy_file_name = "dummy_data"
+    datasets_scripts_dir = "datasets"
 
-    def __init__(self, dataset_name, config, version, cache_dir=None, is_local=False):
+    def __init__(self, dataset_name, config, version, cache_dir=None, is_local=False, load_existing_dummy_data=True):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
         self.cache_dir = cache_dir
         self.is_local = is_local
         self.config = config
+        # if False, it doesn't load existing files and it returns the paths of the dummy files relative
+        # to the dummy_data zip file root
+        self.load_existing_dummy_data = load_existing_dummy_data
 
         # TODO(PVP, QL) might need to make this more general
         self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
@@ -74,7 +78,7 @@ class MockDownloadManager(object):
 
     @property
     def local_path_to_dummy_data(self):
-        return os.path.join("datasets", self.dataset_name, self.dummy_zip_file)
+        return os.path.join(self.datasets_scripts_dir, self.dataset_name, self.dummy_zip_file)
 
     @property
     def github_path_to_dummy_data(self):
@@ -92,7 +96,7 @@ class MockDownloadManager(object):
 
     # this function has to be in the manager under this name so that testing works
     def download_and_extract(self, data_url, *args):
-        if self.cache_dir is not None:
+        if self.load_existing_dummy_data:
             # dummy data is downloaded and tested
             dummy_file = self.dummy_file
         else:
