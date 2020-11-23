@@ -176,7 +176,10 @@ class DummyDataCommand(BaseTransformersCLICommand):
 
             dataset_builder = builder_cls(name=name, hash=hash, cache_dir=self._cache_dir)
             mock_dl_manager = MockDownloadManager(
-                dataset_name=self._dataset_name, config=config, version=version, is_local=True,
+                dataset_name=self._dataset_name,
+                config=config,
+                version=version,
+                is_local=True,
             )
 
             if self._auto_generate:
