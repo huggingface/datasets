@@ -29,7 +29,7 @@ Each example is a triplet of (question, passage, answer), with the title of the 
 The text-pair classification setup is similar to existing natural language inference tasks.
 """
 
-_URL = "gs://boolq"
+_URL = "https://storage.googleapis.com/boolq"
 _TRAIN_FILE_NAME = "train.jsonl"
 _DEV_FILE_NAME = "dev.jsonl"
 
@@ -72,7 +72,7 @@ class Boolq(datasets.GeneratorBasedBuilder):
             "train": os.path.join(_URL, _TRAIN_FILE_NAME),
             "dev": os.path.join(_URL, _DEV_FILE_NAME),
         }
-        downloaded_files = dl_manager.download_custom(urls_to_download, partial(tf.io.gfile.copy, overwrite=True))
+        downloaded_files = dl_manager.download(urls_to_download)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
