@@ -4,9 +4,6 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import os
-from functools import partial
-
-import tensorflow as tf
 
 import datasets
 
