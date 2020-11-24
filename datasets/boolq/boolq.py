@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import os
+from functools import partial
 
 import tensorflow as tf
 
@@ -71,7 +72,7 @@ class Boolq(datasets.GeneratorBasedBuilder):
             "train": os.path.join(_URL, _TRAIN_FILE_NAME),
             "dev": os.path.join(_URL, _DEV_FILE_NAME),
         }
-        downloaded_files = dl_manager.download_custom(urls_to_download, tf.io.gfile.copy)
+        downloaded_files = dl_manager.download_custom(urls_to_download, partial(tf.io.gfile.copy, overwrite=True))
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
