@@ -246,12 +246,21 @@ This command will output instructions specifically tailored to your dataset and 
 	- Make sure you have created the file 'dummy_data.zip' in './datasets/my-dataset/dummy/1.1.0' 
 	===================================================================================
 
-There is a tool that automatically generates dummy data for you but it only works with some types of data files such as txt, csv, tsv, jsonl and json.
+There is a tool that automatically generates dummy data for you but it only works with some types of data files such as txt, csv, tsv, jsonl, json and xml.
 If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
 
 .. code-block::
 
 	python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+
+Examples:
+
+	python datasets-cli dummy_data ./datasets/snli --auto_generate
+	python datasets-cli dummy_data ./datasets/squad --auto_generate --json_field data
+	python datasets-cli dummy_data ./datasets/iwslt2017 --auto_generate --xml_tag seg --match_text_files "train*" --n_lines 15
+	# --xml_tag seg => each sample corresponds to a "seg" tag in the xml tree
+	# --match_text_files "train*" =>  also match text files that don't have a proper text file extension (like .txt for example)
+	# --n_lines 15 => some text files have headers so we have to use at least 15 lines
 
 
 3. Testing
