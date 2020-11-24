@@ -1,8 +1,8 @@
+import fnmatch
 import json
 import logging
 import os
 import shutil
-import fnmatch
 import xml.etree.ElementTree as ET
 from argparse import ArgumentParser
 from pathlib import Path
@@ -56,7 +56,11 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         return output
 
     def auto_generate_dummy_data_folder(
-        self, n_lines=5, json_field: Optional[str] = None, xml_tag: Optional[str] = None, match_text_files: Optional[str] = None
+        self,
+        n_lines=5,
+        json_field: Optional[str] = None,
+        xml_tag: Optional[str] = None,
+        match_text_files: Optional[str] = None,
     ) -> bool:
         os.makedirs(
             os.path.join(
@@ -76,7 +80,12 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 relative_dst_path,
             )
             total += self._create_dummy_data(
-                src_path, dst_path, n_lines=n_lines, json_field=json_field, xml_tag=xml_tag, match_text_files=match_text_files
+                src_path,
+                dst_path,
+                n_lines=n_lines,
+                json_field=json_field,
+                xml_tag=xml_tag,
+                match_text_files=match_text_files,
             )
         if total == 0:
             logger.error(
@@ -92,7 +101,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         n_lines: int,
         json_field: Optional[str] = None,
         xml_tag: Optional[str] = None,
-        match_text_files: Optional[str] = None
+        match_text_files: Optional[str] = None,
     ) -> int:
         if os.path.isfile(src_path):
             logger.debug(f"Trying to generate dummy data file {dst_path}")
@@ -160,8 +169,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                         tree.write(dst_path, encoding="utf-8")
                 return 1
             logger.warning(
-                f"Couldn't generate dummy file '{dst_path}'. "
-                "Ignore that if this file is not useful for dummy data."
+                f"Couldn't generate dummy file '{dst_path}'. " "Ignore that if this file is not useful for dummy data."
             )
             return 0
         elif os.path.isdir(src_path):
@@ -172,7 +180,12 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                         src_file_path = os.path.join(path, name)
                         dst_file_path = os.path.join(dst_path, Path(src_file_path).relative_to(src_path))
                         total += self._create_dummy_data(
-                            src_file_path, dst_file_path, n_lines=n_lines, json_field=json_field, xml_tag=xml_tag, match_text_files=match_text_files
+                            src_file_path,
+                            dst_file_path,
+                            n_lines=n_lines,
+                            json_field=json_field,
+                            xml_tag=xml_tag,
+                            match_text_files=match_text_files,
                         )
             return total
 
@@ -293,7 +306,10 @@ class DummyDataCommand(BaseTransformersCLICommand):
         )
         dataset_builder._split_generators(dl_manager)
         dl_manager.auto_generate_dummy_data_folder(
-            n_lines=self._n_lines, json_field=self._json_field, xml_tag=self._xml_tag, match_text_files=self._match_text_files
+            n_lines=self._n_lines,
+            json_field=self._json_field,
+            xml_tag=self._xml_tag,
+            match_text_files=self._match_text_files,
         )
         if not keep_uncompressed:
             path_do_dataset = os.path.join(mock_dl_manager.datasets_scripts_dir, mock_dl_manager.dataset_name)
