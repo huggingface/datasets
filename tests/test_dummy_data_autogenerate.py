@@ -75,3 +75,4 @@ class DummyDataAutoGenerationTest(TestCase):
             dataset_builder.download_and_prepare(dl_manager=mock_dl_manager, ignore_verifications=True)
             dataset = dataset_builder.as_dataset(split="train")
             self.assertEqual(len(dataset), n_lines)
+            del dataset

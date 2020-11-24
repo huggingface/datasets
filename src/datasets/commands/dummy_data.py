@@ -237,7 +237,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
             default=None,
             help="Cache directory to download and cache files when auto-generating dummy data",
         )
-        test_parser.add_argument("path_to_dataset", type=str, help="Name of the dataset to download")
+        test_parser.add_argument("path_to_dataset", type=str, help="Path to the dataset (example: ./datasets/squad)")
         test_parser.set_defaults(func=test_command_factory)
 
     def __init__(

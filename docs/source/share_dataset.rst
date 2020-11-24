@@ -278,7 +278,7 @@ Usage of the command:
 													path_to_dataset
 
 	positional arguments:
-	path_to_dataset       Name of the dataset to download
+	path_to_dataset       Path to the dataset (example: ./datasets/squad)
 
 	optional arguments:
 	-h, --help            show this help message and exit
