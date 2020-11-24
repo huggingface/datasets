@@ -255,12 +255,53 @@ If the extensions of the raw data files of your dataset are in this list, then y
 
 Examples:
 
+.. code-block::
+
 	python datasets-cli dummy_data ./datasets/snli --auto_generate
 	python datasets-cli dummy_data ./datasets/squad --auto_generate --json_field data
 	python datasets-cli dummy_data ./datasets/iwslt2017 --auto_generate --xml_tag seg --match_text_files "train*" --n_lines 15
 	# --xml_tag seg => each sample corresponds to a "seg" tag in the xml tree
-	# --match_text_files "train*" =>  also match text files that don't have a proper text file extension (like .txt for example)
+	# --match_text_files "train*" =>  also match text files that don't have a proper text file extension (no suffix like ".txt" for example)
 	# --n_lines 15 => some text files have headers so we have to use at least 15 lines
+
+Usage of the command:
+
+.. code-block::
+
+	usage: datasets-cli <command> [<args>] dummy_data [-h] [--auto_generate]
+													[--n_lines N_LINES]
+													[--json_field JSON_FIELD]
+													[--xml_tag XML_TAG]
+													[--match_text_files MATCH_TEXT_FILES]
+													[--keep_uncompressed]
+													[--cache_dir CACHE_DIR]
+													path_to_dataset
+
+	positional arguments:
+	path_to_dataset       Name of the dataset to download
+
+	optional arguments:
+	-h, --help            show this help message and exit
+	--auto_generate       Try to automatically generate dummy data
+	--n_lines N_LINES     Number of lines or samples to keep when auto-
+							generating dummy data
+	--json_field JSON_FIELD
+							Optional, json field to read the data from when auto-
+							generating dummy data. In the json data files, this
+							field must point to a list of samples as json objects
+							(ex: the 'data' field for squad-like files)
+	--xml_tag XML_TAG     Optional, xml tag name of the samples inside the xml
+							files when auto-generating dummy data.
+	--match_text_files MATCH_TEXT_FILES
+							Optional, a comma separated list of file patterns that
+							looks for line-by-line text files other than *.txt or
+							*.csv. Example: --match_text_files *.label
+	--keep_uncompressed   Don't compress the dummy data folders when auto-
+							generating dummy data. Useful for debugging for to do
+							manual adjustements before compressing.
+	--cache_dir CACHE_DIR
+							Cache directory to download and cache files when auto-
+							generating dummy data
 
 
 3. Testing

@@ -193,36 +193,36 @@ class DummyDataCommand(BaseTransformersCLICommand):
             "--auto_generate", action="store_true", help="Try to automatically generate dummy data"
         )
         test_parser.add_argument(
-            "--n_lines", type=int, default=5, help="number of lines used when auto-generating dummy data"
+            "--n_lines", type=int, default=5, help="Number of lines or samples to keep when auto-generating dummy data"
         )
         test_parser.add_argument(
             "--json_field",
             type=str,
             default=None,
-            help="optional, json field to read the data from when auto-generating dummy data",
+            help="Optional, json field to read the data from when auto-generating dummy data. In the json data files, this field must point to a list of samples as json objects (ex: the 'data' field for squad-like files)",
         )
         test_parser.add_argument(
             "--xml_tag",
             type=str,
             default=None,
-            help="optional, xml tag name of the samples to filter when auto-generating dummy data",
+            help="Optional, xml tag name of the samples inside the xml files when auto-generating dummy data.",
         )
         test_parser.add_argument(
             "--match_text_files",
             type=str,
             default=None,
-            help="optional, a regex that looks for line-by-line text files other than *.txt or *.csv for example",
+            help="Optional, a comma separated list of file patterns that looks for line-by-line text files other than *.txt or *.csv. Example: --match_text_files *.label",
         )
         test_parser.add_argument(
             "--keep_uncompressed",
             action="store_true",
-            help="don't compress the dummy data folders when auto-generating dummy data",
+            help="Don't compress the dummy data folders when auto-generating dummy data. Useful for debugging for to do manual adjustements before compressing.",
         )
         test_parser.add_argument(
             "--cache_dir",
             type=str,
             default=None,
-            help="cache directory to download and cache files when auto-generating dummy data",
+            help="Cache directory to download and cache files when auto-generating dummy data",
         )
         test_parser.add_argument("path_to_dataset", type=str, help="Name of the dataset to download")
         test_parser.set_defaults(func=test_command_factory)
