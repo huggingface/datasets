@@ -306,7 +306,7 @@ _CITATIONS = {
 }
 
 _TEXT_FEATURES = {
-    "wnli": {"sentence1": "sentence1", "sentence2": "sentence2"},
+    "wnli": {"hypothesis": "sentence1", "premise": "sentence2"},
     "copa": {"premise": "premise", "choice1": "choice1", "choice2": "choice2", "question": "question"},
     "sna": {"text": "text", "label": "label"},
     "csqa": {"question": "question", "answer": "answer", "category": "category", "title": "title"},
@@ -457,12 +457,14 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
 
-        if (
-            self.config.name.startswith("wnli")
-            or self.config.name.startswith("copa")
-            or self.config.name.startswith("actsa")
-        ):
+        if self.config.name.startswith("copa"):
             features["label"] = datasets.Value("int32")
+
+        if self.config.name.startswith("wnli"):
+            features["label"] = datasets.features.ClassLabel(names=["not_entailment", "entailment", "None"])
+
+        if self.config.name.startswith("actsa"):
+            features["label"] = datasets.features.ClassLabel(names=["positive", "negative"])
 
         if self.config.name.startswith("csqa"):
             features["options"] = datasets.features.Sequence(datasets.Value("string"))
@@ -474,7 +476,9 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
 
         if self.config.name.startswith("wiki-ner"):
             features["tokens"] = datasets.features.Sequence(datasets.Value("string"))
-            features["labels"] = datasets.features.Sequence(datasets.Value("string"))
+            features["ner_tags"] = datasets.features.Sequence(
+                datasets.features.ClassLabel(names=["B-LOC", "B-ORG", "B-PER", "I-LOC", "I-ORG", "I-PER", "O"])
+            )
             features["additional_info"] = datasets.features.Sequence(
                 datasets.features.Sequence(datasets.Value("string"))
             )
@@ -763,15 +767,16 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                 with open(filepath, encoding="utf-8") as f:
                     data = csv.DictReader(f)
                     for id_, row in enumerate(data):
-                        yield id_, {"sentence1": row["sentence1"], "sentence2": row["sentence2"], "label": -1}
+                        yield id_, {"hypothesis": row["sentence1"], "premise": row["sentence2"], "label": "None"}
             else:
                 with open(filepath, encoding="utf-8") as f:
                     data = csv.DictReader(f)
                     for id_, row in enumerate(data):
+                        label = "entailment" if row["label"] else "not_entailment"
                         yield id_, {
-                            "sentence1": row["sentence1"],
-                            "sentence2": row["sentence2"],
-                            "label": row["label"],
+                            "hypothesis": row["sentence1"],
+                            "premise": row["sentence2"],
+                            "label": label,
                         }
 
         if self.config.name.startswith("copa"):
@@ -841,11 +846,16 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             self.config.name.startswith("inltkh")
             or self.config.name.startswith("bbca")
             or self.config.name.startswith("iitp")
-            or self.config.name.startswith("actsa")
         ):
             df = pd.read_csv(filepath, names=["label", "text"])
             for id_, row in df.iterrows():
                 yield id_, {"text": row["text"], "label": row["label"]}
+
+        if self.config.name.startswith("actsa"):
+            df = pd.read_csv(filepath, names=["label", "text"])
+            for id_, row in df.iterrows():
+                label = "positive" if row["label"] else "negative"
+                yield id_, {"text": row["text"], "label": label}
 
         if self.config.name.startswith("cvit"):
             source = args["src"]
@@ -878,7 +888,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
                     row = row.split()
 
                     if len(row) == 0:
-                        yield id_, {"tokens": tokens, "labels": labels, "additional_info": infos}
+                        yield id_, {"tokens": tokens, "ner_tags": labels, "additional_info": infos}
                         continue
 
                     tokens.append(row[0])
