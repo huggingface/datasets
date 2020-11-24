@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import shutil
+import fnmatch
+import xml.etree.ElementTree as ET
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import Optional
@@ -25,6 +27,8 @@ def test_command_factory(args):
         args.auto_generate,
         args.n_lines,
         args.json_field,
+        args.xml_tag,
+        args.match_text_files,
         args.keep_uncompressed,
         args.cache_dir,
     )
@@ -51,13 +55,15 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         map_nested(self.expected_dummy_paths.append, dummy_output, map_tuple=True)
         return output
 
-    def auto_generate_dummy_data_folder(self, n_lines=5, json_field: Optional[str] = None):
+    def auto_generate_dummy_data_folder(
+        self, n_lines=5, json_field: Optional[str] = None, xml_tag: Optional[str] = None, match_text_files: Optional[str] = None
+    ) -> bool:
         os.makedirs(
             os.path.join(
                 self.mock_download_manager.datasets_scripts_dir,
                 self.mock_download_manager.dataset_name,
                 self.mock_download_manager.dummy_data_folder,
-                "dummy_data"
+                "dummy_data",
             ),
             exist_ok=True,
         )
@@ -69,18 +75,34 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 self.mock_download_manager.dummy_data_folder,
                 relative_dst_path,
             )
-            total += self._create_dummy_data(src_path, dst_path, n_lines=n_lines, json_field=json_field)
+            total += self._create_dummy_data(
+                src_path, dst_path, n_lines=n_lines, json_field=json_field, xml_tag=xml_tag, match_text_files=match_text_files
+            )
         if total == 0:
-            raise ValueError(
+            logger.error(
                 "Dummy data generation failed: no dummy files were created. "
                 "Make sure the data files format is supported by the auto-generation."
             )
+        return total > 0
 
-    def _create_dummy_data(self, src_path: str, dst_path: str, n_lines: int, json_field: Optional[str] = None):
+    def _create_dummy_data(
+        self,
+        src_path: str,
+        dst_path: str,
+        n_lines: int,
+        json_field: Optional[str] = None,
+        xml_tag: Optional[str] = None,
+        match_text_files: Optional[str] = None
+    ) -> int:
         if os.path.isfile(src_path):
             logger.debug(f"Trying to generate dummy data file {dst_path}")
             line_by_line_extensions = [".txt", ".csv", ".jsonl", ".tsv"]
-            if any(dst_path.endswith(extension) for extension in line_by_line_extensions):
+            is_line_by_line_text_file = any(dst_path.endswith(extension) for extension in line_by_line_extensions)
+            if match_text_files is not None:
+                file_name = os.path.basename(dst_path)
+                for pattern in match_text_files.split(","):
+                    is_line_by_line_text_file |= fnmatch.fnmatch(file_name, pattern)
+            if is_line_by_line_text_file:
                 Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
                 with open(src_path, "r", encoding="utf-8") as src_file:
                     with open(dst_path, "w", encoding="utf-8") as dst_file:
@@ -108,12 +130,40 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                     with open(dst_path, "w", encoding="utf-8") as dst_file:
                         json.dump(first_json_data, dst_file)
                 return 1
-            else:
-                logger.warning(
-                    f"Couldn't generate dummy file '{dst_path}'. "
-                    "Ignore that if this file is not useful for dummy data."
-                )
-                return 0
+            elif dst_path.endswith(".xml"):
+                if xml_tag is None:
+                    logger.warning("Found xml file but 'xml_tag' is set to None. Please provide --xml_tag")
+                else:
+                    Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
+                    with open(src_path, "r", encoding="utf-8") as src_file:
+                        tree = ET.parse(src_file)
+                        # get parent tag
+
+                        def _get_parent_tag(tree, tag: str) -> str:
+                            for element in tree.iter():
+                                for subelement in element:
+                                    if subelement.tag == xml_tag:
+                                        return element.tag
+
+                        parent_tag = _get_parent_tag(tree, xml_tag)
+                        assert parent_tag is not None, f"couldn't find xml tag {xml_tag}"
+                        # remove all the elements except the first n
+                        current = 0
+                        for parent in tree.iter(parent_tag):
+                            children = [child for child in parent if child.tag == xml_tag]
+                            first_elements = children[: n_lines - current]
+                            children_to_remove = children[n_lines - current :]
+                            current += len(first_elements)
+                            for child_to_remove in children_to_remove:
+                                parent.remove(child_to_remove)
+
+                        tree.write(dst_path, encoding="utf-8")
+                return 1
+            logger.warning(
+                f"Couldn't generate dummy file '{dst_path}'. "
+                "Ignore that if this file is not useful for dummy data."
+            )
+            return 0
         elif os.path.isdir(src_path):
             total = 0
             for path, _, files in os.walk(src_path):
@@ -121,7 +171,9 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                     if not name.startswith("."):  # ignore files like .DS_Store etc.
                         src_file_path = os.path.join(path, name)
                         dst_file_path = os.path.join(dst_path, Path(src_file_path).relative_to(src_path))
-                        total += self._create_dummy_data(src_file_path, dst_file_path, n_lines=n_lines, json_field=json_field)
+                        total += self._create_dummy_data(
+                            src_file_path, dst_file_path, n_lines=n_lines, json_field=json_field, xml_tag=xml_tag, match_text_files=match_text_files
+                        )
             return total
 
     def compress_autogenerated_dummy_data(self, path_to_dataset):
@@ -150,6 +202,18 @@ class DummyDataCommand(BaseTransformersCLICommand):
             help="optional, json field to read the data from when auto-generating dummy data",
         )
         test_parser.add_argument(
+            "--xml_tag",
+            type=str,
+            default=None,
+            help="optional, xml tag name of the samples to filter when auto-generating dummy data",
+        )
+        test_parser.add_argument(
+            "--match_text_files",
+            type=str,
+            default=None,
+            help="optional, a regex that looks for line-by-line text files other than *.txt or *.csv for example",
+        )
+        test_parser.add_argument(
             "--keep_uncompressed",
             action="store_true",
             help="don't compress the dummy data folders when auto-generating dummy data",
@@ -169,6 +233,8 @@ class DummyDataCommand(BaseTransformersCLICommand):
         auto_generate: bool,
         n_lines: int,
         json_field: Optional[str],
+        xml_tag: Optional[str],
+        match_text_files: Optional[str],
         keep_uncompressed: bool,
         cache_dir: Optional[str],
     ):
@@ -180,6 +246,8 @@ class DummyDataCommand(BaseTransformersCLICommand):
         self._auto_generate = auto_generate
         self._n_lines = n_lines
         self._json_field = json_field
+        self._xml_tag = xml_tag
+        self._match_text_files = match_text_files
         self._keep_uncompressed = keep_uncompressed
         self._cache_dir = cache_dir
 
@@ -224,7 +292,9 @@ class DummyDataCommand(BaseTransformersCLICommand):
             dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config
         )
         dataset_builder._split_generators(dl_manager)
-        dl_manager.auto_generate_dummy_data_folder(n_lines=self._n_lines, json_field=self._json_field)
+        dl_manager.auto_generate_dummy_data_folder(
+            n_lines=self._n_lines, json_field=self._json_field, xml_tag=self._xml_tag, match_text_files=self._match_text_files
+        )
         if not keep_uncompressed:
             path_do_dataset = os.path.join(mock_dl_manager.datasets_scripts_dir, mock_dl_manager.dataset_name)
             dl_manager.compress_autogenerated_dummy_data(path_do_dataset)
