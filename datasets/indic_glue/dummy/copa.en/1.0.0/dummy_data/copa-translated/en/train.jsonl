@@ -1,5 +1,0 @@
-{"premise": "My body cast a shadow over the grass.", "choice1": "The sun was rising.", "choice2": "The grass was cut.", "question": "cause", "label": 0, "idx": 0}
-{"premise": "The woman tolerated her friend's difficult behavior.", "choice1": "The woman knew her friend was going through a hard time.", "choice2": "The woman felt that her friend took advantage of her kindness.", "question": "cause", "label": 0, "idx": 1}
-{"premise": "The women met for coffee.", "choice1": "The cafe reopened in a new location.", "choice2": "They wanted to catch up with each other.", "question": "cause", "label": 1, "idx": 2}
-{"premise": "The runner wore shorts.", "choice1": "The forecast predicted high temperatures.", "choice2": "She planned to run along the beach.", "question": "cause", "label": 0, "idx": 3}
-{"premise": "The guests of the party hid behind the couch.", "choice1": "It was a surprise party.", "choice2": "It was a birthday party.", "question": "cause", "label": 0, "idx": 4}
