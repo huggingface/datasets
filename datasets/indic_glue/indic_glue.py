@@ -308,7 +308,7 @@ _CITATIONS = {
 _TEXT_FEATURES = {
     "wnli": {"hypothesis": "sentence1", "premise": "sentence2"},
     "copa": {"premise": "premise", "choice1": "choice1", "choice2": "choice2", "question": "question"},
-    "sna": {"text": "text", "label": "label"},
+    "sna": {"text": "text"},
     "csqa": {"question": "question", "answer": "answer", "category": "category", "title": "title"},
     "wstp": {
         "sectionText": "sectionText",
@@ -319,11 +319,11 @@ _TEXT_FEATURES = {
         "titleD": "titleD",
         "url": "url",
     },
-    "inltkh": {"label": "label", "text": "text"},
+    "inltkh": {"text": "text"},
     "bbca": {"label": "label", "text": "text"},
     "cvit-mkb-clsr": {"sentence1": "sentence1", "sentence2": "sentence2"},
-    "iitp-mr": {"label": "label", "text": "text"},
-    "iitp-pr": {"label": "label", "text": "text"},
+    "iitp-mr": {"text": "text"},
+    "iitp-pr": {"text": "text"},
     "actsa-sc": {"text": "text"},
     "md": {"sentence": "sentence", "discourse_mode": "discourse_mode"},
     "wiki-ner": {},
@@ -459,6 +459,30 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
 
         if self.config.name.startswith("copa"):
             features["label"] = datasets.Value("int32")
+
+        if self.config.name.startswith("sna"):
+            features["label"] = datasets.features.ClassLabel(
+                names=["kolkata", "state", "national", "sports", "entertainment", "international"]
+            )
+
+        if self.config.name.startswith("inltkh"):
+            features["label"] = datasets.features.ClassLabel(
+                names=[
+                    "entertainment",
+                    "business",
+                    "tech",
+                    "sports",
+                    "state",
+                    "spirituality",
+                    "tamil-cinema",
+                    "positive",
+                    "negative",
+                    "neutral",
+                ]
+            )
+
+        if self.config.name.startswith("iitp"):
+            features["label"] = datasets.features.ClassLabel(names=["negative", "neutral", "positive"])
 
         if self.config.name.startswith("wnli"):
             features["label"] = datasets.features.ClassLabel(names=["not_entailment", "entailment", "None"])
