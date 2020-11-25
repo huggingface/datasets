@@ -103,6 +103,7 @@ _VERSION = "1.0.0"
 
 COMBINED = "combined"
 
+
 class PolyglotNERConfig(datasets.BuilderConfig):
     def __init__(self, *args, languages=None, **kwargs):
         super().__init__(*args, version=datasets.Version(_VERSION, ""), **kwargs)
