@@ -508,7 +508,7 @@ class IndicGlue(datasets.GeneratorBasedBuilder):
             )
 
         return datasets.DatasetInfo(
-            description=_INDIC_GLUE_DECSRIPTION + "\n" + self.config.description,
+            description=_INDIC_GLUE_DESCRIPTION + "\n" + self.config.description,
             features=datasets.Features(features),
             homepage=self.config.url,
             citation=_INDIC_GLUE_CITATION + "\n" + self.config.citation,
