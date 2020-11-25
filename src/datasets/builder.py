@@ -590,8 +590,13 @@ class DatasetBuilder:
             try:
                 # Prepare split will record examples associated to the split
                 self._prepare_split(split_generator, **prepare_split_kwargs)
-            except OSError:
-                raise OSError("Cannot find data file. " + (self.manual_download_instructions or ""))
+            except OSError as e:
+                raise OSError(
+                    "Cannot find data file. "
+                    + (self.manual_download_instructions or "")
+                    + "\nOriginal error:\n"
+                    + str(e)
+                )
 
         if verify_infos:
             verify_splits(self.info.splits, split_dict)
