@@ -57,7 +57,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
 
     def auto_generate_dummy_data_folder(
         self,
-        n_lines=5,
+        n_lines: int =5,
         json_field: Optional[str] = None,
         xml_tag: Optional[str] = None,
         match_text_files: Optional[str] = None,
@@ -203,7 +203,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("dummy_data")
         test_parser.add_argument(
-            "--auto_generate", action="store_true", help="Try to automatically generate dummy data"
+            "--auto_generate", action="store_true", help="Automatically generate dummy data"
         )
         test_parser.add_argument(
             "--n_lines", type=int, default=5, help="Number of lines or samples to keep when auto-generating dummy data"
@@ -229,7 +229,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         test_parser.add_argument(
             "--keep_uncompressed",
             action="store_true",
-            help="Don't compress the dummy data folders when auto-generating dummy data. Useful for debugging for to do manual adjustements before compressing.",
+            help="Whether to leave the dummy data folders uncompressed when auto-generating dummy data. Useful for debugging for to do manual adjustements before compressing.",
         )
         test_parser.add_argument(
             "--cache_dir",

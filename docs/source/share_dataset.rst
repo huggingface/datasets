@@ -246,7 +246,7 @@ This command will output instructions specifically tailored to your dataset and 
 	- Make sure you have created the file 'dummy_data.zip' in './datasets/my-dataset/dummy/1.1.0' 
 	===================================================================================
 
-There is a tool that automatically generates dummy data for you but it only works with some types of data files such as txt, csv, tsv, jsonl, json and xml.
+There is a tool that automatically generates dummy data for you. At the moment it supports data files in the following format: txt, csv, tsv, jsonl, json, xml.
 If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
 
 .. code-block::
@@ -282,7 +282,7 @@ Usage of the command:
 
 	optional arguments:
 	-h, --help            show this help message and exit
-	--auto_generate       Try to automatically generate dummy data
+	--auto_generate       Automatically generate dummy data
 	--n_lines N_LINES     Number of lines or samples to keep when auto-
 							generating dummy data
 	--json_field JSON_FIELD
@@ -296,9 +296,9 @@ Usage of the command:
 							Optional, a comma separated list of file patterns that
 							looks for line-by-line text files other than *.txt or
 							*.csv. Example: --match_text_files *.label
-	--keep_uncompressed   Don't compress the dummy data folders when auto-
-							generating dummy data. Useful for debugging for to do
-							manual adjustements before compressing.
+	--keep_uncompressed   Whether to leave the dummy data folders uncompressed
+							when auto-generating dummy data. Useful for debugging
+							for to do manual adjustements before compressing.
 	--cache_dir CACHE_DIR
 							Cache directory to download and cache files when auto-
 							generating dummy data
