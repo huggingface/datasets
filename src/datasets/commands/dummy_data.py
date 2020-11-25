@@ -57,7 +57,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
 
     def auto_generate_dummy_data_folder(
         self,
-        n_lines: int =5,
+        n_lines: int = 5,
         json_field: Optional[str] = None,
         xml_tag: Optional[str] = None,
         match_text_files: Optional[str] = None,
