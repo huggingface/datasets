@@ -328,7 +328,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
                 logger.error("Failed to load dummy data.\nOriginal error:\n" + str(e))
             else:
                 if all(n_examples > 0 for n_examples in n_examples_per_split.values()):
-                    logger.warning("Dummy data generation done and dummy data test succeded.")
+                    logger.warning("Dummy data generation done and dummy data test succeeded.")
                 else:
                     empty_splits = [
                         split_name for split_name in n_examples_per_split if n_examples_per_split[split_name] == 0
