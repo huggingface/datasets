@@ -101,6 +101,7 @@ _DATA_URL = "http://cs.stonybrook.edu/~polyglot/ner2/emnlp_datasets.tgz"
 _HOMEPAGE_URL = "https://sites.google.com/site/rmyeid/projects/polylgot-ner"
 _VERSION = "1.0.0"
 
+COMBINED = "combined"
 
 class PolyglotNERConfig(datasets.BuilderConfig):
     def __init__(self, *args, languages=None, **kwargs):
@@ -120,9 +121,11 @@ class PolyglotNER(datasets.GeneratorBasedBuilder):
         for lang in _LANGUAGES
     ] + [
         PolyglotNERConfig(
-            name="combined", languages=_LANGUAGES, description=f"Complete Polyglot-NER dataset with all languages."
+            name=COMBINED, languages=_LANGUAGES, description=f"Complete Polyglot-NER dataset with all languages."
         )
     ]
+
+    DEFAULT_CONFIG_NAME = COMBINED
 
     def _info(self):
         return datasets.DatasetInfo(
