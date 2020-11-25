@@ -203,9 +203,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
     @staticmethod
     def register_subcommand(parser: ArgumentParser):
         test_parser = parser.add_parser("dummy_data")
-        test_parser.add_argument(
-            "--auto_generate", action="store_true", help="Automatically generate dummy data"
-        )
+        test_parser.add_argument("--auto_generate", action="store_true", help="Automatically generate dummy data")
         test_parser.add_argument(
             "--n_lines", type=int, default=5, help="Number of lines or samples to keep when auto-generating dummy data"
         )
@@ -332,8 +330,12 @@ class DummyDataCommand(BaseTransformersCLICommand):
                 if all(n_examples > 0 for n_examples in n_examples_per_split.values()):
                     logger.warning("Dummy data generation done and dummy data test succeded.")
                 else:
-                    empty_splits = [split_name for split_name in n_examples_per_split if n_examples_per_split[split_name] == 0]
-                    logger.warning(f"Dummy data generation done but dummy data test failed since splits {empty_splits} have 0 examples.")
+                    empty_splits = [
+                        split_name for split_name in n_examples_per_split if n_examples_per_split[split_name] == 0
+                    ]
+                    logger.warning(
+                        f"Dummy data generation done but dummy data test failed since splits {empty_splits} have 0 examples."
+                    )
         else:
             generated_dummy_data_dir = os.path.join(self._path_to_dataset, mock_dl_manager.dummy_data_folder)
             logger.info(
