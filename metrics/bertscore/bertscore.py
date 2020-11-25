@@ -58,6 +58,7 @@ Args:
     at least one of `model_type` or `lang`. `lang` needs to be
     specified when `rescale_with_baseline` is True.
     `rescale_with_baseline` (bool): rescale bertscore with pre-computed baseline
+    `baseline_path` (str): customized baseline file.
 Returns:
     'precision': Precision,
     'recall': Recall,
@@ -80,7 +81,10 @@ class BERTScore(datasets.Metric):
                 }
             ),
             codebase_urls=["https://github.com/Tiiiger/bert_score"],
-            reference_urls=["https://github.com/Tiiiger/bert_score", "https://arxiv.org/abs/1904.09675"],
+            reference_urls=[
+                "https://github.com/Tiiiger/bert_score",
+                "https://arxiv.org/abs/1904.09675",
+            ],
         )
 
     def _compute(
@@ -97,6 +101,7 @@ class BERTScore(datasets.Metric):
         nthreads=4,
         all_layers=False,
         rescale_with_baseline=False,
+        baseline_path=None,
     ):
         if model_type is None:
             assert lang is not None, "either lang or model_type should be specified"
@@ -105,7 +110,14 @@ class BERTScore(datasets.Metric):
         if num_layers is None:
             num_layers = bert_score.utils.model2layers[model_type]
 
-        hashcode = bert_score.utils.get_hash(model_type, num_layers, idf, rescale_with_baseline)
+        hashcode = bert_score.utils.get_hash(
+            model=model_type,
+            num_layers=num_layers,
+            idf=idf,
+            rescale_with_baseline=rescale_with_baseline,
+            use_custom_baseline=baseline_path is not None,
+        )
+
         if not hasattr(self, "cached_bertscorer") or self.cached_bertscorer.hash != hashcode:
             self.cached_bertscorer = bert_score.BERTScorer(
                 model_type=model_type,
@@ -117,6 +129,7 @@ class BERTScore(datasets.Metric):
                 device=device,
                 lang=lang,
                 rescale_with_baseline=rescale_with_baseline,
+                baseline_path=baseline_path,
             )
 
         (P, R, F) = self.cached_bertscorer.score(

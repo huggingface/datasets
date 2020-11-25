@@ -43,6 +43,8 @@ ROUGE, or Recall-Oriented Understudy for Gisting Evaluation, is a set of metrics
 evaluating automatic summarization and machine translation software in natural language processing.
 The metrics compare an automatically produced summary or translation against a reference or a set of references (human-produced) summary or translation.
 
+Note that ROUGE is case insensitive, meaning that upper case letters are treated the same way as lower case letters.
+
 This metrics is a wrapper around Google Research reimplementation of ROUGE:
 https://github.com/google-research/google-research/tree/master/rouge
 """

@@ -22,18 +22,27 @@ import contextlib
 import functools
 import itertools
 import os
+import pickle
+import sys
 import types
 from io import BytesIO as StringIO
 from multiprocessing import Pool, RLock
 from shutil import disk_usage
-from types import CodeType
-from typing import Optional
+from types import CodeType, FunctionType
+from typing import Callable, ClassVar, Generic, Optional, Tuple, Union
 
 import dill
 import numpy as np
 from tqdm import tqdm
 
 from .logging import INFO, WARNING, get_logger, get_verbosity, set_verbosity_warning
+
+
+try:  # pragma: no branch
+    import typing_extensions as _typing_extensions
+    from typing_extensions import Final, Literal
+except ImportError:
+    _typing_extensions = Literal = Final = None
 
 
 # NOTE: When used on an instance method, the cache is shared across all
@@ -333,6 +342,19 @@ class Pickler(dill.Pickler):
 
     dispatch = dill._dill.MetaCatchingDict(dill.Pickler.dispatch.copy())
 
+    def save_global(self, obj, name=None):
+        if sys.version_info[:2] < (3, 7) and _CloudPickleTypeHintFix._is_parametrized_type_hint(
+            obj
+        ):  # noqa  # pragma: no branch
+            # Parametrized typing constructs in Python < 3.7 are not compatible
+            # with type checks and ``isinstance`` semantics. For this reason,
+            # it is easier to detect them using a duck-typing-based check
+            # (``_is_parametrized_type_hint``) than to populate the Pickler's
+            # dispatch with type-specific savers.
+            _CloudPickleTypeHintFix._save_parametrized_type_hint(self, obj)
+        else:
+            dill.Pickler.save_global(self, obj, name=name)
+
 
 def dump(obj, file):
     """pickle an object to a file"""
@@ -374,6 +396,47 @@ def pklregister(t):
         return func
 
     return proxy
+
+
+class _CloudPickleTypeHintFix:
+    """
+    Type hints can't be properly pickled in python < 3.7
+    CloudPickle provided a way to make it work in older versions.
+    This class provide utilities to fix pickling of type hints in older versions.
+    from https://github.com/cloudpipe/cloudpickle/pull/318/files
+    """
+
+    def _is_parametrized_type_hint(obj):
+        # This is very cheap but might generate false positives.
+        origin = getattr(obj, "__origin__", None)  # typing Constructs
+        values = getattr(obj, "__values__", None)  # typing_extensions.Literal
+        type_ = getattr(obj, "__type__", None)  # typing_extensions.Final
+        return origin is not None or values is not None or type_ is not None
+
+    def _create_parametrized_type_hint(origin, args):
+        return origin[args]
+
+    def _save_parametrized_type_hint(pickler, obj):
+        # The distorted type check sematic for typing construct becomes:
+        # ``type(obj) is type(TypeHint)``, which means "obj is a
+        # parametrized TypeHint"
+        if type(obj) is type(Literal):  # pragma: no branch
+            initargs = (Literal, obj.__values__)
+        elif type(obj) is type(Final):  # pragma: no branch
+            initargs = (Final, obj.__type__)
+        elif type(obj) is type(ClassVar):
+            initargs = (ClassVar, obj.__type__)
+        elif type(obj) in [type(Union), type(Tuple), type(Generic)]:
+            initargs = (obj.__origin__, obj.__args__)
+        elif type(obj) is type(Callable):
+            args = obj.__args__
+            if args[0] is Ellipsis:
+                initargs = (obj.__origin__, args)
+            else:
+                initargs = (obj.__origin__, (list(args[:-1]), args[-1]))
+        else:  # pragma: no cover
+            raise pickle.PicklingError("Datasets pickle Error: Unknown type {}".format(type(obj)))
+        pickler.save_reduce(_CloudPickleTypeHintFix._create_parametrized_type_hint, initargs, obj=obj)
 
 
 @pklregister(CodeType)
@@ -449,6 +512,80 @@ def _save_code(pickler, obj):
         )
     pickler.save_reduce(CodeType, args, obj=obj)
     dill._dill.log.info("# Co")
+    return
+
+
+@pklregister(FunctionType)
+def save_function(pickler, obj):
+    """
+    From dill._dill.save_function
+    This is a modified version that make globs deterministic since the order of
+    the keys in the output dictionary of globalvars can change.
+    """
+    if not dill._dill._locate_function(obj):
+        dill._dill.log.info("F1: %s" % obj)
+        if getattr(pickler, "_recurse", False):
+            # recurse to get all globals referred to by obj
+            globalvars = dill.detect.globalvars
+            globs = globalvars(obj, recurse=True, builtin=True)
+            if id(obj) in dill._dill.stack:
+                globs = obj.__globals__ if dill._dill.PY3 else obj.func_globals
+        else:
+            globs = obj.__globals__ if dill._dill.PY3 else obj.func_globals
+        # globs is a dictionary with keys = var names (str) and values = python objects
+        # however the dictionary is not always loaded in the same order
+        # therefore we have to sort the keys to make deterministic.
+        # This is important to make `dump` deterministic.
+        # Only this line is different from the original implementation:
+        globs = {k: globs[k] for k in sorted(globs.keys())}
+        # The rest is the same as in the original dill implementation
+        _byref = getattr(pickler, "_byref", None)
+        _recurse = getattr(pickler, "_recurse", None)
+        _memo = (id(obj) in dill._dill.stack) and (_recurse is not None)
+        dill._dill.stack[id(obj)] = len(dill._dill.stack), obj
+        if dill._dill.PY3:
+            _super = ("super" in getattr(obj.__code__, "co_names", ())) and (_byref is not None)
+            if _super:
+                pickler._byref = True
+            if _memo:
+                pickler._recurse = False
+            fkwdefaults = getattr(obj, "__kwdefaults__", None)
+            pickler.save_reduce(
+                dill._dill._create_function,
+                (obj.__code__, globs, obj.__name__, obj.__defaults__, obj.__closure__, obj.__dict__, fkwdefaults),
+                obj=obj,
+            )
+        else:
+            _super = (
+                ("super" in getattr(obj.func_code, "co_names", ()))
+                and (_byref is not None)
+                and getattr(pickler, "_recurse", False)
+            )
+            if _super:
+                pickler._byref = True
+            if _memo:
+                pickler._recurse = False
+            pickler.save_reduce(
+                dill._dill._create_function,
+                (obj.func_code, globs, obj.func_name, obj.func_defaults, obj.func_closure, obj.__dict__),
+                obj=obj,
+            )
+        if _super:
+            pickler._byref = _byref
+        if _memo:
+            pickler._recurse = _recurse
+        if (
+            dill._dill.OLDER
+            and not _byref
+            and (_super or (not _super and _memo) or (not _super and not _memo and _recurse))
+        ):
+            pickler.clear_memo()
+        dill._dill.log.info("# F1")
+    else:
+        dill._dill.log.info("F2: %s" % obj)
+        name = getattr(obj, "__qualname__", getattr(obj, "__name__", None))
+        dill._dill.StockPickler.save_global(pickler, obj, name=name)
+        dill._dill.log.info("# F2")
     return
 
 

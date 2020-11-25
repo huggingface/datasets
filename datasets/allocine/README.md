@@ -1,4 +1,3 @@
----
 annotations_creators:
 - no-annotation
 language_creators:
@@ -51,7 +50,7 @@ The Allociné dataset was collected by Théophile Blard.
 
 ### Who are the language producers (who wrote the text / created the base content)?
 
-The dataset contains movie reviews collected from Allociné.fr. The content of each review may include information and opinions about the film's actors, film crew, and plot.
+The dataset contains movie reviews collected from [Allociné.fr](https://www.allocine.fr/). The content of each review may include information and opinions about the film's actors, film crew, and plot.
 
 ### Who are the annotators?
 
@@ -59,7 +58,7 @@ No annotations were included in this dataset.
 
 ## Data characteristics
 
-The texts are movie reviews written by members of the Allocine.fr community for various films. The reviews were written between 2006 and 2020. Further information on the kinds of films included in the dataset has not been documented.
+The texts are movie reviews written by members of the [Allociné.fr](https://www.allocine.fr/) community for various films. The reviews were written between 2006 and 2020. Further information on the kinds of films included in the dataset has not been documented.
 
 ### How was the data collected?
 
@@ -119,3 +118,4 @@ The limitations of the Allociné dataset have not yet been investigated, however
 ## Licensing information
 
 The Allociné dataset is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+

@@ -48,8 +48,8 @@ Data are collected from four sources: 4,500 English questions published by USC (
 """
 
 _URLs = {
-    "train": "http://cogcomp.org/Data/QA/QC/train_5500.label",
-    "test": "http://cogcomp.org/Data/QA/QC/TREC_10.label",
+    "train": "https://cogcomp.seas.upenn.edu/Data/QA/QC/train_5500.label",
+    "test": "https://cogcomp.seas.upenn.edu/Data/QA/QC/TREC_10.label",
 }
 
 _COARSE_LABELS = ["DESC", "ENTY", "ABBR", "HUM", "NUM", "LOC"]

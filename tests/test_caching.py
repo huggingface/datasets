@@ -1,6 +1,7 @@
 from hashlib import md5
 from types import CodeType, FunctionType
 from unittest import TestCase
+from unittest.mock import patch
 
 import datasets
 
@@ -131,5 +132,42 @@ class RecurseDumpTest(TestCase):
         hash2 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
         co_filename, returned_obj = "<ipython-input-5-713f6613acf3>", [0]
         hash3 = md5(datasets.utils.dumps(create_ipython_func(co_filename, returned_obj))).hexdigest()
+        self.assertEqual(hash1, hash3)
+        self.assertNotEqual(hash1, hash2)
+
+    def test_recurse_dump_for_function_with_shuffled_globals(self):
+        foo, bar = [0], [1]
+
+        def func():
+            return foo, bar
+
+        func.__module__ = "__main__"
+
+        def globalvars_mock1_side_effect(func, *args, **kwargs):
+            return {"foo": foo, "bar": bar}
+
+        def globalvars_mock2_side_effect(func, *args, **kwargs):
+            return {"bar": bar, "foo": foo}
+
+        with patch("dill.detect.globalvars", side_effect=globalvars_mock1_side_effect) as globalvars_mock1:
+            hash1 = md5(datasets.utils.dumps(func)).hexdigest()
+            self.assertGreater(globalvars_mock1.call_count, 0)
+        with patch("dill.detect.globalvars", side_effect=globalvars_mock2_side_effect) as globalvars_mock2:
+            hash2 = md5(datasets.utils.dumps(func)).hexdigest()
+            self.assertGreater(globalvars_mock2.call_count, 0)
+        self.assertEqual(hash1, hash2)
+
+
+class TypeHintDumpTest(TestCase):
+    def test_dump_type_hint(self):
+        from typing import Union
+
+        t1 = Union[str, None]  # this type is not picklable in python 3.6
+        # let's check that we can pickle it anyway using our pickler, even in 3.6
+        hash1 = md5(datasets.utils.dumps(t1)).hexdigest()
+        t2 = Union[str]  # this type is picklable in python 3.6
+        hash2 = md5(datasets.utils.dumps(t2)).hexdigest()
+        t3 = Union[str, None]
+        hash3 = md5(datasets.utils.dumps(t3)).hexdigest()
         self.assertEqual(hash1, hash3)
         self.assertNotEqual(hash1, hash2)

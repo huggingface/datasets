@@ -19,7 +19,7 @@ class CompguesswhatConfig(datasets.BuilderConfig):
             **kwargs: keyword arguments forwarded to super.
         """
         super(CompguesswhatConfig, self).__init__(
-            version=datasets.Version("0.1.0", "First CompGuessWhat?! release"), **kwargs
+            version=datasets.Version("0.2.0", "Second CompGuessWhat?! release"), **kwargs
         )
         assert gameplay_scenario in (
             "original",
@@ -73,7 +73,7 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-    VERSION = datasets.Version("0.1.0")
+    VERSION = datasets.Version("0.2.0")
 
     def _info(self):
         if self.config.gameplay_scenario == "original":
@@ -88,14 +88,27 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
                         "timestamp": datasets.Value("string"),
                         "status": datasets.Value("string"),
                         "image": {
+                            # this is the image ID in GuessWhat?! which corresponds to the MSCOCO id
                             "id": datasets.Value("int32"),
                             "file_name": datasets.Value("string"),
                             "flickr_url": datasets.Value("string"),
                             "coco_url": datasets.Value("string"),
                             "height": datasets.Value("int32"),
                             "width": datasets.Value("int32"),
-                            "vg_id": datasets.Value("int32"),
-                            "vg_url": datasets.Value("string"),
+                            # this field represents the corresponding image metadata that can be found in VisualGenome
+                            # in the file image_data.json
+                            # We copy it over so that we avoid any confusion or possible wrong URL
+                            # Please use the original image files to resolve photos
+                            "visual_genome": {
+                                "width": datasets.Value("int32"),
+                                "height": datasets.Value("int32"),
+                                "url": datasets.Value("string"),
+                                "coco_id": datasets.Value("int32"),
+                                # this is the actual VisualGenome image ID
+                                # because we can't rely store it as an integer we same it as string
+                                "flickr_id": datasets.Value("string"),
+                                "image_id": datasets.Value("string"),
+                            },
                         },
                         "qas": datasets.features.Sequence(
                             {
@@ -203,7 +216,12 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=split_name,
                     gen_kwargs={
-                        "filepath": os.path.join(dl_dir, full_split_name, self.VERSION.version_str, split_filename)
+                        "filepath": os.path.join(
+                            dl_dir,
+                            full_split_name,
+                            self.VERSION.version_str,
+                            split_filename,
+                        )
                     },
                 )
             )
@@ -223,6 +241,11 @@ class Compguesswhat(datasets.GeneratorBasedBuilder):
             if "questioner_id" in game:
                 del game["questioner_id"]
             ###
+
+            if "visual_genome" in game["image"]:
+                # We need to cast it to string so that we avoid issues with int size
+                game["image"]["visual_genome"]["image_id"] = str(game["image"]["visual_genome"]["image_id"])
+                game["image"]["visual_genome"]["flickr_id"] = str(game["image"]["visual_genome"]["flickr_id"])
 
             return game["id"], game
 

@@ -38,13 +38,13 @@ evaluating, and analyzing natural language understanding systems.
 _KWARGS_DESCRIPTION = """
 Compute GLUE evaluation metric associated to each GLUE dataset.
 Args:
-    predictions: list of translations to score.
+    predictions: list of predictions to score.
         Each translation should be tokenized into a list of tokens.
     references: list of lists of references for each translation.
         Each reference should be tokenized into a list of tokens.
 Returns: depending on the GLUE subset, one or several of:
     "accuracy": Accuracy
-    "f1": F1
+    "f1": F1 score
     "pearson": Pearson Correlation
     "spearmanr": Spearman Correlation
     "matthews_correlation": Matthew Correlation

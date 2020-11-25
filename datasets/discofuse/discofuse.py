@@ -8,9 +8,7 @@ import os
 import datasets
 
 
-# TODO(discofuse): BibTeX citation
-
-_URL_ = "https://storage.googleapis.com/discofuse_dataset_v1/"
+_URL_ = "https://storage.googleapis.com/discofuse.appspot.com/"
 _CITATION = """\
 @InProceedings{GevaEtAl2019,
   title = {DiscoFuse: A Large-Scale Dataset for Discourse-Based Sentence Fusion},
@@ -51,10 +49,10 @@ class Discofuse(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
         DiscofuseConfig(
-            name="discofuse-sport", description="sentence fusion", data_url=_URL_ + "discofuse_v1_sports.tar.gz"
+            name="discofuse-sport", description="sentence fusion", data_url=_URL_ + "discofuse_v1_sports.zip"
         ),
         DiscofuseConfig(
-            name="discofuse-wikipedia", description="sentence fusion", data_url=_URL_ + "discofuse_v1_wikipedia.tar.gz"
+            name="discofuse-wikipedia", description="sentence fusion", data_url=_URL_ + "discofuse_v1_wikipedia.zip"
         ),
     ]
 
