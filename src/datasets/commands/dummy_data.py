@@ -270,7 +270,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
 
         # use `None` as config if no configs
         configs = builder_cls.BUILDER_CONFIGS or [None]
-
+        auto_generate_results = []
         for config in configs:
             if config is None:
                 name = None
@@ -289,15 +289,20 @@ class DummyDataCommand(BaseTransformersCLICommand):
             )
 
             if self._auto_generate:
-                self._autogenerate_dummy_data(
+                auto_generate_results.append(self._autogenerate_dummy_data(
                     dataset_builder=dataset_builder,
                     mock_dl_manager=mock_dl_manager,
                     keep_uncompressed=self._keep_uncompressed,
-                )
+                ))
             else:
                 self._print_dummy_data_instructions(dataset_builder=dataset_builder, mock_dl_manager=mock_dl_manager)
+        if self._auto_generate and not self._keep_uncompressed:
+            if all(auto_generate_results):
+                print(f"Automatic dummy data generation succeeded for all configs of '{self._path_to_dataset}'")
+            else:
+                print(f"Automatic dummy data generation failed for some configs of '{self._path_to_dataset}'")
 
-    def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed):
+    def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed) -> Optional[bool]:
         dl_cache_dir = os.path.join(dataset_builder._cache_dir_root, "downloads")
         download_config = DownloadConfig(cache_dir=dl_cache_dir)
         dl_manager = DummyDataGeneratorDownloadManager(
@@ -325,24 +330,26 @@ class DummyDataCommand(BaseTransformersCLICommand):
                         n_examples += 1
                     n_examples_per_split[split_generator.name] = n_examples
             except OSError as e:
-                logger.error("Failed to load dummy data.\nOriginal error:\n" + str(e))
+                logger.error(f"Failed to load dummy data for config '{dataset_builder.config.name}''.\nOriginal error:\n" + str(e))
+                return False
             else:
                 if all(n_examples > 0 for n_examples in n_examples_per_split.values()):
-                    logger.warning("Dummy data generation done and dummy data test succeeded.")
+                    logger.warning(f"Dummy data generation done and dummy data test succeeded for config '{dataset_builder.config.name}''.")
+                    return True
                 else:
                     empty_splits = [
                         split_name for split_name in n_examples_per_split if n_examples_per_split[split_name] == 0
                     ]
                     logger.warning(
-                        f"Dummy data generation done but dummy data test failed since splits {empty_splits} have 0 examples."
+                        f"Dummy data generation done but dummy data test failed since splits {empty_splits} have 0 examples for config '{dataset_builder.config.name}''."
                     )
+                    return False
         else:
             generated_dummy_data_dir = os.path.join(self._path_to_dataset, mock_dl_manager.dummy_data_folder)
             logger.info(
                 f"Dummy data generated in directory '{generated_dummy_data_dir}' but kept uncompressed. "
                 "Please compress this directory into a zip file to use it for dummy data tests."
             )
-        return dl_manager
 
     def _print_dummy_data_instructions(self, dataset_builder, mock_dl_manager):
         dummy_data_folder = os.path.join(self._path_to_dataset, mock_dl_manager.dummy_data_folder)
