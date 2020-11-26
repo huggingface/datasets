@@ -112,13 +112,19 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 file_name = os.path.basename(dst_path)
                 for pattern in match_text_files.split(","):
                     is_line_by_line_text_file |= fnmatch.fnmatch(file_name, pattern)
+            # Line by line text file (txt, csv etc.)
             if is_line_by_line_text_file:
                 Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
                 with open(src_path, "r", encoding="utf-8") as src_file:
                     with open(dst_path, "w", encoding="utf-8") as dst_file:
-                        first_lines = [next(src_file) for _ in range(n_lines)]
+                        first_lines = []
+                        for i, line in enumerate(src_file):
+                            first_lines.append(line)
+                            if i >= n_lines:
+                                break
                         dst_file.write("".join(first_lines).strip())
                 return 1
+            # json file
             elif dst_path.endswith(".json"):
                 with open(src_path, "r", encoding="utf-8") as src_file:
                     json_data = json.load(src_file)
@@ -140,6 +146,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                     with open(dst_path, "w", encoding="utf-8") as dst_file:
                         json.dump(first_json_data, dst_file)
                 return 1
+            # xml file
             elif dst_path.endswith(".xml"):
                 if xml_tag is None:
                     logger.warning("Found xml file but 'xml_tag' is set to None. Please provide --xml_tag")
@@ -173,6 +180,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 f"Couldn't generate dummy file '{dst_path}'. " "Ignore that if this file is not useful for dummy data."
             )
             return 0
+        # directory, iterate through all files
         elif os.path.isdir(src_path):
             total = 0
             for path, _, files in os.walk(src_path):
