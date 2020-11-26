@@ -18,6 +18,8 @@ from datasets.utils.py_utils import map_nested
 
 logger = get_logger(__name__)
 
+DEFAULT_ENCODING = "utf-8"
+
 
 def test_command_factory(args):
     return DummyDataCommand(
@@ -29,6 +31,7 @@ def test_command_factory(args):
         args.match_text_files,
         args.keep_uncompressed,
         args.cache_dir,
+        args.encoding,
     )
 
 
@@ -59,6 +62,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         json_field: Optional[str] = None,
         xml_tag: Optional[str] = None,
         match_text_files: Optional[str] = None,
+        encoding: Optional[str] = None,
     ) -> bool:
         os.makedirs(
             os.path.join(
@@ -85,6 +89,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 json_field=json_field,
                 xml_tag=xml_tag,
                 match_text_files=match_text_files,
+                encoding=encoding,
             )
         if total == 0:
             logger.error(
@@ -101,7 +106,9 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         json_field: Optional[str] = None,
         xml_tag: Optional[str] = None,
         match_text_files: Optional[str] = None,
+        encoding: Optional[str] = None,
     ) -> int:
+        encoding = encoding or DEFAULT_ENCODING
         if os.path.isfile(src_path):
             logger.debug(f"Trying to generate dummy data file {dst_path}")
             line_by_line_extensions = [".txt", ".csv", ".jsonl", ".tsv"]
@@ -113,8 +120,8 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
             # Line by line text file (txt, csv etc.)
             if is_line_by_line_text_file:
                 Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-                with open(src_path, "r", encoding="utf-8") as src_file:
-                    with open(dst_path, "w", encoding="utf-8") as dst_file:
+                with open(src_path, "r", encoding=encoding) as src_file:
+                    with open(dst_path, "w", encoding=encoding) as dst_file:
                         first_lines = []
                         for i, line in enumerate(src_file):
                             first_lines.append(line)
@@ -124,7 +131,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                 return 1
             # json file
             elif dst_path.endswith(".json"):
-                with open(src_path, "r", encoding="utf-8") as src_file:
+                with open(src_path, "r", encoding=encoding) as src_file:
                     json_data = json.load(src_file)
                     if json_field is not None:
                         json_data = json_data[json_field]
@@ -141,7 +148,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                     if json_field is not None:
                         first_json_data = {json_field: first_json_data}
                     Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-                    with open(dst_path, "w", encoding="utf-8") as dst_file:
+                    with open(dst_path, "w", encoding=encoding) as dst_file:
                         json.dump(first_json_data, dst_file)
                 return 1
             # xml file
@@ -150,7 +157,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                     logger.warning("Found xml file but 'xml_tag' is set to None. Please provide --xml_tag")
                 else:
                     Path(dst_path).parent.mkdir(exist_ok=True, parents=True)
-                    with open(src_path, "r", encoding="utf-8") as src_file:
+                    with open(src_path, "r", encoding=encoding) as src_file:
                         tree = ET.parse(src_file)
                         # get parent tag
 
@@ -172,7 +179,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                             for child_to_remove in children_to_remove:
                                 parent.remove(child_to_remove)
 
-                        tree.write(dst_path, encoding="utf-8")
+                        tree.write(dst_path, encoding=encoding)
                 return 1
             logger.warning(
                 f"Couldn't generate dummy file '{dst_path}'. " "Ignore that if this file is not useful for dummy data."
@@ -193,6 +200,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                             json_field=json_field,
                             xml_tag=xml_tag,
                             match_text_files=match_text_files,
+                            encoding=encoding,
                         )
             return total
 
@@ -242,6 +250,12 @@ class DummyDataCommand(BaseTransformersCLICommand):
             default=None,
             help="Cache directory to download and cache files when auto-generating dummy data",
         )
+        test_parser.add_argument(
+            "--encoding",
+            type=str,
+            default=None,
+            help=f"Encoding to use when auto-generating dummy data. Defaults to {DEFAULT_ENCODING}",
+        )
         test_parser.add_argument("path_to_dataset", type=str, help="Path to the dataset (example: ./datasets/squad)")
         test_parser.set_defaults(func=test_command_factory)
 
@@ -255,6 +269,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         match_text_files: Optional[str],
         keep_uncompressed: bool,
         cache_dir: Optional[str],
+        encoding: Optional[str],
     ):
         self._path_to_dataset = path_to_dataset
         if os.path.isdir(path_to_dataset):
@@ -268,6 +283,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         self._match_text_files = match_text_files
         self._keep_uncompressed = keep_uncompressed
         self._cache_dir = cache_dir
+        self._encoding = encoding
 
     def run(self):
         set_verbosity_warning()
@@ -323,6 +339,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
             json_field=self._json_field,
             xml_tag=self._xml_tag,
             match_text_files=self._match_text_files,
+            encoding=self._encoding,
         )
         if not keep_uncompressed:
             path_do_dataset = os.path.join(mock_dl_manager.datasets_scripts_dir, mock_dl_manager.dataset_name)

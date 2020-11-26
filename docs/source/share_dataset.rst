@@ -275,6 +275,7 @@ Usage of the command:
 													[--match_text_files MATCH_TEXT_FILES]
 													[--keep_uncompressed]
 													[--cache_dir CACHE_DIR]
+                                                  	[--encoding ENCODING]
 													path_to_dataset
 
 	positional arguments:
@@ -302,6 +303,8 @@ Usage of the command:
 	--cache_dir CACHE_DIR
 							Cache directory to download and cache files when auto-
 							generating dummy data
+	--encoding ENCODING   Encoding to use when auto-generating dummy data.
+							Defaults to utf-8
 
 
 3. Testing
