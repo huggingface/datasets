@@ -37,7 +37,7 @@ task_ids:
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Biases Discussion and Analysis](#social-biases-discussion-and-analysis)
+  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -59,7 +59,7 @@ The ELI5 dataset is an English-language dataset of questions and answers gathere
 
 - `abstractive-qa`, `open-domain-qa`: The dataset can be used to train a model for Open Domain Long Form Question Answering. An LFQA model is presented with a non-factoid and asked to retrieve relevant information from a knowledge source (such as [Wikipedia](https://www.wikipedia.org/)), then use it to generate a multi-sentence answer. The model performance is measured by how high its [ROUGE](https://huggingface.co/metrics/rouge) score to the reference is. A [BART-based model](https://huggingface.co/yjernite/bart_eli5) with a [dense retriever](https://huggingface.co/yjernite/retribert-base-uncased) trained to draw information from [Wikipedia passages](https://huggingface.co/datasets/wiki_snippets) achieves a [ROUGE-L of 0.149](https://yjernite.github.io/lfqa.html#generation).
 
-### Languages 
+### Languages
 
 The text in the dataset is in English, as spoken by Reddit users on the  [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/), [r/askscience](https://www.reddit.com/r/askscience/), and [r/AskHistorians](https://www.reddit.com/r/AskHistorians/) subreddits. The associated BCP-47 code is `en`.
 
@@ -113,7 +113,7 @@ The data is split into a training, validation and test set for each of the three
 
 ### Curation Rationale
 
-ELI5 was built to provide a testbed for machines to learn how to answer more complex questions, which requires them to find and combine information in a coherent manner. The dataset was built by gathering questions that were asked by community members of three subreddits, including [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/), along with the answers that were provided by other users. The [rules of the subreddit](https://www.reddit.com/r/explainlikeimfive/wiki/detailed_rules) make this data particularly well suited to training a model for abstractive question answering: the questions need to seek an objective explanation about well established facts, and the answers provided need to be understandable to a layperson without any particular knowledge domain. 
+ELI5 was built to provide a testbed for machines to learn how to answer more complex questions, which requires them to find and combine information in a coherent manner. The dataset was built by gathering questions that were asked by community members of three subreddits, including [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/), along with the answers that were provided by other users. The [rules of the subreddit](https://www.reddit.com/r/explainlikeimfive/wiki/detailed_rules) make this data particularly well suited to training a model for abstractive question answering: the questions need to seek an objective explanation about well established facts, and the answers provided need to be understandable to a layperson without any particular knowledge domain.
 
 ### Source Data
 
@@ -145,7 +145,7 @@ The authors removed the speaker IDs from the [Pushshift.io](https://files.pushsh
 
 ## Considerations for Using the Data
 
-### Social Biases Discussion and Analysis
+### Discussion of Social Impact and Biases
 
 While Reddit hosts a number of thriving communities with high quality discussions, it is also widely known to have corners where sexism, hate, and harassment are significant issues. See for example the  [recent post from Reddit founder u/spez](https://www.reddit.com/r/announcements/comments/gxas21/upcoming_changes_to_our_content_policy_our_board/)  outlining some of the ways he thinks the website's historical policies have been responsible for this problem,  [Adrienne Massanari's 2015 article on GamerGate](https://www.researchgate.net/publication/283848479_Gamergate_and_The_Fappening_How_Reddit's_algorithm_governance_and_culture_support_toxic_technocultures)  and follow-up works, or a  [2019 Wired article on misogyny on Reddit](https://www.wired.com/story/misogyny-reddit-research/).
 

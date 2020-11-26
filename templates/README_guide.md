@@ -19,7 +19,7 @@
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Biases Discussion and Analysis](#social-biases-discussion-and-analysis)
+  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -44,7 +44,7 @@ For each of the tasks tagged for this dataset, give a brief description of the t
 
 - `task-category-tag`: The dataset can be used to train a model for [TASK NAME], which consists in [TASK DESCRIPTION]. Success on this task is typically measured by achieving a *high/low* [metric name](https://huggingface.co/metrics/metric_name). The ([model name](https://huggingface.co/model_name) or [model class](https://huggingface.co/transformers/model_doc/model_class.html)) model currently achieves the following score. *[IF A LEADERBOARD IS AVAILABLE]:* This task has an active leaderboard which can be found at [leaderboard url]() and ranks models based on [metric name](https://huggingface.co/metrics/metric_name) while also reporting [other metric name](https://huggingface.co/metrics/other_metric_name).
 
-### Languages 
+### Languages
 
 Provide a brief overview of the languages represented in the dataset. Describe relevant details about specifics of the language such as whether it is social media text, African American English,...
 
@@ -54,15 +54,15 @@ When relevant, please provide [BCP-47 codes](https://tools.ietf.org/html/bcp47),
 
 ### Data Instances
 
-Provide an example and brief description of a typical instance in the dataset. If available, provide a link to further examples. 
+Provide an example and brief description of a typical instance in the dataset. If available, provide a link to further examples.
 
 Provide any additional information that is not covered in the other sections about the data here. In particular describe any relationships between data points and if these relationships are made explicit.
 
 ### Data Fields
 
-List and describe the fields present in the dataset. Mention their data type, and whether they are used as input or output in any of the tasks the dataset currently supports. If the data has span indices, describe their attributes, such as whether they are at the character level or word level, whether they are contiguous or not, etc. If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points. 
+List and describe the fields present in the dataset. Mention their data type, and whether they are used as input or output in any of the tasks the dataset currently supports. If the data has span indices, describe their attributes, such as whether they are at the character level or word level, whether they are contiguous or not, etc. If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
 
-- `example_field`: description of `example_field` 
+- `example_field`: description of `example_field`
 
 ### Data Splits
 
@@ -91,9 +91,9 @@ This section describes the source data (e.g. news text and headlines, social med
 
 Describe the data collection process. Describe any criteria for data selection or filtering. List any key words or search terms used. If possible, include runtime information for the collection process.
 
-If data was collected from other pre-existing datasets, link to source here and to their [Hugging Face version](https://huggingface.co/datasets/dataset_name). 
+If data was collected from other pre-existing datasets, link to source here and to their [Hugging Face version](https://huggingface.co/datasets/dataset_name).
 
-If the data was modified or normalized after being collected (e.g. if the data is word-tokenized), describe the process and the tools used. 
+If the data was modified or normalized after being collected (e.g. if the data is word-tokenized), describe the process and the tools used.
 
 #### Who are the source language producers?
 
@@ -111,7 +111,7 @@ If the dataset contains annotations which are not part of the initial data colle
 
 #### Annotation process
 
-If applicable, describe the annotation process and any tools used, or state otherwise. Describe the amount of data annotated, if not all. Describe or reference annotation guidelines provided to the annotators. If available, provide interannotator statistics. Describe any annotation validation processes. 
+If applicable, describe the annotation process and any tools used, or state otherwise. Describe the amount of data annotated, if not all. Describe or reference annotation guidelines provided to the annotators. If available, provide interannotator statistics. Describe any annotation validation processes.
 
 #### Who are the annotators?
 
@@ -129,15 +129,17 @@ State whether the dataset uses identity categories and, if so, how the informati
 
 State whether the dataset contains other data that might be considered sensitive (e.g., data that reveals racial or ethnic origins, sexual orientations, religious beliefs, political opinions or union memberships, or locations; financial or health data; biometric or genetic data; forms of government identification, such as social security numbers; criminal history).  
 
-If efforts were made to anonymize the data, describe the anonymization process. 
+If efforts were made to anonymize the data, describe the anonymization process.
 
 ## Considerations for Using the Data
 
-### Social Biases Discussion and Analysis
+### Discussion of Social Impact and Biases
 
 Provide descriptions of specific biases that are likely to be reflected in the data. See [Blodgett et al 2020](https://www.aclweb.org/anthology/2020.acl-main.485/), [Yacine Jernite's notebook on Reddit data](https://yjernite.github.io/lfqa.html#reddit_biases), or [Dinan et al 2020 on biases in Wikipedia (esp. Table 1)](https://arxiv.org/abs/2005.00614) for further discussion and examples.
 
 If analyses have been run analyzing these biases, please add brief summaries and links to the studies here.
+
+Please also provide a broader statement of possible social impact resulting from the use of this dataset, both negative and positive: especially for datasets in a currenty under-represented language.
 
 ### Other Known Limitations
 
@@ -151,7 +153,7 @@ List the people involved in collecting the dataset and their affiliation(s). If 
 
 ### Licensing Information
 
-Provide the license and link to the license webpage if available. 
+Provide the license and link to the license webpage if available.
 
 ### Citation Information
 

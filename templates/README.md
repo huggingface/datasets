@@ -20,7 +20,7 @@ YAML tags:
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Biases Discussion and Analysis](#social-biases-discussion-and-analysis)
+  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -43,7 +43,7 @@ YAML tags:
 
 [More Information Needed]
 
-### Languages 
+### Languages
 
 [More Information Needed]
 
@@ -93,7 +93,7 @@ YAML tags:
 
 ## Considerations for Using the Data
 
-### Social Biases Discussion and Analysis
+### Discussion of Social Impact and Biases
 
 [More Information Needed]
 
