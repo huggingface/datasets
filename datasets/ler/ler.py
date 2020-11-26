@@ -164,5 +164,3 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
                     splits = line.split(" ")
                     tokens.append(splits[0])
                     ner_tags.append(splits[1].rstrip())
-            # last example
-            yield guid, {"id": guid, "tokens": tokens, "ner_tags": ner_tags}
