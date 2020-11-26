@@ -24,25 +24,25 @@ task_ids:
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
--- [Dataset Summary](#dataset-summary)
--- [Supported Tasks](#supported-tasks-and-leaderboards)
--- [Languages](#languages)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
--- [Data Instances](#data-instances)
--- [Data Fields](#data-instances)
--- [Data Splits](#data-instances)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
 - [Dataset Creation](#dataset-creation)
--- [Curation Rationale](#curation-rationale)
--- [Source Data](#source-data)
--- [Annotations](#annotations)
--- [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
--- [Social Biases Discussion and Analysis](#social-biases-discussion-and-analysis)
--- [Other Known Limitations](#other-known-limitations)
+  - [Social Biases Discussion and Analysis](#social-biases-discussion-and-analysis)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
--- [Dataset Curators](#dataset-curators)
--- [Licensing Information](#licensing-information)
--- [Citation Information](#citation-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
 
 ## Dataset Description
 
@@ -94,9 +94,9 @@ An example from the ELI5 test set looks as follows:
 - `selftext`: either an empty string or an elaboration of the question
 - `selftext_urls`: similar to `title_urls` but for `self_text`
 - `answers`: a list of answers, each answer has:
--- `a_id`: a string answer identifier for each answer, corresponding to its ID in the [Pushshift.io](https://files.pushshift.io/reddit/comments/) Reddit comments dumps.
--- `text`: the answer text with the URLs normalized
--- `score`: the number of upvotes the answer had received when the dumps were created
+  - `a_id`: a string answer identifier for each answer, corresponding to its ID in the [Pushshift.io](https://files.pushshift.io/reddit/comments/) Reddit comments dumps.
+  - `text`: the answer text with the URLs normalized
+  - `score`: the number of upvotes the answer had received when the dumps were created
 - `answers_urls`: a list of the extracted URLs. All answers use the same list, the numbering of the normalization token continues across answer texts
 
 ### Data Splits
