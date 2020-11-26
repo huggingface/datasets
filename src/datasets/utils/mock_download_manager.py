@@ -108,7 +108,8 @@ class MockDownloadManager(object):
             return self.create_dummy_data_dict(dummy_file, data_url)
         elif isinstance(data_url, (list, tuple)):
             return self.create_dummy_data_list(dummy_file, data_url)
-        return dummy_file
+        else:
+            return self.create_dummy_data_single(dummy_file, data_url)
 
     # this function has to be in the manager under this name so that testing works
     def download(self, data_url, *args):
@@ -153,3 +154,17 @@ class MockDownloadManager(object):
             value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(abs_path.split("/")[-1]))
             dummy_data_list.append(value)
         return dummy_data_list
+
+    def create_dummy_data_single(self, path_to_dummy_data, data_url):
+        # we force the name of each key to be the last file / folder name of the url path
+        # if the url has arguments, we need to encode them with urllib.parse.quote_plus
+        value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(data_url.split("/")[-1]))
+        if os.path.exists(value) or not self.load_existing_dummy_data:
+            return value
+        else:
+            # Backward compatibility, maybe deprecate at one point.
+            # For many datasets with single url calls to dl_manager.download_and_extract,
+            # the dummy_data.zip file is actually the zipped downloaded file
+            # while now we expected the dummy_data.zip file to be a directory containing
+            # the downloaded file.
+            return path_to_dummy_data
