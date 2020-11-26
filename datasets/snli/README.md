@@ -1,19 +1,25 @@
 ---
-language: 
-- en
-task:
-- text-classification
-purpose:
-- NLI
-size:
-- ">100k"
-language producers:
-- crowdsourced
-annotation:
-- crowdsourced
 tags:
-- extended-from-other-datasets
-license: "CC BY-SA 4.0"
+- annotations_creators:
+    - crowdsourced
+  language_creators:
+    - crowdsourced
+  languages:
+    - en
+  licenses:
+    - cc-by-nc-4.0
+  multilinguality:
+    - monolingual
+  size_categories:
+    - 100K<n<1M
+  source_datasets:
+    - original
+  task_categories:
+    - text-classification
+  task_ids:
+    - natural-language-inference
+  configurations:
+    - plain_text
 ---
 # Dataset Card for SNLI
 
