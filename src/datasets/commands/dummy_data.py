@@ -289,11 +289,13 @@ class DummyDataCommand(BaseTransformersCLICommand):
             )
 
             if self._auto_generate:
-                auto_generate_results.append(self._autogenerate_dummy_data(
-                    dataset_builder=dataset_builder,
-                    mock_dl_manager=mock_dl_manager,
-                    keep_uncompressed=self._keep_uncompressed,
-                ))
+                auto_generate_results.append(
+                    self._autogenerate_dummy_data(
+                        dataset_builder=dataset_builder,
+                        mock_dl_manager=mock_dl_manager,
+                        keep_uncompressed=self._keep_uncompressed,
+                    )
+                )
             else:
                 self._print_dummy_data_instructions(dataset_builder=dataset_builder, mock_dl_manager=mock_dl_manager)
         if self._auto_generate and not self._keep_uncompressed:
@@ -330,11 +332,16 @@ class DummyDataCommand(BaseTransformersCLICommand):
                         n_examples += 1
                     n_examples_per_split[split_generator.name] = n_examples
             except OSError as e:
-                logger.error(f"Failed to load dummy data for config '{dataset_builder.config.name}''.\nOriginal error:\n" + str(e))
+                logger.error(
+                    f"Failed to load dummy data for config '{dataset_builder.config.name}''.\nOriginal error:\n"
+                    + str(e)
+                )
                 return False
             else:
                 if all(n_examples > 0 for n_examples in n_examples_per_split.values()):
-                    logger.warning(f"Dummy data generation done and dummy data test succeeded for config '{dataset_builder.config.name}''.")
+                    logger.warning(
+                        f"Dummy data generation done and dummy data test succeeded for config '{dataset_builder.config.name}''."
+                    )
                     return True
                 else:
                     empty_splits = [
