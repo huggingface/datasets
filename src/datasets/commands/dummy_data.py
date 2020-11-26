@@ -124,9 +124,9 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                     with open(dst_path, "w", encoding=encoding) as dst_file:
                         first_lines = []
                         for i, line in enumerate(src_file):
-                            first_lines.append(line)
                             if i >= n_lines:
                                 break
+                            first_lines.append(line)
                         dst_file.write("".join(first_lines).strip())
                 return 1
             # json file
