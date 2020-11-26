@@ -1,21 +1,25 @@
-annotations_creators:
-- no-annotation
-language_creators:
-- found
-languages:
-- fr
-licenses:
-- mit
-multilinguality:
-- monolingual
-size_categories:
-- 100K<n<1M
-source_datasets:
-- original
-task_categories:
-- text-classification
-task_ids:
-- sentiment-classification
+---
+tags:
+- annotations_creators:
+    - no-annotation
+  language_creators:
+    - found
+  languages:
+    - fr
+  licenses:
+    - mit
+  multilinguality:
+    - monolingual
+  size_categories:
+    - 100K<n<1M
+  source_datasets:
+    - original
+  task_categories:
+    - text-classification
+  task_ids:
+    - sentiment-classification
+  configurations:
+    - allocine
 ---
 # Dataset Card for Allociné
 
