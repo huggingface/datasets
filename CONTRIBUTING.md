@@ -75,6 +75,13 @@
 	```bash
 	python datasets-cli dummy_data datasets/<your-dataset-folder>
 	```
+	
+	There is a tool that automatically generates dummy data for you. At the moment it supports data files in the following format: txt, csv, tsv, jsonl, json, xml.
+	If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
+
+	```bash
+	python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
+	```
 
 5. Now test that both the real data and the dummy data work correctly using the following commands:
 
@@ -105,3 +112,5 @@ Follow these steps in case the dummy data test keeps failing:
 - Your datascript might require a difficult dummy data structure. In this case make sure you fully understand the data folder logit created by the function `_split_generators(...)` and expected by the function `_generate_examples(...)` of your dataset script. Also take a look at `tests/README.md` which lists different possible cases of how the dummy data should be created.
 
 - If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
+
+If you're looking for more details about dataset scripts creation, please refer to the [documentation](https://huggingface.co/docs/datasets/add_dataset.html).
