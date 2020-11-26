@@ -113,43 +113,23 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "SemEval2010_task8_training/TRAIN_FILE.TXT"),
-                    "split": "train",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, "SemEval2010_task8_testing_keys/TEST_FILE_FULL.TXT"),
-                    "split": "test",
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "SemEval2010_task8_training/TRAIN_FILE.TXT"),
-                    "split": "validation",
                 },
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath):
         """ Yields examples. """
         with open(filepath, "r") as file:
             lines = file.readlines()
-
-            # There is no dev set in this dataset.
-            # Therefore I added this hack to use the last 1000 lines (250 examples) in the TRAIN_FILE.TXT as the dev set
             num_lines_per_sample = 4
-            boundary_idx = 7000 * num_lines_per_sample
-            start_idx = 0
-            if split == "validation":
-                start_idx = boundary_idx
-            end_idx = len(lines)
-            if split == "train":
-                end_idx = boundary_idx  # stop at the boundary to the dev set
 
-            for i in range(start_idx, end_idx, num_lines_per_sample):
+            for i in range(0, len(lines), num_lines_per_sample):
                 idx = int(lines[i].split("\t")[0])
                 sentence = lines[i].split("\t")[1][1:-2]  # remove " at the start and "\n at the end
                 relation = lines[i + 1][:-1]  # remove \n at the end
