@@ -1,22 +1,27 @@
 ---
-annotations_creators:
-- no-annotation
-language_creators:
-- found
-languages:
-- en
-licenses:
-- apache-2.0
-multilinguality:
-- monolingual
-size_categories:
-- 100K<n<1M
-source_datasets:
-- original
-task_categories:
-- conditional-text-generation
-task_ids:
-- summarization
+tags:
+- annotations_creators:
+    - no-annotation
+  language_creators:
+    - found
+  languages:
+    - en
+  licenses:
+    - apache-2.0
+  multilinguality:
+    - monolingual
+  size_categories:
+    - 100K<n<1M
+  source_datasets:
+    - original
+  task_categories:
+    - conditional-text-generation
+  task_ids:
+    - summarization
+  configurations:
+    - 3.0.0
+    - 2.0.0
+    - 1.0.0
 ---
 # Dataset Card for CNN Dailymail Dataset
 
