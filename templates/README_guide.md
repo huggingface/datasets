@@ -1,30 +1,30 @@
-﻿% ---
-% YAML tags: copy-paste the tags obtained [with the tagging app](http://34.68.228.168:8501/)
-% ---
+---
+- YAML tags: copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+---
 
 # Dataset Card Creation Guide
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
--- [Dataset Summary](#dataset-summary)
--- [Supported Tasks](#supported-tasks-and-leaderboards)
--- [Languages](#languages)
+  - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
+  - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
--- [Data Instances](#data-instances)
--- [Data Fields](#data-instances)
--- [Data Splits](#data-instances)
+  - [Data Instances](#data-instances)
+  - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
 - [Dataset Creation](#dataset-creation)
--- [Curation Rationale](#curation-rationale)
--- [Source Data](#source-data)
--- [Annotations](#annotations)
--- [Personal and Sensitive Information](#personal-and-sensitive-information)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
--- [Social Biases Discussion and Analysis](#social-biases-discussion-and-analysis)
--- [Other Known Limitations](#other-known-limitations)
+  - [Social Biases Discussion and Analysis](#social-biases-discussion-and-analysis)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
--- [Dataset Curators](#dataset-curators)
--- [Licensing Information](#licensing-information)
--- [Citation Information](#citation-information)
+  - [Dataset Curators](#dataset-curators)
+  - [Licensing Information](#licensing-information)
+  - [Citation Information](#citation-information)
 
 ## Dataset Description
 
