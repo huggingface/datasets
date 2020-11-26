@@ -125,7 +125,7 @@ class SemEval2010Task8(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        with open(filepath, "r") as file:
+        with open(filepath, "r", encoding="us-ascii") as file:
             lines = file.readlines()
             num_lines_per_sample = 4
 
