@@ -55,7 +55,7 @@ was developed for training an NER service for German legal documents in the EU p
 _URL = "https://raw.githubusercontent.com/elenanereiss/Legal-Entity-Recognition/master/data/ler.conll"
 
 
-class SemEval2010Task8(datasets.GeneratorBasedBuilder):
+class Ler(datasets.GeneratorBasedBuilder):
     """
     We describe a dataset developed for Named Entity Recognition in German federal court decisions.
     It consists of approx. 67,000 sentences with over 2 million tokens.
