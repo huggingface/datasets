@@ -184,7 +184,7 @@ class DatasetTester(object):
                 )
 
                 # get dataset
-                dataset = dataset_builder.as_dataset()
+                dataset = dataset_builder.as_dataset(ignore_verifications=True)
 
                 # check that dataset is not empty
                 self.parent.assertListEqual(sorted(dataset_builder.info.splits.keys()), sorted(dataset))
