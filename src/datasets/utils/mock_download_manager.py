@@ -29,13 +29,17 @@ logger = get_logger(__name__)
 
 class MockDownloadManager(object):
     dummy_file_name = "dummy_data"
+    datasets_scripts_dir = "datasets"
 
-    def __init__(self, dataset_name, config, version, cache_dir=None, is_local=False):
+    def __init__(self, dataset_name, config, version, cache_dir=None, is_local=False, load_existing_dummy_data=True):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
         self.cache_dir = cache_dir
         self.is_local = is_local
         self.config = config
+        # if False, it doesn't load existing files and it returns the paths of the dummy files relative
+        # to the dummy_data zip file root
+        self.load_existing_dummy_data = load_existing_dummy_data
 
         # TODO(PVP, QL) might need to make this more general
         self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
@@ -74,7 +78,7 @@ class MockDownloadManager(object):
 
     @property
     def local_path_to_dummy_data(self):
-        return os.path.join("datasets", self.dataset_name, self.dummy_zip_file)
+        return os.path.join(self.datasets_scripts_dir, self.dataset_name, self.dummy_zip_file)
 
     @property
     def github_path_to_dummy_data(self):
@@ -92,7 +96,7 @@ class MockDownloadManager(object):
 
     # this function has to be in the manager under this name so that testing works
     def download_and_extract(self, data_url, *args):
-        if self.cache_dir is not None:
+        if self.load_existing_dummy_data:
             # dummy data is downloaded and tested
             dummy_file = self.dummy_file
         else:
@@ -104,7 +108,8 @@ class MockDownloadManager(object):
             return self.create_dummy_data_dict(dummy_file, data_url)
         elif isinstance(data_url, (list, tuple)):
             return self.create_dummy_data_list(dummy_file, data_url)
-        return dummy_file
+        else:
+            return self.create_dummy_data_single(dummy_file, data_url)
 
     # this function has to be in the manager under this name so that testing works
     def download(self, data_url, *args):
@@ -149,3 +154,17 @@ class MockDownloadManager(object):
             value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(abs_path.split("/")[-1]))
             dummy_data_list.append(value)
         return dummy_data_list
+
+    def create_dummy_data_single(self, path_to_dummy_data, data_url):
+        # we force the name of each key to be the last file / folder name of the url path
+        # if the url has arguments, we need to encode them with urllib.parse.quote_plus
+        value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(data_url.split("/")[-1]))
+        if os.path.exists(value) or not self.load_existing_dummy_data:
+            return value
+        else:
+            # Backward compatibility, maybe deprecate at one point.
+            # For many datasets with single url calls to dl_manager.download_and_extract,
+            # the dummy_data.zip file is actually the zipped downloaded file
+            # while now we expected the dummy_data.zip file to be a directory containing
+            # the downloaded file.
+            return path_to_dummy_data
