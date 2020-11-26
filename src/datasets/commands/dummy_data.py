@@ -1,6 +1,5 @@
 import fnmatch
 import json
-import logging
 import os
 import shutil
 import xml.etree.ElementTree as ET
@@ -13,8 +12,7 @@ from datasets.load import import_main_class, prepare_module
 from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
 from datasets.utils.file_utils import DownloadConfig
-from datasets.utils.filelock import logger as filelock_logger
-from datasets.utils.logging import get_logger
+from datasets.utils.logging import get_logger, set_verbosity_warning
 from datasets.utils.py_utils import map_nested
 
 
@@ -272,7 +270,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
         self._cache_dir = cache_dir
 
     def run(self):
-        filelock_logger().setLevel(level=logging.WARNING)
+        set_verbosity_warning()
         module_path, hash = prepare_module(self._path_to_dataset)
         builder_cls = import_main_class(module_path)
 
