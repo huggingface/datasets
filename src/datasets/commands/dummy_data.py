@@ -2,6 +2,7 @@ import fnmatch
 import json
 import os
 import shutil
+import tempfile
 import xml.etree.ElementTree as ET
 from argparse import ArgumentParser
 from pathlib import Path
@@ -11,7 +12,7 @@ from datasets.commands import BaseTransformersCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
-from datasets.utils.file_utils import DownloadConfig
+from datasets.utils.file_utils import HF_DATASETS_CACHE, DownloadConfig
 from datasets.utils.logging import get_logger, set_verbosity_warning
 from datasets.utils.py_utils import map_nested
 
@@ -276,6 +277,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
             self._dataset_name = path_to_dataset.replace(os.sep, "/").split("/")[-1]
         else:
             self._dataset_name = path_to_dataset.replace(os.sep, "/").split("/")[-2]
+        cache_dir = os.path.expanduser(cache_dir or HF_DATASETS_CACHE)
         self._auto_generate = auto_generate
         self._n_lines = n_lines
         self._json_field = json_field
@@ -293,41 +295,44 @@ class DummyDataCommand(BaseTransformersCLICommand):
         # use `None` as config if no configs
         configs = builder_cls.BUILDER_CONFIGS or [None]
         auto_generate_results = []
-        for config in configs:
-            if config is None:
-                name = None
-                version = builder_cls.VERSION
-            else:
-                version = config.version
-                name = config.name
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            for config in configs:
+                if config is None:
+                    name = None
+                    version = builder_cls.VERSION
+                else:
+                    version = config.version
+                    name = config.name
 
-            dataset_builder = builder_cls(name=name, hash=hash, cache_dir=self._cache_dir)
-            mock_dl_manager = MockDownloadManager(
-                dataset_name=self._dataset_name,
-                config=config,
-                version=version,
-                is_local=True,
-                load_existing_dummy_data=False,
-            )
-
-            if self._auto_generate:
-                auto_generate_results.append(
-                    self._autogenerate_dummy_data(
-                        dataset_builder=dataset_builder,
-                        mock_dl_manager=mock_dl_manager,
-                        keep_uncompressed=self._keep_uncompressed,
-                    )
+                dataset_builder = builder_cls(name=name, hash=hash, cache_dir=tmp_dir)
+                mock_dl_manager = MockDownloadManager(
+                    dataset_name=self._dataset_name,
+                    config=config,
+                    version=version,
+                    is_local=True,
+                    load_existing_dummy_data=False,
                 )
-            else:
-                self._print_dummy_data_instructions(dataset_builder=dataset_builder, mock_dl_manager=mock_dl_manager)
-        if self._auto_generate and not self._keep_uncompressed:
-            if all(auto_generate_results):
-                print(f"Automatic dummy data generation succeeded for all configs of '{self._path_to_dataset}'")
-            else:
-                print(f"Automatic dummy data generation failed for some configs of '{self._path_to_dataset}'")
+
+                if self._auto_generate:
+                    auto_generate_results.append(
+                        self._autogenerate_dummy_data(
+                            dataset_builder=dataset_builder,
+                            mock_dl_manager=mock_dl_manager,
+                            keep_uncompressed=self._keep_uncompressed,
+                        )
+                    )
+                else:
+                    self._print_dummy_data_instructions(
+                        dataset_builder=dataset_builder, mock_dl_manager=mock_dl_manager
+                    )
+            if self._auto_generate and not self._keep_uncompressed:
+                if all(auto_generate_results):
+                    print(f"Automatic dummy data generation succeeded for all configs of '{self._path_to_dataset}'")
+                else:
+                    print(f"Automatic dummy data generation failed for some configs of '{self._path_to_dataset}'")
 
     def _autogenerate_dummy_data(self, dataset_builder, mock_dl_manager, keep_uncompressed) -> Optional[bool]:
-        dl_cache_dir = os.path.join(dataset_builder._cache_dir_root, "downloads")
+        dl_cache_dir = os.path.join(self._cache_dir or HF_DATASETS_CACHE, "downloads")
         download_config = DownloadConfig(cache_dir=dl_cache_dir)
         dl_manager = DummyDataGeneratorDownloadManager(
             dataset_name=self._dataset_name, mock_download_manager=mock_dl_manager, download_config=download_config
@@ -347,13 +352,12 @@ class DummyDataCommand(BaseTransformersCLICommand):
             # now test that the dummy_data.zip file actually works
             mock_dl_manager.load_existing_dummy_data = True  # use real dummy data
             n_examples_per_split = {}
+            os.makedirs(dataset_builder._cache_dir, exist_ok=True)
             try:
                 split_generators = dataset_builder._split_generators(mock_dl_manager)
                 for split_generator in split_generators:
-                    n_examples = 0
-                    for _ in dataset_builder._generate_examples(**split_generator.gen_kwargs):
-                        n_examples += 1
-                    n_examples_per_split[split_generator.name] = n_examples
+                    dataset_builder._prepare_split(split_generator)
+                    n_examples_per_split[split_generator.name] = split_generator.split_info.num_examples
             except OSError as e:
                 logger.error(
                     f"Failed to load dummy data for config '{dataset_builder.config.name}''.\nOriginal error:\n"
