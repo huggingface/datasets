@@ -223,19 +223,15 @@ class Qa4mre(datasets.GeneratorBasedBuilder):
         download_urls = dict()
 
         if cfg.track == "main":
-            download_urls["{}.main.{}".format(cfg.year, cfg.lang)] = (
-                _BASE_URL + PATHS[cfg.year]["_PATH_TMPL_MAIN_GS"].format(cfg.lang)
-            )
+            download_urls["{}.main.{}".format(cfg.year, cfg.lang)] = _BASE_URL + PATHS[cfg.year][
+                "_PATH_TMPL_MAIN_GS"
+            ].format(cfg.lang)
 
         if cfg.year in ["2012", "2013"] and cfg.track == "alzheimers":
-            download_urls["{}.alzheimers.EN".format(cfg.year)] = (
-                _BASE_URL + PATHS[cfg.year]["_PATH_ALZHEIMER"]
-            )
+            download_urls["{}.alzheimers.EN".format(cfg.year)] = _BASE_URL + PATHS[cfg.year]["_PATH_ALZHEIMER"]
 
         if cfg.year == "2013" and cfg.track == "entrance_exam":
-            download_urls["2013.entrance_exam.EN"] = (
-                _BASE_URL + PATHS[cfg.year]["_PATH_ENTRANCE_EXAM"]
-            )
+            download_urls["2013.entrance_exam.EN"] = _BASE_URL + PATHS[cfg.year]["_PATH_ENTRANCE_EXAM"]
 
         downloaded_files = dl_manager.download_and_extract(download_urls)
 

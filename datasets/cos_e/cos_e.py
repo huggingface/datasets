@@ -150,7 +150,7 @@ class CosE(datasets.GeneratorBasedBuilder):
         if self.config.name == "v1.11":
             files = dl_manager.download_and_extract(
                 {
-                    "dev": [_COS_E_URL, + "v1.11/cose_dev_v1.11_processed.jsonl"],
+                    "dev": [_COS_E_URL + "v1.11/cose_dev_v1.11_processed.jsonl"],
                     "train": [_COS_E_URL + "v1.11/cose_train_v1.11_processed.jsonl"],
                 }
             )
