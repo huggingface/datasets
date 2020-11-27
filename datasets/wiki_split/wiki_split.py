@@ -26,10 +26,13 @@ One million English sentences, each split into two sentences that together prese
 Google's WikiSplit dataset was constructed automatically from the publicly available Wikipedia revision history. Although
 the dataset contains some inherent noise, it can serve as valuable training data for models that split or merge sentences.
 """
-_URL = "https://github.com/google-research-datasets/wiki-split/raw/master"
-_TRAIN_FILE = "train.tsv.zip"
-_TEST_FILE = "test.tsv"
-_DEV_FILE = "validation.tsv"
+
+_URL = "https://github.com/google-research-datasets/wiki-split/raw/master/"
+_URLS = {
+    "train": _URL + "train.tsv.zip",
+    "test": _URL + "test.tsv",
+    "dev": _URL + "validation.tsv",
+}
 
 
 class WikiSplit(datasets.GeneratorBasedBuilder):
@@ -66,11 +69,7 @@ class WikiSplit(datasets.GeneratorBasedBuilder):
         # TODO(wiki_split): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {
-            "train": os.path.join(_URL, _TRAIN_FILE),
-            "test": os.path.join(_URL, _TEST_FILE),
-            "dev": os.path.join(_URL, _DEV_FILE),
-        }
+        urls_to_download = _URLS
         dl_dir = dl_manager.download_and_extract(urls_to_download)
         return [
             datasets.SplitGenerator(

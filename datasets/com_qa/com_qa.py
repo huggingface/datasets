@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -40,10 +39,13 @@ in ComQA are grouped into 4,834 paraphrase clusters that express the same inform
 with its answer(s). ComQA answers come in the form of Wikipedia entities wherever possible. Wherever the answers are
 temporal or measurable quantities, TIMEX3 and the International System of Units (SI) are used for normalization.
 """
-_URL = "https://qa.mpi-inf.mpg.de/comqa"
-_TRAIN_FILE = "comqa_train.json"
-_DEV_FILE = "comqa_dev.json"
-_TEST_FILE = "comqa_test.json"
+
+_URL = "https://qa.mpi-inf.mpg.de/comqa/"
+_URLS = {
+    "train": _URL + "comqa_train.json",
+    "dev": _URL + "comqa_dev.json",
+    "test": _URL + "comqa_test.json",
+}
 
 
 class ComQa(datasets.GeneratorBasedBuilder):
@@ -80,11 +82,7 @@ class ComQa(datasets.GeneratorBasedBuilder):
         # TODO(com_qa): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {
-            "train": os.path.join(_URL, _TRAIN_FILE),
-            "dev": os.path.join(_URL, _DEV_FILE),
-            "test": os.path.join(_URL, _TEST_FILE),
-        }
+        urls_to_download = _URLS
         dl_dir = dl_manager.download_and_extract(urls_to_download)
         return [
             datasets.SplitGenerator(

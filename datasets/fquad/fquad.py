@@ -33,9 +33,12 @@ We introduce FQuAD, a native French Question Answering Dataset. FQuAD contains 2
 Finetuning CamemBERT on FQuAD yields a F1 score of 88% and an exact match of 77.9%.
 
 """
-_URL = "https://storage.googleapis.com/illuin/fquad"
-_TRAIN_DATA = "train.json.zip"
-_VALID_DATA = "valid.json.zip"
+
+_URL = "https://storage.googleapis.com/illuin/fquad/"
+_URLS = {
+    "train": _URL + "train.json.zip",
+    "valid": _URL + "valid.json.zip",
+}
 
 
 class Fquad(datasets.GeneratorBasedBuilder):
@@ -74,7 +77,7 @@ class Fquad(datasets.GeneratorBasedBuilder):
         # TODO(fquad): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        download_urls = {"train": os.path.join(_URL, _TRAIN_DATA), "valid": os.path.join(_URL, _VALID_DATA)}
+        download_urls = _URLS
         dl_dir = dl_manager.download_and_extract(download_urls)
         return [
             datasets.SplitGenerator(
