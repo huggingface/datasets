@@ -26,6 +26,8 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, List, Optional, Union
 
+from datasets.utils.mock_download_manager import MockDownloadManager
+
 from . import utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
@@ -440,6 +442,8 @@ class DatasetBuilder:
             dl_manager = DownloadManager(
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
             )
+        elif isinstance(dl_manager, MockDownloadManager):
+            try_from_hf_gcs = False
 
         # Prevent parallel disk operations
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
