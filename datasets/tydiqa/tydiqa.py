@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 import textwrap
 
 import datasets
@@ -29,11 +28,16 @@ information-seeking task and avoid priming effects, questions are written by peo
 don’t know the answer yet, (unlike SQuAD and its descendents) and the data is collected directly in each language without
 the use of translation (unlike MLQA and XQuAD).
 """
+
 _URL = "https://storage.googleapis.com/tydiqa/"
-_PRIMARY_TASK_TRAIN = "v1.0/tydiqa-v1.0-train.jsonl.gz"
-_PRIMARY_TASK_DEV = "v1.0/tydiqa-v1.0-dev.jsonl.gz"
-_SECONDARY_TASK_TRAIN = "v1.1/tydiqa-goldp-v1.1-train.json"
-_SECONDARY_TASK_DEV = "v1.1/tydiqa-goldp-v1.1-dev.json"
+_PRIMARY_URLS = {
+    "train": _URL + "v1.0/tydiqa-v1.0-train.jsonl.gz",
+    "dev": _URL + "v1.0/tydiqa-v1.0-dev.jsonl.gz",
+}
+_SECONDARY_URLS = {
+    "train": _URL + "v1.1/tydiqa-goldp-v1.1-train.json",
+    "dev": _URL + "v1.1/tydiqa-goldp-v1.1-dev.json",
+}
 
 
 class TydiqaConfig(datasets.BuilderConfig):
@@ -155,16 +159,8 @@ class Tydiqa(datasets.GeneratorBasedBuilder):
         # TODO(tydiqa): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        primary_urls_to_download = {
-            "train": os.path.join(_URL, _PRIMARY_TASK_TRAIN),
-            "dev": os.path.join(_URL, _PRIMARY_TASK_DEV),
-        }
-        secondary_urls_to_download = {
-            "train": os.path.join(_URL, _SECONDARY_TASK_TRAIN),
-            "dev": os.path.join(_URL, _SECONDARY_TASK_DEV),
-        }
-        primary_downloaded = dl_manager.download_and_extract(primary_urls_to_download)
-        secondary_downloaded = dl_manager.download_and_extract(secondary_urls_to_download)
+        primary_downloaded = dl_manager.download_and_extract(_PRIMARY_URLS)
+        secondary_downloaded = dl_manager.download_and_extract(_SECONDARY_URLS)
         if self.config.name == "primary_task":
             return [
                 datasets.SplitGenerator(

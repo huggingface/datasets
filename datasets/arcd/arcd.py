@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import logging
-import os
 
 import datasets
 
@@ -30,6 +29,12 @@ _DESCRIPTION = """\
       posed by crowdworkers on Wikipedia articles.
 """
 
+_URL = "https://raw.githubusercontent.com/husseinmozannar/SOQAL/master/data/"
+_URLs = {
+    "train": _URL + "arcd-train.json",
+    "dev": _URL + "arcd-test.json",
+}
+
 
 class ArcdConfig(datasets.BuilderConfig):
     """BuilderConfig for ARCD."""
@@ -45,10 +50,6 @@ class ArcdConfig(datasets.BuilderConfig):
 
 class Arcd(datasets.GeneratorBasedBuilder):
     """ARCD: Arabic Reading Comprehension Dataset."""
-
-    _URL = "https://raw.githubusercontent.com/husseinmozannar/SOQAL/master/data/"
-    _DEV_FILE = "arcd-test.json"
-    _TRAINING_FILE = "arcd-train.json"
 
     BUILDER_CONFIGS = [
         ArcdConfig(
@@ -80,10 +81,7 @@ class Arcd(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        urls_to_download = {
-            "train": os.path.join(self._URL, self._TRAINING_FILE),
-            "dev": os.path.join(self._URL, self._DEV_FILE),
-        }
+        urls_to_download = _URLs
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [

@@ -4,7 +4,6 @@ from __future__ import absolute_import, division, print_function
 
 import csv
 import json
-import os
 
 import datasets
 
@@ -24,10 +23,13 @@ _CITATION = """\
 _DESCRIPTION = """\
 Cosmos QA is a large-scale dataset of 35.6K problems that require commonsense-based reading comprehension, formulated as multiple-choice questions. It focuses on reading between the lines over a diverse collection of people's everyday narratives, asking questions concerning on the likely causes or effects of events that require reasoning beyond the exact text spans in the context
 """
+
 _URL = "https://github.com/wilburOne/cosmosqa/raw/master/data/"
-_TEST_FILE = "test.jsonl"
-_TRAIN_FILE = "train.csv"
-_DEV_FILE = "valid.csv"
+_URLS = {
+    "train": _URL + "train.csv",
+    "test": _URL + "test.jsonl",
+    "dev": _URL + "valid.csv",
+}
 
 
 class CosmosQa(datasets.GeneratorBasedBuilder):
@@ -69,11 +71,7 @@ class CosmosQa(datasets.GeneratorBasedBuilder):
         # TODO(cosmos_qa): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {
-            "train": os.path.join(_URL, _TRAIN_FILE),
-            "test": os.path.join(_URL, _TEST_FILE),
-            "dev": os.path.join(_URL, _DEV_FILE),
-        }
+        urls_to_download = _URLS
         dl_dir = dl_manager.download_and_extract(urls_to_download)
         return [
             datasets.SplitGenerator(

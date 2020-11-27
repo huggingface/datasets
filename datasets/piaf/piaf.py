@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import logging
-import os
 
 import datasets
 
@@ -45,6 +44,8 @@ Piaf is a reading comprehension \
 dataset. This version, published in February 2020, contains 3835 questions on French Wikipedia.
 """
 
+_URLS = {"train": "https://github.com/etalab-ia/piaf-code/raw/master/piaf-v1.0.json"}
+
 
 class PiafConfig(datasets.BuilderConfig):
     """BuilderConfig for PIAF."""
@@ -60,9 +61,6 @@ class PiafConfig(datasets.BuilderConfig):
 
 class Piaf(datasets.GeneratorBasedBuilder):
     """The Piaf Question Answering Dataset. Version 1.0."""
-
-    _URL = "https://github.com/etalab-ia/piaf-code/raw/master/"
-    _TRAINING_FILE = "piaf-v1.0.json"
 
     BUILDER_CONFIGS = [
         PiafConfig(
@@ -97,7 +95,7 @@ class Piaf(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        urls_to_download = {"train": os.path.join(self._URL, self._TRAINING_FILE)}
+        urls_to_download = _URLS
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [

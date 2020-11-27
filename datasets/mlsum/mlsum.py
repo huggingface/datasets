@@ -69,9 +69,9 @@ class Mlsum(datasets.GeneratorBasedBuilder):
 
         lang = str(self.config.name)
         urls_to_download = {
-            "test": os.path.join(_URL, lang + "_test.zip"),
-            "train": os.path.join(_URL, lang + "_train.zip"),
-            "validation": os.path.join(_URL, lang + "_val.zip"),
+            "test": _URL + lang + "_test.zip",
+            "train": _URL + lang + "_train.zip",
+            "validation": _URL + lang + "_val.zip",
         }
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
