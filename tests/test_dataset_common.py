@@ -39,6 +39,7 @@ from datasets import (
     prepare_module,
 )
 from datasets.search import _has_faiss
+from datasets.utils.file_utils import is_remote_url
 
 from .utils import for_all_test_methods, local, remote, slow
 
@@ -122,6 +123,10 @@ class DatasetTester(object):
                 else:
                     version = dataset_builder.VERSION
 
+                def check_if_url_is_valid(url):
+                    if is_remote_url(url) and "\\" in url:
+                        raise ValueError(f"Bad remote url '{url}'' since it contains a backslash")
+
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
                 mock_dl_manager = MockDownloadManager(
                     dataset_name=dataset_name,
@@ -129,6 +134,7 @@ class DatasetTester(object):
                     version=version,
                     cache_dir=raw_temp_dir,
                     is_local=is_local,
+                    download_callbacks=[check_if_url_is_valid],
                 )
 
                 if dataset_builder.__class__.__name__ == "Csv":

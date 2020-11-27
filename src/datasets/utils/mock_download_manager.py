@@ -20,7 +20,7 @@ import os
 import urllib.parse
 from pathlib import Path
 
-from .file_utils import cached_path, hf_github_url
+from .file_utils import cached_path, hf_github_url, is_remote_url
 from .logging import get_logger
 
 
@@ -31,12 +31,22 @@ class MockDownloadManager(object):
     dummy_file_name = "dummy_data"
     datasets_scripts_dir = "datasets"
 
-    def __init__(self, dataset_name, config, version, cache_dir=None, is_local=False, load_existing_dummy_data=True):
+    def __init__(
+        self,
+        dataset_name,
+        config,
+        version,
+        cache_dir=None,
+        is_local=False,
+        load_existing_dummy_data=True,
+        download_callbacks=False,
+    ):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
         self.cache_dir = cache_dir
         self.is_local = is_local
         self.config = config
+        self.download_callbacks = download_callbacks or []
         # if False, it doesn't load existing files and it returns the paths of the dummy files relative
         # to the dummy_data zip file root
         self.load_existing_dummy_data = load_existing_dummy_data
@@ -129,13 +139,15 @@ class MockDownloadManager(object):
 
     def create_dummy_data_dict(self, path_to_dummy_data, data_url):
         dummy_data_dict = {}
-        for key, abs_path in data_url.items():
+        for key, single_url in data_url.items():
+            for download_callback in self.download_callbacks:
+                download_callback(single_url)
             # we force the name of each key to be the last file / folder name of the url path
             # if the url has arguments, we need to encode them with urllib.parse.quote_plus
-            if isinstance(abs_path, list):
-                value = [os.path.join(path_to_dummy_data, urllib.parse.quote_plus(Path(x).name)) for x in abs_path]
+            if isinstance(single_url, list):
+                value = [os.path.join(path_to_dummy_data, urllib.parse.quote_plus(Path(x).name)) for x in single_url]
             else:
-                value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(Path(abs_path).name))
+                value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(Path(single_url).name))
             dummy_data_dict[key] = value
 
         # make sure that values are unique
@@ -148,14 +160,18 @@ class MockDownloadManager(object):
 
     def create_dummy_data_list(self, path_to_dummy_data, data_url):
         dummy_data_list = []
-        for abs_path in data_url:
+        for single_url in data_url:
+            for download_callback in self.download_callbacks:
+                download_callback(single_url)
             # we force the name of each key to be the last file / folder name of the url path
             # if the url has arguments, we need to encode them with urllib.parse.quote_plus
-            value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(abs_path.split("/")[-1]))
+            value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(single_url.split("/")[-1]))
             dummy_data_list.append(value)
         return dummy_data_list
 
     def create_dummy_data_single(self, path_to_dummy_data, data_url):
+        for download_callback in self.download_callbacks:
+            download_callback(data_url)
         # we force the name of each key to be the last file / folder name of the url path
         # if the url has arguments, we need to encode them with urllib.parse.quote_plus
         value = os.path.join(path_to_dummy_data, urllib.parse.quote_plus(data_url.split("/")[-1]))
