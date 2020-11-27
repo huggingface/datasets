@@ -2,7 +2,7 @@
 annotations_creators:
 - expert-generated
 language_creators:
-- expert-generated
+- found
 languages:
 - xh
 licenses:
@@ -19,7 +19,7 @@ task_ids:
 - named-entity-recognition
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for isiXhosa NER Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -70,11 +70,12 @@ The language supported is Xhosa.
 ### Data Instances
 
 A data point consists of sentences seperated by empty line and tab-seperated tokens and tags. 
+```
 {'id': '0',
  'ner_tags': [7, 8, 5, 6, 0],
  'tokens': ['Injongo', 'ye-website', 'yaseMzantsi', 'Afrika', 'kukuvelisa']
 }
-
+```
 ### Data Fields
 
 - `id`: id of the sample
