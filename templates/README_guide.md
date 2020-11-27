@@ -54,7 +54,14 @@ When relevant, please provide [BCP-47 codes](https://tools.ietf.org/html/bcp47),
 
 ### Data Instances
 
-Provide an example and brief description of a typical instance in the dataset. If available, provide a link to further examples.
+Provide an JSON-formatted example and brief description of a typical instance in the dataset. If available, provide a link to further examples.
+
+```
+{
+  'example_field': ...,
+  ...
+}
+```
 
 Provide any additional information that is not covered in the other sections about the data here. In particular describe any relationships between data points and if these relationships are made explicit.
 
