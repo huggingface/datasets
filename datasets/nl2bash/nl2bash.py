@@ -37,7 +37,7 @@ class Nl2Bash(datasets.GeneratorBasedBuilder):
             citation=_CITATION,
         )
     def _split_generators(self, dl_manager):
-        """ Downloads Rotten Tomatoes sentences. """
+        """ Downloads nl2bash-data.json """
         dl_manager._download_config = datasets.utils.file_utils.DownloadConfig()
         extracted_folder_path = dl_manager.download_and_extract(url_or_urls =self._URL)
         print(extracted_folder_path)
@@ -68,6 +68,7 @@ class Nl2Bash(datasets.GeneratorBasedBuilder):
         else:
             raise ValueError(f"Invalid split key {split_key}")
     def _generate_examples(self,split,data_dir):
+        """Given a split("train","validation","test") gets nl-cmd pair"""
         data = self._get_examples_from_split(split,data_dir)
         output_dict = {"nl_query" : [i["invocation"] for i in data],
                 "cmd":[i["cmd"] for i in data]}
