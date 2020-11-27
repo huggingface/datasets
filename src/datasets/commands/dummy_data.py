@@ -356,11 +356,7 @@ class DummyDataCommand(BaseTransformersCLICommand):
             try:
                 split_generators = dataset_builder._split_generators(mock_dl_manager)
                 for split_generator in split_generators:
-                    # n_examples = 0
-                    # for _ in dataset_builder._generate_examples(**split_generator.gen_kwargs):
-                    #     n_examples += 1
                     dataset_builder._prepare_split(split_generator)
-                    # n_examples_per_split[split_generator.name] = n_examples
                     n_examples_per_split[split_generator.name] = split_generator.split_info.num_examples
             except OSError as e:
                 logger.error(
