@@ -94,6 +94,7 @@ BENCHMARKS_REQUIRE = [
 TESTS_REQUIRE = [
     'apache-beam',
     'absl-py',
+    'black',
     'bs4',
     'elasticsearch',
     'faiss-cpu',
