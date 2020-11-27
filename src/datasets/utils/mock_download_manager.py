@@ -19,9 +19,11 @@
 import os
 import urllib.parse
 from pathlib import Path
+from typing import Callable, List, Optional, Union
 
 from .file_utils import cached_path, hf_github_url
 from .logging import get_logger
+from .version import Version
 
 
 logger = get_logger(__name__)
@@ -33,20 +35,21 @@ class MockDownloadManager(object):
 
     def __init__(
         self,
-        dataset_name,
-        config,
-        version,
-        cache_dir=None,
-        is_local=False,
-        load_existing_dummy_data=True,
-        download_callbacks=False,
+        dataset_name: str,
+        config: str,
+        version: Union[Version, str],
+        cache_dir: Optional[str] = None,
+        is_local: bool = False,
+        load_existing_dummy_data: bool = True,
+        download_callbacks: Optional[List[Callable]] = None,
     ):
         self.downloaded_size = 0
         self.dataset_name = dataset_name
         self.cache_dir = cache_dir
         self.is_local = is_local
         self.config = config
-        self.download_callbacks = download_callbacks or []
+        # download_callbacks take a single url as input
+        self.download_callbacks: List[Callable] = download_callbacks or []
         # if False, it doesn't load existing files and it returns the paths of the dummy files relative
         # to the dummy_data zip file root
         self.load_existing_dummy_data = load_existing_dummy_data
