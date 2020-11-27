@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import datasets
 
+
 _CITATION = """\
 @inproceedings{leitner2019fine,
   author = {Elena Leitner and Georg Rehm and Julian Moreno-Schneider},
@@ -66,6 +67,7 @@ class Ler(datasets.GeneratorBasedBuilder):
     The dataset, which is available under a CC-BY 4.0 license in the CoNNL-2002 format,
     was developed for training an NER service for German legal documents in the EU project Lynx.
     """
+
     VERSION = datasets.Version("1.0.0")
 
     def _info(self):
