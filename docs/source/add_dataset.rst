@@ -331,3 +331,21 @@ If your dataset has several configurations or requires to be given the path to l
 	>>> dataset = load_dataset('PATH/TO/MY/SCRIPT.py', 'my_configuration', data_files={'train': 'my_train_file.txt', 'validation': 'my_validation_file.txt'})
 
 
+
+Dataset scripts of reference
+-------------------------------------------------
+
+It is common to see datasets that share the same format. Therefore it is possible that there already exists a dataset script from which you can get some inspiration to help you write your own.
+
+Here is a list of datasets of reference. Feel free to reuse parts of their code and adapt them to your case:
+
+- question-answering: `squad <https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py>`__ (original data are in json)
+- natural language inference: `snli <https://github.com/huggingface/datasets/blob/master/datasets/snli/snli.py>`__ (original data are in text files with tab separated columns)
+- POS/NER: `conll2003 <https://github.com/huggingface/datasets/blob/master/datasets/conll2003/conll2003.py>`__ (original data are in text files with one token per line)
+- sentiment analysis: `allocine <https://github.com/huggingface/datasets/blob/master/datasets/allocine/allocine.py>`__ (original data are in jsonl files)
+- text classification: `ag_news <https://github.com/huggingface/datasets/blob/master/datasets/ag_news/ag_news.py>`__ (original data are in csv files)
+- translation: `flores <https://github.com/huggingface/datasets/blob/master/datasets/flores/flores.py>`__ (original data come from text files - one per language)
+- summarization: `billsum <https://github.com/huggingface/datasets/blob/master/datasets/billsum/billsum.py>`__ (original data are in json files)
+- benchmark: `glue <https://github.com/huggingface/datasets/blob/master/datasets/glue/glue.py>`__ (original data are various formats)
+- multilingual: `xquad <https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py>`__ (original data are in json)
+- multitask: `matinf <https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py>`__ (original data need to be downloaded by the user because it requires authentificaition)
