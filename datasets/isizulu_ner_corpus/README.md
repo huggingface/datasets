@@ -2,7 +2,7 @@
 annotations_creators:
 - expert-generated
 language_creators:
-- expert-generated
+- found
 languages:
 - zu
 licenses:
@@ -69,11 +69,12 @@ The language supported is Zulu.
 ### Data Instances
 
 A data point consists of sentences seperated by empty line and tab-seperated tokens and tags. 
+```
 {'id': '0',
  'ner_tags': [7, 8, 0, 0, 0],
  'tokens': ['Lesi', 'sigaba', 'se-website', ',', 'esikhonjiswe']
 }
-
+```
 ### Data Fields
 
 - `id`: id of the sample
