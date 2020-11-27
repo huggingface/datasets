@@ -20,7 +20,7 @@ import os
 import urllib.parse
 from pathlib import Path
 
-from .file_utils import cached_path, hf_github_url, is_remote_url
+from .file_utils import cached_path, hf_github_url
 from .logging import get_logger
 
 
