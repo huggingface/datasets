@@ -19,7 +19,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -166,7 +165,7 @@ class Blimp(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         cfg = self.config
-        download_urls = {cfg.name: os.path.join(_DOWNLOAD_URL, "data", cfg.name + ".jsonl")}
+        download_urls = {cfg.name: _DOWNLOAD_URL + f"data/{cfg.name}.jsonl"}
 
         downloaded_files = dl_manager.download_and_extract(download_urls)
 
