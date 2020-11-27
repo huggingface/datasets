@@ -16,12 +16,11 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
+import logging
 import os
 
-import logging
 import datasets
+
 
 _CITATION = """\
 @inproceedings{isizulu_ner_corpus,
@@ -40,7 +39,9 @@ Named entity annotated data from the NCHLT Text Resource Development: Phase II P
 
 _URL = "https://repo.sadilar.org/bitstream/handle/20.500.12185/319/nchlt_isizulu_named_entity_annotated_corpus.zip?sequence=3&isAllowed=y"
 
-_EXTRACTED_FILE = "NCHLT isiZulu Named Entity Annotated Corpus/Dataset.NCHLT-II.zu.NER.Full.txt"
+_EXTRACTED_FILE = (
+    "NCHLT isiZulu Named Entity Annotated Corpus/Dataset.NCHLT-II.zu.NER.Full.txt"
+)
 
 
 class IsizuluNerCorpusConfig(datasets.BuilderConfig):
