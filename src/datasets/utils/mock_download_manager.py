@@ -42,7 +42,7 @@ class MockDownloadManager(object):
         self.load_existing_dummy_data = load_existing_dummy_data
 
         # TODO(PVP, QL) might need to make this more general
-        self.version_name = str(version.major) + "." + str(version.minor) + "." + str(version.patch)
+        self.version_name = str(version)
         # to be downloaded
         self._dummy_file = None
         self._bucket_url = None
