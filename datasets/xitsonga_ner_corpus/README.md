@@ -71,8 +71,8 @@ The language supported is Xitsonga.
 A data point consists of sentences seperated by empty line and tab-seperated tokens and tags. 
 ```
 {'id': '0',
- 'ner_tags': [7, 8, 5, 6, 0],
- 'tokens': ['Injongo', 'ye-website', 'yaseMzantsi', 'Afrika', 'kukuvelisa']
+ 'ner_tags': [0, 0, 0, 0, 0],
+ 'tokens': ['Vutirheli', 'bya', 'vanhu', ':', 'Vutirheli']
 }
 ```
 
