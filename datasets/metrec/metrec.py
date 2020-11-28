@@ -32,10 +32,17 @@ The train dataset contains 47,124 records and the test dataset contains 8316 rec
 """
 
 _CITATION = """\
+<<<<<<< HEAD
 @article{metrec2020,
   title={MetRec: A dataset for meter classification of arabic poetry},
   author={Al-shaibani, Maged S and Alyafeai, Zaid and Ahmad, Irfan},
   journal={Data in Brief},
+=======
+@article{al2020meter,
+  title={Meter Classification of Arabic Poems Using Deep Bidirectional Recurrent Neural Networks},
+  author={Al-shaibani, Maged S and Alyafeai, Zaid and Ahmad, Irfan},
+  journal={Pattern Recognition Letters},
+>>>>>>> 7eb3846c61d3ccd13c64304a13e18c16b1f865e6
   year={2020},
   publisher={Elsevier}
 }
@@ -120,4 +127,9 @@ class Metrec(datasets.GeneratorBasedBuilder):
         with open(directory, encoding="UTF-8") as f:
             for id_, record in enumerate(f.read().splitlines()):
                 label, bait = record.split(" ", 1)
+<<<<<<< HEAD
+=======
+                print(label)
+                print(record.split(" ", 1))
+>>>>>>> 7eb3846c61d3ccd13c64304a13e18c16b1f865e6
                 yield str(id_), {"text": bait, "label": int(label)}
