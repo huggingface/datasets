@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, List, Optional
 import pyarrow as pa
 import pyarrow.parquet
 
-from .naming import filename_for_dataset_split
+from .naming import _split_re, filename_for_dataset_split
 from .utils import cached_path, logging
 
 
@@ -37,13 +37,12 @@ if TYPE_CHECKING:
 
 logger = logging.get_logger(__name__)
 
-_BUFFER_SIZE = 8 << 20  # 8 MiB per file.
 HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"
 
 _SUB_SPEC_RE = re.compile(
     r"""
 ^
- (?P<split>\w+)
+ (?P<split>{split_re})
  (\[
     ((?P<from>-?\d+)
      (?P<from_pct>%)?)?
@@ -52,7 +51,9 @@ _SUB_SPEC_RE = re.compile(
      (?P<to_pct>%)?)?
  \])?
 $
-""",
+""".format(
+        split_re=_split_re[1:-1]
+    ),  # remove ^ and $
     re.X,
 )
 

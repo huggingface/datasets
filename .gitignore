@@ -28,6 +28,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# pyenv
+.python-version
+
 # Tests
 .pytest_cache/
 

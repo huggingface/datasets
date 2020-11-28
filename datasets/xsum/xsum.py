@@ -18,6 +18,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import json
 import os
 
 import datasets
@@ -36,25 +37,45 @@ _CITATION = """
 _DESCRIPTION = """
 Extreme Summarization (XSum) Dataset.
 
-There are two features:
+There are three features:
   - document: Input news article.
   - summary: One sentence summary of the article.
+  - id: BBC ID of the article.
 
 """
 
-
-_URL = "https://s3.amazonaws.com/datasets.huggingface.co/summarization/xsum.tar.gz"
+# From https://github.com/EdinburghNLP/XSum/issues/12
+_URL_DATA = "http://bollin.inf.ed.ac.uk/public/direct/XSUM-EMNLP18-Summary-Data-Original.tar.gz"
+_URL_SPLITS = (
+    "https://raw.githubusercontent.com/EdinburghNLP/XSum/master/XSum-Dataset/XSum-TRAINING-DEV-TEST-SPLIT-90-5-5.json"
+)
 
 _DOCUMENT = "document"
 _SUMMARY = "summary"
+_ID = "id"
+
+_REMOVE_LINES = set(
+    [
+        "Share this with\n",
+        "Email\n",
+        "Facebook\n",
+        "Messenger\n",
+        "Twitter\n",
+        "Pinterest\n",
+        "WhatsApp\n",
+        "Linkedin\n",
+        "LinkedIn\n",
+        "Copy this link\n",
+        "These are external links and will open in a new window\n",
+    ]
+)
 
 
 class Xsum(datasets.GeneratorBasedBuilder):
     """Extreme Summarization (XSum) Dataset."""
 
-    # Version 1.1.0 removes web contents.
-    VERSION = datasets.Version("1.1.0")
-    SUPPORTED_VERSIONS = [datasets.Version("1.0.0", "Dataset without cleaning.")]
+    # Version 1.2.0 expands coverage, includes ids, and removes web contents.
+    VERSION = datasets.Version("1.2.0")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -63,6 +84,7 @@ class Xsum(datasets.GeneratorBasedBuilder):
                 {
                     _DOCUMENT: datasets.Value("string"),
                     _SUMMARY: datasets.Value("string"),
+                    _ID: datasets.Value("string"),
                 }
             ),
             supervised_keys=(_DOCUMENT, _SUMMARY),
@@ -73,39 +95,62 @@ class Xsum(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        dl_path = dl_manager.download_and_extract(_URL)
+        files_to_download = {"data": _URL_DATA, "splits": _URL_SPLITS}
+        downloaded_files = dl_manager.download_and_extract(files_to_download)
 
-        dl_path = os.path.join(dl_path, "xsum")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "source": os.path.join(dl_path, "train.source"),
-                    "target": os.path.join(dl_path, "train.target"),
+                    "split_path": downloaded_files["splits"],
+                    "split_name": "train",
+                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "source": os.path.join(dl_path, "val.source"),
-                    "target": os.path.join(dl_path, "val.target"),
+                    "split_path": downloaded_files["splits"],
+                    "split_name": "validation",
+                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data"),
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "source": os.path.join(dl_path, "test.source"),
-                    "target": os.path.join(dl_path, "test.target"),
+                    "split_path": downloaded_files["splits"],
+                    "split_name": "test",
+                    "data_dir": os.path.join(downloaded_files["data"], "bbc-summary-data"),
                 },
             ),
         ]
 
-    def _generate_examples(self, source, target):
+    def _generate_examples(self, split_path, split_name, data_dir):
         """Yields examples."""
-        with open(source, encoding="utf-8") as f1:
-            source = f1.readlines()
-        with open(target, encoding="utf-8") as f2:
-            target = f2.readlines()
-        assert len(source) == len(target)
-        for i in range(len(target)):
-            yield i, {_DOCUMENT: source[i], _SUMMARY: target[i]}
+
+        with open(split_path, "r", encoding="utf-8") as f:
+            split_ids = json.load(f)
+
+        for i in split_ids[split_name]:
+            with open(os.path.join(data_dir, i + ".summary"), "r", encoding="utf-8") as f:
+                text = "".join([line for line in f.readlines() if line not in _REMOVE_LINES and line.strip()])
+                # Each file follows below format:
+                # [SN]URL[SN]
+                # http://somelink
+                #
+                # [SN]TITLE[SN]
+                # some intro
+                #
+                # [SN]FIRST-SENTENCE[SN]
+                # some intro
+                #
+                # [SN]RESTBODY[SN]
+                # text line.
+                # another text line.
+                # "another text line."
+
+                # According to the following issue, FIRST-SENTENCE
+                # is the reference summary and TITLE is unused:
+                # https://github.com/EdinburghNLP/XSum/issues/22
+                segs = text.split("[SN]")
+                yield i, {_DOCUMENT: segs[8].strip(), _SUMMARY: segs[6].strip(), _ID: i}

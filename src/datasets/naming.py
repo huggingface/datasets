@@ -23,6 +23,8 @@ import re
 _first_cap_re = re.compile("(.)([A-Z][a-z0-9]+)")
 _all_cap_re = re.compile("([a-z0-9])([A-Z])")
 
+_split_re = r"^\w+$"
+
 
 def camelcase_to_snakecase(name):
     """Convert camel-case string to snake-case."""
@@ -44,6 +46,8 @@ def filename_prefix_for_name(name):
 def filename_prefix_for_split(name, split):
     if os.path.basename(name) != name:
         raise ValueError("Should be a dataset name, not a path: %s" % name)
+    if not re.match(_split_re, split):
+        raise ValueError(f"Split name should match '{_split_re}'' but got '{split}'.")
     return "%s-%s" % (filename_prefix_for_name(name), split)
 
 

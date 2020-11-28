@@ -184,7 +184,7 @@ class DatasetTester(object):
                 )
 
                 # get dataset
-                dataset = dataset_builder.as_dataset()
+                dataset = dataset_builder.as_dataset(ignore_verifications=True)
 
                 # check that dataset is not empty
                 self.parent.assertListEqual(sorted(dataset_builder.info.splits.keys()), sorted(dataset))
@@ -440,6 +440,48 @@ class CsvTest(TestCase):
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_rows)
+            del ds
+
+    def test_sep(self):
+        n_rows = 10
+        n_cols = 3
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            open(os.path.join(tmp_dir, "table_comma.csv"), "w", encoding="utf-8").write(
+                "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+            )
+            open(os.path.join(tmp_dir, "table_tab.csv"), "w", encoding="utf-8").write(
+                "\n".join("\t".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+            )
+            ds = load_dataset(
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table_comma.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                sep=",",
+            )
+            self.assertEqual(len(ds), n_rows)
+            self.assertEqual(len(ds.column_names), n_cols)
+            del ds
+            ds = load_dataset(
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table_tab.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                sep="\t",
+            )
+            self.assertEqual(len(ds), n_rows)
+            self.assertEqual(len(ds.column_names), n_cols)
+            del ds
+            ds = load_dataset(
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table_comma.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                sep="\t",
+            )
+            self.assertEqual(len(ds), n_rows)
+            self.assertEqual(len(ds.column_names), 1)
             del ds
 
     def test_features(self):

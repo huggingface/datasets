@@ -67,7 +67,7 @@ Here is for instance the :func:`datasets.Dataset._info` for the SQuAD dataset fo
         )
 
 
-The :class:`datasets.Features` define the structure for each examples and can define arbitrary nested objects with fields of various types. More details on the available ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`datasets.Features`. Many examples of features can also be found in the various `dataset scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__ and even directly inspected on the `datasets viewer <https://huggingface.co/docs/datasets/viewer>`__.
+The :class:`datasets.Features` define the structure for each examples and can define arbitrary nested objects with fields of various types. More details on the available ``features`` can be found in the guide on features :doc:`features` and in the package reference on :class:`datasets.Features`. Many examples of features can also be found in the various `dataset scripts provided on the GitHub repository <https://github.com/huggingface/datasets/tree/master/datasets>`__ and even directly inspected on the `datasets viewer <https://huggingface.co/nlp/viewer>`__.
 
 Here are the features of the SQuAD dataset for instance, which is taken from the `squad dataset loading script <https://github.com/huggingface/datasets/tree/master/datasets/squad/squad.py>`__:
 
@@ -230,6 +230,10 @@ The input argument is the ``filepath`` provided in the :obj:`gen_kwargs` of each
 
 The method reads and parses the inputs files and yields a tuple constituted of an ``id_`` (can be arbitrary but should be unique (for backward compatibility with TensorFlow datasets) and an example. The example is a dictionary with the same structure and element types as the ``features`` defined in :func:`datasets.DatasetBuilder._info`.
 
+.. note::
+
+	Since generating a dataset is based on a python generator, then it doesn't load all the data in memory and therefore it can handle pretty big datasets. However before being flushed to the dataset file on disk, the generated samples are stored in the :obj:`ArrowWriter` buffer so that they are written by batch. If your dataset's samples take a lot of memory (with images or videos), then make sure to speficy a low value for the `_writer_batch_size` class attribute of the dataset builder class. We recommend to not exceed 200MB.
+
 Specifying several dataset configurations
 -------------------------------------------------
 
@@ -327,3 +331,21 @@ If your dataset has several configurations or requires to be given the path to l
 	>>> dataset = load_dataset('PATH/TO/MY/SCRIPT.py', 'my_configuration', data_files={'train': 'my_train_file.txt', 'validation': 'my_validation_file.txt'})
 
 
+
+Dataset scripts of reference
+-------------------------------------------------
+
+It is common to see datasets that share the same format. Therefore it is possible that there already exists a dataset script from which you can get some inspiration to help you write your own.
+
+Here is a list of datasets of reference. Feel free to reuse parts of their code and adapt them to your case:
+
+- question-answering: `squad <https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py>`__ (original data are in json)
+- natural language inference: `snli <https://github.com/huggingface/datasets/blob/master/datasets/snli/snli.py>`__ (original data are in text files with tab separated columns)
+- POS/NER: `conll2003 <https://github.com/huggingface/datasets/blob/master/datasets/conll2003/conll2003.py>`__ (original data are in text files with one token per line)
+- sentiment analysis: `allocine <https://github.com/huggingface/datasets/blob/master/datasets/allocine/allocine.py>`__ (original data are in jsonl files)
+- text classification: `ag_news <https://github.com/huggingface/datasets/blob/master/datasets/ag_news/ag_news.py>`__ (original data are in csv files)
+- translation: `flores <https://github.com/huggingface/datasets/blob/master/datasets/flores/flores.py>`__ (original data come from text files - one per language)
+- summarization: `billsum <https://github.com/huggingface/datasets/blob/master/datasets/billsum/billsum.py>`__ (original data are in json files)
+- benchmark: `glue <https://github.com/huggingface/datasets/blob/master/datasets/glue/glue.py>`__ (original data are various formats)
+- multilingual: `xquad <https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py>`__ (original data are in json)
+- multitask: `matinf <https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py>`__ (original data need to be downloaded by the user because it requires authentificaition)

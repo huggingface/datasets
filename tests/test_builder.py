@@ -7,7 +7,7 @@ import numpy as np
 
 from datasets.arrow_dataset import Dataset
 from datasets.arrow_writer import ArrowWriter
-from datasets.builder import FORCE_REDOWNLOAD, DatasetBuilder, GeneratorBasedBuilder
+from datasets.builder import FORCE_REDOWNLOAD, BuilderConfig, DatasetBuilder, GeneratorBasedBuilder
 from datasets.dataset_dict import DatasetDict
 from datasets.features import Features, Value
 from datasets.info import DatasetInfo, PostProcessedInfo
@@ -42,6 +42,38 @@ class DummyGeneratorBasedBuilder(GeneratorBasedBuilder):
     def _generate_examples(self):
         for i in range(100):
             yield i, {"text": "foo"}
+
+
+class DummyGeneratorBasedBuilderWithIntegers(GeneratorBasedBuilder):
+    def _info(self):
+        return DatasetInfo(features=Features({"id": Value("int8")}))
+
+    def _split_generators(self, dl_manager):
+        return [SplitGenerator(name=Split.TRAIN)]
+
+    def _generate_examples(self):
+        for i in range(100):
+            yield i, {"id": i}
+
+
+class DummyGeneratorBasedBuilderWithConfigConfig(BuilderConfig):
+    def __init__(self, content="foo", times=2, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.content = content
+
+
+class DummyGeneratorBasedBuilderWithConfig(GeneratorBasedBuilder):
+    BUILDER_CONFIG_CLASS = DummyGeneratorBasedBuilderWithConfigConfig
+
+    def _info(self):
+        return DatasetInfo(features=Features({"text": Value("string")}))
+
+    def _split_generators(self, dl_manager):
+        return [SplitGenerator(name=Split.TRAIN)]
+
+    def _generate_examples(self):
+        for i in range(100):
+            yield i, {"text": self.config.content * self.config.times}
 
 
 class BuilderTest(TestCase):
@@ -489,3 +521,55 @@ class BuilderTest(TestCase):
                 cache_dir=tmp_dir, name="dummy", data_files={"train": [dummy_data1, dummy_data2], "test": dummy_data2}
             )
             self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+
+    def test_cache_dir_for_features(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            f1 = Features({"id": Value("int8")})
+            f2 = Features({"id": Value("int32")})
+            dummy_builder = DummyGeneratorBasedBuilderWithIntegers(cache_dir=tmp_dir, name="dummy", features=f1)
+            other_builder = DummyGeneratorBasedBuilderWithIntegers(cache_dir=tmp_dir, name="dummy", features=f1)
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilderWithIntegers(cache_dir=tmp_dir, name="dummy", features=f2)
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+
+    def test_cache_dir_for_config_kwargs(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            dummy_builder = DummyGeneratorBasedBuilderWithConfig(
+                cache_dir=tmp_dir, name="dummy", content="foo", times=2
+            )
+            other_builder = DummyGeneratorBasedBuilderWithConfig(
+                cache_dir=tmp_dir, name="dummy", times=2, content="foo"
+            )
+            self.assertEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            self.assertIn("content=foo", dummy_builder.cache_dir)
+            self.assertIn("times=2", dummy_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilderWithConfig(
+                cache_dir=tmp_dir, name="dummy", content="bar", times=2
+            )
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+            other_builder = DummyGeneratorBasedBuilderWithConfig(cache_dir=tmp_dir, name="dummy", content="foo")
+            self.assertNotEqual(dummy_builder.cache_dir, other_builder.cache_dir)
+
+    def test_custom_writer_batch_size(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            self.assertEqual(DummyGeneratorBasedBuilder._writer_batch_size, None)
+            dummy_builder1 = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir,
+                name="dummy1",
+            )
+            DummyGeneratorBasedBuilder._writer_batch_size = 5
+            dummy_builder2 = DummyGeneratorBasedBuilder(
+                cache_dir=tmp_dir,
+                name="dummy2",
+            )
+            dummy_builder3 = DummyGeneratorBasedBuilder(cache_dir=tmp_dir, name="dummy3", writer_batch_size=10)
+            dummy_builder1.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
+            dummy_builder2.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
+            dummy_builder3.download_and_prepare(try_from_hf_gcs=False, download_mode=FORCE_REDOWNLOAD)
+            dataset1 = dummy_builder1.as_dataset("train")
+            self.assertEqual(len(dataset1._data[0].chunks), 1)
+            dataset2 = dummy_builder2.as_dataset("train")
+            self.assertEqual(len(dataset2._data[0].chunks), 20)
+            dataset3 = dummy_builder3.as_dataset("train")
+            self.assertEqual(len(dataset3._data[0].chunks), 10)
+            del dataset1, dataset2, dataset3
