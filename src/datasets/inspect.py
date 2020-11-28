@@ -19,10 +19,9 @@
 from typing import Optional
 
 from .hf_api import HfApi
-from .load import prepare_module
+from .load import import_main_class, prepare_module
 from .utils import DownloadConfig
 from .utils.logging import get_logger
-from .load import import_main_class, prepare_module
 
 
 logger = get_logger(__name__)
@@ -37,6 +36,7 @@ def list_datasets(with_community_datasets=True, with_details=False):
     """
     api = HfApi()
     return api.dataset_list(with_community_datasets=with_community_datasets, id_only=bool(not with_details))
+
 
 def list_metrics(with_community_metrics=True, id_only=False, with_details=False):
     """List all the metrics script available on HuggingFace AWS bucket
@@ -96,6 +96,7 @@ def inspect_metric(path: str, local_path: str, download_config: Optional[Downloa
         f"You can modify this processing scripts and use it with `datasets.load_metric({local_path})`."
     )
 
+
 def get_dataset_infos(path: str):
     """Get the meta information about a dataset, returned as a dict mapping config name to DatasetInfoDict.
 
@@ -108,7 +109,8 @@ def get_dataset_infos(path: str):
     """
     module_path, _ = prepare_module(path)
     builder_cls = import_main_class(module_path, dataset=True)
-    infos = builder_cls.get_all_exported_dataset_infos()
+    return builder_cls.get_all_exported_dataset_infos()
+
 
 def get_dataset_config_names(path: str):
     """Get the list of available config names for a particular dataset.
@@ -120,4 +122,6 @@ def get_dataset_config_names(path: str):
             - a dataset identifier on HuggingFace AWS bucket (list all available datasets and ids with ``datasets.list_datasets()``)
                 e.g. ``'squad'``, ``'glue'`` or ``'openai/webtext'``
     """
-    return list(get_dataset_infos(path).keys())
+    module_path, _ = prepare_module(path)
+    builder_cls = import_main_class(module_path, dataset=True)
+    return list(builder_cls.builder_configs.keys())
