@@ -19,7 +19,8 @@
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -140,13 +141,21 @@ If efforts were made to anonymize the data, describe the anonymization process.
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
 
-Provide descriptions of specific biases that are likely to be reflected in the data. See [Blodgett et al 2020](https://www.aclweb.org/anthology/2020.acl-main.485/), [Yacine Jernite's notebook on Reddit data](https://yjernite.github.io/lfqa.html#reddit_biases), or [Dinan et al 2020 on biases in Wikipedia (esp. Table 1)](https://arxiv.org/abs/2005.00614) for further discussion and examples.
+Please discuss some of the ways you believe the use of this dataset will impact society.
 
-If analyses have been run analyzing these biases, please add brief summaries and links to the studies here.
+The statement should include both positive outlooks, such as outlining how technologies developed through its use may improve people's lives, and discuss the accompanying risks. These risks may range from making important decisions more opaque to people who are affected by the technology, to reinforcing existing harmful biases (whose specifics should be discussed in the next section), among other considerations.
 
-Please also provide a broader statement of possible social impact resulting from the use of this dataset, both negative and positive: especially for datasets in a currenty under-represented language.
+Please also mention in this section if the proposed dataset contains a *low-resource* or under-represented language.
+
+### Discussion of Biases
+
+Provide descriptions of specific biases that are likely to be reflected in the data, and state whether any steps were taken to reduce their impact.
+
+For Wikipedia text, see for example [Dinan et al 2020 on biases in Wikipedia (esp. Table 1)](https://arxiv.org/abs/2005.00614), or [Blodgett et al 2020](https://www.aclweb.org/anthology/2020.acl-main.485/) for a more general discussion of the topic.
+
+If analyses have been run quantifying these biases, please add brief summaries and links to the studies here.
 
 ### Other Known Limitations
 

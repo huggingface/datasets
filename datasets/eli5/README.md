@@ -37,7 +37,8 @@ task_ids:
   - [Annotations](#annotations)
   - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Discussion of Social Impact and Biases](#discussion-of-social-impact-and-biases)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -145,11 +146,19 @@ The authors removed the speaker IDs from the [Pushshift.io](https://files.pushsh
 
 ## Considerations for Using the Data
 
-### Discussion of Social Impact and Biases
+### Social Impact of Dataset
+
+The purpose of this dataset is to help develop better question answering systems.
+
+A system that succeeds at the supported task would be able to provide a coherent answer to even complex questions requiring a multi-step explanation, which is beyond the ability of even the larger existing models. The task is also thought as a test-bed for retrieval model which can show the users which source text was used in generating the answer and allow them to confirm the information provided to them.
+
+It should be noted however that the model is trained on data created by Reddit users, an information which may be lost if models trained on it are deployed in down-stream applications and presented to users without context. The specific biases this may introduce are discussed in the next section.
+
+### Discussion of Biases
 
 While Reddit hosts a number of thriving communities with high quality discussions, it is also widely known to have corners where sexism, hate, and harassment are significant issues. See for example the  [recent post from Reddit founder u/spez](https://www.reddit.com/r/announcements/comments/gxas21/upcoming_changes_to_our_content_policy_our_board/)  outlining some of the ways he thinks the website's historical policies have been responsible for this problem,  [Adrienne Massanari's 2015 article on GamerGate](https://www.researchgate.net/publication/283848479_Gamergate_and_The_Fappening_How_Reddit's_algorithm_governance_and_culture_support_toxic_technocultures)  and follow-up works, or a  [2019 Wired article on misogyny on Reddit](https://www.wired.com/story/misogyny-reddit-research/).
 
-While there has been some recent work in the NLP community on  _de-biasing_  models (e.g.  [Black is to Criminal as Caucasian is to Police: Detecting and Removing Multiclass Bias in Word Embeddings](https://arxiv.org/abs/1904.04047)  for word embeddings trained specifically on Reddit data), this problem is far from solved, and the likelihood that a trained model might learn the biases present in the data remains a significant concern.
+While there has been some recent work in the NLP community on  *de-biasing*  models (e.g.  [Black is to Criminal as Caucasian is to Police: Detecting and Removing Multiclass Bias in Word Embeddings](https://arxiv.org/abs/1904.04047)  for word embeddings trained specifically on Reddit data), this problem is far from solved, and the likelihood that a trained model might learn the biases present in the data remains a significant concern.
 
 We still note some encouraging signs for all of these communities:  [r/explainlikeimfive](https://www.reddit.com/r/explainlikeimfive/)  and  [r/askscience](https://www.reddit.com/r/askscience/)  have similar structures and purposes, and  [r/askscience](https://www.reddit.com/r/askscience/)  was found in 2015 to show medium supportiveness and very low toxicity when compared to other subreddits (see a  [hackerfall post](https://hackerfall.com/story/study-and-interactive-visualization-of-toxicity-in),  [thecut.com write-up](https://www.thecut.com/2015/03/interactive-chart-of-reddits-toxicity.html)  and supporting  [data](https://chart-studio.plotly.com/~bsbell21/210/toxicity-vs-supportiveness-by-subreddit/#data)). Meanwhile, the  [r/AskHistorians rules](https://www.reddit.com/r/AskHistorians/wiki/rules)  mention that the admins will not tolerate "_racism, sexism, or any other forms of bigotry_". However, further analysis of whether and to what extent these rules reduce toxicity is still needed.
 
