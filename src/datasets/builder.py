@@ -253,7 +253,7 @@ class DatasetBuilder:
         if is_custom:
             logger.warning("Using custom data configuration %s", name)
         else:
-            if builder_config is not self.builder_configs[name]:
+            if builder_config != self.builder_configs[name]:
                 raise ValueError(
                     "Cannot name a custom BuilderConfig the same as an available "
                     "BuilderConfig. Change the name. Available BuilderConfigs: %s"
@@ -263,6 +263,7 @@ class DatasetBuilder:
                 raise ValueError("BuilderConfig %s must have a version" % name)
             # if not builder_config.description:
             #     raise ValueError("BuilderConfig %s must have a description" % name)
+            return builder_config  # found existing configuration
         if not name:
             raise ValueError("BuilderConfig must have a name, got %s" % name)
 
@@ -597,8 +598,13 @@ class DatasetBuilder:
             try:
                 # Prepare split will record examples associated to the split
                 self._prepare_split(split_generator, **prepare_split_kwargs)
-            except OSError:
-                raise OSError("Cannot find data file. " + (self.manual_download_instructions or ""))
+            except OSError as e:
+                raise OSError(
+                    "Cannot find data file. "
+                    + (self.manual_download_instructions or "")
+                    + "\nOriginal error:\n"
+                    + str(e)
+                )
 
         if verify_infos:
             verify_splits(self.info.splits, split_dict)

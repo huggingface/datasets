@@ -40,9 +40,9 @@ One could use this dataset for benchmarking long-range language models, or use i
 """
 
 _ASSET_ROOT_URL = "https://storage.googleapis.com/deepmind-gutenberg/"
-_STORAGE_API_ROOT_URL = "https://storage.googleapis.com/storage/v1/b/deepmind-gutenberg/o"
+_STORAGE_API_ROOT_URL = "https://storage.googleapis.com/storage/v1/b/deepmind-gutenberg/o/"
 
-_METADATA_URL = os.path.join(_ASSET_ROOT_URL, "metadata.csv")
+_METADATA_URL = _ASSET_ROOT_URL + "metadata.csv"
 
 
 def flat_map(fn, arr):
@@ -116,14 +116,13 @@ class Pg19(datasets.GeneratorBasedBuilder):
                 return json.load(f)
 
         splits = ["train", "validation", "test"]
-        split_paths = map(lambda path: os.path.join(_STORAGE_API_ROOT_URL, path), splits)
+        split_paths = map(lambda path: _STORAGE_API_ROOT_URL + path, splits)
         split_paths = dl_manager.download_custom(dict(zip(splits, split_paths)), download_listdir)
 
         file_urls = list(map(filepath_to_json, split_paths.values()))
 
         complete_file_urls = [
-            list(map(lambda url: os.path.join(_ASSET_ROOT_URL, url), urls))
-            for (split_path, urls) in zip(split_paths, file_urls)
+            list(map(lambda url: _ASSET_ROOT_URL + url, urls)) for (split_path, urls) in zip(split_paths, file_urls)
         ]
         urls_to_download = {(get_filename(url)): url for urls in complete_file_urls for url in urls}
 
