@@ -54,30 +54,6 @@ class PECConfig(datasets.BuilderConfig):
         self.domain = domain
 
 
-def concatenate_files(input_files, output_file):
-    with open(output_file,'wb') as wfd:
-        for f in input_files:
-            with open(f,'rb') as fd:
-                shutil.copyfileobj(fd, wfd)
-
-def load_persona(path):
-    persona = {}
-    is_speaker = True
-    sentences = []
-    with open(path) as f:
-        for row in f:
-            if "********************" not in row:
-                if is_speaker:
-                    speaker = row.strip()
-                    is_speaker = False
-                else:
-                    sentences.append(row.strip())
-            else:
-                persona[speaker] = sentences
-                is_speaker = True
-                sentences = []
-    return persona
-
 class PEC(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
@@ -88,11 +64,8 @@ class PEC(datasets.GeneratorBasedBuilder):
     # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
     BUILDER_CONFIG_CLASS = PECConfig
     BUILDER_CONFIGS = [
-        PECConfig(
-            name=domain, 
-            description="A subset of PEC dataset: {}".format(domain), 
-            domain=domain) 
-            for domain in ["happy", "offmychest", "all"]
+        PECConfig(name=domain, description="A subset of PEC dataset: {}".format(domain), domain=domain)
+        for domain in ["happy", "offmychest", "all"]
     ]
 
     def _info(self):
@@ -107,7 +80,7 @@ class PEC(datasets.GeneratorBasedBuilder):
                     "context": datasets.features.Sequence(datasets.Value("string")),
                     "context_speakers": datasets.features.Sequence(datasets.Value("string")),
                     "response": datasets.Value("string"),
-                    "response_speaker": datasets.Value("string")
+                    "response_speaker": datasets.Value("string"),
                 }
             ),
             # If there's a common (input, target) tuple from the features,
@@ -118,6 +91,30 @@ class PEC(datasets.GeneratorBasedBuilder):
             homepage="https://github.com/zhongpeixiang/PEC",
             citation=_CITATION,
         )
+
+    def _concatenate_files(self, input_files, output_file):
+        with open(output_file, "wb") as wfd:
+            for f in input_files:
+                with open(f, "rb") as fd:
+                    shutil.copyfileobj(fd, wfd)
+
+    def _load_persona(self, path):
+        persona = {}
+        is_speaker = True
+        sentences = []
+        with open(path) as f:
+            for row in f:
+                if "********************" not in row:
+                    if is_speaker:
+                        speaker = row.strip()
+                        is_speaker = False
+                    else:
+                        sentences.append(row.strip())
+                else:
+                    persona[speaker] = sentences
+                    is_speaker = True
+                    sentences = []
+        return persona
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
@@ -130,12 +127,11 @@ class PEC(datasets.GeneratorBasedBuilder):
         if self.config.domain in ["happy", "offmychest"]:
             # load persona
             persona_path = os.path.join(data_dir, self.config.domain, "persona.txt")
-            self.persona = load_persona(persona_path)
+            self.persona = self._load_persona(persona_path)
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, self.config.domain, "train.txt"), "split": "train"},
+                    gen_kwargs={"filepath": os.path.join(data_dir, self.config.domain, "train.txt"), "split": "train"},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
@@ -143,41 +139,39 @@ class PEC(datasets.GeneratorBasedBuilder):
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, self.config.domain, "valid.txt"), "split": "dev"},
+                    gen_kwargs={"filepath": os.path.join(data_dir, self.config.domain, "valid.txt"), "split": "dev"},
                 ),
             ]
         else:
             # concatenate two domain files
-            concatenate_files([
-                os.path.join(data_dir, "happy", "train.txt"),
-                os.path.join(data_dir, "offmychest", "train.txt")
-            ], os.path.join(data_dir, "train.txt"))
+            self._concatenate_files(
+                [os.path.join(data_dir, "happy", "train.txt"), os.path.join(data_dir, "offmychest", "train.txt")],
+                os.path.join(data_dir, "train.txt"),
+            )
 
-            concatenate_files([
-                os.path.join(data_dir, "happy", "valid.txt"),
-                os.path.join(data_dir, "offmychest", "valid.txt")
-            ], os.path.join(data_dir, "valid.txt"))
+            self._concatenate_files(
+                [os.path.join(data_dir, "happy", "valid.txt"), os.path.join(data_dir, "offmychest", "valid.txt")],
+                os.path.join(data_dir, "valid.txt"),
+            )
 
-            concatenate_files([
-                os.path.join(data_dir, "happy", "test.txt"),
-                os.path.join(data_dir, "offmychest", "test.txt")
-            ], os.path.join(data_dir, "test.txt"))
+            self._concatenate_files(
+                [os.path.join(data_dir, "happy", "test.txt"), os.path.join(data_dir, "offmychest", "test.txt")],
+                os.path.join(data_dir, "test.txt"),
+            )
 
-            concatenate_files([
-                os.path.join(data_dir, "happy", "persona.txt"),
-                os.path.join(data_dir, "offmychest", "persona.txt")
-            ], os.path.join(data_dir, "persona.txt"))
+            self._concatenate_files(
+                [os.path.join(data_dir, "happy", "persona.txt"), os.path.join(data_dir, "offmychest", "persona.txt")],
+                os.path.join(data_dir, "persona.txt"),
+            )
 
             # load persona
             persona_path = os.path.join(data_dir, "persona.txt")
-            self.persona = load_persona(persona_path)
+            self.persona = self._load_persona(persona_path)
 
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "train.txt"), "split": "train"},
+                    gen_kwargs={"filepath": os.path.join(data_dir, "train.txt"), "split": "train"},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
@@ -185,11 +179,9 @@ class PEC(datasets.GeneratorBasedBuilder):
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, "valid.txt"), "split": "dev"},
+                    gen_kwargs={"filepath": os.path.join(data_dir, "valid.txt"), "split": "dev"},
                 ),
             ]
-
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
@@ -214,7 +206,7 @@ class PEC(datasets.GeneratorBasedBuilder):
                         response_speaker = context_speakers.pop()
                         response = context.pop()
                         yield example_id, {
-                            "personas": self.persona[response_speaker], 
+                            "personas": self.persona[response_speaker],
                             "context_speakers": context_speakers,
                             "context": context,
                             "response_speaker": response_speaker,
