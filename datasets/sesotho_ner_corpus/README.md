@@ -46,7 +46,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [Sesotho Ner Corpus Homepage](https://repo.sadilar.org/handle/20.500.12185/346)
+- **Homepage:** [Sesotho Ner Corpus Homepage](https://repo.sadilar.org/handle/20.500.12185/334)
 - **Repository:**
 - **Paper:**
 - **Leaderboard:**
