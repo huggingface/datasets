@@ -1,0 +1,859 @@
+[
+    {
+        "id": "aeslc",
+        "folder": "datasets/aeslc",
+        "dataset_infos": "datasets/aeslc/dataset_infos.json"
+    },
+    {
+        "id": "ag_news",
+        "folder": "datasets/ag_news",
+        "dataset_infos": "datasets/ag_news/dataset_infos.json"
+    },
+    {
+        "id": "ai2_arc",
+        "folder": "datasets/ai2_arc",
+        "dataset_infos": "datasets/ai2_arc/dataset_infos.json"
+    },
+    {
+        "id": "allocine",
+        "folder": "datasets/allocine",
+        "dataset_infos": "datasets/allocine/dataset_infos.json"
+    },
+    {
+        "id": "amazon_us_reviews",
+        "folder": "datasets/amazon_us_reviews",
+        "dataset_infos": "datasets/amazon_us_reviews/dataset_infos.json"
+    },
+    {
+        "id": "anli",
+        "folder": "datasets/anli",
+        "dataset_infos": "datasets/anli/dataset_infos.json"
+    },
+    {
+        "id": "arcd",
+        "folder": "datasets/arcd",
+        "dataset_infos": "datasets/arcd/dataset_infos.json"
+    },
+    {
+        "id": "art",
+        "folder": "datasets/art",
+        "dataset_infos": "datasets/art/dataset_infos.json"
+    },
+    {
+        "id": "aslg_pc12",
+        "folder": "datasets/aslg_pc12",
+        "dataset_infos": "datasets/aslg_pc12/dataset_infos.json"
+    },
+    {
+        "id": "asnq",
+        "folder": "datasets/asnq",
+        "dataset_infos": "datasets/asnq/dataset_infos.json"
+    },
+    {
+        "id": "billsum",
+        "folder": "datasets/billsum",
+        "dataset_infos": "datasets/billsum/dataset_infos.json"
+    },
+    {
+        "id": "biomrc",
+        "folder": "datasets/biomrc",
+        "dataset_infos": "datasets/biomrc/dataset_infos.json"
+    },
+    {
+        "id": "blended_skill_talk",
+        "folder": "datasets/blended_skill_talk",
+        "dataset_infos": "datasets/blended_skill_talk/dataset_infos.json"
+    },
+    {
+        "id": "blimp",
+        "folder": "datasets/blimp",
+        "dataset_infos": "datasets/blimp/dataset_infos.json"
+    },
+    {
+        "id": "blog_authorship_corpus",
+        "folder": "datasets/blog_authorship_corpus",
+        "dataset_infos": "datasets/blog_authorship_corpus/dataset_infos.json"
+    },
+    {
+        "id": "bookcorpus",
+        "folder": "datasets/bookcorpus",
+        "dataset_infos": "datasets/bookcorpus/dataset_infos.json"
+    },
+    {
+        "id": "bookcorpusopen",
+        "folder": "datasets/bookcorpusopen",
+        "dataset_infos": "datasets/bookcorpusopen/dataset_infos.json"
+    },
+    {
+        "id": "boolq",
+        "folder": "datasets/boolq",
+        "dataset_infos": "datasets/boolq/dataset_infos.json"
+    },
+    {
+        "id": "break_data",
+        "folder": "datasets/break_data",
+        "dataset_infos": "datasets/break_data/dataset_infos.json"
+    },
+    {
+        "id": "c4",
+        "folder": "datasets/c4"
+    },
+    {
+        "id": "cfq",
+        "folder": "datasets/cfq",
+        "dataset_infos": "datasets/cfq/dataset_infos.json"
+    },
+    {
+        "id": "civil_comments",
+        "folder": "datasets/civil_comments",
+        "dataset_infos": "datasets/civil_comments/dataset_infos.json"
+    },
+    {
+        "id": "clue",
+        "folder": "datasets/clue",
+        "dataset_infos": "datasets/clue/dataset_infos.json"
+    },
+    {
+        "id": "cmrc2018",
+        "folder": "datasets/cmrc2018",
+        "dataset_infos": "datasets/cmrc2018/dataset_infos.json"
+    },
+    {
+        "id": "cnn_dailymail",
+        "folder": "datasets/cnn_dailymail",
+        "dataset_infos": "datasets/cnn_dailymail/dataset_infos.json"
+    },
+    {
+        "id": "coarse_discourse",
+        "folder": "datasets/coarse_discourse",
+        "dataset_infos": "datasets/coarse_discourse/dataset_infos.json"
+    },
+    {
+        "id": "com_qa",
+        "folder": "datasets/com_qa",
+        "dataset_infos": "datasets/com_qa/dataset_infos.json"
+    },
+    {
+        "id": "common_gen",
+        "folder": "datasets/common_gen",
+        "dataset_infos": "datasets/common_gen/dataset_infos.json"
+    },
+    {
+        "id": "commonsense_qa",
+        "folder": "datasets/commonsense_qa",
+        "dataset_infos": "datasets/commonsense_qa/dataset_infos.json"
+    },
+    {
+        "id": "compguesswhat",
+        "folder": "datasets/compguesswhat",
+        "dataset_infos": "datasets/compguesswhat/dataset_infos.json"
+    },
+    {
+        "id": "conll2000",
+        "folder": "datasets/conll2000",
+        "dataset_infos": "datasets/conll2000/dataset_infos.json"
+    },
+    {
+        "id": "conll2003",
+        "folder": "datasets/conll2003",
+        "dataset_infos": "datasets/conll2003/dataset_infos.json"
+    },
+    {
+        "id": "coqa",
+        "folder": "datasets/coqa",
+        "dataset_infos": "datasets/coqa/dataset_infos.json"
+    },
+    {
+        "id": "cornell_movie_dialog",
+        "folder": "datasets/cornell_movie_dialog",
+        "dataset_infos": "datasets/cornell_movie_dialog/dataset_infos.json"
+    },
+    {
+        "id": "cos_e",
+        "folder": "datasets/cos_e",
+        "dataset_infos": "datasets/cos_e/dataset_infos.json"
+    },
+    {
+        "id": "cosmos_qa",
+        "folder": "datasets/cosmos_qa",
+        "dataset_infos": "datasets/cosmos_qa/dataset_infos.json"
+    },
+    {
+        "id": "crd3",
+        "folder": "datasets/crd3",
+        "dataset_infos": "datasets/crd3/dataset_infos.json"
+    },
+    {
+        "id": "crime_and_punish",
+        "folder": "datasets/crime_and_punish",
+        "dataset_infos": "datasets/crime_and_punish/dataset_infos.json"
+    },
+    {
+        "id": "csv",
+        "folder": "datasets/csv"
+    },
+    {
+        "id": "daily_dialog",
+        "folder": "datasets/daily_dialog",
+        "dataset_infos": "datasets/daily_dialog/dataset_infos.json"
+    },
+    {
+        "id": "definite_pronoun_resolution",
+        "folder": "datasets/definite_pronoun_resolution",
+        "dataset_infos": "datasets/definite_pronoun_resolution/dataset_infos.json"
+    },
+    {
+        "id": "discofuse",
+        "folder": "datasets/discofuse",
+        "dataset_infos": "datasets/discofuse/dataset_infos.json"
+    },
+    {
+        "id": "docred",
+        "folder": "datasets/docred",
+        "dataset_infos": "datasets/docred/dataset_infos.json"
+    },
+    {
+        "id": "doqa",
+        "folder": "datasets/doqa",
+        "dataset_infos": "datasets/doqa/dataset_infos.json"
+    },
+    {
+        "id": "drop",
+        "folder": "datasets/drop",
+        "dataset_infos": "datasets/drop/dataset_infos.json"
+    },
+    {
+        "id": "eli5",
+        "folder": "datasets/eli5",
+        "dataset_infos": "datasets/eli5/dataset_infos.json"
+    },
+    {
+        "id": "emo",
+        "folder": "datasets/emo",
+        "dataset_infos": "datasets/emo/dataset_infos.json"
+    },
+    {
+        "id": "emotion",
+        "folder": "datasets/emotion",
+        "dataset_infos": "datasets/emotion/dataset_infos.json"
+    },
+    {
+        "id": "empathetic_dialogues",
+        "folder": "datasets/empathetic_dialogues",
+        "dataset_infos": "datasets/empathetic_dialogues/dataset_infos.json"
+    },
+    {
+        "id": "eraser_multi_rc",
+        "folder": "datasets/eraser_multi_rc",
+        "dataset_infos": "datasets/eraser_multi_rc/dataset_infos.json"
+    },
+    {
+        "id": "esnli",
+        "folder": "datasets/esnli",
+        "dataset_infos": "datasets/esnli/dataset_infos.json"
+    },
+    {
+        "id": "event2Mind",
+        "folder": "datasets/event2Mind",
+        "dataset_infos": "datasets/event2Mind/dataset_infos.json"
+    },
+    {
+        "id": "fever",
+        "folder": "datasets/fever",
+        "dataset_infos": "datasets/fever/dataset_infos.json"
+    },
+    {
+        "id": "flores",
+        "folder": "datasets/flores",
+        "dataset_infos": "datasets/flores/dataset_infos.json"
+    },
+    {
+        "id": "fquad",
+        "folder": "datasets/fquad",
+        "dataset_infos": "datasets/fquad/dataset_infos.json"
+    },
+    {
+        "id": "gap",
+        "folder": "datasets/gap",
+        "dataset_infos": "datasets/gap/dataset_infos.json"
+    },
+    {
+        "id": "germeval_14",
+        "folder": "datasets/germeval_14",
+        "dataset_infos": "datasets/germeval_14/dataset_infos.json"
+    },
+    {
+        "id": "gigaword",
+        "folder": "datasets/gigaword",
+        "dataset_infos": "datasets/gigaword/dataset_infos.json"
+    },
+    {
+        "id": "glue",
+        "folder": "datasets/glue",
+        "dataset_infos": "datasets/glue/dataset_infos.json"
+    },
+    {
+        "id": "guardian_authorship",
+        "folder": "datasets/guardian_authorship",
+        "dataset_infos": "datasets/guardian_authorship/dataset_infos.json"
+    },
+    {
+        "id": "hans",
+        "folder": "datasets/hans",
+        "dataset_infos": "datasets/hans/dataset_infos.json"
+    },
+    {
+        "id": "hansards",
+        "folder": "datasets/hansards",
+        "dataset_infos": "datasets/hansards/dataset_infos.json"
+    },
+    {
+        "id": "hellaswag",
+        "folder": "datasets/hellaswag",
+        "dataset_infos": "datasets/hellaswag/dataset_infos.json"
+    },
+    {
+        "id": "hotpot_qa",
+        "folder": "datasets/hotpot_qa",
+        "dataset_infos": "datasets/hotpot_qa/dataset_infos.json"
+    },
+    {
+        "id": "hyperpartisan_news_detection",
+        "folder": "datasets/hyperpartisan_news_detection",
+        "dataset_infos": "datasets/hyperpartisan_news_detection/dataset_infos.json"
+    },
+    {
+        "id": "imdb",
+        "folder": "datasets/imdb",
+        "dataset_infos": "datasets/imdb/dataset_infos.json"
+    },
+    {
+        "id": "indic_glue",
+        "folder": "datasets/indic_glue",
+        "dataset_infos": "datasets/indic_glue/dataset_infos.json"
+    },
+    {
+        "id": "iwslt2017",
+        "folder": "datasets/iwslt2017",
+        "dataset_infos": "datasets/iwslt2017/dataset_infos.json"
+    },
+    {
+        "id": "jeopardy",
+        "folder": "datasets/jeopardy",
+        "dataset_infos": "datasets/jeopardy/dataset_infos.json"
+    },
+    {
+        "id": "json",
+        "folder": "datasets/json"
+    },
+    {
+        "id": "kilt_tasks",
+        "folder": "datasets/kilt_tasks",
+        "dataset_infos": "datasets/kilt_tasks/dataset_infos.json"
+    },
+    {
+        "id": "kilt_wikipedia",
+        "folder": "datasets/kilt_wikipedia",
+        "dataset_infos": "datasets/kilt_wikipedia/dataset_infos.json"
+    },
+    {
+        "id": "kor_nli",
+        "folder": "datasets/kor_nli",
+        "dataset_infos": "datasets/kor_nli/dataset_infos.json"
+    },
+    {
+        "id": "lc_quad",
+        "folder": "datasets/lc_quad",
+        "dataset_infos": "datasets/lc_quad/dataset_infos.json"
+    },
+    {
+        "id": "librispeech_lm",
+        "folder": "datasets/librispeech_lm",
+        "dataset_infos": "datasets/librispeech_lm/dataset_infos.json"
+    },
+    {
+        "id": "lince",
+        "folder": "datasets/lince",
+        "dataset_infos": "datasets/lince/dataset_infos.json"
+    },
+    {
+        "id": "lm1b",
+        "folder": "datasets/lm1b"
+    },
+    {
+        "id": "math_dataset",
+        "folder": "datasets/math_dataset",
+        "dataset_infos": "datasets/math_dataset/dataset_infos.json"
+    },
+    {
+        "id": "math_qa",
+        "folder": "datasets/math_qa",
+        "dataset_infos": "datasets/math_qa/dataset_infos.json"
+    },
+    {
+        "id": "matinf",
+        "folder": "datasets/matinf",
+        "dataset_infos": "datasets/matinf/dataset_infos.json"
+    },
+    {
+        "id": "mlqa",
+        "folder": "datasets/mlqa",
+        "dataset_infos": "datasets/mlqa/dataset_infos.json"
+    },
+    {
+        "id": "mlsum",
+        "folder": "datasets/mlsum",
+        "dataset_infos": "datasets/mlsum/dataset_infos.json"
+    },
+    {
+        "id": "movie_rationales",
+        "folder": "datasets/movie_rationales",
+        "dataset_infos": "datasets/movie_rationales/dataset_infos.json"
+    },
+    {
+        "id": "ms_marco",
+        "folder": "datasets/ms_marco",
+        "dataset_infos": "datasets/ms_marco/dataset_infos.json"
+    },
+    {
+        "id": "multi_news",
+        "folder": "datasets/multi_news",
+        "dataset_infos": "datasets/multi_news/dataset_infos.json"
+    },
+    {
+        "id": "multi_nli",
+        "folder": "datasets/multi_nli",
+        "dataset_infos": "datasets/multi_nli/dataset_infos.json"
+    },
+    {
+        "id": "multi_nli_mismatch",
+        "folder": "datasets/multi_nli_mismatch",
+        "dataset_infos": "datasets/multi_nli_mismatch/dataset_infos.json"
+    },
+    {
+        "id": "mwsc",
+        "folder": "datasets/mwsc",
+        "dataset_infos": "datasets/mwsc/dataset_infos.json"
+    },
+    {
+        "id": "natural_questions",
+        "folder": "datasets/natural_questions",
+        "dataset_infos": "datasets/natural_questions/dataset_infos.json"
+    },
+    {
+        "id": "newsgroup",
+        "folder": "datasets/newsgroup",
+        "dataset_infos": "datasets/newsgroup/dataset_infos.json"
+    },
+    {
+        "id": "newsroom",
+        "folder": "datasets/newsroom",
+        "dataset_infos": "datasets/newsroom/dataset_infos.json"
+    },
+    {
+        "id": "nli_tr",
+        "folder": "datasets/nli_tr",
+        "dataset_infos": "datasets/nli_tr/dataset_infos.json"
+    },
+    {
+        "id": "openbookqa",
+        "folder": "datasets/openbookqa",
+        "dataset_infos": "datasets/openbookqa/dataset_infos.json"
+    },
+    {
+        "id": "openwebtext",
+        "folder": "datasets/openwebtext",
+        "dataset_infos": "datasets/openwebtext/dataset_infos.json"
+    },
+    {
+        "id": "opinosis",
+        "folder": "datasets/opinosis",
+        "dataset_infos": "datasets/opinosis/dataset_infos.json"
+    },
+    {
+        "id": "pandas",
+        "folder": "datasets/pandas"
+    },
+    {
+        "id": "para_crawl",
+        "folder": "datasets/para_crawl",
+        "dataset_infos": "datasets/para_crawl/dataset_infos.json"
+    },
+    {
+        "id": "pg19",
+        "folder": "datasets/pg19",
+        "dataset_infos": "datasets/pg19/dataset_infos.json"
+    },
+    {
+        "id": "piaf",
+        "folder": "datasets/piaf",
+        "dataset_infos": "datasets/piaf/dataset_infos.json"
+    },
+    {
+        "id": "polyglot_ner",
+        "folder": "datasets/polyglot_ner",
+        "dataset_infos": "datasets/polyglot_ner/dataset_infos.json"
+    },
+    {
+        "id": "qa4mre",
+        "folder": "datasets/qa4mre",
+        "dataset_infos": "datasets/qa4mre/dataset_infos.json"
+    },
+    {
+        "id": "qa_zre",
+        "folder": "datasets/qa_zre",
+        "dataset_infos": "datasets/qa_zre/dataset_infos.json"
+    },
+    {
+        "id": "qangaroo",
+        "folder": "datasets/qangaroo",
+        "dataset_infos": "datasets/qangaroo/dataset_infos.json"
+    },
+    {
+        "id": "qanta",
+        "folder": "datasets/qanta",
+        "dataset_infos": "datasets/qanta/dataset_infos.json"
+    },
+    {
+        "id": "qasc",
+        "folder": "datasets/qasc",
+        "dataset_infos": "datasets/qasc/dataset_infos.json"
+    },
+    {
+        "id": "quail",
+        "folder": "datasets/quail",
+        "dataset_infos": "datasets/quail/dataset_infos.json"
+    },
+    {
+        "id": "quarel",
+        "folder": "datasets/quarel",
+        "dataset_infos": "datasets/quarel/dataset_infos.json"
+    },
+    {
+        "id": "quartz",
+        "folder": "datasets/quartz",
+        "dataset_infos": "datasets/quartz/dataset_infos.json"
+    },
+    {
+        "id": "quora",
+        "folder": "datasets/quora",
+        "dataset_infos": "datasets/quora/dataset_infos.json"
+    },
+    {
+        "id": "quoref",
+        "folder": "datasets/quoref",
+        "dataset_infos": "datasets/quoref/dataset_infos.json"
+    },
+    {
+        "id": "race",
+        "folder": "datasets/race",
+        "dataset_infos": "datasets/race/dataset_infos.json"
+    },
+    {
+        "id": "reclor",
+        "folder": "datasets/reclor"
+    },
+    {
+        "id": "reddit",
+        "folder": "datasets/reddit",
+        "dataset_infos": "datasets/reddit/dataset_infos.json"
+    },
+    {
+        "id": "reddit_tifu",
+        "folder": "datasets/reddit_tifu",
+        "dataset_infos": "datasets/reddit_tifu/dataset_infos.json"
+    },
+    {
+        "id": "reuters21578",
+        "folder": "datasets/reuters21578",
+        "dataset_infos": "datasets/reuters21578/dataset_infos.json"
+    },
+    {
+        "id": "rotten_tomatoes",
+        "folder": "datasets/rotten_tomatoes",
+        "dataset_infos": "datasets/rotten_tomatoes/dataset_infos.json"
+    },
+    {
+        "id": "scan",
+        "folder": "datasets/scan",
+        "dataset_infos": "datasets/scan/dataset_infos.json"
+    },
+    {
+        "id": "scicite",
+        "folder": "datasets/scicite",
+        "dataset_infos": "datasets/scicite/dataset_infos.json"
+    },
+    {
+        "id": "scientific_papers",
+        "folder": "datasets/scientific_papers",
+        "dataset_infos": "datasets/scientific_papers/dataset_infos.json"
+    },
+    {
+        "id": "scifact",
+        "folder": "datasets/scifact",
+        "dataset_infos": "datasets/scifact/dataset_infos.json"
+    },
+    {
+        "id": "sciq",
+        "folder": "datasets/sciq",
+        "dataset_infos": "datasets/sciq/dataset_infos.json"
+    },
+    {
+        "id": "scitail",
+        "folder": "datasets/scitail",
+        "dataset_infos": "datasets/scitail/dataset_infos.json"
+    },
+    {
+        "id": "search_qa",
+        "folder": "datasets/search_qa",
+        "dataset_infos": "datasets/search_qa/dataset_infos.json"
+    },
+    {
+        "id": "sem_eval_2010_task_8",
+        "folder": "datasets/sem_eval_2010_task_8",
+        "dataset_infos": "datasets/sem_eval_2010_task_8/dataset_infos.json"
+    },
+    {
+        "id": "sentiment140",
+        "folder": "datasets/sentiment140",
+        "dataset_infos": "datasets/sentiment140/dataset_infos.json"
+    },
+    {
+        "id": "snli",
+        "folder": "datasets/snli",
+        "dataset_infos": "datasets/snli/dataset_infos.json"
+    },
+    {
+        "id": "social_bias_frames",
+        "folder": "datasets/social_bias_frames",
+        "dataset_infos": "datasets/social_bias_frames/dataset_infos.json"
+    },
+    {
+        "id": "social_i_qa",
+        "folder": "datasets/social_i_qa",
+        "dataset_infos": "datasets/social_i_qa/dataset_infos.json"
+    },
+    {
+        "id": "sogou_news",
+        "folder": "datasets/sogou_news",
+        "dataset_infos": "datasets/sogou_news/dataset_infos.json"
+    },
+    {
+        "id": "squad",
+        "folder": "datasets/squad",
+        "dataset_infos": "datasets/squad/dataset_infos.json"
+    },
+    {
+        "id": "squad_es",
+        "folder": "datasets/squad_es",
+        "dataset_infos": "datasets/squad_es/dataset_infos.json"
+    },
+    {
+        "id": "squad_it",
+        "folder": "datasets/squad_it",
+        "dataset_infos": "datasets/squad_it/dataset_infos.json"
+    },
+    {
+        "id": "squad_v1_pt",
+        "folder": "datasets/squad_v1_pt",
+        "dataset_infos": "datasets/squad_v1_pt/dataset_infos.json"
+    },
+    {
+        "id": "squad_v2",
+        "folder": "datasets/squad_v2",
+        "dataset_infos": "datasets/squad_v2/dataset_infos.json"
+    },
+    {
+        "id": "squadshifts",
+        "folder": "datasets/squadshifts",
+        "dataset_infos": "datasets/squadshifts/dataset_infos.json"
+    },
+    {
+        "id": "style_change_detection",
+        "folder": "datasets/style_change_detection",
+        "dataset_infos": "datasets/style_change_detection/dataset_infos.json"
+    },
+    {
+        "id": "super_glue",
+        "folder": "datasets/super_glue",
+        "dataset_infos": "datasets/super_glue/dataset_infos.json"
+    },
+    {
+        "id": "ted_hrlr",
+        "folder": "datasets/ted_hrlr",
+        "dataset_infos": "datasets/ted_hrlr/dataset_infos.json"
+    },
+    {
+        "id": "ted_multi",
+        "folder": "datasets/ted_multi",
+        "dataset_infos": "datasets/ted_multi/dataset_infos.json"
+    },
+    {
+        "id": "text",
+        "folder": "datasets/text"
+    },
+    {
+        "id": "tiny_shakespeare",
+        "folder": "datasets/tiny_shakespeare",
+        "dataset_infos": "datasets/tiny_shakespeare/dataset_infos.json"
+    },
+    {
+        "id": "trec",
+        "folder": "datasets/trec",
+        "dataset_infos": "datasets/trec/dataset_infos.json"
+    },
+    {
+        "id": "trivia_qa",
+        "folder": "datasets/trivia_qa",
+        "dataset_infos": "datasets/trivia_qa/dataset_infos.json"
+    },
+    {
+        "id": "tydiqa",
+        "folder": "datasets/tydiqa",
+        "dataset_infos": "datasets/tydiqa/dataset_infos.json"
+    },
+    {
+        "id": "ubuntu_dialogs_corpus",
+        "folder": "datasets/ubuntu_dialogs_corpus",
+        "dataset_infos": "datasets/ubuntu_dialogs_corpus/dataset_infos.json"
+    },
+    {
+        "id": "web_of_science",
+        "folder": "datasets/web_of_science",
+        "dataset_infos": "datasets/web_of_science/dataset_infos.json"
+    },
+    {
+        "id": "web_questions",
+        "folder": "datasets/web_questions",
+        "dataset_infos": "datasets/web_questions/dataset_infos.json"
+    },
+    {
+        "id": "wiki40b",
+        "folder": "datasets/wiki40b",
+        "dataset_infos": "datasets/wiki40b/dataset_infos.json"
+    },
+    {
+        "id": "wiki_dpr",
+        "folder": "datasets/wiki_dpr",
+        "dataset_infos": "datasets/wiki_dpr/dataset_infos.json"
+    },
+    {
+        "id": "wiki_qa",
+        "folder": "datasets/wiki_qa",
+        "dataset_infos": "datasets/wiki_qa/dataset_infos.json"
+    },
+    {
+        "id": "wiki_snippets",
+        "folder": "datasets/wiki_snippets",
+        "dataset_infos": "datasets/wiki_snippets/dataset_infos.json"
+    },
+    {
+        "id": "wiki_split",
+        "folder": "datasets/wiki_split",
+        "dataset_infos": "datasets/wiki_split/dataset_infos.json"
+    },
+    {
+        "id": "wikihow",
+        "folder": "datasets/wikihow"
+    },
+    {
+        "id": "wikipedia",
+        "folder": "datasets/wikipedia",
+        "dataset_infos": "datasets/wikipedia/dataset_infos.json"
+    },
+    {
+        "id": "wikisql",
+        "folder": "datasets/wikisql",
+        "dataset_infos": "datasets/wikisql/dataset_infos.json"
+    },
+    {
+        "id": "wikitext",
+        "folder": "datasets/wikitext",
+        "dataset_infos": "datasets/wikitext/dataset_infos.json"
+    },
+    {
+        "id": "winogrande",
+        "folder": "datasets/winogrande",
+        "dataset_infos": "datasets/winogrande/dataset_infos.json"
+    },
+    {
+        "id": "wiqa",
+        "folder": "datasets/wiqa",
+        "dataset_infos": "datasets/wiqa/dataset_infos.json"
+    },
+    {
+        "id": "wmt14",
+        "folder": "datasets/wmt14",
+        "dataset_infos": "datasets/wmt14/dataset_infos.json"
+    },
+    {
+        "id": "wmt15",
+        "folder": "datasets/wmt15",
+        "dataset_infos": "datasets/wmt15/dataset_infos.json"
+    },
+    {
+        "id": "wmt16",
+        "folder": "datasets/wmt16",
+        "dataset_infos": "datasets/wmt16/dataset_infos.json"
+    },
+    {
+        "id": "wmt17",
+        "folder": "datasets/wmt17",
+        "dataset_infos": "datasets/wmt17/dataset_infos.json"
+    },
+    {
+        "id": "wmt18",
+        "folder": "datasets/wmt18",
+        "dataset_infos": "datasets/wmt18/dataset_infos.json"
+    },
+    {
+        "id": "wmt19",
+        "folder": "datasets/wmt19",
+        "dataset_infos": "datasets/wmt19/dataset_infos.json"
+    },
+    {
+        "id": "wmt_t2t",
+        "folder": "datasets/wmt_t2t",
+        "dataset_infos": "datasets/wmt_t2t/dataset_infos.json"
+    },
+    {
+        "id": "wnut_17",
+        "folder": "datasets/wnut_17",
+        "dataset_infos": "datasets/wnut_17/dataset_infos.json"
+    },
+    {
+        "id": "x_stance",
+        "folder": "datasets/x_stance",
+        "dataset_infos": "datasets/x_stance/dataset_infos.json"
+    },
+    {
+        "id": "xcopa",
+        "folder": "datasets/xcopa",
+        "dataset_infos": "datasets/xcopa/dataset_infos.json"
+    },
+    {
+        "id": "xnli",
+        "folder": "datasets/xnli",
+        "dataset_infos": "datasets/xnli/dataset_infos.json"
+    },
+    {
+        "id": "xquad",
+        "folder": "datasets/xquad",
+        "dataset_infos": "datasets/xquad/dataset_infos.json"
+    },
+    {
+        "id": "xsum",
+        "folder": "datasets/xsum",
+        "dataset_infos": "datasets/xsum/dataset_infos.json"
+    },
+    {
+        "id": "xtreme",
+        "folder": "datasets/xtreme",
+        "dataset_infos": "datasets/xtreme/dataset_infos.json"
+    },
+    {
+        "id": "yelp_polarity",
+        "folder": "datasets/yelp_polarity",
+        "dataset_infos": "datasets/yelp_polarity/dataset_infos.json"
+    }
+]
