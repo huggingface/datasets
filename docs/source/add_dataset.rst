@@ -158,14 +158,13 @@ Let's have a look at a simple example of a :func:`datasets.DatasetBuilder._split
 		"""SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
 
 		_URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
-		_DEV_FILE = "dev-v1.1.json"
-		_TRAINING_FILE = "train-v1.1.json"
+		_URLS = {
+			"train": _URL + "train-v1.1.json",
+			"dev": _URL + "dev-v1.1.json",
+		}
 
 		def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
-			urls_to_download = {
-				"train": os.path.join(self._URL, self._TRAINING_FILE),
-				"dev": os.path.join(self._URL, self._DEV_FILE),
-			}
+			urls_to_download = self._URLS
 			downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
 			return [

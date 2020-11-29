@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -22,9 +21,11 @@ _CITATION = """\
 _DESCRIPTION = """
 """
 _URL = "https://github.com/rowanz/hellaswag/raw/master/data/"
-_TEST_FILE = "hellaswag_test.jsonl"
-_TRAIN_FILE = "hellaswag_train.jsonl"
-_DEV_FILE = "hellaswag_val.jsonl"
+_URLS = {
+    "train": _URL + "hellaswag_train.jsonl",
+    "test": _URL + "hellaswag_test.jsonl",
+    "dev": _URL + "hellaswag_val.jsonl",
+}
 
 
 class Hellaswag(datasets.GeneratorBasedBuilder):
@@ -68,11 +69,7 @@ class Hellaswag(datasets.GeneratorBasedBuilder):
         # TODO(hellaswag): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {
-            "train": os.path.join(_URL, _TRAIN_FILE),
-            "test": os.path.join(_URL, _TEST_FILE),
-            "dev": os.path.join(_URL, _DEV_FILE),
-        }
+        urls_to_download = _URLS
         dl_dir = dl_manager.download_and_extract(urls_to_download)
         return [
             datasets.SplitGenerator(

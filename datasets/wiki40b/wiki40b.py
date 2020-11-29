@@ -18,7 +18,6 @@
 from __future__ import absolute_import, division, print_function
 
 import logging
-import os
 
 import datasets
 
@@ -144,15 +143,15 @@ class Wiki40b(datasets.BeamBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepaths": os.path.join(_DATA_DIRECTORY, "train", "{}_examples-*".format(lang))},
+                gen_kwargs={"filepaths": f"{_DATA_DIRECTORY}/train/{lang}_examples-*"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepaths": os.path.join(_DATA_DIRECTORY, "dev", "{}_examples-*".format(lang))},
+                gen_kwargs={"filepaths": f"{_DATA_DIRECTORY}/dev/{lang}_examples-*"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepaths": os.path.join(_DATA_DIRECTORY, "test", "{}_examples-*".format(lang))},
+                gen_kwargs={"filepaths": f"{_DATA_DIRECTORY}/test/{lang}_examples-*"},
             ),
         ]
 
