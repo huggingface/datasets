@@ -18,6 +18,8 @@
 
 from typing import Optional
 
+import requests
+
 from .hf_api import HfApi
 from .load import prepare_module
 from .utils import DownloadConfig
@@ -36,6 +38,21 @@ def list_datasets(with_community_datasets=True, with_details=False):
     """
     api = HfApi()
     return api.dataset_list(with_community_datasets=with_community_datasets, id_only=bool(not with_details))
+
+
+def list_github_datasets(with_details=False):
+    """List all the datasets scripts available on huggingface/datasets github repo.
+
+    Args:
+        with_details (Optional ``bool``): Return the full details on the datasets instead of only the short name (default: ``False``)
+    """
+    path = 'https://raw.githubusercontent.com/huggingface/datasets/master/datasets/dataset_infos.json'
+    r = requests.get(path)
+    r.raise_for_status()
+    datasets = r.json()
+    if not with_details:
+        datasets = [d["id"] for d in datasets]
+    return datasets
 
 
 def list_metrics(with_community_metrics=True, id_only=False, with_details=False):
