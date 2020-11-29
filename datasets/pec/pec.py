@@ -1,9 +1,6 @@
 """TODO: Add a description here."""
-
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
 import os
 import shutil
 
@@ -12,7 +9,7 @@ import datasets
 
 # TODO: Add BibTeX citation
 _CITATION = """\
-@inproceedings{zhong-etal-2020-towards,
+@inproceedings{zhong2020towards,
     title = "Towards Persona-Based Empathetic Conversational Models",
     author = "Zhong, Peixiang  and
       Zhang, Chen  and
@@ -28,24 +25,20 @@ _CITATION = """\
 
 # TODO: Add description of the dataset here
 _DESCRIPTION = """\
-A dataset of around 350K persona-based empathetic conversations. 
-Each speaker is associated with a persona, which comprises multiple persona sentences. 
-The response of each conversation is empathetic.
+A dataset of around 350K persona-based empathetic conversations. Each speaker is associated with a persona, which comprises multiple persona sentences. The response of each conversation is empathetic.
 """
 
 _URL = "https://dl.dropboxusercontent.com/s/u04fzuhsnxd0uvw/hf_pec.zip"
-
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 # Using a specific configuration class is optional, you can also use the base class if you don't need
 # to add specific attributes.
 # here we give an example for three sub-set of the dataset with difference sizes.
 class PECConfig(datasets.BuilderConfig):
-    """ BuilderConfig for NewDataset"""
+    """ BuilderConfig for PEC"""
 
     def __init__(self, domain="all", **kwargs):
         """
-
         Args:
             domain: the domain of our dataset: happy or offmychest
             **kwargs: keyword arguments forwarded to super.
@@ -58,7 +51,6 @@ class PEC(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
     VERSION = datasets.Version("1.0.0")
-
     # This is an example of a dataset with multiple configurations.
     # If you don't want/need to define several sub-sets in your dataset,
     # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
