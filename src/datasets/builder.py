@@ -26,6 +26,8 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Dict, List, Optional, Union
 
+from datasets.utils.mock_download_manager import MockDownloadManager
+
 from . import utils
 from .arrow_dataset import Dataset
 from .arrow_reader import HF_GCP_BASE_URL, ArrowReader, DatasetNotOnHfGcs, MissingFilesOnHfGcs
@@ -440,6 +442,8 @@ class DatasetBuilder:
             dl_manager = DownloadManager(
                 dataset_name=self.name, download_config=download_config, data_dir=self.config.data_dir
             )
+        elif isinstance(dl_manager, MockDownloadManager):
+            try_from_hf_gcs = False
 
         # Prevent parallel disk operations
         lock_path = os.path.join(self._cache_dir_root, self._cache_dir.replace(os.sep, "_") + ".lock")
@@ -505,7 +509,7 @@ class DatasetBuilder:
                     downloaded_from_gcs = False
                     if try_from_hf_gcs:
                         try:
-                            self._download_prepared_from_hf_gcs()
+                            self._download_prepared_from_hf_gcs(dl_manager._download_config)
                             downloaded_from_gcs = True
                         except (DatasetNotOnHfGcs, MissingFilesOnHfGcs):
                             logger.info("Dataset not on Hf google storage. Downloading and preparing it from source")
@@ -530,11 +534,11 @@ class DatasetBuilder:
                 f"Subsequent calls will reuse this data."
             )
 
-    def _download_prepared_from_hf_gcs(self):
+    def _download_prepared_from_hf_gcs(self, download_config: DownloadConfig):
         relative_data_dir = self._relative_data_dir(with_version=True, with_hash=False)
         reader = ArrowReader(self._cache_dir, self.info)
         # use reader instructions to download the right files
-        reader.download_from_hf_gcs(self._cache_dir, relative_data_dir)
+        reader.download_from_hf_gcs(download_config, relative_data_dir)
         downloaded_info = DatasetInfo.from_directory(self._cache_dir)
         self.info.update(downloaded_info)
         # download post processing resources
