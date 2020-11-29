@@ -127,9 +127,4 @@ class Metrec(datasets.GeneratorBasedBuilder):
         with open(directory, encoding="UTF-8") as f:
             for id_, record in enumerate(f.read().splitlines()):
                 label, bait = record.split(" ", 1)
-<<<<<<< HEAD
-=======
-                print(label)
-                print(record.split(" ", 1))
->>>>>>> 7eb3846c61d3ccd13c64304a13e18c16b1f865e6
                 yield str(id_), {"text": bait, "label": int(label)}
