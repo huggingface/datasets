@@ -80,7 +80,7 @@ class AmazonReviewsMulti(datasets.GeneratorBasedBuilder):
         AmazonReviewsMultiConfig(
             name=lang,
             languages=[lang],
-            description=f"{_LANGUAGES[lang]} examples from a collection of Amazon reviews specifically designed to aid research in multilingual text classification"
+            description=f"{_LANGUAGES[lang]} examples from a collection of Amazon reviews specifically designed to aid research in multilingual text classification",
         )
         for lang in _LANGUAGES
     ]
