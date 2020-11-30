@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import logging
-import os
 
 import datasets
 
@@ -46,6 +45,12 @@ articles, where the answer to every question is a segment of text, or span, \
 from the corresponding reading passage, or the question might be unanswerable.
 """
 
+_URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
+_URLS = {
+    "train": _URL + "train-v1.1.json",
+    "dev": _URL + "dev-v1.1.json",
+}
+
 
 class SquadConfig(datasets.BuilderConfig):
     """BuilderConfig for SQUAD."""
@@ -61,10 +66,6 @@ class SquadConfig(datasets.BuilderConfig):
 
 class Squad(datasets.GeneratorBasedBuilder):
     """SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
-
-    _URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
-    _DEV_FILE = "dev-v1.1.json"
-    _TRAINING_FILE = "train-v1.1.json"
 
     BUILDER_CONFIGS = [
         SquadConfig(
@@ -99,11 +100,7 @@ class Squad(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        urls_to_download = {
-            "train": os.path.join(self._URL, self._TRAINING_FILE),
-            "dev": os.path.join(self._URL, self._DEV_FILE),
-        }
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        downloaded_files = dl_manager.download_and_extract(_URLS)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),

@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -30,8 +29,10 @@ combines the 100,000 questions in SQuAD1.1 with over 50,000 unanswerable questio
 """
 
 _URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
-_DEV_FILE = "dev-v2.0.json"
-_TRAINING_FILE = "train-v2.0.json"
+_URLS = {
+    "train": _URL + "train-v2.0.json",
+    "dev": _URL + "dev-v2.0.json",
+}
 
 
 class SquadV2Config(datasets.BuilderConfig):
@@ -89,7 +90,7 @@ class SquadV2(datasets.GeneratorBasedBuilder):
         # TODO(squad_v2): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {"train": os.path.join(_URL, _TRAINING_FILE), "dev": os.path.join(_URL, _DEV_FILE)}
+        urls_to_download = _URLS
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [

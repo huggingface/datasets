@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -29,6 +28,14 @@ automatic translation of the Stanford Question Answering Dataset (SQuAD) v2 into
 """
 
 _URL = "https://raw.githubusercontent.com/ccasimiro88/TranslateAlignRetrieve/master/"
+_URLS_V1 = {
+    "train": _URL + "SQuAD-es-v1.1/train-v1.1-es.json",
+    "dev": _URL + "SQuAD-es-v1.1/dev-v1.1-es.json",
+}
+_URLS_V2 = {
+    "train": _URL + "SQuAD-es-v2.0/train-v2.0-es.json",
+    "dev": _URL + "SQuAD-es-v2.0/dev-v2.0-es.json",
+}
 
 
 class SquadEsConfig(datasets.BuilderConfig):
@@ -98,18 +105,10 @@ class SquadEs(datasets.GeneratorBasedBuilder):
         # dl_manager is a datasets.download.DownloadManager that can be used to
 
         # download and extract URLs
-        v1_urls = {
-            "train": os.path.join(_URL, "SQuAD-es-v1.1/train-v1.1-es.json"),
-            "dev": os.path.join(_URL, "SQuAD-es-v1.1/dev-v1.1-es.json"),
-        }
-        v2_urls = {
-            "train": os.path.join(_URL, "SQuAD-es-v2.0/train-v2.0-es.json"),
-            "dev": os.path.join(_URL, "SQuAD-es-v2.0/dev-v2.0-es.json"),
-        }
         if self.config.name == "v1.1.0":
-            dl_dir = dl_manager.download_and_extract(v1_urls)
+            dl_dir = dl_manager.download_and_extract(_URLS_V1)
         elif self.config.name == "v2.0.0":
-            dl_dir = dl_manager.download_and_extract(v2_urls)
+            dl_dir = dl_manager.download_and_extract(_URLS_V2)
         else:
             raise Exception("version does not match any existing one")
         return [

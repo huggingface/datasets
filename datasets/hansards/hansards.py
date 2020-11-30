@@ -106,13 +106,13 @@ class Hansards(datasets.GeneratorBasedBuilder):
         name = self.config.name
         if name == "house":
             urls_to_download = {
-                "train": os.path.join(_DATA_URL, _HOUSE_DEBATES_TRAIN_SET_FILE),
-                "test": os.path.join(_DATA_URL, _HOUSE_DEBATES_TEST_SET_FILE),
+                "train": _DATA_URL + _HOUSE_DEBATES_TRAIN_SET_FILE,
+                "test": _DATA_URL + _HOUSE_DEBATES_TEST_SET_FILE,
             }
         elif name == "senate":
             urls_to_download = {
-                "train": os.path.join(_DATA_URL, _SENATE_DEBATES_TRAIN_SET_FILE),
-                "test": os.path.join(_DATA_URL, _SENATE_DEBATES_TEST_SET_FILE),
+                "train": _DATA_URL + _SENATE_DEBATES_TRAIN_SET_FILE,
+                "test": _DATA_URL + _SENATE_DEBATES_TEST_SET_FILE,
             }
         else:
             raise ValueError("Wrong builder config name '{}', it has to be either 'house' or 'senate'.".format(name))
