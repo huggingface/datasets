@@ -190,7 +190,7 @@ Creating the dataset card goes in two steps:
 
 	Complete the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
 
-	Here is a completed example: https://github.com/huggingface/datasets/tree/master/datasets/eli5 for inspiration
+	Here are a couple of completed examples for inspiration: the [CoNLL-2002 NER task](https://github.com/huggingface/datasets/tree/master/datasets/conll2002) and the [ELI5: Long Form Question Answering dataset](https://github.com/huggingface/datasets/tree/master/datasets/eli5).
 
 	If you don't know what to write in a field and can find it, write: `[More Information Needed]`
 
