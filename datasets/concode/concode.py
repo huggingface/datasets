@@ -91,13 +91,15 @@ class Concode(datasets.GeneratorBasedBuilder):
           A dictionary of features, all floating point except the input text.
         """
         if "train.json" in filename: 
-          id = "train"
+          split = "train"
         elif "dev.json" in filename:
-          id = "dev"
+          split = "dev"
         else:
-          id = "test"
-        logging.info("Generating examples from from %s split ",id)
+          split = "test"
+        logging.info("Generating examples from from %s split ",split)
+        id = 0
         with open(filename) as f:
             for elem_data in f:
                 elem_data = json.loads(elem_data)
                 yield id, elem_data
+                id += 1
