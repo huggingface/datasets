@@ -19,7 +19,6 @@ from __future__ import absolute_import, division, print_function
 import csv
 import json
 import os
-
 import datasets
 
 
@@ -43,9 +42,7 @@ Sarcasm, Allegation, Justification, Refutation, Support, Oppose
 
 
 _TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/akash418/public-data-repo/main/MeTooMMD_train.csv"
-_TEST_DOWNLOAD_URL = (
-    "https://raw.githubusercontent.com/akash418/public-data-repo/main/MeTooMMD_test.csv"
-)
+_TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/akash418/public-data-repo/main/MeTooMMD_test.csv"
 
 
 class MeTooMA(datasets.GeneratorBasedBuilder):
@@ -87,12 +84,8 @@ class MeTooMA(datasets.GeneratorBasedBuilder):
         test_path = dl_manager.download_and_extract(_TEST_DOWNLOAD_URL)
 
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
         ]
 
     def _generate_examples(self, filepath):
