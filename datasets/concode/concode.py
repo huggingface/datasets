@@ -6,7 +6,6 @@ import datasets
 
 import json
 import logging
-import os
 
 _CITATION = """\
 @article{iyer2018mapping,
