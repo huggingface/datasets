@@ -56,7 +56,6 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
@@ -117,8 +116,10 @@ Each data instance corresponds to a review. The original JSON for an instance lo
 
 ### Data Splits
 
-Each language configuration comes with it's own `train`, `validation`, and `test` splits. Each `all_languages` split
-is simply a concatenation of the corresponding split across all languages.
+Each language configuration comes with it's own `train`, `validation`, and `test` splits. The `all_languages` split
+is simply a concatenation of the corresponding split across all languages. That is, the `train` split for
+`all_languages` is a concatenation of the `train` splits for each of the languages and likewise for `validation` and
+`test`.
 
 ## Additional Information
 
