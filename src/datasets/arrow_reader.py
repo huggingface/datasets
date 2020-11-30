@@ -43,7 +43,7 @@ HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets
 _SUB_SPEC_RE = re.compile(
     r"""
 ^
- (?P<split>\w+)
+ (?P<split>\w+(\.\w+)*)
  (\[
     ((?P<from>-?\d+)
      (?P<from_pct>%)?)?

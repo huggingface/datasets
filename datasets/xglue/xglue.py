@@ -131,6 +131,35 @@ class XGlue(datasets.GeneratorBasedBuilder):
             ),
             url="https://www.clips.uantwerpen.be/conll2003/ner/",
         ),
+        XGlueConfig(
+            name="pos",
+            description=textwrap.dedent(
+                """\
+            Universal Dependencies (UD) is a project that is developing cross-linguistically consistent treebank
+            annotation for many languages, with the goal of facilitating multilingual parser development, cross-lingual
+            learning, and parsing research from a language typology perspective. The annotation scheme is based on an
+            evolution of (universal) Stanford dependencies (de Marneffe et al., 2006, 2008, 2014), Google universal
+            part-of-speech tags (Petrov et al., 2012), and the Interset interlingua for morphosyntactic tagsets
+            (Zeman, 2008). The general philosophy is to provide a universal inventory of categories and guidelines
+            to facilitate consistent annotation of similar constructions across languages, while
+            allowing language-specific extensions when necessary.
+            """
+            ),
+            data_dir="dataset/POS",
+            text_features=["words", "pos_tag"],
+            citation=textwrap.dedent(
+                """\
+            @misc{11234/1-3105,
+              title={Universal Dependencies 2.5},
+              author={Zeman, Daniel and Nivre, Joakim and Abrams, Mitchell and Aepli, et al.},
+              url={http://hdl.handle.net/11234/1-3105},
+              note={{LINDAT}/{CLARIAH}-{CZ} digital library at the Institute of Formal and Applied Linguistics ({{\'U}FAL}), Faculty of Mathematics and Physics, Charles University},
+              copyright={Licence Universal Dependencies v2.5},
+              year={2019}
+            }"""
+            ),
+            url="https://universaldependencies.org/",
+        ),
     ]
 
     def _info(self):
@@ -150,32 +179,72 @@ class XGlue(datasets.GeneratorBasedBuilder):
         data_folder = os.path.join(all_data_folder, self.config.data_dir)
 
         if self.config.name == "ner":
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN, gen_kwargs={"data_file": os.path.join(data_folder, "en.train")}
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split("validation.de"), gen_kwargs={"data_file": os.path.join(data_folder, "de.dev")}
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split("test.de"), gen_kwargs={"data_file": os.path.join(data_folder, "de.test")}
-                ),
-            ]
+            languages = ["en", "de", "nl", "es"]
+            return (
+                [
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TRAIN, gen_kwargs={"data_file": os.path.join(data_folder, "en.train")}
+                    ),
+                ]
+                + [
+                    datasets.SplitGenerator(
+                        name=datasets.Split(f"validation.{lang}"),
+                        gen_kwargs={"data_file": os.path.join(data_folder, f"{lang}.dev")},
+                    )
+                    for lang in languages
+                ]
+                + [
+                    datasets.SplitGenerator(
+                        name=datasets.Split(f"test.{lang}"),
+                        gen_kwargs={"data_file": os.path.join(data_folder, f"{lang}.test")},
+                    )
+                    for lang in languages
+                ]
+            )
+        elif self.config.name == "pos":
+            languages = ["en", "de", "nl", "es"]
+            if self.config.name == "pos":
+                languages += ["bg", "el", "fr", "pl", "tr", "vi", "zh", "ur", "hi", "it", "ar", "ru", "th"]
+            return (
+                [
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TRAIN, gen_kwargs={"data_file": os.path.join(data_folder, "en.train")}
+                    ),
+                ]
+                + [
+                    datasets.SplitGenerator(
+                        name=datasets.Split(f"validation.{lang}"),
+                        gen_kwargs={"data_file": os.path.join(data_folder, f"{lang}.dev")},
+                    )
+                    for lang in languages
+                ]
+                + [
+                    datasets.SplitGenerator(
+                        name=datasets.Split(f"test.{lang}"),
+                        gen_kwargs={"data_file": os.path.join(data_folder, f"{lang}.test")},
+                    )
+                    for lang in languages
+                ]
+            )
 
     def _generate_examples(self, data_file, split=None):
-        if self.config.name == "ner":
+        if self.config.name in ["ner", "pos"]:
             words = []
-            ner = []
+            result = []
             idx = 0
             with open(data_file, "r") as f:
                 for line in f:
                     if line.strip() == "":
                         if len(words) > 0:
-                            yield idx, {"words": words, "ner": ner, "id": idx}
+                            output_dict = {}
+                            output_dict[self.config.text_features[0]] = words
+                            output_dict[self.config.text_features[1]] = result
+                            output_dict["id"] = idx
+                            yield idx, output_dict
                             words = []
-                            ner = []
+                            result = []
                             idx += 1
                     else:
                         splits = line.strip().split(" ")
                         words.append(splits[0])
-                        ner.append(splits[1])
+                        result.append(splits[1])
