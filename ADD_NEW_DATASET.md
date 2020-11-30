@@ -81,7 +81,7 @@ There is a detailed explanation on how the library and scripts are organized [he
 
 Note on naming: the dataset class should be camel case, while the dataset short_name is its snake case equivalent (ex: `class BookCorpus(datasets.GeneratorBasedBuilder)` for the dataset `book_corpus`).
 
-To add a new dataset, you can start by copying one of the datasets of reference listed below. The main criteria for choosing to start from one or the other reference dataset is the format of the data files (JSON/CSV/TSV/text) and whether you need several configurations (see above explanations on configurations). Feel free to reuse parts of the code and adapt them to your case:
+To add a new dataset, you can start from the empty template which is [here](https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py) or you can also start by copying one of the datasets of reference listed below. The main criteria for choosing to start from one or the other reference dataset is the format of the data files (JSON/CSV/TSV/text) and whether you need several configurations (see above explanations on configurations). Feel free to reuse parts of the code and adapt them to your case:
 
 
 - question-answering: [squad](https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py) (original data are in json)
@@ -94,8 +94,6 @@ To add a new dataset, you can start by copying one of the datasets of reference 
 - benchmark: [glue](https://github.com/huggingface/datasets/blob/master/datasets/glue/glue.py) (original data are various formats)
 - multilingual: [xquad](https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py) (original data are in json)
 - multitask: [matinf](https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py) (original data need to be downloaded by the user because it requires authentificaition)
-
-You can also start from the basic template which is [here](https://huggingface.co/docs/datasets/add_dataset.html)
 
 While you are developping the dataset script you can list test it by opening a python interpreter and running the script:
 
