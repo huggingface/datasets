@@ -142,7 +142,7 @@ _FEATURES = {
     "full_question": datasets.Value("string"),
     "first_sentence": datasets.Value("string"),
     "char_idx": datasets.Value("int32"),
-    "sentence_idx": datasets.Value("int33"),
+    "sentence_idx": datasets.Value("int32"),
     # Character indices of sentences: List[Tuple[int, int]]
     "tokenizations": datasets.features.Sequence(datasets.features.Sequence(datasets.Value("int32"), length=2)),
     # Labels: Number is equal to number of unique pages across all folds
