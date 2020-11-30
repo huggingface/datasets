@@ -1,4 +1,4 @@
-# How to add one (or several) new dataset(s) to Datasets?
+# How to add one (or several) new datasets to 🤗 Datasets
 
 ## Start by preparing your environment
 
@@ -20,9 +20,11 @@ This creates a copy of the code under your GitHub user account.
 	pip install -e ".[dev]"
 	```
 
+Now you are ready, each time you want to add a new dataset, follow the steps in the following section:
+
 ## Start adding a new dataset
 
-### First step: understand the structure of the dataset
+### Understand the structure of the dataset
 
 1. Start by preparing the field and understanding how the dataset look like:
 
@@ -60,11 +62,7 @@ And automatically create the following additional meta-data files (using the CLI
 	- a metadata file `dataset_configs.json` which will contain checksums and informations about the dataset to garantee that the loading went fine.
 	- a dummy-data file `dummy_data.zip` which will contain small example original files to garantee that the loading script is working well in the future.
 
-### Second step: start writing some code
-
-Let's get started.
-
-1. Create a new branch to hold your development changes with the name of your dataset:
+4. Create a new branch to hold your development changes with the name of your dataset:
 
 	```bash
 	git checkout -b a-descriptive-name-for-my-changes
@@ -72,21 +70,79 @@ Let's get started.
 
 	**do not** work on the `master` branch.
 
-2. Create your dataset folder under `datasets/<your_dataset_name>` and create your dataset script under `datasets/<your_dataset_name>/<your_dataset_name>.py`. You can check out other dataset scripts under `datasets` for some inspiration. Note on naming: the dataset class should be camel case, while the dataset name is its snake case equivalent (ex: `class BookCorpus(datasets.GeneratorBasedBuilder)` for the dataset `book_corpus`).
+5. Create your dataset folder under `datasets/<your_dataset_name>` and create a dataset script under `datasets/<your_dataset_name>/<your_dataset_name>.py`.
 
-3. **Make sure you run all of the following commands from the root of your `datasets` git clone.** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
+
+### Write some code
+
+Now let's get coding :-)
+
+The dataset script is the main entry point to load and process the data.
+
+There is a detailed explanation on how the library and scripts are organized [here](https://huggingface.co/docs/datasets/add_dataset.html).
+
+Note on naming: the dataset class should be camel case, while the dataset short_name is its snake case equivalent (ex: `class BookCorpus(datasets.GeneratorBasedBuilder)` for the dataset `book_corpus`).
+
+To add a nwew dataset, you can start by copying one of the datasets of reference listed below. The main criteria for choosing to start from one or the other reference dataset is the format of the data files (JSON/CSV/TSV/text) and whether you need several configurations (see above explanations on configurations). Feel free to reuse parts of the code and adapt them to your case:
+
+- question-answering: [squad](https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py) (original data are in json)
+- natural language inference: [snli](https://github.com/huggingface/datasets/blob/master/datasets/snli/snli.py) (original data are in text files with tab separated columns)
+- POS/NER: [conll2003](https://github.com/huggingface/datasets/blob/master/datasets/conll2003/conll2003.py) (original data are in text files with one token per line)
+- sentiment analysis: [allocine](https://github.com/huggingface/datasets/blob/master/datasets/allocine/allocine.py) (original data are in jsonl files)
+- text classification: [ag_news](https://github.com/huggingface/datasets/blob/master/datasets/ag_news/ag_news.py) (original data are in csv files)
+- translation: [flores](https://github.com/huggingface/datasets/blob/master/datasets/flores/flores.py) (original data come from text files - one per language)
+- summarization: [billsum](https://github.com/huggingface/datasets/blob/master/datasets/billsum/billsum.py) (original data are in json files)
+- benchmark: [glue](https://github.com/huggingface/datasets/blob/master/datasets/glue/glue.py) (original data are various formats)
+- multilingual: [xquad](https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py) (original data are in json)
+- multitask: [matinf](https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py) (original data need to be downloaded by the user because it requires authentificaition)
+
+You can also start from the basic template which is [here](https://huggingface.co/docs/datasets/add_dataset.html)
+
+While you are developping the dataset script you can list test it by opening a python interpreter and running the script:
+
+```python
+from datasets import load_dataset
+
+data = load_dataset('PATH/TO/MY/NEW/SCRIPT')
+```
+
+This let you use `print()` statements as well as seeing directly errors and the final dataset format.
+
+**Important rules to follow**:
+
+- try to give access to all the data, columns, features and information in the dataset. If the dataset contains various sub-parts with differing formats, create several configurations to give access to all of them.
+- datasets in the `datasets` library are typed. Take some time to carefully think about the `features` (see an introduction [here](https://huggingface.co/docs/datasets/exploring.html#features-and-columns) and the full list of possible features [here](https://huggingface.co/docs/datasets/features.html))
+- if some of you dataset features are in a fixed set of classes (e.g. labels), you should use a `ClassLabel` feature. 
+
+### Automatically add code metadata
+
+Now that your dataset script runs and create a dataset with the format you expected.
+
+1. **Make sure you run all of the following commands from the root of your `datasets` git clone.** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
 
 	```bash
 	python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 	```
 
-4. If the command was succesful, you should now create some dummy data. Use the following command to get in-detail instructions on how to create the dummy data:
+	This first command should create a `dataset_configs.JSON` file in your dataset folder.
+
+
+2. If this command was succesful, you can now create the dummy data. There is a tool that automatically generates dummy data for you. At the moment it supports data files in the following format: txt, csv, tsv, jsonl, json, xml.
+If the extensions of the raw data files of your dataset are in this list, then you can automatically generate your dummy data with:
 
 	```bash
-	python datasets-cli dummy_data datasets/<your-dataset-folder>
+ 	python datasets-cli dummy_data datasets/<your-dataset-folder> --auto_generate
 	```
 
-5. Now test that both the real data and the dummy data work correctly using the following commands:
+	Examples:
+
+	```bash
+ 	python datasets-cli dummy_data ./datasets/snli --auto_generate
+	```
+
+	If this doesn't work more information on how to add dummy data can be found in the doc [here](https://huggingface.co/docs/datasets/share_dataset.html#adding-dummy-data).
+
+2. Now test that both the real data and the dummy data work correctly using the following commands:
 
 	*For the real data*:
 	```bash
@@ -99,27 +155,45 @@ Let's get started.
 	RUN_SLOW=1 pytest tests/test_dataset_common.py::LocalDatasetTest::test_load_dataset_all_configs_<your-dataset-name>
 	```
 
-6. If all tests pass, your dataset works correctly. Awesome! You can now follow steps 6, 7 and 8 of the section [*How to contribute to 🤗Datasets?*](#how-to-contribute-to-🤗Datasets). If you experience problems with the dummy data tests, you might want to take a look at the section *Help for dummy data tests* below.
+3. If all tests pass, your dataset works correctly. Awesome!
 
-Follow these steps in case the dummy data test keeps failing:
+### Manually tag the dataset and write the dataset card
 
-- Verify that all filenames are spelled correctly. Rerun the command
-	```bash
-	python datasets-cli dummy_data datasets/<your-dataset-folder>
-	```
-	and make sure you follow the exact instructions provided by the command of step 5).
+Each dataset will be provided with a dataset card.
 
-- Your datascript might require a difficult dummy data structure. In this case make sure you fully understand the data folder logit created by the function `_split_generators(...)` and expected by the function `_generate_examples(...)` of your dataset script. Also take a look at `tests/README.md` which lists different possible cases of how the dummy data should be created.
+The dataset card is **really important**  to make sure the dataset can be found on the hub and will be used by the users. Users need to have the best possible idea of what's inside the dataset and how it was created so that they can use it safely and have a good idea of the content.
 
-- If the dummy data tests still fail, open a PR in the repo anyways and make a remark in the description that you need help creating the dummy data.
+Creating the dataset card goes in two steps:
 
-6. Format your code. Run black and isort so that your newly added files look nice with the following command:
+1. **Tagging the dataset using the tagging streamlit app**
+
+	Clone locally the dataset-tagging app which is here: https://github.com/huggingface/datasets-tagging
+
+	Run the app with the command detailed in the readme: https://github.com/huggingface/datasets-tagging/README.md
+
+	Find your dataset and tag it :-)
+
+	This will generate a JSON file with the tags for the dataset in the `saved_tags` folder.
+
+2. **Copy the tags in the dataset card and complete the dataset card**
+
+	Copy the dataset card which is [here](https://github.com/huggingface/datasets/blob/master/templates/README.md) in your dataset folder.
+
+	Complete the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md
+
+Once your `README.md` is complete you have finished all the steps to add your dataset , congratulation you are amazing 🎉
+
+You can now push your dataset on the main repo:
+
+### Push the new dataset on the main repo
+
+1. Format your code. Run black and isort so that your newly added files look nice with the following command:
 
 	```bash
 	make style
 	```
 
-7. Once you're happy with your dataset script file, add your changes and make a commit to record your changes locally:
+2. Once you're happy with your dataset script file, add your changes and make a commit to record your changes locally:
 
 	```bash
 	git add datasets/<your_dataset_name>
@@ -140,8 +214,4 @@ Follow these steps in case the dummy data test keeps failing:
    git push -u origin a-descriptive-name-for-my-changes
    ```
 
-8. Once you are satisfied, go the webpage of your fork on GitHub. Click on "Pull request" to send your to the project maintainers for review.
-
-## How-To-Add a dataset
-1. Make sure you followed steps 1-4 of the section [*How to contribute to datasets?*](#how-to-contribute-to-datasets).
-
+3. Once you are satisfied, go the webpage of your fork on GitHub. Click on "Pull request" to send your to the project maintainers for review.
