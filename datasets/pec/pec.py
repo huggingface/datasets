@@ -34,6 +34,8 @@ _URL = "https://dl.dropboxusercontent.com/s/u04fzuhsnxd0uvw/hf_pec.zip"
 # Using a specific configuration class is optional, you can also use the base class if you don't need
 # to add specific attributes.
 # here we give an example for three sub-set of the dataset with difference sizes.
+
+
 class PECConfig(datasets.BuilderConfig):
     """ BuilderConfig for PEC"""
 
@@ -94,7 +96,7 @@ class PEC(datasets.GeneratorBasedBuilder):
         persona = {}
         is_speaker = True
         sentences = []
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for row in f:
                 if "********************" not in row:
                     if is_speaker:
@@ -117,9 +119,6 @@ class PEC(datasets.GeneratorBasedBuilder):
         data_dir = os.path.join(dl_dir, "hf_pec")
         print("the downloaded data has been saved to ", data_dir)
         if self.config.domain in ["happy", "offmychest"]:
-            # load persona
-            persona_path = os.path.join(data_dir, self.config.domain, "persona.txt")
-            self.persona = self._load_persona(persona_path)
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -135,31 +134,6 @@ class PEC(datasets.GeneratorBasedBuilder):
                 ),
             ]
         else:
-            # concatenate two domain files
-            self._concatenate_files(
-                [os.path.join(data_dir, "happy", "train.txt"), os.path.join(data_dir, "offmychest", "train.txt")],
-                os.path.join(data_dir, "train.txt"),
-            )
-
-            self._concatenate_files(
-                [os.path.join(data_dir, "happy", "valid.txt"), os.path.join(data_dir, "offmychest", "valid.txt")],
-                os.path.join(data_dir, "valid.txt"),
-            )
-
-            self._concatenate_files(
-                [os.path.join(data_dir, "happy", "test.txt"), os.path.join(data_dir, "offmychest", "test.txt")],
-                os.path.join(data_dir, "test.txt"),
-            )
-
-            self._concatenate_files(
-                [os.path.join(data_dir, "happy", "persona.txt"), os.path.join(data_dir, "offmychest", "persona.txt")],
-                os.path.join(data_dir, "persona.txt"),
-            )
-
-            # load persona
-            persona_path = os.path.join(data_dir, "persona.txt")
-            self.persona = self._load_persona(persona_path)
-
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
@@ -183,7 +157,40 @@ class PEC(datasets.GeneratorBasedBuilder):
         response_speaker = ""
         response = ""
         example_id = 0
-        with open(filepath) as f:
+        data_dir = os.path.dirname(filepath)
+
+        if self.config.domain == "all" and not os.path.exists(os.path.join(data_dir, "train.txt")):
+            # concatenate two domain files
+            self._concatenate_files(
+                [os.path.join(data_dir, "happy", "train.txt"), os.path.join(data_dir, "offmychest", "train.txt")],
+                os.path.join(data_dir, "train.txt"),
+            )
+
+            self._concatenate_files(
+                [os.path.join(data_dir, "happy", "valid.txt"), os.path.join(data_dir, "offmychest", "valid.txt")],
+                os.path.join(data_dir, "valid.txt"),
+            )
+
+            self._concatenate_files(
+                [os.path.join(data_dir, "happy", "test.txt"), os.path.join(data_dir, "offmychest", "test.txt")],
+                os.path.join(data_dir, "test.txt"),
+            )
+
+            self._concatenate_files(
+                [os.path.join(data_dir, "happy", "persona.txt"), os.path.join(data_dir, "offmychest", "persona.txt")],
+                os.path.join(data_dir, "persona.txt"),
+            )
+
+        # create persona
+        if not hasattr(self, "persona_" + self.config.domain):
+            persona_path = os.path.join(data_dir, "persona.txt")
+            # print("Loading persona from ", persona_path)
+            setattr(self, "persona_" + self.config.domain, self._load_persona(persona_path))
+
+        persona = getattr(self, "persona_" + self.config.domain)
+        # print("Domain {0}: number of unique personas: {1}".format(self.config.domain, len(persona)))
+
+        with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 try:
                     if "********************" not in row:
@@ -198,7 +205,7 @@ class PEC(datasets.GeneratorBasedBuilder):
                         response_speaker = context_speakers.pop()
                         response = context.pop()
                         yield example_id, {
-                            "personas": self.persona[response_speaker],
+                            "personas": persona[response_speaker],
                             "context_speakers": context_speakers,
                             "context": context,
                             "response_speaker": response_speaker,
@@ -209,5 +216,5 @@ class PEC(datasets.GeneratorBasedBuilder):
                         response_speaker = ""
                         response = ""
                         example_id += 1
-                except IndexError:
-                    print(id_, row, context_speakers, context)
+                except (IndexError, KeyError):
+                    print(self.config.domain, split, id_, row, context_speakers, context, response_speaker, response)
