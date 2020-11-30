@@ -83,13 +83,7 @@ class Concode(datasets.GeneratorBasedBuilder):
         Yields:
           A dictionary of features.
         """
-        if "train.json" in filename: 
-          split = "train"
-        elif "dev.json" in filename:
-          split = "dev"
-        else:
-          split = "test"
-        logging.info("Generating examples from from %s split ",split)
+        logging.info("Generating examples from from %s split ",filename)
         id = 0
         with open(filename) as f:
             for elem_data in f:
