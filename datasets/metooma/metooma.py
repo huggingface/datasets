@@ -24,21 +24,21 @@ import datasets
 
 
 _CITATION = """\
-@inproceedings{gautam2020metooma, 
-    title={\# MeTooMA: Multi-Aspect Annotations of Tweets Related to the MeToo Movement}, 
-    author={Gautam, Akash and Mathur, Puneet and Gosangi, Rakesh and Mahata, Debanjan and Sawhney, Ramit and Shah, Rajiv Ratn}, 
-    booktitle={Proceedings of the International AAAI Conference on Web and Social Media}, 
-    volume={14}, 
-    pages={209--216}, 
+@inproceedings{gautam2020metooma,
+    title={\# MeTooMA: Multi-Aspect Annotations of Tweets Related to the MeToo Movement},
+    author={Gautam, Akash and Mathur, Puneet and Gosangi, Rakesh and Mahata, Debanjan and Sawhney, Ramit and Shah, Rajiv Ratn},
+    booktitle={Proceedings of the International AAAI Conference on Web and Social Media},
+    volume={14},
+    pages={209--216},
     year={2020} }
 """
 
 _DESCRIPTION = """\
-The dataset consists of tweets belonging to #MeToo movement on Twitter, labelled into different categories. 
-Due to Twitter's development policies, we only provide the tweet ID's and corresponding labels, other data can be fetched via Twitter API. 
-The data has been labelled by experts, with the majority taken into the account for deciding the final label. 
+The dataset consists of tweets belonging to #MeToo movement on Twitter, labelled into different categories.
+Due to Twitter's development policies, we only provide the tweet ID's and corresponding labels, other data can be fetched via Twitter API.
+The data has been labelled by experts, with the majority taken into the account for deciding the final label.
 We provide these labels for each of the tweets. The labels provided for each data point includes -- Relevance, Directed Hate, Generalized Hate,
-Sarcasm, Allegation, Justification, Refutation, Support, Oppose 
+Sarcasm, Allegation, Justification, Refutation, Support, Oppose
 """
 
 
