@@ -25,7 +25,7 @@ import datasets
 _CITATION = """\
 @inproceedings{lin2020numersense,
     title={Birds have four legs?! NumerSense: Probing Numerical Commonsense Knowledge of Pre-trained Language Models},
-    author={Bill Yuchen Lin and Seyeon Lee and Rahul Khanna and Xiang Ren}, 
+    author={Bill Yuchen Lin and Seyeon Lee and Rahul Khanna and Xiang Ren},
     booktitle={Proceedings of EMNLP},
     year={2020},
     note={to appear}
