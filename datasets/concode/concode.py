@@ -104,5 +104,3 @@ class Concode(datasets.GeneratorBasedBuilder):
                 elem_data = json.loads(elem_data)
                 logging.info(elem_data)
                 yield id, {"nl":elem_data["nl"],"code":elem_data["code"]}
-
-            #yield (id,{"nl":nl_list,"code":code_list})
