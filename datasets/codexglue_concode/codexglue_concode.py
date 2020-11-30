@@ -6,13 +6,11 @@ import datasets
 
 
 _CITATION = """\
-@article{iyer2018mapping, 
-  title={Mapping language to code in programmatic context}, 
-  author={Iyer, Srinivasan and Konstas, Ioannis and Cheung, Alvin and Zettlemoyer, Luke}, 
-  journal={arXiv preprint arXiv: 1808.09588}, 
-  year=2018, 
-}
-"""
+@article{iyer2018mapping,
+  title={Mapping language to code in programmatic context},
+  author={Iyer, Srinivasan and Konstas, Ioannis and Cheung, Alvin and Zettlemoyer, Luke},
+  journal={arXiv preprint arXiv: 1808.09588},
+  year=2018,}"""
 _URL = "https: //raw.githubusercontent.com/microsoft/CodeXGLUE/main/Text-Code/text-to-code/dataset/concode/"
 _URLS = {
     "train": _URL + "train.json",
@@ -21,9 +19,7 @@ _URLS = {
 }
 _DESCRIPTION = """Mapping Language to Code in a Programmatic Context.
 concode dataset which a widely used code generation dataset from Iyer's EMNLP 2018 paper
-Generate source code of class member functions in Java, given natural language description 
-and class environment. Class environment is the programmatic context provided by the 
-rest of the class, including other member variables and member functions in class.
+Generate source code of class member functions in Java, given natural language descriptionand class environment. Class environment is the programmatic context provided by therest of the class, including other member variables and member functions in class.
 """
 
 
