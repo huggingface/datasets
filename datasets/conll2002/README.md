@@ -60,6 +60,7 @@ task_ids:
 Named entities are phrases that contain the names of persons, organizations, locations, times and quantities. Example:
 
 [PER Wolff] , currently a journalist in [LOC Argentina] , played with [PER Del Bosque] in the final years of the seventies in [ORG Real Madrid] .
+
 The shared task of CoNLL-2002 concerns language-independent named entity recognition. We will concentrate on four types of named entities: persons, locations, organizations and names of miscellaneous entities that do not belong to the previous three groups. The participants of the shared task will be offered training and test data for at least two languages. They will use the data for developing a named-entity recognition system that includes a machine learning component. Information sources other than the training data may be used in this shared task. We are especially interested in methods that can use additional unannotated data for improving their performance (for example co-training).
 
 ### Supported Tasks and Leaderboards
@@ -88,7 +89,6 @@ The examples look like this :
  'tokens': ['La', 'Coruña', ',', '23', 'may', '(', 'EFECOM', ')', '.']
 }
 ```
-
 
 ### Data Fields
 
@@ -135,6 +135,9 @@ The splits have the following sizes :
 ## Dataset Creation
 
 ### Curation Rationale
+
+The dataset was introduced to introduce new resources to two languages that were under-served for statistical machine learning at the time, Dutch and Spanish.
+
 [More Information Needed]
 
 ### Source Data
@@ -145,11 +148,11 @@ The Dutch data consist of four editions of the Belgian newspaper "De Morgen" of 
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+The articles were word-tokenized, information on the exact pre-processing pipeline is unavailable.
 
 #### Who are the source language producers?
 
-[More Information Needed]
+The source language was produced by journalists and writers employed by the news agency and newspaper mentioned above.
 
 ### Annotations
 
@@ -165,21 +168,21 @@ The Dutch data was annotated as a part of the Atranos project at the University 
 
 ### Personal and Sensitive Information
 
-[More Information Needed]
+The data is sourced from newspaper source and only contains mentions of public figures or individuals
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[More Information Needed]
+Named Entity Recognition systems can be used to efficiently index news text, allowing to easily gather all information pertaining to an organization or individual. Making such resources widely available in languages other than English can support better research and user experience for a larger part of the world's population. At the same time, better indexing and discoverability can also enable surveillance by state actors.
 
 ### Discussion of Biases
 
-[More Information Needed]
+News text reproduces the biases of society, and any system trained on news data should be cognizant of these limitations and the risk for models to learn spurious correlations in this context, for example between a person's gender and their occupation.
 
 ### Other Known Limitations
 
-[More Information Needed]
+Users should keep in mind that the dataset only contains news text, which might limit the applicability of the developed systems to other domains.
 
 ## Additional Information
 
@@ -189,7 +192,7 @@ The annotation of the Spanish data was funded by the European Commission through
 
 ### Licensing Information
 
-[More Information Needed]
+The licensing status of the data, especially the news source text, is unknown.
 
 ### Citation Information
 
