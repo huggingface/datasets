@@ -220,7 +220,7 @@ class DatasetBuilder:
         if name is None and self.BUILDER_CONFIGS and not config_kwargs:
             if self.DEFAULT_CONFIG_NAME is not None:
                 builder_config = self.builder_configs.get(self.DEFAULT_CONFIG_NAME)
-                logger.info("No config specified, defaulting to: %s/%s", self.name, builder_config.name)
+                logger.warning("No config specified, defaulting to: %s/%s", self.name, builder_config.name)
             else:
                 if len(self.BUILDER_CONFIGS) > 1:
                     example_of_usage = "load_dataset('{}', '{}')".format(self.name, self.BUILDER_CONFIGS[0].name)
