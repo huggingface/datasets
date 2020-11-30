@@ -84,7 +84,7 @@ class Concode(datasets.GeneratorBasedBuilder):
         Each example contains a Nl Query and the corresponding Code.
 
         Args:
-          split: The split to be read(train/dev/test).
+          filename: name of the file to be read.
 
 
         Yields:
@@ -100,4 +100,9 @@ class Concode(datasets.GeneratorBasedBuilder):
         with open(filename) as f:
             for elem_data in f:
                 elem_data = json.loads(elem_data)
+<<<<<<< HEAD
                 yield id, elem_data
+=======
+                logging.info(elem_data)
+                yield id, {"nl":elem_data["nl"],"code":elem_data["code"]}
+>>>>>>> 61883ffb4534192a68c5cf0fe93f7f95c6966009
