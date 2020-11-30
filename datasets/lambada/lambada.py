@@ -66,7 +66,7 @@ _URL = "https://zenodo.org/record/2630551/files/lambada-dataset.tar.gz"
 
 
 class Lambada(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """LAMBADA dataset."""
 
     VERSION = datasets.Version("1.1.0")
 
