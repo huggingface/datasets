@@ -87,6 +87,14 @@ those in dev+test), comprising more than 200M words. It consists of text from th
 
 Each training instance has a `category` field indicating which sub-category the book was extracted from. This field is not given for the dev and test splits.
 
+An example looks like this:
+
+```
+{"category": "Mystery",
+ "text": "bob could have been called in at this point , but he was n't miffed at his exclusion at all . he was relieved at not being brought into this initial discussion with central command . `` let 's go make some grub , '' said bob as he turned to danny . danny did n't keep his stoic expression , but with a look of irritation got up and left the room with bob",
+}
+```
+
 ### Data Fields
 
 - `category`: the sub-category of books from which the book was extracted from. Only available for the training split.

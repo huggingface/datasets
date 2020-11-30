@@ -93,11 +93,17 @@ class Lambada(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download_and_extract(_URL)
+
+        # Extracting (un-taring) the training data
+        tar_file = tarfile.open(os.path.join(data_dir, "train-novels.tar"))
+        tar_file.extractall(path=data_dir)
+        tar_file.close()
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train-novels.tar"),
+                    "filepath": os.path.join(data_dir, "train-novels"),
                     "split": "train",
                 },
             ),
@@ -117,11 +123,7 @@ class Lambada(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
         if split == "train":
-            tar_file = tarfile.open(filepath)
-            tar_file.extractall(path=os.path.dirname(filepath))
-            tar_file.close()
-
-            recursion_pattern = f"{os.path.dirname(filepath)}/train-novels/*/*.txt"
+            recursion_pattern = f"{filepath}/*/*.txt"
             for idx, novel_path in enumerate(glob.iglob(recursion_pattern, recursive=True)):
                 domain = os.path.dirname(novel_path).split("/")[-1]
                 with open(novel_path, encoding="utf-8") as novel:
