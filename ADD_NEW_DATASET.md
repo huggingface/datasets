@@ -37,10 +37,7 @@ Now you are ready, each time you want to add a new dataset, follow the steps in 
 
 	- Select a `short name` for the dataset which is unique but not too long and is easy to guess for users, e.g. `squad`, `natural_questions`
 
-	- understand if the dataset is created by a single institution (all the authors belong the same company/team, e.g. `Google`)
-
-		- if it's the case, the dataset will then be in the related organization folder, e.g. `google/natural_questions`
-		- if it's not the case, the dataset will be at the root, e.g. `squad`
+	- Sometimes the short-list name is already given/proposed (e.g. in the spreadsheet of the data sprint to reach v2.0)
 
 3. See if there is a need for several *configurations* and/or *splits* (usually at least splits will be defined).
 
