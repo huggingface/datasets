@@ -51,7 +51,7 @@ DEV_ARTICLE_IDS = list(itertools.chain(range(1, 101), range(1051, 1101)))
 TEST_ARTICLE_IDS = list(itertools.chain(range(101, 151), range(501, 551), range(1101, 1151)))
 
 
-class InquisitiveConfig(datasets.BuilderConfig):
+class InquisitiveQgConfig(datasets.BuilderConfig):
     """BuilderConfig for INQUISITIVE."""
 
     def __init__(self, **kwrags):
@@ -60,15 +60,15 @@ class InquisitiveConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(InquisitiveConfig, self).__init__(**kwrags)
+        super(InquisitiveQgConfig, self).__init__(**kwrags)
 
 
-class Inquisitive(datasets.GeneratorBasedBuilder):
+class InquisitiveQg(datasets.GeneratorBasedBuilder):
     """Inquisitive Question Generation for High Level Text Comprehension"""
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        InquisitiveConfig(name="plain_text", version=datasets.Version("1.0.0", ""), description="plain_text"),
+        InquisitiveQgConfig(name="plain_text", version=datasets.Version("1.0.0", ""), description="plain_text"),
     ]
 
     def _info(self):
