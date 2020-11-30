@@ -172,7 +172,7 @@ Creating the dataset card goes in two steps:
 
 	Clone locally the dataset-tagging app which is here: https://github.com/huggingface/datasets-tagging
 
-	Run the app with the command detailed in the readme: https://github.com/huggingface/datasets-tagging/README.md
+	Run the app with the command detailed in the readme: https://github.com/huggingface/datasets-tagging/blob/main/README.md
 
 	Find your dataset and tag it :-)
 
@@ -182,7 +182,11 @@ Creating the dataset card goes in two steps:
 
 	Copy the dataset card which is [here](https://github.com/huggingface/datasets/blob/master/templates/README.md) in your dataset folder.
 
-	Complete the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md
+	Complete the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+
+	Here is a completed example: https://github.com/huggingface/datasets/tree/master/datasets/eli5 for inspiration
+
+	If you don't know what to write in a field and can find it, write: `[More Information Needed]`
 
 Once your `README.md` is complete you have finished all the steps to add your dataset , congratulation you are amazing 🎉
 
