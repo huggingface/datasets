@@ -73,7 +73,7 @@ _CITATION = """\
 """
 
 _URL = "http://data.statmt.org/cc-100/"
-_URLS = "http://data.statmt.org/cc-100/{language}.txt.xz"
+_URL_TO_DOWNLOAD = "http://data.statmt.org/cc-100/{language}.txt.xz"
 
 _LANGUAGES = [
     "af",
@@ -221,18 +221,17 @@ class Cc100(datasets.GeneratorBasedBuilder):
                     "text": datasets.Value("string"),
                 }
             ),
-            # No default supervised_keys (as we have to pass both question
-            # and context as input).
+            # No default supervised_keys (as we have to pass both question and context as input).
             supervised_keys=None,
             homepage=_URL,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        urls_to_download = _URLS.format(language=self.config.language)
-        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        url_to_download = _URL_TO_DOWNLOAD.format(language=self.config.language)
+        downloaded_file = dl_manager.download_and_extract(url_to_download)
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_file}),
         ]
 
     def _generate_examples(self, filepath):
