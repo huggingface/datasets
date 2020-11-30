@@ -61,7 +61,7 @@ Justification
 Refutation
 Support
 Oppose
-There could be more than one label applicable for a single tweet, for detailed annotation information and usage guidelines please refer to the accompanying paper https://aaai.org/ojs/index.php/ICWSM/article/view/7292 
+There could be more than one label applicable for a single tweet, for detailed annotation information and usage guidelines please refer to the accompanying paper https://aaai.org/ojs/index.php/ICWSM/article/view/7292
 
 ### Supported Tasks and Leaderboards
 
@@ -75,7 +75,7 @@ English
 
 ### Data Instances
 
-Tweet ID and the apprpriate labels 
+Tweet ID and the apprpriate labels
 
 ### Data Fields
 
@@ -89,7 +89,7 @@ Tweet ID and appropriate labels (binary label applicable for a data point) and m
 ## Dataset Creation
 
 ### Curation Rationale
-We expect this dataset would be of great interest and use to both computational and socio-linguists. For computational linguists, it provides an opportunity to model three new complex dialogue acts (allegation, refutation, and justification) and also to study how these acts interact with some of the other linguistic components like stance, hate, and sarcasm. For socio-linguists, it provides an opportunity to explore how a movement manifests in social media. 
+We expect this dataset would be of great interest and use to both computational and socio-linguists. For computational linguists, it provides an opportunity to model three new complex dialogue acts (allegation, refutation, and justification) and also to study how these acts interact with some of the other linguistic components like stance, hate, and sarcasm. For socio-linguists, it provides an opportunity to explore how a movement manifests in social media.
 
 
 ### Source Data
@@ -115,12 +115,12 @@ Please refer to this paper for detailed information: https://ojs.aaai.org//index
 
 ### Personal and Sensitive Information
 
-Considering Twitters policy for distribution of data, only Tweet ID and applicable labels are shared for the public use. 
+Considering Twitters policy for distribution of data, only Tweet ID and applicable labels are shared for the public use.
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
-Please refer to the ethics and discussion section of the mentioned publication for appropriate sharing of this dataset. 
+Please refer to the ethics and discussion section of the mentioned publication for appropriate sharing of this dataset.
 
 
 ### Discussion of Biases
