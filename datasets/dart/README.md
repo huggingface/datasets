@@ -99,7 +99,7 @@ The different fields are:
 - `annotations`:
   - `text`: list of text descriptions of the triplets
   - `source`: list of sources of the RDF triplets (WikiTable, e2e, etc.)
-- `subtree_was_extended`: boolean, if the subtree condidered during the dataset construction was extended
+- `subtree_was_extended`: boolean, if the subtree condidered during the dataset construction was extended. Sometimes this field is missing, and therefore set to `None`
 - `tripleset`: RDF triplets as a list of triplets of strings (subject, predicate, object)
 
 ### Data Splits
