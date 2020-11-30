@@ -39,13 +39,64 @@ viz. CVIT-PIB corpus that is the largest multilingual corpus available for India
 
 _URL = "http://preon.iiit.ac.in/~jerin/resources/datasets/pib-v0.tar"
 
-_LanguagePairs = ['or-ur', 'ml-or', 'bn-ta', 'gu-mr', 'hi-or', 'en-or', 'mr-ur', 
-'en-ta', 'hi-ta', 'bn-en', 'bn-or', 'ml-ta', 'gu-ur', 'bn-ml', 'ml-pa', 'en-pa', 
-'bn-hi', 'hi-pa', 'gu-te', 'pa-ta', 'hi-ml', 'or-te', 'en-ml', 'en-hi', 'bn-pa', 
-'mr-te', 'mr-pa', 'bn-te', 'gu-hi', 'ta-ur', 'te-ur', 'or-pa', 'gu-ml', 'gu-pa', 
-'hi-te', 'en-te', 'ml-te', 'pa-ur', 'hi-ur', 'mr-or', 'en-ur', 'ml-ur', 'bn-mr', 
-'gu-ta', 'pa-te', 'bn-gu', 'bn-ur', 'ml-mr', 'or-ta', 'ta-te', 'gu-or', 'en-gu', 
-'hi-mr', 'mr-ta', 'en-mr']
+_LanguagePairs = [
+    "or-ur",
+    "ml-or",
+    "bn-ta",
+    "gu-mr",
+    "hi-or",
+    "en-or",
+    "mr-ur",
+    "en-ta",
+    "hi-ta",
+    "bn-en",
+    "bn-or",
+    "ml-ta",
+    "gu-ur",
+    "bn-ml",
+    "ml-pa",
+    "en-pa",
+    "bn-hi",
+    "hi-pa",
+    "gu-te",
+    "pa-ta",
+    "hi-ml",
+    "or-te",
+    "en-ml",
+    "en-hi",
+    "bn-pa",
+    "mr-te",
+    "mr-pa",
+    "bn-te",
+    "gu-hi",
+    "ta-ur",
+    "te-ur",
+    "or-pa",
+    "gu-ml",
+    "gu-pa",
+    "hi-te",
+    "en-te",
+    "ml-te",
+    "pa-ur",
+    "hi-ur",
+    "mr-or",
+    "en-ur",
+    "ml-ur",
+    "bn-mr",
+    "gu-ta",
+    "pa-te",
+    "bn-gu",
+    "bn-ur",
+    "ml-mr",
+    "or-ta",
+    "ta-te",
+    "gu-or",
+    "en-gu",
+    "hi-mr",
+    "mr-ta",
+    "en-mr",
+]
+
 
 class PibConfig(datasets.BuilderConfig):
     """BuilderConfig for PIB"""
@@ -60,21 +111,20 @@ class PibConfig(datasets.BuilderConfig):
         """
         self.language_pair = language_pair
 
+
 class Pib(datasets.GeneratorBasedBuilder):
-    """This new dataset is the large scale sentence aligned corpus in 11 Indian languages, viz. 
+    """This new dataset is the large scale sentence aligned corpus in 11 Indian languages, viz.
     CVIT-PIB corpus that is the largest multilingual corpus available for Indian languages.
     """
 
     BUILDER_CONFIG_CLASS = PibConfig
-    BUILDER_CONFIGS = [
-        PibConfig(name=pair, description=_DESCRIPTION, language_pair=pair) for pair in _LanguagePairs
-    ]
+    BUILDER_CONFIGS = [PibConfig(name=pair, description=_DESCRIPTION, language_pair=pair) for pair in _LanguagePairs]
 
     def _info(self):
         # TODO: Specifies the datasets.DatasetInfo object
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
-            description=_DESCRIPTION+f" Available language pairs are {_LanguagePairs}",
+            description=_DESCRIPTION + f" Available language pairs are {_LanguagePairs}",
             # This defines the different columns of the dataset and their types
             features=datasets.Features(
                 {
@@ -102,7 +152,7 @@ class Pib(datasets.GeneratorBasedBuilder):
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
                     "filepath": os.path.join(data_dir, f"train.{src}"),
-                    'labelpath': os.path.join(data_dir, f"train.{tgt}")
+                    "labelpath": os.path.join(data_dir, f"train.{tgt}"),
                 },
             ),
         ]
