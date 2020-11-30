@@ -1,7 +1,8 @@
+from __future__ import absolute_import, division, print_function
+
 """concode - code2text pairs dataset"""
 import datasets
 
-from __future__ import absolute_import, division, print_function
 
 import json
 import logging
@@ -18,7 +19,7 @@ _CITATION = """\
 _URL = "https://raw.githubusercontent.com/microsoft/CodeXGLUE/main/Text-Code/text-to-code/dataset/concode/"
 _URLS = {
     "train": _URL + "train.json",
-    "valid": _URL + "dev.json",
+    "dev": _URL + "dev.json",
     "test": _URL + "test.json",
 }
 
@@ -64,20 +65,20 @@ class Concode(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filename": os.path.join(dl_path, "train.json")},
+                gen_kwargs={"filename": dl_path["train"]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filename": os.path.join(dl_path, "dev.json")},
+                    "filename": dl_path["dev"]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 gen_kwargs={
-                    "filename": os.path.join(dl_path, "test.json")},
+                    "filename":dl_path["test"]},
             ),
         ]
-    def _generate_examples(self,filepath):
+    def _generate_examples(self,filepath,split):
         """Yields examples.
 
         Each example contains a Nl Query and the corresponding Code.
@@ -89,7 +90,6 @@ class Concode(datasets.GeneratorBasedBuilder):
         Yields:
           A dictionary of features, all floating point except the input text.
         """
-        split = filepath.split(os.sep)[-1].split(".")[-2]
         logging.info("Generating examples from from %s split ",split)
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
@@ -99,4 +99,4 @@ class Concode(datasets.GeneratorBasedBuilder):
                 nl_list.append(elem_data["nl"])
                 code_list.append(elem_data["code"])
             id = split
-            yield id,{"nl":nl_list,"code":code_list}
+            yield (id,{"nl":nl_list,"code":code_list})
