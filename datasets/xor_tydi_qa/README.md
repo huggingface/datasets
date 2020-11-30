@@ -1,8 +1,9 @@
 ---
 annotations_creators:
-- found
+- crowdsourced
 language_creators:
 - expert-generated
+- found
 languages:
 - ar
 - bn
@@ -19,6 +20,7 @@ size_categories:
 - 10K<n<100K
 source_datasets:
 - original
+- extended|tydiqa
 task_categories:
 - question-answering
 task_ids:
@@ -138,7 +140,7 @@ The translations are carried out using the professionla tranlation service (Geng
 
 ### Personal and Sensitive Information
 
-[N/A]
+The dataset is created from wikipedia content and the QA task requires preserving the named entities, there by all the Wikipedia Named Entities are preserved in the data. Not much information has been provided about masking sensitive information. 
 
 ## Considerations for Using the Data
 
