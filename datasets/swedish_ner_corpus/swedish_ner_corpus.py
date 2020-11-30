@@ -23,9 +23,10 @@ Webbnyheter 2012 from Spraakbanken, semi-manually annotated and adapted for Core
 _HOMEPAGE_URL = "https://github.com/klintan/swedish-ner-corpus"
 _TRAIN_URL = "https://raw.githubusercontent.com/klintan/swedish-ner-corpus/master/train_corpus.txt"
 _TEST_URL = "https://raw.githubusercontent.com/klintan/swedish-ner-corpus/master/test_corpus.txt"
+_CITATION = None
 
 
-class SwedishNERCorpusDataset(datasets.GeneratorBasedBuilder):
+class SwedishNERCorpus(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     def _info(self):
@@ -36,13 +37,15 @@ class SwedishNERCorpusDataset(datasets.GeneratorBasedBuilder):
                     "id": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "ner_tags": datasets.Sequence(
-                        datasets.features.ClassLabel(names=["0", "LOC", "MISC", "ORG", "PER"])
+                        datasets.features.ClassLabel(
+                            names=["0", "LOC", "MISC", "ORG", "PER"]
+                        )
                     ),
                 },
             ),
             supervised_keys=None,
             homepage=_HOMEPAGE_URL,
-            citation=None,
+            citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
@@ -50,12 +53,10 @@ class SwedishNERCorpusDataset(datasets.GeneratorBasedBuilder):
         test_path = dl_manager.download_and_extract(_TEST_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"datapath": train_path},
+                name=datasets.Split.TRAIN, gen_kwargs={"datapath": train_path},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"datapath": test_path},
+                name=datasets.Split.TEST, gen_kwargs={"datapath": test_path},
             ),
         ]
 
@@ -74,7 +75,9 @@ class SwedishNERCorpusDataset(datasets.GeneratorBasedBuilder):
                 else:
                     if not current_words:
                         continue
-                    assert len(current_words) == len(current_labels), "word len doesnt match label length"
+                    assert len(current_words) == len(
+                        current_labels
+                    ), "word len doesnt match label length"
                     sentence = (
                         sentence_counter,
                         {
