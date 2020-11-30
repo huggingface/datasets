@@ -48,6 +48,7 @@ task_ids:
 
 - **Homepage:** [https://github.com/klintan/swedish-ner-corpus]()
 - **Repository:** [https://github.com/klintan/swedish-ner-corpus]()
+- **Point of contact:** Andreas Klintberg (ankl@kth.se)
 
 ### Dataset Summary
 
@@ -65,13 +66,64 @@ Swedish
 
 ### Data Instances
 
-[More Information Needed]
+A sample dataset instance is provided below:
+
+```json
+{'id': '3',
+ 'ner_tags': [4, 4, 0, 0, 0, 0, 0, 0, 3, 3, 0],
+ 'tokens': ['Margaretha',
+  'Fahlgren',
+  ',',
+  'professor',
+  'i',
+  'litteraturvetenskap',
+  ',',
+  'vice-rektor',
+  'Uppsala',
+  'universitet',
+  '.']}
+```
+
+
 
 ### Data Fields
 
 - `id`: id of the sentence
 - `token`: current token
 - `ner_tag`: ner tag of the token
+
+Full fields:
+
+```json
+{
+  "id":{
+    "feature_type":"Value"
+      "dtype":"string"
+      }
+      "tokens":{
+        "feature_type":"Sequence"
+        "feature":{
+        "feature_type":"Value"
+        "dtype":"string"
+        }
+      }
+    "ner_tags":{
+      "feature_type":"Sequence"
+        "dtype":"int32"
+        "feature":{
+        "feature_type":"ClassLabel"
+          "dtype":"int32"
+          "class_names":[
+              0:"0"
+              1:"LOC"
+              2:"MISC"
+              3:"ORG"
+              4:"PER"
+              ]
+      }
+  }
+}
+```
 
 ### Data Splits
 
@@ -129,7 +181,7 @@ Swedish
 
 ### Dataset Curators
 
-[More Information Needed]
+The original dataset was provided by Språkbanken which consists of news from Swedish newspapers' websites.
 
 ### Licensing Information
 
