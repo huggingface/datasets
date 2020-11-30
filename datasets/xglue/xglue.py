@@ -491,23 +491,21 @@ Portuguese. BLEU-4 score should be used as the metric.
         elif self.config.name in ["ner", "pos"]:
             words = []
             result = []
-            idx = 0
+            idx = -1
             with open(data_file, "r") as f:
                 for line in f:
                     if line.strip() == "":
                         if len(words) > 0:
-                            output_dict = {}
-                            output_dict[keys[0]] = words
-                            output_dict[keys[1]] = result
-                            yield idx, output_dict
+                            out_dict = {keys[0]: words, keys[1]: result}
                             words = []
                             result = []
                             idx += 1
+                            yield idx, out_dict
                     else:
                         splits = line.strip().split(" ")
                         words.append(splits[0])
                         result.append(splits[1])
-        if self.config.name in ["ntg", "qg"]:
+        elif self.config.name in ["ntg", "qg"]:
             with open(data_file + ".src." + split) as src_f, open(data_file + ".tgt." + split) as tgt_f:
                 for idx, (src_line, tgt_line) in enumerate(zip(src_f, tgt_f)):
                     yield idx, {keys[0]: src_line.strip(), keys[1]: tgt_line.strip()}
@@ -516,15 +514,11 @@ Portuguese. BLEU-4 score should be used as the metric.
                 "paws-x": {"0": "different", "1": "same"},
                 "xnli": {"contradictory": "contradiction"},
                 "qam": {"0": "False", "1": "True"},
-                "nc": {},
-                "qg": {},
-                "qadsm": {},
-                "ntg": {},
                 "wpr": {"0": "Bad", "1": "Fair", "2": "Good", "3": "Excellent", "4": "Perfect"},
             }
 
             def _process(value):
-                if value in _process_dict[self.config.name]:
+                if self.config.name in _process_dict and value in _process_dict[self.config.name]:
                     return _process_dict[self.config.name][value]
                 return value
 
