@@ -84,7 +84,7 @@ class Concode(datasets.GeneratorBasedBuilder):
         Each example contains a Nl Query and the corresponding Code.
 
         Args:
-          split: The split to be read(train/dev/test).
+          filename: name of the file to be read.
 
 
         Yields:
