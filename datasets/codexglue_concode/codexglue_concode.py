@@ -1,9 +1,5 @@
-from __future__ import absolute_import, division, print_function
-
 """concode - code2text pairs dataset"""
 import datasets
-
-
 import json
 import logging
 
@@ -21,10 +17,8 @@ _URLS = {
     "dev": _URL + "dev.json",
     "test": _URL + "test.json",
 }
-
 _DESCRIPTION = """Mapping Language to Code in a Programmatic Context"""
-
-class ConcodeConfig(datasets.BuilderConfig):
+class CodeXGlue_ConcodeConfig(datasets.BuilderConfig):
     """BuilderConfig for Concode Dataset."""
 
     def __init__(self, **kwargs):
@@ -33,14 +27,14 @@ class ConcodeConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(ConcodeConfig, self).__init__(**kwargs)
+        super(CodeXGlue_ConcodeConfig, self).__init__(**kwargs)
 
 class Concode(datasets.GeneratorBasedBuilder):
     """ConCode: code generation dataset for java NL queries(pre-processed)"""
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        ConcodeConfig(
+        CodeXGlue_ConcodeConfig(
             name="plain_text",
             version=VERSION,
             description="Plain text",
@@ -87,7 +81,7 @@ class Concode(datasets.GeneratorBasedBuilder):
 
 
         Yields:
-          A dictionary of features, all floating point except the input text.
+          A dictionary of features.
         """
         if "train.json" in filename: 
           split = "train"
