@@ -98,11 +98,6 @@ class Concode(datasets.GeneratorBasedBuilder):
           id = "test"
         logging.info("Generating examples from from %s split ",id)
         with open(filename) as f:
-            nl_list = []
-            code_list = []
             for elem_data in f:
                 elem_data = json.loads(elem_data)
-                logging.info(elem_data)
-                yield id, {"nl":elem_data["nl"],"code":elem_data["code"]}
-
-            #yield (id,{"nl":nl_list,"code":code_list})
+                yield id, elem_data
