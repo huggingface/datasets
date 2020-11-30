@@ -78,7 +78,7 @@ class Concode(datasets.GeneratorBasedBuilder):
                     "filename":dl_path["test"]},
             ),
         ]
-    def _generate_examples(self,filepath,split):
+    def _generate_examples(self,filename):
         """Yields examples.
 
         Each example contains a Nl Query and the corresponding Code.
@@ -90,13 +90,19 @@ class Concode(datasets.GeneratorBasedBuilder):
         Yields:
           A dictionary of features, all floating point except the input text.
         """
-        logging.info("Generating examples from from %s split ",split)
-        with open(filepath, encoding="utf-8") as f:
-            data = json.load(f)
+        if "train.json" in filename: 
+          id = "train"
+        elif "dev.json" in filename:
+          id = "dev"
+        else:
+          id = "test"
+        logging.info("Generating examples from from %s split ",id)
+        with open(filename) as f:
             nl_list = []
             code_list = []
-            for elem_data in data:
-                nl_list.append(elem_data["nl"])
-                code_list.append(elem_data["code"])
-            id = split
-            yield (id,{"nl":nl_list,"code":code_list})
+            for elem_data in f:
+                elem_data = json.loads(elem_data)
+                logging.info(elem_data)
+                yield id, {"nl":elem_data["nl"],"code":elem_data["code"]}
+
+            #yield (id,{"nl":nl_list,"code":code_list})
