@@ -180,13 +180,13 @@ Creating the dataset card goes in two steps:
 
 	Run the app with the command detailed in the readme: https://github.com/huggingface/datasets-tagging/blob/main/README.md
 
-	Find your dataset and tag it :-)
-
-	This will generate a JSON file with the tags for the dataset in the `saved_tags` folder.
+	Then you can fill the different tags for your dataset ;)
 
 2. **Copy the tags in the dataset card and complete the dataset card**
 
 	Copy the dataset card which is [here](https://github.com/huggingface/datasets/blob/master/templates/README.md) in your dataset folder.
+	
+	We’re using YAML for tags actually, not JSON (even though the datasets-tagging tool allows to save in JSON). On the right side of the app there is an option to "Show YAML output".  Once you've tagged and saved all of the configs, you can copy-paste the output of this field at the top of your README
 
 	Complete the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
 
