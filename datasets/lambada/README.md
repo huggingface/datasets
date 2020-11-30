@@ -19,7 +19,7 @@ licenses:
 - cc-by-4.0
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for LAMBADA
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
