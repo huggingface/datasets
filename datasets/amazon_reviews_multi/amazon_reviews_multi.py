@@ -84,7 +84,7 @@ class AmazonReviewsMulti(datasets.GeneratorBasedBuilder):
         )
         for lang in _LANGUAGES
     ]
-
+    BUILDER_CONFIG_CLASS = AmazonReviewsMultiConfig
     DEFAULT_CONFIG_NAME = _ALL_LANGUAGES
 
     def _info(self):
