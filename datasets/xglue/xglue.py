@@ -18,7 +18,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
+import json
 import textwrap
 
 import datasets
@@ -65,10 +65,10 @@ class XGlueConfig(datasets.BuilderConfig):
 
     def __init__(
         self,
-        text_features,
         data_dir,
         citation,
         url,
+        text_features=None,
         **kwargs,
     ):
         """BuilderConfig for GLUE.
@@ -160,68 +160,126 @@ class XGlue(datasets.GeneratorBasedBuilder):
             ),
             url="https://universaldependencies.org/",
         ),
+        XGlueConfig(
+            name="mlqa",
+            description=textwrap.dedent(
+                """\
+            MLQA (MultiLingual Question Answering) is a benchmark dataset for evaluating cross-lingual question answering
+            performance. MLQA consists of over 5K extractive QA instances (12K in English) in SQuAD format in seven languages
+            - English, Arabic, German, Spanish, Hindi, Vietnamese and Simplified Chinese.
+            MLQA is highly parallel, with QA instances parallel between 4 different languages on average.
+            """
+            ),
+            data_dir="dataset/MLQA",
+            citation=textwrap.dedent(
+                """\
+            @article{Lewis2019MLQAEC,
+              title={MLQA: Evaluating Cross-lingual Extractive Question Answering},
+              author={Patrick Lewis and Barlas Oguz and Ruty Rinott and Sebastian Riedel and Holger Schwenk},
+              journal={ArXiv},
+              year={2019},
+              volume={abs/1910.07475}
+            }"""
+            ),
+            url="https://github.com/facebookresearch/MLQA",
+        ),
     ]
 
     def _info(self):
-        features = {
-            text_feature: datasets.Sequence(datasets.Value("string")) for text_feature in self.config.text_features
-        }
-        features["id"] = datasets.Value("int32")
-        return datasets.DatasetInfo(
-            description=_XGLUE_DESCRIPTION,
-            features=datasets.Features(features),
-            homepage=self.config.url,
-            citation=self.config.citation + "\n" + _XGLUE_CITATION,
-        )
+        if self.config.text_features is not None:
+            features = {
+                text_feature: datasets.Sequence(datasets.Value("string")) for text_feature in self.config.text_features
+            }
+            features["id"] = datasets.Value("int32")
+            return datasets.DatasetInfo(
+                description=_XGLUE_DESCRIPTION,
+                features=datasets.Features(features),
+                homepage=self.config.url,
+                citation=self.config.citation + "\n" + _XGLUE_CITATION,
+            )
+        if self.config.name == "mlqa":
+            return datasets.DatasetInfo(
+                description=_XGLUE_DESCRIPTION,
+                features=datasets.Features(
+                    {
+                        "context": datasets.Value("string"),
+                        "question": datasets.Value("string"),
+                        "answers": datasets.features.Sequence(
+                            {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}
+                        ),
+                        "id": datasets.Value("string"),
+                        # These are the features of your dataset like images, labels ...
+                    }
+                ),
+                homepage=self.config.url,
+                citation=self.config.citation + "\n" + _XGLUE_CITATION,
+            )
 
     def _split_generators(self, dl_manager):
         all_data_folder = dl_manager.download_and_extract(_XGLUE_ALL_DATA)
-        data_folder = os.path.join(all_data_folder, self.config.data_dir)
+        data_folder = all_data_folder + "/" + self.config.data_dir
 
-        if self.config.name == "ner":
-            languages = ["en", "de", "nl", "es"]
-            return (
-                [
-                    datasets.SplitGenerator(
-                        name=datasets.Split.TRAIN, gen_kwargs={"data_file": os.path.join(data_folder, "en.train")}
-                    ),
-                ]
-                + [
-                    datasets.SplitGenerator(
-                        name=datasets.Split(f"validation.{lang}"),
-                        gen_kwargs={"data_file": os.path.join(data_folder, f"{lang}.dev")},
-                    )
-                    for lang in languages
-                ]
-                + [
-                    datasets.SplitGenerator(
-                        name=datasets.Split(f"test.{lang}"),
-                        gen_kwargs={"data_file": os.path.join(data_folder, f"{lang}.test")},
-                    )
-                    for lang in languages
-                ]
-            )
-        elif self.config.name == "pos":
+        if self.config.name in ["pos", "ner"]:
             languages = ["en", "de", "nl", "es"]
             if self.config.name == "pos":
                 languages += ["bg", "el", "fr", "pl", "tr", "vi", "zh", "ur", "hi", "it", "ar", "ru", "th"]
             return (
                 [
                     datasets.SplitGenerator(
-                        name=datasets.Split.TRAIN, gen_kwargs={"data_file": os.path.join(data_folder, "en.train")}
+                        name=datasets.Split.TRAIN, gen_kwargs={"data_file": data_folder + "/" + "en.train"}
                     ),
                 ]
                 + [
                     datasets.SplitGenerator(
                         name=datasets.Split(f"validation.{lang}"),
-                        gen_kwargs={"data_file": os.path.join(data_folder, f"{lang}.dev")},
+                        gen_kwargs={"data_file": data_folder + "/" + f"{lang}.dev"},
                     )
                     for lang in languages
                 ]
                 + [
                     datasets.SplitGenerator(
                         name=datasets.Split(f"test.{lang}"),
-                        gen_kwargs={"data_file": os.path.join(data_folder, f"{lang}.test")},
+                        gen_kwargs={"data_file": data_folder + "/" + f"{lang}.test"},
+                    )
+                    for lang in languages
+                ]
+            )
+        if self.config.name == "mlqa":
+            languages = ["en", "de", "ar", "es", "hi", "vi", "zh"]
+            return (
+                [
+                    datasets.SplitGenerator(
+                        name=datasets.Split.TRAIN,
+                        gen_kwargs={"data_file": data_folder + "/" + "squad1.1" + "/" + "train-v1.1.json"},
+                    ),
+                ]
+                + [
+                    datasets.SplitGenerator(
+                        name=datasets.Split(f"validation.{lang}"),
+                        gen_kwargs={
+                            "data_file": data_folder
+                            + "/"
+                            + "MLQA_V1"
+                            + "/"
+                            + "dev"
+                            + "/"
+                            + f"dev-context-{lang}-question-{lang}.json"
+                        },
+                    )
+                    for lang in languages
+                ]
+                + [
+                    datasets.SplitGenerator(
+                        name=datasets.Split(f"test.{lang}"),
+                        gen_kwargs={
+                            "data_file": data_folder
+                            + "/"
+                            + "MLQA_V1"
+                            + "/"
+                            + "test"
+                            + "/"
+                            + f"test-context-{lang}-question-{lang}.json"
+                        },
                     )
                     for lang in languages
                 ]
@@ -248,3 +306,21 @@ class XGlue(datasets.GeneratorBasedBuilder):
                         splits = line.strip().split(" ")
                         words.append(splits[0])
                         result.append(splits[1])
+        if self.config.name in ["mlqa"]:
+            with open(data_file, encoding="utf-8") as f:
+                data = json.load(f)
+            for examples in data["data"]:
+                for example in examples["paragraphs"]:
+                    context = example["context"]
+                    for qa in example["qas"]:
+                        question = qa["question"]
+                        id_ = qa["id"]
+                        answers = qa["answers"]
+                        answers_start = [answer["answer_start"] for answer in answers]
+                        answers_text = [answer["text"] for answer in answers]
+                        yield id_, {
+                            "context": context,
+                            "question": question,
+                            "answers": {"answer_start": answers_start, "text": answers_text},
+                            "id": id_,
+                        }
