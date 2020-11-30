@@ -91,6 +91,8 @@ To add a new dataset, you can start from the empty template which is [in the `te
 cp ./templates/new_dataset_script.py ./datasets/<your_dataset_name>/<your_dataset_name>.py
 ```
 
+And then go progressively through all the `TODO` in the template 🙂. If it's your first dataset additiona and you are a bit lost among the information to fill in, you can take some time to read the [detailed explanation here](https://huggingface.co/docs/datasets/add_dataset.html).
+
 You can also start (or copy any part) from one of the datasets of reference listed below. The main criteria for choosing among these reference dataset is the format of the data files (JSON/JSONL/CSV/TSV/text) and whether you need or don't need several configurations (see above explanations on configurations). Feel free to reuse any parts of the following examples and adapt them to your case:
 
 - question-answering: [squad](https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py) (original data are in json)
