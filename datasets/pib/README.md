@@ -1,121 +1,39 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+- copy-paste the tags obtained with the tagging app: http://192.168.1.5:8501
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for PIB
 
 ## Table of Contents
-- [Dataset Description](#dataset-description)
-  - [Dataset Summary](#dataset-summary)
-  - [Supported Tasks](#supported-tasks-and-leaderboards)
-  - [Languages](#languages)
-- [Dataset Structure](#dataset-structure)
-  - [Data Instances](#data-instances)
-  - [Data Fields](#data-instances)
-  - [Data Splits](#data-instances)
-- [Dataset Creation](#dataset-creation)
-  - [Curation Rationale](#curation-rationale)
-  - [Source Data](#source-data)
-  - [Annotations](#annotations)
-  - [Personal and Sensitive Information](#personal-and-sensitive-information)
-- [Considerations for Using the Data](#considerations-for-using-the-data)
-  - [Social Impact of Dataset](#social-impact-of-dataset)
-  - [Discussion of Biases](#discussion-of-biases)
-  - [Other Known Limitations](#other-known-limitations)
-- [Additional Information](#additional-information)
-  - [Dataset Curators](#dataset-curators)
-  - [Licensing Information](#licensing-information)
-  - [Citation Information](#citation-information)
+- [Dataset Card for PIB](#dataset-card-for-pib)
+  - [Table of Contents](#table-of-contents)
+    - [Dataset Description](#dataset-description)
+    - [Dataset Summary](#dataset-summary)
+    - [Languages](#languages)
+    - [Citation Information](#citation-information)
 
-## Dataset Description
+### Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** http://preon.iiit.ac.in/~jerin/bhasha/
+- **Paper:** https://arxiv.org/abs/2008.04860
+- **Point of Contact:** cvit-bhasha@googlegroups.com
 
 ### Dataset Summary
 
-[More Information Needed]
-
-### Supported Tasks and Leaderboards
-
-[More Information Needed]
+This dataset is the large scale sentence aligned corpus in 11 Indian languages, viz. CVIT-PIB corpus that is the largest multilingual corpus available for Indian languages.
 
 ### Languages
 
-[More Information Needed]
-
-## Dataset Structure
-
-### Data Instances
-
-[More Information Needed]
-
-### Data Fields
-
-[More Information Needed]
-
-### Data Splits
-
-[More Information Needed]
-
-## Dataset Creation
-
-### Curation Rationale
-
-[More Information Needed]
-
-### Source Data
-
-#### Initial Data Collection and Normalization
-
-[More Information Needed]
-
-#### Who are the source language producers?
-
-[More Information Needed]
-
-### Annotations
-
-#### Annotation process
-
-[More Information Needed]
-
-#### Who are the annotators?
-
-[More Information Needed]
-
-### Personal and Sensitive Information
-
-[More Information Needed]
-
-## Considerations for Using the Data
-
-### Social Impact of Dataset
-
-[More Information Needed]
-
-### Discussion of Biases
-
-[More Information Needed]
-
-### Other Known Limitations
-
-[More Information Needed]
-
-## Additional Information
-
-### Dataset Curators
-
-[More Information Needed]
-
-### Licensing Information
-
-[More Information Needed]
+Parallel data for following languages [en, bn, gu, hi, ml, mr, pa, or, ta, te, ur] are covered.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@InProceedings{cvit-pib:multilingual-corpus,
+title = {Revisiting Low Resource Status of Indian Languages in Machine Translation},
+authors={Jerin Philip, Shashank Siripragada, Vinay P. Namboodiri, C.V. Jawahar
+},
+year={2020}
+}
+```
