@@ -144,7 +144,7 @@ The Dutch data consist of four editions of the Belgian newspaper "De Morgen" of 
 
 #### Initial Data Collection and Normalization
 
-[N/A]
+[More Information Needed]
 
 #### Who are the source language producers?
 
@@ -164,37 +164,37 @@ For the Dutch data, the annotator has followed the MITRE and SAIC guidelines for
 
 #### Who are the annotators?
 
-The Spanish data annotation was carried out by the TALP Research Center of the Technical University of Catalonia (UPC) and the Center of Language and Computation (CLiC) of the University of Barcelona (UB), and funded by the European Commission through the NAMIC project (IST-1999-12392).
+The Spanish data annotation was carried out by the TALP Research Center of the Technical University of Catalonia (UPC) and the Center of Language and Computation (CLiC) of the University of Barcelona (UB).
 
 The Dutch data was annotated as a part of the Atranos project at the University of Antwerp.
 
 ### Personal and Sensitive Information
 
-[N/A]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[N/A]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[N/A]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[N/A]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[N/A]
+The annotation of the Spanish data was funded by the European Commission through the NAMIC project (IST-1999-12392).
 
 ### Licensing Information
 
-[N/A]
+[More Information Needed]
 
 ### Citation Information
 
