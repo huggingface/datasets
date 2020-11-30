@@ -2,20 +2,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
-import os
 import textwrap
-
-import pandas as pd
-import six
 
 import datasets
 
 
 _XOR_TYDI_QA_CITATION = """\
     @misc{asai2020xor,
-      title={XOR QA: Cross-lingual Open-Retrieval Question Answering}, 
+      title={XOR QA: Cross-lingual Open-Retrieval Question Answering},
       author={Akari Asai and Jungo Kasai and Jonathan H. Clark and Kenton Lee and Eunsol Choi and Hannaneh Hajishirzi},
       year={2020},
       eprint={2010.11856},
