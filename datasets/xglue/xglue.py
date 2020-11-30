@@ -19,6 +19,7 @@
 from __future__ import absolute_import, division, print_function
 
 import json
+import os
 import textwrap
 
 import datasets
@@ -57,7 +58,45 @@ The benchmark is composed of the following 11 tasks:
 For more information, please take a look at https://microsoft.github.io/XGLUE/.
 """
 
-_XGLUE_ALL_DATA = "https://msmarco.blob.core.windows.net/xglue/xglue_public.tar.gz"
+_XGLUE_ALL_DATA = "https://xglue.blob.core.windows.net/xglue/xglue_full_dataset.tar.gz"
+
+_LANGUAGES = {
+    "ner": ["en", "de", "es", "nl"],
+    "pos": ["en", "de", "es", "nl", "bg", "el", "fr", "pl", "tr", "vi", "zh", "ur", "hi", "it", "ar", "ru", "th"],
+    "mlqa": ["en", "de", "ar", "es", "hi", "vi", "zh"],
+    "nc": ["en", "de", "es", "fr", "ru"],
+    "xnli": ["en", "ar", "bg", "de", "el", "es", "fr", "hi", "ru", "sw", "th", "tr", "ur", "vi", "zh"],
+    "paws-x": ["en", "de", "es", "fr"],
+    "qadsm": ["en", "de", "fr"],
+    "wpr": ["en", "de", "es", "fr", "it", "pt", "zh"],
+    "qam": ["en", "de", "fr"],
+    "qg": ["en", "de", "es", "fr", "it", "pt"],
+    "ntg": ["en", "de", "es", "fr", "ru"],
+}
+
+_PATHS = {
+    "mlqa": {
+        "train": os.path.join("squad1.1", "train-v1.1.json"),
+        "dev": os.path.join("MLQA_V1", "dev", "dev-context-{0}-question-{0}.json"),
+        "test": os.path.join("MLQA_V1", "test", "test-context-{0}-question-{0}.json"),
+    },
+    "xnli": {"train": "multinli.train.en.tsv", "dev": "{}.dev", "test": "{}.test"},
+    "paws-x": {
+        "train": os.path.join("en", "train.tsv"),
+        "dev": os.path.join("{}", "dev_2k.tsv"),
+        "test": os.path.join("{}", "test_2k.tsv"),
+    },
+}
+for name in ["ner", "pos"]:
+    _PATHS[name] = {"train": "en.train", "dev": "{}.dev", "test": "{}.test"}
+for name in ["nc", "qadsm", "wpr", "qam"]:
+    _PATHS[name] = {
+        "train": "xglue." + name + ".en.train",
+        "dev": "xglue." + name + ".{}.dev",
+        "test": "xglue." + name + ".{}.test",
+    }
+for name in ["qg", "ntg"]:
+    _PATHS[name] = {"train": "xglue." + name + ".en", "dev": "xglue." + name + ".{}", "test": "xglue." + name + ".{}"}
 
 
 class XGlueConfig(datasets.BuilderConfig):
@@ -68,7 +107,6 @@ class XGlueConfig(datasets.BuilderConfig):
         data_dir,
         citation,
         url,
-        text_features=None,
         **kwargs,
     ):
         """BuilderConfig for GLUE.
@@ -90,7 +128,6 @@ class XGlueConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(XGlueConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
-        self.text_features = text_features
         self.data_dir = data_dir
         self.citation = citation
         self.url = url
@@ -110,8 +147,7 @@ class XGlue(datasets.GeneratorBasedBuilder):
             that do not belong to the previous three groups.
             """
             ),
-            text_features=["words", "ner"],
-            data_dir="dataset/NER",
+            data_dir="NER",
             citation=textwrap.dedent(
                 """\
             @article{Sang2003IntroductionTT,
@@ -145,8 +181,7 @@ class XGlue(datasets.GeneratorBasedBuilder):
             allowing language-specific extensions when necessary.
             """
             ),
-            data_dir="dataset/POS",
-            text_features=["words", "pos_tag"],
+            data_dir="POS",
             citation=textwrap.dedent(
                 """\
             @misc{11234/1-3105,
@@ -170,7 +205,7 @@ class XGlue(datasets.GeneratorBasedBuilder):
             MLQA is highly parallel, with QA instances parallel between 4 different languages on average.
             """
             ),
-            data_dir="dataset/MLQA",
+            data_dir="MLQA",
             citation=textwrap.dedent(
                 """\
             @article{Lewis2019MLQAEC,
@@ -183,130 +218,260 @@ class XGlue(datasets.GeneratorBasedBuilder):
             ),
             url="https://github.com/facebookresearch/MLQA",
         ),
+        XGlueConfig(
+            name="nc",
+            description=textwrap.dedent(
+                """\
+            This task aims to predict the category given a news article. It covers
+            5 languages, including English, Spanish, French,
+            German and Russian. Each labeled instance is a
+            3-tuple: <news title, news body, category>. The
+            category number is 10. We crawl this dataset from
+            a commercial news website. Accuracy (ACC) of
+            the multi-class classification is used as the metric.
+            """
+            ),
+            data_dir="NC",
+            citation="",
+            url="",
+        ),
+        XGlueConfig(
+            name="xnli",
+            description=textwrap.dedent(
+                """\
+            XNLI is a subset of a few thousand examples from MNLI which has been translated
+            into a 14 different languages (some low-ish resource). As with MNLI, the goal is
+            to predict textual entailment (does sentence A imply/contradict/neither sentence
+            B) and is a classification task (given two sentences, predict one of three
+            labels).
+            """
+            ),
+            data_dir="XNLI",
+            citation=textwrap.dedent(
+                """\
+            @inproceedings{Conneau2018XNLIEC,
+              title={XNLI: Evaluating Cross-lingual Sentence Representations},
+              author={Alexis Conneau and Guillaume Lample and Ruty Rinott and Adina Williams and Samuel R. Bowman and Holger Schwenk and Veselin Stoyanov},
+              booktitle={EMNLP},
+              year={2018}
+            }"""
+            ),
+            url="https://github.com/facebookresearch/XNLI",
+        ),
+        XGlueConfig(
+            name="paws-x",
+            description=textwrap.dedent(
+                """\
+            PAWS-X contains 23,659 human translated PAWS (Paraphrase Adversaries from Word Scrambling) evaluation pairs and 296,406 machine translated training pairs in six typologically distinct languages: French, Spanish, German, Chinese, Japanese, and Korean. All translated pairs are sourced from examples in PAWS-Wiki.
+            """
+            ),
+            data_dir="PAWSX",
+            citation=textwrap.dedent(
+                """\
+            @article{Yang2019PAWSXAC,
+              title={PAWS-X: A Cross-lingual Adversarial Dataset for Paraphrase Identification},
+              author={Yinfei Yang and Yuan Zhang and Chris Tar and Jason Baldridge},
+              journal={ArXiv},
+              year={2019},
+              volume={abs/1908.11828}
+            }"""
+            ),
+            url="https://github.com/google-research-datasets/paws/tree/master/pawsx",
+        ),
+        XGlueConfig(
+            name="qadsm",
+            description=textwrap.dedent(
+                """\
+            Query-Ad Matching (QADSM) task aims
+            to predict whether an advertisement (ad) is relevant to an input query. It covers 3 languages, including English, French and German. Each labeled instance is a 4-tuple: <query, ad title, ad description, label>. The label indicates whether the
+            ad is relevant to the query (Good), or not (Bad).
+            This dataset was constructed based on a commercial search engine. Accuracy (ACC) of the binary classification should be used as the metric.
+            """
+            ),
+            data_dir="QADSM",
+            citation="",
+            url="",
+        ),
+        XGlueConfig(
+            name="wpr",
+            description=textwrap.dedent(
+                """\
+                Tthe Web Page Ranking (WPR) task aims to
+                predict whether a web page is relevant to an input query. It covers 7 languages, including English, German, French, Spanish, Italian, Portuguese and Chinese. Each labeled instance is a
+                4-tuple: <query, web page title, web page snippet, label>. The relevance label contains 5 ratings: Perfect (4), Excellent (3), Good (2), Fair (1)
+                and Bad (0). The dataset is constructed based on a
+                commercial search engine. Normalize Discounted
+                Cumulative Gain (nDCG) should be used as the metric.
+            """
+            ),
+            data_dir="WPR",
+            citation="",
+            url="",
+        ),
+        XGlueConfig(
+            name="qam",
+            description=textwrap.dedent(
+                """\
+                The QA Matching (QAM) task aims to predict whether a <question, passage> pair is a QA pair.
+                It covers 3 languages, including English, French
+                and German. Each labeled instance is a 3-tuple:
+                <question, passage, label>. The label indicates
+                whether the passage is the answer of the question
+                (1), or not (0). This dataset is constructed  based on
+                a commercial search engine. Accuracy (ACC) of
+                the binary classification should be used as the metric.
+            """
+            ),
+            data_dir="QAM",
+            citation="",
+            url="",
+        ),
+        XGlueConfig(
+            name="qg",
+            description=textwrap.dedent(
+                """\
+                The Question Generation (QG) task aims to
+generate a question for a given passage. <passage, question> pairs were collected from a commercial search engine. It covers 6 languages, including English, French, German, Spanish, Italian and
+Portuguese. BLEU-4 score should be used as the metric.
+            """
+            ),
+            data_dir="QG",
+            citation="",
+            url="",
+        ),
+        XGlueConfig(
+            name="ntg",
+            description=textwrap.dedent(
+                """\
+                News Title Generation (NTG) task aims
+                to generate a proper title for a given news body.
+                We collect <news body, news title> pairs from a
+                commercial news website. It covers 5 languages,
+                including German, English, French, Spanish and
+                Russian. BLEU-4 score should be used as the metric.
+            """
+            ),
+            data_dir="NTG",
+            citation="",
+            url="",
+        ),
     ]
 
     def _info(self):
-        if self.config.text_features is not None:
+        if self.config.name == "ner":
             features = {
-                text_feature: datasets.Sequence(datasets.Value("string")) for text_feature in self.config.text_features
+                "words": datasets.Sequence(datasets.Value("string")),
+                "ner": datasets.Sequence(datasets.Value("string")),
             }
-            features["id"] = datasets.Value("int32")
-            return datasets.DatasetInfo(
-                description=_XGLUE_DESCRIPTION,
-                features=datasets.Features(features),
-                homepage=self.config.url,
-                citation=self.config.citation + "\n" + _XGLUE_CITATION,
-            )
-        if self.config.name == "mlqa":
-            return datasets.DatasetInfo(
-                description=_XGLUE_DESCRIPTION,
-                features=datasets.Features(
-                    {
-                        "context": datasets.Value("string"),
-                        "question": datasets.Value("string"),
-                        "answers": datasets.features.Sequence(
-                            {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}
-                        ),
-                        "id": datasets.Value("string"),
-                        # These are the features of your dataset like images, labels ...
-                    }
+        elif self.config.name == "pos":
+            features = {
+                "words": datasets.Sequence(datasets.Value("string")),
+                "pos": datasets.Sequence(datasets.Value("string")),
+            }
+        elif self.config.name == "mlqa":
+            features = {
+                "context": datasets.Value("string"),
+                "question": datasets.Value("string"),
+                "answers": datasets.features.Sequence(
+                    {"answer_start": datasets.Value("int32"), "text": datasets.Value("string")}
                 ),
-                homepage=self.config.url,
-                citation=self.config.citation + "\n" + _XGLUE_CITATION,
-            )
+                # These are the features of your dataset like images, labels ...
+            }
+        elif self.config.name == "nc":
+            features = {
+                "news_title": datasets.Value("string"),
+                "news_body": datasets.Value("string"),
+                "news_category": datasets.Value("string"),
+            }
+        elif self.config.name == "xnli":
+            features = {
+                "premise": datasets.Value("string"),
+                "hypothesis": datasets.Value("string"),
+                "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+            }
+        elif self.config.name == "paws-x":
+            features = {
+                "sentence1": datasets.Value("string"),
+                "sentence2": datasets.Value("string"),
+                "label": datasets.features.ClassLabel(names=["different", "same"]),
+            }
+        elif self.config.name == "qadsm":
+            features = {
+                "query": datasets.Value("string"),
+                "ad_title": datasets.Value("string"),
+                "ad_description": datasets.Value("string"),
+                "relevance_label": datasets.features.ClassLabel(names=["Bad", "Good"]),
+            }
+        elif self.config.name == "wpr":
+            features = {
+                "query": datasets.Value("string"),
+                "wed_page_title": datasets.Value("string"),
+                "web_page_snippet": datasets.Value("string"),
+                "relavance_label": datasets.features.ClassLabel(names=["Bad", "Fair", "Good", "Excellent", "Perfect"]),
+            }
+        elif self.config.name == "qam":
+            features = {
+                "question": datasets.Value("string"),
+                "annswer": datasets.Value("string"),
+                "label": datasets.features.ClassLabel(names=["False", "True"]),
+            }
+        elif self.config.name == "qg":
+            features = {
+                "answer_passage": datasets.Value("string"),
+                "question": datasets.Value("string"),
+            }
+        elif self.config.name == "ntg":
+            features = {
+                "news_body": datasets.Value("string"),
+                "news_title": datasets.Value("string"),
+            }
+
+        return datasets.DatasetInfo(
+            description=_XGLUE_DESCRIPTION,
+            features=datasets.Features(features),
+            homepage=self.config.url,
+            citation=self.config.citation + "\n" + _XGLUE_CITATION,
+        )
 
     def _split_generators(self, dl_manager):
         all_data_folder = dl_manager.download_and_extract(_XGLUE_ALL_DATA)
-        data_folder = all_data_folder + "/" + self.config.data_dir
+        data_folder = os.path.join(all_data_folder, "xglue_full_dataset", self.config.data_dir)
+        name = self.config.name
 
-        if self.config.name in ["pos", "ner"]:
-            languages = ["en", "de", "nl", "es"]
-            if self.config.name == "pos":
-                languages += ["bg", "el", "fr", "pl", "tr", "vi", "zh", "ur", "hi", "it", "ar", "ru", "th"]
-            return (
-                [
-                    datasets.SplitGenerator(
-                        name=datasets.Split.TRAIN, gen_kwargs={"data_file": data_folder + "/" + "en.train"}
-                    ),
-                ]
-                + [
-                    datasets.SplitGenerator(
-                        name=datasets.Split(f"validation.{lang}"),
-                        gen_kwargs={"data_file": data_folder + "/" + f"{lang}.dev"},
-                    )
-                    for lang in languages
-                ]
-                + [
-                    datasets.SplitGenerator(
-                        name=datasets.Split(f"test.{lang}"),
-                        gen_kwargs={"data_file": data_folder + "/" + f"{lang}.test"},
-                    )
-                    for lang in languages
-                ]
-            )
-        if self.config.name == "mlqa":
-            languages = ["en", "de", "ar", "es", "hi", "vi", "zh"]
-            return (
-                [
-                    datasets.SplitGenerator(
-                        name=datasets.Split.TRAIN,
-                        gen_kwargs={"data_file": data_folder + "/" + "squad1.1" + "/" + "train-v1.1.json"},
-                    ),
-                ]
-                + [
-                    datasets.SplitGenerator(
-                        name=datasets.Split(f"validation.{lang}"),
-                        gen_kwargs={
-                            "data_file": data_folder
-                            + "/"
-                            + "MLQA_V1"
-                            + "/"
-                            + "dev"
-                            + "/"
-                            + f"dev-context-{lang}-question-{lang}.json"
-                        },
-                    )
-                    for lang in languages
-                ]
-                + [
-                    datasets.SplitGenerator(
-                        name=datasets.Split(f"test.{lang}"),
-                        gen_kwargs={
-                            "data_file": data_folder
-                            + "/"
-                            + "MLQA_V1"
-                            + "/"
-                            + "test"
-                            + "/"
-                            + f"test-context-{lang}-question-{lang}.json"
-                        },
-                    )
-                    for lang in languages
-                ]
-            )
+        languages = _LANGUAGES[name]
+        return (
+            [
+                datasets.SplitGenerator(
+                    name=datasets.Split.TRAIN,
+                    gen_kwargs={"data_file": os.path.join(data_folder, _PATHS[name]["train"]), "split": "train"},
+                ),
+            ]
+            + [
+                datasets.SplitGenerator(
+                    name=datasets.Split(f"validation.{lang}"),
+                    gen_kwargs={
+                        "data_file": os.path.join(data_folder, _PATHS[name]["dev"].format(lang)),
+                        "split": "dev",
+                    },
+                )
+                for lang in languages
+            ]
+            + [
+                datasets.SplitGenerator(
+                    name=datasets.Split(f"test.{lang}"),
+                    gen_kwargs={
+                        "data_file": os.path.join(data_folder, _PATHS[name]["test"].format(lang)),
+                        "split": "test",
+                    },
+                )
+                for lang in languages
+            ]
+        )
 
     def _generate_examples(self, data_file, split=None):
-        if self.config.name in ["ner", "pos"]:
-            words = []
-            result = []
-            idx = 0
-            with open(data_file, "r") as f:
-                for line in f:
-                    if line.strip() == "":
-                        if len(words) > 0:
-                            output_dict = {}
-                            output_dict[self.config.text_features[0]] = words
-                            output_dict[self.config.text_features[1]] = result
-                            output_dict["id"] = idx
-                            yield idx, output_dict
-                            words = []
-                            result = []
-                            idx += 1
-                    else:
-                        splits = line.strip().split(" ")
-                        words.append(splits[0])
-                        result.append(splits[1])
-        if self.config.name in ["mlqa"]:
+        keys = list(self._info().features.keys())
+
+        if self.config.name == "mlqa":
             with open(data_file, encoding="utf-8") as f:
                 data = json.load(f)
             for examples in data["data"]:
@@ -322,5 +487,53 @@ class XGlue(datasets.GeneratorBasedBuilder):
                             "context": context,
                             "question": question,
                             "answers": {"answer_start": answers_start, "text": answers_text},
-                            "id": id_,
                         }
+        elif self.config.name in ["ner", "pos"]:
+            words = []
+            result = []
+            idx = 0
+            with open(data_file, "r") as f:
+                for line in f:
+                    if line.strip() == "":
+                        if len(words) > 0:
+                            output_dict = {}
+                            output_dict[keys[0]] = words
+                            output_dict[keys[1]] = result
+                            yield idx, output_dict
+                            words = []
+                            result = []
+                            idx += 1
+                    else:
+                        splits = line.strip().split(" ")
+                        words.append(splits[0])
+                        result.append(splits[1])
+        if self.config.name in ["ntg", "qg"]:
+            with open(data_file + ".src." + split) as src_f, open(data_file + ".tgt." + split) as tgt_f:
+                for idx, (src_line, tgt_line) in enumerate(zip(src_f, tgt_f)):
+                    yield idx, {keys[0]: src_line.strip(), keys[1]: tgt_line.strip()}
+        else:
+            _process_dict = {
+                "paws-x": {"0": "different", "1": "same"},
+                "xnli": {"contradictory": "contradiction"},
+                "qam": {"0": "False", "1": "True"},
+                "nc": {},
+                "qg": {},
+                "qadsm": {},
+                "ntg": {},
+                "wpr": {"0": "Bad", "1": "Fair", "2": "Good", "3": "Excellent", "4": "Perfect"},
+            }
+
+            def _process(value):
+                if value in _process_dict[self.config.name]:
+                    return _process_dict[self.config.name][value]
+                return value
+
+            with open(data_file, encoding="utf-8") as f:
+                for idx, line in enumerate(f):
+                    if data_file.split(".")[-1] == "tsv" and idx == 0:
+                        continue
+                    items = line.strip().split("\t")
+                    yield idx, {
+                        key: _process(value)
+                        for key, value in zip(keys, items[1:] if self.config.name == "paws-x" else items)
+                    }
