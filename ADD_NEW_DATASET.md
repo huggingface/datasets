@@ -68,21 +68,30 @@ And automatically create the following additional meta-data files (using the CLI
 
 	**do not** work on the `master` branch.
 
-5. Create your dataset folder under `datasets/<your_dataset_name>` and create a dataset script under `datasets/<your_dataset_name>/<your_dataset_name>.py`.
+5. Create your dataset folder under `datasets/<your_dataset_name>`:
+
+	```bash
+	mkdir ./datasets/<your_dataset_name>
+	```
 
 
 ### Write some code
 
 Now let's get coding :-)
 
-The dataset script is the main entry point to load and process the data.
+The dataset script is the main entry point to load and process the data. It is a python script under `datasets/<your_dataset_name>/<your_dataset_name>.py`.
 
 There is a detailed explanation on how the library and scripts are organized [here](https://huggingface.co/docs/datasets/add_dataset.html).
 
 Note on naming: the dataset class should be camel case, while the dataset short_name is its snake case equivalent (ex: `class BookCorpus(datasets.GeneratorBasedBuilder)` for the dataset `book_corpus`).
 
-To add a new dataset, you can start from the empty template which is [here](https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py) or you can also start by copying one of the datasets of reference listed below. The main criteria for choosing to start from one or the other reference dataset is the format of the data files (JSON/CSV/TSV/text) and whether you need several configurations (see above explanations on configurations). Feel free to reuse parts of the code and adapt them to your case:
+To add a new dataset, you can start from the empty template which is [in the `templates` folder](https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py):
 
+```bash
+cp ./templates/new_dataset_script.py ./datasets/<your_dataset_name>/<your_dataset_name>.py
+```
+
+You can also start (or copy any part) from one of the datasets of reference listed below. The main criteria for choosing among these reference dataset is the format of the data files (JSON/JSONL/CSV/TSV/text) and whether you need or don't need several configurations (see above explanations on configurations). Feel free to reuse any parts of the following examples and adapt them to your case:
 
 - question-answering: [squad](https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py) (original data are in json)
 - natural language inference: [snli](https://github.com/huggingface/datasets/blob/master/datasets/snli/snli.py) (original data are in text files with tab separated columns)
@@ -100,7 +109,7 @@ While you are developping the dataset script you can list test it by opening a p
 ```python
 from datasets import load_dataset
 
-data = load_dataset('PATH/TO/MY/NEW/SCRIPT')
+data = load_dataset('./datasets/<your_dataset_name>')
 ```
 
 This let you use `print()` statements as well as seeing directly errors and the final dataset format.
