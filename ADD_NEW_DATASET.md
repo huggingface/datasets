@@ -59,7 +59,8 @@ You are now ready to start the process of adding the dataset. We will basically 
 
 And automatically create the following additional meta-data files (using the CLI tools):
 
-	- a metadata file `dataset_configs.json` which will contain checksums and informations about the dataset to garantee that the loading went fine.
+	- a metadata file `dataset_infos.json` which will contain checksums and informations about the dataset to guarantee that the loading went fine.
+
 	- a dummy-data file `dummy_data.zip` which will contain small example original files to garantee that the loading script is working well in the future.
 
 4. Create a new branch to hold your development changes with the name of your dataset:
