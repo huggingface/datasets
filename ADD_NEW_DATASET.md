@@ -125,7 +125,8 @@ Now that your dataset script runs and create a dataset with the format you expec
 	python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
 	```
 
-	This first command should create a `dataset_configs.JSON` file in your dataset folder.
+	This first command should create a `dataset_infos.json` file in your dataset folder.
+
 
 
 2. If this command was succesful, you can now create the dummy data. There is a tool that automatically generates dummy data for you. At the moment it supports data files in the following format: txt, csv, tsv, jsonl, json, xml.
