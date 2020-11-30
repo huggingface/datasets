@@ -100,9 +100,4 @@ class Concode(datasets.GeneratorBasedBuilder):
         with open(filename) as f:
             for elem_data in f:
                 elem_data = json.loads(elem_data)
-<<<<<<< HEAD
                 yield id, elem_data
-=======
-                logging.info(elem_data)
-                yield id, {"nl":elem_data["nl"],"code":elem_data["code"]}
->>>>>>> 61883ffb4534192a68c5cf0fe93f7f95c6966009
