@@ -395,7 +395,7 @@ class Wikipedia(datasets.BeamBasedBuilder):
     """Wikipedia dataset."""
 
     # Use mirror (your.org) to avoid download caps.
-
+    BUILDER_CONFIG_CLASS = WikipediaConfig
     BUILDER_CONFIGS = [
         WikipediaConfig(
             version=_VERSION,

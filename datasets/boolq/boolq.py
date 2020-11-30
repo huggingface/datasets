@@ -3,9 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
-
-import tensorflow as tf
 
 import datasets
 
@@ -28,9 +25,11 @@ Each example is a triplet of (question, passage, answer), with the title of the 
 The text-pair classification setup is similar to existing natural language inference tasks.
 """
 
-_URL = "gs://boolq"
-_TRAIN_FILE_NAME = "train.jsonl"
-_DEV_FILE_NAME = "dev.jsonl"
+_URL = "https://storage.googleapis.com/boolq/"
+_URLS = {
+    "train": _URL + "train.jsonl",
+    "dev": _URL + "dev.jsonl",
+}
 
 
 class Boolq(datasets.GeneratorBasedBuilder):
@@ -67,11 +66,8 @@ class Boolq(datasets.GeneratorBasedBuilder):
         # TODO(boolq): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {
-            "train": os.path.join(_URL, _TRAIN_FILE_NAME),
-            "dev": os.path.join(_URL, _DEV_FILE_NAME),
-        }
-        downloaded_files = dl_manager.download_custom(urls_to_download, tf.io.gfile.copy)
+        urls_to_download = _URLS
+        downloaded_files = dl_manager.download(urls_to_download)
 
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),

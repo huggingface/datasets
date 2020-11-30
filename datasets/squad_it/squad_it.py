@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -30,9 +29,12 @@ into Italian. It represents a large-scale dataset for open question answering pr
  The dataset contains more than 60,000 question/answer pairs derived from the original English dataset. The dataset is
  split into training and test sets to support the replicability of the benchmarking of QA systems:
 """
-_URL = "https://github.com/crux82/squad-it/raw/master"
-_TRAIN_FILE = "SQuAD_it-train.json.gz"
-_TEST_FILE = "SQuAD_it-test.json.gz"
+
+_URL = "https://github.com/crux82/squad-it/raw/master/"
+_URLS = {
+    "train": _URL + "SQuAD_it-train.json.gz",
+    "test": _URL + "SQuAD_it-test.json.gz",
+}
 
 
 class SquadIt(datasets.GeneratorBasedBuilder):
@@ -75,7 +77,7 @@ class SquadIt(datasets.GeneratorBasedBuilder):
         # TODO(squad_it): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {"train": os.path.join(_URL, _TRAIN_FILE), "test": os.path.join(_URL, _TEST_FILE)}
+        urls_to_download = _URLS
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [

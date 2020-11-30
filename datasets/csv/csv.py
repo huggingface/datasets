@@ -1,60 +1,72 @@
 # coding=utf-8
 
+import logging
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional, Union
 
-import pyarrow.csv as pac
+import pandas as pd
+import pyarrow as pa
 
 import datasets
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class CsvConfig(datasets.BuilderConfig):
     """BuilderConfig for CSV."""
 
-    skip_rows: int = None
-    column_names: List[str] = None
-    autogenerate_column_names: bool = None
-    delimiter: str = None
-    quote_char: str = None
-    read_options: pac.ReadOptions = None
-    parse_options: pac.ParseOptions = None
-    convert_options: pac.ConvertOptions = None
+    sep: str = ","
+    delimiter: Optional[str] = None
+    header: Optional[Union[int, List[int], str]] = "infer"
+    names: Optional[List[str]] = None
+    column_names: Optional[List[str]] = None
+    index_col: Optional[Union[int, str, List[int], List[str]]] = None
+    usecols: Optional[Union[List[int], List[str]]] = None
+    prefix: Optional[str] = None
+    mangle_dupe_cols: bool = True
+    engine: Optional[str] = None
+    true_values: Optional[list] = None
+    false_values: Optional[list] = None
+    skipinitialspace: bool = False
+    skiprows: Optional[Union[int, List[int]]] = None
+    nrows: Optional[int] = None
+    na_values: Optional[Union[str, List[str]]] = None
+    keep_default_na: bool = True
+    na_filter: bool = True
+    verbose: bool = False
+    skip_blank_lines: bool = True
+    thousands: Optional[str] = None
+    decimal: str = b"."
+    lineterminator: Optional[str] = None
+    quotechar: str = '"'
+    quoting: int = 0
+    escapechar: Optional[str] = None
+    comment: Optional[str] = None
+    encoding: Optional[str] = None
+    dialect: str = None
+    error_bad_lines: bool = True
+    warn_bad_lines: bool = True
+    skipfooter: int = 0
+    doublequote: bool = True
+    memory_map: bool = False
+    float_precision: Optional[str] = None
+    chunksize: int = 10_000
     features: datasets.Features = None
 
-    @property
-    def pa_read_options(self):
-        read_options = self.read_options or pac.ReadOptions()
-        if self.skip_rows is not None:
-            read_options.skip_rows = self.skip_rows
-        if self.column_names is not None:
-            read_options.column_names = self.column_names
-        if self.autogenerate_column_names is not None:
-            read_options.autogenerate_column_names = self.autogenerate_column_names
-        return read_options
-
-    @property
-    def pa_parse_options(self):
-        parse_options = self.parse_options or pac.ParseOptions()
+    def __post_init__(self):
         if self.delimiter is not None:
-            parse_options.delimiter = self.delimiter
-        if self.quote_char is not None:
-            parse_options.quote_char = self.quote_char
-        return parse_options
-
-    @property
-    def pa_convert_options(self):
-        convert_options = self.convert_options or pac.ConvertOptions(
-            column_types=self.features.type if self.features is not None else None
-        )
-        return convert_options
+            self.sep = self.delimiter
+        if self.column_names is not None:
+            self.names = self.column_names
 
 
 class Csv(datasets.ArrowBasedBuilder):
     BUILDER_CONFIG_CLASS = CsvConfig
 
     def _info(self):
-        return datasets.DatasetInfo()
+        return datasets.DatasetInfo(features=self.config.features)
 
     def _split_generators(self, dl_manager):
         """We handle string, list and dicts in datafiles"""
@@ -74,11 +86,49 @@ class Csv(datasets.ArrowBasedBuilder):
         return splits
 
     def _generate_tables(self, files):
-        for i, file in enumerate(files):
-            pa_table = pac.read_csv(
+        schema = pa.schema(self.config.features.type) if self.config.features is not None else None
+        for file_idx, file in enumerate(files):
+            csv_file_reader = pd.read_csv(
                 file,
-                read_options=self.config.pa_read_options,
-                parse_options=self.config.pa_parse_options,
-                convert_options=self.config.pa_convert_options,
+                iterator=True,
+                sep=self.config.sep,
+                header=self.config.header,
+                names=self.config.names,
+                index_col=self.config.index_col,
+                usecols=self.config.usecols,
+                prefix=self.config.prefix,
+                mangle_dupe_cols=self.config.mangle_dupe_cols,
+                engine=self.config.engine,
+                true_values=self.config.true_values,
+                false_values=self.config.false_values,
+                skipinitialspace=self.config.skipinitialspace,
+                skiprows=self.config.skiprows,
+                nrows=self.config.nrows,
+                na_values=self.config.na_values,
+                keep_default_na=self.config.keep_default_na,
+                na_filter=self.config.na_filter,
+                verbose=self.config.verbose,
+                skip_blank_lines=self.config.skip_blank_lines,
+                thousands=self.config.thousands,
+                decimal=self.config.decimal,
+                lineterminator=self.config.lineterminator,
+                quotechar=self.config.quotechar,
+                quoting=self.config.quoting,
+                escapechar=self.config.escapechar,
+                comment=self.config.comment,
+                encoding=self.config.encoding,
+                dialect=self.config.dialect,
+                error_bad_lines=self.config.error_bad_lines,
+                warn_bad_lines=self.config.warn_bad_lines,
+                skipfooter=self.config.skipfooter,
+                doublequote=self.config.doublequote,
+                memory_map=self.config.memory_map,
+                float_precision=self.config.float_precision,
+                chunksize=self.config.chunksize,
             )
-            yield i, pa_table
+            for batch_idx, df in enumerate(csv_file_reader):
+                pa_table = pa.Table.from_pandas(df, schema=schema)
+                # Uncomment for debugging (will print the Arrow table size and elements)
+                # logger.warning(f"pa_table: {pa_table} num rows: {pa_table.num_rows}")
+                # logger.warning('\n'.join(str(pa_table.slice(i, 1).to_pydict()) for i in range(pa_table.num_rows)))
+                yield (file_idx, batch_idx), pa_table

@@ -22,7 +22,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pyarrow as pa
-from filelock import BaseFileLock, FileLock, Timeout
 
 from .arrow_dataset import Dataset
 from .arrow_reader import ArrowReader
@@ -33,6 +32,7 @@ from .naming import camelcase_to_snakecase
 from .utils import HF_METRICS_CACHE, copyfunc, temp_seed
 from .utils.download_manager import DownloadManager
 from .utils.file_utils import DownloadConfig
+from .utils.filelock import BaseFileLock, FileLock, Timeout
 from .utils.logging import get_logger
 
 

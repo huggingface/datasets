@@ -20,7 +20,6 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import logging
-import os
 
 import datasets
 
@@ -46,6 +45,14 @@ robustness to natural distribution shifts. We encourage SQuAD model developers \
 to also evaluate their methods on these new datasets! \
 """
 
+_URL = "https://raw.githubusercontent.com/modestyachts/squadshifts-website/master/datasets/"
+_URLS = {
+    "new_wiki": _URL + "new_wiki_v1.0.json",
+    "nyt": _URL + "nyt_v1.0.json",
+    "reddit": _URL + "reddit_v1.0.json",
+    "amazon": _URL + "amazon_reviews_v1.0.json",
+}
+
 
 class SquadShiftsConfig(datasets.BuilderConfig):
     """BuilderConfig for SquadShifts."""
@@ -61,12 +68,6 @@ class SquadShiftsConfig(datasets.BuilderConfig):
 
 class SquadShifts(datasets.GeneratorBasedBuilder):
     """SquadShifts consists of four new test sets for the SQUAD dataset."""
-
-    _URL = "https://raw.githubusercontent.com/modestyachts/squadshifts-website/master/datasets"
-    _NEW_WIKI_FILE = "new_wiki_v1.0.json"
-    _NYT_FILE = "nyt_v1.0.json"
-    _REDDIT_FILE = "reddit_v1.0.json"
-    _AMAZON_FILE = "amazon_reviews_v1.0.json"
 
     BUILDER_CONFIGS = [
         SquadShiftsConfig(
@@ -116,12 +117,7 @@ class SquadShifts(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        urls_to_download = {
-            "new_wiki": os.path.join(self._URL, self._NEW_WIKI_FILE),
-            "nyt": os.path.join(self._URL, self._NYT_FILE),
-            "reddit": os.path.join(self._URL, self._REDDIT_FILE),
-            "amazon": os.path.join(self._URL, self._AMAZON_FILE),
-        }
+        urls_to_download = _URLS
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         if self.config.name == "new_wiki" or self.config.name == "default":

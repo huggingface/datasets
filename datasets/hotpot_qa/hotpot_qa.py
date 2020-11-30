@@ -19,7 +19,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 import textwrap
 
 import datasets
@@ -109,11 +108,11 @@ class HotpotQA(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
         paths = {
-            datasets.Split.TRAIN: os.path.join(_URL_BASE, "hotpot_train_v1.1.json"),
-            datasets.Split.VALIDATION: os.path.join(_URL_BASE, "hotpot_dev_" + self.config.name + "_v1.json"),
+            datasets.Split.TRAIN: _URL_BASE + "hotpot_train_v1.1.json",
+            datasets.Split.VALIDATION: _URL_BASE + "hotpot_dev_" + self.config.name + "_v1.json",
         }
         if self.config.name == "fullwiki":
-            paths[datasets.Split.TEST] = os.path.join(_URL_BASE, "hotpot_test_fullwiki_v1.json")
+            paths[datasets.Split.TEST] = _URL_BASE + "hotpot_test_fullwiki_v1.json"
 
         files = dl_manager.download(paths)
 

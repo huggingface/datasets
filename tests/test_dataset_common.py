@@ -39,6 +39,7 @@ from datasets import (
     prepare_module,
 )
 from datasets.search import _has_faiss
+from datasets.utils.file_utils import is_remote_url
 
 from .utils import for_all_test_methods, local, remote, slow
 
@@ -122,6 +123,10 @@ class DatasetTester(object):
                 else:
                     version = dataset_builder.VERSION
 
+                def check_if_url_is_valid(url):
+                    if is_remote_url(url) and "\\" in url:
+                        raise ValueError(f"Bad remote url '{url}'' since it contains a backslash")
+
                 # create mock data loader manager that has a special download_and_extract() method to download dummy data instead of real data
                 mock_dl_manager = MockDownloadManager(
                     dataset_name=dataset_name,
@@ -129,6 +134,7 @@ class DatasetTester(object):
                     version=version,
                     cache_dir=raw_temp_dir,
                     is_local=is_local,
+                    download_callbacks=[check_if_url_is_valid],
                 )
 
                 if dataset_builder.__class__.__name__ == "Csv":
@@ -184,7 +190,7 @@ class DatasetTester(object):
                 )
 
                 # get dataset
-                dataset = dataset_builder.as_dataset()
+                dataset = dataset_builder.as_dataset(ignore_verifications=True)
 
                 # check that dataset is not empty
                 self.parent.assertListEqual(sorted(dataset_builder.info.splits.keys()), sorted(dataset))
@@ -440,6 +446,48 @@ class CsvTest(TestCase):
             self.assertNotEqual(ds._data_files[0], data_file)
             self.assertNotEqual(ds._fingerprint, fingerprint)
             self.assertEqual(len(ds), n_rows)
+            del ds
+
+    def test_sep(self):
+        n_rows = 10
+        n_cols = 3
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            open(os.path.join(tmp_dir, "table_comma.csv"), "w", encoding="utf-8").write(
+                "\n".join(",".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+            )
+            open(os.path.join(tmp_dir, "table_tab.csv"), "w", encoding="utf-8").write(
+                "\n".join("\t".join([str(i) for i in range(n_cols)]) for _ in range(n_rows + 1))
+            )
+            ds = load_dataset(
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table_comma.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                sep=",",
+            )
+            self.assertEqual(len(ds), n_rows)
+            self.assertEqual(len(ds.column_names), n_cols)
+            del ds
+            ds = load_dataset(
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table_tab.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                sep="\t",
+            )
+            self.assertEqual(len(ds), n_rows)
+            self.assertEqual(len(ds.column_names), n_cols)
+            del ds
+            ds = load_dataset(
+                "./datasets/csv",
+                data_files=os.path.join(tmp_dir, "table_comma.csv"),
+                cache_dir=tmp_dir,
+                split="train",
+                sep="\t",
+            )
+            self.assertEqual(len(ds), n_rows)
+            self.assertEqual(len(ds.column_names), 1)
             del ds
 
     def test_features(self):

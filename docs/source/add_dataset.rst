@@ -158,14 +158,13 @@ Let's have a look at a simple example of a :func:`datasets.DatasetBuilder._split
 		"""SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
 
 		_URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
-		_DEV_FILE = "dev-v1.1.json"
-		_TRAINING_FILE = "train-v1.1.json"
+		_URLS = {
+			"train": _URL + "train-v1.1.json",
+			"dev": _URL + "dev-v1.1.json",
+		}
 
 		def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
-			urls_to_download = {
-				"train": os.path.join(self._URL, self._TRAINING_FILE),
-				"dev": os.path.join(self._URL, self._DEV_FILE),
-			}
+			urls_to_download = self._URLS
 			downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
 			return [
@@ -229,6 +228,10 @@ Here again, let's take the simple example of the `squad dataset loading script <
 The input argument is the ``filepath`` provided in the :obj:`gen_kwargs` of each :class:`datasets.SplitGenerator` returned by the :func:`datasets.DatasetBuilder._split_generator` method.
 
 The method reads and parses the inputs files and yields a tuple constituted of an ``id_`` (can be arbitrary but should be unique (for backward compatibility with TensorFlow datasets) and an example. The example is a dictionary with the same structure and element types as the ``features`` defined in :func:`datasets.DatasetBuilder._info`.
+
+.. note::
+
+	Since generating a dataset is based on a python generator, then it doesn't load all the data in memory and therefore it can handle pretty big datasets. However before being flushed to the dataset file on disk, the generated samples are stored in the :obj:`ArrowWriter` buffer so that they are written by batch. If your dataset's samples take a lot of memory (with images or videos), then make sure to speficy a low value for the `_writer_batch_size` class attribute of the dataset builder class. We recommend to not exceed 200MB.
 
 Specifying several dataset configurations
 -------------------------------------------------
@@ -308,6 +311,15 @@ While the configuration attributes are used in this case to control the reading/
 
 An example of a custom configuration class with several predefined configurations can be found in the `Super-GLUE loading script <https://github.com/huggingface/datasets/blob/master/datasets/super_glue/super_glue.py>`__ which providescontrol over the various sub-dataset of the SuperGLUE benchmark through the configurations. Another example is the `Wikipedia loading script <https://github.com/huggingface/datasets/blob/master/datasets/wikipedia/wikipedia.py>`__ which provides control over the language of the Wikipedia dataset through the configurations.
 
+Specifying a default dataset configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a user loads a dataset with more than one configuration, they must specify a configuration name or else a ValueError is raised. With some datasets, it may be preferable to specify a default configuration that will be loaded if a user does not specify one.
+
+This can be done with the :attr:`datasets.DatasetBuilder.DEFAULT_CONFIG_NAME` attribute. By setting this attribute equal to the name of one of the dataset configurations, that config will be loaded in the case that the user does not specify a config name.
+
+This feature is opt-in and should only be used where a default configuration makes sense for the dataset. For example, many cross-lingual datasets have a different configuration for each language. In this case, it may make sense to create an aggregate configuration which can serve as the default. This would, in effect, load all languages of the dataset by default unless the user specifies a particular language. See the `Polyglot NER loading script <https://github.com/huggingface/datasets/blob/master/datasets/polyglot_ner/polyglot_ner.py>`__ for an example.
+
 
 Testing the dataset loading script
 -------------------------------------------------
@@ -327,3 +339,21 @@ If your dataset has several configurations or requires to be given the path to l
 	>>> dataset = load_dataset('PATH/TO/MY/SCRIPT.py', 'my_configuration', data_files={'train': 'my_train_file.txt', 'validation': 'my_validation_file.txt'})
 
 
+
+Dataset scripts of reference
+-------------------------------------------------
+
+It is common to see datasets that share the same format. Therefore it is possible that there already exists a dataset script from which you can get some inspiration to help you write your own.
+
+Here is a list of datasets of reference. Feel free to reuse parts of their code and adapt them to your case:
+
+- question-answering: `squad <https://github.com/huggingface/datasets/blob/master/datasets/squad/squad.py>`__ (original data are in json)
+- natural language inference: `snli <https://github.com/huggingface/datasets/blob/master/datasets/snli/snli.py>`__ (original data are in text files with tab separated columns)
+- POS/NER: `conll2003 <https://github.com/huggingface/datasets/blob/master/datasets/conll2003/conll2003.py>`__ (original data are in text files with one token per line)
+- sentiment analysis: `allocine <https://github.com/huggingface/datasets/blob/master/datasets/allocine/allocine.py>`__ (original data are in jsonl files)
+- text classification: `ag_news <https://github.com/huggingface/datasets/blob/master/datasets/ag_news/ag_news.py>`__ (original data are in csv files)
+- translation: `flores <https://github.com/huggingface/datasets/blob/master/datasets/flores/flores.py>`__ (original data come from text files - one per language)
+- summarization: `billsum <https://github.com/huggingface/datasets/blob/master/datasets/billsum/billsum.py>`__ (original data are in json files)
+- benchmark: `glue <https://github.com/huggingface/datasets/blob/master/datasets/glue/glue.py>`__ (original data are various formats)
+- multilingual: `xquad <https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py>`__ (original data are in json)
+- multitask: `matinf <https://github.com/huggingface/datasets/blob/master/datasets/xquad/xquad.py>`__ (original data need to be downloaded by the user because it requires authentificaition)

@@ -20,10 +20,12 @@ from __future__ import absolute_import, division, print_function
 
 import abc
 import collections
+import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Union
 
 from .arrow_reader import FileInstructions, make_file_instructions
+from .naming import _split_re
 from .utils.py_utils import NonMutableDict
 
 
@@ -347,6 +349,10 @@ class NamedSplit(SplitBase):
 
     def __init__(self, name):
         self._name = name
+        split_names_from_instruction = [split_instruction.split("[")[0] for split_instruction in name.split("+")]
+        for split_name in split_names_from_instruction:
+            if not re.match(_split_re, split_name):
+                raise ValueError(f"Split name should match '{_split_re}'' but got '{split_name}'.")
 
     def __str__(self):
         return self._name
@@ -570,4 +576,5 @@ class SplitGenerator:
 
     def __post_init__(self):
         self.name = str(self.name)  # Make sure we convert NamedSplits in strings
+        NamedSplit(self.name)  # check that it's a valid split name
         self.split_info = SplitInfo(name=self.name)

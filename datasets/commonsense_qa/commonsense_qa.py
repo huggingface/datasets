@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -25,10 +24,13 @@ CommonsenseQA is a new multiple-choice question answering dataset that requires 
  The dataset is provided in two major training/validation/testing set splits: "Random split" which is the main evaluation
   split, and "Question token split", see paper for details.
 """
-_URL = "https://s3.amazonaws.com/commensenseqa"
-_TRAINING_FILE = "train_rand_split.jsonl"
-_DEV_FILE = "dev_rand_split.jsonl"
-_TEST_FILE = "test_rand_split_no_answers.jsonl"
+
+_URL = "https://s3.amazonaws.com/commensenseqa/"
+_URLS = {
+    "train": _URL + "train_rand_split.jsonl",
+    "dev": _URL + "dev_rand_split.jsonl",
+    "test": _URL + "test_rand_split_no_answers.jsonl",
+}
 
 
 class CommonsenseQa(datasets.GeneratorBasedBuilder):
@@ -68,11 +70,7 @@ class CommonsenseQa(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        download_urls = {
-            "train": os.path.join(_URL, _TRAINING_FILE),
-            "test": os.path.join(_URL, _TEST_FILE),
-            "dev": os.path.join(_URL, _DEV_FILE),
-        }
+        download_urls = _URLS
 
         downloaded_files = dl_manager.download_and_extract(download_urls)
 

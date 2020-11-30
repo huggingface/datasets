@@ -3,7 +3,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -27,9 +26,12 @@ archivePrefix = {arXiv},
 _DESCRIPTION = """\
 Portuguese translation of the SQuAD dataset. The translation was performed automatically using the Google Cloud API.
 """
-_URL = "https://github.com/nunorc/squad-v1.1-pt/raw/master"
-_TRAIN_FILE = "train-v1.1-pt.json"
-_DEV_FILE = "dev-v1.1-pt.json"
+
+_URL = "https://github.com/nunorc/squad-v1.1-pt/raw/master/"
+_URLS = {
+    "train": _URL + "train-v1.1-pt.json",
+    "dev": _URL + "dev-v1.1-pt.json",
+}
 
 
 class SquadV1Pt(datasets.GeneratorBasedBuilder):
@@ -73,7 +75,7 @@ class SquadV1Pt(datasets.GeneratorBasedBuilder):
         # TODO(squad_v1_pt): Downloads the data and defines the splits
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        urls_to_download = {"train": os.path.join(_URL, _TRAIN_FILE), "dev": os.path.join(_URL, _DEV_FILE)}
+        urls_to_download = _URLS
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
         return [

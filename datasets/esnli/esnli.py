@@ -19,7 +19,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import os
 
 import datasets
 
@@ -83,9 +82,9 @@ class Esnli(datasets.GeneratorBasedBuilder):
 
         files = dl_manager.download_and_extract(
             {
-                "train": [os.path.join(_URL, "esnli_train_1.csv"), os.path.join(_URL, "esnli_train_2.csv")],
-                "validation": [os.path.join(_URL, "esnli_dev.csv")],
-                "test": [os.path.join(_URL, "esnli_test.csv")],
+                "train": [_URL + "esnli_train_1.csv", _URL + "esnli_train_2.csv"],
+                "validation": [_URL + "esnli_dev.csv"],
+                "test": [_URL + "esnli_test.csv"],
             }
         )
 

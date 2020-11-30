@@ -27,7 +27,9 @@ from typing import TYPE_CHECKING, List, Optional
 import pyarrow as pa
 import pyarrow.parquet
 
-from .naming import filename_for_dataset_split
+from datasets.utils.file_utils import DownloadConfig
+
+from .naming import _split_re, filename_for_dataset_split
 from .utils import cached_path, logging
 
 
@@ -37,13 +39,12 @@ if TYPE_CHECKING:
 
 logger = logging.get_logger(__name__)
 
-_BUFFER_SIZE = 8 << 20  # 8 MiB per file.
 HF_GCP_BASE_URL = "https://storage.googleapis.com/huggingface-nlp/cache/datasets"
 
 _SUB_SPEC_RE = re.compile(
     r"""
 ^
- (?P<split>\w+(\.\w+)*)
+ (?P<split>{split_re})
  (\[
     ((?P<from>-?\d+)
      (?P<from_pct>%)?)?
@@ -52,7 +53,9 @@ _SUB_SPEC_RE = re.compile(
      (?P<to_pct>%)?)?
  \])?
 $
-""",
+""".format(
+        split_re=_split_re[1:-1]
+    ),  # remove ^ and $
     re.X,
 )
 
@@ -232,12 +235,12 @@ class BaseReader:
         dataset_kwargs = dict(arrow_table=pa_table, data_files=files, info=self._info, split=original_instructions)
         return dataset_kwargs
 
-    def download_from_hf_gcs(self, cache_dir, relative_data_dir):
+    def download_from_hf_gcs(self, download_config: DownloadConfig, relative_data_dir):
         """
         Download the dataset files from the Hf GCS
 
         Args:
-            cache_dir: `str`, the local cache directory where to save the dataset
+            dl_cache_dir: `str`, the local cache directory used to download files
             relative_data_dir: `str`, the relative directory of the remote files from
                 the `datasets` directory on GCS.
 
@@ -246,9 +249,9 @@ class BaseReader:
         try:
             remote_dataset_info = os.path.join(remote_cache_dir, "dataset_info.json")
             downloaded_dataset_info = cached_path(remote_dataset_info.replace(os.sep, "/"))
-            shutil.move(downloaded_dataset_info, os.path.join(cache_dir, "dataset_info.json"))
+            shutil.move(downloaded_dataset_info, os.path.join(self._path, "dataset_info.json"))
             if self._info is not None:
-                self._info.update(self._info.from_directory(cache_dir))
+                self._info.update(self._info.from_directory(self._path))
         except FileNotFoundError:
             raise DatasetNotOnHfGcs()
         try:
@@ -260,8 +263,10 @@ class BaseReader:
                 )
                 for file_instruction in file_instructions:
                     remote_prepared_filename = os.path.join(remote_cache_dir, file_instruction["filename"])
-                    downloaded_prepared_filename = cached_path(remote_prepared_filename.replace(os.sep, "/"))
-                    shutil.move(downloaded_prepared_filename, os.path.join(cache_dir, file_instruction["filename"]))
+                    downloaded_prepared_filename = cached_path(
+                        remote_prepared_filename.replace(os.sep, "/"), download_config=download_config
+                    )
+                    shutil.move(downloaded_prepared_filename, os.path.join(self._path, file_instruction["filename"]))
         except FileNotFoundError:
             raise MissingFilesOnHfGcs()
 

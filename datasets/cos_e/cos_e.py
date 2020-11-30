@@ -19,7 +19,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -50,9 +49,9 @@ _CQA_V1_11_URL_TRAIN = "https://s3.amazonaws.com/commensenseqa/train_rand_split.
 _CQA_V1_11_URL_DEV = "https://s3.amazonaws.com/commensenseqa/dev_rand_split.jsonl"
 _CQA_V1_11_URL_TEST = "https://s3.amazonaws.com/commensenseqa/test_rand_split_no_answers.jsonl"
 
-_CQA_V1_0_URL_TRAIN = os.path.join(_COS_E_URL, "v1.0/train_rand_split.jsonl")
-_CQA_V1_0_URL_DEV = os.path.join(_COS_E_URL, "v1.0/dev_rand_split.jsonl")
-_CQA_V1_0_URL_TEST = os.path.join(_COS_E_URL, "v1.0/test_rand_split_no_answers.jsonl")
+_CQA_V1_0_URL_TRAIN = _COS_E_URL + "v1.0/train_rand_split.jsonl"
+_CQA_V1_0_URL_DEV = _COS_E_URL + "v1.0/dev_rand_split.jsonl"
+_CQA_V1_0_URL_TEST = _COS_E_URL + "v1.0/test_rand_split_no_answers.jsonl"
 
 
 def _download_and_index_cqa(dl_manager, name):
@@ -151,16 +150,16 @@ class CosE(datasets.GeneratorBasedBuilder):
         if self.config.name == "v1.11":
             files = dl_manager.download_and_extract(
                 {
-                    "dev": [os.path.join(_COS_E_URL, "v1.11/cose_dev_v1.11_processed.jsonl")],
-                    "train": [os.path.join(_COS_E_URL, "v1.11/cose_train_v1.11_processed.jsonl")],
+                    "dev": [_COS_E_URL + "v1.11/cose_dev_v1.11_processed.jsonl"],
+                    "train": [_COS_E_URL + "v1.11/cose_train_v1.11_processed.jsonl"],
                 }
             )
 
         elif self.config.name == "v1.0":
             files = dl_manager.download_and_extract(
                 {
-                    "dev": [os.path.join(_COS_E_URL, "v1.0/cose_dev_v1.0_processed.jsonl")],
-                    "train": [os.path.join(_COS_E_URL, "v1.0/cose_train_v1.0_processed.jsonl")],
+                    "dev": [_COS_E_URL + "v1.0/cose_dev_v1.0_processed.jsonl"],
+                    "train": [_COS_E_URL + "v1.0/cose_train_v1.0_processed.jsonl"],
                 }
             )
         else:
