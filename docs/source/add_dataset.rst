@@ -319,7 +319,7 @@ When a user loads a dataset with more than one configuration, they must specify 
 
 This can be done with the :attr:`datasets.DatasetBuilder.DEFAULT_CONFIG_NAME` attribute. By setting this attribute equal to the name of one of the dataset configurations, that config will be loaded in the case that the user does not specify a config name.
 
-This feature is opt-in and should only be used where a default configuration makes sense for the dataset. For example, many cross-lingual datasets have a different configuration for each language. In this case, it may make sense to create an aggregate configiration which can serve as the default. This would, in effect, load all languages of the dataset by default unless the user specifies a particular language. See the `Polyglot NER loading script <https://github.com/huggingface/datasets/blob/master/datasets/polyglot_ner/polyglot_ner.py>`__ for an example.
+This feature is opt-in and should only be used where a default configuration makes sense for the dataset. For example, many cross-lingual datasets have a different configuration for each language. In this case, it may make sense to create an aggregate configuration which can serve as the default. This would, in effect, load all languages of the dataset by default unless the user specifies a particular language. See the `Polyglot NER loading script <https://github.com/huggingface/datasets/blob/master/datasets/polyglot_ner/polyglot_ner.py>`__ for an example.
 
 
 Testing the dataset loading script
