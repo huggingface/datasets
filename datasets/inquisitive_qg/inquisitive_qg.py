@@ -18,7 +18,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import glob
 import itertools
 import os
 
@@ -47,8 +46,11 @@ This resource could enable question generation models to simulate human-like cur
 _ARTICLES_URL = "https://github.com/wjko2/INQUISITIVE/raw/master/articles.tgz"
 _QUESTIONS_URL = "https://github.com/wjko2/INQUISITIVE/raw/master/questions.txt"
 
+ALL_ARTICLE_IDS = list(range(1, 1501))
 DEV_ARTICLE_IDS = list(itertools.chain(range(1, 101), range(1051, 1101)))
 TEST_ARTICLE_IDS = list(itertools.chain(range(101, 151), range(501, 551), range(1101, 1151)))
+DEV_AND_TEST_IDS = DEV_ARTICLE_IDS + TEST_ARTICLE_IDS
+TRAIN_ARTICLE_IDS = [id_ for id_ in ALL_ARTICLE_IDS if id_ not in DEV_AND_TEST_IDS]
 
 
 class InquisitiveQgConfig(datasets.BuilderConfig):
@@ -97,20 +99,13 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
         extracted_path = dl_manager.download_and_extract(_ARTICLES_URL)
         articles_dir = os.path.join(extracted_path, "article")
 
-        # get train_article_ids
-        # article ids are numbered from 1 to total articles
-        total_articles = len(glob.glob(os.path.join(articles_dir, "*.txt")))
-        all_article_ids = range(1, total_articles + 1)
-        dev_and_test_ids = DEV_ARTICLE_IDS + TEST_ARTICLE_IDS
-        train_article_ids = [id_ for id_ in all_article_ids if id_ not in dev_and_test_ids]
-
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
                     "articles_dir": articles_dir,
                     "questions_file": questions_file,
-                    "article_ids": train_article_ids,
+                    "article_ids": TRAIN_ARTICLE_IDS,
                 },
             ),
             datasets.SplitGenerator(
