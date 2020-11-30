@@ -155,10 +155,10 @@ class XGlue(datasets.GeneratorBasedBuilder):
                     name=datasets.Split.TRAIN, gen_kwargs={"data_file": os.path.join(data_folder, "en.train")}
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split("validation-de"), gen_kwargs={"data_file": os.path.join(data_folder, "de.dev")}
+                    name=datasets.Split("validation.de"), gen_kwargs={"data_file": os.path.join(data_folder, "de.dev")}
                 ),
                 datasets.SplitGenerator(
-                    name=datasets.Split("test-de"), gen_kwargs={"data_file": os.path.join(data_folder, "de.test")}
+                    name=datasets.Split("test.de"), gen_kwargs={"data_file": os.path.join(data_folder, "de.test")}
                 ),
             ]
 
@@ -170,10 +170,11 @@ class XGlue(datasets.GeneratorBasedBuilder):
             with open(data_file, "r") as f:
                 for line in f:
                     if line.strip() == "":
-                        yield idx, {"words": words, "ner": ner, "id": idx}
-                        words = []
-                        ner = []
-                        idx += 1
+                        if len(words) > 0:
+                            yield idx, {"words": words, "ner": ner, "id": idx}
+                            words = []
+                            ner = []
+                            idx += 1
                     else:
                         splits = line.strip().split(" ")
                         words.append(splits[0])
