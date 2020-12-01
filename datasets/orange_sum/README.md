@@ -30,7 +30,7 @@
 }
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for OrangeSum
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -59,7 +59,7 @@
 
 - **Repository:** [OrangeSum repository](https://github.com/Tixierae/OrangeSum)
 - **Paper:** [BARThez: a Skilled Pretrained French Sequence-to-Sequence Model](https://arxiv.org/abs/2010.12321)	
-			- **Point of Contact:** [Antoine J.-P. Tixier](Antoine.Tixier-1@colorado.edu)
+- **Point of Contact:** [Antoine J.-P. Tixier](Antoine.Tixier-1@colorado.edu)
 
 ### Dataset Summary
 
@@ -69,7 +69,9 @@ Each article featured a single-sentence title as well as a very brief abstract, 
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+**Tasks:** OrangeSum Title and OrangeSum Abstract.
+
+To this day, there is no Leaderboard for this dataset.
 
 ### Languages
 
@@ -91,7 +93,7 @@ Example:
 
 ### Data Fields
 
-`text`: the document to be summarized. 
+`text`: the document to be summarized. \
 `summary`: the summary of the source document.
 
 ### Data Splits
@@ -107,13 +109,13 @@ The data is split into a training, validation and test in both configuration.
 
 ### Curation Rationale
 
-The goal here was to create a French equivalent of the recently introduced [XSum](https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset) dataset. Unlike the historical summarization datasets, CNN, DailyMail, and NY Times, introduced by Hermann et al. (2015), which favor extractive strategies, XSum, as well as OrangeSum require the models to display a high degree of abstractivity to perform well. The summaries in OrangeSum are not catchy headlines, but rather capture the gist of the articles.
+The goal here was to create a French equivalent of the recently introduced [XSum](https://github.com/EdinburghNLP/XSum/tree/master/XSum-Dataset) dataset. Unlike the historical summarization datasets, CNN, DailyMail, and NY Times, which favor extractive strategies, XSum, as well as OrangeSum require the models to display a high degree of abstractivity to perform well. The summaries in OrangeSum are not catchy headlines, but rather capture the gist of the articles.
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-Each article features a single-sentence title as well as a very brief abstract. Extracting these two fields from each page, creates two summarization tasks: OrangeSum Title and OrangeSum Abstract. As a post-processing step, all empty articles and those whose titles were shorter than 5 words were removed. For OrangeSum Abstract, the top 10% articles in terms of proportion of novel unigrams in the abstracts were removed, as it was observed that such abstracts tend to be introductions rather than real abstracts. This corresponded to a threshold of 57% novel unigrams. For both OrangeSum Title and OrangeSum Abstract, 1500 pairs for testing and 1500 for validation are set aside, and all the remaining ones are used for training.
+Each article features a single-sentence title as well as a very brief abstract. Extracting these two fields from each news article page, creates two summarization tasks: OrangeSum Title and OrangeSum Abstract. As a post-processing step, all empty articles and those whose summaries were shorter than 5 words were removed. For OrangeSum Abstract, the top 10% articles in terms of proportion of novel unigrams in the abstracts were removed, as it was observed that such abstracts tend to be introductions rather than real abstracts. This corresponded to a threshold of 57% novel unigrams. For both OrangeSum Title and OrangeSum Abstract, 1500 pairs for testing and 1500 for validation are set aside, and all the remaining ones are used for training.
 
 #### Who are the source language producers?
 
