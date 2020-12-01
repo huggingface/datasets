@@ -53,6 +53,8 @@ When relevant, please provide [BCP-47 codes](https://tools.ietf.org/html/bcp47),
 
 ## Dataset Structure
 
+IMPORTANT: This section can to some part be generated automatically as described in the end of the file [here](#create-dataset-structure).
+
 ### Data Instances
 
 Provide an JSON-formatted example and brief description of a typical instance in the dataset. If available, provide a link to further examples.
@@ -184,3 +186,66 @@ Provide the [BibTex](http://www.bibtex.org/)-formatted reference for the dataset
 ```
 
 If the dataset has a [DOI](https://www.doi.org/), please provide it here.
+
+
+## Utilities
+
+### Create Dataset Structure
+
+The Python code below can be copied into a file `create_dataset_structure.py`. `create_dataset_structure.py` can then be run as follows to automatically write the dataset structure section into a .txt file.
+
+```
+./create_dataset_structure.py <path/to/local/dataset/ or datasetname> <comma,separated,config,list> > dataset_section.txt
+```
+
+*e.g.*
+```
+./create_dataset_structure.py xglue mlqa,nc,ner,ntg,paws-x,pos,qadsm,qam,qg,wpr,xnli > dataset_section.txt
+```
+
+Note that in order to run the script, one should install `pytablewriter` and `json`.
+Content of `create_dataset_structure.py`:
+
+
+```python
+#!/usr/bin/env python3
+from datasets import load_dataset
+import random
+import sys
+import json
+from pytablewriter import MarkdownTableWriter
+
+path_to_dataset = sys.argv[1]
+configs = sys.argv[2].split(",")
+
+overall_str = "## Dataset Structure\n\n"
+
+data_inst_str = "### Data Instances\n\n"
+data_fields_str = "### Data Fields\n\n"
+data_splits_str = "### Data Splits\n\n"
+for config in configs:
+    ds = load_dataset(path_to_dataset, config)
+    rnd_split = random.choice(list(ds.keys()))
+    data_inst_str += f"#### {config}\n\n"
+    data_inst_str += f"An example of '{rnd_split}' looks as follows.\n\n"
+    data_inst_str += "```\n"
+    data_inst_str += str(json.dumps(ds[rnd_split][0], sort_keys=True, indent=2)) + "\n"
+    data_inst_str += "```\n\n"
+    data_fields_str += f"#### {config}\n\n"
+    data_fields_str += f"In the following each data field in {config} is explained. The data fields are the same among all splits.\n\n"
+    data_fields_str += "".join([f"- `{field}`: [TOFILL]\n" for field in ds[rnd_split].features.keys()]) + "\n\n"
+    data_splits_str += f"#### {config}\n\n"
+    data_splits_str += f"The following table shows the number of data samples/number of rows for each split in {config}.\n\n"
+    headers = [""] + list(ds.keys())
+    values = [[config] + [ds[key].num_rows for key in headers[1:]]]
+    writer = MarkdownTableWriter(table_name=f"### {config}", headers=headers, value_matrix=values)
+    writer.dump("tmp.txt")
+    with open("tmp.txt") as f:
+        lines = f.readlines()[1:]
+    data_splits_str += "".join(lines) + "\n\n"
+
+overall_str = data_inst_str + data_fields_str + data_splits_str
+print(overall_str)
+```
+
+After having created the Dataset Section, one should fill out the `[TOFILL]` place-holders and possibly add some more information.
