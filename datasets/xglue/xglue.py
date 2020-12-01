@@ -483,7 +483,7 @@ Portuguese. BLEU-4 score should be used as the metric.
             words = []
             result = []
             idx = -1
-            with open(data_file, "r") as f:
+            with open(data_file, encoding="utf-8") as f:
                 for line in f:
                     if line.strip() == "":
                         if len(words) > 0:
@@ -497,7 +497,7 @@ Portuguese. BLEU-4 score should be used as the metric.
                         words.append(splits[0])
                         result.append(splits[1])
         elif self.config.name in ["ntg", "qg"]:
-            with open(data_file + ".src." + split) as src_f, open(data_file + ".tgt." + split) as tgt_f:
+            with open(data_file + ".src." + split, encoding="utf-8") as src_f, open(data_file + ".tgt." + split, encoding="utf-8") as tgt_f:
                 for idx, (src_line, tgt_line) in enumerate(zip(src_f, tgt_f)):
                     yield idx, {keys[0]: src_line.strip(), keys[1]: tgt_line.strip()}
         else:
