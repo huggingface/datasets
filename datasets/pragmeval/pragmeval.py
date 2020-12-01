@@ -423,9 +423,5 @@ class PragmEval(datasets.GeneratorBasedBuilder):
                     example["label"] = process_label(label)
                 else:
                     example["label"] = process_label(-1)
-                # Filter out corrupted rows.
-                for value in six.itervalues(example):
-                    if value is None:
-                        break
                 else:
                     yield example["idx"], example
