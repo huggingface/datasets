@@ -20,6 +20,7 @@ import logging
 
 import datasets
 
+
 _DESCRIPTION = """\
 People's Daily NER Dataset is a commonly used dataset for Chinese NER, with
 text from People's Daily (人民日报), the largest official newspaper.
@@ -50,7 +51,9 @@ class PeoplesDailyNer(datasets.GeneratorBasedBuilder):
     """People's Daily NER dataset."""
 
     BUILDER_CONFIGS = [
-        PeoplesDailyConfig(name="peoples_daily_ner", version=datasets.Version("1.0.0"), description="People's Daily NER dataset"),
+        PeoplesDailyConfig(
+            name="peoples_daily_ner", version=datasets.Version("1.0.0"), description="People's Daily NER dataset"
+        ),
     ]
 
     def _info(self):
