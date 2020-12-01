@@ -54,7 +54,7 @@ task_ids:
 ### Dataset Summary
 
 - The dataset consists of tweets belonging to #MeToo movement on Twitter, labelled into different categories.
-- This dataset includes more data points and has more labels than any of the previous datasets in that contain social media
+- This dataset includes more data points and has more labels than any of the previous datasets that contain social media
 posts about sexual abuse discloures. Please refer to the Related Datasets of the publication for a detailed information about this.
 - Due to Twitters development policies, the authors provide only the tweet IDs and corresponding labels,
 other data can be fetched via Twitter API.
@@ -97,7 +97,7 @@ English
 
 ### Data Instances
 
-Tweet ID and the appropriatelabels
+Tweet ID and the appropriate labels
 
 ### Data Fields
 
