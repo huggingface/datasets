@@ -121,9 +121,7 @@ class Pib(datasets.GeneratorBasedBuilder):
         src, tgt = self.config.language_pair.split("-")
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {"translation": datasets.features.Translation(languages=(src, tgt))}
-            ),
+            features=datasets.Features({"translation": datasets.features.Translation(languages=(src, tgt))}),
             supervised_keys=(src, tgt),
             homepage="http://preon.iiit.ac.in/~jerin/bhasha/",
             citation=_CITATION,
