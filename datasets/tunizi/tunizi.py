@@ -18,6 +18,7 @@ import datasets
 
 
 _DESCRIPTION = """\
+On social media, Arabic speakers tend to express themselves in their own local dialect. To do so, Tunisians use "Tunisian Arabizi", which consists in supplementing numerals to the Latin script rather than the Arabic alphabet. TUNIZI is the first Tunisian Arabizi Dataset including 3K sentences, balanced, covering different topics, preprocessed and annotated as positive and negative.
 """
 _HOMEPAGE_URL = "https://github.com/chaymafourati/TUNIZI-Sentiment-Analysis-Tunisian-Arabizi-Dataset"
 _URL = "https://raw.githubusercontent.com/chaymafourati/TUNIZI-Sentiment-Analysis-Tunisian-Arabizi-Dataset/master/TUNIZI-Dataset.txt"
