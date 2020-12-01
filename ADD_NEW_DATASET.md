@@ -48,6 +48,7 @@ You are now ready to start the process of adding the dataset. We will create the
 4. Let's start by creating a new branch to hold your development changes with the name of your dataset:
 
 	```bash
+	git rebase upstream/master
 	git checkout -b a-descriptive-name-for-my-changes
 	```
 
