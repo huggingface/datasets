@@ -104,7 +104,6 @@ class DatasetTester(object):
         return builder.BUILDER_CONFIGS
 
     def check_load_dataset(self, dataset_name, configs, is_local=False):
-        # test only first config to speed up testing
         for config in configs:
             with tempfile.TemporaryDirectory() as processed_temp_dir, tempfile.TemporaryDirectory() as raw_temp_dir:
 
