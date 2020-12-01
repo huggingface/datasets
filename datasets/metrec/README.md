@@ -87,11 +87,11 @@ The data is split into a training and testing. The split is organized as the fol
 
 ### Curation Rationale
 
-[N/A]
+[More Information Needed]
 
 ### Source Data
 
-[N/A]
+[More Information Needed]
 
 #### Initial Data Collection and Normalization
 
@@ -107,39 +107,39 @@ The dataset does not contain any additional annotations.
 
 #### Annotation process
 
-[N/A]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[N/A]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[N/A]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Discussion of Social Impact and Biases
 
-[N/A]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[N/A]
+[More Information Needed]
 
 ## Additional Information
 
 ### Dataset Curators
 
-[N/A]
+[More Information Needed]
 
 ### Licensing Information
 
-[N/A]
+[More Information Needed]
 
 ### Citation Information
 
-[N/A]
+[More Information Needed]
 
 ```
 @article{metrec2020,
