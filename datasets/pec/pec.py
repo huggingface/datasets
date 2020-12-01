@@ -2,7 +2,6 @@
 from __future__ import absolute_import, division, print_function
 
 import os
-import shutil
 
 import datasets
 
@@ -86,28 +85,23 @@ class PEC(datasets.GeneratorBasedBuilder):
             citation=_CITATION,
         )
 
-    def _concatenate_files(self, input_files, output_file):
-        with open(output_file, "wb") as wfd:
-            for f in input_files:
-                with open(f, "rb") as fd:
-                    shutil.copyfileobj(fd, wfd)
-
-    def _load_persona(self, path):
+    def _load_persona(self, paths):
         persona = {}
         is_speaker = True
         sentences = []
-        with open(path, encoding="utf-8") as f:
-            for row in f:
-                if "********************" not in row:
-                    if is_speaker:
-                        speaker = row.strip()
-                        is_speaker = False
+        for path in paths:
+            with open(path, encoding="utf-8") as f:
+                for row in f:
+                    if "********************" not in row:
+                        if is_speaker:
+                            speaker = row.strip()
+                            is_speaker = False
+                        else:
+                            sentences.append(row.strip())
                     else:
-                        sentences.append(row.strip())
-                else:
-                    persona[speaker] = sentences
-                    is_speaker = True
-                    sentences = []
+                        persona[speaker] = sentences
+                        is_speaker = True
+                        sentences = []
         return persona
 
     def _split_generators(self, dl_manager):
@@ -117,7 +111,7 @@ class PEC(datasets.GeneratorBasedBuilder):
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "hf_pec")
-        print("the downloaded data has been saved to ", data_dir)
+        print("The downloaded data has been saved to ", data_dir)
         if self.config.domain in ["happy", "offmychest"]:
             return [
                 datasets.SplitGenerator(
@@ -159,62 +153,53 @@ class PEC(datasets.GeneratorBasedBuilder):
         example_id = 0
         data_dir = os.path.dirname(filepath)
 
-        if self.config.domain == "all" and not os.path.exists(os.path.join(data_dir, "train.txt")):
-            # concatenate two domain files
-            self._concatenate_files(
-                [os.path.join(data_dir, "happy", "train.txt"), os.path.join(data_dir, "offmychest", "train.txt")],
-                os.path.join(data_dir, "train.txt"),
-            )
-
-            self._concatenate_files(
-                [os.path.join(data_dir, "happy", "valid.txt"), os.path.join(data_dir, "offmychest", "valid.txt")],
-                os.path.join(data_dir, "valid.txt"),
-            )
-
-            self._concatenate_files(
-                [os.path.join(data_dir, "happy", "test.txt"), os.path.join(data_dir, "offmychest", "test.txt")],
-                os.path.join(data_dir, "test.txt"),
-            )
-
-            self._concatenate_files(
-                [os.path.join(data_dir, "happy", "persona.txt"), os.path.join(data_dir, "offmychest", "persona.txt")],
-                os.path.join(data_dir, "persona.txt"),
-            )
+        if self.config.domain == "all":
+            # load files from both happy and offmychest
+            filepath = [
+                os.path.join(data_dir, "happy", os.path.basename(filepath)),
+                os.path.join(data_dir, "offmychest", os.path.basename(filepath)),
+            ]
+        else:
+            filepath = [filepath]
 
         # create persona
         if not hasattr(self, "persona_" + self.config.domain):
-            persona_path = os.path.join(data_dir, "persona.txt")
-            # print("Loading persona from ", persona_path)
-            setattr(self, "persona_" + self.config.domain, self._load_persona(persona_path))
+            persona_paths = [os.path.join(os.path.dirname(fpath), "persona.txt") for fpath in filepath]
+            setattr(self, "persona_" + self.config.domain, self._load_persona(persona_paths))
 
         persona = getattr(self, "persona_" + self.config.domain)
         # print("Domain {0}: number of unique personas: {1}".format(self.config.domain, len(persona)))
 
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                try:
-                    if "********************" not in row:
-                        if "---+---" in row:
-                            speaker, utterance = row.split("---+---")
-                            context_speakers.append(speaker.strip())
-                            context.append(utterance.strip())
+        for fpath in filepath:
+            with open(fpath, encoding="utf-8") as f:
+                for id_, row in enumerate(f):
+                    if row.strip() == "":
+                        continue
+                    try:
+                        if "********************" not in row:
+                            if "---+---" in row:
+                                speaker, utterance = row.split("---+---")
+                                context_speakers.append(speaker.strip())
+                                context.append(utterance.strip())
+                            else:
+                                # contains inline \n
+                                context[-1] = context[-1] + " " + row.strip()
                         else:
-                            # contains inline \n
-                            context[-1] = context[-1] + " " + row.strip()
-                    else:
-                        response_speaker = context_speakers.pop()
-                        response = context.pop()
-                        yield example_id, {
-                            "personas": persona[response_speaker],
-                            "context_speakers": context_speakers,
-                            "context": context,
-                            "response_speaker": response_speaker,
-                            "response": response,
-                        }
-                        context_speakers = []
-                        context = []
-                        response_speaker = ""
-                        response = ""
-                        example_id += 1
-                except (IndexError, KeyError):
-                    print(self.config.domain, split, id_, row, context_speakers, context, response_speaker, response)
+                            response_speaker = context_speakers.pop()
+                            response = context.pop()
+                            yield example_id, {
+                                "personas": persona[response_speaker],
+                                "context_speakers": context_speakers,
+                                "context": context,
+                                "response_speaker": response_speaker,
+                                "response": response,
+                            }
+                            context_speakers = []
+                            context = []
+                            response_speaker = ""
+                            response = ""
+                            example_id += 1
+                    except (IndexError, KeyError):
+                        print(
+                            self.config.domain, split, id_, row, context_speakers, context, response_speaker, response
+                        )
