@@ -163,14 +163,14 @@ class HealthFact(datasets.GeneratorBasedBuilder):
                             label = -1
                     if label == "":
                         label = -1
-                yield row_id, {
-                    "claim_id": claim_id,
-                    "claim": claim,
-                    "date_published": date_published,
-                    "explanation": explanation,
-                    "fact_checkers": fact_checkers,
-                    "main_text": main_text,
-                    "sources": sources,
-                    "label": label,
-                    "subjects": subjects,
-                }
+                    yield row_id, {
+                        "claim_id": claim_id,
+                        "claim": claim,
+                        "date_published": date_published,
+                        "explanation": explanation,
+                        "fact_checkers": fact_checkers,
+                        "main_text": main_text,
+                        "sources": sources,
+                        "label": label,
+                        "subjects": subjects,
+                    }
