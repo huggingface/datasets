@@ -14,9 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- structure-prediction
 task_ids:
-- Named Entity Recognition
+- named-entity-recognition
 ---
 
 # Dataset Card for Norwegian NER
