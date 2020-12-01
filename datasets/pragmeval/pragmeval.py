@@ -23,7 +23,6 @@ import os
 import textwrap
 import requests
 
-import numpy as np
 import six
 
 import datasets
@@ -105,7 +104,7 @@ CITATION_DICT = {
         url = "https://www.aclweb.org/anthology/L16-1432",
         pages = "2721--2727",
         abstract = "This paper describes the STAC resource, a corpus of multi-party chats annotated for discourse structure in the style of SDRT (Asher and Lascarides, 2003; Lascarides and Asher, 2009). The main goal of the STAC project is to study the discourse structure of multi-party dialogues in order to understand the linguistic strategies adopted by interlocutors to achieve their conversational goals, especially when these goals are opposed. The STAC corpus is not only a rich source of data on strategic conversation, but also the first corpus that we are aware of that provides full discourse structures for multi-party dialogues. It has other remarkable features that make it an interesting resource for other topics: interleaved threads, creative language, and interactions between linguistic and extra-linguistic contexts.",
-    }   
+    }
     """,
     "gum": """
     @Article{Zeldes2017,
@@ -144,7 +143,7 @@ CITATION_DICT = {
      address = {Washington, DC, USA},
     }
     """,
-    "mrda": """    
+    "mrda": """
     @inproceedings{shriberg2004icsi,
       title={The ICSI meeting recorder dialog act (MRDA) corpus},
       author={Shriberg, Elizabeth and Dhillon, Raj and Bhagat, Sonali and Ang, Jeremy and Carvey, Hannah},
@@ -169,7 +168,7 @@ CITATION_DICT = {
         abstract = "While argument persuasiveness is one of the most important dimensions of argumentative essay quality, it is relatively little studied in automated essay scoring research. Progress on scoring argument persuasiveness is hindered in part by the scarcity of annotated corpora. We present the first corpus of essays that are simultaneously annotated with argument components, argument persuasiveness scores, and attributes of argument components that impact an argument{'}s persuasiveness. This corpus could trigger the development of novel computational models concerning argument persuasiveness that provide useful feedback to students on why their arguments are (un)persuasive in addition to how persuasive they are.",
     }
     """,
-    "sarcasm": """    
+    "sarcasm": """
     @InProceedings{OrabySarc,
         author = "Oraby, Shereen
         and Harrison, Vrindavan
@@ -187,7 +186,7 @@ CITATION_DICT = {
       url ="http://aclweb.org/anthology/W16-3604"
     }
     """,
-    "squinky": """    
+    "squinky": """
     @article{DBLP:journals/corr/Lahiri15,
       author    = {Shibamouli Lahiri},
       title     = {{SQUINKY! A Corpus of Sentence-level Formality, Informativeness,
@@ -208,7 +207,7 @@ CITATION_DICT = {
       pages={29--38},
       year={2014}
     }""",
-    "emobank": """"
+    "emobank": """
     @inproceedings{buechel-hahn-2017-emobank,
         title = "{E}mo{B}ank: Studying the Impact of Annotation Perspective and Representation Format on Dimensional Emotion Analysis",
         author = "Buechel, Sven  and
@@ -262,9 +261,7 @@ class PragmEvalConfig(datasets.BuilderConfig):
             of the label and processing it to the form required by the label feature
           **kwargs: keyword arguments forwarded to super.
         """
-        super(PragmEvalConfig, self).__init__(
-            version=datasets.Version("1.0.0", ""), **kwargs
-        )
+        super(PragmEvalConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.label_column = "label"
         self.folder_name = TASK_TO_FOLDER[self.name]
@@ -364,14 +361,9 @@ class PragmEval(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {
-            text_feature: datasets.Value("string")
-            for text_feature in six.iterkeys(self.config.text_features)
-        }
+        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
         if self.config.label_classes:
-            features["label"] = datasets.features.ClassLabel(
-                names=self.config.label_classes
-            )
+            features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         else:
             features["label"] = datasets.Value("float32")
         features["idx"] = datasets.Value("int32")
@@ -420,10 +412,7 @@ class PragmEval(datasets.GeneratorBasedBuilder):
 
             for n, row in enumerate(reader):
 
-                example = {
-                    feat: row[col]
-                    for feat, col in six.iteritems(self.config.text_features)
-                }
+                example = {feat: row[col] for feat, col in six.iteritems(self.config.text_features)}
                 example["idx"] = n
 
                 if self.config.label_column in row:
