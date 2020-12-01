@@ -184,7 +184,7 @@ CITATION_DICT = {
       pages={29--38},
       year={2014}
     }""",
-    "emobank": """"
+    "emobank": """
     @inproceedings{buechel-hahn-2017-emobank,
         title = "{E}mo{B}ank: Studying the Impact of Annotation Perspective and Representation Format on Dimensional Emotion Analysis",
         author = "Buechel, Sven  and
