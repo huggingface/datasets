@@ -78,7 +78,7 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "id": datasets.Value("string"),
+                    "id": datasets.Value("int32"),
                     "article_id": datasets.Value("int32"),
                     "article": datasets.Value("string"),
                     "sentence_id": datasets.Value("int32"),
@@ -133,7 +133,7 @@ class InquisitiveQg(datasets.GeneratorBasedBuilder):
             for i, row in enumerate(rows):
                 if i == 0:
                     continue  # skip header line
-                row = row.replace("\n", "").strip()
+                row = row.strip()
                 cols = row.split("\t")
 
                 article_id = int(cols[0])
