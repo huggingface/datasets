@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from datasets.utils.file_utils import temp_seed
+from datasets.utils.file_utils import temp_seed, DownloadConfig, cached_path
 
 from .utils import require_tf, require_torch
 
@@ -57,3 +57,13 @@ class TempSeedTest(TestCase):
 
         np.testing.assert_equal(out1, out2)
         self.assertGreater(np.abs(out1 - out3).sum(), 0)
+
+
+def test_cached_path_extract(xz_file, tmp_path, file_content):
+    filename = xz_file
+    cache_dir = tmp_path / "cache"
+    download_config = DownloadConfig(cache_dir=cache_dir, extract_compressed_file=True)
+    extracted_filename = cached_path(filename, download_config=download_config)
+    with open(extracted_filename) as f:
+        data = f.read()
+    assert data == file_content
