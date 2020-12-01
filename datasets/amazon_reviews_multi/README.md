@@ -5,6 +5,11 @@ language_creators:
 - found
 languages:
   all_languages:
+  - de
+  - en
+  - es
+  - fr
+  - ja
   - zh
   de:
   - de
@@ -20,7 +25,20 @@ languages:
   - zh
 licenses: []
 multilinguality:
-- monolingual
+  all_languages:
+  - multilingual
+  de:
+  - monolingual
+  en:
+  - monolingual
+  es:
+  - monolingual
+  fr:
+  - monolingual
+  ja:
+  - monolingual
+  zh:
+  - monolingual
 size_categories:
   all_languages:
   - n>1M
@@ -56,11 +74,21 @@ task_ids:
 ## Table of Contents
 - [Dataset Description](#dataset-description)
   - [Dataset Summary](#dataset-summary)
+  - [Supported Tasks](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-instances)
   - [Data Splits](#data-instances)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
@@ -82,7 +110,7 @@ Note that the language of a review does not necessarily match the language of it
 
 ### Languages
 
-The dataset contains reviews in English, Japanese, German, French, Chinese and Spanish
+The dataset contains reviews in English, Japanese, German, French, Chinese and Spanish.
 
 ## Dataset Structure
 
@@ -121,6 +149,65 @@ is simply a concatenation of the corresponding split across all languages. That 
 `all_languages` is a concatenation of the `train` splits for each of the languages and likewise for `validation` and
 `test`.
 
+## Dataset Creation
+
+### Curation Rationale
+
+The dataset is motivated by the desire to advance sentiment analysis and text classification in other (non-English)
+languages.
+
+### Source Data
+
+#### Initial Data Collection and Normalization
+
+The authors gathered the reviews from the marketplaces in the US, Japan, Germany, France, Spain, and China for the
+English, Japanese, German, French, Spanish, and Chinese languages, respectively. They then ensured the correct
+language by applying a language detection algorithm, only retaining those of the target language. In a random sample
+of the resulting reviews, the authors observed a small percentage of target languages that were incorrectly filtered
+out and a very few mismatched languages that were incorrectly retained.
+
+#### Who are the source language producers?
+
+The original text comes from Amazon customers reviewing products on the marketplace across a variety of product
+categories.
+
+### Annotations
+
+#### Annotation process
+
+Each of the fields included are submitted by the user with the review or otherwise associated with the review. No
+manual or machine-driven annotation was necessary.
+
+#### Who are the annotators?
+
+N/A
+
+### Personal and Sensitive Information
+
+Amazon Reviews are submitted by users with the knowledge and attention of being public. The reviewer ID's included in
+this dataset are quasi-anonymized, meaning that they are disassociated from the original user profiles. However,
+these fields would likely be easy to deannoymize given the public and identifying nature of free-form text responses.
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+This dataset is part of an effort to encourage text classification research in languages other than English. Such
+work increases the accessibility of natural language technology to more regions and cultures. Unfortunately, each of
+the languages included here is relatively high resource and well studied.
+
+### Discussion of Biases
+
+The data included here are from unverified consumers. Some percentage of these reviews may be fake or contain
+misleading or offensive language. 
+### Other Known Limitations
+
+The dataset is constructed so that the distribution of star ratings is balanced. This feature has some advantages for
+purposes of classification, but some types of language may be over or underrepresented relative to the original
+distribution of reviews to acheive this balance.
+
+[More Information Needed]
+
 ## Additional Information
 
 ### Dataset Curators
@@ -129,11 +216,8 @@ Published by Phillip Keung, Yichao Lu, György Szarvas, and Noah A. Smith. Manag
 
 ### Licensing Information
 
-By accessing the Multilingual Amazon Reviews Corpus (“Reviews Corpus”), you agree that the Reviews Corpus is an Amazon Service subject to the Amazon.com Conditions of Use and you agree to be bound by them, with the following additional conditions:
-
-In addition to the license rights granted under the Conditions of Use, Amazon or its content providers grant you a limited, non-exclusive, non-transferable, non-sublicensable, revocable license to access and use the Reviews Corpus for purposes of academic research. You may not resell, republish, or make any commercial use of the Reviews Corpus or its contents, including use of the Reviews Corpus for commercial research, such as research related to a funding or consultancy contract, internship, or other relationship in which the results are provided for a fee or delivered to a for-profit organization. You may not (a) link or associate content in the Reviews Corpus with any personal information (including Amazon customer accounts), or (b) attempt to determine the identity of the author of any content in the Reviews Corpus. If you violate any of the foregoing conditions, your license to access and use the Reviews Corpus will automatically terminate without prejudice to any of the other rights or remedies Amazon may have.
-
-This license language is also available at https://docs.opendata.aws/amazon-reviews-ml/license.txt
+Amazon has licensed this dataset under its own agreement, to be found at the dataset webpage here:
+https://docs.opendata.aws/amazon-reviews-ml/license.txt
 
 ### Citation Information
 
