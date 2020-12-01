@@ -18,18 +18,17 @@
 
 from __future__ import absolute_import, division, print_function
 
-import re
 import csv
 import os
+import re
 import textwrap
 import unicodedata
 from pathlib import Path
 from shutil import copyfile
 
-from lxml import etree
-
 import numpy as np
 import six
+from lxml import etree
 
 import datasets
 
@@ -48,6 +47,7 @@ _FLUE_CITATION = """\
 _FLUE_DESCRIPTION = """\
 FLUE is an evaluation setup for French NLP systems similar to the popular GLUE benchmark. The goal is to enable further reproducible experiments in the future and to share models and progress on the French language.
 """
+
 
 class FlueConfig(datasets.BuilderConfig):
     """BuilderConfig for FLUE."""
@@ -188,28 +188,40 @@ class Flue(datasets.GeneratorBasedBuilder):
                 """
                 French Verb Sense Disambiguation task."""
             ),
-            text_features={"sentence":"sentence", "pos_tags":"pos_tags", "lemmas":"lemmas", "fine_pos_tags":"fine_pos_tags"},
+            text_features={
+                "sentence": "sentence",
+                "pos_tags": "pos_tags",
+                "lemmas": "lemmas",
+                "fine_pos_tags": "fine_pos_tags",
+            },
             data_url="http://www.llf.cnrs.fr/dataset/fse/FSE-1.1-10_12_19.tar.gz",
             label_classes=["disambiguate_tokens_ids", "disambiguate_labels"],
             label_column="disambiguate_labels",
             data_dir="FSE-1.1-191210",
             url="http://www.llf.cnrs.fr/dataset/fse/",
-            citation=""
+            citation="",
         ),
     ]
 
     def _info(self):
         if self.config.name == "CLS" or self.config.name == "XNLI":
-            features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+            features = {
+                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
+            }
             features[self.config.label_column] = datasets.features.ClassLabel(names=self.config.label_classes)
             features["idx"] = datasets.Value("int32")
         elif self.config.name == "WSD-V":
-            features = {text_feature: datasets.Sequence(datasets.Value("string")) for text_feature in six.iterkeys(self.config.text_features)}
+            features = {
+                text_feature: datasets.Sequence(datasets.Value("string"))
+                for text_feature in six.iterkeys(self.config.text_features)
+            }
             features["disambiguate_tokens_ids"] = datasets.Sequence(datasets.Value("int32"))
             features["disambiguate_labels"] = datasets.Sequence(datasets.Value("string"))
             features["idx"] = datasets.Value("string")
         else:
-            features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+            features = {
+                text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)
+            }
             features[self.config.label_column] = datasets.Value("int32")
             features["idx"] = datasets.Value("int32")
         return datasets.DatasetInfo(
@@ -285,7 +297,9 @@ class Flue(datasets.GeneratorBasedBuilder):
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
                     gen_kwargs={
-                        "data_file": os.path.join(data_folder["train"], "XNLI-MT-1.0", "multinli", "multinli.train.fr.tsv"),
+                        "data_file": os.path.join(
+                            data_folder["train"], "XNLI-MT-1.0", "multinli", "multinli.train.fr.tsv"
+                        ),
                         "split": "train",
                     },
                 ),
@@ -311,24 +325,19 @@ class Flue(datasets.GeneratorBasedBuilder):
                 ),
             ]
 
-
     def _generate_examples(self, data_file, split):
         if self.config.name == "CLS":
             for category in ["books", "dvd", "music"]:
-                file_path = os.path.join(data_file, category, split+".review")
+                file_path = os.path.join(data_file, category, split + ".review")
                 with open(file_path, "rt", encoding="utf-8") as f:
                     next(f)
                     id = 0
                     text = f.read()
-                    for id_, line in enumerate(text.split('\n\n')):
+                    for id_, line in enumerate(text.split("\n\n")):
                         if len(line) > 9:
                             id += 1
                             review_text, label = self._cls_extractor(line)
-                            yield id_, {
-                                "idx": id,
-                                "text": review_text,
-                                "label": label
-                            }
+                            yield id_, {"idx": id, "text": review_text, "label": label}
         elif self.config.name == "PAWS-X":
             with open(data_file, encoding="utf-8") as f:
                 data = csv.reader(f, delimiter="\t")
@@ -341,7 +350,7 @@ class Flue(datasets.GeneratorBasedBuilder):
                             "idx": id,
                             "sentence1": self._cleaner(row[1]),
                             "sentence2": self._cleaner(row[2]),
-                            "label": int(row[3].strip())
+                            "label": int(row[3].strip()),
                         }
         elif self.config.name == "XNLI":
             with open(data_file, encoding="utf-8") as f:
@@ -355,7 +364,7 @@ class Flue(datasets.GeneratorBasedBuilder):
                             "idx": id,
                             "premise": self._cleaner(row[0]),
                             "hypo": self._cleaner(row[1]),
-                            "label": row[2].strip().replace("contradictory", "contradiction")
+                            "label": row[2].strip().replace("contradictory", "contradiction"),
                         }
                     else:
                         if row[0] == "fr":
@@ -364,7 +373,7 @@ class Flue(datasets.GeneratorBasedBuilder):
                                 "idx": id,
                                 "premise": self._cleaner(row[6]),
                                 "hypo": self._cleaner(row[7]),
-                                "label": row[1].strip() # the label is already "contradiction" in the dev/test
+                                "label": row[1].strip(),  # the label is already "contradiction" in the dev/test
                             }
         elif self.config.name == "WSD-V":
             wsd_rdr = WSDDatasetReader()
@@ -378,26 +387,24 @@ class Flue(datasets.GeneratorBasedBuilder):
                     "disambiguate_tokens_ids": inst[5],
                     "disambiguate_labels": inst[6],
                 }
-                    
 
     def _cls_extractor(self, line):
         """
         Extract review and label for CLS dataset
         from: https://github.com/getalp/Flaubert/blob/master/flue/extract_split_cls.py
         """
-        m = re.search('(?<=<rating>)\d+.\d+(?=<\/rating>)', line)
-        label = "positive" if int(float(m.group(0))) > 3 else "negative" # rating == 3 are already removed
-        category = re.search('(?<=<category>)\w+(?=<\/category>)', line)
+        m = re.search("(?<=<rating>)\d+.\d+(?=<\/rating>)", line)
+        label = "positive" if int(float(m.group(0))) > 3 else "negative"  # rating == 3 are already removed
+        category = re.search("(?<=<category>)\w+(?=<\/category>)", line)
 
-        if category == 'dvd':
-            m = re.search('(?<=\/url><text>)(.|\n|\t|\f)+(?=\<\/title><summary>)', line)
+        if category == "dvd":
+            m = re.search("(?<=\/url><text>)(.|\n|\t|\f)+(?=\<\/title><summary>)", line)
         else:
-            m = re.search('(?<=\/url><text>)(.|\n|\t|\f)+(?=\<\/text><title>)', line)
+            m = re.search("(?<=\/url><text>)(.|\n|\t|\f)+(?=\<\/text><title>)", line)
 
         review_text = m.group(0)
 
         return self._cleaner(review_text), label
-    
 
     def _convert_to_unicode(self, text):
         """
@@ -405,7 +412,7 @@ class Flue(datasets.GeneratorBasedBuilder):
         from: https://github.com/getalp/Flaubert/blob/master/tools/clean_text.py
         """
         # six_ensure_text is copied from https://github.com/benjaminp/six
-        def six_ensure_text(s, encoding='utf-8', errors='strict'):
+        def six_ensure_text(s, encoding="utf-8", errors="strict"):
             if isinstance(s, six.binary_type):
                 return s.decode(encoding, errors)
             elif isinstance(s, six.text_type):
@@ -414,7 +421,7 @@ class Flue(datasets.GeneratorBasedBuilder):
                 raise TypeError("not expecting type '%s'" % type(s))
 
         return six_ensure_text(text, encoding="utf-8", errors="ignore")
-    
+
     def _cleaner(self, text):
         """
         Clean up an input text
@@ -425,19 +432,18 @@ class Flue(datasets.GeneratorBasedBuilder):
         text = unicodedata.normalize("NFC", text)
 
         # Normalize whitespace characters and remove carriage return
-        remap = {ord('\f'):' ', ord('\r'): '', ord('\n'):'', ord('\t'):''}
+        remap = {ord("\f"): " ", ord("\r"): "", ord("\n"): "", ord("\t"): ""}
         text = text.translate(remap)
 
         # Normalize URL links
-        pattern = re.compile(r'(?:www|http)\S+|<\S+|\w+\/*>')
-        text = re.sub(pattern, '', text)
+        pattern = re.compile(r"(?:www|http)\S+|<\S+|\w+\/*>")
+        text = re.sub(pattern, "", text)
 
         # remove multiple spaces in text
-        pattern = re.compile(r'( ){2,}')
-        text = re.sub(pattern, r' ', text)
+        pattern = re.compile(r"( ){2,}")
+        text = re.sub(pattern, r" ", text)
 
         return text
-
 
     def _wsdv_prepare_data(self, dirpath):
         """ Get data paths from FSE dir"""
@@ -464,8 +470,8 @@ class Flue(datasets.GeneratorBasedBuilder):
         os.makedirs(train_dirpath, exist_ok=True)
         # copy FSE file to new test directory
         for k, v in paths.items():
-            data = k.split('_')[0]
-            filename = k.split('_')[1]
+            data = k.split("_")[0]
+            filename = k.split("_")[1]
             copyfile(v, os.path.join(dirpath, data, filename))
 
 
@@ -478,28 +484,30 @@ class WSDDatasetReader:
         xml_fpath, gold_fpath = None, None
 
         for f in os.listdir(indir):
-            if f.endswith('.data.xml'):
+            if f.endswith(".data.xml"):
                 xml_fpath = os.path.join(indir, f)
-            if f.endswith('.gold.key.txt'):
+            if f.endswith(".gold.key.txt"):
                 gold_fpath = os.path.join(indir, f)
         return xml_fpath, gold_fpath
 
     def read_gold(self, infile):
-        """ Read .gold.key.txt and return data as dict.
-            :param infile: fpath to .gold.key.txt file
-            :type infile: str
-            :return: return data into dict format : {str(instance_id): set(label)}
-            :rtype: dict
+        """Read .gold.key.txt and return data as dict.
+        :param infile: fpath to .gold.key.txt file
+        :type infile: str
+        :return: return data into dict format : {str(instance_id): set(label)}
+        :rtype: dict
         """
-        return {line.split()[0]: tuple(line.rstrip('\n').split()[1:]) for line in open(infile, encoding="utf-8").readlines()}
-
+        return {
+            line.split()[0]: tuple(line.rstrip("\n").split()[1:])
+            for line in open(infile, encoding="utf-8").readlines()
+        }
 
     def read_from_data_dirs(self, data_dirs):
         """ Read WSD data and return as WSDDataset """
 
         for d in data_dirs:
             xml_fpath, gold_fpath = self.get_data_paths(d)
-            
+
             # read gold file
             id2gold = self.read_gold(gold_fpath)
 
@@ -514,8 +522,8 @@ class WSDDatasetReader:
             for text in corpus:
                 # iterates over sentences
                 for sentence in text:
-                    sent_id = sentence.get('id') # sentence id
-                    sent = next(sentences) # get sentence
+                    sent_id = sentence.get("id")  # sentence id
+                    sent = next(sentences)  # get sentence
                     pos_tags = []
                     lemmas = []
                     fine_pos_tags = []
@@ -525,39 +533,48 @@ class WSDDatasetReader:
 
                     # iterate over tokens
                     for tok in sentence:
-                        lemma, pos, fine_pos_tag = tok.get('lemma'), tok.get('pos'), tok.get('fine_pos')
+                        lemma, pos, fine_pos_tag = tok.get("lemma"), tok.get("pos"), tok.get("fine_pos")
                         pos_tags.append(pos)
                         lemmas.append(lemma)
                         fine_pos_tags.append(fine_pos_tag)
-                        wf= tok.text
-                        subtokens = wf.split(' ')
+                        wf = tok.text
+                        subtokens = wf.split(" ")
 
                         # add sense annotated token
                         if tok.tag == "instance":
                             id = tok.get("id")
-                            
+
                             target_labels = id2gold[id]
                             target_first_label = target_labels[0]
 
                             # We focus on the head of the target mwe instance
                             if pos == "VERB":
-                                tgt_idx = tok_idx # head is mostly the first token as most mwe verb targets are phrasal verbs (i.g lift up)
+                                tgt_idx = tok_idx  # head is mostly the first token as most mwe verb targets are phrasal verbs (i.g lift up)
                             else:
-                                tgt_idx = tok_idx + len(subtokens)-1 # other pos head are generally the last token of the mwe (i.g European Union)
+                                tgt_idx = (
+                                    tok_idx + len(subtokens) - 1
+                                )  # other pos head are generally the last token of the mwe (i.g European Union)
 
                             disambiguate_tokens_ids.append(tgt_idx)
                             disambiguate_labels.append(target_first_label)
-                        
-                        tok_idx += 1
-                    
-                    yield (sent_id, sent, pos_tags, lemmas, fine_pos_tags, disambiguate_tokens_ids, disambiguate_labels)
 
+                        tok_idx += 1
+
+                    yield (
+                        sent_id,
+                        sent,
+                        pos_tags,
+                        lemmas,
+                        fine_pos_tags,
+                        disambiguate_tokens_ids,
+                        disambiguate_labels,
+                    )
 
     def read_sentences(self, data_dir, keep_mwe=True):
         """ Read sentences from WSD data"""
 
-        xml_fpath,_ = self.get_data_paths(data_dir)
-        return self.read_sentences_from_xml(xml_fpath,  keep_mwe=keep_mwe)
+        xml_fpath, _ = self.get_data_paths(data_dir)
+        return self.read_sentences_from_xml(xml_fpath, keep_mwe=keep_mwe)
 
     def read_sentences_from_xml(self, infile, keep_mwe=False):
         """ Read sentences from xml file """
@@ -569,12 +586,11 @@ class WSDDatasetReader:
         for text in corpus:
             for sentence in text:
                 if keep_mwe:
-                    sent = [tok.text.replace(' ', '_') for tok in sentence]
+                    sent = [tok.text.replace(" ", "_") for tok in sentence]
                 else:
-                    sent = [subtok for tok in sentence for subtok in tok.text.split(' ') ]
+                    sent = [subtok for tok in sentence for subtok in tok.text.split(" ")]
                 yield sent
-
 
     def read_target_keys(self, infile):
         """ Read target keys """
-        return [x.rstrip('\n') for x in open(infile, encoding="utf-8").readlines()]
+        return [x.rstrip("\n") for x in open(infile, encoding="utf-8").readlines()]
