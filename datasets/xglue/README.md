@@ -57,7 +57,7 @@ languages:
   - en
   - es
   - hi
-	- vi
+  - vi
 	- zh
   nc:
 	- en
