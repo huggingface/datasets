@@ -121,7 +121,7 @@ therefore the authors decide to curate this annotated dataset.
 
 
 ### Source Data
-- Source of all the data points in this dataset is Twitter.
+- Source of all the data points in this dataset is Twitter social media platform.
 
 #### Initial Data Collection and Normalization
 
