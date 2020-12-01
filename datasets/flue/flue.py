@@ -23,10 +23,8 @@ import os
 import re
 import textwrap
 import unicodedata
-from pathlib import Path
 from shutil import copyfile
 
-import numpy as np
 import six
 from lxml import etree
 
@@ -215,6 +213,64 @@ class Flue(datasets.GeneratorBasedBuilder):
                 text_feature: datasets.Sequence(datasets.Value("string"))
                 for text_feature in six.iterkeys(self.config.text_features)
             }
+            features["fine_pos_tags"] = datasets.Sequence(
+                datasets.features.ClassLabel(
+                    names=[
+                        'DET',
+                        'P+D',
+                        'CC',
+                        'VS',
+                        'P',
+                        'CS',
+                        'NC',
+                        'NPP',
+                        'ADJWH',
+                        'VINF',
+                        'VPP',
+                        'ADVWH',
+                        'PRO',
+                        'V',
+                        'CLO',
+                        'PREF',
+                        'VPR',
+                        'PROREL',
+                        'ADV',
+                        'PROWH',
+                        'N',
+                        'DETWH',
+                        'ADJ',
+                        'P+PRO',
+                        'ET',
+                        'VIMP',
+                        'CLS',
+                        'PONCT',
+                        'I',
+                        'CLR',
+                    ]
+                )
+            )
+            features["pos_tags"] = datasets.Sequence(
+                datasets.features.ClassLabel(
+                    names=[
+                        'V',
+                        'PREF',
+                        'P+D',
+                        'I',
+                        'A',
+                        'P+PRO',
+                        'PRO',
+                        'P',
+                        'anonyme',
+                        'D',
+                        'C',
+                        'CL',
+                        'ET',
+                        'PONCT',
+                        'ADV',
+                        'N',
+                    ]
+                )
+            )
             features["disambiguate_tokens_ids"] = datasets.Sequence(datasets.Value("int32"))
             features["disambiguate_labels"] = datasets.Sequence(datasets.Value("string"))
             features["idx"] = datasets.Value("string")
@@ -393,14 +449,14 @@ class Flue(datasets.GeneratorBasedBuilder):
         Extract review and label for CLS dataset
         from: https://github.com/getalp/Flaubert/blob/master/flue/extract_split_cls.py
         """
-        m = re.search("(?<=<rating>)\d+.\d+(?=<\/rating>)", line)
+        m = re.search(r"(?<=<rating>)\d+.\d+(?=<\/rating>)", line)
         label = "positive" if int(float(m.group(0))) > 3 else "negative"  # rating == 3 are already removed
-        category = re.search("(?<=<category>)\w+(?=<\/category>)", line)
+        category = re.search(r"(?<=<category>)\w+(?=<\/category>)", line)
 
         if category == "dvd":
-            m = re.search("(?<=\/url><text>)(.|\n|\t|\f)+(?=\<\/title><summary>)", line)
+            m = re.search(r"(?<=\/url><text>)(.|\n|\t|\f)+(?=\<\/title><summary>)", line)
         else:
-            m = re.search("(?<=\/url><text>)(.|\n|\t|\f)+(?=\<\/text><title>)", line)
+            m = re.search(r"(?<=\/url><text>)(.|\n|\t|\f)+(?=\<\/text><title>)", line)
 
         review_text = m.group(0)
 
@@ -455,13 +511,6 @@ class Flue(datasets.GeneratorBasedBuilder):
             else:
                 data = "train"
 
-            if f.endswith("xml"):
-                data_type = "xml"
-            elif f.endswith("gold.key.txt"):
-                data_type = "gold"
-            else:
-                continue
-
             paths["_".join((data, f))] = os.path.join(dirpath, f)
 
         test_dirpath = os.path.join(dirpath, "test")
@@ -504,7 +553,6 @@ class WSDDatasetReader:
 
     def read_from_data_dirs(self, data_dirs):
         """ Read WSD data and return as WSDDataset """
-
         for d in data_dirs:
             xml_fpath, gold_fpath = self.get_data_paths(d)
 
@@ -534,6 +582,7 @@ class WSDDatasetReader:
                     # iterate over tokens
                     for tok in sentence:
                         lemma, pos, fine_pos_tag = tok.get("lemma"), tok.get("pos"), tok.get("fine_pos")
+                        
                         pos_tags.append(pos)
                         lemmas.append(lemma)
                         fine_pos_tags.append(fine_pos_tag)
