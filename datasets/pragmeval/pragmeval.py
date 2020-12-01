@@ -277,6 +277,7 @@ class PragmEvalConfig(datasets.BuilderConfig):
 class PragmEval(datasets.GeneratorBasedBuilder):
     """The General Language Understanding Evaluation (PragmEval) benchmark."""
 
+    BUILDER_CONFIG_CLASS = PragmEvalConfig
     BUILDER_CONFIGS = [
         PragmEvalConfig(
             name="verifiability",
