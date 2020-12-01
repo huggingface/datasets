@@ -799,47 +799,47 @@ The following table shows the number of data samples/number of rows for each spl
 
 ### Curation Rationale
 
-[N/A]
+[More Information Needed]
 
 ### Source Data
 
 #### Initial Data Collection and Normalization
 
-[N/A]
+[More Information Needed]
 
 #### Who are the source language producers?
 
-[N/A]
+[More Information Needed]
 
 ### Annotations
 
-[N/A]
+[More Information Needed]
 
 #### Annotation process
 
-[N/A]
+[More Information Needed]
 
 #### Who are the annotators?
 
-[N/A]
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-[N/A]
+[More Information Needed]
 
 ## Considerations for Using the Data
 
 ### Social Impact of Dataset
 
-[N/A]
+[More Information Needed]
 
 ### Discussion of Biases
 
-[N/A]
+[More Information Needed]
 
 ### Other Known Limitations
 
-[N/A]
+[More Information Needed]
 
 ## Additional Information
 
