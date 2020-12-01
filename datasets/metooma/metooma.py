@@ -46,8 +46,8 @@ _TRAIN_DOWNLOAD_URL = "https://raw.githubusercontent.com/akash418/public-data-re
 _TEST_DOWNLOAD_URL = "https://raw.githubusercontent.com/akash418/public-data-repo/main/MeTooMMD_test.csv"
 
 
-class MeTooMA(datasets.GeneratorBasedBuilder):
-    """MeTooMA dataset -- Dataset providing labeled information for tweets belonging to the MeToo movement"""
+class Metooma(datasets.GeneratorBasedBuilder):
+    """Metooma dataset -- Dataset providing labeled information for tweets belonging to the MeToo movement"""
 
     VERSION = datasets.Version("1.1.0")
 
@@ -60,16 +60,20 @@ class MeTooMA(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "TweetId": datasets.Value("string"),
-                    "Text_Only_Informative": datasets.Value("string"),
-                    "Image_Only_Informative": datasets.Value("string"),
-                    "Directed_Hate": datasets.Value("string"),
-                    "Generalized_Hate": datasets.Value("string"),
-                    "Sarcasm": datasets.Value("string"),
-                    "Allegation": datasets.Value("string"),
-                    "Justification": datasets.Value("string"),
-                    "Refutation": datasets.Value("string"),
-                    "Support": datasets.Value("string"),
-                    "Oppose": datasets.Value("string"),
+                    "Text_Only_Informative": datasets.ClassLabel(names=["Text Non Informative", "Text Informative"]),
+                    "Image_Only_Informative": datasets.ClassLabel(
+                        names=["Image Non Informative", "Image Informative"]
+                    ),
+                    "Directed_Hate": datasets.ClassLabel(names=["Directed Hate Absent", "Directed Hate Present"]),
+                    "Generalized_Hate": datasets.ClassLabel(
+                        names=["Generalized Hate Absent", "Generalized Hate Present"]
+                    ),
+                    "Sarcasm": datasets.ClassLabel(names=["Sarcasm Absent", "Sarcasm Present"]),
+                    "Allegation": datasets.ClassLabel(names=["Allegation Absent", "Allegation Present"]),
+                    "Justification": datasets.ClassLabel(names=["Justification Absent", "Justification Present"]),
+                    "Refutation": datasets.ClassLabel(names=["Refutation Absent", "Refutation Present"]),
+                    "Support": datasets.ClassLabel(names=["Support Absent", "Support Present"]),
+                    "Oppose": datasets.ClassLabel(names=["Oppose Absent", "Oppose Present"]),
                 }
             ),
             supervised_keys=None,
@@ -117,14 +121,14 @@ class MeTooMA(datasets.GeneratorBasedBuilder):
 
                 yield id_, {
                     "TweetId": tweet_id,
-                    "Text_Only_Informative": text_informative_label,
-                    "Image_Only_Informative": image_informative_label,
-                    "Directed_Hate": dir_hate_label,
-                    "Generalized_Hate": gen_hate_label,
-                    "Sarcasm": sarcasm_label,
-                    "Allegation": allegtation_label,
-                    "Justification": justification_label,
-                    "Refutation": refutation_label,
-                    "Support": support_label,
-                    "Oppose": oppose_label,
+                    "Text_Only_Informative": int(text_informative_label),
+                    "Image_Only_Informative": int(image_informative_label),
+                    "Directed_Hate": int(dir_hate_label),
+                    "Generalized_Hate": int(gen_hate_label),
+                    "Sarcasm": int(sarcasm_label),
+                    "Allegation": int(allegtation_label),
+                    "Justification": int(justification_label),
+                    "Refutation": int(refutation_label),
+                    "Support": int(support_label),
+                    "Oppose": int(oppose_label),
                 }

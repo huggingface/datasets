@@ -1,5 +1,5 @@
 
-YAML tags:
+---
 annotations_creators:
 - expert-generated
 language_creators:
@@ -18,6 +18,7 @@ task_categories:
 task_ids:
 - multi-class-classification
 - multi-label-classification
+---
 
 # Dataset Card for #MeTooMA dataset
 
