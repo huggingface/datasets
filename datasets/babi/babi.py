@@ -109,7 +109,7 @@ class BABI(datasets.GeneratorBasedBuilder):
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="https://huggingface.co/great-new-dataset",
+            homepage="https://research.fb.com/downloads/babi/",
             citation=_CITATION,
         )
 
