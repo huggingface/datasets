@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
 import os
 
 import datasets
@@ -111,4 +109,3 @@ class OrangeSum(datasets.GeneratorBasedBuilder):
         ) as f_target:
             for idx, (document, summary) in enumerate(zip(f_source, f_target)):
                 yield idx, {_DOCUMENT: document, _SUMMARY: summary}
-
