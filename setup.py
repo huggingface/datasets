@@ -95,9 +95,11 @@ TESTS_REQUIRE = [
     'apache-beam',
     'absl-py',
     'bs4',
+    'conllu',
     'elasticsearch',
     'faiss-cpu',
     'langdetect',
+    'lxml',
     'mwparserfromhell',
     'nltk',
     'pytest',
@@ -107,7 +109,6 @@ TESTS_REQUIRE = [
     'tldextract',
     'transformers',
     'zstandard',
-    'lxml',
 ]
 
 if os.name == "nt":  # windows
