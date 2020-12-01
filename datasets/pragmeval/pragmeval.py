@@ -520,14 +520,9 @@ class Pragmeval(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {
-            text_feature: datasets.Value("string")
-            for text_feature in six.iterkeys(self.config.text_features)
-        }
+        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
         if self.config.label_classes:
-            features["label"] = datasets.features.ClassLabel(
-                names=self.config.label_classes
-            )
+            features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         else:
             features["label"] = datasets.Value("float32")
         features["idx"] = datasets.Value("int32")
@@ -576,10 +571,7 @@ class Pragmeval(datasets.GeneratorBasedBuilder):
 
             for n, row in enumerate(reader):
 
-                example = {
-                    feat: row[col]
-                    for feat, col in six.iteritems(self.config.text_features)
-                }
+                example = {feat: row[col] for feat, col in six.iteritems(self.config.text_features)}
                 example["idx"] = n
 
                 if self.config.label_column in row:
