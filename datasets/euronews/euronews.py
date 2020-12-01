@@ -76,11 +76,19 @@ class EuroNews(datasets.GeneratorBasedBuilder):
     """Europana Newspaper dataset."""
 
     BUILDER_CONFIGS = [
-        EuroNewsConfig(name="fr-bnf", version=datasets.Version("1.0.0"), description="National Library of France Dataset"),
-        EuroNewsConfig(name="nl-kb", version=datasets.Version("1.0.0"), description="National Library of the Netherlands Dataset"),
+        EuroNewsConfig(
+            name="fr-bnf", version=datasets.Version("1.0.0"), description="National Library of France Dataset"
+        ),
+        EuroNewsConfig(
+            name="nl-kb", version=datasets.Version("1.0.0"), description="National Library of the Netherlands Dataset"
+        ),
         EuroNewsConfig(name="de-sbb", version=datasets.Version("1.0.0"), description="Berlin State Library Dataset"),
-        EuroNewsConfig(name="de-onb", version=datasets.Version("1.0.0"), description="Austrian National Library Dataset"),
-        EuroNewsConfig(name="de-lft", version=datasets.Version("1.0.0"), description="Dr Friedrich Teßmann Library Dataset"),
+        EuroNewsConfig(
+            name="de-onb", version=datasets.Version("1.0.0"), description="Austrian National Library Dataset"
+        ),
+        EuroNewsConfig(
+            name="de-lft", version=datasets.Version("1.0.0"), description="Dr Friedrich Teßmann Library Dataset"
+        ),
     ]
 
     def _info(self):
@@ -90,11 +98,7 @@ class EuroNews(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "tokens": datasets.Sequence(datasets.Value("string")),
-                    "ner_tags": datasets.Sequence(
-                        datasets.features.ClassLabel(
-                            names=_TAGS
-                        )
-                    ),
+                    "ner_tags": datasets.Sequence(datasets.features.ClassLabel(names=_TAGS)),
                 }
             ),
             supervised_keys=None,
