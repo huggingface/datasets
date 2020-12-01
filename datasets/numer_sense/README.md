@@ -11,7 +11,8 @@ multilinguality:
 - monolingual
 size_categories:
 - 10K<n<100K
-source_datasets: []
+source_datasets:
+- extended|other
 task_categories:
 - sequence-modeling
 task_ids:
