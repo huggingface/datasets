@@ -124,53 +124,52 @@ class HealthFact(datasets.GeneratorBasedBuilder):
             data = csv.reader(f, delimiter="\t")
             next(data, None)  # skip the headers
             for row_id, row in enumerate(data):
-                if len(row) > 0:
-                    row = [x if x != "nan" else "" for x in row]  # nan values changed to empty string
-                    if split != "test":
-                        if len(row) <= 9:
-                            elements = ["" for x in range(9 - len(row))]
-                            row = row + elements
-                        (
-                            claim_id,
-                            claim,
-                            date_published,
-                            explanation,
-                            fact_checkers,
-                            main_text,
-                            sources,
-                            label,
-                            subjects,
-                        ) = row
-                        if label not in label_list:  # remove stray labels in dev.tsv, train.tsv
-                            label = -1
-                    else:
-                        if len(row) <= 10:
-                            elements = ["" for x in range(10 - len(row))]
-                            row = row + elements
-                        (
-                            _,
-                            claim_id,
-                            claim,
-                            date_published,
-                            explanation,
-                            fact_checkers,
-                            main_text,
-                            sources,
-                            label,
-                            subjects,
-                        ) = row
-                        if label not in label_list:  # remove stray labels in test.tsv
-                            label = -1
-                    if label == "":
+                row = [x if x != "nan" else "" for x in row]  # nan values changed to empty string
+                if split != "test":
+                    if len(row) <= 9:
+                        elements = ["" for x in range(9 - len(row))]
+                        row = row + elements
+                    (
+                        claim_id,
+                        claim,
+                        date_published,
+                        explanation,
+                        fact_checkers,
+                        main_text,
+                        sources,
+                        label,
+                        subjects,
+                    ) = row
+                    if label not in label_list:  # remove stray labels in dev.tsv, train.tsv
                         label = -1
-                    yield row_id, {
-                        "claim_id": claim_id,
-                        "claim": claim,
-                        "date_published": date_published,
-                        "explanation": explanation,
-                        "fact_checkers": fact_checkers,
-                        "main_text": main_text,
-                        "sources": sources,
-                        "label": label,
-                        "subjects": subjects,
-                    }
+                else:
+                    if len(row) <= 10:
+                        elements = ["" for x in range(10 - len(row))]
+                        row = row + elements
+                    (
+                        _,
+                        claim_id,
+                        claim,
+                        date_published,
+                        explanation,
+                        fact_checkers,
+                        main_text,
+                        sources,
+                        label,
+                        subjects,
+                    ) = row
+                    if label not in label_list:  # remove stray labels in test.tsv
+                        label = -1
+                if label == "":
+                    label = -1
+                yield row_id, {
+                    "claim_id": claim_id,
+                    "claim": claim,
+                    "date_published": date_published,
+                    "explanation": explanation,
+                    "fact_checkers": fact_checkers,
+                    "main_text": main_text,
+                    "sources": sources,
+                    "label": label,
+                    "subjects": subjects,
+                }
