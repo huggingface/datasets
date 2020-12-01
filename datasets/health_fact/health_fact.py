@@ -17,7 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
 import os
 
 import datasets
@@ -27,8 +26,8 @@ _CITATION = """\
 @inproceedings{kotonya-toni-2020-explainable,
     title = "Explainable Automated Fact-Checking for Public Health Claims",
     author = "Kotonya, Neema and Toni, Francesca",
-    booktitle = "Proceedings of the 2020 Conference on Empirical Methods 
-        in Natural Language Processing (EMNLP)",
+    booktitle = "Proceedings of the 2020 Conference on Empirical Methods
+    in Natural Language Processing (EMNLP)",
     month = nov,
     year = "2020",
     address = "Online",
@@ -39,17 +38,17 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-PUBHEALTH is a comprehensive dataset for explainable automated fact-checking of 
-public health claims. Each instance in the PUBHEALTH dataset has an associated 
-veracity label (true, false, unproven, mixture). Furthermore each instance in the 
-dataset has an explanation text field. The explanation is a justification for which 
+PUBHEALTH is a comprehensive dataset for explainable automated fact-checking of
+public health claims. Each instance in the PUBHEALTH dataset has an associated
+veracity label (true, false, unproven, mixture). Furthermore each instance in the
+dataset has an explanation text field. The explanation is a justification for which
 the claim has been assigned a particular veracity label.
 
-The dataset was created to explore fact-checking of difficult to verify claims i.e., 
-those which require expertise from outside of the journalistics domain, in this case 
+The dataset was created to explore fact-checking of difficult to verify claims i.e.,
+those which require expertise from outside of the journalistics domain, in this case
 biomedical and public health expertise.
 
-It was also created in response to the lack of fact-checking datasets which provide 
+It was also created in response to the lack of fact-checking datasets which provide
 gold standard natural language explanations for verdicts/labels.
 
 NOTE: There are missing labels in the dataset and we have replaced them with -1.
