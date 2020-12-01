@@ -40,6 +40,9 @@ _DESCRIPTION = """\
 This new dataset is designed to solve this great NLP task and is crafted with a lot of care. 
 """
 
+# TODO: Add the licence for the dataset here if you can find it
+_LICENSE = ""
+
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
@@ -102,6 +105,9 @@ class NewDataset(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             # Homepage of the dataset for documentation
             homepage="https://huggingface.co/great-new-dataset",
+            # License for the dataset if available
+            license=_LICENSE,
+            # Citation for the dataset
             citation=_CITATION,
         )
 
