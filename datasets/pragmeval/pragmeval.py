@@ -274,7 +274,7 @@ class PragmEvalConfig(datasets.BuilderConfig):
         self.url = ""
 
 
-class PragmEval(datasets.GeneratorBasedBuilder):
+class Pragmeval(datasets.GeneratorBasedBuilder):
     """The General Language Understanding Evaluation (PragmEval) benchmark."""
 
     BUILDER_CONFIG_CLASS = PragmEvalConfig
