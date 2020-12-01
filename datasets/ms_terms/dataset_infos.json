@@ -1,0 +1,56 @@
+{
+    "default": {
+        "description": "The Microsoft Terminology Collection.\n",
+        "homepage": "https://www.microsoft.com/en-us/language/terminology",
+        "license": "See the Microsoft Language Portal Materials License and the Microsoft Terms of Use for details.",
+        "features": {
+            "entry_id": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "term_source": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "pos": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "definition": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            },
+            "term_target": {
+                "dtype": "string",
+                "id": null,
+                "_type": "Value"
+            }
+        },
+        "supervised_keys": null,
+        "builder_name": "ms_terms",
+        "config_name": "default",
+        "version": {
+            "version_str": "1.0.0",
+            "description": null,
+            "datasets_version_to_prepare": null,
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "train": {
+                "name": "train",
+                "num_bytes": 17232136,
+                "num_examples": 33738,
+                "dataset_name": "ms_terms"
+            }
+        },
+        "download_size": 17232136,
+        "dataset_size": 17232136,
+        "size_in_bytes": 17232136
+    }
+}
