@@ -135,9 +135,9 @@ class MsraNer(datasets.GeneratorBasedBuilder):
                         tokens = []
                         ner_tags = []
                 else:
-                    splits = line_stripped.split('\t')
+                    splits = line_stripped.split("\t")
                     if len(splits) == 1:
-                        splits.append('O')
+                        splits.append("O")
                     tokens.append(splits[0])
                     ner_tags.append(splits[1])
             # last example
