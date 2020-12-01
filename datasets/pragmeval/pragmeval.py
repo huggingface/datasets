@@ -22,6 +22,7 @@ import csv
 import os
 import textwrap
 
+import requests
 import six
 
 import datasets
