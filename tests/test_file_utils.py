@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from datasets.utils.file_utils import temp_seed, DownloadConfig, cached_path
+from datasets.utils.file_utils import DownloadConfig, cached_path, temp_seed
 
 from .utils import require_tf, require_torch
 
