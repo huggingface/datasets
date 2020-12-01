@@ -1,5 +1,7 @@
 import os
+
 import datasets
+
 
 _DESCRIPTION = """\
 """
@@ -44,15 +46,9 @@ class GermanLegalEntityRecognitionConfig(datasets.BuilderConfig):
 
 class GermanLegalEntityRecognition(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
-        GermanLegalEntityRecognitionConfig(
-            name=court, courts=[court], description=f"Court. {court}."
-        )
+        GermanLegalEntityRecognitionConfig(name=court, courts=[court], description=f"Court. {court}.")
         for court in _COURTS
-    ] + [
-        GermanLegalEntityRecognitionConfig(
-            name=_ALL, courts=_COURTS, description=f"All courts included."
-        )
-    ]
+    ] + [GermanLegalEntityRecognitionConfig(name=_ALL, courts=_COURTS, description=f"All courts included.")]
 
     DEFAULT_CONFIG_NAME = _ALL
 
@@ -117,11 +113,7 @@ class GermanLegalEntityRecognition(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         path = dl_manager.download_and_extract(_DATA_URL)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"datapath": path}
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"datapath": path})]
 
     def _generate_examples(self, datapath):
         sentence_counter = 0
@@ -140,9 +132,7 @@ class GermanLegalEntityRecognition(datasets.GeneratorBasedBuilder):
                     else:
                         if not current_words:
                             continue
-                        assert len(current_words) == len(
-                            current_labels
-                        ), "word len doesnt match label length"
+                        assert len(current_words) == len(current_labels), "word len doesnt match label length"
                         sentence = (
                             sentence_counter,
                             {
