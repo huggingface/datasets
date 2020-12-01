@@ -1,33 +1,22 @@
 ---
-{
-  "task_categories": [
-    "conditional-text-generation"
-  ],
-  "task_ids": [
-    "summarization"
-  ],
-  "multilinguality": [
-    "monolingual"
-  ],
-  "languages": [
-    "fr"
-  ],
-  "language_creators": [
-    "found"
-  ],
-  "annotations_creators": [
-    "found"
-  ],
-  "source_datasets": [
-    "original"
-  ],
-  "size_categories": [
-    "10K<n<100K"
-  ],
-  "licenses": [
-    "unknown"
-  ]
-}
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- fr
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+task_ids:
+- summarization
 ---
 
 # Dataset Card for OrangeSum
