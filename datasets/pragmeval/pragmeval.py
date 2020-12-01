@@ -415,7 +415,11 @@ class PragmevalConfig(datasets.BuilderConfig):
             of the label and processing it to the form required by the label feature
           **kwargs: keyword arguments forwarded to super.
         """
-        super(PragmevalConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+
+        super(PragmevalConfig, self).__init__(
+            version=datasets.Version("1.0.0", ""), **kwargs
+        )
+
         self.text_features = text_features
         self.label_column = "label"
         self.label_classes = get_labels(self.name)
@@ -516,9 +520,14 @@ class Pragmeval(datasets.GeneratorBasedBuilder):
     ]
 
     def _info(self):
-        features = {text_feature: datasets.Value("string") for text_feature in six.iterkeys(self.config.text_features)}
+        features = {
+            text_feature: datasets.Value("string")
+            for text_feature in six.iterkeys(self.config.text_features)
+        }
         if self.config.label_classes:
-            features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
+            features["label"] = datasets.features.ClassLabel(
+                names=self.config.label_classes
+            )
         else:
             features["label"] = datasets.Value("float32")
         features["idx"] = datasets.Value("int32")
@@ -567,7 +576,10 @@ class Pragmeval(datasets.GeneratorBasedBuilder):
 
             for n, row in enumerate(reader):
 
-                example = {feat: row[col] for feat, col in six.iteritems(self.config.text_features)}
+                example = {
+                    feat: row[col]
+                    for feat, col in six.iteritems(self.config.text_features)
+                }
                 example["idx"] = n
 
                 if self.config.label_column in row:
