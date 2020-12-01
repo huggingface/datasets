@@ -106,7 +106,8 @@ TESTS_REQUIRE = [
     'torch',
     'tldextract',
     'transformers',
-    'zstandard'
+    'zstandard',
+    'conllu',
 ]
 
 if os.name == "nt":  # windows
