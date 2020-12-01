@@ -26,10 +26,14 @@ _CITATION = """\
 @article{DBLP:journals/corr/abs-1910-05298,
   author    = {Ondrej Dusek and
 <<<<<<< HEAD
+<<<<<<< HEAD
                Filip Jurcicek},
 =======
                Filip Jurc{\'{\i}}cek},
 >>>>>>> CS Restaurants NLG dataset
+=======
+               Filip Jurcicek},
+>>>>>>> Flake
   title     = {Neural Generation for Czech: Data and Baselines},
   journal   = {CoRR},
   volume    = {abs/1910.05298},
@@ -45,10 +49,14 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 <<<<<<< HEAD
+<<<<<<< HEAD
 This is a dataset for NLG in task-oriented spoken dialogue systems with Czech as the target language. It originated as
 =======
 This is a dataset for NLG in task-oriented spoken dialogue systems with Czech as the target language. It originated as 
 >>>>>>> CS Restaurants NLG dataset
+=======
+This is a dataset for NLG in task-oriented spoken dialogue systems with Czech as the target language. It originated as
+>>>>>>> Flake
 a translation of the English San Francisco Restaurants dataset by Wen et al. (2015).
 """
 
