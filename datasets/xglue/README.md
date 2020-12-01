@@ -57,30 +57,30 @@ languages:
   - en
   - es
   - hi
-	- vi
-	- zh
+  - vi
+  - zh
   nc:
-	- en
-	- de
-	- es
-	- fr
-	- ru
+  - en
+  - de
+  - es
+  - fr
+  - ru
   ner:
-	- de
+  - de
   - en
   - es
   - nl
   ntg:
-	- en
-	- de
-	- es
-	- fr
-	- ru
+  - en
+  - de
+  - es
+  - fr
+  - ru
   paws-x:
-	- en
-	- de
-	- es
-	- fr
+  - en
+  - de
+  - es
+  - fr
   pos:
   - ar
   - bg
@@ -100,28 +100,28 @@ languages:
   - vi
   - zh
   qadsm:
-	- en
-	- de
-	- fr
+  - en
+  - de
+  - fr
   qam:
-	- en
-	- de
-	- fr
+  - en
+  - de
+  - fr
   qg:
-	- en
-	- de
-	- fr
-	- pt
-	- it
-	- zh
+  - en
+  - de
+  - fr
+  - pt
+  - it
+  - zh
   wpr:
-	- en
-	- de
-	- fr
-	- es
-	- it
-	- pt
-	- zh
+  - en
+  - de
+  - fr
+  - es
+  - it
+  - pt
+  - zh
   xnli:
   - ar
   - bg
@@ -410,7 +410,7 @@ An example of 'test.fr' looks as follows.
     "PRON",
     "AUX",
     "ADV",
-		"VERB",
+    "VERB",
     "PUNCT",
     "PRON",
     "VERB",
