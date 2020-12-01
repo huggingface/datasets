@@ -60,32 +60,10 @@ _TRAIN_FILE_NAME = "PUBHEALTH/train.tsv"
 _VAL_FILE_NAME = "PUBHEALTH/dev.tsv"
 
 
-class HealthFactConfig(datasets.BuilderConfig):
-
-    """BuilderConfig for HealthFact"""
-
-    def __init__(self, data_url, **kwargs):
-        """BuilderConfig for HealthFact
-
-        Args:
-          data_url: `string`, url to the dataset (word or raw level)
-          **kwargs: keyword arguments forwarded to super.
-        """
-        super(HealthFactConfig, self).__init__(version=datasets.Version("1.1.0", ""), **kwargs)
-        self.data_url = data_url
-
-
 class HealthFact(datasets.GeneratorBasedBuilder):
     """Dataset for explainable fake news detection of public health claims."""
 
     VERSION = datasets.Version("1.1.0")
-    BUILDER_CONFIGS = [
-        HealthFactConfig(
-            name="health_fact",
-            data_url=_DATA_URL,
-            description="Dataset for explainable fake news detection of public health claims.",
-        )
-    ]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -101,7 +79,7 @@ class HealthFact(datasets.GeneratorBasedBuilder):
                     "fact_checkers": datasets.Value("string"),
                     "main_text": datasets.Value("string"),
                     "sources": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=["false", "mixture", "true", "unproven", "-1"]),
+                    "label": datasets.features.ClassLabel(names=["false", "mixture", "true", "unproven"]),
                     "subjects": datasets.Value("string"),
                 }
             ),
@@ -113,48 +91,44 @@ class HealthFact(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_DATA_URL)
 
-        if self.config.name == "health_fact":
-            return [
-                datasets.SplitGenerator(
-                    name=datasets.Split.TRAIN,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, _TRAIN_FILE_NAME),
-                        "split": datasets.Split.TRAIN,
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.TEST,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, _TEST_FILE_NAME),
-                        "split": datasets.Split.TEST,
-                    },
-                ),
-                datasets.SplitGenerator(
-                    name=datasets.Split.VALIDATION,
-                    # These kwargs will be passed to _generate_examples
-                    gen_kwargs={
-                        "filepath": os.path.join(data_dir, _VAL_FILE_NAME),
-                        "split": datasets.Split.VALIDATION,
-                    },
-                ),
-            ]
-        else:
-            raise NotImplementedError("{} does not exist".format(self.config.name))
+        return [
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, _TRAIN_FILE_NAME),
+                    "split": datasets.Split.TRAIN,
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, _TEST_FILE_NAME),
+                    "split": datasets.Split.TEST,
+                },
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                # These kwargs will be passed to _generate_examples
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir, _VAL_FILE_NAME),
+                    "split": datasets.Split.VALIDATION,
+                },
+            ),
+        ]
 
     def _generate_examples(self, filepath, split):
         with open(filepath, encoding="utf-8") as f:
-            label_list = ["false", "mixture", "true", "unproven", "-1"]
+            label_list = ["false", "mixture", "true", "unproven"]
             data = csv.reader(f, delimiter="\t")
             next(data, None)  # skip the headers
             for row_id, row in enumerate(data):
                 if len(row) > 0:
-                    row = [x if x != "nan" else "-1" for x in row]  # nan values changed to -1
-                    # row = [x if x!=''  else "-1" for x in row]
+                    row = [x if x != "nan" else "" for x in row]  # nan values changed to empty string
                     if split != "test":
-                        if len(row) < 9:
-                            elements = ["-1" for x in range(9 - len(row))]
+                        if len(row) <= 9:
+                            elements = ["" for x in range(9 - len(row))]
                             row = row + elements
                         (
                             claim_id,
@@ -168,10 +142,10 @@ class HealthFact(datasets.GeneratorBasedBuilder):
                             subjects,
                         ) = row
                         if label not in label_list:  # remove stray labels in dev.tsv, train.tsv
-                            label = "-1"
+                            label = -1
                     else:
-                        if len(row) < 10:
-                            elements = ["-1" for x in range(10 - len(row))]
+                        if len(row) <= 10:
+                            elements = ["" for x in range(10 - len(row))]
                             row = row + elements
                         (
                             _,
@@ -186,15 +160,17 @@ class HealthFact(datasets.GeneratorBasedBuilder):
                             subjects,
                         ) = row
                         if label not in label_list:  # remove stray labels in test.tsv
-                            label = "-1"
-                    yield row_id, {
-                        "claim_id": claim_id,
-                        "claim": claim,
-                        "date_published": date_published,
-                        "explanation": explanation,
-                        "fact_checkers": fact_checkers,
-                        "main_text": main_text,
-                        "sources": sources,
-                        "label": label,
-                        "subjects": subjects,
-                    }
+                            label = -1
+                    if label == "":
+                        label = -1
+                yield row_id, {
+                    "claim_id": claim_id,
+                    "claim": claim,
+                    "date_published": date_published,
+                    "explanation": explanation,
+                    "fact_checkers": fact_checkers,
+                    "main_text": main_text,
+                    "sources": sources,
+                    "label": label,
+                    "subjects": subjects,
+                }
