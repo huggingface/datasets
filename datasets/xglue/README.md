@@ -280,7 +280,7 @@ task_ids:
   - natural-language-inference
 ---
 
-# Dataset Card for ELI5
+# Dataset Card for XGLUE
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -298,12 +298,19 @@ task_ids:
 
 ### Dataset Summary
 
-XGLUE is a new benchmark dataset to evaluate the performance of cross-lingual pre-trained models with respect to cross-lingual natural language understanding and generation.
+XGLUE is a new benchmark dataset to evaluate the performance of cross-lingual pre-trained models with respect to cross-lingual natural language understanding and generation. 
+
+The training data of each task is in English while the validation and test data is present in multiple different languages.
+The following table shows which languages are present as validation and test data for each config.
+
+![Available Languages for Test and Validation Data](https://raw.githubusercontent.com/patrickvonplaten/scientific_images/master/xglue_langs.png)
+
+Therefore, for each config, a cross-lingual pre-trained model should be fine-tuned on the English training data, and evaluated on for all languages.
 
 ### Leaderboards
 
 The XGLUE leaderboard can be found on the [homepage](https://microsoft.github.io/XGLUE/) and 
-consits of a XGLUE-Understanding Score (the average of tasks 1-9) and a XGLUE-Generation Score (the average of tasks 10-11).
+consits of a XGLUE-Understanding Score (the average of the tasks `ner`, `pos`, `mlqa`, `nc`, `xnli`, `paws-x`, `qadsm`, `wpr`, `qam`) and a XGLUE-Generation Score (the average of the tasks `qg`, `ntg`).
 
 ## Additional Information
 
