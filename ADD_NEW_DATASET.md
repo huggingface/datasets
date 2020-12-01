@@ -121,9 +121,9 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 
 **Last step:** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
 
-	```bash
-	python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
-	```
+```bash
+python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+```
 
 ### Automatically add code metadata
 
