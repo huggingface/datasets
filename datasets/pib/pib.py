@@ -14,8 +14,6 @@
 # limitations under the License.
 """CVIT IIIT-H PIB Multilingual Corpus"""
 
-from __future__ import absolute_import, division, print_function
-
 import os
 
 import datasets
@@ -31,7 +29,7 @@ year={2020}
 """
 
 _DESCRIPTION = """\
-This new dataset is the large scale sentence aligned corpus in 11 Indian languages, 
+This new dataset is the large scale sentence aligned corpus in 11 Indian languages,
 viz. CVIT-PIB corpus that is the largest multilingual corpus available for Indian languages.
 """
 
@@ -120,11 +118,11 @@ class Pib(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO: Specifies the datasets.DatasetInfo object
-        src, tgt = self.config.language_pair
+        src, tgt = self.config.language_pair.split("-")
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"translation": datasets.features.Translation(languages=self.config.language_pair)}
+                {"translation": datasets.features.Translation(languages=(src, tgt))}
             ),
             supervised_keys=(src, tgt),
             homepage="http://preon.iiit.ac.in/~jerin/bhasha/",
@@ -148,11 +146,10 @@ class Pib(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, labelpath):
         """ Yields examples. """
+        src, tgt = self.config.language_pair.split("-")
         with open(filepath, encoding="utf-8") as f1, open(labelpath, encoding="utf-8") as f2:
-            src = f1.read().split("\n")[:-1]
-            tgt = f2.read().split("\n")[:-1]
-            for idx, (s, t) in enumerate(zip(src, tgt)):
-                yield idx, {
-                    "source": s,
-                    "target": t,
-                }
+            source = f1.read().split("\n")[:-1]
+            target = f2.read().split("\n")[:-1]
+
+            for idx, (s, t) in enumerate(zip(source, target)):
+                yield idx, {"translation": {src: s, tgt: t}}
