@@ -82,9 +82,10 @@ target: two
 
 ### Data Fields
 
-Each value of the training set consists of (1) a sentence with a number masked out with the `<mask>` token, and (2) a
-ground truth target value (both strings). The test sets include the masked sentences but without the ground truth
-values.
+Each value of the training set consists of:
+- `sentence`: The sentence with a number masked out with the `<mask>` token.
+- `target`: The ground truth target value. Since the test sets do not include the ground truth, the `target` field
+values are empty strings in the `test_core` and `test_all` splits.
 
 ### Data Splits
 
