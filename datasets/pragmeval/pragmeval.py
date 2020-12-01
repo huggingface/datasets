@@ -423,5 +423,4 @@ class Pragmeval(datasets.GeneratorBasedBuilder):
                     example["label"] = process_label(label)
                 else:
                     example["label"] = process_label(-1)
-                else:
-                    yield example["idx"], example
+                yield example["idx"], example
