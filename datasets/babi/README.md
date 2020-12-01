@@ -1,6 +1,26 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- machine-generated
+language_creators:
+- machine-generated
+languages:
+- en
+licenses:
+- 0bsd
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+task_categories:
+- question-answering
+- sequence-modeling
+task_ids:
+- closed-domain-qa
+- language-modeling
+- sequence-modeling-other-story-modeling
 ---
 
 # Dataset Card for [Dataset Name]
