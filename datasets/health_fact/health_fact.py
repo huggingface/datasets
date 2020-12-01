@@ -144,7 +144,7 @@ class HealthFact(datasets.GeneratorBasedBuilder):
             raise NotImplementedError("{} does not exist".format(self.config.name))
 
     def _generate_examples(self, filepath, split):
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             label_list = ["false", "mixture", "true", "unproven", "-1"]
             data = csv.reader(f, delimiter="\t")
             next(data, None)  # skip the headers
