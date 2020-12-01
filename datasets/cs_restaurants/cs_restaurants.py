@@ -26,7 +26,7 @@ import datasets
 _CITATION = """\
 @article{DBLP:journals/corr/abs-1910-05298,
   author    = {Ondrej Dusek and
-               Filip Jurc{\'{\i}}cek},
+               Filip Jurcicek},
   title     = {Neural Generation for Czech: Data and Baselines},
   journal   = {CoRR},
   volume    = {abs/1910.05298},
@@ -41,7 +41,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-This is a dataset for NLG in task-oriented spoken dialogue systems with Czech as the target language. It originated as 
+This is a dataset for NLG in task-oriented spoken dialogue systems with Czech as the target language. It originated as
 a translation of the English San Francisco Restaurants dataset by Wen et al. (2015).
 """
 
