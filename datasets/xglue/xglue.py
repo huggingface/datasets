@@ -396,14 +396,14 @@ Portuguese. BLEU-4 score should be used as the metric.
         elif self.config.name == "wpr":
             features = {
                 "query": datasets.Value("string"),
-                "wed_page_title": datasets.Value("string"),
+                "web_page_title": datasets.Value("string"),
                 "web_page_snippet": datasets.Value("string"),
                 "relavance_label": datasets.features.ClassLabel(names=["Bad", "Fair", "Good", "Excellent", "Perfect"]),
             }
         elif self.config.name == "qam":
             features = {
                 "question": datasets.Value("string"),
-                "annswer": datasets.Value("string"),
+                "answer": datasets.Value("string"),
                 "label": datasets.features.ClassLabel(names=["False", "True"]),
             }
         elif self.config.name == "qg":
