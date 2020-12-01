@@ -23,7 +23,8 @@ languages:
   - ja
   zh:
   - zh
-licenses: []
+licenses: 
+  - other-amazon-license
 multilinguality:
   all_languages:
   - multilingual
