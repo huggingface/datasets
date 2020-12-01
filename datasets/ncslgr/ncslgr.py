@@ -26,7 +26,7 @@ import datasets
 
 
 _DESCRIPTION = """
-A small American Sign Language corpus annotated with non-manual features
+A small corpus of American Sign Language (ASL) video data from native signers, annotated with non-manual features.
 """
 
 _CITATION = """\
@@ -55,6 +55,8 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
     """NCSLGR: a small American Sign Language corpus annotated with non-manual features"""
 
     VERSION = datasets.Version("0.7.0")
+
+    BUILDER_CONFIG_CLASS = NCSLGRConfig
 
     BUILDER_CONFIGS = [
         NCSLGRConfig(
@@ -100,16 +102,8 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"eaf_path": eaf_path, "videos_path": videos_path, "split": "train"},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={"eaf_path": eaf_path, "videos_path": videos_path, "split": "dev"},
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                gen_kwargs={"eaf_path": eaf_path, "videos_path": videos_path, "split": "test"},
-            ),
+                gen_kwargs={"eaf_path": eaf_path, "videos_path": videos_path},
+            )
         ]
 
     def _extract_sentences(self, elan_xml: str):
@@ -132,7 +126,7 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
             relevant_gloss = [t for (s2, e2, t) in gloss if s2 >= s and e2 <= e]
             yield {"gloss": " ".join(relevant_gloss), "text": text}
 
-    def _generate_examples(self, eaf_path: str, videos_path: str, split: str):
+    def _generate_examples(self, eaf_path: str, videos_path: str):
         """ Yields examples. """
 
         for i, eaf_file in enumerate(tqdm(os.listdir(eaf_path))):
@@ -141,11 +135,10 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
             with open(eaf_file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-                if self.config.videos:
-                    videos_relative = re.findall('RELATIVE_MEDIA_URL="(.*)"', content)
-                    videos = [os.path.join(videos_path, v[3:]) for v in videos_relative]
+            if self.config.videos:
+                videos_relative = re.findall('RELATIVE_MEDIA_URL="(.*)"', content)
+                videos = [os.path.join(videos_path, v[3:]) for v in videos_relative]
 
-                sentences = list(self._extract_sentences(content))
+            sentences = list(self._extract_sentences(content))
 
-            if (i % 7 == 0 and split == "test") or (i % 7 == 1 and split == "dev") or (i % 7 > 1 and split == "train"):
-                yield i, {"eaf": eaf_file_path, "videos": videos, "sentences": sentences}
+            yield i, {"eaf": eaf_file_path, "videos": videos, "sentences": sentences}
