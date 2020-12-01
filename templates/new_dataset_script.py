@@ -74,6 +74,8 @@ class NewDataset(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="second_domain", description="This part of my dataset covers a second domain"),
     ]
 
+    DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+
     def _info(self):
         # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
@@ -84,7 +86,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                     "answer": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
-            ),
+            )
         else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
             features = datasets.Features(
                 {
@@ -93,7 +95,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                     "second_domain_answer": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
-            ),
+            )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
