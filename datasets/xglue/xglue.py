@@ -109,22 +109,13 @@ class XGlueConfig(datasets.BuilderConfig):
         url,
         **kwargs,
     ):
-        """BuilderConfig for GLUE.
+        """BuilderConfig for XGLUE.
 
         Args:
-          text_features: `dict[string, string]`, map from the name of the feature
-            dict for each text field to the name of the column in the tsv file
-          label_column: `string`, name of the column in the tsv file corresponding
-            to the label
           data_dir: `string`, the path to the folder containing the files in the
             downloaded .tar
           citation: `string`, citation for the data set
           url: `string`, url for information about the data set
-          label_classes: `list[string]`, the list of classes if the label is
-            categorical. If not provided, then the label will be of type
-            `datasets.Value('float32')`.
-          process_label: `Function[string, any]`, function  taking in the raw value
-            of the label and processing it to the form required by the label feature
           **kwargs: keyword arguments forwarded to super.
         """
         super(XGlueConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
