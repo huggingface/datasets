@@ -31,7 +31,7 @@ year={2020}
 """
 
 _DESCRIPTION = """\
-This new dataset is the large scale sentence aligned corpus in 11 Indian languages, 
+This new dataset is the large scale sentence aligned corpus in 11 Indian languages,
 viz. CVIT-PIB corpus that is the largest multilingual corpus available for Indian languages.
 """
 
