@@ -1,6 +1,74 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- found
+language_creators:
+- crowdsourced
+languages:
+  release_v1:
+  - en
+  release_v2:
+  - en
+  release_v2.1:
+  - en
+  release_v2.1_constrained:
+  - en
+  release_v2_constrained:
+  - en
+  release_v3.0_en:
+  - en
+  release_v3.0_ru:
+  - ru
+  webnlg_challenge_2017:
+  - en
+licenses:
+- cc-by-sa-3.0
+- cc-by-nc-sa-4.0
+- gfdl-1.1
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|other-db_pedia
+- original
+task_categories:
+  release_v1:
+  - conditional-text-generation
+  release_v2:
+  - conditional-text-generation
+  release_v2.1:
+  - conditional-text-generation
+  release_v2.1_constrained:
+  - conditional-text-generation
+  release_v2_constrained:
+  - conditional-text-generation
+  release_v3.0_en:
+  - conditional-text-generation
+  - structure-prediction
+  release_v3.0_ru:
+  - conditional-text-generation
+  - structure-prediction
+  webnlg_challenge_2017:
+  - conditional-text-generation
+task_ids:
+  release_v1:
+  - other-stuctured-to-text
+  release_v2:
+  - other-stuctured-to-text
+  release_v2.1:
+  - other-stuctured-to-text
+  release_v2.1_constrained:
+  - other-stuctured-to-text
+  release_v2_constrained:
+  - other-stuctured-to-text
+  release_v3.0_en:
+  - conditional-text-generation
+  - parsing
+  release_v3.0_ru:
+  - conditional-text-generation
+  - parsing
+  webnlg_challenge_2017:
+  - other-stuctured-to-text
 ---
 
 # Dataset Card for WebNLG
@@ -54,21 +122,51 @@ aggregation (how to avoid repetitions) and surface realisation
 
 ### Supported Tasks and Leaderboards
 
-The dataset supports a `data-to-text` task 
+The dataset supports a `other-structured-to-text` task which requires a model takes a set of RDF (Resource Description Format) triples from a database (DBpedia) of the form (subject, property, object) as input and write out a natural language sentence expressing the information contained in the triples. The dataset has supportd two challenges: the [WebNLG2017](https://www.aclweb.org/anthology/W17-3518/) and [WebNLG2020](https://gerbil-nlg.dice-research.org/gerbil/webnlg2020results) challenge. Results were ordered by their [METEOR](https://huggingface.co/metrics/meteor) to the reference, but the leaderboards report a range of other metrics including [BLEU](https://huggingface.co/metrics/bleu), [BERTscore](https://huggingface.co/metrics/bertscore), and [BLEURT](https://huggingface.co/metrics/bleurt). The v3 release (`release_v3.0_en`, `release_v3.0_ru`) for the WebNLG2020 challenge also supports a semantic `parsing` task.
 
 ### Languages
 
-[More Information Needed]
+All releases contain English (`en`) data. The v3 release (`release_v3.0_ru`) also contains Russian (`ru`) examples.
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+A typical example contains the original RDF triples in the set, a modified version which presented to crowd workers, and a set of possible verbalizations for this set of triples:
+```
+{'2017_test_category': '',
+ 'category': 'Politician',
+ 'eid': 'Id10',
+ 'lex': {'comment': ['good', 'good', 'good'],
+         'lid': ['Id1', 'Id2', 'Id3'],
+         'text': ['World War II had Chiang Kai-shek as a commander and United States Army soldier Abner W. Sibal.',
+                  'Abner W. Sibal served in the United States Army during the Second World War and during that war Chiang Kai-shek was one of the commanders.',
+                  'Abner W. Sibal, served in the United States Army and fought in World War II, one of the commanders of which, was Chiang Kai-shek.']},
+ 'modified_triple_sets': {'mtriple_set': [['Abner_W._Sibal | battle | World_War_II',
+                                           'World_War_II | commander | Chiang_Kai-shek',
+                                           'Abner_W._Sibal | militaryBranch | United_States_Army']]},
+ 'original_triple_sets': {'otriple_set': [['Abner_W._Sibal | battles | World_War_II', 'World_War_II | commander | Chiang_Kai-shek', 'Abner_W._Sibal | branch | United_States_Army'],
+                                          ['Abner_W._Sibal | militaryBranch | United_States_Army',
+                                           'Abner_W._Sibal | battles | World_War_II',
+                                           'World_War_II | commander | Chiang_Kai-shek']]},
+ 'shape': '(X (X) (X (X)))',
+ 'shape_type': 'mixed',
+ 'size': 3}
+```
 
 ### Data Fields
 
-[More Information Needed]
+The following fields can be found in the instances:
+- `category`: the category of the DBpedia entites present in the RDF triples.
+- `eid`: an example ID, only unique per split per category.
+- `size`: number of RDF triples in the set.
+- `shape`: (for v3 only) Each set of RDF-triples is a tree, which is characterised by its shape and shape type. `shape` is a string representation of the tree with nested parentheses where X is a node (see [Newick tree format](https://en.wikipedia.org/wiki/Newick_format))
+- `shape_type`: (for v3 only) is a type of the tree shape, which can be: `chain` (the object of one triple is the subject of the other); `sibling` (triples with a shared subject); `mixed` (both chain and sibling types present).
+- `2017_test_category`: (for `webnlg_challenge_2017`) tells whether the set of RDF triples was present in the training set or not.
+- `lex`: the lexicalizations, with:
+  - `text`: the text to be predicted.
+  - `lid`: a lexicalizayion ID, unique per example.
+  - `comment`: the lexicalizations were rated by crowd workers are either `good` or `bad`
 
 ### Data Splits
 
@@ -126,7 +224,7 @@ The dataset supports a `data-to-text` task
 
 ### Licensing Information
 
-[More Information Needed]
+The dataset uses the `cc-by-nc-sa-4.0` license. The source DBpedia project uses the `cc-by-sa-3.0` and `gfdl-1.1` licenses.
 
 ### Citation Information
 
@@ -151,7 +249,7 @@ The dataset supports a `data-to-text` task
 }
 ```
 
-- If you use *release\_v2\_constrained* in particular, cite:
+- If you use `release_v2_constrained` in particular, cite:
 ```
 @InProceedings{shimorina2018handling,
   author = 	"Shimorina, Anastasia
