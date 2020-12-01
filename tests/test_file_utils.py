@@ -59,11 +59,13 @@ class TempSeedTest(TestCase):
         self.assertGreater(np.abs(out1 - out3).sum(), 0)
 
 
-def test_cached_path_extract(xz_file, tmp_path, file_content):
+def test_cached_path_extract(xz_file, tmp_path, text_file):
     filename = xz_file
     cache_dir = tmp_path / "cache"
     download_config = DownloadConfig(cache_dir=cache_dir, extract_compressed_file=True)
     extracted_filename = cached_path(filename, download_config=download_config)
     with open(extracted_filename) as f:
-        data = f.read()
-    assert data == file_content
+        extracted_file_content = f.read()
+    with open(text_file) as f:
+        expected_file_content = f.read()
+    assert extracted_file_content == expected_file_content

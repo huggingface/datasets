@@ -3,18 +3,24 @@ import lzma
 import pytest
 
 
-@pytest.fixture(scope="session")
-def file_content(tmp_path_factory):
-    content = """\
+FILE_CONTENT = """\
     Text data.
     Second line of data."""
-    return content
 
 
 @pytest.fixture(scope="session")
-def xz_file(tmp_path_factory, file_content):
+def text_file(tmp_path_factory):
+    filename = tmp_path_factory.mktemp("data") / "file.txt"
+    data = FILE_CONTENT
+    with open(filename, "w") as f:
+        f.write(data)
+    return filename
+
+
+@pytest.fixture(scope="session")
+def xz_file(tmp_path_factory):
     filename = tmp_path_factory.mktemp("data") / "file.xz"
-    data = bytes(file_content, "utf-8")
+    data = bytes(FILE_CONTENT, "utf-8")
     with lzma.open(filename, "wb") as f:
         f.write(data)
     return filename
