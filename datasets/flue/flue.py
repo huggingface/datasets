@@ -216,58 +216,58 @@ class Flue(datasets.GeneratorBasedBuilder):
             features["fine_pos_tags"] = datasets.Sequence(
                 datasets.features.ClassLabel(
                     names=[
-                        'DET',
-                        'P+D',
-                        'CC',
-                        'VS',
-                        'P',
-                        'CS',
-                        'NC',
-                        'NPP',
-                        'ADJWH',
-                        'VINF',
-                        'VPP',
-                        'ADVWH',
-                        'PRO',
-                        'V',
-                        'CLO',
-                        'PREF',
-                        'VPR',
-                        'PROREL',
-                        'ADV',
-                        'PROWH',
-                        'N',
-                        'DETWH',
-                        'ADJ',
-                        'P+PRO',
-                        'ET',
-                        'VIMP',
-                        'CLS',
-                        'PONCT',
-                        'I',
-                        'CLR',
+                        "DET",
+                        "P+D",
+                        "CC",
+                        "VS",
+                        "P",
+                        "CS",
+                        "NC",
+                        "NPP",
+                        "ADJWH",
+                        "VINF",
+                        "VPP",
+                        "ADVWH",
+                        "PRO",
+                        "V",
+                        "CLO",
+                        "PREF",
+                        "VPR",
+                        "PROREL",
+                        "ADV",
+                        "PROWH",
+                        "N",
+                        "DETWH",
+                        "ADJ",
+                        "P+PRO",
+                        "ET",
+                        "VIMP",
+                        "CLS",
+                        "PONCT",
+                        "I",
+                        "CLR",
                     ]
                 )
             )
             features["pos_tags"] = datasets.Sequence(
                 datasets.features.ClassLabel(
                     names=[
-                        'V',
-                        'PREF',
-                        'P+D',
-                        'I',
-                        'A',
-                        'P+PRO',
-                        'PRO',
-                        'P',
-                        'anonyme',
-                        'D',
-                        'C',
-                        'CL',
-                        'ET',
-                        'PONCT',
-                        'ADV',
-                        'N',
+                        "V",
+                        "PREF",
+                        "P+D",
+                        "I",
+                        "A",
+                        "P+PRO",
+                        "PRO",
+                        "P",
+                        "anonyme",
+                        "D",
+                        "C",
+                        "CL",
+                        "ET",
+                        "PONCT",
+                        "ADV",
+                        "N",
                     ]
                 )
             )
@@ -582,7 +582,7 @@ class WSDDatasetReader:
                     # iterate over tokens
                     for tok in sentence:
                         lemma, pos, fine_pos_tag = tok.get("lemma"), tok.get("pos"), tok.get("fine_pos")
-                        
+
                         pos_tags.append(pos)
                         lemmas.append(lemma)
                         fine_pos_tags.append(fine_pos_tag)
