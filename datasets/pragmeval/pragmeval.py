@@ -21,8 +21,8 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 import textwrap
-import requests
 
+import requests
 import six
 
 import datasets
