@@ -1,6 +1,6 @@
 {
   "entire_dataset": {
-    "description": "\nA small American Sign Language corpus annotated with non-manual features\n",
+    "description": "\nA small corpus of American Sign Language (ASL) video data from native signers, annotated with non-manual features.\n",
     "citation": "@misc{dataset:databases2007volumes,\n    title={Volumes 2--7},\n    author={Databases, NCSLGR},\n    year={2007},\n    publisher={American Sign Language Linguistic Research Project (Distributed on CD-ROM~\u2026}\n}\n",
     "homepage": "https://www.bu.edu/asllrp/ncslgr.html",
     "license": "",
@@ -52,20 +52,8 @@
     "splits": {
       "train": {
         "name": "train",
-        "num_bytes": 555842,
-        "num_examples": 620,
-        "dataset_name": "ncslgr"
-      },
-      "validation": {
-        "name": "validation",
-        "num_bytes": 117911,
-        "num_examples": 125,
-        "dataset_name": "ncslgr"
-      },
-      "test": {
-        "name": "test",
-        "num_bytes": 109814,
-        "num_examples": 125,
+        "num_bytes": 783504,
+        "num_examples": 870,
         "dataset_name": "ncslgr"
       }
     },
@@ -81,11 +69,11 @@
     },
     "download_size": 4113829143,
     "post_processing_size": null,
-    "dataset_size": 783567,
-    "size_in_bytes": 4114612710
+    "dataset_size": 783504,
+    "size_in_bytes": 4114612647
   },
   "annotations": {
-    "description": "\nA small American Sign Language corpus annotated with non-manual features\n",
+    "description": "\nA small corpus of American Sign Language (ASL) video data from native signers, annotated with non-manual features.\n",
     "citation": "@misc{dataset:databases2007volumes,\n    title={Volumes 2--7},\n    author={Databases, NCSLGR},\n    year={2007},\n    publisher={American Sign Language Linguistic Research Project (Distributed on CD-ROM~\u2026}\n}\n",
     "homepage": "https://www.bu.edu/asllrp/ncslgr.html",
     "license": "",
@@ -137,20 +125,8 @@
     "splits": {
       "train": {
         "name": "train",
-        "num_bytes": 262530,
-        "num_examples": 620,
-        "dataset_name": "ncslgr"
-      },
-      "validation": {
-        "name": "validation",
-        "num_bytes": 58642,
-        "num_examples": 125,
-        "dataset_name": "ncslgr"
-      },
-      "test": {
-        "name": "test",
-        "num_bytes": 50614,
-        "num_examples": 125,
+        "num_bytes": 371725,
+        "num_examples": 870,
         "dataset_name": "ncslgr"
       }
     },
@@ -162,7 +138,7 @@
     },
     "download_size": 5335358,
     "post_processing_size": null,
-    "dataset_size": 371786,
-    "size_in_bytes": 5707144
+    "dataset_size": 371725,
+    "size_in_bytes": 5707083
   }
 }
