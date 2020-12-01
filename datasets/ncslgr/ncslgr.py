@@ -107,7 +107,7 @@ class NCSLGR(datasets.GeneratorBasedBuilder):
         ]
 
     def _extract_sentences(self, elan_xml: str):
-        def get_tier_va_lues(name: str):
+        def get_tier_values(name: str):
             tiers = re.findall('TIER_ID="' + name + '">([\\s\\S]*?)</TIER>', elan_xml)
             if len(tiers) == 0:
                 return []
