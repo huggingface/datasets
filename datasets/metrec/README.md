@@ -14,8 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- poetry_classification
+- text-classification
 task_ids:
+- text-classification-other-poetry-classification
 ---
 
 # Dataset Card for MetRec
