@@ -164,7 +164,7 @@ A small portion of the dataset has the issues of sexism, hate, and harassment. T
 
 ### Dataset Curators
 
-The dataset was initially created by Peixiang Zhong, Chen Zhang, Hao Wang, Yong Liu, and Chunyan Miao, during work done at Alibaba Group.
+The dataset was initially created by Peixiang Zhong, Chen Zhang, Hao Wang, Yong Liu, and Chunyan Miao, jointly done at Nanyang Technological University and Alibaba Group.
 
 ### Licensing Information
 
