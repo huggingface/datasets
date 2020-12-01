@@ -352,12 +352,48 @@ Portuguese. BLEU-4 score should be used as the metric.
         if self.config.name == "ner":
             features = {
                 "words": datasets.Sequence(datasets.Value("string")),
-                "ner": datasets.Sequence(datasets.Value("string")),
+                "ner": datasets.Sequence(
+                    datasets.features.ClassLabel(
+                        names=[
+                            "O",
+                            "B-PER",
+                            "I-PER",
+                            "B-ORG",
+                            "I-ORG",
+                            "B-LOC",
+                            "I-LOC",
+                            "B-MISC",
+                            "I-MISC",
+                        ]
+                    )
+                ),
             }
         elif self.config.name == "pos":
             features = {
                 "words": datasets.Sequence(datasets.Value("string")),
-                "pos": datasets.Sequence(datasets.Value("string")),
+                "pos": datasets.Sequence(
+                    datasets.features.ClassLabel(
+                        names=[
+                            "ADJ",
+                            "ADP",
+                            "ADV",
+                            "AUX",
+                            "CCONJ",
+                            "DET",
+                            "INTJ",
+                            "NOUN",
+                            "NUM",
+                            "PART",
+                            "PRON",
+                            "PROPN",
+                            "PUNCT",
+                            "SCONJ",
+                            "SYM",
+                            "VERB",
+                            "X",
+                        ]
+                    )
+                ),
             }
         elif self.config.name == "mlqa":
             features = {
@@ -372,7 +408,20 @@ Portuguese. BLEU-4 score should be used as the metric.
             features = {
                 "news_title": datasets.Value("string"),
                 "news_body": datasets.Value("string"),
-                "news_category": datasets.Value("string"),
+                "news_category": datasets.ClassLabel(
+                    names=[
+                        "foodanddrink",
+                        "sports",
+                        "travel",
+                        "finance",
+                        "lifestyle",
+                        "news",
+                        "entertainment",
+                        "health",
+                        "video",
+                        "autos",
+                    ]
+                ),
             }
         elif self.config.name == "xnli":
             features = {
