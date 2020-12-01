@@ -4,6 +4,7 @@ import json
 import re
 import urllib.request
 
+
 corpus_path = "https://www.sign-lang.uni-hamburg.de/meinedgs/"
 
 index_data = {}

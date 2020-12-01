@@ -20,11 +20,12 @@ import gzip
 import json
 
 import cv2
-import datasets
-import numpy as np
 import pympi
 from pose_format.utils.openpose import load_openpose
 from tqdm import tqdm
+
+import datasets
+
 
 _DESCRIPTION = """
 Parallel corpus for German Sign Language (DGS) with German and English annotations
@@ -57,8 +58,8 @@ def get_video_metadata(video_path: str):
 
 
 def get_poses(openpose_path: str, fps: int, num_frames: int):
-    with gzip.GzipFile(openpose_path, 'r') as openpose_raw:
-        openpose = json.loads(openpose_raw.read().decode('utf-8'))
+    with gzip.GzipFile(openpose_path, "r") as openpose_raw:
+        openpose = json.loads(openpose_raw.read().decode("utf-8"))
 
     people = {"a", "b"}
     views = {view["camera"][0]: view for view in openpose if view["camera"][0] in people}
@@ -72,26 +73,28 @@ def get_poses(openpose_path: str, fps: int, num_frames: int):
         poses[person] = load_openpose(frames, fps, width, height)
 
         # Normalize - make shoulder width equal in all videos, move neck to (0,0)
-        poses[person].normalize(poses[person].header.normalization_info(
-            p1=("pose_keypoints_2d", "RShoulder"),
-            p2=("pose_keypoints_2d", "LShoulder")
-        ))
+        poses[person].normalize(
+            poses[person].header.normalization_info(
+                p1=("pose_keypoints_2d", "RShoulder"), p2=("pose_keypoints_2d", "LShoulder")
+            )
+        )
         poses[person].body.zero_filled()
 
     return poses
 
 
-def get_elan_sentences(elan_path: str, poses: dict):
+def get_elan_sentences(elan_path: str):
     eaf = pympi.Elan.Eaf(elan_path)
 
     timeslots = eaf.timeslots
 
     for participant in ["A", "B"]:
-        lower_participant = participant.lower()
-        if lower_participant not in poses:
-            continue
-        pose = poses[lower_participant]
-        pose_data = np.array(pose.body.data).squeeze(axis=1).tolist()
+        # lower_participant = participant.lower()
+        # if lower_participant not in poses:
+        #     continue
+        # pose = poses[lower_participant]
+        # pose_data = np.array(pose.body.data).squeeze(axis=1).tolist()
+        # pose_confidence = pose.body.confidence.squeeze(axis=1).tolist()
 
         german_tier_name = "Deutsche_Übersetzung_" + participant
         if german_tier_name not in eaf.tiers:
@@ -123,9 +126,13 @@ def get_elan_sentences(elan_path: str, poses: dict):
         for (s, e, val, _) in german_text:
             sentence = {"participant": participant, "start": timeslots[s], "end": timeslots[e], "german": val}
 
-            # Take the relevant masked data
-            sentence["pose"] = pose_data[int(sentence["start"] * pose.body.fps / 1000):
-                                         int(sentence["end"] * pose.body.fps / 1000)]
+            # # Take the relevant masked data
+            # pose_start = int(sentence["start"] * pose.body.fps / 1000)
+            # pose_end = int(sentence["end"] * pose.body.fps / 1000)
+            # sentence["pose"] = {
+            #     "data": pose_data[pose_start:pose_end],
+            #     "confidence": pose_confidence[pose_start:pose_end]
+            # }
 
             # Add English sentence
             english_sentence = [val for (s2, e2, val2, _) in english_text if s == s2 and e == e2]
@@ -151,6 +158,8 @@ class DGS(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("3.0.0")
 
+    _writer_batch_size = 10  # Keeping a large batch can face memory constraints
+
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
@@ -167,17 +176,20 @@ class DGS(datasets.GeneratorBasedBuilder):
                     "srt": datasets.Value("string"),
                     "cmdi": datasets.Value("string"),
                     "openpose": datasets.Value("string"),
-                    "metadata": {
-                        "fps": datasets.Value("int32"),
-                        "frames": datasets.Value("int32")
-                    },
+                    "metadata": {"fps": datasets.Value("int32"), "frames": datasets.Value("int32")},
                     "sentences": datasets.features.Sequence(
                         {
                             "participant": datasets.features.ClassLabel(names=["A", "B"]),
                             "start": datasets.Value("int32"),  # In milliseconds
                             "end": datasets.Value("int32"),  # In milliseconds
-                            "pose": datasets.features.Sequence(
-                                datasets.features.Sequence(datasets.features.Sequence(datasets.Value("float32")))),
+                            # "pose": {
+                            #     "data": datasets.features.Sequence(
+                            #         datasets.features.Sequence(datasets.features.Sequence(datasets.Value("float32")))
+                            #     ),
+                            #     "confidence": datasets.features.Sequence(
+                            #         datasets.features.Sequence(datasets.Value("float32"))
+                            #     ),
+                            # },
                             "german": datasets.Value("string"),
                             "english": datasets.Value("string"),
                             "glosses": datasets.features.Sequence(
@@ -208,6 +220,7 @@ class DGS(datasets.GeneratorBasedBuilder):
             index_data = json.load(f)
 
         # keys = list(index_data.keys())[:5]
+        # keys = ["1181011"]
         # index_data = {k: index_data[k] for k in keys}
 
         urls = {url: url for datum in index_data.values() for url in datum.values() if url is not None}
@@ -222,12 +235,7 @@ class DGS(datasets.GeneratorBasedBuilder):
         with open(final_data_path, "w", encoding="utf-8") as f:
             json.dump(processed_data, f)
 
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                gen_kwargs={"data_path": final_data_path}
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_path": final_data_path})]
 
     def _generate_examples(self, data_path):
         """ Yields examples. """
@@ -237,16 +245,21 @@ class DGS(datasets.GeneratorBasedBuilder):
 
             for _id, datum in tqdm(data.items()):
                 # Get video metadata
-                datum["metadata"] = get_video_metadata(datum["video_c"])
+                video_path = (
+                    datum["video_c"]
+                    if datum["video_c"] is not None
+                    else datum["video_a"]
+                    if datum["video_a"] is not None
+                    else datum["video_b"]
+                )
+                datum["metadata"] = get_video_metadata(video_path)
 
-                # print("\n", _id, "pose path", datum["openpose"], "\n")
-
-                # Get pose data
-                poses = get_poses(datum["openpose"],
-                                  fps=datum["metadata"]["fps"],
-                                  num_frames=datum["metadata"]["frames"])
+                # # Get pose data
+                # poses = get_poses(datum["openpose"],
+                #                   fps=datum["metadata"]["fps"],
+                #                   num_frames=datum["metadata"]["frames"])
 
                 # Get sentences from ELAN file
-                datum["sentences"] = list(get_elan_sentences(elan_path=datum["eaf"], poses=poses))
+                datum["sentences"] = list(get_elan_sentences(elan_path=datum["eaf"]))
 
                 yield _id, datum
