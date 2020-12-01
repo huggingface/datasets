@@ -35,9 +35,11 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 The dataset consists of tweets belonging to #MeToo movement on Twitter, labelled into different categories.
-Due to Twitter's development policies, we only provide the tweet ID's and corresponding labels, other data can be fetched via Twitter API.
+Due to Twitter's development policies, we only provide the tweet ID's and corresponding labels,
+other data can be fetched via Twitter API.
 The data has been labelled by experts, with the majority taken into the account for deciding the final label.
-We provide these labels for each of the tweets. The labels provided for each data point includes -- Relevance, Directed Hate, Generalized Hate,
+We provide these labels for each of the tweets. The labels provided for each data point
+includes -- Relevance, Directed Hate, Generalized Hate,
 Sarcasm, Allegation, Justification, Refutation, Support, Oppose
 """
 
@@ -114,7 +116,6 @@ class MeTooMA(datasets.GeneratorBasedBuilder):
                     support_label,
                     oppose_label,
                 ) = row
-                # applicable_labels = []
 
                 yield id_, {
                     "TweetId": tweet_id,
