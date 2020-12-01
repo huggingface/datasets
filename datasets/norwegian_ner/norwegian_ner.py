@@ -31,7 +31,10 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Named entities Recognition dataset for Norwegian.
+Named entities Recognition dataset for Norwegian. It is
+a version of the Universal Dependency (UD) Treebank for both Bokmål and Nynorsk (UDN) where
+all proper nouns have been tagged with their type according to the NER tagging scheme. UDN is a converted
+version of the Norwegian Dependency Treebank into the UD scheme.
 """
 
 # Files are stored with Git LFS then we add raw=true at the end

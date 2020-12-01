@@ -6,7 +6,7 @@ language_creators:
 languages:
 - sv
 licenses:
-- other-
+- unknown-
 multilinguality:
 - monolingual
 size_categories:
@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - other
 task_ids:
-- other-other-Named Entity Recognition
+- Named Entity Recognition
 ---
 
 # Dataset Card for Norwegian NER
