@@ -15,11 +15,7 @@
 """CVIT IIIT-H PIB Multilingual Corpus"""
 
 from __future__ import absolute_import, division, print_function
-
-import csv
-import json
 import os
-
 import datasets
 
 
@@ -122,25 +118,17 @@ class Pib(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO: Specifies the datasets.DatasetInfo object
+        src, tgt = self.config.language_pair
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
-            description=_DESCRIPTION + f" Available language pairs are {_LanguagePairs}",
-            # This defines the different columns of the dataset and their types
+            description=_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "src_lang": datasets.Value("string"),
-                    "tgt_lang": datasets.Value("string")
-                    # These are the features of your dataset like images, labels ...
-                }
+                {"translation": datasets.features.Translation(languages=self.config.language_pair)}
             ),
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
-            supervised_keys=None,
-            # Homepage of the dataset for documentation
+            supervised_keys=(src, tgt),
             homepage="http://preon.iiit.ac.in/~jerin/bhasha/",
             citation=_CITATION,
         )
+
 
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(_URL)
@@ -159,11 +147,11 @@ class Pib(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, labelpath):
         """ Yields examples. """
-        with open(filepath) as f1, open(labelpath) as f2:
+        with open(filepath, encoding="utf-8") as f1, open(labelpath, encoding="utf-8") as f2:
             src = f1.read().split("\n")[:-1]
             tgt = f2.read().split("\n")[:-1]
             for idx, (s, t) in enumerate(zip(src, tgt)):
                 yield idx, {
-                    "src_lang": s,
-                    "tgt_lang": t,
+                    "source": s,
+                    "target": t,
                 }

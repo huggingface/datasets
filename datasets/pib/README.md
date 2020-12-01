@@ -1,6 +1,32 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://192.168.1.5:8501
+task_categories:
+- sequence-modeling
+task_ids:
+- language-modeling
+multilinguality:
+- translation
+languages:
+- en
+- hi
+- ta
+- te
+- ml
+- ur
+- bn
+- mr
+- gu
+- or
+- pa
+language_creators:
+- other
+annotations_creators:
+- no-annotation
+source_datasets:
+- original
+size_categories:
+- 1K<n<10K
+licenses:
+- cc-by-4.0
 ---
 
 # Dataset Card for PIB
