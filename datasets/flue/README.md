@@ -17,10 +17,14 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- intent-classification
-- semantic-similarity-classification
-- sentiment-classification
-- text-classification-other-Word Sense Disambiguation for Verbs
+- PAWS-X:
+  - intent-classification
+- XNLI:
+  - semantic-similarity-classification
+- CLS:
+  - sentiment-classification
+- WSD-V:
+  - text-classification-other-Word Sense Disambiguation for Verbs
 ---
 
 # Dataset Card for FLUE
@@ -177,9 +181,9 @@ An instance looks like:
 {
     'idx': 'd000.s001',
     'sentence': ['"', 'Ce', 'ne', 'fut', 'pas', 'une', 'révolution', '2.0', ',', 'ce', 'fut', 'une', 'révolution', 'de', 'rue', '.'],
-    'fine_pos_tags': ['PONCT', 'CLS', 'ADV', 'V', 'ADV', 'DET', 'NC', 'ADJ', 'PONCT', 'CLS', 'V', 'DET', 'NC', 'P', 'NC', 'PONCT'],
+    'fine_pos_tags': [27, 26, 18, 13, 18, 0, 6, 22, 27, 26, 13, 0, 6, 4, 6, 27],
     'lemmas': ['"', 'ce', 'ne', 'être', 'pas', 'un', 'révolution', '2.0', ',', 'ce', 'être', 'un', 'révolution', 'de', 'rue', '.'],
-    'pos_tags': ['PONCT', 'CL', 'ADV', 'V', 'ADV', 'D', 'N', 'A', 'PONCT', 'CL', 'V', 'D', 'N', 'P', 'N', 'PONCT'],
+    'pos_tags': [13, 11, 14, 0, 14, 9, 15, 4, 13, 11, 0, 9, 15, 7, 15, 13],
     'disambiguate_labels': ['__ws_1_2.0__adj__1'],
     'disambiguate_tokens_ids': [7],
 }
