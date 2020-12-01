@@ -21,8 +21,8 @@ from __future__ import absolute_import, division, print_function
 import csv
 import os
 import textwrap
-
 import requests
+
 import six
 
 import datasets
@@ -43,7 +43,7 @@ _PragmEval_DESCRIPTION = """\
 Evaluation of language understanding with a 10 datasets benchmark focusing on discourse and pragmatics
 """
 
-DATA_URL = "https://www.dropbox.com/s/7zjvnk38p0oad0m/pragmeval.zip?dl=1"
+DATA_URL = "https://www.dropbox.com/s/njcy51alkb17sft/pragmeval.zip?dl=1"
 
 TASK_TO_FOLDER = {
     "verifiability": "Verifiability",
@@ -207,7 +207,7 @@ CITATION_DICT = {
       pages={29--38},
       year={2014}
     }""",
-    "emobank": """
+    "emobank": """"
     @inproceedings{buechel-hahn-2017-emobank,
         title = "{E}mo{B}ank: Studying the Impact of Annotation Perspective and Representation Format on Dimensional Emotion Analysis",
         author = "Buechel, Sven  and
@@ -226,8 +226,9 @@ CITATION_DICT = {
 
 
 def get_labels(task):
+    folder_name = TASK_TO_FOLDER[task]
     label_classes = requests.get(
-        f"https://raw.githubusercontent.com/disceval/DiscEval/master/disceval/{task}/labels"
+        f"https://raw.githubusercontent.com/disceval/DiscEval/master/disceval/{folder_name}/labels"
     ).text.split("\n")
     label_classes = [x.strip() for x in label_classes if x.strip()]
     return label_classes
@@ -264,10 +265,9 @@ class PragmEvalConfig(datasets.BuilderConfig):
         super(PragmEvalConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.label_column = "label"
-        self.folder_name = TASK_TO_FOLDER[self.name]
-        self.label_classes = get_labels(self.folder_name)
+        self.label_classes = get_labels(self.name)
         self.data_url = DATA_URL
-        self.data_dir = os.path.join("pragmeval", self.folder_name)
+        self.data_dir = os.path.join("pragmeval", self.name)
         self.citation = textwrap.dedent(CITATION_DICT[self.name.split("-")[0]])
         self.process_label = process_label
         self.description = ""
