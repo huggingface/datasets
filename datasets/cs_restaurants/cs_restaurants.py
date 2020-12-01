@@ -93,7 +93,7 @@ class CSRestaurants(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """ Yields examples. """
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf8") as f:
             data = json.load(f)
             for id_, instance in enumerate(data):
                 yield id_, {
