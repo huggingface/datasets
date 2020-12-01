@@ -14,6 +14,8 @@
 # limitations under the License.
 """CVIT IIIT-H PIB Multilingual Corpus"""
 
+from __future__ import absolute_import, division, print_function
+
 import os
 
 import datasets
@@ -29,7 +31,7 @@ year={2020}
 """
 
 _DESCRIPTION = """\
-This new dataset is the large scale sentence aligned corpus in 11 Indian languages,
+This new dataset is the large scale sentence aligned corpus in 11 Indian languages, 
 viz. CVIT-PIB corpus that is the largest multilingual corpus available for Indian languages.
 """
 
@@ -105,7 +107,7 @@ class PibConfig(datasets.BuilderConfig):
             language_pair: language pair, you want to load
             **kwargs: keyword arguments forwarded to super.
         """
-        self.language_pair = language_pair
+        self.src, self.tgt = language_pair.split("-")
 
 
 class Pib(datasets.GeneratorBasedBuilder):
@@ -118,36 +120,35 @@ class Pib(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO: Specifies the datasets.DatasetInfo object
-        src, tgt = self.config.language_pair.split("-")
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"translation": datasets.features.Translation(languages=(src, tgt))}),
-            supervised_keys=(src, tgt),
+            features=datasets.Features(
+                {"translation": datasets.features.Translation(languages=(self.config.src, self.config.tgt))}
+            ),
+            supervised_keys=(self.config.src, self.config.tgt),
             homepage="http://preon.iiit.ac.in/~jerin/bhasha/",
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         dl_dir = dl_manager.download_and_extract(_URL)
-        src, tgt = self.config.language_pair.split("-")
-        data_dir = os.path.join(dl_dir, f"pib/{src}-{tgt}")
+
+        data_dir = os.path.join(dl_dir, f"pib/{self.config.src}-{self.config.tgt}")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, f"train.{src}"),
-                    "labelpath": os.path.join(data_dir, f"train.{tgt}"),
+                    "filepath": os.path.join(data_dir, f"train.{self.config.src}"),
+                    "labelpath": os.path.join(data_dir, f"train.{self.config.tgt}"),
                 },
             ),
         ]
 
     def _generate_examples(self, filepath, labelpath):
         """ Yields examples. """
-        src, tgt = self.config.language_pair.split("-")
         with open(filepath, encoding="utf-8") as f1, open(labelpath, encoding="utf-8") as f2:
-            source = f1.read().split("\n")[:-1]
-            target = f2.read().split("\n")[:-1]
-
-            for idx, (s, t) in enumerate(zip(source, target)):
-                yield idx, {"translation": {src: s, tgt: t}}
+            src = f1.read().split("\n")[:-1]
+            tgt = f2.read().split("\n")[:-1]
+            for idx, (s, t) in enumerate(zip(src, tgt)):
+                yield idx, {"translation": {self.config.src: s, self.config.tgt: t}}
