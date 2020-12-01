@@ -17,15 +17,13 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
-import os
 
 import datasets
 
 
 _CITATION = """\
 @inproceedings{gautam2020metooma,
-    title={\# MeTooMA: Multi-Aspect Annotations of Tweets Related to the MeToo Movement},
+    title={# MeTooMA: Multi-Aspect Annotations of Tweets Related to the MeToo Movement},
     author={Gautam, Akash and Mathur, Puneet and Gosangi, Rakesh and Mahata, Debanjan and Sawhney, Ramit and Shah, Rajiv Ratn},
     booktitle={Proceedings of the International AAAI Conference on Web and Social Media},
     volume={14},
