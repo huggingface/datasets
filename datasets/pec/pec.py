@@ -111,7 +111,6 @@ class PEC(datasets.GeneratorBasedBuilder):
         # download and extract URLs
         dl_dir = dl_manager.download_and_extract(_URL)
         data_dir = os.path.join(dl_dir, "hf_pec")
-        print("The downloaded data has been saved to ", data_dir)
         if self.config.domain in ["happy", "offmychest"]:
             return [
                 datasets.SplitGenerator(
@@ -148,58 +147,43 @@ class PEC(datasets.GeneratorBasedBuilder):
         # TODO: Yields (key, example) tuples from the dataset
         context_speakers = []
         context = []
-        response_speaker = ""
-        response = ""
         example_id = 0
         data_dir = os.path.dirname(filepath)
 
         if self.config.domain == "all":
             # load files from both happy and offmychest
-            filepath = [
-                os.path.join(data_dir, "happy", os.path.basename(filepath)),
-                os.path.join(data_dir, "offmychest", os.path.basename(filepath)),
-            ]
+            filepath = [os.path.join(data_dir, "happy", os.path.basename(filepath)), os.path.join(data_dir, "offmychest", os.path.basename(filepath))]
         else:
             filepath = [filepath]
-
+        
         # create persona
         if not hasattr(self, "persona_" + self.config.domain):
             persona_paths = [os.path.join(os.path.dirname(fpath), "persona.txt") for fpath in filepath]
             setattr(self, "persona_" + self.config.domain, self._load_persona(persona_paths))
 
         persona = getattr(self, "persona_" + self.config.domain)
-        # print("Domain {0}: number of unique personas: {1}".format(self.config.domain, len(persona)))
 
         for fpath in filepath:
             with open(fpath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
-                    if row.strip() == "":
-                        continue
-                    try:
-                        if "********************" not in row:
-                            if "---+---" in row:
-                                speaker, utterance = row.split("---+---")
-                                context_speakers.append(speaker.strip())
-                                context.append(utterance.strip())
-                            else:
-                                # contains inline \n
-                                context[-1] = context[-1] + " " + row.strip()
+                    if "********************" not in row:
+                        if "---+---" in row:
+                            speaker, utterance = row.split("---+---")
+                            context_speakers.append(speaker.strip())
+                            context.append(utterance.strip())
                         else:
-                            response_speaker = context_speakers.pop()
-                            response = context.pop()
-                            yield example_id, {
-                                "personas": persona[response_speaker],
-                                "context_speakers": context_speakers,
-                                "context": context,
-                                "response_speaker": response_speaker,
-                                "response": response,
-                            }
-                            context_speakers = []
-                            context = []
-                            response_speaker = ""
-                            response = ""
-                            example_id += 1
-                    except (IndexError, KeyError):
-                        print(
-                            self.config.domain, split, id_, row, context_speakers, context, response_speaker, response
-                        )
+                            # contains inline \n
+                            context[-1] = context[-1] + " " + row.strip()
+                    else:
+                        response_speaker = context_speakers.pop()
+                        response = context.pop()
+                        yield example_id, {
+                            "personas": persona[response_speaker],
+                            "context_speakers": context_speakers,
+                            "context": context,
+                            "response_speaker": response_speaker,
+                            "response": response,
+                        }
+                        context_speakers = []
+                        context = []
+                        example_id += 1
