@@ -1,6 +1,22 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- en
+licenses:
+- unknown
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- text-classification
+task_ids:
+- multi-class-classification
 ---
 
 # Dataset Card for [Dataset Name]
