@@ -17,7 +17,7 @@ task_ids:
 - sentiment-classification
 ---
 
-# Dataset Card for Wongnai (Reviews)
+# Dataset Card for Wongnai_Reviews
 
 ## Dataset Description
 
@@ -25,7 +25,7 @@ task_ids:
 
 ### Dataset Summary
 
-Wongnai's review dataset contains restaurant reviews and ratings, almost all in Thai language.
+The Wongnai Review dataset contains restaurant reviews and ratings, almost entirely in Thai language.
 
 The reviews are in 5 classes ranging from 1 to 5 stars.
 
@@ -52,7 +52,7 @@ Test splits do not have a star rating disclosed, so -1 will be returned.
 
 #### Initial Data Collection and Normalization
 
-Data was collected by Wongnai from reviews on their website,
+Data was collected by Wongnai from business reviews on their website,
 and shared on GitHub and Kaggle.
 
 ### Annotations

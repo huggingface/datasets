@@ -32,12 +32,10 @@ The reviews are in 5 classes ranging from 1 to 5 stars.
 
 _LICENSE = "LGPL-3.0"
 
-_URLs = {
-    'default': "https://github.com/wongnai/wongnai-corpus/raw/master/review/review_dataset.zip"
-}
+_URLs = {"default": "https://github.com/wongnai/wongnai-corpus/raw/master/review/review_dataset.zip"}
 
 
-class Wongnai(datasets.GeneratorBasedBuilder):
+class WongnaiReviews(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.1")
 
     def _info(self):
@@ -62,17 +60,11 @@ class Wongnai(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "w_review_train.csv"),
-                    "split": "train",
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "w_review_train.csv"), "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test_file.csv"),
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "test_file.csv"), "split": "test"},
             ),
         ]
 
@@ -85,8 +77,8 @@ class Wongnai(datasets.GeneratorBasedBuilder):
             rownum = 0
             for row in rdr:
                 rownum += 1
-                id = (row[0] if split == "test" else rownum)
+                id = row[0] if split == "test" else rownum
                 yield id, {
                     "review_body": row[1] if split == "test" else row[0],
-                    "star_rating": -1 if split == "test" else int(row[1])
+                    "star_rating": -1 if split == "test" else int(row[1]),
                 }
