@@ -45,7 +45,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-caWaC is a 780-million-token web corpus of Catalan built from the .cat top-level-domain in late 2013. 
+caWaC is a 780-million-token web corpus of Catalan built from the .cat top-level-domain in late 2013.
 """
 
 _LICENSE = "CC BY-SA 3.0"
