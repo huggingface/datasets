@@ -18,6 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import logging
+import os
 
 import datasets
 
@@ -31,13 +32,12 @@ Only the best answer was reviewed in determining the quality of the question-ans
 
 _URL = "https://ciir.cs.umass.edu/downloads/nfL6/nfL6.json.gz"
 
+
 class YahooAnswersQa(datasets.GeneratorBasedBuilder):
     """Yahoo Non-Factoid Question Dataset"""
 
     VERSION = datasets.Version("1.0.0")
-    BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="yahoo_answers_qa", version=datasets.Version("1.0.0"))
-    ]
+    BUILDER_CONFIGS = [datasets.BuilderConfig(name="yahoo_answers_qa", version=datasets.Version("1.0.0"))]
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -51,20 +51,20 @@ class YahooAnswersQa(datasets.GeneratorBasedBuilder):
                     "main_category": datasets.Value("string"),
                 }
             ),
-
             supervised_keys=None,
             homepage="https://ciir.cs.umass.edu/downloads/nfL6/index.html",
         )
-    
+
     def _split_generators(self, dl_manager):
         downloaded_file = dl_manager.download_and_extract(_URL)
-        print("downloaded file:", downloaded_file)
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_file}),
         ]
-    
+
     def _generate_examples(self, filepath):
         logging.info("⏳ Generating examples from = %s", filepath)
+        if os.path.isdir(filepath):
+            filepath = os.path.join(filepath, "nfL6.json")
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             for example in data:
