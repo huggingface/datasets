@@ -14,4 +14,4 @@ assignees: ''
 - **Data:** *link to the Github repository or current dataset location*
 - **Motivation:** *what are some good reasons to have this dataset*
 
-Instructions to add a new dataset can be found [here](https://huggingface.co/docs/datasets/share_dataset.html).
+Instructions to add a new dataset can be found [here](https://github.com/huggingface/datasets/blob/master/ADD_NEW_DATASET.md).
