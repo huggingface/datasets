@@ -4,7 +4,7 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- sv
+- no
 licenses:
 - unknown-
 multilinguality:
