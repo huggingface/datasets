@@ -36,7 +36,7 @@ _CITATION = """\
 _DESCRIPTION = """\
 A dataset of about 20k questions that are elicited from readers as they naturally read through a document sentence by sentence. \
 Compared to existing datasets, INQUISITIVE questions target more towards high-level (semantic and discourse) comprehension of text. \
-Because these questions are generated while the readers are pro-cessing the information, the questions directly communicate gaps between \
+Because these questions are generated while the readers are processing the information, the questions directly communicate gaps between \
 the reader’s and writer’s knowledge about the events described in the text, and are not necessarily answered in the document itself. \
 This type of question reflects a real-world scenario: if one has questions during reading, some of them are answered by the text later on, \
 the rest are not, but any of them would help further the reader’s understanding at the particular point when they asked it. \
