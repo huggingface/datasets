@@ -51,7 +51,7 @@ task_ids:
 
 ### Dataset Summary
 
-A clean data resource containing all explicit time references in a dataset of 52,183 novels whose full text is available via Project Gutenberg and the Hathi Trust Digital Library 2.
+A clean data resource containing all explicit time references in a dataset of 52,183 novels whose full text is available via Project Gutenberg.
 
 ### Supported Tasks and Leaderboards
 
