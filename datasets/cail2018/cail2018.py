@@ -8,7 +8,7 @@ import datasets
 
 _CITATION = """\
 @misc{xiao2018cail2018,
-      title={CAIL2018: A Large-Scale Legal Dataset for Judgment Prediction}, 
+      title={CAIL2018: A Large-Scale Legal Dataset for Judgment Prediction},
       author={Chaojun Xiao and Haoxi Zhong and Zhipeng Guo and Cunchao Tu and Zhiyuan Liu and Maosong Sun and Yansong Feng and Xianpei Han and Zhen Hu and Heng Wang and Jianfeng Xu},
       year={2018},
       eprint={1807.02478},
