@@ -47,7 +47,7 @@ task_ids:
 ## Dataset Description
 
 - **Homepage:** [Add homepage URL here if available (unless it's a GitHub repository)]()
-- **Repository:** [If the dataset is hosted on github or has a github homepage, add URL here]()
+- **Repository:** https://github.com/LC-John/Yahoo-Answers-Topic-Classification-Dataset
 - **Paper:** [If the dataset was introduced by a paper or there was a paper written describing the dataset, add URL here (landing page for Arxiv paper preferred)]()
 - **Leaderboard:** [If the dataset supports an active leaderboard, add link here]()
 - **Point of Contact:** [If known, name and email of at least one person the reader can contact for questions about the dataset.]()
