@@ -16,12 +16,11 @@
 
 from __future__ import absolute_import, division, print_function
 
-import glob
-import ossq
-import tarfile
 import csv
+import os
 
 import datasets
+
 
 _DESCRIPTION = """
 Yahoo! Answers Topic Classification is text classification dataset. \
@@ -44,6 +43,7 @@ _TOPICS = [
     "Family & Relationships",
     "Politics & Government",
 ]
+
 
 class YahooAnswersTopics(datasets.GeneratorBasedBuilder):
     "Yahoo! Answers Topic Classification Dataset"
@@ -71,28 +71,29 @@ class YahooAnswersTopics(datasets.GeneratorBasedBuilder):
             supervised_keys=None,
             homepage="https://github.com/LC-John/Yahoo-Answers-Topic-Classification-Dataset",
         )
-    
+
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_URL)
 
         # Extracting (un-taring) the training data
-        tar_file = tarfile.open(os.path.join(data_dir, "yahoo_answers_csv.tar"))
-        tar_file.extractall(path=data_dir)
-        tar_file.close()
-
+        data_dir = os.path.join(data_dir, "yahoo_answers_csv")
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "yahoo_answers_csv", "train.csv")}),
-            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "yahoo_answers_csv", "test.csv")}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir, "train.csv")}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir, "test.csv")}
+            ),
         ]
-    
+
     def _generate_examples(self, filepath):
         with open(filepath, encoding="utf-8") as f:
-            rows = csv.reader(filepath)
+            rows = csv.reader(f)
             for i, row in enumerate(rows):
                 yield i, {
                     "id": i,
                     "topic": int(row[0]) - 1,
                     "question_title": row[1],
                     "question_content": row[2],
-                    "best_answer": row[3]
+                    "best_answer": row[3],
                 }
