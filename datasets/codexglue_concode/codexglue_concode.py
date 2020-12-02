@@ -11,7 +11,7 @@ _CITATION = """\
   author={Iyer, Srinivasan and Konstas, Ioannis and Cheung, Alvin and Zettlemoyer, Luke},
   journal={arXiv preprint arXiv: 1808.09588},
   year=2018,}"""
-_URL = "https: //raw.githubusercontent.com/microsoft/CodeXGLUE/main/Text-Code/text-to-code/dataset/concode/"
+_URL = "https://raw.githubusercontent.com/microsoft/CodeXGLUE/main/Text-Code/text-to-code/dataset/concode/"
 _URLS = {
     "train": _URL + "train.json",
     "dev": _URL + "dev.json",
