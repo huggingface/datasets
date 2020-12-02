@@ -4,13 +4,15 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- no
+- de
+- fr
+- nl
 licenses:
-- unknown-
+- cc0-1.0
 multilinguality:
-- monolingual
+- multilingual
 size_categories:
-- 10K<n<100K
+- n<1K
 source_datasets:
 - original
 task_categories:
@@ -19,7 +21,7 @@ task_ids:
 - named-entity-recognition
 ---
 
-# Dataset Card for Norwegian NER
+# Dataset Card for Europeana Newspapers
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)

@@ -2,24 +2,24 @@
 annotations_creators:
 - expert-generated
 language_creators:
-- crowdsourced
+- expert-generated
 languages:
-- no
+- en
 licenses:
-- unknown-
+- unknown
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
-- structure-prediction
+- question-answering
 task_ids:
-- named-entity-recognition
+- multiple-choice-qa
 ---
 
-# Dataset Card for Norwegian NER
+# Dataset Card Creation Guide
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -46,11 +46,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [Add homepage URL here if available (unless it's a GitHub repository)]()
+- **Repository:** [If the dataset is hosted on github or has a github homepage, add URL here]()
+- **Paper:** [If the dataset was introduced by a paper or there was a paper written describing the dataset, add URL here (landing page for Arxiv paper preferred)]()
+- **Leaderboard:** [If the dataset supports an active leaderboard, add link here]()
+- **Point of Contact:** [If known, name and email of at least one person the reader can contact for questions about the dataset.]()
 
 ### Dataset Summary
 
@@ -77,7 +77,6 @@ task_ids:
 ### Data Splits
 
 [More Information Needed]
-
 ## Dataset Creation
 
 ### Curation Rationale
@@ -85,6 +84,8 @@ task_ids:
 [More Information Needed]
 
 ### Source Data
+
+[More Information Needed]
 
 #### Initial Data Collection and Normalization
 
@@ -95,6 +96,8 @@ task_ids:
 [More Information Needed]
 
 ### Annotations
+
+[More Information Needed]
 
 #### Annotation process
 

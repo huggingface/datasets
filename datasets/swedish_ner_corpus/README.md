@@ -2,15 +2,15 @@
 annotations_creators:
 - expert-generated
 language_creators:
-- crowdsourced
+- found
 languages:
-- no
+- sv
 licenses:
-- unknown-
+- cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
-- 10K<n<100K
+- 1K<n<10K
 source_datasets:
 - original
 task_categories:
@@ -19,7 +19,7 @@ task_ids:
 - named-entity-recognition
 ---
 
-# Dataset Card for Norwegian NER
+# Swedish NER Corpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -46,15 +46,13 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
-- **Leaderboard:**
-- **Point of Contact:**
+- **Homepage:** [https://github.com/klintan/swedish-ner-corpus]()
+- **Repository:** [https://github.com/klintan/swedish-ner-corpus]()
+- **Point of contact:** Andreas Klintberg (ankl@kth.se)
 
 ### Dataset Summary
 
-[More Information Needed]
+Webbnyheter 2012 from Spraakbanken, semi-manually annotated and adapted for CoreNLP Swedish NER. Semi-manually defined in this case as: Bootstrapped from Swedish Gazetters then manually correcte/reviewed by two independent native speaking swedish annotators. No annotator agreement calculated.
 
 ### Supported Tasks and Leaderboards
 
@@ -62,17 +60,70 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+Swedish
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+A sample dataset instance is provided below:
+
+```json
+{'id': '3',
+ 'ner_tags': [4, 4, 0, 0, 0, 0, 0, 0, 3, 3, 0],
+ 'tokens': ['Margaretha',
+  'Fahlgren',
+  ',',
+  'professor',
+  'i',
+  'litteraturvetenskap',
+  ',',
+  'vice-rektor',
+  'Uppsala',
+  'universitet',
+  '.']}
+```
+
+
 
 ### Data Fields
 
-[More Information Needed]
+- `id`: id of the sentence
+- `token`: current token
+- `ner_tag`: ner tag of the token
+
+Full fields:
+
+```json
+{
+  "id":{
+    "feature_type":"Value"
+      "dtype":"string"
+      }
+      "tokens":{
+        "feature_type":"Sequence"
+        "feature":{
+        "feature_type":"Value"
+        "dtype":"string"
+        }
+      }
+    "ner_tags":{
+      "feature_type":"Sequence"
+        "dtype":"int32"
+        "feature":{
+        "feature_type":"ClassLabel"
+          "dtype":"int32"
+          "class_names":[
+              0:"0"
+              1:"LOC"
+              2:"MISC"
+              3:"ORG"
+              4:"PER"
+              ]
+      }
+  }
+}
+```
 
 ### Data Splits
 
@@ -86,6 +137,8 @@ task_ids:
 
 ### Source Data
 
+[More Information Needed]
+
 #### Initial Data Collection and Normalization
 
 [More Information Needed]
@@ -95,6 +148,8 @@ task_ids:
 [More Information Needed]
 
 ### Annotations
+
+[More Information Needed]
 
 #### Annotation process
 
@@ -126,11 +181,11 @@ task_ids:
 
 ### Dataset Curators
 
-[More Information Needed]
+The original dataset was provided by Språkbanken which consists of news from Swedish newspapers' websites.
 
 ### Licensing Information
 
-[More Information Needed]
+https://github.com/klintan/swedish-ner-corpus/blob/master/LICENSE
 
 ### Citation Information
 
