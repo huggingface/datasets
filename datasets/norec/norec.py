@@ -33,7 +33,6 @@ _DESCRIPTION = """\
 NoReC was created as part of the SANT project (Sentiment Analysis for Norwegian Text), a collaboration between the Language Technology Group (LTG) at the Department of Informatics at the University of Oslo, the Norwegian Broadcasting Corporation (NRK), Schibsted Media Group and Aller Media. This first release of the corpus comprises 35,194 reviews extracted from eight different news sources: Dagbladet, VG, Aftenposten, Bergens Tidende, Fædrelandsvennen, Stavanger Aftenblad, DinSide.no and P3.no. In terms of publishing date the reviews mainly cover the time span 2003–2017, although it also includes a handful of reviews dating back as far as 1998.
 """
 
-# Files are stored with Git LFS then we add raw=true at the end
 _URL = "https://www.mn.uio.no/ifi/english/research/projects/sant/data/norec/norec-1.0.1.tar.gz"
 _TRAIN = "conllu/train"
 _DEV = "conllu/dev"
