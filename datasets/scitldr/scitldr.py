@@ -162,7 +162,7 @@ class SciTldr(datasets.GeneratorBasedBuilder):
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
                 if self.config.name == "AIC":
