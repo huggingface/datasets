@@ -169,6 +169,8 @@ class PEC(datasets.GeneratorBasedBuilder):
         for fpath in filepath:
             with open(fpath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
+                    if row.strip() == "":
+                        continue
                     if "********************" not in row:
                         if "---+---" in row:
                             speaker, utterance = row.split("---+---")
