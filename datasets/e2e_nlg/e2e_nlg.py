@@ -33,7 +33,7 @@ _CITATION = """\
   archivePrefix = {arXiv},
   eprint = {1901.11528},
   eprinttype = {arxiv},
-  journal = {Computer Speech \& Language}
+  journal = {Computer Speech & Language}
 }
 """
 
