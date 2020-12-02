@@ -14,18 +14,23 @@
 # limitations under the License.
 
 # Lint as: python3
-import os
-import json
 import glob
+import os
+
+import conllu
 
 import datasets
-import conllu
 
 
 _CITATION = """\
+NoReC: The Norwegian Review Corpus
+Erik Velldal, Lilja Øvrelid, Eivind Alexander Bergem, Cathrine Stadsnes, Samia Touileb, Fredrik Jørgensen
+2018
+http://www.lrec-conf.org/proceedings/lrec2018/pdf/851.pdf
 """
 
 _DESCRIPTION = """\
+NoReC was created as part of the SANT project (Sentiment Analysis for Norwegian Text), a collaboration between the Language Technology Group (LTG) at the Department of Informatics at the University of Oslo, the Norwegian Broadcasting Corporation (NRK), Schibsted Media Group and Aller Media. This first release of the corpus comprises 35,194 reviews extracted from eight different news sources: Dagbladet, VG, Aftenposten, Bergens Tidende, Fædrelandsvennen, Stavanger Aftenblad, DinSide.no and P3.no. In terms of publishing date the reviews mainly cover the time span 2003–2017, although it also includes a handful of reviews dating back as far as 1998.
 """
 
 # Files are stored with Git LFS then we add raw=true at the end
