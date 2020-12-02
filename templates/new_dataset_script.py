@@ -40,6 +40,9 @@ _DESCRIPTION = """\
 This new dataset is designed to solve this great NLP task and is crafted with a lot of care. 
 """
 
+# TODO: Add a link to an official homepage for the dataset here
+_HOMEPAGE = ""
+
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
@@ -106,7 +109,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="https://huggingface.co/great-new-dataset",
+            homepage=_HOMEPAGE,
             # License for the dataset if available
             license=_LICENSE,
             # Citation for the dataset
