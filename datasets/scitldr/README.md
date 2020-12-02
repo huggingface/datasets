@@ -128,7 +128,7 @@ The keys `rouge_scores` and `source_labels` are not necessary for any code to ru
 
 ### Data Fields
 
-- `source`: The Abstract, Abstract, Introduction and Conclusion (AIC) or Full text of the paper, with one sentence per line.
+- `source`: The Abstract, Introduction and Conclusion (AIC) or Full text of the paper, with one sentence per line.
 - `source_labels`: Binary 0 or 1, 1 denotes the oracle sentence.
 - `rouge_scores`: Precomputed ROUGE baseline scores for each sentence.
 - `paper_id`: Arxiv Paper ID.
