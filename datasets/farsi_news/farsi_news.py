@@ -36,7 +36,7 @@ _URLS = {
 }
 
 
-class Medal(datasets.GeneratorBasedBuilder):
+class FarsiNews(datasets.GeneratorBasedBuilder):
     """Farsi News Datasets: Hamshahri and RadioFarda"""
 
     VERSION = datasets.Version("1.0.0")
