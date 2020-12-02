@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Lint as: python3
-"""The General Language Understanding Evaluation (PragmEval) benchmark."""
+"""The General Language Understanding Evaluation (Pragmeval) benchmark."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -22,13 +22,12 @@ import csv
 import os
 import textwrap
 
-import requests
 import six
 
 import datasets
 
 
-_PragmEval_CITATION = """\
+_Pragmeval_CITATION = """\
 @misc{sileo2019discoursebased,
       title={Discourse-Based Evaluation of Language Understanding},
       author={Damien Sileo and Tim Van-de-Cruys and Camille Pradel and Philippe Muller},
@@ -39,34 +38,12 @@ _PragmEval_CITATION = """\
 }
 """
 
-_PragmEval_DESCRIPTION = """\
-Evaluation of language understanding with a 10 datasets benchmark focusing on discourse and pragmatics
+_Pragmeval_DESCRIPTION = """\
+Evaluation of language understanding with a 11 datasets benchmark focusing on discourse and pragmatics
 """
 
 DATA_URL = "https://www.dropbox.com/s/njcy51alkb17sft/pragmeval.zip?dl=1"
 
-TASK_TO_FOLDER = {
-    "verifiability": "Verifiability",
-    "emobank-arousal": "EmoBank-Arousal",
-    "switchboard": "SwitchBoard",
-    "persuasiveness-eloquence": "Persuasiveness-Eloquence",
-    "mrda": "MRDA",
-    "gum": "GUM",
-    "emergent": "Emergent",
-    "persuasiveness-relevance": "Persuasiveness-Relevance",
-    "persuasiveness-specificity": "Persuasiveness-Specificity",
-    "persuasiveness-strength": "Persuasiveness-Strength",
-    "emobank-dominance": "EmoBank-Dominance",
-    "squinky-implicature": "Squinky-Implicature",
-    "sarcasm": "Sarcasm",
-    "squinky-formality": "Squinky-Formality",
-    "stac": "STAC",
-    "pdtb": "PDTB",
-    "persuasiveness-premisetype": "Persuasiveness-PremiseType",
-    "squinky-informativeness": "Squinky-Informativeness",
-    "persuasiveness-claimtype": "Persuasiveness-ClaimType",
-    "emobank-valence": "EmoBank-Valence",
-}
 
 CITATION_DICT = {
     "pdtb": """
@@ -224,18 +201,178 @@ CITATION_DICT = {
     """,
 }
 
+TASK_TO_LABELS = {'verifiability': ['experiential', 'unverifiable', 'non-experiential'],
+ 'emobank-arousal': ['low', 'high'],
+ 'switchboard': ['Response Acknowledgement',
+  'Uninterpretable',
+  'Or-Clause',
+  'Reject',
+  'Statement-non-opinion',
+  '3rd-party-talk',
+  'Repeat-phrase',
+  'Hold Before Answer/Agreement',
+  'Signal-non-understanding',
+  'Offers, Options Commits',
+  'Agree/Accept',
+  'Dispreferred Answers',
+  'Hedge',
+  'Action-directive',
+  'Tag-Question',
+  'Self-talk',
+  'Yes-No-Question',
+  'Rhetorical-Question',
+  'No Answers',
+  'Open-Question',
+  'Conventional-closing',
+  'Other Answers',
+  'Acknowledge (Backchannel)',
+  'Wh-Question',
+  'Declarative Wh-Question',
+  'Thanking',
+  'Yes Answers',
+  'Affirmative Non-yes Answers',
+  'Declarative Yes-No-Question',
+  'Backchannel in Question Form',
+  'Apology',
+  'Downplayer',
+  'Conventional-opening',
+  'Collaborative Completion',
+  'Summarize/Reformulate',
+  'Negative Non-no Answers',
+  'Statement-opinion',
+  'Appreciation',
+  'Other',
+  'Quotation',
+  'Maybe/Accept-part'],
+ 'persuasiveness-eloquence': ['low', 'high'],
+ 'mrda': ['Declarative-Question',
+  'Statement',
+  'Reject',
+  'Or-Clause',
+  '3rd-party-talk',
+  'Continuer',
+  'Hold Before Answer/Agreement',
+  'Assessment/Appreciation',
+  'Signal-non-understanding',
+  'Floor Holder',
+  'Sympathy',
+  'Dispreferred Answers',
+  'Reformulate/Summarize',
+  'Exclamation',
+  'Interrupted/Abandoned/Uninterpretable',
+  'Expansions of y/n Answers',
+  'Action-directive',
+  'Tag-Question',
+  'Accept',
+  'Rhetorical-question Continue',
+  'Self-talk',
+  'Rhetorical-Question',
+  'Yes-No-question',
+  'Open-Question',
+  'Rising Tone',
+  'Other Answers',
+  'Commit',
+  'Wh-Question',
+  'Repeat',
+  'Follow Me',
+  'Thanking',
+  'Offer',
+  'About-task',
+  'Reject-part',
+  'Affirmative Non-yes Answers',
+  'Apology',
+  'Downplayer',
+  'Humorous Material',
+  'Accept-part',
+  'Collaborative Completion',
+  'Mimic Other',
+  'Understanding Check',
+  'Misspeak Self-Correction',
+  'Or-Question',
+  'Topic Change',
+  'Negative Non-no Answers',
+  'Floor Grabber',
+  'Correct-misspeaking',
+  'Maybe',
+  'Acknowledge-answer',
+  'Defending/Explanation'],
+ 'gum': ['preparation',
+  'evaluation',
+  'circumstance',
+  'solutionhood',
+  'justify',
+  'result',
+  'evidence',
+  'purpose',
+  'concession',
+  'elaboration',
+  'background',
+  'condition',
+  'cause',
+  'restatement',
+  'motivation',
+  'antithesis',
+  'no_relation'],
+ 'emergent': ['observing', 'for', 'against'],
+ 'persuasiveness-relevance': ['low', 'high'],
+ 'persuasiveness-specificity': ['low', 'high'],
+ 'persuasiveness-strength': ['low', 'high'],
+ 'emobank-dominance': ['low', 'high'],
+ 'squinky-implicature': ['low', 'high'],
+ 'sarcasm': ['notsarc', 'sarc'],
+ 'squinky-formality': ['low', 'high'],
+ 'stac': ['Comment',
+  'Contrast',
+  'Q_Elab',
+  'Parallel',
+  'Explanation',
+  'Narration',
+  'Continuation',
+  'Result',
+  'Acknowledgement',
+  'Alternation',
+  'Question_answer_pair',
+  'Correction',
+  'Clarification_question',
+  'Conditional',
+  'Sequence',
+  'Elaboration',
+  'Background',
+  'no_relation'],
+ 'pdtb': ['Synchrony',
+  'Contrast',
+  'Asynchronous',
+  'Conjunction',
+  'List',
+  'Condition',
+  'Pragmatic concession',
+  'Restatement',
+  'Pragmatic cause',
+  'Alternative',
+  'Pragmatic condition',
+  'Pragmatic contrast',
+  'Instantiation',
+  'Exception',
+  'Cause',
+  'Concession'],
+ 'persuasiveness-premisetype': ['testimony',
+  'warrant',
+  'invented_instance',
+  'common_knowledge',
+  'statistics',
+  'analogy',
+  'definition',
+  'real_example'],
+ 'squinky-informativeness': ['low', 'high'],
+ 'persuasiveness-claimtype': ['Value', 'Fact', 'Policy'],
+ 'emobank-valence': ['low', 'high']}
 
 def get_labels(task):
-    folder_name = TASK_TO_FOLDER[task]
-    label_classes = requests.get(
-        f"https://raw.githubusercontent.com/disceval/DiscEval/master/disceval/{folder_name}/labels"
-    ).text.split("\n")
-    label_classes = [x.strip() for x in label_classes if x.strip()]
-    return label_classes
+	return TASK_TO_LABELS[task]
 
 
-class PragmEvalConfig(datasets.BuilderConfig):
-    """BuilderConfig for PragmEval."""
+class PragmevalConfig(datasets.BuilderConfig):
+    """BuilderConfig for Pragmeval."""
 
     def __init__(
         self,
@@ -244,7 +381,7 @@ class PragmEvalConfig(datasets.BuilderConfig):
         process_label=lambda x: x,
         **kwargs,
     ):
-        """BuilderConfig for PragmEval.
+        """BuilderConfig for Pragmeval.
         Args:
           text_features: `dict[string, string]`, map from the name of the feature
             dict for each text field to the name of the column in the tsv file
@@ -262,7 +399,7 @@ class PragmEvalConfig(datasets.BuilderConfig):
             of the label and processing it to the form required by the label feature
           **kwargs: keyword arguments forwarded to super.
         """
-        super(PragmEvalConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(PragmevalConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
         self.text_features = text_features
         self.label_column = "label"
         self.label_classes = get_labels(self.name)
@@ -275,87 +412,88 @@ class PragmEvalConfig(datasets.BuilderConfig):
 
 
 class Pragmeval(datasets.GeneratorBasedBuilder):
-    """The General Language Understanding Evaluation (PragmEval) benchmark."""
 
-    BUILDER_CONFIG_CLASS = PragmEvalConfig
+    """The General Language Understanding Evaluation (Pragmeval) benchmark."""
+
+    BUILDER_CONFIG_CLASS = PragmevalConfig
     BUILDER_CONFIGS = [
-        PragmEvalConfig(
+        PragmevalConfig(
             name="verifiability",
             text_features={"sentence": "sentence"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="emobank-arousal",
             text_features={"sentence": "sentence"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="switchboard",
             text_features={"sentence": "sentence"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="persuasiveness-eloquence",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="mrda",
             text_features={"sentence": "sentence"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="gum",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="emergent",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="persuasiveness-relevance",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="persuasiveness-specificity",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="persuasiveness-strength",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="emobank-dominance",
             text_features={"sentence": "sentence"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="squinky-implicature",
             text_features={"sentence": "sentence"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="sarcasm",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="squinky-formality",
             text_features={"sentence": "sentence"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="stac",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="pdtb",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="persuasiveness-premisetype",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="squinky-informativeness",
             text_features={"sentence": "sentence"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="persuasiveness-claimtype",
             text_features={"sentence1": "sentence1", "sentence2": "sentence2"},
         ),
-        PragmEvalConfig(
+        PragmevalConfig(
             name="emobank-valence",
             text_features={"sentence": "sentence"},
         ),
@@ -369,10 +507,10 @@ class Pragmeval(datasets.GeneratorBasedBuilder):
             features["label"] = datasets.Value("float32")
         features["idx"] = datasets.Value("int32")
         return datasets.DatasetInfo(
-            description=_PragmEval_DESCRIPTION,
+            description=_Pragmeval_DESCRIPTION,
             features=datasets.Features(features),
             homepage=self.config.url,
-            citation=self.config.citation + "\n" + _PragmEval_CITATION,
+            citation=self.config.citation + "\n" + _Pragmeval_CITATION,
         )
 
     def _split_generators(self, dl_manager):
