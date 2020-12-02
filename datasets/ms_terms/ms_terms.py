@@ -45,10 +45,13 @@ class MsTerms(datasets.GeneratorBasedBuilder):
     """The Microsoft Terminology Collection."""
 
     VERSION = datasets.Version("1.0.0")
-    DEFAULT_CONFIG_NAME = "ms_terms-full"
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name=DEFAULT_CONFIG_NAME)
+        datasets.BuilderConfig(
+            name="ms_terms-full",
+            version=VERSION,
+            description=_DESCRIPTION
+        )
     ]
 
     @property

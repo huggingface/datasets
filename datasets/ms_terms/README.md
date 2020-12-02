@@ -1,6 +1,21 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- expert-generated
+language_creators:
+- expert-generated
+languages: []
+licenses:
+- ms-pl
+multilinguality:
+- multilingual
+- translation
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories: []
+task_ids: []
 ---
 
 # Dataset Card for [ms_terms]
