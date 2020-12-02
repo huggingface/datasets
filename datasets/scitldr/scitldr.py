@@ -137,7 +137,6 @@ class Scitldr(datasets.GeneratorBasedBuilder):
             "test": os.path.join(_URLs[self.config.name], _TEST_DATA),
         }
         data_dir = dl_manager.download_and_extract(urls)
-        print(data_dir)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
