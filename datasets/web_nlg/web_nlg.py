@@ -185,21 +185,19 @@ class WebNlg(datasets.GeneratorBasedBuilder):
                 "size": datasets.Value("int32"),
                 "eid": datasets.Value("string"),
                 "original_triple_sets": datasets.Sequence(
-                    datasets.Features({"otriple_set": datasets.Sequence(datasets.Value("string"))}),
+                    {"otriple_set": datasets.Sequence(datasets.Value("string"))}
                 ),
                 "modified_triple_sets": datasets.Sequence(
-                    datasets.Features({"mtriple_set": datasets.Sequence(datasets.Value("string"))}),
+                    {"mtriple_set": datasets.Sequence(datasets.Value("string"))}
                 ),
                 "shape": datasets.Value("string"),
                 "shape_type": datasets.Value("string"),
                 "lex": datasets.Sequence(
-                    datasets.Features(
-                        {
-                            "comment": datasets.Value("string"),
-                            "lid": datasets.Value("string"),
-                            "text": datasets.Value("string"),
-                        }
-                    ),
+                    {
+                        "comment": datasets.Value("string"),
+                        "lid": datasets.Value("string"),
+                        "text": datasets.Value("string"),
+                    }
                 ),
                 "2017_test_category": datasets.Value("string"),
             }
@@ -239,7 +237,7 @@ class WebNlg(datasets.GeneratorBasedBuilder):
 
         id_ = 0
         for xml_location in filedirs:
-            for xml_file in glob(pjoin(xml_location, "*.xml")):
+            for xml_file in sorted(glob(pjoin(xml_location, "*.xml"))):
                 test_cat = xml_file.split("/")[-1][:-4] if "webnlg_challenge_2017/test" in xml_file else ""
                 for exple_dict in xml_file_to_examples(xml_file):
                     exple_dict["2017_test_category"] = test_cat
