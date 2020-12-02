@@ -104,7 +104,6 @@ class Metooma(datasets.GeneratorBasedBuilder):
                 skipinitialspace=True,
             )
             for id_, row in enumerate(csv_reader):
-                # print(row)
                 (
                     tweet_id,
                     text_informative_label,
