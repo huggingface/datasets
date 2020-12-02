@@ -49,7 +49,6 @@ QUESTION_CATEGORIES_MAPPING = {
     "n": "Negation",
     "q": "Quantitative",
     "o": "Others",
-    "": "",
 }
 
 
@@ -96,7 +95,9 @@ class Codah(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("int32"),
-                    "question_category": datasets.Value("string"),
+                    "question_category": datasets.features.ClassLabel(
+                        names=["Idioms", "Reference", "Polysemy", "Negation", "Quantitative", "Others"]
+                    ),
                     "question_propmt": datasets.Value("string"),
                     "candidate_answers": datasets.features.Sequence(datasets.Value("string")),
                     "correct_answer_idx": datasets.Value("int32"),
@@ -130,9 +131,10 @@ class Codah(datasets.GeneratorBasedBuilder):
         with open(data_file, encoding="utf-8") as f:
             rows = csv.reader(f, delimiter="\t")
             for i, row in enumerate(rows):
+                question_category = QUESTION_CATEGORIES_MAPPING[row[0]] if row[0] != "" else -1
                 example = {
                     "id": i,
-                    "question_category": QUESTION_CATEGORIES_MAPPING[row[0]],
+                    "question_category": question_category,
                     "question_propmt": row[1],
                     "candidate_answers": row[2:-1],
                     "correct_answer_idx": int(row[-1]),
