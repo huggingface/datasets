@@ -72,6 +72,7 @@ You are now ready to start the process of adding the dataset. We will create the
 3. Understand the dataset and fill some informations about the dataset in the dataset card
 	- Read the relevant part of the paper or description presenting the dataset
 	- When you see informations that you can fill in the dataset card (e.g. information on License, Dataset Creation, Dataset Description, etc) take the occasion to copy them here
+	- If you have a doubt about a field in the `README.md` dataset card, there is a guide with details in [`README_guide.md`](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md) and a [completed example for inspiration](https://github.com/huggingface/datasets/tree/master/datasets/eli5).
 
 ### Write the loading/processing code
 
