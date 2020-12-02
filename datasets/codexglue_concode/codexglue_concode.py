@@ -94,4 +94,4 @@ class Concode(datasets.GeneratorBasedBuilder):
                 elem_data = json.loads(elem_data)
                 elem_data = {"natural_lang": elem_data["nl"], "code": elem_data["code"]}
                 yield id, elem_data
-                id += 1#increment id
+                id += 1  # increment id
