@@ -162,7 +162,7 @@ Outsourced annotators hired by [Wisesight (Thailand) Co., Ltd.](https://github.c
 
 ### Personal and Sensitive Information
 
-- We trying to exclude any known personally identifiable information from this data set.
+-  The authors tried to exclude any known personally identifiable information from this data set.
 - Usernames and non-public figure names are removed
 - Phone numbers are masked (e.g. 088-888-8888, 09-9999-9999, 0-2222-2222)
 - If you see any personal data still remain in the set, please tell us - so we can remove them.
@@ -220,4 +220,3 @@ BibTeX:
   url          = {https://doi.org/10.5281/zenodo.3457447}
 }
 ```
-
