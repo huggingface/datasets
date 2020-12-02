@@ -24,28 +24,17 @@ Now you are ready, each time you want to add a new dataset, follow the steps in 
 
 ## Adding a new dataset
 
-### Understand the structure of the dataset
+### Creating the new folder
 
-1. Start by preparing the field and understanding how the dataset look like:
+1. Start by finding a short-name for the dataset. Select a `short name` for the dataset which is
+	
+	- unique (don't exist on https://huggingface.co),
+	- not too long and
+	- easy to guess for users, e.g. `squad`, `natural_questions`
 
-	- Find the research paper or description presenting the dataset you want to add (if there is an associated research paper)
-	- Find the location of the data for you dataset
-	- Read the relevant part of the paper or description presenting the dataset
-	- Open the data to see how they look
+Sometimes the short-list name is already given/proposed (e.g. in the spreadsheet of the data sprint to reach v2.0 if you are participating in the effort)
 
-2. Find a short-name for the dataset:
-
-	- Select a `short name` for the dataset which is unique but not too long and is easy to guess for users, e.g. `squad`, `natural_questions`
-	- Sometimes the short-list name is already given/proposed (e.g. in the spreadsheet of the data sprint to reach v2.0 if you are participating in the effort)
-
-You are now ready to start the process of adding the dataset. We will create the following files:
-
-	- **a dataset script** which contains the code to download and pre-process the dataset: e.g. `squad.py`,
-	- **a dataset card** with tags and information on the dataset in a `README.md`.
-	- **a metadata file** (automatically created) which contains checksums and informations about the dataset to guarantee that the loading went fine: `dataset_infos.json` 
-	- **a dummy-data file** (automatically created) which contains small examples from the original files to test and garantee that the script is working well in the future: `dummy_data.zip` 
-
-4. Let's start by creating a new branch to hold your development changes with the name of your dataset:
+2. Let's create a new branch to hold your development changes with the name of your dataset:
 
 	```bash
 	git rebase upstream/master
@@ -54,15 +43,39 @@ You are now ready to start the process of adding the dataset. We will create the
 
 	**Do not** work on the `master` branch.
 
-5. Create your dataset folder under `datasets/<your_dataset_name>`:
+3. And create your dataset folder under `datasets/<your_dataset_name>`:
 
 	```bash
 	mkdir ./datasets/<your_dataset_name>
 	```
 
+You are now ready to start the process of adding the dataset. We will create the following files:
+
+	- **a dataset script** which contains the code to download and pre-process the dataset: e.g. `squad.py`,
+	- **a dataset card** with tags and information on the dataset in a `README.md`.
+	- **a metadata file** (automatically created) which contains checksums and informations about the dataset to guarantee that the loading went fine: `dataset_infos.json` 
+	- **a dummy-data file** (automatically created) which contains small examples from the original files to test and garantee that the script is working well in the future: `dummy_data.zip` 
+
+### Understanding the dataset and filling what you can in the dataset card
+
+1. Create a new dataset card in the dataset folder:
+
+	```bash
+	cp ./templates/README.md ./datasets/<your_dataset_name>
+	```
+
+2. Gather all the information you need:
+
+	- Find the research paper or description presenting the dataset you want to add (if there is an associated research paper)
+	- Find the location of the data for you dataset
+
+3. Understand the dataset and fill some informations about the dataset in the dataset card
+	- Read the relevant part of the paper or description presenting the dataset
+	- When you see informations that you can fill in the dataset card (e.g. information on License, Dataset Creation, Dataset Description, etc) take the occasion to copy them here
+
 ### Write the loading/processing code
 
-Now let's get coding :-)
+Now that you have a felling of how the dataset is, let's get coding :-)
 
 The dataset script is the main entry point to load and process the data. It is a python script under `datasets/<your_dataset_name>/<your_dataset_name>.py`.
 
@@ -229,9 +242,7 @@ Creating the dataset card goes in two steps:
 
 2. **Copy the tags in the dataset card and complete the dataset card**
 
-	Copy the dataset card which is [here](https://github.com/huggingface/datasets/blob/master/templates/README.md) in your dataset folder.
-
-	- **Essential:** Copy the tags that you have generated in step (1) inside the dataset card.
+	- **Essential:** Copy the tags that you have generated in step (1) inside the dataset card that we have created at the beginning (copied from [here](https://github.com/huggingface/datasets/blob/master/templates/README.md)).
 
 		We’re using YAML for tags actually, not JSON (even though the datasets-tagging tool allows to save in JSON). On the right side of the app there is an option to "Show YAML output".  Once you've tagged and saved all of the configs, you can copy-paste the output of this field at the top of your README.
 
