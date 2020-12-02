@@ -91,9 +91,14 @@ class MultiWozV22(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="v2.2", version=datasets.Version("2.2.0"), description="MultiWOZ v2.2"),
+        datasets.BuilderConfig(
+            name="v2.2_active_only",
+            version=datasets.Version("2.2.0"),
+            description="MultiWOZ v2.2, only keeps around frames with an active intent",
+        ),
     ]
 
-    DEFAULT_CONFIG_NAME = "v2.2"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = "v2.2_active_only"
 
     def _info(self):
         features = datasets.Features(
@@ -101,78 +106,62 @@ class MultiWozV22(datasets.GeneratorBasedBuilder):
                 "dialogue_id": datasets.Value("string"),
                 "services": datasets.Sequence(datasets.Value("string")),
                 "turns": datasets.Sequence(
-                    datasets.Features(
-                        {
-                            "turn_id": datasets.Value("string"),
-                            "speaker": datasets.ClassLabel(names=["USER", "SYSTEM"]),
-                            "utterance": datasets.Value("string"),
-                            "frames": datasets.Sequence(
-                                datasets.Features(
+                    {
+                        "turn_id": datasets.Value("string"),
+                        "speaker": datasets.ClassLabel(names=["USER", "SYSTEM"]),
+                        "utterance": datasets.Value("string"),
+                        "frames": datasets.Sequence(
+                            {
+                                "service": datasets.Value("string"),
+                                "state": {
+                                    "active_intent": datasets.Value("string"),
+                                    "requested_slots": datasets.Sequence(datasets.Value("string")),
+                                    "slots_values": datasets.Sequence(
+                                        {
+                                            "slots_values_name": datasets.Value("string"),
+                                            "slots_values_list": datasets.Sequence(datasets.Value("string")),
+                                        }
+                                    ),
+                                },
+                                "slots": datasets.Sequence(
                                     {
-                                        "service": datasets.Value("string"),
-                                        "state": datasets.Features(
-                                            {
-                                                "active_intent": datasets.Value("string"),
-                                                "requested_slots": datasets.Sequence(datasets.Value("string")),
-                                                "slots_values": datasets.Sequence(
-                                                    datasets.Features(
-                                                        {
-                                                            "slots_values_name": datasets.Value("string"),
-                                                            "slots_values_list": datasets.Sequence(
-                                                                datasets.Value("string")
-                                                            ),
-                                                        }
-                                                    )
-                                                ),
-                                            }
-                                        ),
-                                        "slots": datasets.Sequence(
+                                        "slot": datasets.Value("string"),
+                                        "value": datasets.Value("string"),
+                                        "start": datasets.Value("int32"),
+                                        "exclusive_end": datasets.Value("int32"),
+                                        "copy_from": datasets.Value("string"),
+                                        "copy_from_value": datasets.Sequence(datasets.Value("string")),
+                                    }
+                                ),
+                            }
+                        ),
+                        "dialogue_acts": datasets.Features(
+                            {
+                                "dialog_act": datasets.Sequence(
+                                    {
+                                        "act_type": datasets.Value("string"),
+                                        "act_slots": datasets.Sequence(
                                             datasets.Features(
                                                 {
-                                                    "slot": datasets.Value("string"),
-                                                    "value": datasets.Value("string"),
-                                                    "start": datasets.Value("int32"),
-                                                    "exclusive_end": datasets.Value("int32"),
-                                                    "copy_from": datasets.Value("string"),
-                                                    "copy_from_value": datasets.Sequence(datasets.Value("string")),
+                                                    "slot_name": datasets.Value("string"),
+                                                    "slot_value": datasets.Value("string"),
                                                 }
-                                            )
+                                            ),
                                         ),
                                     }
-                                )
-                            ),
-                            "dialogue_acts": datasets.Features(
-                                {
-                                    "dialog_act": datasets.Sequence(
-                                        datasets.Features(
-                                            {
-                                                "act_type": datasets.Value("string"),
-                                                "act_slots": datasets.Sequence(
-                                                    datasets.Features(
-                                                        {
-                                                            "slot_name": datasets.Value("string"),
-                                                            "slot_value": datasets.Value("string"),
-                                                        }
-                                                    ),
-                                                ),
-                                            }
-                                        )
-                                    ),
-                                    "span_info": datasets.Sequence(
-                                        datasets.Features(
-                                            {
-                                                "act_type": datasets.Value("string"),
-                                                "act_slot_name": datasets.Value("string"),
-                                                "act_slot_value": datasets.Value("string"),
-                                                "span_start": datasets.Value("int32"),
-                                                "span_end": datasets.Value("int32"),
-                                            }
-                                        )
-                                    ),
-                                }
-                            ),
-                        }
-                    )
+                                ),
+                                "span_info": datasets.Sequence(
+                                    {
+                                        "act_type": datasets.Value("string"),
+                                        "act_slot_name": datasets.Value("string"),
+                                        "act_slot_value": datasets.Value("string"),
+                                        "span_start": datasets.Value("int32"),
+                                        "span_end": datasets.Value("int32"),
+                                    }
+                                ),
+                            }
+                        ),
+                    }
                 ),
             }
         )
@@ -190,14 +179,17 @@ class MultiWozV22(datasets.GeneratorBasedBuilder):
         self.stored_dialogue_acts = json.load(open(data_files["dialogue_acts"]))
         return [
             datasets.SplitGenerator(
-                name=spl,
-                # These kwargs will be passed to _generate_examples
+                name=spl_enum,
                 gen_kwargs={
                     "filepaths": data_files,
                     "split": spl,
                 },
             )
-            for spl in ["train", "dev", "test"]
+            for spl, spl_enum in [
+                ("train", datasets.Split.TRAIN),
+                ("dev", datasets.Split.VALIDATION),
+                ("test", datasets.Split.TEST),
+            ]
         ]
 
     def _generate_examples(self, filepaths, split):
@@ -250,6 +242,10 @@ class MultiWozV22(datasets.GeneratorBasedBuilder):
                                     ],
                                 }
                                 for frame in turn["frames"]
+                                if (
+                                    "active_only" not in self.config.name
+                                    or frame.get("state", {}).get("active_intent", "NONE") != "NONE"
+                                )
                             ],
                             "dialogue_acts": {
                                 "dialog_act": [
