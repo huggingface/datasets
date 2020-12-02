@@ -72,7 +72,7 @@ class EuroNewsConfig(datasets.BuilderConfig):
         super(EuroNewsConfig, self).__init__(**kwargs)
 
 
-class EuroNews(datasets.GeneratorBasedBuilder):
+class Euronews(datasets.GeneratorBasedBuilder):
     """Europana Newspaper dataset."""
 
     BUILDER_CONFIGS = [
