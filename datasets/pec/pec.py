@@ -152,10 +152,13 @@ class PEC(datasets.GeneratorBasedBuilder):
 
         if self.config.domain == "all":
             # load files from both happy and offmychest
-            filepath = [os.path.join(data_dir, "happy", os.path.basename(filepath)), os.path.join(data_dir, "offmychest", os.path.basename(filepath))]
+            filepath = [
+                os.path.join(data_dir, "happy", os.path.basename(filepath)),
+                os.path.join(data_dir, "offmychest", os.path.basename(filepath)),
+            ]
         else:
             filepath = [filepath]
-        
+
         # create persona
         if not hasattr(self, "persona_" + self.config.domain):
             persona_paths = [os.path.join(os.path.dirname(fpath), "persona.txt") for fpath in filepath]
