@@ -120,51 +120,39 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "example_id": datasets.Value("string"),
-                    "normal": datasets.Features(
-                        {
-                            "normal_article_id": datasets.Value("int32"),
-                            "normal_article_title": datasets.Value("string"),
-                            "normal_article_url": datasets.Value("string"),
-                            "normal_article_content": datasets.Sequence(
-                                datasets.Features(
-                                    {
-                                        "normal_sentence_id": datasets.Value("string"),
-                                        "normal_sentence": datasets.Value("string"),
-                                    }
-                                )
-                            ),
-                        }
-                    ),
-                    "simple": datasets.Features(
-                        {
-                            "simple_article_id": datasets.Value("int32"),
-                            "simple_article_title": datasets.Value("string"),
-                            "simple_article_url": datasets.Value("string"),
-                            "simple_article_content": datasets.Sequence(
-                                datasets.Features(
-                                    {
-                                        "simple_sentence_id": datasets.Value("string"),
-                                        "simple_sentence": datasets.Value("string"),
-                                    }
-                                )
-                            ),
-                        }
-                    ),
-                    "paragraph_alignment": datasets.Sequence(
-                        datasets.Features(
-                            {
-                                "normal_paragraph_id": datasets.Value("string"),
-                                "simple_paragraph_id": datasets.Value("string"),
-                            }
-                        )
-                    ),
-                    "sentence_alignment": datasets.Sequence(
-                        datasets.Features(
+                    "normal": {
+                        "normal_article_id": datasets.Value("int32"),
+                        "normal_article_title": datasets.Value("string"),
+                        "normal_article_url": datasets.Value("string"),
+                        "normal_article_content": datasets.Sequence(
                             {
                                 "normal_sentence_id": datasets.Value("string"),
-                                "simple_sentence_id": datasets.Value("string"),
+                                "normal_sentence": datasets.Value("string"),
                             }
-                        )
+                        ),
+                    },
+                    "simple": {
+                        "simple_article_id": datasets.Value("int32"),
+                        "simple_article_title": datasets.Value("string"),
+                        "simple_article_url": datasets.Value("string"),
+                        "simple_article_content": datasets.Sequence(
+                            {
+                                "simple_sentence_id": datasets.Value("string"),
+                                "simple_sentence": datasets.Value("string"),
+                            }
+                        ),
+                    },
+                    "paragraph_alignment": datasets.Sequence(
+                        {
+                            "normal_paragraph_id": datasets.Value("string"),
+                            "simple_paragraph_id": datasets.Value("string"),
+                        }
+                    ),
+                    "sentence_alignment": datasets.Sequence(
+                        {
+                            "normal_sentence_id": datasets.Value("string"),
+                            "simple_sentence_id": datasets.Value("string"),
+                        }
                     ),
                 }
             )
@@ -208,21 +196,21 @@ class WikiAuto(datasets.GeneratorBasedBuilder):
                 "simple_sentence",
                 "normal_sentence",
             ]
-            with open(filepaths[split]) as f:
+            with open(filepaths[split], encoding="utf-8") as f:
                 for id_, line in enumerate(f):
                     values = line.strip().split("\t")
                     assert len(values) == 5, f"Not enough fields in ---- {line} --- {values}"
                     yield id_, dict([(k, val) for k, val in zip(keys, values)])
         elif self.config.name == "auto_acl":
-            with open(filepaths["normal"]) as fi:
-                with open(filepaths["simple"]) as fo:
+            with open(filepaths["normal"], encoding="utf-8") as fi:
+                with open(filepaths["simple"], encoding="utf-8") as fo:
                     for id_, (norm_se, simp_se) in enumerate(zip(fi, fo)):
                         yield id_, {
                             "normal_sentence": norm_se,
                             "simple_sentence": simp_se,
                         }
         else:
-            dataset_dict = json.load(open(filepaths[split]))
+            dataset_dict = json.load(open(filepaths[split], encoding="utf-8"))
             for id_, (eid, example_dict) in enumerate(dataset_dict.items()):
                 res = {
                     "example_id": eid,
