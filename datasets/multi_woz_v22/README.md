@@ -1,6 +1,25 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- machine-generated
+language_creators:
+- crowdsourced
+- machine-generated
+languages:
+- en
+licenses:
+- apache-2.0
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- original
+task_categories:
+- sequence-modeling
+- structure-prediction
+task_ids:
+- dialogue-modeling
+- parsing
 ---
 
 # Dataset Card for MultiWOZ
@@ -36,21 +55,25 @@ YAML tags:
 
 ### Dataset Summary
 
-[More Information Needed]
+Multi-Domain Wizard-of-Oz dataset (MultiWOZ), a fully-labeled collection of human-human written conversations spanning over multiple domains and topics.
+MultiWOZ 2.1 (Eric et al., 2019) identified and fixed many erroneous annotations and user utterances in the original version, resulting in an
+improved version of the dataset. MultiWOZ 2.2 is a yet another improved version of this dataset, which identifies and fixes dialogue state annotation errors
+across 17.3% of the utterances on top of MultiWOZ 2.1 and redefines the ontology by disallowing vocabularies of slots with a large number of possible values
+(e.g., restaurant name, time of booking) and introducing standardized slot span annotations for these slots.
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+This dataset can be used for generative dialogue modeling and dialogue state tracking.
 
 ### Languages
 
-[More Information Needed]
+The text in the dataset is in English (`en`).
 
 ## Dataset Structure
 
 ### Data Instances
 
-[More Information Needed]
+A data instance is a full multi-turn dialogue between a `USER` and a `SYSTEM`.
 
 ### Data Fields
 
@@ -112,8 +135,51 @@ YAML tags:
 
 ### Licensing Information
 
-[More Information Needed]
+The dataset is released under the Apache License 2.0.
 
 ### Citation Information
 
-[More Information Needed]
+You can cite the following for the various versions of MultiWOZ:
+
+Version 1.0
+```
+@inproceedings{ramadan2018large,
+  title={Large-Scale Multi-Domain Belief Tracking with Knowledge Sharing},
+  author={Ramadan, Osman and Budzianowski, Pawe{\l} and Gasic, Milica},
+  booktitle={Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics},
+  volume={2},
+  pages={432--437},
+  year={2018}
+}
+```
+
+Version 2.0
+```
+@inproceedings{budzianowski2018large,
+    Author = {Budzianowski, Pawe{\l} and Wen, Tsung-Hsien and Tseng, Bo-Hsiang  and Casanueva, I{\~n}igo and Ultes Stefan and Ramadan Osman and Ga{\v{s}}i\'c, Milica},
+    title={MultiWOZ - A Large-Scale Multi-Domain Wizard-of-Oz Dataset for Task-Oriented Dialogue Modelling},
+    booktitle={Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+    year={2018}
+}
+```
+
+Version 2.1
+```
+@article{eric2019multiwoz,
+  title={MultiWOZ 2.1: Multi-Domain Dialogue State Corrections and State Tracking Baselines},
+  author={Eric, Mihail and Goel, Rahul and Paul, Shachi and Sethi, Abhishek and Agarwal, Sanchit and Gao, Shuyag and Hakkani-Tur, Dilek},
+  journal={arXiv preprint arXiv:1907.01669},
+  year={2019}
+}
+```
+
+Version 2.2
+```
+@inproceedings{zang2020multiwoz,
+  title={MultiWOZ 2.2: A Dialogue Dataset with Additional Annotation Corrections and State Tracking Baselines},
+  author={Zang, Xiaoxue and Rastogi, Abhinav and Sunkara, Srinivas and Gupta, Raghav and Zhang, Jianguo and Chen, Jindong},
+  booktitle={Proceedings of the 2nd Workshop on Natural Language Processing for Conversational AI, ACL 2020},
+  pages={109--117},
+  year={2020}
+}
+```
