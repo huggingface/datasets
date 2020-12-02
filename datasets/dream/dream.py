@@ -78,15 +78,12 @@ class Dream(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "id": datasets.Value("string"),
-                    "dialogue": datasets.features.Sequence(datasets.Value("string")),
-                    "questions": [
-                        {
-                            "question": datasets.Value("string"),
-                            "choice": datasets.features.Sequence(datasets.Value("string")),
-                            "answer": datasets.Value("string"),
-                        },
-                    ],
+                    "id": datasets.Value("int32"),
+                    "dialogue_id": datasets.Value("string"),
+                    "dialogue": datasets.Sequence(datasets.Value("string")),
+                    "question": datasets.Value("string"),
+                    "choice": datasets.features.Sequence(datasets.Value("string")),
+                    "answer": datasets.Value("string"),
                 }
             ),
             supervised_keys=None,
@@ -108,12 +105,20 @@ class Dream(datasets.GeneratorBasedBuilder):
         """This function returns the examples in the raw (text) form."""
         logging.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
-            examples = json.load(f)
-            for example in examples:
-                id_ = example[-1]
+            dialogues = json.load(f)
+            counter = 0
+            for dialogue in dialogues:
+                dialogue_text = dialogue[0]
+                questions = dialogue[1]
+                dialogue_id = dialogue[2]
 
-                yield id_, {
-                    "id": id_,
-                    "dialogue": example[0],
-                    "questions": example[1],
-                }
+                for que in questions:
+                    yield counter, {
+                        "id": counter,
+                        "dialogue_id": dialogue_id,
+                        "dialogue": dialogue_text,
+                        "question": que["question"],
+                        "choice": que["choice"],
+                        "answer": que["answer"],
+                    }
+                    counter += 1
