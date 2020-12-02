@@ -21,10 +21,10 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 `prachathai-67k`: News Article Corpus and Multi-label Text Classificdation from Prachathai.com
-The prachathai-67k dataset was scraped from the news site Prachathai. 
-We filtered out those articles with less than 500 characters of body text, mostly images and cartoons. 
-It contains 67,889 articles wtih 12 curated tags from August 24, 2004 to November 15, 2018. 
-The dataset was originally scraped by @lukkiddd and cleaned by @cstorm125.  
+The prachathai-67k dataset was scraped from the news site Prachathai.
+We filtered out those articles with less than 500 characters of body text, mostly images and cartoons.
+It contains 67,889 articles wtih 12 curated tags from August 24, 2004 to November 15, 2018.
+The dataset was originally scraped by @lukkiddd and cleaned by @cstorm125.
 You can also see preliminary exploration at https://github.com/PyThaiNLP/prachathai-67k/blob/master/exploration.ipynb
 """
 
