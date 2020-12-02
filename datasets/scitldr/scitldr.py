@@ -59,7 +59,7 @@ _VALID_DATA = "dev.jsonl"
 
 
 # There are several preprocessing scripts given in the original SciTLDR GitHub repository to preprocess this data.
-class SciTldr(datasets.GeneratorBasedBuilder):
+class Scitldr(datasets.GeneratorBasedBuilder):
     """Dataset for TLDR: Extreme Summarization of Scientific Documents."""
 
     VERSION = datasets.Version("1.1.0")
