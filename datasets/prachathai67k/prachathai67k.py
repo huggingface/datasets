@@ -29,7 +29,7 @@ You can also see preliminary exploration at https://github.com/PyThaiNLP/prachat
 """
 
 
-class PrachathaiConfig(datasets.BuilderConfig):
+class Prachathai67kConfig(datasets.BuilderConfig):
     """BuilderConfig for Prachathai."""
 
     def __init__(self, **kwargs):
@@ -38,10 +38,10 @@ class PrachathaiConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(PrachathaiConfig, self).__init__(**kwargs)
+        super(Prachathai67kConfig, self).__init__(**kwargs)
 
 
-class PrachathaiDataset(datasets.GeneratorBasedBuilder):
+class Prachathai67k(datasets.GeneratorBasedBuilder):
     """`prachathai-67k`: News Article Corpus and Multi-label Text Classificdation from Prachathai.com"""
 
     _DOWNLOAD_URL = "https://github.com/PyThaiNLP/prachathai-67k/raw/master/data.zip"
@@ -50,7 +50,7 @@ class PrachathaiDataset(datasets.GeneratorBasedBuilder):
     _TEST_FILE = "test.jsonl"
 
     BUILDER_CONFIGS = [
-        PrachathaiConfig(
+        Prachathai67kConfig(
             name="prachathai67k",
             version=datasets.Version("1.1.0"),
             description="`prachathai-67k`: News Article Corpus and Multi-label Text Classificdation from Prachathai.com",
@@ -66,18 +66,18 @@ class PrachathaiDataset(datasets.GeneratorBasedBuilder):
                     "date": datasets.Value("string"),
                     "title": datasets.Value("string"),
                     "body_text": datasets.Value("string"),
-                    "politics": datasets.Value("int32"),
-                    "human_rights": datasets.Value("int32"),
-                    "quality_of_life": datasets.Value("int32"),
-                    "international": datasets.Value("int32"),
-                    "social": datasets.Value("int32"),
-                    "environment": datasets.Value("int32"),
-                    "economics": datasets.Value("int32"),
-                    "culture": datasets.Value("int32"),
-                    "labor": datasets.Value("int32"),
-                    "national_security": datasets.Value("int32"),
-                    "ict": datasets.Value("int32"),
-                    "education": datasets.Value("int32"),
+                    "politics": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "human_rights": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "quality_of_life": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "international": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "social": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "environment": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "economics": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "culture": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "labor": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "national_security": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "ict": datasets.features.ClassLabel(names=["neg", "pos"]),
+                    "education": datasets.features.ClassLabel(names=["neg", "pos"]),
                 }
             ),
             supervised_keys=None,
