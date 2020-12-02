@@ -60,7 +60,7 @@ class WisesightSentimentConfig(datasets.BuilderConfig):
         super(WisesightSentimentConfig, self).__init__(**kwargs)
 
 
-class WisesightSentimentDataset(datasets.GeneratorBasedBuilder):
+class WisesightSentiment(datasets.GeneratorBasedBuilder):
     """Wisesight Sentiment Corpus: Social media messages in Thai language with sentiment category (positive, neutral, negative, question)"""
 
     _DOWNLOAD_URL = "https://github.com/PyThaiNLP/wisesight-sentiment/raw/master/huggingface/data.zip"
