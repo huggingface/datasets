@@ -51,8 +51,8 @@ _URLS = {
 }
 
 
-class FiNERConfig(datasets.BuilderConfig):
-    """BuilderConfig for FiNER dazsez."""
+class FinerConfig(datasets.BuilderConfig):
+    """BuilderConfig for FiNER dataset."""
 
     def __init__(self, **kwargs):
         """BuilderConfig for FiNER dataset.
@@ -60,14 +60,14 @@ class FiNERConfig(datasets.BuilderConfig):
         Args:
           **kwargs: keyword arguments forwarded to super.
         """
-        super(FiNERConfig, self).__init__(**kwargs)
+        super(FinerConfig, self).__init__(**kwargs)
 
 
-class FiNER(datasets.GeneratorBasedBuilder):
+class Finer(datasets.GeneratorBasedBuilder):
     """FiNER dataset."""
 
     BUILDER_CONFIGS = [
-        FiNERConfig(
+        FinerConfig(
             name="finer",
             version=datasets.Version("1.0.0"),
             description="A Finnish News Corpus for Named Entity Recognition dataset",
