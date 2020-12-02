@@ -99,22 +99,12 @@ class Code_Refinement(datasets.GeneratorBasedBuilder):
 
     def _info(self):
         # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if (
-            self.config.name == "code_refinement_small"
-        ):  # This is the name of the configuration selected in BUILDER_CONFIGS above
-            features = datasets.Features(
-                {
-                    "bug": datasets.Value("string"),
-                    "fix": datasets.Value("string"),
-                }
-            )
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
-            features = datasets.Features(
-                {
-                    "bug": datasets.Value("string"),
-                    "fix": datasets.Value("string"),
-                }
-            )
+        features = datasets.Features(
+            {
+                "bug": datasets.Value("string"),
+                "fix": datasets.Value("string"),
+            }
+        )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,  # Here we define them above because they are different between the two configurations
