@@ -61,10 +61,10 @@ class CSRestaurants(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "dialogue_act": datasets.Value("string"),
-                "delexicalized_dialogue_act": datasets.Value("string"),
+                "da": datasets.Value("string"),
+                "delex_da": datasets.Value("string"),
                 "text": datasets.Value("string"),
-                "delexicalized_text": datasets.Value("string"),
+                "delex_text": datasets.Value("string"),
             }
         )
         return datasets.DatasetInfo(
@@ -96,8 +96,8 @@ class CSRestaurants(datasets.GeneratorBasedBuilder):
             data = json.load(f)
             for id_, instance in enumerate(data):
                 yield id_, {
-                    "dialogue_act": instance["da"],
-                    "delexicalized_dialogue_act": instance["delex_da"],
+                    "da": instance["da"],
+                    "delex_da": instance["delex_da"],
                     "text": instance["text"],
-                    "delexicalized_text": instance["delex_text"],
+                    "delex_text": instance["delex_text"],
                 }
