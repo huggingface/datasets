@@ -1,89 +1,26 @@
 ---
-{
-  "conditional-text-generation": {
-    "description": "data-to-text and text transduction tasks such as translation or summarization",
-    "options": [
-      "machine-translation",
-      "sentence-splitting-fusion",
-      "summarization",
-      "table-to-text",
-      "text-simplification",
-      "explanation-generation",
-      "other-stuctured-to-text",
-      "other"
-    ]
-  },
-  "question-answering": {
-    "description": "question answering tasks",
-    "options": [
-      "open-domain-qa",
-      "closed-domain-qa",
-      "multiple-choice-qa",
-      "extractive-qa",
-      "abstractive-qa",
-      "other"
-    ]
-  },
-  "sequence-modeling": {
-    "description": "such as language modeling or dialogue",
-    "options": [
-      "dialogue-modeling",
-      "language-modeling",
-      "other-multi-turn",
-      "slot-filling",
-      "other"
-    ]
-  },
-  "structure-prediction": {
-    "description": "predicting structural properties of the text, such as syntax",
-    "options": [
-      "coreference-resolution",
-      "named-entity-recognition",
-      "parsing",
-      "other"
-    ]
-  },
-  "text-classification": {
-    "description": "predicting a class index or boolean value",
-    "options": [
-      "acceptability-classification",
-      "entity-linking-classification",
-      "fact-checking",
-      "intent-classification",
-      "multi-class-classification",
-      "multi-label-classification",
-      "natural-language-inference",
-      "semantic-similarity-classification",
-      "sentiment-classification",
-      "topic-classification",
-      "other"
-    ]
-  },
-  "text-retrieval": {
-    "description": "information or text retrieval tasks",
-    "options": [
-      "document-retrieval",
-      "utterance-retrieval",
-      "entity-linking-retrieval",
-      "fact-checking-retrieval",
-      "other"
-    ]
-  },
-  "text-scoring": {
-    "description": "text scoring tasks, predicting a real valued score for some text",
-    "options": [
-      "semantic-similarity-scoring",
-      "sentiment-scoring",
-      "other"
-    ]
-  },
-  "other": {
-    "description": "other task family not mentioned here",
-    "options": [
-      "other"
-    ]
-  }
-}
+annotations_creators:
+- found
+language_creators:
+- expert-generated
+- machine-generated
+languages:
+- cs
+licenses:
+- cc-by-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- extended|other-san-francisco-restaurants
+task_categories:
+- conditional-text-generation
+- sequence-modeling
+task_ids:
+- dialogue-modeling
+- language-modeling
+- other-stuctured-to-text
 ---
 
 # Dataset Card Creation Guide
