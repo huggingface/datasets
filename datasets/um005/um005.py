@@ -15,6 +15,7 @@
 
 # Lint as: python3
 import os
+
 import datasets
 
 
@@ -75,8 +76,7 @@ class UM005Config(datasets.BuilderConfig):
 
 class UM005(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
-        UM005Config(name=source, sources=[source], description=f"Source. {source}.")
-        for source in _SOURCES
+        UM005Config(name=source, sources=[source], description=f"Source. {source}.") for source in _SOURCES
     ] + [UM005Config(name=_ALL, sources=_SOURCES, description=f"All sources included.")]
 
     DEFAULT_CONFIG_NAME = _ALL
@@ -121,9 +121,7 @@ class UM005(datasets.GeneratorBasedBuilder):
             english_file = filepath["english"]
             urdu_path = os.path.join(datapath, source, urdu_file)
             english_path = os.path.join(datapath, source, english_file)
-            with open(urdu_path, encoding="utf-8") as u, open(
-                english_path, encoding="utf-8"
-            ) as e:
+            with open(urdu_path, encoding="utf-8") as u, open(english_path, encoding="utf-8") as e:
                 for x, y in zip(u, e):
                     x = x.strip()
                     y = y.strip()
