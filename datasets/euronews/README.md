@@ -16,9 +16,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- other
+- structure-prediction
 task_ids:
-- other-other-Names Entity Recognition
+- named-entity-recognition
 ---
 
 # Dataset Card for Europeana Newspapers
