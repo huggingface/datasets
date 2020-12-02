@@ -77,7 +77,7 @@ class Wongnai(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             rdr = csv.reader(f, delimiter=";")
             if split == "test":
                 # drop test header
