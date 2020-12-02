@@ -69,7 +69,7 @@ _URLs = {
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class Code_Refinement(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """TODO: Short description of my dataset.."""
 
     VERSION = datasets.Version("1.1.0")
 
