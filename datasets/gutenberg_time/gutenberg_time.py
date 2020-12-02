@@ -94,7 +94,7 @@ class GutenbergTime(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf8") as f:
             data = csv.reader(f)
             next(data)
             for id_, row in enumerate(data):
