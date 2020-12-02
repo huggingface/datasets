@@ -33,7 +33,7 @@ _CITATION = """
 """
 
 _DESCRIPTION = """
-Multi-XScience, a large-scale multi-document summarization dataset created from scientific articles. Multi-XScience introduces a challenging multi-document summarization task: writing therelated-work section of a paper based on itsabstract and the articles it references.
+Multi-XScience, a large-scale multi-document summarization dataset created from scientific articles. Multi-XScience introduces a challenging multi-document summarization task: writing the related-work section of a paper based on its abstract and the articles it references.
 """
 
 _URL_TRAIN = "https://raw.githubusercontent.com/yaolu/Multi-XScience/master/data/train.json.gz"
