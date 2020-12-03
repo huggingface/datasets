@@ -52,7 +52,7 @@ task_ids:
 
 ### Dataset Summary
 
-A large dataset of human-human negotiations on a multi-issue bargaining task, where agents who cannot observe each other’s reward functions must reach anagreement (o a deal) via natural language dialogue.
+A large dataset of human-human negotiations on a multi-issue bargaining task, where agents who cannot observe each other’s reward functions must reach an agreement (or a deal) via natural language dialogue.
 
 ### Supported Tasks and Leaderboards
 
