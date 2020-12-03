@@ -19,7 +19,7 @@ task_ids:
 - language-modeling
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for caWaC
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -46,15 +46,15 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
-- **Repository:**
-- **Paper:**
+- **Homepage:** http://nlp.ffzg.hr/resources/corpora/cawac/
+- **Repository:** http://nlp.ffzg.hr/data/corpora/cawac.uniq.sortr.gz
+- **Paper:** http://www.lrec-conf.org/proceedings/lrec2014/pdf/841_Paper.pdf
 - **Leaderboard:**
-- **Point of Contact:**
+- **Point of Contact:** [Nikola Ljubešič](mailto:nikola.ljubesic@ffzg.hr)
 
 ### Dataset Summary
 
-[More Information Needed]
+caWaC is a 780-million-token web corpus of Catalan built from the .cat top-level-domain in late 2013.
 
 ### Supported Tasks and Leaderboards
 
@@ -62,7 +62,7 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+Dataset is monolingual in Catalan language.
 
 ## Dataset Structure
 
@@ -130,8 +130,33 @@ task_ids:
 
 ### Licensing Information
 
-[More Information Needed]
+Dataset is under the [CC-BY-SA 3.0](http://creativecommons.org/licenses/by-sa/3.0/) license.
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{DBLP:conf/lrec/LjubesicT14,
+  author    = {Nikola Ljubesic and
+               Antonio Toral},
+  editor    = {Nicoletta Calzolari and
+               Khalid Choukri and
+               Thierry Declerck and
+               Hrafn Loftsson and
+               Bente Maegaard and
+               Joseph Mariani and
+               Asunci{\'{o}}n Moreno and
+               Jan Odijk and
+               Stelios Piperidis},
+  title     = {caWaC - {A} web corpus of Catalan and its application to language
+               modeling and machine translation},
+  booktitle = {Proceedings of the Ninth International Conference on Language Resources
+               and Evaluation, {LREC} 2014, Reykjavik, Iceland, May 26-31, 2014},
+  pages     = {1728--1732},
+  publisher = {European Language Resources Association {(ELRA)}},
+  year      = {2014},
+  url       = {http://www.lrec-conf.org/proceedings/lrec2014/summaries/841.html},
+  timestamp = {Mon, 19 Aug 2019 15:23:35 +0200},
+  biburl    = {https://dblp.org/rec/conf/lrec/LjubesicT14.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+```
