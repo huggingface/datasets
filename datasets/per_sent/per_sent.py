@@ -42,7 +42,7 @@ _CITATION = """\
 _DESCRIPTION = """\
 Person SenTiment (PerSenT) is a crowd-sourced dataset that captures the sentiment of an author towards the main entity in a news article. This dataset contains annotation for 5.3k documents and 38k paragraphs covering 3.2k unique entities.
 
-The dataset consists of sentiment annotations on news articles about people. For each article, annotators judge what the author’s sentiment is towards the main (target) entity of the article. The annotations also include similar judgments on paragraphs within the article. 
+The dataset consists of sentiment annotations on news articles about people. For each article, annotators judge what the author’s sentiment is towards the main (target) entity of the article. The annotations also include similar judgments on paragraphs within the article.
 
 To split the dataset, entities into 4 mutually exclusive sets. Due to the nature of news collections, some entities tend to dominate the collection. In the collection, there were four entities which were the main entity in nearly 800 articles. To avoid these entities from dominating the train or test splits, we moved them to a separate test collection. We split the remaining into a training, dev, and test sets at random. Thus our collection includes one standard test set consisting of articles drawn at random (Test Standard -- `test_random`), while the other is a test set which contains multiple articles about a small number of popular entities (Test Frequent -- `test_fixed`).
 """
