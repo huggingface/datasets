@@ -48,7 +48,7 @@ class GeneratedReviewsEnth(datasets.GeneratorBasedBuilder):
     _TRAIN_FILE = "train.jsonl"
     _VAL_FILE = "valid.jsonl"
     _TEST_FILE = "test.jsonl"
-
+    BUILDER_CONFIG_CLASS = GeneratedReviewsEnthConfig
     BUILDER_CONFIGS = [
         GeneratedReviewsEnthConfig(
             name="generated_reviews_enth",
