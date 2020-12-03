@@ -53,7 +53,7 @@ class ScbMtEnth2020(datasets.GeneratorBasedBuilder):
     _TRAIN_FILE = "train.jsonl"
     _VAL_FILE = "valid.jsonl"
     _TEST_FILE = "test.jsonl"
-
+    BUILDER_CONFIG_CLASS = ScbMtEnth2020Config
     BUILDER_CONFIGS = [
         ScbMtEnth2020Config(
             language_pair=("en", "th"),
