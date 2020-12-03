@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 import numpy as np
-import pytest
 
 from datasets.utils.file_utils import DownloadConfig, cached_path, temp_seed
 
