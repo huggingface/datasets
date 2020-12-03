@@ -23,7 +23,7 @@ Tunisian Sentiment Analysis Corpus.
 About 17k user comments manually annotated to positive and negative polarities. This corpus is collected from Facebook users comments written on official pages of Tunisian radios and TV channels namely Mosaique FM, JawhraFM, Shemes FM, HiwarElttounsi TV and Nessma TV. The corpus is collected from a period spanning January 2015 until June 2016.
 """
 _HOMEPAGE_URL = "https://github.com/fbougares/TSAC"
-_CITATION = """\
+_CITATION = """
 @inproceedings{medhaffar-etal-2017-sentiment,
     title = "Sentiment Analysis of {T}unisian Dialects: Linguistic Ressources and Experiments",
     author = "Medhaffar, Salima  and
