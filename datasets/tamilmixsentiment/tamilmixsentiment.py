@@ -54,7 +54,7 @@ _TEST_DOWNLOAD_URL = (
 )
 
 
-class TamilMixSentiment(datasets.GeneratorBasedBuilder):
+class Tamilmixsentiment(datasets.GeneratorBasedBuilder):
     """TamilMixSentiment sentiment analysis dataset."""
 
     def _info(self):
