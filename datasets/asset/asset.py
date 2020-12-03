@@ -12,165 +12,149 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Add a description here."""
+"""ASSET: a dataset for sentence simplification evaluation"""
 
 from __future__ import absolute_import, division, print_function
 
 import csv
 import json
-import os
 
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
-@InProceedings{huggingface:dataset,
-title = {A great new dataset},
-authors={huggingface, Inc.
-},
-year={2020}
+@inproceedings{alva-manchego-etal-2020-asset,
+    title = "{ASSET}: {A} Dataset for Tuning and Evaluation of Sentence Simplification Models with Multiple Rewriting Transformations",
+    author = "Alva-Manchego, Fernando  and
+      Martin, Louis  and
+      Bordes, Antoine  and
+      Scarton, Carolina  and
+      Sagot, Beno{\^\i}t  and
+      Specia, Lucia",
+    booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.acl-main.424",
+    pages = "4668--4679",
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
-This new dataset is designed to solve this great NLP task and is crafted with a lot of care. 
+ASSET is a dataset for evaluating Sentence Simplification systems with multiple rewriting transformations,
+as described in "ASSET: A Dataset for Tuning and Evaluation of Sentence Simplification Models with Multiple Rewriting Transformations".
+The corpus is composed of 2000 validation and 359 test original sentences that were each simplified 10 times by different annotators.
+The corpus also contains human judgments of meaning preservation, fluency and simplicity for the outputs of several automatic text simplification systems.
 """
 
-# TODO: Add a link to an official homepage for the dataset here
-_HOMEPAGE = ""
+_HOMEPAGE = "https://github.com/facebookresearch/asset"
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "Creative Common Attribution-NonCommercial 4.0 International"
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URLs = {
-    'first_domain': "https://huggingface.co/great-new-dataset-first_domain.zip",
-    'second_domain': "https://huggingface.co/great-new-dataset-second_domain.zip",
-}
+_URL_LIST = [
+    ("human_ratings.csv", "https://github.com/facebookresearch/asset/raw/master/human_ratings/human_ratings.csv"),
+    ("asset.valid.orig", "https://github.com/facebookresearch/asset/raw/master/dataset/asset.valid.orig"),
+    ("asset.test.orig", "https://github.com/facebookresearch/asset/raw/master/dataset/asset.test.orig"),
+]
+_URL_LIST += [
+    (
+        f"asset.{spl}.simp.{i}",
+        f"https://github.com/facebookresearch/asset/raw/master/dataset/asset.{spl}.simp.{i}",
+    )
+    for spl in ['valid', 'test'] for i in range(10)
+]
+
+_URLs = dict(_URL_LIST)
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class NewDataset(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+class Asset(datasets.GeneratorBasedBuilder):
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version("1.0.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="first_domain", description="This part of my dataset covers a first domain"),
-        datasets.BuilderConfig(name="second_domain", description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(name="simplification", version=VERSION, description="A set of original sentences aligned with 10 possible simplifications for each."),
+        datasets.BuilderConfig(name="ratings", version=VERSION, description="Human ratings of automatically produced text implification."),
     ]
 
-    DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+    DEFAULT_CONFIG_NAME = "simplification"
 
     def _info(self):
-        # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
+        if self.config.name == "simplification":
             features = datasets.Features(
                 {
-                    "sentence": datasets.Value("string"),
-                    "option1": datasets.Value("string"),
-                    "answer": datasets.Value("string")
-                    # These are the features of your dataset like images, labels ...
+                    "original": datasets.Value("string"),
+                    "simplifications": datasets.Sequence(datasets.Value("string")),
                 }
             )
-        else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
+        else:
             features = datasets.Features(
                 {
-                    "sentence": datasets.Value("string"),
-                    "option2": datasets.Value("string"),
-                    "second_domain_answer": datasets.Value("string")
-                    # These are the features of your dataset like images, labels ...
+                    "original": datasets.Value("string"),
+                    "simplification": datasets.Value("string"),
+                    "original_sentence_id": datasets.Value("int32"),
+                    "aspect": datasets.ClassLabel(names=['meaning', 'fluency', 'simplicity']),
+                    "worker_id": datasets.Value("int32"),
+                    "rating": datasets.Value("int32"),
                 }
             )
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
-            features=features,  # Here we define them above because they are different between the two configurations
-            # If there's a common (input, target) tuple from the features,
-            # specify them here. They'll be used if as_supervised=True in
-            # builder.as_dataset.
+            features=features,
             supervised_keys=None,
-            # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
-            # License for the dataset if available
             license=_LICENSE,
-            # Citation for the dataset
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
-        """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
-        # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
+        data_dir = dl_manager.download_and_extract(_URLs)
+        if self.config.name == "simplification":
+            return [
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION,
+                    gen_kwargs={
+                        "filepaths": data_dir,
+                        "split": "valid",
+                    },
+                ),
+                datasets.SplitGenerator(
+                    name=datasets.Split.TEST,
+                    gen_kwargs={
+                        "filepaths": data_dir,
+                        "split": "test"
+                    },
+                ),
+            ]
+        else:
+            return [
+                datasets.SplitGenerator(
+                    name="full",
+                    gen_kwargs={
+                        "filepaths": data_dir,
+                        "split": "full",
+                    },
+                ),
+            ]
 
-        # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
-        # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
-        my_urls = _URLs[self.config.name]
-        data_dir = dl_manager.download_and_extract(my_urls)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "train.jsonl"),
-                    "split": "train",
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "test.jsonl"),
-                    "split": "test"
-                },
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "dev.jsonl"),
-                    "split": "dev",
-                },
-            ),
-        ]
-
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepaths, split):
         """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
-
-        with open(filepath) as f:
-            for id_, row in enumerate(f):
-                data = json.loads(row)
-                if self.config.name == "first_domain":
-                    yield id_, {
-                        "sentence": data["sentence"],
-                        "option1": data["option1"],
-                        "answer": "" if split == "test" else data["answer"],
-                    }
-                else:
-                    yield id_, {
-                        "sentence": data["sentence"],
-                        "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
-                    }
+        if self.config.name == "simplification":
+            files = [open(filepaths[f"asset.{split}.orig"], encoding="utf-8")] + \
+                [open(filepaths[f"asset.{split}.simp.{i}"], encoding="utf-8") for i in range(10)]
+            for id_, lines in enumerate(zip(*files)):
+                yield id_, {
+                    "original": lines[0].strip(),
+                    "simplifications": [line.strip() for line in lines[1:]]
+                }
+        else:
+            with open(filepaths[f"human_ratings.csv"], encoding="utf-8") as f:
+                reader = csv.reader(f, delimiter=',')
+                for id_, row in enumerate(reader):
+                    if id_ == 0:
+                        keys = row[:]
+                    else:
+                        res = dict([(k, v) for k, v in zip(keys, row)])
+                        for k in ["original_sentence_id", "worker_id", "rating"]:
+                            res[k] = int(res[k])
+                        yield (id_ - 1), res
