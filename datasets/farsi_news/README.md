@@ -1,5 +1,4 @@
 ---
-- YAML tags: copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/ or https://github.com/huggingface/datasets-tagging for local tagging
 annotations_creators:
 - found
 language_creators:
@@ -148,5 +147,4 @@ These datasets have been extracted from the RSS feed of two Farsi news agency we
 ### Citation Information
 
 https://github.com/sci2lab/Farsi-datasets
-
 
