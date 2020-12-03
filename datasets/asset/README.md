@@ -54,9 +54,9 @@ task_ids:
 
 ## Dataset Description
 
-- **Repository:**
-- **Paper:**
-- **Point of Contact:**
+- **Repository:** [ASSET Github repository](https://github.com/facebookresearch/asset)
+- **Paper:** [ASSET: A Dataset for Tuning and Evaluation of Sentence Simplification Models with Multiple Rewriting Transformations](https://www.aclweb.org/anthology/2020.acl-main.424/)
+- **Point of Contact:** [Louis Martin](louismartincs@gmail.com)
 
 ### Dataset Summary
 

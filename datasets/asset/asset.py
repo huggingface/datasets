@@ -17,7 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
 
 import datasets
 
@@ -29,7 +28,7 @@ _CITATION = """\
       Martin, Louis  and
       Bordes, Antoine  and
       Scarton, Carolina  and
-      Sagot, Beno{\^\i}t  and
+      Sagot, Benoit  and
       Specia, Lucia",
     booktitle = "Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics",
     month = jul,
@@ -62,7 +61,8 @@ _URL_LIST += [
         f"asset.{spl}.simp.{i}",
         f"https://github.com/facebookresearch/asset/raw/master/dataset/asset.{spl}.simp.{i}",
     )
-    for spl in ['valid', 'test'] for i in range(10)
+    for spl in ["valid", "test"]
+    for i in range(10)
 ]
 
 _URLs = dict(_URL_LIST)
@@ -73,8 +73,14 @@ class Asset(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="simplification", version=VERSION, description="A set of original sentences aligned with 10 possible simplifications for each."),
-        datasets.BuilderConfig(name="ratings", version=VERSION, description="Human ratings of automatically produced text implification."),
+        datasets.BuilderConfig(
+            name="simplification",
+            version=VERSION,
+            description="A set of original sentences aligned with 10 possible simplifications for each.",
+        ),
+        datasets.BuilderConfig(
+            name="ratings", version=VERSION, description="Human ratings of automatically produced text implification."
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "simplification"
@@ -93,7 +99,7 @@ class Asset(datasets.GeneratorBasedBuilder):
                     "original": datasets.Value("string"),
                     "simplification": datasets.Value("string"),
                     "original_sentence_id": datasets.Value("int32"),
-                    "aspect": datasets.ClassLabel(names=['meaning', 'fluency', 'simplicity']),
+                    "aspect": datasets.ClassLabel(names=["meaning", "fluency", "simplicity"]),
                     "worker_id": datasets.Value("int32"),
                     "rating": datasets.Value("int32"),
                 }
@@ -120,10 +126,7 @@ class Asset(datasets.GeneratorBasedBuilder):
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "filepaths": data_dir,
-                        "split": "test"
-                    },
+                    gen_kwargs={"filepaths": data_dir, "split": "test"},
                 ),
             ]
         else:
@@ -140,16 +143,14 @@ class Asset(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepaths, split):
         """ Yields examples. """
         if self.config.name == "simplification":
-            files = [open(filepaths[f"asset.{split}.orig"], encoding="utf-8")] + \
-                [open(filepaths[f"asset.{split}.simp.{i}"], encoding="utf-8") for i in range(10)]
+            files = [open(filepaths[f"asset.{split}.orig"], encoding="utf-8")] + [
+                open(filepaths[f"asset.{split}.simp.{i}"], encoding="utf-8") for i in range(10)
+            ]
             for id_, lines in enumerate(zip(*files)):
-                yield id_, {
-                    "original": lines[0].strip(),
-                    "simplifications": [line.strip() for line in lines[1:]]
-                }
+                yield id_, {"original": lines[0].strip(), "simplifications": [line.strip() for line in lines[1:]]}
         else:
             with open(filepaths[f"human_ratings.csv"], encoding="utf-8") as f:
-                reader = csv.reader(f, delimiter=',')
+                reader = csv.reader(f, delimiter=",")
                 for id_, row in enumerate(reader):
                     if id_ == 0:
                         keys = row[:]
