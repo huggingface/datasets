@@ -58,7 +58,7 @@ class KorNluConfig(datasets.BuilderConfig):
         self.url = url
 
 
-class korNlu(datasets.GeneratorBasedBuilder):
+class KorNlu(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         KorNluConfig(name=name, description=_DESCRIPTION, data_url=_DATA_URLS[name], citation=_CITATAION, url=_URL)
         for name in ["nli", "sts"]
