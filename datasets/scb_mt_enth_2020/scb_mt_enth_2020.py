@@ -49,7 +49,7 @@ class ScbMtEnth2020Config(datasets.BuilderConfig):
 class ScbMtEnth2020(datasets.GeneratorBasedBuilder):
     """scb-mt-en-th-2020: A Large English-Thai Parallel Corpus"""
 
-    _DOWNLOAD_URL = "https://github.com/cstorm125/thai2nmt/raw/master/data.zip"
+    _DOWNLOAD_URL = "https://archive.org/download/scb_mt_enth_2020/data.zip"
     _TRAIN_FILE = "train.jsonl"
     _VAL_FILE = "valid.jsonl"
     _TEST_FILE = "test.jsonl"
