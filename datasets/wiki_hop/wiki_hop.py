@@ -16,15 +16,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import json
+import os
 
 import datasets
 
 
 _CITATION = """\
 @misc{welbl2018constructing,
-      title={Constructing Datasets for Multi-hop Reading Comprehension Across Documents}, 
+      title={Constructing Datasets for Multi-hop Reading Comprehension Across Documents},
       author={Johannes Welbl and Pontus Stenetorp and Sebastian Riedel},
       year={2018},
       eprint={1710.06481},
@@ -60,11 +60,18 @@ class WikiHop(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        WikiHopConifg(name="original", version=datasets.Version("1.0.0"), description="The un-maksed WikiHop dataset", masked=False),
         WikiHopConifg(
-            name="masked", version=datasets.Version("1.0.0"), description="Masked WikiHop dataset", masked=True)
+            name="original",
+            version=datasets.Version("1.0.0"),
+            description="The un-maksed WikiHop dataset",
+            masked=False,
+        ),
+        WikiHopConifg(
+            name="masked", version=datasets.Version("1.0.0"), description="Masked WikiHop dataset", masked=True
         ),
     ]
+
+    DEFAULT_CONFIG_NAME = "original"
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -76,7 +83,7 @@ class WikiHop(datasets.GeneratorBasedBuilder):
                     "answer": datasets.Value("string"),
                     "candidates": datasets.Sequence(datasets.Value("string")),
                     "supports": datasets.Sequence(datasets.Value("string")),
-                    "annotations": datasets.Sequence(datasets.Sequence(datasets.Value("string")))
+                    "annotations": datasets.Sequence(datasets.Sequence(datasets.Value("string"))),
                 }
             ),
             supervised_keys=None,
@@ -85,19 +92,27 @@ class WikiHop(datasets.GeneratorBasedBuilder):
         )
 
     def _split_generators(self, dl_manager):
-        extracted_path = dl_manager.download_and_extract(_urls)
-        
+        extracted_path = dl_manager.download_and_extract(_URL)
+
         wikihop_path = os.path.join(extracted_path, "qangaroo_v1.1", "wikihop")
         train_file = "train.json" if self.config.name == "original" else "train.masked.json"
         dev_file = "dev.json" if self.config.name == "original" else "dev.masked.json"
-        
+
         return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(wikihop_path, train_file), "split": "train"}),
-            datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(wikihop_path, dev_file), "split": "dev"}),
+            datasets.SplitGenerator(
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(wikihop_path, train_file), "split": "train"},
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(wikihop_path, dev_file), "split": "dev"},
+            ),
         ]
 
     def _generate_examples(self, filepath, split):
         with open(filepath, encoding="utf-8") as f:
             examples = json.load(f)
             for i, example in enumerate(examples):
-                yield examplep["id"], example
+                if split == "train":
+                    example["annotations"] = []
+                yield example["id"], example

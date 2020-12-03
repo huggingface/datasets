@@ -2,21 +2,22 @@
 annotations_creators:
 - crowdsourced
 language_creators:
-- crowdsourced
+- expert-generated
 languages:
 - en
 licenses:
-- cc-by-sa-4.0
+- cc-by-sa-3.0
 multilinguality:
 - monolingual
 size_categories:
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- question-answering
 task_ids:
-- language-modeling
+- extractive-qa
+- question-answering-other-multi-hop
 ---
 
 # Dataset Card Creation Guide
@@ -46,11 +47,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [Add homepage URL here if available (unless it's a GitHub repository)]()
+- **Homepage:** [QAngaroo](http://qangaroo.cs.ucl.ac.uk/)
 - **Repository:** [If the dataset is hosted on github or has a github homepage, add URL here]()
-- **Paper:** [If the dataset was introduced by a paper or there was a paper written describing the dataset, add URL here (landing page for Arxiv paper preferred)]()
-- **Leaderboard:** [If the dataset supports an active leaderboard, add link here]()
-- **Point of Contact:** [If known, name and email of at least one person the reader can contact for questions about the dataset.]()
+- **Paper:** [Constructing Datasets for Multi-hop Reading Comprehension Across Documents](https://arxiv.org/abs/1710.06481)
+- **Leaderboard:** [leaderboard](http://qangaroo.cs.ucl.ac.uk/leaderboard.html)
+- **Point of Contact:** [Johannes Welbl](j.welbl@cs.ucl.ac.uk)
 
 ### Dataset Summary
 
