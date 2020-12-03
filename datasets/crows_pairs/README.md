@@ -17,6 +17,7 @@ task_categories:
 - sequence-modeling
 task_ids:
 - language-modeling
+- sequence-modeling-other-social-biais-detection
 ---
 
 # Dataset Card Creation Guide
