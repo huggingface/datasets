@@ -140,7 +140,7 @@ class PerSenT(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             reader = csv.reader(f)
             header = next(reader)
             for id_, row in enumerate(reader):
