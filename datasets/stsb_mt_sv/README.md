@@ -71,8 +71,8 @@ The text in the dataset is in Swedish. The associated BCP-47 code is `sv`.
 What a sample looks like:
 ```
 {'score': '4.2',
- 'title': 'Undrar om jultomten kommer i år pga Corona..?',
- 'selftext': 'Jag undrar om jultomen kommer hit i år med tanke på covid-19',
+ 'sentence1': 'Undrar om jultomten kommer i år pga Corona..?',
+ 'sentence2': 'Jag undrar om jultomen kommer hit i år med tanke på covid-19',
 }
 ```
 

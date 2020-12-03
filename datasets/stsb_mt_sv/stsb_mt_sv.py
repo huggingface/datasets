@@ -23,6 +23,11 @@ import os
 import datasets
 
 
+_DOWNLOAD_URL = "https://raw.githubusercontent.com/timpal0l/sts-benchmark-swedish/master/data/stsb-mt-sv.zip"
+_TRAIN_FILE = "train-sv.tsv"
+_VAL_FILE = "dev-sv.tsv"
+_TEST_FILE = "test-sv.tsv"
+
 _CITATION = """\
 @article{isbister2020not,
   title={Why Not Simply Translate? A First Swedish Evaluation Benchmark for Semantic Similarity},
@@ -32,20 +37,10 @@ _CITATION = """\
 }
 """
 
-_DESCRIPTION = """\
-The stsb-mt-sv corpus (version 1.0) is a machine translated Swedish version 
-of the original STS-B (http://ixa2.si.ehu.eus/stswiki).
-"""
-
-_DOWNLOAD_URL = "https://raw.githubusercontent.com/timpal0l/sts-benchmark-swedish/master/data/stsb-mt-sv.zip"
-_TRAIN_FILE = "train-sv.tsv"
-_VAL_FILE = "dev-sv.tsv"
-_TEST_FILE = "test-sv.tsv"
+_DESCRIPTION = "Machine translated Swedish version of the original STS-B (http://ixa2.si.ehu.eus/stswiki)"
 
 
 class SwedishTranslatedSTSB(datasets.GeneratorBasedBuilder):
-    """A machine translated version of STS-B to Swedish."""
-
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
             name="plain_text",
@@ -64,8 +59,6 @@ class SwedishTranslatedSTSB(datasets.GeneratorBasedBuilder):
                     "score": datasets.Value("float"),
                 }
             ),
-            # No default supervised_keys (as we have to pass both premise
-            # and hypothesis as input).
             supervised_keys=None,
             homepage="https://github.com/timpal0l/sts-benchmark-swedish",
             citation=_CITATION,
@@ -75,13 +68,16 @@ class SwedishTranslatedSTSB(datasets.GeneratorBasedBuilder):
         dl_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
             datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(dl_dir, _TEST_FILE)}
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(dl_dir, _TEST_FILE)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(dl_dir, _VAL_FILE)}
+                name=datasets.Split.VALIDATION,
+                gen_kwargs={"filepath": os.path.join(dl_dir, _VAL_FILE)},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(dl_dir, _TRAIN_FILE)}
+                name=datasets.Split.TRAIN,
+                gen_kwargs={"filepath": os.path.join(dl_dir, _TRAIN_FILE)},
             ),
         ]
 
