@@ -1,8 +1,9 @@
 from unittest import TestCase
 
 import numpy as np
+import pytest
 
-from datasets.utils.file_utils import DownloadConfig, cached_path, temp_seed
+from datasets.utils.file_utils import DownloadConfig, cached_path, get_main_extension, temp_seed
 
 from .utils import require_tf, require_torch
 
@@ -57,6 +58,41 @@ class TempSeedTest(TestCase):
 
         np.testing.assert_equal(out1, out2)
         self.assertGreater(np.abs(out1 - out3).sum(), 0)
+
+
+@pytest.mark.parametrize(
+    "dirname",
+    [
+        "",
+        "./",
+        "./relativedir/",
+        "./relative/dir/",
+        "relativedir/",
+        "relativedir\\",
+        "relative/dir/",
+        "relative\\dir\\",
+        "/",
+        "C:\\",
+        "/absolutedir/",
+        "C:\\absolutedir\\",
+        "/absolute/dir/",
+        "C:\\absolute\\dir\\",
+    ],
+)
+@pytest.mark.parametrize(
+    "filename, expected_extension",
+    [
+        ("file.xml", ".xml"),
+        ("file.xml.gz", ".xml"),
+        ("file.xml.tar.gz", ".xml"),
+        ("file", ""),
+        (".file", ""),
+    ],
+)
+def test_get_main_extension(dirname, filename, expected_extension):
+    path = dirname + filename
+    extension = get_main_extension(path)
+    assert extension == expected_extension
 
 
 def test_cached_path_extract(xz_file, tmp_path, text_file):
