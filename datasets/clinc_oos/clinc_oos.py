@@ -65,7 +65,7 @@ _DATA_URLS = {
 
 class ClincConfig(datasets.BuilderConfig):
 
-    """BuilderConfig for CLINIC150"""
+    """BuilderConfig for CLINC150"""
 
     def __init__(self, description, data_url, citation, url, **kwrags):
         """
