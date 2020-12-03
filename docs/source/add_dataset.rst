@@ -311,6 +311,15 @@ While the configuration attributes are used in this case to control the reading/
 
 An example of a custom configuration class with several predefined configurations can be found in the `Super-GLUE loading script <https://github.com/huggingface/datasets/blob/master/datasets/super_glue/super_glue.py>`__ which providescontrol over the various sub-dataset of the SuperGLUE benchmark through the configurations. Another example is the `Wikipedia loading script <https://github.com/huggingface/datasets/blob/master/datasets/wikipedia/wikipedia.py>`__ which provides control over the language of the Wikipedia dataset through the configurations.
 
+Specifying a default dataset configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a user loads a dataset with more than one configuration, they must specify a configuration name or else a ValueError is raised. With some datasets, it may be preferable to specify a default configuration that will be loaded if a user does not specify one.
+
+This can be done with the :attr:`datasets.DatasetBuilder.DEFAULT_CONFIG_NAME` attribute. By setting this attribute equal to the name of one of the dataset configurations, that config will be loaded in the case that the user does not specify a config name.
+
+This feature is opt-in and should only be used where a default configuration makes sense for the dataset. For example, many cross-lingual datasets have a different configuration for each language. In this case, it may make sense to create an aggregate configuration which can serve as the default. This would, in effect, load all languages of the dataset by default unless the user specifies a particular language. See the `Polyglot NER loading script <https://github.com/huggingface/datasets/blob/master/datasets/polyglot_ner/polyglot_ner.py>`__ for an example.
+
 
 Testing the dataset loading script
 -------------------------------------------------
