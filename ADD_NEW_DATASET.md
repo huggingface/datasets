@@ -8,7 +8,7 @@ This creates a copy of the code under your GitHub user account.
 2. Clone your fork to your local disk, and add the base repository as a remote:
 
 	```bash
-	git clone git@github.com:<your Github handle>/datasets.git
+	git clone https://github.com/<your Github handle>/datasets
 	cd datasets
 	git remote add upstream https://github.com/huggingface/datasets.git
 	```
@@ -24,30 +24,19 @@ Now you are ready, each time you want to add a new dataset, follow the steps in 
 
 ## Adding a new dataset
 
-### Creating the new folder
+### Understand the structure of the dataset
 
-1. Start by finding a short-name for the dataset. Select a `short name` for the dataset which is
-	
-	- unique (don't exist on https://huggingface.co),
-	- not too long and
-	- easy to guess for users, e.g. `squad`, `natural_questions`
+1. Start by preparing the field and understanding how the dataset look like:
 
-Sometimes the short-list name is already given/proposed (e.g. in the spreadsheet of the data sprint to reach v2.0 if you are participating in the effort)
+	- Find the research paper or description presenting the dataset you want to add (if there is an associated research paper)
+	- Find the location of the data for you dataset
+	- Read the relevant part of the paper or description presenting the dataset
+	- Open the data to see how they look
 
-2. Let's create a new branch to hold your development changes with the name of your dataset:
+2. Find a short-name for the dataset:
 
-	```bash
-	git rebase upstream/master
-	git checkout -b a-descriptive-name-for-my-changes
-	```
-
-	**Do not** work on the `master` branch.
-
-3. And create your dataset folder under `datasets/<your_dataset_name>`:
-
-	```bash
-	mkdir ./datasets/<your_dataset_name>
-	```
+	- Select a `short name` for the dataset which is unique but not too long and is easy to guess for users, e.g. `squad`, `natural_questions`
+	- Sometimes the short-list name is already given/proposed (e.g. in the spreadsheet of the data sprint to reach v2.0 if you are participating in the effort)
 
 You are now ready to start the process of adding the dataset. We will create the following files:
 
@@ -56,27 +45,25 @@ You are now ready to start the process of adding the dataset. We will create the
 	- **a metadata file** (automatically created) which contains checksums and informations about the dataset to guarantee that the loading went fine: `dataset_infos.json` 
 	- **a dummy-data file** (automatically created) which contains small examples from the original files to test and garantee that the script is working well in the future: `dummy_data.zip` 
 
-### Understanding the dataset and filling what you can in the dataset card
-
-1. Create a new dataset card in the dataset folder:
+4. Let's start by creating a new branch to hold your development changes with the name of your dataset:
 
 	```bash
-	cp ./templates/README.md ./datasets/<your_dataset_name>
+	git fetch upstream
+	git rebase upstream/master
+	git checkout -b a-descriptive-name-for-my-changes
 	```
 
-2. Gather all the information you need:
+	**Do not** work on the `master` branch.
 
-	- Find the research paper or description presenting the dataset you want to add (if there is an associated research paper)
-	- Find the location of the data for you dataset
+5. Create your dataset folder under `datasets/<your_dataset_name>`:
 
-3. Understand the dataset and fill some informations about the dataset in the dataset card
-	- Read the relevant part of the paper or description presenting the dataset
-	- When you see informations that you can fill in the dataset card (e.g. information on License, Dataset Creation, Dataset Description, etc) take the occasion to copy them here
-	- If you have a doubt about a field in the `README.md` dataset card, there is a guide with details in [`README_guide.md`](https://github.com/huggingface/datasets/blob/master/templates/README_guide.md) and a [completed example for inspiration](https://github.com/huggingface/datasets/tree/master/datasets/eli5).
+	```bash
+	mkdir ./datasets/<your_dataset_name>
+	```
 
 ### Write the loading/processing code
 
-Now that you have a felling of how the dataset is, let's get coding :-)
+Now let's get coding :-)
 
 The dataset script is the main entry point to load and process the data. It is a python script under `datasets/<your_dataset_name>/<your_dataset_name>.py`.
 
@@ -243,7 +230,9 @@ Creating the dataset card goes in two steps:
 
 2. **Copy the tags in the dataset card and complete the dataset card**
 
-	- **Essential:** Copy the tags that you have generated in step (1) inside the dataset card that we have created at the beginning (copied from [here](https://github.com/huggingface/datasets/blob/master/templates/README.md)).
+	Copy the dataset card which is [here](https://github.com/huggingface/datasets/blob/master/templates/README.md) in your dataset folder.
+
+	- **Essential:** Copy the tags that you have generated in step (1) inside the dataset card.
 
 		We’re using YAML for tags actually, not JSON (even though the datasets-tagging tool allows to save in JSON). On the right side of the app there is an option to "Show YAML output".  Once you've tagged and saved all of the configs, you can copy-paste the output of this field at the top of your README.
 
