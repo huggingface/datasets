@@ -11,7 +11,7 @@ licenses:
 multilinguality:
 - monolingual
 size_categories:
-- n<1K
+- 1K<n<10K
 source_datasets:
 - extended|other-sts-b
 task_categories:
