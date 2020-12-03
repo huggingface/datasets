@@ -187,8 +187,12 @@ class Autshumato(datasets.GeneratorBasedBuilder):
         if "README.txt" in filenames:
             filenames.remove("README.txt")
 
-        source_filenames = sorted(os.path.join(dl_dir, f) for f in filenames if f.endswith(f"{source}.txt") or '.eng.' in f)
-        target_filenames = sorted(os.path.join(dl_dir, f) for f in filenames if f.endswith(f"{target}.txt") or '.zul.' in f)
+        source_filenames = sorted(
+            os.path.join(dl_dir, f) for f in filenames if f.endswith(f"{source}.txt") or ".eng." in f
+        )
+        target_filenames = sorted(
+            os.path.join(dl_dir, f) for f in filenames if f.endswith(f"{target}.txt") or ".zul." in f
+        )
 
         return [
             datasets.SplitGenerator(
