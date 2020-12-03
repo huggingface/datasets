@@ -29,8 +29,7 @@ ORG	ORG.NAM	特定机构名称（通惠医院）
 ORG.NOM	泛指名称、统称（文艺公司）
 """
 _HOMEPAGE_URL = "https://github.com/OYE93/Chinese-NLP-Corpus/tree/master/NER/Weibo"
-_CITATION = """\
-"""
+_CITATION = None
 _TRAIN_URL = "https://raw.githubusercontent.com/OYE93/Chinese-NLP-Corpus/master/NER/Weibo/weiboNER_2nd_conll.train"
 _TEST_URL = "https://raw.githubusercontent.com/OYE93/Chinese-NLP-Corpus/master/NER/Weibo/weiboNER_2nd_conll.test"
 _VALID_URL = "https://raw.githubusercontent.com/OYE93/Chinese-NLP-Corpus/master/NER/Weibo/weiboNER_2nd_conll.dev"
