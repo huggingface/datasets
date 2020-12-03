@@ -69,14 +69,8 @@ class OpusDogc(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {
-                    "ca": datasets.Value("string"),
-                    "es": datasets.Value("string"),
-                }
-            ),
-            # No default supervised_keys (as we have to pass both question and context as input).
-            supervised_keys=None,
+            features=datasets.Features({"translation": datasets.features.Translation(languages=("ca", "es"))}),
+            supervised_keys=("ca", "es"),
             homepage=_URL,
             citation=_CITATION,
         )
@@ -102,7 +96,6 @@ class OpusDogc(datasets.GeneratorBasedBuilder):
                         es_sentence = sentence
                 elif elem.tag == "tu":
                     yield id_, {
-                        "ca": ca_sentence,
-                        "es": es_sentence,
+                        "translation": {"ca": ca_sentence, "es": es_sentence},
                     }
                     id_ += 1
