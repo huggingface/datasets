@@ -40,7 +40,7 @@ _CITATION = """\
 _DESCRIPTION = "Machine translated Swedish version of the original STS-B (http://ixa2.si.ehu.eus/stswiki)"
 
 
-class SwedishTranslatedSTSB(datasets.GeneratorBasedBuilder):
+class StsbMtSv(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
             name="plain_text",
