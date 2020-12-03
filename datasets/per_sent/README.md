@@ -19,7 +19,7 @@ task_ids:
 - sentiment-classification
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for PerSenT
 
 ## Table of Contents
 - [Dataset Card for [PerSenT]](#dataset-card-for-dataset-name)
