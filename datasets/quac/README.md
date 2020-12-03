@@ -1,5 +1,25 @@
 ---
-TODO
+annotations_creators:
+- crowdsourced
+language_creators:
+- crowdsourced
+- found
+languages:
+- en
+licenses:
+- mit
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|wikipedia
+task_categories:
+- question-answering
+- sequence-modeling
+task_ids:
+- dialogue-modeling
+- extractive-qa
 ---
 
 # Dataset Card Creation Guide
