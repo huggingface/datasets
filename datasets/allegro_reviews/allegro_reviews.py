@@ -37,24 +37,28 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-Allegro Reviews is a sentiment analysis dataset, consisting of 11,588 product reviews written in Polish and extracted 
-from Allegro.pl - a popular e-commerce marketplace. Each review contains at least 50 words and has a rating on a scale 
+Allegro Reviews is a sentiment analysis dataset, consisting of 11,588 product reviews written in Polish and extracted
+from Allegro.pl - a popular e-commerce marketplace. Each review contains at least 50 words and has a rating on a scale
 from one (negative review) to five (positive review).
 
-We recommend using the provided train/dev/test split. The ratings for the test set reviews are kept hidden. 
+We recommend using the provided train/dev/test split. The ratings for the test set reviews are kept hidden.
 You can evaluate your model using the online evaluation tool available on klejbenchmark.com.
 """
 
-_URL = "https://klejbenchmark.com/static/data/klej_ar.zip"
+_HOMEPAGE = "https://github.com/allegro/klejbenchmark-allegroreviews"
+
+_LICENSE = "CC BY-SA 4.0"
+
+_URLs = "https://klejbenchmark.com/static/data/klej_ar.zip"
 
 
-class AllegroReviewsDataset(datasets.GeneratorBasedBuilder):
+class AllegroReviews(datasets.GeneratorBasedBuilder):
     """
     Allegro Reviews is a sentiment analysis dataset, consisting of 11,588 product reviews written in Polish
     and extracted from Allegro.pl - a popular e-commerce marketplace.
     """
 
-    VERSION = datasets.Version("1.0.0")
+    VERSION = datasets.Version("1.1.0")
 
     def _info(self):
         return datasets.DatasetInfo(
@@ -66,49 +70,41 @@ class AllegroReviewsDataset(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=None,
-            homepage="https://github.com/allegro/klejbenchmark-allegroreviews",
+            homepage=_HOMEPAGE,
+            license=_LICENSE,
             citation=_CITATION,
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        dl_dir = dl_manager.download_and_extract(_URL)
+        data_dir = dl_manager.download_and_extract(_URLs)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "train.tsv"),
+                    "filepath": os.path.join(data_dir, "train.tsv"),
                     "split": "train",
                 },
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.VALIDATION,
-                gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "dev.tsv"),
-                    "split": "validation",
-                },
+                name=datasets.Split.TEST,
+                gen_kwargs={"filepath": os.path.join(data_dir, "test_features.tsv"), "split": "test"},
             ),
             datasets.SplitGenerator(
-                name=datasets.Split.TEST,
+                name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": os.path.join(dl_dir, "test_features.tsv"),
-                    "split": "test",
+                    "filepath": os.path.join(data_dir, "dev.tsv"),
+                    "split": "dev",
                 },
             ),
         ]
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for id_, row in enumerate(reader):
-                if split == "test":
-                    yield id_, {
-                        "text": row["text"],
-                        "rating": "-1",
-                    }
-                else:
-                    yield id_, {
-                        "text": row["text"],
-                        "rating": row["rating"],
-                    }
+                yield id_, {
+                    "text": row["text"],
+                    "rating": "-1" if split == "test" else row["rating"],
+                }
