@@ -154,7 +154,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
                         json.dump(first_json_data, dst_file)
                 return 1
             # xml file
-            elif dst_path_extension == ".xml":
+            elif dst_path_extension in [".xml", ".txm"]:
                 if xml_tag is None:
                     logger.warning("Found xml file but 'xml_tag' is set to None. Please provide --xml_tag")
                 else:
