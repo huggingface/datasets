@@ -64,8 +64,8 @@ class SemEval2014Task1(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "sentence_pair_id": datasets.Value("int64"),
-                    "sentence_A": datasets.Value("string"),
-                    "sentence_B": datasets.Value("string"),
+                    "premise": datasets.Value("string"),
+                    "hypothesis": datasets.Value("string"),
                     "relatedness_score": datasets.Value("float32"),
                     "entailment_judgment": datasets.features.ClassLabel(
                         names=["NEUTRAL", "ENTAILMENT", "CONTRADICTION"]
@@ -116,15 +116,15 @@ class SemEval2014Task1(datasets.GeneratorBasedBuilder):
             for idx in range(1, len(lines)):
                 features = lines[idx].split("\t")
                 sentence_pair_id = features[0]
-                sentence_A = features[1]
-                sentence_B = features[2]
+                premise = features[1]
+                hypothesis = features[2]
                 relatedness_score = float(features[3])
                 entailment_judgment = features[4].strip("\n")
 
                 yield idx, {
                     "sentence_pair_id": sentence_pair_id,
-                    "sentence_A": sentence_A,
-                    "sentence_B": sentence_B,
+                    "premise": sentence_A,
+                    "hypothesis": sentence_B,
                     "relatedness_score": relatedness_score,
                     "entailment_judgment": entailment_judgment,
                 }
