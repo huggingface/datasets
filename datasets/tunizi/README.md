@@ -5,11 +5,10 @@ language_creators:
 - found
 languages:
 - aeb
-- ar
 licenses:
 - unknown
 multilinguality:
-- other-tunizi
+- multilingual
 size_categories:
 - 1K<n<10K
 source_datasets:
