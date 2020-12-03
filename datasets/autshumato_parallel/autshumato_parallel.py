@@ -55,7 +55,7 @@ class AutshumatoConfig(datasets.BuilderConfig):
         super().__init__(**kwargs)
 
 
-class Autshumato(datasets.GeneratorBasedBuilder):
+class AutshumatoParallel(datasets.GeneratorBasedBuilder):
     """The IWSLT 2017 Evaluation Campaign includes a multilingual TED Talks MT task."""
 
     VERSION = datasets.Version("1.0.0")
