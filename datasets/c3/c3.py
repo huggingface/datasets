@@ -55,7 +55,7 @@ class C3Config(datasets.BuilderConfig):
 
 
 class C3(datasets.GeneratorBasedBuilder):
-    """The IWSLT 2017 Evaluation Campaign includes a multilingual TED Talks MT task."""
+    """C3 is the first free-form multiple-Choice Chinese machine reading Comprehension dataset, containing 13,369 documents (dialogues or more formally written mixed-genre texts) and their associated 19,577 multiple-choice free-form questions collected from Chinese-as-a-second language examinations."""
 
     VERSION = datasets.Version("1.0.0")
 
@@ -88,13 +88,11 @@ class C3(datasets.GeneratorBasedBuilder):
                     "documents": datasets.Sequence(datasets.Value("string")),
                     "document_id": datasets.Value("string"),
                     "questions": datasets.Sequence(
-                        datasets.Features(
-                            {
-                                "question": datasets.Value("string"),
-                                "answer": datasets.Value("string"),
-                                "choice": datasets.Sequence(datasets.Value("string")),
-                            }
-                        )
+                        {
+                            "question": datasets.Value("string"),
+                            "answer": datasets.Value("string"),
+                            "choice": datasets.Sequence(datasets.Value("string")),
+                        }
                     ),
                 }
             ),
