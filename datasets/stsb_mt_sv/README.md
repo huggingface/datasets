@@ -13,7 +13,7 @@ multilinguality:
 size_categories:
 - n<1K
 source_datasets:
-- original
+- extended|other-sts-b
 task_categories:
 - text-scoring
 task_ids:
