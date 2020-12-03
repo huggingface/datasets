@@ -15,6 +15,7 @@
 
 # Lint as: python3
 import os
+
 import datasets
 
 
@@ -51,15 +52,9 @@ class SimpleQuestionsV2Config(datasets.BuilderConfig):
 
 class SimpleQuestionsV2(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
-        SimpleQuestionsV2Config(
-            name="annotated", data_type="annotated", description=f"Annotated dataset"
-        ),
-        SimpleQuestionsV2Config(
-            name="freebase2m", data_type="freebase2m", description=f"Freebase subset 2M"
-        ),
-        SimpleQuestionsV2Config(
-            name="freebase5m", data_type="freebase5m", description=f"Freebase subset 5M"
-        ),
+        SimpleQuestionsV2Config(name="annotated", data_type="annotated", description=f"Annotated dataset"),
+        SimpleQuestionsV2Config(name="freebase2m", data_type="freebase2m", description=f"Freebase subset 2M"),
+        SimpleQuestionsV2Config(name="freebase5m", data_type="freebase5m", description=f"Freebase subset 5M"),
     ]
     BUILDER_CONFIG_CLASS = SimpleQuestionsV2Config
     DEFAULT_CONFIG_NAME = "annotated"
@@ -99,27 +94,15 @@ class SimpleQuestionsV2(datasets.GeneratorBasedBuilder):
             return [
                 datasets.SplitGenerator(
                     name=datasets.Split.TRAIN,
-                    gen_kwargs={
-                        "datapath": os.path.join(
-                            path, "SimpleQuestions_v2", "annotated_fb_data_train.txt"
-                        )
-                    },
+                    gen_kwargs={"datapath": os.path.join(path, "SimpleQuestions_v2", "annotated_fb_data_train.txt")},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.VALIDATION,
-                    gen_kwargs={
-                        "datapath": os.path.join(
-                            path, "SimpleQuestions_v2", "annotated_fb_data_train.txt"
-                        )
-                    },
+                    gen_kwargs={"datapath": os.path.join(path, "SimpleQuestions_v2", "annotated_fb_data_train.txt")},
                 ),
                 datasets.SplitGenerator(
                     name=datasets.Split.TEST,
-                    gen_kwargs={
-                        "datapath": os.path.join(
-                            path, "SimpleQuestions_v2", "annotated_fb_data_train.txt"
-                        )
-                    },
+                    gen_kwargs={"datapath": os.path.join(path, "SimpleQuestions_v2", "annotated_fb_data_train.txt")},
                 ),
             ]
         elif self.config.data_type == "freebase2m":
@@ -151,9 +134,7 @@ class SimpleQuestionsV2(datasets.GeneratorBasedBuilder):
                 )
             ]
         else:
-            raise Exception(
-                "Unknown data type. Try one of: annotated, freebase2m and freebase5m"
-            )
+            raise Exception("Unknown data type. Try one of: annotated, freebase2m and freebase5m")
 
     def _generate_examples(self, datapath):
         if self.config.data_type == "annotated":
