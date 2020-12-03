@@ -86,7 +86,7 @@ class BigPatentConfig(datasets.BuilderConfig):
             cpc_codes: str, cpc_codes
             **kwargs: keyword arguments forwarded to super.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, version=_VERSION, **kwargs)
         self.cpc_codes = cpc_codes
 
 
@@ -110,12 +110,11 @@ class BigPatent(datasets.GeneratorBasedBuilder):
         )
         for k, v in sorted(_CPC_DESCRIPTION.items())
     ]
-
+    DEFAULT_CONFIG_NAME = "all"
     VERSION = _VERSION
 
     def _info(self):
         return datasets.DatasetInfo(
-            builder=self,
             description=_DESCRIPTION,
             features=datasets.Features(
                 {_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}
@@ -154,7 +153,7 @@ class BigPatent(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, path=None):
         """Yields examples."""
-        for cpc_code in self.builder_config.cpc_codes:
+        for cpc_code in self.config.cpc_codes:
             filenames = glob.glob(os.path.join(path, cpc_code, "*"))
             for filename in filenames:
                 with open(filename, "rb") as fin:
