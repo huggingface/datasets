@@ -34,8 +34,7 @@ _CITATION = """\
     publisher = "Association for Computational Linguistics",
     url = "https://www.aclweb.org/anthology/W19-8652",
     doi = "10.18653/v1/W19-8652",
-    pages = "421--426",
-    abstract = "Neural natural language generation (NNLG) systems are known for their pathological outputs, i.e. generating text which is unrelated to the input specification. In this paper, we show the impact of semantic noise on state-of-the-art NNLG models which implement different semantic control mechanisms. We find that cleaned data can improve semantic correctness by up to 97{\%}, while maintaining fluency. We also find that the most common error is omitting information, rather than hallucination.",
+    pages = "421--426"
 }
 """
 
