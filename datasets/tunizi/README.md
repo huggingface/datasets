@@ -61,7 +61,7 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+This dataset uses Tunisian Arabic written with latin script (BCP-47: aeb-Latn)
 
 ## Dataset Structure
 
