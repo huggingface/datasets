@@ -172,7 +172,6 @@ class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
         for prompt_id, item in ALL_PROMPTS.items():
             pmcid = int(item["Prompt"]["PMCID"])
             if pmcid not in SPLITS:
-                print("PMCID", pmcid)
                 if os.path.isfile(os.path.join(directory, f"PMC{pmcid}.txt")):
                     split = "train"
                 else:
