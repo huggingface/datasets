@@ -239,7 +239,20 @@ Creating the dataset card goes in two steps:
 
 		We’re using YAML for tags actually, not JSON (even though the datasets-tagging tool allows to save in JSON). On the right side of the app there is an option to "Show YAML output".  Once you've tagged and saved all of the configs, you can copy-paste the output of this field at the top of your README.
 
-	- **Very nice to have but optional for now:** Complete the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
+	- **Very important as well:** Fill in the "Data Fields" section in the dataset card.
+
+		List the fields present in the features of the dataset. Briefly describe them and indicate if they have a default value (e.g. when there is no label). If the data has span indices, describe their attributes (character level or word level, contiguous or not, etc). If the datasets contains example IDs, state whether they have an inherent meaning, such as a mapping to other datasets or pointing to relationships between data points.
+
+		Example from the [ELI5 card](https://github.com/huggingface/datasets/tree/master/datasets/eli5#data-fields):
+
+			Data Fields:
+				- q_id: a string question identifier for each example, corresponding to its ID in the Pushshift.io Reddit submission dumps.
+				- subreddit: One of explainlikeimfive, askscience, or AskHistorians, indicating which subreddit the question came from
+				- title: title of the question, with URLs extracted and replaced by URL_n tokens
+				- title_urls: list of the extracted URLs, the nth element of the list was replaced by URL_n
+
+
+	- **Very nice to have but optional for now:** Complete all you can find in the dataset card using the detailed instructions for completed it which are in the `README_guide.md` here: https://github.com/huggingface/datasets/blob/master/templates/README_guide.md.
 
 		Here is a completed example: https://github.com/huggingface/datasets/tree/master/datasets/eli5 for inspiration
 
