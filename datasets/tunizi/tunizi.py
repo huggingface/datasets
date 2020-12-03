@@ -44,7 +44,7 @@ class Tunizi(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "sentence": datasets.Value("string"),
-                    "target": datasets.Value("string"),
+                    "target": datasets.ClassLabel(names=["1", "-1"]),
                 },
             ),
             supervised_keys=None,
@@ -67,6 +67,8 @@ class Tunizi(datasets.GeneratorBasedBuilder):
             for row in f:
                 row = row.strip()
                 target, sentence = row.split(";")
+                if target.startswith("%") or target.startswith('"'):
+                    target = target[1:]
                 result = (
                     sentence_counter,
                     {
