@@ -37,7 +37,7 @@ class DanishPoliticalComments(datasets.GeneratorBasedBuilder):
                 {
                     "id": datasets.Value("string"),
                     "sentence": datasets.Value("string"),
-                    "target": datasets.Value("string"),
+                    "target": datasets.features.ClassLabel(names=["2", "1", "0", "-1", "-2"]),
                 },
             ),
             supervised_keys=None,
