@@ -44,13 +44,13 @@ _CITATION = """\
 _TRAIN_TOKEN_DOWNLOAD_URL = (
     "https://github.com/omilab/Neural-Sentiment-Analyzer-for-Modern-Hebrew/blob/master/data/token_train.tsv?raw=true"
 )
-_TEST__TOKEN_DOWNLOAD_URL = (
+_TEST_TOKEN_DOWNLOAD_URL = (
     "https://github.com/omilab/Neural-Sentiment-Analyzer-for-Modern-Hebrew/blob/master/data/token_test.tsv?raw=true"
 )
 _TRAIN_MORPH_DOWNLOAD_URL = (
     "https://github.com/omilab/Neural-Sentiment-Analyzer-for-Modern-Hebrew/blob/master/data/morph_train.tsv?raw=true"
 )
-_TEST__MORPH_DOWNLOAD_URL = (
+_TEST_MORPH_DOWNLOAD_URL = (
     "https://github.com/omilab/Neural-Sentiment-Analyzer-for-Modern-Hebrew/blob/master/data/morph_test.tsv?raw=true"
 )
 
@@ -72,6 +72,8 @@ class HebrewSentiment(datasets.GeneratorBasedBuilder):
     """HebrewSentiment: A Modern Hebrew Sentiment Analysis Dataset."""
 
     BUILDER_CONFIG_CLASS = HebrewSentimentConfig
+
+    DEFAULT_CONFIG_NAME = "token"
 
     BUILDER_CONFIGS = [
         HebrewSentimentConfig(
@@ -104,8 +106,9 @@ class HebrewSentiment(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         train_url = _TRAIN_TOKEN_DOWNLOAD_URL if self.config.granularity == "token" else _TRAIN_MORPH_DOWNLOAD_URL
         train_path = dl_manager.download_and_extract(train_url)
-        test_url = _TRAIN_TOKEN_DOWNLOAD_URL if self.config.granularity == "token" else _TRAIN_MORPH_DOWNLOAD_URL
+        test_url = _TEST_TOKEN_DOWNLOAD_URL if self.config.granularity == "token" else _TEST_MORPH_DOWNLOAD_URL
         test_path = dl_manager.download_and_extract(test_url)
+
         return [
             datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": train_path}),
             datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": test_path}),
