@@ -5,7 +5,8 @@ language_creators:
 - found
 languages:
 - ar
-licenses: []
+licenses:
+- unknown
 multilinguality:
 - monolingual
 size_categories:
@@ -130,4 +131,3 @@ The dataset is not split.
 [More Information Needed]
 
 ### Citation Information
-
