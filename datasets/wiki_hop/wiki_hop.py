@@ -41,7 +41,7 @@ The goal is to answer text understanding queries by combining multiple facts tha
 _URL = "https://drive.google.com/uc?export=download&id=1ytVZ4AhubFDOEL7o7XrIRIyhU8g9wvKA"
 
 
-class WikiHopConifg(datasets.BuilderConfig):
+class WikiHopConfig(datasets.BuilderConfig):
     """BuilderConfig for WikiHop."""
 
     def __init__(self, masked=False, **kwargs):
@@ -51,7 +51,7 @@ class WikiHopConifg(datasets.BuilderConfig):
           masked: `bool`, original or maksed data.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(WikiHopConifg, self).__init__(**kwargs)
+        super(WikiHopConfig, self).__init__(**kwargs)
         self.masked = masked
 
 
@@ -60,17 +60,17 @@ class WikiHop(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        WikiHopConifg(
+        WikiHopConfig(
             name="original",
             version=datasets.Version("1.0.0"),
             description="The un-maksed WikiHop dataset",
             masked=False,
         ),
-        WikiHopConifg(
+        WikiHopConfig(
             name="masked", version=datasets.Version("1.0.0"), description="Masked WikiHop dataset", masked=True
         ),
     ]
-
+    BUILDER_CONFIG_CLASS = WikiHopConfig
     DEFAULT_CONFIG_NAME = "original"
 
     def _info(self):
@@ -113,6 +113,7 @@ class WikiHop(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             examples = json.load(f)
             for i, example in enumerate(examples):
+                # there are no annotations for train split, setting it to empty list
                 if split == "train":
                     example["annotations"] = []
                 yield example["id"], example
