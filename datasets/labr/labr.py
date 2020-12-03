@@ -18,8 +18,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import csv
+
 import datasets
 
 
@@ -42,10 +42,11 @@ _CITATION = """\
 
 _URL = "https://raw.githubusercontent.com/mohamedadaly/LABR/master/data/"
 _URLS = {
-        "train": _URL + "5class-balanced-train.txt",
-        "test": _URL + "5class-balanced-test.txt",
-        "reviews": _URL + "reviews.tsv",
+    "train": _URL + "5class-balanced-train.txt",
+    "test": _URL + "5class-balanced-test.txt",
+    "reviews": _URL + "reviews.tsv",
 }
+
 
 class LabrConfig(datasets.BuilderConfig):
     """BuilderConfig for Labr."""
@@ -93,14 +94,10 @@ class Labr(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_URLS)
-        self.reviews_path = data_dir['reviews']
+        self.reviews_path = data_dir["reviews"]
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"directory": data_dir['train'] }
-            ),
-            datasets.SplitGenerator(
-                name=datasets.Split.TEST, gen_kwargs={"directory": data_dir['test'] }
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"directory": data_dir["train"]}),
+            datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"directory": data_dir["test"]}),
         ]
 
     def _generate_examples(self, directory):
@@ -115,4 +112,4 @@ class Labr(datasets.GeneratorBasedBuilder):
         with open(directory, encoding="UTF-8") as f:
             for id_, record in enumerate(f.read().splitlines()):
                 rating, _, _, _, review_text = reviews[int(record)]
-                yield str(id_), {"text":review_text, 'label':rating}
+                yield str(id_), {"text": review_text, "label": rating}
