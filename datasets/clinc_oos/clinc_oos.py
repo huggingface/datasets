@@ -83,7 +83,7 @@ class ClincConfig(datasets.BuilderConfig):
         self.url = url
 
 
-class Clinc150(datasets.GeneratorBasedBuilder):
+class ClincOos(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         ClincConfig(
             name=name, description=_DESCRIPTIONS[name], data_url=_DATA_URLS[name], citation=_CITATION, url=_URL
