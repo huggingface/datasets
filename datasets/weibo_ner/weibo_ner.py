@@ -35,7 +35,7 @@ _TEST_URL = "https://raw.githubusercontent.com/OYE93/Chinese-NLP-Corpus/master/N
 _VALID_URL = "https://raw.githubusercontent.com/OYE93/Chinese-NLP-Corpus/master/NER/Weibo/weiboNER_2nd_conll.dev"
 
 
-class TurkuNERCorpus(datasets.GeneratorBasedBuilder):
+class WeiboNERCorpus(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     def _info(self):
@@ -109,7 +109,9 @@ class TurkuNERCorpus(datasets.GeneratorBasedBuilder):
                 else:
                     if not current_words:
                         continue
-                    assert len(current_words) == len(current_labels), "word len doesnt match label length"
+                    assert len(current_words) == len(
+                        current_labels
+                    ), "word len doesnt match label length"
                     sentence = (
                         sentence_counter,
                         {
