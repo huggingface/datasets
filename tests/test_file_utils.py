@@ -86,7 +86,6 @@ class TempSeedTest(TestCase):
         ("file.xml.gz", ".xml"),
         ("file.xml.tar.gz", ".xml"),
         ("file", ""),
-        (".file", ""),
     ],
 )
 def test_get_main_extension(dirname, filename, expected_extension):
