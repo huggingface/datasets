@@ -79,7 +79,7 @@ class MedHop(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "query": datasets.Value("string"),
+                    "question": datasets.Value("string"),
                     "answer": datasets.Value("string"),
                     "candidates": datasets.Sequence(datasets.Value("string")),
                     "supports": datasets.Sequence(datasets.Value("string")),
@@ -112,4 +112,5 @@ class MedHop(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             examples = json.load(f)
             for i, example in enumerate(examples):
+                example["question"] = example.pop("query")
                 yield example["id"], example
