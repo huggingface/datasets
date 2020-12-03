@@ -17,7 +17,7 @@ source_datasets:
 task_categories:
 - text-classification
 task_ids:
-- multi-class-classification
+- sentiment-classification
 ---
 
 # Dataset Card Creation Guide
