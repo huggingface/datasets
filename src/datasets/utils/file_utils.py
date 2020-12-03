@@ -9,6 +9,7 @@ import gzip
 import json
 import lzma
 import os
+import re
 import shutil
 import sys
 import tarfile
@@ -105,6 +106,8 @@ except (AttributeError, ImportError):
 S3_METRICS_BUCKET_PREFIX = "https://s3.amazonaws.com/datasets.huggingface.co/datasets/metrics"
 CLOUDFRONT_METRICS_DISTRIB_PREFIX = "https://cdn-datasets.huggingface.co/datasets/metric"
 REPO_METRICS_URL = "https://raw.githubusercontent.com/huggingface/datasets/{version}/metrics/{path}/{name}"
+
+EXTENSION_PATTERN = re.compile(r"^[^.]+(?P<value>\.[^.]+).*$")
 
 
 default_modules_cache_path = os.path.join(hf_cache_home, "modules")
@@ -544,6 +547,14 @@ def get_from_cache(
             json.dump(meta, meta_file)
 
     return cache_path
+
+
+def get_main_extension(path: str) -> str:
+    """Get filename extension ignoring compressing extension(s) if present."""
+    filename = os.path.split(path)[-1]
+    captured_extension = EXTENSION_PATTERN.match(filename)
+    extension = captured_extension.group("value") if captured_extension else ""
+    return extension
 
 
 def is_gzip(path: str) -> bool:
