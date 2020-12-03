@@ -8,7 +8,7 @@ This creates a copy of the code under your GitHub user account.
 2. Clone your fork to your local disk, and add the base repository as a remote:
 
 	```bash
-	git clone git@github.com:<your Github handle>/datasets.git
+	git clone https://github.com/<your Github handle>/datasets
 	cd datasets
 	git remote add upstream https://github.com/huggingface/datasets.git
 	```
@@ -48,6 +48,8 @@ You are now ready to start the process of adding the dataset. We will create the
 4. Let's start by creating a new branch to hold your development changes with the name of your dataset:
 
 	```bash
+	git fetch upstream
+	git rebase upstream/master
 	git checkout -b a-descriptive-name-for-my-changes
 	```
 
@@ -121,9 +123,9 @@ Sometimes you need to use several *configurations* and/or *splits* (usually at l
 
 **Last step:** To check that your dataset works correctly and to create its `dataset_infos.json` file run the command:
 
-	```bash
-	python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
-	```
+```bash
+python datasets-cli test datasets/<your-dataset-folder> --save_infos --all_configs
+```
 
 ### Automatically add code metadata
 
