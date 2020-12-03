@@ -21,8 +21,6 @@ PerSenT is a crowd-sourced dataset that captures the sentiment of an author towa
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
-import os
 
 import datasets
 from datasets.splits import NamedSplit
@@ -32,7 +30,7 @@ from datasets.splits import NamedSplit
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @inproceedings{bastan2020authors,
-      title={Author's Sentiment Prediction}, 
+      title={Author's Sentiment Prediction},
       author={Mohaddeseh Bastan and Mahnaz Koupaee and Youngseo Son and Richard Sicoli and Niranjan Balasubramanian},
       year={2020},
       eprint={2011.06128},
@@ -41,81 +39,59 @@ _CITATION = """\
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
 _DESCRIPTION = """\
-Person SenTiment (PerSenT) is a crowd-sourced dataset that captures the sentiment of an author towards the main entity in a news article. This dataset contains annotation for 5.3k documents and 38k paragraphs covering 3.2k unique entities. 
+Person SenTiment (PerSenT) is a crowd-sourced dataset that captures the sentiment of an author towards the main entity in a news article. This dataset contains annotation for 5.3k documents and 38k paragraphs covering 3.2k unique entities.
 
-To split the dataset, we separated the entities into 4 mutually exclusive sets. Due to the nature of news collections, some entities tend to dominate the collection. In our collection,there were four entities which were the main entity in nearly 800 articles. To avoid these entities from dominating the train or test splits, we moved them to a separate test collection. We split the remaining into a training, dev, and test sets at random. Thus our collection includes one standard test set consisting of articles drawn at random (Test Standard -- `test_random`), while the other is a test set which contains multiple articles about a small number of popular entities (Test Frequent -- `test_fixed`).
+The dataset consists of sentiment annotations on news articles about people. For each article, annotators judge what the author’s sentiment is towards the main (target) entity of the article. The annotations also include similar judgments on paragraphs within the article. 
+
+To split the dataset, entities into 4 mutually exclusive sets. Due to the nature of news collections, some entities tend to dominate the collection. In the collection, there were four entities which were the main entity in nearly 800 articles. To avoid these entities from dominating the train or test splits, we moved them to a separate test collection. We split the remaining into a training, dev, and test sets at random. Thus our collection includes one standard test set consisting of articles drawn at random (Test Standard -- `test_random`), while the other is a test set which contains multiple articles about a small number of popular entities (Test Frequent -- `test_fixed`).
 """
 
-# TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "Creative Commons Attribution 4.0 International License"
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
-    'train': "https://raw.githubusercontent.com/MHDBST/PerSenT/main/train.csv",
-    'dev': "https://raw.githubusercontent.com/MHDBST/PerSenT/main/dev.csv",
-    'test_random': 'https://raw.githubusercontent.com/MHDBST/PerSenT/main/random_test.csv',
-    'test_fixed': 'https://raw.githubusercontent.com/MHDBST/PerSenT/main/fixed_test.csv'
+    "train": "https://raw.githubusercontent.com/MHDBST/PerSenT/main/train.csv",
+    "dev": "https://raw.githubusercontent.com/MHDBST/PerSenT/main/dev.csv",
+    "test_random": "https://raw.githubusercontent.com/MHDBST/PerSenT/main/random_test.csv",
+    "test_fixed": "https://raw.githubusercontent.com/MHDBST/PerSenT/main/fixed_test.csv",
 }
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
 class PerSenT(datasets.GeneratorBasedBuilder):
-    """Person SenTiment (PerSenT) is a crowd-sourced dataset that captures the sentiment of an author towards the main entity in a news article. This dataset contains annotation for 5.3k documents and 38k paragraphs covering 3.2k unique entities. 
-    """
+    """Person SenTiment (PerSenT) is a crowd-sourced dataset that captures the sentiment of an author towards the main entity in a news article. This dataset contains annotation for 5.3k documents and 38k paragraphs covering 3.2k unique entities."""
 
     VERSION = datasets.Version("1.1.0")
 
-    # This is an example of a dataset with multiple configurations.
-    # If you don't want/need to define several sub-sets in your dataset,
-    # just remove the BUILDER_CONFIG_CLASS and the BUILDER_CONFIGS attributes.
-
-    # If you need to make complex sub-parts in the datasets with configurable options
-    # You can create your own builder configuration class to store attribute, inheriting from datasets.BuilderConfig
-    # BUILDER_CONFIG_CLASS = MyBuilderConfig
-
-    # You will be able to load one or the other configurations in the following list with
-    # data = datasets.load_dataset('my_dataset', 'first_domain')
-    # data = datasets.load_dataset('my_dataset', 'second_domain')
-    # BUILDER_CONFIGS = [
-    #     datasets.BuilderConfig(name="train", description="This part of my dataset covers a first domain"),
-    #     datasets.BuilderConfig(name="dev", description="This part of my dataset covers a second domain"),
-    # ]
-
-    # DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-
     def _info(self):
-        label = datasets.features.ClassLabel(names=["","Negative", "Neutral", "Positive"])
+        label = datasets.features.ClassLabel(
+            names=["", "Negative", "Neutral", "Positive"]
+        )
         features = datasets.Features(
-                {
-                    'DOCUMENT_INDEX': datasets.Value("int64"),
-                    'TITLE': datasets.Value("string"),
-                    'TARGET_ENTITY': datasets.Value("string"),
-                    'DOCUMENT': datasets.Value("string"),
-                    'MASKED_DOCUMENT': datasets.Value("string"),
-                    'TRUE_SENTIMENT': label,
-                    'Paragraph0': label,
-                    'Paragraph1': label,
-                    'Paragraph2': label,
-                    'Paragraph3': label,
-                    'Paragraph4': label,
-                    'Paragraph5': label,
-                    'Paragraph6': label,
-                    'Paragraph7': label,
-                    'Paragraph8': label,
-                    'Paragraph9': label,
-                    'Paragraph10': label,
-                    'Paragraph11': label,
-                    'Paragraph12': label,
-                    'Paragraph13': label,
-                    'Paragraph14': label,
-                    'Paragraph15': label,
-                }
-            )
+            {
+                "DOCUMENT_INDEX": datasets.Value("int64"),
+                "TITLE": datasets.Value("string"),
+                "TARGET_ENTITY": datasets.Value("string"),
+                "DOCUMENT": datasets.Value("string"),
+                "MASKED_DOCUMENT": datasets.Value("string"),
+                "TRUE_SENTIMENT": label,
+                "Paragraph0": label,
+                "Paragraph1": label,
+                "Paragraph2": label,
+                "Paragraph3": label,
+                "Paragraph4": label,
+                "Paragraph5": label,
+                "Paragraph6": label,
+                "Paragraph7": label,
+                "Paragraph8": label,
+                "Paragraph9": label,
+                "Paragraph10": label,
+                "Paragraph11": label,
+                "Paragraph12": label,
+                "Paragraph13": label,
+                "Paragraph14": label,
+                "Paragraph15": label,
+            }
+        )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
@@ -127,10 +103,10 @@ class PerSenT(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        train_path = dl_manager.download(_URLs['train'])
-        dev_path = dl_manager.download(_URLs['dev'])
-        test_fixed_path = dl_manager.download(_URLs['test_fixed'])
-        test_random_path = dl_manager.download(_URLs['test_random'])
+        train_path = dl_manager.download(_URLs["train"])
+        dev_path = dl_manager.download(_URLs["dev"])
+        test_fixed_path = dl_manager.download(_URLs["test_fixed"])
+        test_random_path = dl_manager.download(_URLs["test_random"])
 
         return [
             datasets.SplitGenerator(
@@ -144,18 +120,12 @@ class PerSenT(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=NamedSplit("test_random"),
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": test_random_path,
-                    "split": "test_random"
-                },
+                gen_kwargs={"filepath": test_random_path, "split": "test_random"},
             ),
             datasets.SplitGenerator(
                 name=NamedSplit("test_fixed"),
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": test_fixed_path,
-                    "split": "test_fixed"
-                },
+                gen_kwargs={"filepath": test_fixed_path, "split": "test_fixed"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -169,9 +139,6 @@ class PerSenT(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
 
         with open(filepath) as f:
             reader = csv.reader(f)
