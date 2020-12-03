@@ -15,10 +15,10 @@
 
 # Lint as: python3
 """BigPatent Dataset."""
+import glob
 import gzip
 import json
 import os
-import glob
 
 import datasets
 
@@ -49,9 +49,7 @@ There are two features:
   - summary: Patent abastract.
 """
 
-_URL = (
-    "https://drive.google.com/uc?export=download&id=1J3mucMFTWrgAYa3LuBZoLRR3CzzYD3fa"
-)
+_URL = "https://drive.google.com/uc?export=download&id=1J3mucMFTWrgAYa3LuBZoLRR3CzzYD3fa"
 
 _DOCUMENT = "description"
 _SUMMARY = "abstract"
@@ -103,10 +101,7 @@ class BigPatent(datasets.GeneratorBasedBuilder):
         BigPatentConfig(  # pylint:disable=g-complex-comprehension
             cpc_codes=[k],
             name=k,
-            description=(
-                "Patents under Cooperative Patent Classification (CPC)"
-                "{0}: {1}".format(k, v)
-            ),
+            description=("Patents under Cooperative Patent Classification (CPC)" "{0}: {1}".format(k, v)),
         )
         for k, v in sorted(_CPC_DESCRIPTION.items())
     ]
@@ -116,9 +111,7 @@ class BigPatent(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}
-            ),
+            features=datasets.Features({_DOCUMENT: datasets.Value("string"), _SUMMARY: datasets.Value("string")}),
             supervised_keys=(_DOCUMENT, _SUMMARY),
             homepage="https://evasharma.github.io/bigpatent/",
             citation=_CITATION,
@@ -129,10 +122,7 @@ class BigPatent(datasets.GeneratorBasedBuilder):
         dl_path = dl_manager.download_and_extract(_URL)
         split_types = ["train", "val", "test"]
         extract_paths = dl_manager.extract(
-            {
-                k: os.path.join(dl_path, "bigPatentData", k + ".tar.gz")
-                for k in split_types
-            }
+            {k: os.path.join(dl_path, "bigPatentData", k + ".tar.gz") for k in split_types}
         )
         extract_paths = {k: os.path.join(extract_paths[k], k) for k in split_types}
 
