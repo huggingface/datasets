@@ -55,7 +55,7 @@ class AutshumatoConfig(datasets.BuilderConfig):
         super().__init__(**kwargs)
 
 
-class AutshumatoParallel(datasets.GeneratorBasedBuilder):
+class Autshumato(datasets.GeneratorBasedBuilder):
     """The IWSLT 2017 Evaluation Campaign includes a multilingual TED Talks MT task."""
 
     VERSION = datasets.Version("1.0.0")
@@ -66,18 +66,34 @@ class AutshumatoParallel(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = AutshumatoConfig
     BUILDER_CONFIGS = [
         AutshumatoConfig(
-            name="autshumato-en-ts-manual",
-            description="Autshumato English-Xitsonga Manually Translated Parallel Corpora",
-            version=datasets.Version("1.0.0"),
-            langs=("en", "ts"),
-            zip_file="https://repo.sadilar.org/bitstream/handle/20.500.12185/405/en-ts.translationsonlycorpus.zip",
-        ),
-        AutshumatoConfig(
             name="autshumato-en-tn",
             description="Autshumato English-Setswana Parallel Corpora",
             version=datasets.Version("1.0.0"),
             langs=("en", "tn"),
             zip_file="https://repo.sadilar.org/bitstream/handle/20.500.12185/404/autshumato_english-setswana_parallel_corpora.zip",
+        ),
+        # This data is protected by a form
+        # AutshumatoConfig(
+        #     name="autshumato-en-nso",
+        #     description="Autshumato English-Sesotho sa Leboa Parallel Corpora",
+        #     version=datasets.Version("1.0.0"),
+        #     langs=("en", "nso"),
+        #     zip_file="https://repo.sadilar.org/bitstream/handle/20.500.12185/402/en-nso.release.zip",
+        # ),
+        # This data is protected by a form
+        # AutshumatoConfig(
+        #     name="autshumato-en-af",
+        #     description="Autshumato English-Afrikaans Parallel Corpora",
+        #     version=datasets.Version("1.0.0"),
+        #     langs=("en", "af"),
+        #     zip_file="https://repo.sadilar.org/bitstream/handle/20.500.12185/397/en-af.release.zip",
+        # ),
+        AutshumatoConfig(
+            name="autshumato-en-zu",
+            description="Autshumato English-isiZulu Parallel Corpora",
+            version=datasets.Version("1.0.0"),
+            langs=("en", "zu"),
+            zip_file="https://repo.sadilar.org/bitstream/handle/20.500.12185/399/en-zu.release.zip",
         ),
         AutshumatoConfig(
             name="autshumato-en-ts",
@@ -85,6 +101,13 @@ class AutshumatoParallel(datasets.GeneratorBasedBuilder):
             version=datasets.Version("1.0.0"),
             langs=("en", "ts"),
             zip_file="https://repo.sadilar.org/bitstream/handle/20.500.12185/406/en-ts.completebilingualcorpus.zip",
+        ),
+        AutshumatoConfig(
+            name="autshumato-en-ts-manual",
+            description="Autshumato English-Xitsonga Manually Translated Parallel Corpora",
+            version=datasets.Version("1.0.0"),
+            langs=("en", "ts"),
+            zip_file="https://repo.sadilar.org/bitstream/handle/20.500.12185/405/en-ts.translationsonlycorpus.zip",
         ),
         AutshumatoConfig(
             name="autshumato-tn",
@@ -164,8 +187,8 @@ class AutshumatoParallel(datasets.GeneratorBasedBuilder):
         if "README.txt" in filenames:
             filenames.remove("README.txt")
 
-        source_filenames = sorted(os.path.join(dl_dir, f) for f in filenames if f.endswith(f"{source}.txt"))
-        target_filenames = sorted(os.path.join(dl_dir, f) for f in filenames if f.endswith(f"{target}.txt"))
+        source_filenames = sorted(os.path.join(dl_dir, f) for f in filenames if f.endswith(f"{source}.txt") or '.eng.' in f)
+        target_filenames = sorted(os.path.join(dl_dir, f) for f in filenames if f.endswith(f"{target}.txt") or '.zul.' in f)
 
         return [
             datasets.SplitGenerator(
