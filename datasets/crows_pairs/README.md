@@ -14,10 +14,9 @@ size_categories:
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- text-scoring
 task_ids:
-- language-modeling
-- sequence-modeling-other-social-biais-detection
+- text-scoring-other-bias-evaluation
 ---
 
 # Dataset Card Creation Guide
