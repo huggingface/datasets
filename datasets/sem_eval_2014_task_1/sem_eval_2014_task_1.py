@@ -123,8 +123,8 @@ class SemEval2014Task1(datasets.GeneratorBasedBuilder):
 
                 yield idx, {
                     "sentence_pair_id": sentence_pair_id,
-                    "premise": sentence_A,
-                    "hypothesis": sentence_B,
+                    "premise": premise,
+                    "hypothesis": hypothesis,
                     "relatedness_score": relatedness_score,
                     "entailment_judgment": entailment_judgment,
                 }
