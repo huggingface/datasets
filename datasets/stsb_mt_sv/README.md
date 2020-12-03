@@ -3,6 +3,7 @@ annotations_creators:
 - crowdsourced
 language_creators:
 - crowdsourced
+- machine-generated
 languages:
 - sv
 licenses:
