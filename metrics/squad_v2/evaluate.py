@@ -51,7 +51,7 @@ def make_qid_to_has_ans(dataset):
     for article in dataset:
         for p in article["paragraphs"]:
             for qa in p["qas"]:
-                qid_to_has_ans[qa["id"]] = bool(qa["answers"])
+                qid_to_has_ans[qa["id"]] = bool(qa["answers"]["text"])
     return qid_to_has_ans
 
 
