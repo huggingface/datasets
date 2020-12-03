@@ -34,7 +34,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-MedHop iss based on research paper abstracts from PubMed, and the queries are about interactions between pairs of drugs. \
+MedHop is based on research paper abstracts from PubMed, and the queries are about interactions between pairs of drugs. \
 The correct answer has to be inferred by combining information from a chain of reactions of drugs and proteins.
 """
 
