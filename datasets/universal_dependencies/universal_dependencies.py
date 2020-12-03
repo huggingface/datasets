@@ -1,6 +1,9 @@
 from __future__ import absolute_import, division, print_function
 
+import conllu
+
 import datasets
+
 
 _CITATION = """\
 @misc{11234/1-3424,
@@ -393,816 +396,918 @@ _DESCRIPTIONS = {
 _PREFIX = "https://raw.githubusercontent.com/UniversalDependencies/"
 _UD_DATASETS = {
     "af_afribooms": {
-        "train": "UD_Afrikaans-AfriBooms/master/af_afribooms-ud-train.conllu",
-        "dev": "UD_Afrikaans-AfriBooms/master/af_afribooms-ud-dev.conllu",
-        "test": "UD_Afrikaans-AfriBooms/master/af_afribooms-ud-test.conllu",
+        "train": "UD_Afrikaans-AfriBooms/r2.7/af_afribooms-ud-train.conllu",
+        "dev": "UD_Afrikaans-AfriBooms/r2.7/af_afribooms-ud-dev.conllu",
+        "test": "UD_Afrikaans-AfriBooms/r2.7/af_afribooms-ud-test.conllu",
     },
     "akk_pisandub": {
-        "test": "UD_Akkadian-PISANDUB/master/akk_pisandub-ud-test.conllu",
+        "test": "UD_Akkadian-PISANDUB/r2.7/akk_pisandub-ud-test.conllu",
     },
     "akk_riao": {
-        "test": "UD_Akkadian-RIAO/master/akk_riao-ud-test.conllu",
+        "test": "UD_Akkadian-RIAO/r2.7/akk_riao-ud-test.conllu",
     },
     "aqz_tudet": {
-        "test": "UD_Akuntsu-TuDeT/master/aqz_tudet-ud-test.conllu",
+        "test": "UD_Akuntsu-TuDeT/r2.7/aqz_tudet-ud-test.conllu",
     },
     "sq_tsa": {
-        "test": "UD_Albanian-TSA/master/sq_tsa-ud-test.conllu",
+        "test": "UD_Albanian-TSA/r2.7/sq_tsa-ud-test.conllu",
     },
     "am_att": {
-        "test": "UD_Amharic-ATT/master/am_att-ud-test.conllu",
+        "test": "UD_Amharic-ATT/r2.7/am_att-ud-test.conllu",
     },
     "grc_perseus": {
-        "train": "UD_Ancient_Greek-Perseus/master/grc_perseus-ud-train.conllu",
-        "dev": "UD_Ancient_Greek-Perseus/master/grc_perseus-ud-dev.conllu",
-        "test": "UD_Ancient_Greek-Perseus/master/grc_perseus-ud-test.conllu",
+        "train": "UD_Ancient_Greek-Perseus/r2.7/grc_perseus-ud-train.conllu",
+        "dev": "UD_Ancient_Greek-Perseus/r2.7/grc_perseus-ud-dev.conllu",
+        "test": "UD_Ancient_Greek-Perseus/r2.7/grc_perseus-ud-test.conllu",
     },
     "grc_proiel": {
-        "train": "UD_Ancient_Greek-PROIEL/master/grc_proiel-ud-train.conllu",
-        "dev": "UD_Ancient_Greek-PROIEL/master/grc_proiel-ud-dev.conllu",
-        "test": "UD_Ancient_Greek-PROIEL/master/grc_proiel-ud-test.conllu",
+        "train": "UD_Ancient_Greek-PROIEL/r2.7/grc_proiel-ud-train.conllu",
+        "dev": "UD_Ancient_Greek-PROIEL/r2.7/grc_proiel-ud-dev.conllu",
+        "test": "UD_Ancient_Greek-PROIEL/r2.7/grc_proiel-ud-test.conllu",
     },
     "apu_ufpa": {
-        "test": "UD_Apurina-UFPA/master/apu_ufpa-ud-test.conllu",
+        "test": "UD_Apurina-UFPA/r2.7/apu_ufpa-ud-test.conllu",
     },
     "ar_nyuad": {
-        "train": "UD_Arabic-NYUAD/master/ar_nyuad-ud-train.conllu",
-        "dev": "UD_Arabic-NYUAD/master/ar_nyuad-ud-dev.conllu",
-        "test": "UD_Arabic-NYUAD/master/ar_nyuad-ud-test.conllu",
+        "train": "UD_Arabic-NYUAD/r2.7/ar_nyuad-ud-train.conllu",
+        "dev": "UD_Arabic-NYUAD/r2.7/ar_nyuad-ud-dev.conllu",
+        "test": "UD_Arabic-NYUAD/r2.7/ar_nyuad-ud-test.conllu",
     },
     "ar_padt": {
-        "train": "UD_Arabic-PADT/master/ar_padt-ud-train.conllu",
-        "dev": "UD_Arabic-PADT/master/ar_padt-ud-dev.conllu",
-        "test": "UD_Arabic-PADT/master/ar_padt-ud-test.conllu",
+        "train": "UD_Arabic-PADT/r2.7/ar_padt-ud-train.conllu",
+        "dev": "UD_Arabic-PADT/r2.7/ar_padt-ud-dev.conllu",
+        "test": "UD_Arabic-PADT/r2.7/ar_padt-ud-test.conllu",
     },
     "ar_pud": {
-        "test": "UD_Arabic-PUD/master/ar_pud-ud-test.conllu",
+        "test": "UD_Arabic-PUD/r2.7/ar_pud-ud-test.conllu",
     },
     "hy_armtdp": {
-        "train": "UD_Armenian-ArmTDP/master/hy_armtdp-ud-train.conllu",
-        "dev": "UD_Armenian-ArmTDP/master/hy_armtdp-ud-dev.conllu",
-        "test": "UD_Armenian-ArmTDP/master/hy_armtdp-ud-test.conllu",
+        "train": "UD_Armenian-ArmTDP/r2.7/hy_armtdp-ud-train.conllu",
+        "dev": "UD_Armenian-ArmTDP/r2.7/hy_armtdp-ud-dev.conllu",
+        "test": "UD_Armenian-ArmTDP/r2.7/hy_armtdp-ud-test.conllu",
     },
     "aii_as": {
-        "test": "UD_Assyrian-AS/master/aii_as-ud-test.conllu",
+        "test": "UD_Assyrian-AS/r2.7/aii_as-ud-test.conllu",
     },
     "bm_crb": {
-        "test": "UD_Bambara-CRB/master/bm_crb-ud-test.conllu",
+        "test": "UD_Bambara-CRB/r2.7/bm_crb-ud-test.conllu",
     },
     "eu_bdt": {
-        "train": "UD_Basque-BDT/master/eu_bdt-ud-train.conllu",
-        "dev": "UD_Basque-BDT/master/eu_bdt-ud-dev.conllu",
-        "test": "UD_Basque-BDT/master/eu_bdt-ud-test.conllu",
+        "train": "UD_Basque-BDT/r2.7/eu_bdt-ud-train.conllu",
+        "dev": "UD_Basque-BDT/r2.7/eu_bdt-ud-dev.conllu",
+        "test": "UD_Basque-BDT/r2.7/eu_bdt-ud-test.conllu",
     },
     "be_hse": {
-        "train": "UD_Belarusian-HSE/master/be_hse-ud-train.conllu",
-        "dev": "UD_Belarusian-HSE/master/be_hse-ud-dev.conllu",
-        "test": "UD_Belarusian-HSE/master/be_hse-ud-test.conllu",
+        "train": "UD_Belarusian-HSE/r2.7/be_hse-ud-train.conllu",
+        "dev": "UD_Belarusian-HSE/r2.7/be_hse-ud-dev.conllu",
+        "test": "UD_Belarusian-HSE/r2.7/be_hse-ud-test.conllu",
     },
     "bho_bhtb": {
-        "test": "UD_Bhojpuri-BHTB/master/bho_bhtb-ud-test.conllu",
+        "test": "UD_Bhojpuri-BHTB/r2.7/bho_bhtb-ud-test.conllu",
     },
     "br_keb": {
-        "test": "UD_Breton-KEB/master/br_keb-ud-test.conllu",
+        "test": "UD_Breton-KEB/r2.7/br_keb-ud-test.conllu",
     },
     "bg_btb": {
-        "train": "UD_Bulgarian-BTB/master/bg_btb-ud-train.conllu",
-        "dev": "UD_Bulgarian-BTB/master/bg_btb-ud-dev.conllu",
-        "test": "UD_Bulgarian-BTB/master/bg_btb-ud-test.conllu",
+        "train": "UD_Bulgarian-BTB/r2.7/bg_btb-ud-train.conllu",
+        "dev": "UD_Bulgarian-BTB/r2.7/bg_btb-ud-dev.conllu",
+        "test": "UD_Bulgarian-BTB/r2.7/bg_btb-ud-test.conllu",
     },
     "bxr_bdt": {
-        "train": "UD_Buryat-BDT/master/bxr_bdt-ud-train.conllu",
-        "test": "UD_Buryat-BDT/master/bxr_bdt-ud-test.conllu",
+        "train": "UD_Buryat-BDT/r2.7/bxr_bdt-ud-train.conllu",
+        "test": "UD_Buryat-BDT/r2.7/bxr_bdt-ud-test.conllu",
     },
     "yue_hk": {
-        "test": "UD_Cantonese-HK/master/yue_hk-ud-test.conllu",
+        "test": "UD_Cantonese-HK/r2.7/yue_hk-ud-test.conllu",
     },
     "ca_ancora": {
-        "train": "UD_Catalan-AnCora/master/ca_ancora-ud-train.conllu",
-        "dev": "UD_Catalan-AnCora/master/ca_ancora-ud-dev.conllu",
-        "test": "UD_Catalan-AnCora/master/ca_ancora-ud-test.conllu",
+        "train": "UD_Catalan-AnCora/r2.7/ca_ancora-ud-train.conllu",
+        "dev": "UD_Catalan-AnCora/r2.7/ca_ancora-ud-dev.conllu",
+        "test": "UD_Catalan-AnCora/r2.7/ca_ancora-ud-test.conllu",
     },
     "zh_cfl": {
-        "test": "UD_Chinese-CFL/master/zh_cfl-ud-test.conllu",
+        "test": "UD_Chinese-CFL/r2.7/zh_cfl-ud-test.conllu",
     },
     "zh_gsd": {
-        "train": "UD_Chinese-GSD/master/zh_gsd-ud-train.conllu",
-        "dev": "UD_Chinese-GSD/master/zh_gsd-ud-dev.conllu",
-        "test": "UD_Chinese-GSD/master/zh_gsd-ud-test.conllu",
+        "train": "UD_Chinese-GSD/r2.7/zh_gsd-ud-train.conllu",
+        "dev": "UD_Chinese-GSD/r2.7/zh_gsd-ud-dev.conllu",
+        "test": "UD_Chinese-GSD/r2.7/zh_gsd-ud-test.conllu",
     },
     "zh_gsdsimp": {
-        "train": "UD_Chinese-GSDSimp/master/zh_gsdsimp-ud-train.conllu",
-        "dev": "UD_Chinese-GSDSimp/master/zh_gsdsimp-ud-dev.conllu",
-        "test": "UD_Chinese-GSDSimp/master/zh_gsdsimp-ud-test.conllu",
+        "train": "UD_Chinese-GSDSimp/r2.7/zh_gsdsimp-ud-train.conllu",
+        "dev": "UD_Chinese-GSDSimp/r2.7/zh_gsdsimp-ud-dev.conllu",
+        "test": "UD_Chinese-GSDSimp/r2.7/zh_gsdsimp-ud-test.conllu",
     },
     "zh_hk": {
-        "test": "UD_Chinese-HK/master/zh_hk-ud-test.conllu",
+        "test": "UD_Chinese-HK/r2.7/zh_hk-ud-test.conllu",
     },
     "zh_pud": {
-        "test": "UD_Chinese-PUD/master/zh_pud-ud-test.conllu",
+        "test": "UD_Chinese-PUD/r2.7/zh_pud-ud-test.conllu",
     },
     "ckt_hse": {
-        "test": "UD_Chukchi-HSE/master/ckt_hse-ud-test.conllu",
+        "test": "UD_Chukchi-HSE/r2.7/ckt_hse-ud-test.conllu",
     },
     "lzh_kyoto": {
-        "train": "UD_Classical_Chinese-Kyoto/master/lzh_kyoto-ud-train.conllu",
-        "dev": "UD_Classical_Chinese-Kyoto/master/lzh_kyoto-ud-dev.conllu",
-        "test": "UD_Classical_Chinese-Kyoto/master/lzh_kyoto-ud-test.conllu",
+        "train": "UD_Classical_Chinese-Kyoto/r2.7/lzh_kyoto-ud-train.conllu",
+        "dev": "UD_Classical_Chinese-Kyoto/r2.7/lzh_kyoto-ud-dev.conllu",
+        "test": "UD_Classical_Chinese-Kyoto/r2.7/lzh_kyoto-ud-test.conllu",
     },
     "cop_scriptorium": {
-        "train": "UD_Coptic-Scriptorium/master/cop_scriptorium-ud-train.conllu",
-        "dev": "UD_Coptic-Scriptorium/master/cop_scriptorium-ud-dev.conllu",
-        "test": "UD_Coptic-Scriptorium/master/cop_scriptorium-ud-test.conllu",
+        "train": "UD_Coptic-Scriptorium/r2.7/cop_scriptorium-ud-train.conllu",
+        "dev": "UD_Coptic-Scriptorium/r2.7/cop_scriptorium-ud-dev.conllu",
+        "test": "UD_Coptic-Scriptorium/r2.7/cop_scriptorium-ud-test.conllu",
     },
     "hr_set": {
-        "train": "UD_Croatian-SET/master/hr_set-ud-train.conllu",
-        "dev": "UD_Croatian-SET/master/hr_set-ud-dev.conllu",
-        "test": "UD_Croatian-SET/master/hr_set-ud-test.conllu",
+        "train": "UD_Croatian-SET/r2.7/hr_set-ud-train.conllu",
+        "dev": "UD_Croatian-SET/r2.7/hr_set-ud-dev.conllu",
+        "test": "UD_Croatian-SET/r2.7/hr_set-ud-test.conllu",
     },
     "cs_cac": {
-        "train": "UD_Czech-CAC/master/cs_cac-ud-train.conllu",
-        "dev": "UD_Czech-CAC/master/cs_cac-ud-dev.conllu",
-        "test": "UD_Czech-CAC/master/cs_cac-ud-test.conllu",
+        "train": "UD_Czech-CAC/r2.7/cs_cac-ud-train.conllu",
+        "dev": "UD_Czech-CAC/r2.7/cs_cac-ud-dev.conllu",
+        "test": "UD_Czech-CAC/r2.7/cs_cac-ud-test.conllu",
     },
     "cs_cltt": {
-        "train": "UD_Czech-CLTT/master/cs_cltt-ud-train.conllu",
-        "dev": "UD_Czech-CLTT/master/cs_cltt-ud-dev.conllu",
-        "test": "UD_Czech-CLTT/master/cs_cltt-ud-test.conllu",
+        "train": "UD_Czech-CLTT/r2.7/cs_cltt-ud-train.conllu",
+        "dev": "UD_Czech-CLTT/r2.7/cs_cltt-ud-dev.conllu",
+        "test": "UD_Czech-CLTT/r2.7/cs_cltt-ud-test.conllu",
     },
     "cs_fictree": {
-        "train": "UD_Czech-FicTree/master/cs_fictree-ud-train.conllu",
-        "dev": "UD_Czech-FicTree/master/cs_fictree-ud-dev.conllu",
-        "test": "UD_Czech-FicTree/master/cs_fictree-ud-test.conllu",
+        "train": "UD_Czech-FicTree/r2.7/cs_fictree-ud-train.conllu",
+        "dev": "UD_Czech-FicTree/r2.7/cs_fictree-ud-dev.conllu",
+        "test": "UD_Czech-FicTree/r2.7/cs_fictree-ud-test.conllu",
     },
     "cs_pdt": {
-        "train": "UD_Czech-PDT/master/cs_pdt-ud-train.conllu",
-        "dev": "UD_Czech-PDT/master/cs_pdt-ud-dev.conllu",
-        "test": "UD_Czech-PDT/master/cs_pdt-ud-test.conllu",
+        "train": [
+            "UD_Czech-PDT/r2.7/cs_pdt-ud-train-l.conllu",
+            "UD_Czech-PDT/r2.7/cs_pdt-ud-train-m.conllu",
+            "UD_Czech-PDT/r2.7/cs_pdt-ud-train-c.conllu",
+            "UD_Czech-PDT/r2.7/cs_pdt-ud-train-v.conllu",
+        ],
+        "dev": "UD_Czech-PDT/r2.7/cs_pdt-ud-dev.conllu",
+        "test": "UD_Czech-PDT/r2.7/cs_pdt-ud-test.conllu",
     },
     "cs_pud": {
-        "test": "UD_Czech-PUD/master/cs_pud-ud-test.conllu",
+        "test": "UD_Czech-PUD/r2.7/cs_pud-ud-test.conllu",
     },
     "da_ddt": {
-        "train": "UD_Danish-DDT/master/da_ddt-ud-train.conllu",
-        "dev": "UD_Danish-DDT/master/da_ddt-ud-dev.conllu",
-        "test": "UD_Danish-DDT/master/da_ddt-ud-test.conllu",
+        "train": "UD_Danish-DDT/r2.7/da_ddt-ud-train.conllu",
+        "dev": "UD_Danish-DDT/r2.7/da_ddt-ud-dev.conllu",
+        "test": "UD_Danish-DDT/r2.7/da_ddt-ud-test.conllu",
     },
     "nl_alpino": {
-        "train": "UD_Dutch-Alpino/master/nl_alpino-ud-train.conllu",
-        "dev": "UD_Dutch-Alpino/master/nl_alpino-ud-dev.conllu",
-        "test": "UD_Dutch-Alpino/master/nl_alpino-ud-test.conllu",
+        "train": "UD_Dutch-Alpino/r2.7/nl_alpino-ud-train.conllu",
+        "dev": "UD_Dutch-Alpino/r2.7/nl_alpino-ud-dev.conllu",
+        "test": "UD_Dutch-Alpino/r2.7/nl_alpino-ud-test.conllu",
     },
     "nl_lassysmall": {
-        "train": "UD_Dutch-LassySmall/master/nl_lassysmall-ud-train.conllu",
-        "dev": "UD_Dutch-LassySmall/master/nl_lassysmall-ud-dev.conllu",
-        "test": "UD_Dutch-LassySmall/master/nl_lassysmall-ud-test.conllu",
+        "train": "UD_Dutch-LassySmall/r2.7/nl_lassysmall-ud-train.conllu",
+        "dev": "UD_Dutch-LassySmall/r2.7/nl_lassysmall-ud-dev.conllu",
+        "test": "UD_Dutch-LassySmall/r2.7/nl_lassysmall-ud-test.conllu",
     },
     "en_esl": {
-        "train": "UD_English-ESL/master/en_esl-ud-train.conllu",
-        "dev": "UD_English-ESL/master/en_esl-ud-dev.conllu",
-        "test": "UD_English-ESL/master/en_esl-ud-test.conllu",
+        "train": "UD_English-ESL/r2.7/en_esl-ud-train.conllu",
+        "dev": "UD_English-ESL/r2.7/en_esl-ud-dev.conllu",
+        "test": "UD_English-ESL/r2.7/en_esl-ud-test.conllu",
     },
     "en_ewt": {
-        "train": "UD_English-EWT/master/en_ewt-ud-train.conllu",
-        "dev": "UD_English-EWT/master/en_ewt-ud-dev.conllu",
-        "test": "UD_English-EWT/master/en_ewt-ud-test.conllu",
+        "train": "UD_English-EWT/r2.7/en_ewt-ud-train.conllu",
+        "dev": "UD_English-EWT/r2.7/en_ewt-ud-dev.conllu",
+        "test": "UD_English-EWT/r2.7/en_ewt-ud-test.conllu",
     },
     "en_gum": {
-        "train": "UD_English-GUM/master/en_gum-ud-train.conllu",
-        "dev": "UD_English-GUM/master/en_gum-ud-dev.conllu",
-        "test": "UD_English-GUM/master/en_gum-ud-test.conllu",
+        "train": "UD_English-GUM/r2.7/en_gum-ud-train.conllu",
+        "dev": "UD_English-GUM/r2.7/en_gum-ud-dev.conllu",
+        "test": "UD_English-GUM/r2.7/en_gum-ud-test.conllu",
     },
     "en_gumreddit": {
-        "train": "UD_English-GUMReddit/master/en_gumreddit-ud-train.conllu",
-        "dev": "UD_English-GUMReddit/master/en_gumreddit-ud-dev.conllu",
-        "test": "UD_English-GUMReddit/master/en_gumreddit-ud-test.conllu",
+        "train": "UD_English-GUMReddit/r2.7/en_gumreddit-ud-train.conllu",
+        "dev": "UD_English-GUMReddit/r2.7/en_gumreddit-ud-dev.conllu",
+        "test": "UD_English-GUMReddit/r2.7/en_gumreddit-ud-test.conllu",
     },
     "en_lines": {
-        "train": "UD_English-LinES/master/en_lines-ud-train.conllu",
-        "dev": "UD_English-LinES/master/en_lines-ud-dev.conllu",
-        "test": "UD_English-LinES/master/en_lines-ud-test.conllu",
+        "train": "UD_English-LinES/r2.7/en_lines-ud-train.conllu",
+        "dev": "UD_English-LinES/r2.7/en_lines-ud-dev.conllu",
+        "test": "UD_English-LinES/r2.7/en_lines-ud-test.conllu",
     },
     "en_partut": {
-        "train": "UD_English-ParTUT/master/en_partut-ud-train.conllu",
-        "dev": "UD_English-ParTUT/master/en_partut-ud-dev.conllu",
-        "test": "UD_English-ParTUT/master/en_partut-ud-test.conllu",
+        "train": "UD_English-ParTUT/r2.7/en_partut-ud-train.conllu",
+        "dev": "UD_English-ParTUT/r2.7/en_partut-ud-dev.conllu",
+        "test": "UD_English-ParTUT/r2.7/en_partut-ud-test.conllu",
     },
     "en_pronouns": {
-        "test": "UD_English-Pronouns/master/en_pronouns-ud-test.conllu",
+        "test": "UD_English-Pronouns/r2.7/en_pronouns-ud-test.conllu",
     },
     "en_pud": {
-        "test": "UD_English-PUD/master/en_pud-ud-test.conllu",
+        "test": "UD_English-PUD/r2.7/en_pud-ud-test.conllu",
     },
     "myv_jr": {
-        "test": "UD_Erzya-JR/master/myv_jr-ud-test.conllu",
+        "test": "UD_Erzya-JR/r2.7/myv_jr-ud-test.conllu",
     },
     "et_edt": {
-        "train": "UD_Estonian-EDT/master/et_edt-ud-train.conllu",
-        "dev": "UD_Estonian-EDT/master/et_edt-ud-dev.conllu",
-        "test": "UD_Estonian-EDT/master/et_edt-ud-test.conllu",
+        "train": "UD_Estonian-EDT/r2.7/et_edt-ud-train.conllu",
+        "dev": "UD_Estonian-EDT/r2.7/et_edt-ud-dev.conllu",
+        "test": "UD_Estonian-EDT/r2.7/et_edt-ud-test.conllu",
     },
     "et_ewt": {
-        "train": "UD_Estonian-EWT/master/et_ewt-ud-train.conllu",
-        "dev": "UD_Estonian-EWT/master/et_ewt-ud-dev.conllu",
-        "test": "UD_Estonian-EWT/master/et_ewt-ud-test.conllu",
+        "train": "UD_Estonian-EWT/r2.7/et_ewt-ud-train.conllu",
+        "dev": "UD_Estonian-EWT/r2.7/et_ewt-ud-dev.conllu",
+        "test": "UD_Estonian-EWT/r2.7/et_ewt-ud-test.conllu",
     },
     "fo_farpahc": {
-        "train": "UD_Faroese-FarPaHC/master/fo_farpahc-ud-train.conllu",
-        "dev": "UD_Faroese-FarPaHC/master/fo_farpahc-ud-dev.conllu",
-        "test": "UD_Faroese-FarPaHC/master/fo_farpahc-ud-test.conllu",
+        "train": "UD_Faroese-FarPaHC/r2.7/fo_farpahc-ud-train.conllu",
+        "dev": "UD_Faroese-FarPaHC/r2.7/fo_farpahc-ud-dev.conllu",
+        "test": "UD_Faroese-FarPaHC/r2.7/fo_farpahc-ud-test.conllu",
     },
     "fo_oft": {
-        "test": "UD_Faroese-OFT/master/fo_oft-ud-test.conllu",
+        "test": "UD_Faroese-OFT/r2.7/fo_oft-ud-test.conllu",
     },
     "fi_ftb": {
-        "train": "UD_Finnish-FTB/master/fi_ftb-ud-train.conllu",
-        "dev": "UD_Finnish-FTB/master/fi_ftb-ud-dev.conllu",
-        "test": "UD_Finnish-FTB/master/fi_ftb-ud-test.conllu",
+        "train": "UD_Finnish-FTB/r2.7/fi_ftb-ud-train.conllu",
+        "dev": "UD_Finnish-FTB/r2.7/fi_ftb-ud-dev.conllu",
+        "test": "UD_Finnish-FTB/r2.7/fi_ftb-ud-test.conllu",
     },
     "fi_ood": {
-        "test": "UD_Finnish-OOD/master/fi_ood-ud-test.conllu",
+        "test": "UD_Finnish-OOD/r2.7/fi_ood-ud-test.conllu",
     },
     "fi_pud": {
-        "test": "UD_Finnish-PUD/master/fi_pud-ud-test.conllu",
+        "test": "UD_Finnish-PUD/r2.7/fi_pud-ud-test.conllu",
     },
     "fi_tdt": {
-        "train": "UD_Finnish-TDT/master/fi_tdt-ud-train.conllu",
-        "dev": "UD_Finnish-TDT/master/fi_tdt-ud-dev.conllu",
-        "test": "UD_Finnish-TDT/master/fi_tdt-ud-test.conllu",
+        "train": "UD_Finnish-TDT/r2.7/fi_tdt-ud-train.conllu",
+        "dev": "UD_Finnish-TDT/r2.7/fi_tdt-ud-dev.conllu",
+        "test": "UD_Finnish-TDT/r2.7/fi_tdt-ud-test.conllu",
     },
     "fr_fqb": {
-        "test": "UD_French-FQB/master/fr_fqb-ud-test.conllu",
+        "test": "UD_French-FQB/r2.7/fr_fqb-ud-test.conllu",
     },
     "fr_ftb": {
-        "train": "UD_French-FTB/master/fr_ftb-ud-train.conllu",
-        "dev": "UD_French-FTB/master/fr_ftb-ud-dev.conllu",
-        "test": "UD_French-FTB/master/fr_ftb-ud-test.conllu",
+        "train": "UD_French-FTB/r2.7/fr_ftb-ud-train.conllu",
+        "dev": "UD_French-FTB/r2.7/fr_ftb-ud-dev.conllu",
+        "test": "UD_French-FTB/r2.7/fr_ftb-ud-test.conllu",
     },
     "fr_gsd": {
-        "train": "UD_French-GSD/master/fr_gsd-ud-train.conllu",
-        "dev": "UD_French-GSD/master/fr_gsd-ud-dev.conllu",
-        "test": "UD_French-GSD/master/fr_gsd-ud-test.conllu",
+        "train": "UD_French-GSD/r2.7/fr_gsd-ud-train.conllu",
+        "dev": "UD_French-GSD/r2.7/fr_gsd-ud-dev.conllu",
+        "test": "UD_French-GSD/r2.7/fr_gsd-ud-test.conllu",
     },
     "fr_partut": {
-        "train": "UD_French-ParTUT/master/fr_partut-ud-train.conllu",
-        "dev": "UD_French-ParTUT/master/fr_partut-ud-dev.conllu",
-        "test": "UD_French-ParTUT/master/fr_partut-ud-test.conllu",
+        "train": "UD_French-ParTUT/r2.7/fr_partut-ud-train.conllu",
+        "dev": "UD_French-ParTUT/r2.7/fr_partut-ud-dev.conllu",
+        "test": "UD_French-ParTUT/r2.7/fr_partut-ud-test.conllu",
     },
     "fr_pud": {
-        "test": "UD_French-PUD/master/fr_pud-ud-test.conllu",
+        "test": "UD_French-PUD/r2.7/fr_pud-ud-test.conllu",
     },
     "fr_sequoia": {
-        "train": "UD_French-Sequoia/master/fr_sequoia-ud-train.conllu",
-        "dev": "UD_French-Sequoia/master/fr_sequoia-ud-dev.conllu",
-        "test": "UD_French-Sequoia/master/fr_sequoia-ud-test.conllu",
+        "train": "UD_French-Sequoia/r2.7/fr_sequoia-ud-train.conllu",
+        "dev": "UD_French-Sequoia/r2.7/fr_sequoia-ud-dev.conllu",
+        "test": "UD_French-Sequoia/r2.7/fr_sequoia-ud-test.conllu",
     },
     "fr_spoken": {
-        "train": "UD_French-Spoken/master/fr_spoken-ud-train.conllu",
-        "dev": "UD_French-Spoken/master/fr_spoken-ud-dev.conllu",
-        "test": "UD_French-Spoken/master/fr_spoken-ud-test.conllu",
+        "train": "UD_French-Spoken/r2.7/fr_spoken-ud-train.conllu",
+        "dev": "UD_French-Spoken/r2.7/fr_spoken-ud-dev.conllu",
+        "test": "UD_French-Spoken/r2.7/fr_spoken-ud-test.conllu",
     },
     "gl_ctg": {
-        "train": "UD_Galician-CTG/master/gl_ctg-ud-train.conllu",
-        "dev": "UD_Galician-CTG/master/gl_ctg-ud-dev.conllu",
-        "test": "UD_Galician-CTG/master/gl_ctg-ud-test.conllu",
+        "train": "UD_Galician-CTG/r2.7/gl_ctg-ud-train.conllu",
+        "dev": "UD_Galician-CTG/r2.7/gl_ctg-ud-dev.conllu",
+        "test": "UD_Galician-CTG/r2.7/gl_ctg-ud-test.conllu",
     },
     "gl_treegal": {
-        "train": "UD_Galician-TreeGal/master/gl_treegal-ud-train.conllu",
-        "test": "UD_Galician-TreeGal/master/gl_treegal-ud-test.conllu",
+        "train": "UD_Galician-TreeGal/r2.7/gl_treegal-ud-train.conllu",
+        "test": "UD_Galician-TreeGal/r2.7/gl_treegal-ud-test.conllu",
     },
     "de_gsd": {
-        "train": "UD_German-GSD/master/de_gsd-ud-train.conllu",
-        "dev": "UD_German-GSD/master/de_gsd-ud-dev.conllu",
-        "test": "UD_German-GSD/master/de_gsd-ud-test.conllu",
+        "train": "UD_German-GSD/r2.7/de_gsd-ud-train.conllu",
+        "dev": "UD_German-GSD/r2.7/de_gsd-ud-dev.conllu",
+        "test": "UD_German-GSD/r2.7/de_gsd-ud-test.conllu",
     },
     "de_hdt": {
-        "train": "UD_German-HDT/master/de_hdt-ud-train.conllu",
-        "dev": "UD_German-HDT/master/de_hdt-ud-dev.conllu",
-        "test": "UD_German-HDT/master/de_hdt-ud-test.conllu",
+        "train": [
+            "UD_German-HDT/r2.7/de_hdt-ud-train-a-1.conllu",
+            "UD_German-HDT/r2.7/de_hdt-ud-train-a-2.conllu",
+            "UD_German-HDT/r2.7/de_hdt-ud-train-b-1.conllu",
+            "UD_German-HDT/r2.7/de_hdt-ud-train-b-2.conllu",
+        ],
+        "dev": "UD_German-HDT/r2.7/de_hdt-ud-dev.conllu",
+        "test": "UD_German-HDT/r2.7/de_hdt-ud-test.conllu",
     },
     "de_lit": {
-        "test": "UD_German-LIT/master/de_lit-ud-test.conllu",
+        "test": "UD_German-LIT/r2.7/de_lit-ud-test.conllu",
     },
     "de_pud": {
-        "test": "UD_German-PUD/master/de_pud-ud-test.conllu",
+        "test": "UD_German-PUD/r2.7/de_pud-ud-test.conllu",
     },
     "got_proiel": {
-        "train": "UD_Gothic-PROIEL/master/got_proiel-ud-train.conllu",
-        "dev": "UD_Gothic-PROIEL/master/got_proiel-ud-dev.conllu",
-        "test": "UD_Gothic-PROIEL/master/got_proiel-ud-test.conllu",
+        "train": "UD_Gothic-PROIEL/r2.7/got_proiel-ud-train.conllu",
+        "dev": "UD_Gothic-PROIEL/r2.7/got_proiel-ud-dev.conllu",
+        "test": "UD_Gothic-PROIEL/r2.7/got_proiel-ud-test.conllu",
     },
     "el_gdt": {
-        "train": "UD_Greek-GDT/master/el_gdt-ud-train.conllu",
-        "dev": "UD_Greek-GDT/master/el_gdt-ud-dev.conllu",
-        "test": "UD_Greek-GDT/master/el_gdt-ud-test.conllu",
+        "train": "UD_Greek-GDT/r2.7/el_gdt-ud-train.conllu",
+        "dev": "UD_Greek-GDT/r2.7/el_gdt-ud-dev.conllu",
+        "test": "UD_Greek-GDT/r2.7/el_gdt-ud-test.conllu",
     },
     "he_htb": {
-        "train": "UD_Hebrew-HTB/master/he_htb-ud-train.conllu",
-        "dev": "UD_Hebrew-HTB/master/he_htb-ud-dev.conllu",
-        "test": "UD_Hebrew-HTB/master/he_htb-ud-test.conllu",
+        "train": "UD_Hebrew-HTB/r2.7/he_htb-ud-train.conllu",
+        "dev": "UD_Hebrew-HTB/r2.7/he_htb-ud-dev.conllu",
+        "test": "UD_Hebrew-HTB/r2.7/he_htb-ud-test.conllu",
     },
     "qhe_hiencs": {
-        "train": "UD_Hindi_English-HIENCS/master/qhe_hiencs-ud-train.conllu",
-        "dev": "UD_Hindi_English-HIENCS/master/qhe_hiencs-ud-dev.conllu",
-        "test": "UD_Hindi_English-HIENCS/master/qhe_hiencs-ud-test.conllu",
+        "train": "UD_Hindi_English-HIENCS/r2.7/qhe_hiencs-ud-train.conllu",
+        "dev": "UD_Hindi_English-HIENCS/r2.7/qhe_hiencs-ud-dev.conllu",
+        "test": "UD_Hindi_English-HIENCS/r2.7/qhe_hiencs-ud-test.conllu",
     },
     "hi_hdtb": {
-        "train": "UD_Hindi-HDTB/master/hi_hdtb-ud-train.conllu",
-        "dev": "UD_Hindi-HDTB/master/hi_hdtb-ud-dev.conllu",
-        "test": "UD_Hindi-HDTB/master/hi_hdtb-ud-test.conllu",
+        "train": "UD_Hindi-HDTB/r2.7/hi_hdtb-ud-train.conllu",
+        "dev": "UD_Hindi-HDTB/r2.7/hi_hdtb-ud-dev.conllu",
+        "test": "UD_Hindi-HDTB/r2.7/hi_hdtb-ud-test.conllu",
     },
     "hi_pud": {
-        "test": "UD_Hindi-PUD/master/hi_pud-ud-test.conllu",
+        "test": "UD_Hindi-PUD/r2.7/hi_pud-ud-test.conllu",
     },
     "hu_szeged": {
-        "train": "UD_Hungarian-Szeged/master/hu_szeged-ud-train.conllu",
-        "dev": "UD_Hungarian-Szeged/master/hu_szeged-ud-dev.conllu",
-        "test": "UD_Hungarian-Szeged/master/hu_szeged-ud-test.conllu",
+        "train": "UD_Hungarian-Szeged/r2.7/hu_szeged-ud-train.conllu",
+        "dev": "UD_Hungarian-Szeged/r2.7/hu_szeged-ud-dev.conllu",
+        "test": "UD_Hungarian-Szeged/r2.7/hu_szeged-ud-test.conllu",
     },
     "is_icepahc": {
-        "train": "UD_Icelandic-IcePaHC/master/is_icepahc-ud-train.conllu",
-        "dev": "UD_Icelandic-IcePaHC/master/is_icepahc-ud-dev.conllu",
-        "test": "UD_Icelandic-IcePaHC/master/is_icepahc-ud-test.conllu",
+        "train": "UD_Icelandic-IcePaHC/r2.7/is_icepahc-ud-train.conllu",
+        "dev": "UD_Icelandic-IcePaHC/r2.7/is_icepahc-ud-dev.conllu",
+        "test": "UD_Icelandic-IcePaHC/r2.7/is_icepahc-ud-test.conllu",
     },
     "is_pud": {
-        "test": "UD_Icelandic-PUD/master/is_pud-ud-test.conllu",
+        "test": "UD_Icelandic-PUD/r2.7/is_pud-ud-test.conllu",
     },
     "id_csui": {
-        "train": "UD_Indonesian-CSUI/master/id_csui-ud-train.conllu",
-        "test": "UD_Indonesian-CSUI/master/id_csui-ud-test.conllu",
+        "train": "UD_Indonesian-CSUI/r2.7/id_csui-ud-train.conllu",
+        "test": "UD_Indonesian-CSUI/r2.7/id_csui-ud-test.conllu",
     },
     "id_gsd": {
-        "train": "UD_Indonesian-GSD/master/id_gsd-ud-train.conllu",
-        "dev": "UD_Indonesian-GSD/master/id_gsd-ud-dev.conllu",
-        "test": "UD_Indonesian-GSD/master/id_gsd-ud-test.conllu",
+        "train": "UD_Indonesian-GSD/r2.7/id_gsd-ud-train.conllu",
+        "dev": "UD_Indonesian-GSD/r2.7/id_gsd-ud-dev.conllu",
+        "test": "UD_Indonesian-GSD/r2.7/id_gsd-ud-test.conllu",
     },
     "id_pud": {
-        "test": "UD_Indonesian-PUD/master/id_pud-ud-test.conllu",
+        "test": "UD_Indonesian-PUD/r2.7/id_pud-ud-test.conllu",
     },
     "ga_idt": {
-        "train": "UD_Irish-IDT/master/ga_idt-ud-train.conllu",
-        "dev": "UD_Irish-IDT/master/ga_idt-ud-dev.conllu",
-        "test": "UD_Irish-IDT/master/ga_idt-ud-test.conllu",
+        "train": "UD_Irish-IDT/r2.7/ga_idt-ud-train.conllu",
+        "dev": "UD_Irish-IDT/r2.7/ga_idt-ud-dev.conllu",
+        "test": "UD_Irish-IDT/r2.7/ga_idt-ud-test.conllu",
     },
     "it_isdt": {
-        "train": "UD_Italian-ISDT/master/it_isdt-ud-train.conllu",
-        "dev": "UD_Italian-ISDT/master/it_isdt-ud-dev.conllu",
-        "test": "UD_Italian-ISDT/master/it_isdt-ud-test.conllu",
+        "train": "UD_Italian-ISDT/r2.7/it_isdt-ud-train.conllu",
+        "dev": "UD_Italian-ISDT/r2.7/it_isdt-ud-dev.conllu",
+        "test": "UD_Italian-ISDT/r2.7/it_isdt-ud-test.conllu",
     },
     "it_partut": {
-        "train": "UD_Italian-ParTUT/master/it_partut-ud-train.conllu",
-        "dev": "UD_Italian-ParTUT/master/it_partut-ud-dev.conllu",
-        "test": "UD_Italian-ParTUT/master/it_partut-ud-test.conllu",
+        "train": "UD_Italian-ParTUT/r2.7/it_partut-ud-train.conllu",
+        "dev": "UD_Italian-ParTUT/r2.7/it_partut-ud-dev.conllu",
+        "test": "UD_Italian-ParTUT/r2.7/it_partut-ud-test.conllu",
     },
     "it_postwita": {
-        "train": "UD_Italian-PoSTWITA/master/it_postwita-ud-train.conllu",
-        "dev": "UD_Italian-PoSTWITA/master/it_postwita-ud-dev.conllu",
-        "test": "UD_Italian-PoSTWITA/master/it_postwita-ud-test.conllu",
+        "train": "UD_Italian-PoSTWITA/r2.7/it_postwita-ud-train.conllu",
+        "dev": "UD_Italian-PoSTWITA/r2.7/it_postwita-ud-dev.conllu",
+        "test": "UD_Italian-PoSTWITA/r2.7/it_postwita-ud-test.conllu",
     },
     "it_pud": {
-        "test": "UD_Italian-PUD/master/it_pud-ud-test.conllu",
+        "test": "UD_Italian-PUD/r2.7/it_pud-ud-test.conllu",
     },
     "it_twittiro": {
-        "train": "UD_Italian-TWITTIRO/master/it_twittiro-ud-train.conllu",
-        "dev": "UD_Italian-TWITTIRO/master/it_twittiro-ud-dev.conllu",
-        "test": "UD_Italian-TWITTIRO/master/it_twittiro-ud-test.conllu",
+        "train": "UD_Italian-TWITTIRO/r2.7/it_twittiro-ud-train.conllu",
+        "dev": "UD_Italian-TWITTIRO/r2.7/it_twittiro-ud-dev.conllu",
+        "test": "UD_Italian-TWITTIRO/r2.7/it_twittiro-ud-test.conllu",
     },
     "it_vit": {
-        "train": "UD_Italian-VIT/master/it_vit-ud-train.conllu",
-        "dev": "UD_Italian-VIT/master/it_vit-ud-dev.conllu",
-        "test": "UD_Italian-VIT/master/it_vit-ud-test.conllu",
+        "train": "UD_Italian-VIT/r2.7/it_vit-ud-train.conllu",
+        "dev": "UD_Italian-VIT/r2.7/it_vit-ud-dev.conllu",
+        "test": "UD_Italian-VIT/r2.7/it_vit-ud-test.conllu",
     },
     "ja_bccwj": {
-        "train": "UD_Japanese-BCCWJ/master/ja_bccwj-ud-train.conllu",
-        "dev": "UD_Japanese-BCCWJ/master/ja_bccwj-ud-dev.conllu",
-        "test": "UD_Japanese-BCCWJ/master/ja_bccwj-ud-test.conllu",
+        "train": "UD_Japanese-BCCWJ/r2.7/ja_bccwj-ud-train.conllu",
+        "dev": "UD_Japanese-BCCWJ/r2.7/ja_bccwj-ud-dev.conllu",
+        "test": "UD_Japanese-BCCWJ/r2.7/ja_bccwj-ud-test.conllu",
     },
     "ja_gsd": {
-        "train": "UD_Japanese-GSD/master/ja_gsd-ud-train.conllu",
-        "dev": "UD_Japanese-GSD/master/ja_gsd-ud-dev.conllu",
-        "test": "UD_Japanese-GSD/master/ja_gsd-ud-test.conllu",
+        "train": "UD_Japanese-GSD/r2.7/ja_gsd-ud-train.conllu",
+        "dev": "UD_Japanese-GSD/r2.7/ja_gsd-ud-dev.conllu",
+        "test": "UD_Japanese-GSD/r2.7/ja_gsd-ud-test.conllu",
     },
     "ja_modern": {
-        "test": "UD_Japanese-Modern/master/ja_modern-ud-test.conllu",
+        "test": "UD_Japanese-Modern/r2.7/ja_modern-ud-test.conllu",
     },
     "ja_pud": {
-        "test": "UD_Japanese-PUD/master/ja_pud-ud-test.conllu",
+        "test": "UD_Japanese-PUD/r2.7/ja_pud-ud-test.conllu",
     },
     "krl_kkpp": {
-        "test": "UD_Karelian-KKPP/master/krl_kkpp-ud-test.conllu",
+        "test": "UD_Karelian-KKPP/r2.7/krl_kkpp-ud-test.conllu",
     },
     "kk_ktb": {
-        "train": "UD_Kazakh-KTB/master/kk_ktb-ud-train.conllu",
-        "test": "UD_Kazakh-KTB/master/kk_ktb-ud-test.conllu",
+        "train": "UD_Kazakh-KTB/r2.7/kk_ktb-ud-train.conllu",
+        "test": "UD_Kazakh-KTB/r2.7/kk_ktb-ud-test.conllu",
     },
     "kfm_aha": {
-        "test": "UD_Khunsari-AHA/master/kfm_aha-ud-test.conllu",
+        "test": "UD_Khunsari-AHA/r2.7/kfm_aha-ud-test.conllu",
     },
     "koi_uh": {
-        "test": "UD_Komi_Permyak-UH/master/koi_uh-ud-test.conllu",
+        "test": "UD_Komi_Permyak-UH/r2.7/koi_uh-ud-test.conllu",
     },
     "kpv_ikdp": {
-        "test": "UD_Komi_Zyrian-IKDP/master/kpv_ikdp-ud-test.conllu",
+        "test": "UD_Komi_Zyrian-IKDP/r2.7/kpv_ikdp-ud-test.conllu",
     },
     "kpv_lattice": {
-        "test": "UD_Komi_Zyrian-Lattice/master/kpv_lattice-ud-test.conllu",
+        "test": "UD_Komi_Zyrian-Lattice/r2.7/kpv_lattice-ud-test.conllu",
     },
     "ko_gsd": {
-        "train": "UD_Korean-GSD/master/ko_gsd-ud-train.conllu",
-        "dev": "UD_Korean-GSD/master/ko_gsd-ud-dev.conllu",
-        "test": "UD_Korean-GSD/master/ko_gsd-ud-test.conllu",
+        "train": "UD_Korean-GSD/r2.7/ko_gsd-ud-train.conllu",
+        "dev": "UD_Korean-GSD/r2.7/ko_gsd-ud-dev.conllu",
+        "test": "UD_Korean-GSD/r2.7/ko_gsd-ud-test.conllu",
     },
     "ko_kaist": {
-        "train": "UD_Korean-Kaist/master/ko_kaist-ud-train.conllu",
-        "dev": "UD_Korean-Kaist/master/ko_kaist-ud-dev.conllu",
-        "test": "UD_Korean-Kaist/master/ko_kaist-ud-test.conllu",
+        "train": "UD_Korean-Kaist/r2.7/ko_kaist-ud-train.conllu",
+        "dev": "UD_Korean-Kaist/r2.7/ko_kaist-ud-dev.conllu",
+        "test": "UD_Korean-Kaist/r2.7/ko_kaist-ud-test.conllu",
     },
     "ko_pud": {
-        "test": "UD_Korean-PUD/master/ko_pud-ud-test.conllu",
+        "test": "UD_Korean-PUD/r2.7/ko_pud-ud-test.conllu",
     },
     "kmr_mg": {
-        "train": "UD_Kurmanji-MG/master/kmr_mg-ud-train.conllu",
-        "test": "UD_Kurmanji-MG/master/kmr_mg-ud-test.conllu",
+        "train": "UD_Kurmanji-MG/r2.7/kmr_mg-ud-train.conllu",
+        "test": "UD_Kurmanji-MG/r2.7/kmr_mg-ud-test.conllu",
     },
     "la_ittb": {
-        "train": "UD_Latin-ITTB/master/la_ittb-ud-train.conllu",
-        "dev": "UD_Latin-ITTB/master/la_ittb-ud-dev.conllu",
-        "test": "UD_Latin-ITTB/master/la_ittb-ud-test.conllu",
+        "train": "UD_Latin-ITTB/r2.7/la_ittb-ud-train.conllu",
+        "dev": "UD_Latin-ITTB/r2.7/la_ittb-ud-dev.conllu",
+        "test": "UD_Latin-ITTB/r2.7/la_ittb-ud-test.conllu",
     },
     "la_llct": {
-        "train": "UD_Latin-LLCT/master/la_llct-ud-train.conllu",
-        "dev": "UD_Latin-LLCT/master/la_llct-ud-dev.conllu",
-        "test": "UD_Latin-LLCT/master/la_llct-ud-test.conllu",
+        "train": "UD_Latin-LLCT/r2.7/la_llct-ud-train.conllu",
+        "dev": "UD_Latin-LLCT/r2.7/la_llct-ud-dev.conllu",
+        "test": "UD_Latin-LLCT/r2.7/la_llct-ud-test.conllu",
     },
     "la_perseus": {
-        "train": "UD_Latin-Perseus/master/la_perseus-ud-train.conllu",
-        "test": "UD_Latin-Perseus/master/la_perseus-ud-test.conllu",
+        "train": "UD_Latin-Perseus/r2.7/la_perseus-ud-train.conllu",
+        "test": "UD_Latin-Perseus/r2.7/la_perseus-ud-test.conllu",
     },
     "la_proiel": {
-        "train": "UD_Latin-PROIEL/master/la_proiel-ud-train.conllu",
-        "dev": "UD_Latin-PROIEL/master/la_proiel-ud-dev.conllu",
-        "test": "UD_Latin-PROIEL/master/la_proiel-ud-test.conllu",
+        "train": "UD_Latin-PROIEL/r2.7/la_proiel-ud-train.conllu",
+        "dev": "UD_Latin-PROIEL/r2.7/la_proiel-ud-dev.conllu",
+        "test": "UD_Latin-PROIEL/r2.7/la_proiel-ud-test.conllu",
     },
     "lv_lvtb": {
-        "train": "UD_Latvian-LVTB/master/lv_lvtb-ud-train.conllu",
-        "dev": "UD_Latvian-LVTB/master/lv_lvtb-ud-dev.conllu",
-        "test": "UD_Latvian-LVTB/master/lv_lvtb-ud-test.conllu",
+        "train": "UD_Latvian-LVTB/r2.7/lv_lvtb-ud-train.conllu",
+        "dev": "UD_Latvian-LVTB/r2.7/lv_lvtb-ud-dev.conllu",
+        "test": "UD_Latvian-LVTB/r2.7/lv_lvtb-ud-test.conllu",
     },
     "lt_alksnis": {
-        "train": "UD_Lithuanian-ALKSNIS/master/lt_alksnis-ud-train.conllu",
-        "dev": "UD_Lithuanian-ALKSNIS/master/lt_alksnis-ud-dev.conllu",
-        "test": "UD_Lithuanian-ALKSNIS/master/lt_alksnis-ud-test.conllu",
+        "train": "UD_Lithuanian-ALKSNIS/r2.7/lt_alksnis-ud-train.conllu",
+        "dev": "UD_Lithuanian-ALKSNIS/r2.7/lt_alksnis-ud-dev.conllu",
+        "test": "UD_Lithuanian-ALKSNIS/r2.7/lt_alksnis-ud-test.conllu",
     },
     "lt_hse": {
-        "train": "UD_Lithuanian-HSE/master/lt_hse-ud-train.conllu",
-        "dev": "UD_Lithuanian-HSE/master/lt_hse-ud-train.conllu",
-        "test": "UD_Lithuanian-HSE/master/lt_hse-ud-train.conllu",
+        "train": "UD_Lithuanian-HSE/r2.7/lt_hse-ud-train.conllu",
+        "dev": "UD_Lithuanian-HSE/r2.7/lt_hse-ud-train.conllu",
+        "test": "UD_Lithuanian-HSE/r2.7/lt_hse-ud-train.conllu",
     },
     "olo_kkpp": {
-        "train": "UD_Livvi-KKPP/master/olo_kkpp-ud-train.conllu",
-        "dev": "UD_Livvi-KKPP/master/olo_kkpp-ud-dev.conllu",
-        "test": "UD_Livvi-KKPP/master/olo_kkpp-ud-test.conllu",
+        "train": "UD_Livvi-KKPP/r2.7/olo_kkpp-ud-train.conllu",
+        "test": "UD_Livvi-KKPP/r2.7/olo_kkpp-ud-test.conllu",
     },
     "mt_mudt": {
-        "train": "UD_Maltese-MUDT/master/mt_mudt-ud-train.conllu",
-        "dev": "UD_Maltese-MUDT/master/mt_mudt-ud-dev.conllu",
-        "test": "UD_Maltese-MUDT/master/mt_mudt-ud-test.conllu",
+        "train": "UD_Maltese-MUDT/r2.7/mt_mudt-ud-train.conllu",
+        "dev": "UD_Maltese-MUDT/r2.7/mt_mudt-ud-dev.conllu",
+        "test": "UD_Maltese-MUDT/r2.7/mt_mudt-ud-test.conllu",
     },
     "gv_cadhan": {
-        "test": "UD_Manx-Cadhan/master/gv_cadhan-ud-test.conllu",
+        "test": "UD_Manx-Cadhan/r2.7/gv_cadhan-ud-test.conllu",
     },
     "mr_ufal": {
-        "train": "UD_Marathi-UFAL/master/mr_ufal-ud-train.conllu",
-        "dev": "UD_Marathi-UFAL/master/mr_ufal-ud-dev.conllu",
-        "test": "UD_Marathi-UFAL/master/mr_ufal-ud-test.conllu",
+        "train": "UD_Marathi-UFAL/r2.7/mr_ufal-ud-train.conllu",
+        "dev": "UD_Marathi-UFAL/r2.7/mr_ufal-ud-dev.conllu",
+        "test": "UD_Marathi-UFAL/r2.7/mr_ufal-ud-test.conllu",
     },
     "gun_dooley": {
-        "test": "UD_Mbya_Guarani-Dooley/master/gun_dooley-ud-test.conllu",
+        "test": "UD_Mbya_Guarani-Dooley/r2.7/gun_dooley-ud-test.conllu",
     },
     "gun_thomas": {
-        "test": "UD_Mbya_Guarani-Thomas/master/gun_thomas-ud-test.conllu",
+        "test": "UD_Mbya_Guarani-Thomas/r2.7/gun_thomas-ud-test.conllu",
     },
     "mdf_jr": {
-        "test": "UD_Moksha-JR/master/mdf_jr-ud-test.conllu",
+        "test": "UD_Moksha-JR/r2.7/mdf_jr-ud-test.conllu",
     },
     "myu_tudet": {
-        "test": "UD_Munduruku-TuDeT/master/myu_tudet-ud-test.conllu",
+        "test": "UD_Munduruku-TuDeT/r2.7/myu_tudet-ud-test.conllu",
     },
     "pcm_nsc": {
-        "train": "UD_Naija-NSC/master/pcm_nsc-ud-train.conllu",
-        "dev": "UD_Naija-NSC/master/pcm_nsc-ud-dev.conllu",
-        "test": "UD_Naija-NSC/master/pcm_nsc-ud-test.conllu",
+        "train": "UD_Naija-NSC/r2.7/pcm_nsc-ud-train.conllu",
+        "dev": "UD_Naija-NSC/r2.7/pcm_nsc-ud-dev.conllu",
+        "test": "UD_Naija-NSC/r2.7/pcm_nsc-ud-test.conllu",
     },
     "nyq_aha": {
-        "test": "UD_Nayini-AHA/master/nyq_aha-ud-test.conllu",
+        "test": "UD_Nayini-AHA/r2.7/nyq_aha-ud-test.conllu",
     },
     "sme_giella": {
-        "train": "UD_North_Sami-Giella/master/sme_giella-ud-train.conllu",
-        "test": "UD_North_Sami-Giella/master/sme_giella-ud-test.conllu",
+        "train": "UD_North_Sami-Giella/r2.7/sme_giella-ud-train.conllu",
+        "test": "UD_North_Sami-Giella/r2.7/sme_giella-ud-test.conllu",
     },
     "no_bokmaal": {
-        "train": "UD_Norwegian-Bokmaal/master/no_bokmaal-ud-train.conllu",
-        "dev": "UD_Norwegian-Bokmaal/master/no_bokmaal-ud-dev.conllu",
-        "test": "UD_Norwegian-Bokmaal/master/no_bokmaal-ud-test.conllu",
+        "train": "UD_Norwegian-Bokmaal/r2.7/no_bokmaal-ud-train.conllu",
+        "dev": "UD_Norwegian-Bokmaal/r2.7/no_bokmaal-ud-dev.conllu",
+        "test": "UD_Norwegian-Bokmaal/r2.7/no_bokmaal-ud-test.conllu",
     },
     "no_nynorsk": {
-        "train": "UD_Norwegian-Nynorsk/master/no_nynorsk-ud-train.conllu",
-        "dev": "UD_Norwegian-Nynorsk/master/no_nynorsk-ud-dev.conllu",
-        "test": "UD_Norwegian-Nynorsk/master/no_nynorsk-ud-test.conllu",
+        "train": "UD_Norwegian-Nynorsk/r2.7/no_nynorsk-ud-train.conllu",
+        "dev": "UD_Norwegian-Nynorsk/r2.7/no_nynorsk-ud-dev.conllu",
+        "test": "UD_Norwegian-Nynorsk/r2.7/no_nynorsk-ud-test.conllu",
     },
     "no_nynorsklia": {
-        "train": "UD_Norwegian-NynorskLIA/master/no_nynorsklia-ud-train.conllu",
-        "dev": "UD_Norwegian-NynorskLIA/master/no_nynorsklia-ud-dev.conllu",
-        "test": "UD_Norwegian-NynorskLIA/master/no_nynorsklia-ud-test.conllu",
+        "train": "UD_Norwegian-NynorskLIA/r2.7/no_nynorsklia-ud-train.conllu",
+        "dev": "UD_Norwegian-NynorskLIA/r2.7/no_nynorsklia-ud-dev.conllu",
+        "test": "UD_Norwegian-NynorskLIA/r2.7/no_nynorsklia-ud-test.conllu",
     },
     "cu_proiel": {
-        "train": "UD_Old_Church_Slavonic-PROIEL/master/cu_proiel-ud-train.conllu",
-        "dev": "UD_Old_Church_Slavonic-PROIEL/master/cu_proiel-ud-dev.conllu",
-        "test": "UD_Old_Church_Slavonic-PROIEL/master/cu_proiel-ud-test.conllu",
+        "train": "UD_Old_Church_Slavonic-PROIEL/r2.7/cu_proiel-ud-train.conllu",
+        "dev": "UD_Old_Church_Slavonic-PROIEL/r2.7/cu_proiel-ud-dev.conllu",
+        "test": "UD_Old_Church_Slavonic-PROIEL/r2.7/cu_proiel-ud-test.conllu",
     },
     "fro_srcmf": {
-        "train": "UD_Old_French-SRCMF/master/fro_srcmf-ud-train.conllu",
-        "dev": "UD_Old_French-SRCMF/master/fro_srcmf-ud-dev.conllu",
-        "test": "UD_Old_French-SRCMF/master/fro_srcmf-ud-test.conllu",
+        "train": "UD_Old_French-SRCMF/r2.7/fro_srcmf-ud-train.conllu",
+        "dev": "UD_Old_French-SRCMF/r2.7/fro_srcmf-ud-dev.conllu",
+        "test": "UD_Old_French-SRCMF/r2.7/fro_srcmf-ud-test.conllu",
     },
     "orv_rnc": {
-        "train": "UD_Old_Russian-RNC/master/orv_rnc-ud-train.conllu",
-        "test": "UD_Old_Russian-RNC/master/orv_rnc-ud-test.conllu",
+        "train": "UD_Old_Russian-RNC/r2.7/orv_rnc-ud-train.conllu",
+        "test": "UD_Old_Russian-RNC/r2.7/orv_rnc-ud-test.conllu",
     },
     "orv_torot": {
-        "train": "UD_Old_Russian-TOROT/master/orv_torot-ud-train.conllu",
-        "dev": "UD_Old_Russian-TOROT/master/orv_torot-ud-dev.conllu",
-        "test": "UD_Old_Russian-TOROT/master/orv_torot-ud-test.conllu",
+        "train": "UD_Old_Russian-TOROT/r2.7/orv_torot-ud-train.conllu",
+        "dev": "UD_Old_Russian-TOROT/r2.7/orv_torot-ud-dev.conllu",
+        "test": "UD_Old_Russian-TOROT/r2.7/orv_torot-ud-test.conllu",
     },
     "otk_tonqq": {
-        "test": "UD_Old_Turkish-Tonqq/master/otk_tonqq-ud-test.conllu",
+        "test": "UD_Old_Turkish-Tonqq/r2.7/otk_tonqq-ud-test.conllu",
     },
     "fa_perdt": {
-        "train": "UD_Persian-PerDT/master/fa_perdt-ud-train.conllu",
-        "dev": "UD_Persian-PerDT/master/fa_perdt-ud-dev.conllu",
-        "test": "UD_Persian-PerDT/master/fa_perdt-ud-test.conllu",
+        "train": "UD_Persian-PerDT/r2.7/fa_perdt-ud-train.conllu",
+        "dev": "UD_Persian-PerDT/r2.7/fa_perdt-ud-dev.conllu",
+        "test": "UD_Persian-PerDT/r2.7/fa_perdt-ud-test.conllu",
     },
     "fa_seraji": {
-        "train": "UD_Persian-Seraji/master/fa_seraji-ud-train.conllu",
-        "dev": "UD_Persian-Seraji/master/fa_seraji-ud-dev.conllu",
-        "test": "UD_Persian-Seraji/master/fa_seraji-ud-test.conllu",
+        "train": "UD_Persian-Seraji/r2.7/fa_seraji-ud-train.conllu",
+        "dev": "UD_Persian-Seraji/r2.7/fa_seraji-ud-dev.conllu",
+        "test": "UD_Persian-Seraji/r2.7/fa_seraji-ud-test.conllu",
     },
     "pl_lfg": {
-        "train": "UD_Polish-LFG/master/pl_lfg-ud-train.conllu",
-        "dev": "UD_Polish-LFG/master/pl_lfg-ud-dev.conllu",
-        "test": "UD_Polish-LFG/master/pl_lfg-ud-test.conllu",
+        "train": "UD_Polish-LFG/r2.7/pl_lfg-ud-train.conllu",
+        "dev": "UD_Polish-LFG/r2.7/pl_lfg-ud-dev.conllu",
+        "test": "UD_Polish-LFG/r2.7/pl_lfg-ud-test.conllu",
     },
     "pl_pdb": {
-        "train": "UD_Polish-PDB/master/pl_pdb-ud-train.conllu",
-        "dev": "UD_Polish-PDB/master/pl_pdb-ud-dev.conllu",
-        "test": "UD_Polish-PDB/master/pl_pdb-ud-test.conllu",
+        "train": "UD_Polish-PDB/r2.7/pl_pdb-ud-train.conllu",
+        "dev": "UD_Polish-PDB/r2.7/pl_pdb-ud-dev.conllu",
+        "test": "UD_Polish-PDB/r2.7/pl_pdb-ud-test.conllu",
     },
     "pl_pud": {
-        "test": "UD_Polish-PUD/master/pl_pud-ud-test.conllu",
+        "test": "UD_Polish-PUD/r2.7/pl_pud-ud-test.conllu",
     },
     "pt_bosque": {
-        "train": "UD_Portuguese-Bosque/master/pt_bosque-ud-train.conllu",
-        "dev": "UD_Portuguese-Bosque/master/pt_bosque-ud-dev.conllu",
-        "test": "UD_Portuguese-Bosque/master/pt_bosque-ud-test.conllu",
+        "train": "UD_Portuguese-Bosque/r2.7/pt_bosque-ud-train.conllu",
+        "dev": "UD_Portuguese-Bosque/r2.7/pt_bosque-ud-dev.conllu",
+        "test": "UD_Portuguese-Bosque/r2.7/pt_bosque-ud-test.conllu",
     },
     "pt_gsd": {
-        "train": "UD_Portuguese-GSD/master/pt_gsd-ud-train.conllu",
-        "dev": "UD_Portuguese-GSD/master/pt_gsd-ud-dev.conllu",
-        "test": "UD_Portuguese-GSD/master/pt_gsd-ud-test.conllu",
+        "train": "UD_Portuguese-GSD/r2.7/pt_gsd-ud-train.conllu",
+        "dev": "UD_Portuguese-GSD/r2.7/pt_gsd-ud-dev.conllu",
+        "test": "UD_Portuguese-GSD/r2.7/pt_gsd-ud-test.conllu",
     },
     "pt_pud": {
-        "test": "UD_Portuguese-PUD/master/pt_pud-ud-test.conllu",
+        "test": "UD_Portuguese-PUD/r2.7/pt_pud-ud-test.conllu",
     },
     "ro_nonstandard": {
-        "train": "UD_Romanian-Nonstandard/master/ro_nonstandard-ud-train.conllu",
-        "dev": "UD_Romanian-Nonstandard/master/ro_nonstandard-ud-dev.conllu",
-        "test": "UD_Romanian-Nonstandard/master/ro_nonstandard-ud-test.conllu",
+        "train": "UD_Romanian-Nonstandard/r2.7/ro_nonstandard-ud-train.conllu",
+        "dev": "UD_Romanian-Nonstandard/r2.7/ro_nonstandard-ud-dev.conllu",
+        "test": "UD_Romanian-Nonstandard/r2.7/ro_nonstandard-ud-test.conllu",
     },
     "ro_rrt": {
-        "train": "UD_Romanian-RRT/master/ro_rrt-ud-train.conllu",
-        "dev": "UD_Romanian-RRT/master/ro_rrt-ud-dev.conllu",
-        "test": "UD_Romanian-RRT/master/ro_rrt-ud-test.conllu",
+        "train": "UD_Romanian-RRT/r2.7/ro_rrt-ud-train.conllu",
+        "dev": "UD_Romanian-RRT/r2.7/ro_rrt-ud-dev.conllu",
+        "test": "UD_Romanian-RRT/r2.7/ro_rrt-ud-test.conllu",
     },
     "ro_simonero": {
-        "train": "UD_Romanian-SiMoNERo/master/ro_simonero-ud-train.conllu",
-        "dev": "UD_Romanian-SiMoNERo/master/ro_simonero-ud-dev.conllu",
-        "test": "UD_Romanian-SiMoNERo/master/ro_simonero-ud-test.conllu",
+        "train": "UD_Romanian-SiMoNERo/r2.7/ro_simonero-ud-train.conllu",
+        "dev": "UD_Romanian-SiMoNERo/r2.7/ro_simonero-ud-dev.conllu",
+        "test": "UD_Romanian-SiMoNERo/r2.7/ro_simonero-ud-test.conllu",
     },
     "ru_gsd": {
-        "train": "UD_Russian-GSD/master/ru_gsd-ud-train.conllu",
-        "dev": "UD_Russian-GSD/master/ru_gsd-ud-dev.conllu",
-        "test": "UD_Russian-GSD/master/ru_gsd-ud-test.conllu",
+        "train": "UD_Russian-GSD/r2.7/ru_gsd-ud-train.conllu",
+        "dev": "UD_Russian-GSD/r2.7/ru_gsd-ud-dev.conllu",
+        "test": "UD_Russian-GSD/r2.7/ru_gsd-ud-test.conllu",
     },
     "ru_pud": {
-        "test": "UD_Russian-PUD/master/ru_pud-ud-test.conllu",
+        "test": "UD_Russian-PUD/r2.7/ru_pud-ud-test.conllu",
     },
     "ru_syntagrus": {
-        "train": "UD_Russian-SynTagRus/master/ru_syntagrus-ud-train.conllu",
-        "dev": "UD_Russian-SynTagRus/master/ru_syntagrus-ud-dev.conllu",
-        "test": "UD_Russian-SynTagRus/master/ru_syntagrus-ud-test.conllu",
+        "train": "UD_Russian-SynTagRus/r2.7/ru_syntagrus-ud-train.conllu",
+        "dev": "UD_Russian-SynTagRus/r2.7/ru_syntagrus-ud-dev.conllu",
+        "test": "UD_Russian-SynTagRus/r2.7/ru_syntagrus-ud-test.conllu",
     },
     "ru_taiga": {
-        "train": "UD_Russian-Taiga/master/ru_taiga-ud-train.conllu",
-        "dev": "UD_Russian-Taiga/master/ru_taiga-ud-dev.conllu",
-        "test": "UD_Russian-Taiga/master/ru_taiga-ud-test.conllu",
+        "train": "UD_Russian-Taiga/r2.7/ru_taiga-ud-train.conllu",
+        "dev": "UD_Russian-Taiga/r2.7/ru_taiga-ud-dev.conllu",
+        "test": "UD_Russian-Taiga/r2.7/ru_taiga-ud-test.conllu",
     },
     "sa_ufal": {
-        "test": "UD_Sanskrit-UFAL/master/sa_ufal-ud-test.conllu",
+        "test": "UD_Sanskrit-UFAL/r2.7/sa_ufal-ud-test.conllu",
     },
     "sa_vedic": {
-        "train": "UD_Sanskrit-Vedic/master/sa_vedic-ud-train.conllu",
-        "test": "UD_Sanskrit-Vedic/master/sa_vedic-ud-test.conllu",
+        "train": "UD_Sanskrit-Vedic/r2.7/sa_vedic-ud-train.conllu",
+        "test": "UD_Sanskrit-Vedic/r2.7/sa_vedic-ud-test.conllu",
     },
     "gd_arcosg": {
-        "train": "UD_Scottish_Gaelic-ARCOSG/master/gd_arcosg-ud-train.conllu",
-        "dev": "UD_Scottish_Gaelic-ARCOSG/master/gd_arcosg-ud-dev.conllu",
-        "test": "UD_Scottish_Gaelic-ARCOSG/master/gd_arcosg-ud-test.conllu",
+        "train": "UD_Scottish_Gaelic-ARCOSG/r2.7/gd_arcosg-ud-train.conllu",
+        "dev": "UD_Scottish_Gaelic-ARCOSG/r2.7/gd_arcosg-ud-dev.conllu",
+        "test": "UD_Scottish_Gaelic-ARCOSG/r2.7/gd_arcosg-ud-test.conllu",
     },
     "sr_set": {
-        "train": "UD_Serbian-SET/master/sr_set-ud-train.conllu",
-        "dev": "UD_Serbian-SET/master/sr_set-ud-dev.conllu",
-        "test": "UD_Serbian-SET/master/sr_set-ud-test.conllu",
+        "train": "UD_Serbian-SET/r2.7/sr_set-ud-train.conllu",
+        "dev": "UD_Serbian-SET/r2.7/sr_set-ud-dev.conllu",
+        "test": "UD_Serbian-SET/r2.7/sr_set-ud-test.conllu",
     },
     "sms_giellagas": {
-        "test": "UD_Skolt_Sami-Giellagas/master/sms_giellagas-ud-test.conllu",
+        "test": "UD_Skolt_Sami-Giellagas/r2.7/sms_giellagas-ud-test.conllu",
     },
     "sk_snk": {
-        "train": "UD_Slovak-SNK/master/sk_snk-ud-train.conllu",
-        "dev": "UD_Slovak-SNK/master/sk_snk-ud-dev.conllu",
-        "test": "UD_Slovak-SNK/master/sk_snk-ud-test.conllu",
+        "train": "UD_Slovak-SNK/r2.7/sk_snk-ud-train.conllu",
+        "dev": "UD_Slovak-SNK/r2.7/sk_snk-ud-dev.conllu",
+        "test": "UD_Slovak-SNK/r2.7/sk_snk-ud-test.conllu",
     },
     "sl_ssj": {
-        "train": "UD_Slovenian-SSJ/master/sl_ssj-ud-train.conllu",
-        "dev": "UD_Slovenian-SSJ/master/sl_ssj-ud-dev.conllu",
-        "test": "UD_Slovenian-SSJ/master/sl_ssj-ud-test.conllu",
+        "train": "UD_Slovenian-SSJ/r2.7/sl_ssj-ud-train.conllu",
+        "dev": "UD_Slovenian-SSJ/r2.7/sl_ssj-ud-dev.conllu",
+        "test": "UD_Slovenian-SSJ/r2.7/sl_ssj-ud-test.conllu",
     },
     "sl_sst": {
-        "train": "UD_Slovenian-SST/master/sl_sst-ud-train.conllu",
-        "test": "UD_Slovenian-SST/master/sl_sst-ud-test.conllu",
+        "train": "UD_Slovenian-SST/r2.7/sl_sst-ud-train.conllu",
+        "test": "UD_Slovenian-SST/r2.7/sl_sst-ud-test.conllu",
     },
     "soj_aha": {
-        "test": "UD_Soi-AHA/master/soj_aha-ud-test.conllu",
+        "test": "UD_Soi-AHA/r2.7/soj_aha-ud-test.conllu",
     },
     "ajp_madar": {
-        "test": "UD_South_Levantine_Arabic-MADAR/master/ajp_madar-ud-test.conllu",
+        "test": "UD_South_Levantine_Arabic-MADAR/r2.7/ajp_madar-ud-test.conllu",
     },
     "es_ancora": {
-        "train": "UD_Spanish-AnCora/master/es_ancora-ud-train.conllu",
-        "dev": "UD_Spanish-AnCora/master/es_ancora-ud-dev.conllu",
-        "test": "UD_Spanish-AnCora/master/es_ancora-ud-test.conllu",
+        "train": "UD_Spanish-AnCora/r2.7/es_ancora-ud-train.conllu",
+        "dev": "UD_Spanish-AnCora/r2.7/es_ancora-ud-dev.conllu",
+        "test": "UD_Spanish-AnCora/r2.7/es_ancora-ud-test.conllu",
     },
     "es_gsd": {
-        "train": "UD_Spanish-GSD/master/es_gsd-ud-train.conllu",
-        "dev": "UD_Spanish-GSD/master/es_gsd-ud-dev.conllu",
-        "test": "UD_Spanish-GSD/master/es_gsd-ud-test.conllu",
+        "train": "UD_Spanish-GSD/r2.7/es_gsd-ud-train.conllu",
+        "dev": "UD_Spanish-GSD/r2.7/es_gsd-ud-dev.conllu",
+        "test": "UD_Spanish-GSD/r2.7/es_gsd-ud-test.conllu",
     },
     "es_pud": {
-        "test": "UD_Spanish-PUD/master/es_pud-ud-test.conllu",
+        "test": "UD_Spanish-PUD/r2.7/es_pud-ud-test.conllu",
     },
     "swl_sslc": {
-        "train": "UD_Swedish_Sign_Language-SSLC/master/swl_sslc-ud-train.conllu",
-        "dev": "UD_Swedish_Sign_Language-SSLC/master/swl_sslc-ud-dev.conllu",
-        "test": "UD_Swedish_Sign_Language-SSLC/master/swl_sslc-ud-test.conllu",
+        "train": "UD_Swedish_Sign_Language-SSLC/r2.7/swl_sslc-ud-train.conllu",
+        "dev": "UD_Swedish_Sign_Language-SSLC/r2.7/swl_sslc-ud-dev.conllu",
+        "test": "UD_Swedish_Sign_Language-SSLC/r2.7/swl_sslc-ud-test.conllu",
     },
     "sv_lines": {
-        "train": "UD_Swedish-LinES/master/sv_lines-ud-train.conllu",
-        "dev": "UD_Swedish-LinES/master/sv_lines-ud-dev.conllu",
-        "test": "UD_Swedish-LinES/master/sv_lines-ud-test.conllu",
+        "train": "UD_Swedish-LinES/r2.7/sv_lines-ud-train.conllu",
+        "dev": "UD_Swedish-LinES/r2.7/sv_lines-ud-dev.conllu",
+        "test": "UD_Swedish-LinES/r2.7/sv_lines-ud-test.conllu",
     },
     "sv_pud": {
-        "test": "UD_Swedish-PUD/master/sv_pud-ud-test.conllu",
+        "test": "UD_Swedish-PUD/r2.7/sv_pud-ud-test.conllu",
     },
     "sv_talbanken": {
-        "train": "UD_Swedish-Talbanken/master/sv_talbanken-ud-train.conllu",
-        "dev": "UD_Swedish-Talbanken/master/sv_talbanken-ud-dev.conllu",
-        "test": "UD_Swedish-Talbanken/master/sv_talbanken-ud-test.conllu",
+        "train": "UD_Swedish-Talbanken/r2.7/sv_talbanken-ud-train.conllu",
+        "dev": "UD_Swedish-Talbanken/r2.7/sv_talbanken-ud-dev.conllu",
+        "test": "UD_Swedish-Talbanken/r2.7/sv_talbanken-ud-test.conllu",
     },
     "gsw_uzh": {
-        "test": "UD_Swiss_German-UZH/master/gsw_uzh-ud-test.conllu",
+        "test": "UD_Swiss_German-UZH/r2.7/gsw_uzh-ud-test.conllu",
     },
     "tl_trg": {
-        "test": "UD_Tagalog-TRG/master/tl_trg-ud-test.conllu",
+        "test": "UD_Tagalog-TRG/r2.7/tl_trg-ud-test.conllu",
     },
     "tl_ugnayan": {
-        "test": "UD_Tagalog-Ugnayan/master/tl_ugnayan-ud-test.conllu",
+        "test": "UD_Tagalog-Ugnayan/r2.7/tl_ugnayan-ud-test.conllu",
     },
     "ta_mwtt": {
-        "test": "UD_Tamil-MWTT/master/ta_mwtt-ud-test.conllu",
+        "test": "UD_Tamil-MWTT/r2.7/ta_mwtt-ud-test.conllu",
     },
     "ta_ttb": {
-        "train": "UD_Tamil-TTB/master/ta_ttb-ud-train.conllu",
-        "dev": "UD_Tamil-TTB/master/ta_ttb-ud-dev.conllu",
-        "test": "UD_Tamil-TTB/master/ta_ttb-ud-test.conllu",
+        "train": "UD_Tamil-TTB/r2.7/ta_ttb-ud-train.conllu",
+        "dev": "UD_Tamil-TTB/r2.7/ta_ttb-ud-dev.conllu",
+        "test": "UD_Tamil-TTB/r2.7/ta_ttb-ud-test.conllu",
     },
     "te_mtg": {
-        "train": "UD_Telugu-MTG/master/te_mtg-ud-train.conllu",
-        "dev": "UD_Telugu-MTG/master/te_mtg-ud-dev.conllu",
-        "test": "UD_Telugu-MTG/master/te_mtg-ud-test.conllu",
+        "train": "UD_Telugu-MTG/r2.7/te_mtg-ud-train.conllu",
+        "dev": "UD_Telugu-MTG/r2.7/te_mtg-ud-dev.conllu",
+        "test": "UD_Telugu-MTG/r2.7/te_mtg-ud-test.conllu",
     },
     "th_pud": {
-        "test": "UD_Thai-PUD/master/th_pud-ud-test.conllu",
+        "test": "UD_Thai-PUD/r2.7/th_pud-ud-test.conllu",
     },
     "tpn_tudet": {
-        "test": "UD_Tupinamba-TuDeT/master/tpn_tudet-ud-test.conllu",
+        "test": "UD_Tupinamba-TuDeT/r2.7/tpn_tudet-ud-test.conllu",
     },
     "qtd_sagt": {
-        "train": "UD_Turkish_German-SAGT/master/qtd_sagt-ud-train.conllu",
-        "dev": "UD_Turkish_German-SAGT/master/qtd_sagt-ud-dev.conllu",
-        "test": "UD_Turkish_German-SAGT/master/qtd_sagt-ud-test.conllu",
+        "train": "UD_Turkish_German-SAGT/r2.7/qtd_sagt-ud-train.conllu",
+        "dev": "UD_Turkish_German-SAGT/r2.7/qtd_sagt-ud-dev.conllu",
+        "test": "UD_Turkish_German-SAGT/r2.7/qtd_sagt-ud-test.conllu",
     },
     "tr_boun": {
-        "train": "UD_Turkish-BOUN/master/tr_boun-ud-train.conllu",
-        "dev": "UD_Turkish-BOUN/master/tr_boun-ud-dev.conllu",
-        "test": "UD_Turkish-BOUN/master/tr_boun-ud-test.conllu",
+        "train": "UD_Turkish-BOUN/r2.7/tr_boun-ud-train.conllu",
+        "dev": "UD_Turkish-BOUN/r2.7/tr_boun-ud-dev.conllu",
+        "test": "UD_Turkish-BOUN/r2.7/tr_boun-ud-test.conllu",
     },
     "tr_gb": {
-        "test": "UD_Turkish-GB/master/tr_gb-ud-test.conllu",
+        "test": "UD_Turkish-GB/r2.7/tr_gb-ud-test.conllu",
     },
     "tr_imst": {
-        "train": "UD_Turkish-IMST/master/tr_imst-ud-train.conllu",
-        "dev": "UD_Turkish-IMST/master/tr_imst-ud-dev.conllu",
-        "test": "UD_Turkish-IMST/master/tr_imst-ud-test.conllu",
+        "train": "UD_Turkish-IMST/r2.7/tr_imst-ud-train.conllu",
+        "dev": "UD_Turkish-IMST/r2.7/tr_imst-ud-dev.conllu",
+        "test": "UD_Turkish-IMST/r2.7/tr_imst-ud-test.conllu",
     },
     "tr_pud": {
-        "test": "UD_Turkish-PUD/master/tr_pud-ud-test.conllu",
+        "test": "UD_Turkish-PUD/r2.7/tr_pud-ud-test.conllu",
     },
     "uk_iu": {
-        "train": "UD_Ukrainian-IU/master/uk_iu-ud-train.conllu",
-        "dev": "UD_Ukrainian-IU/master/uk_iu-ud-dev.conllu",
-        "test": "UD_Ukrainian-IU/master/uk_iu-ud-test.conllu",
+        "train": "UD_Ukrainian-IU/r2.7/uk_iu-ud-train.conllu",
+        "dev": "UD_Ukrainian-IU/r2.7/uk_iu-ud-dev.conllu",
+        "test": "UD_Ukrainian-IU/r2.7/uk_iu-ud-test.conllu",
     },
     "hsb_ufal": {
-        "train": "UD_Upper_Sorbian-UFAL/master/hsb_ufal-ud-train.conllu",
-        "test": "UD_Upper_Sorbian-UFAL/master/hsb_ufal-ud-test.conllu",
+        "train": "UD_Upper_Sorbian-UFAL/r2.7/hsb_ufal-ud-train.conllu",
+        "test": "UD_Upper_Sorbian-UFAL/r2.7/hsb_ufal-ud-test.conllu",
     },
     "ur_udtb": {
-        "train": "UD_Urdu-UDTB/master/ur_udtb-ud-train.conllu",
-        "dev": "UD_Urdu-UDTB/master/ur_udtb-ud-dev.conllu",
-        "test": "UD_Urdu-UDTB/master/ur_udtb-ud-test.conllu",
+        "train": "UD_Urdu-UDTB/r2.7/ur_udtb-ud-train.conllu",
+        "dev": "UD_Urdu-UDTB/r2.7/ur_udtb-ud-dev.conllu",
+        "test": "UD_Urdu-UDTB/r2.7/ur_udtb-ud-test.conllu",
     },
     "ug_udt": {
-        "train": "UD_Uyghur-UDT/master/ug_udt-ud-train.conllu",
-        "dev": "UD_Uyghur-UDT/master/ug_udt-ud-dev.conllu",
-        "test": "UD_Uyghur-UDT/master/ug_udt-ud-test.conllu",
+        "train": "UD_Uyghur-UDT/r2.7/ug_udt-ud-train.conllu",
+        "dev": "UD_Uyghur-UDT/r2.7/ug_udt-ud-dev.conllu",
+        "test": "UD_Uyghur-UDT/r2.7/ug_udt-ud-test.conllu",
     },
     "vi_vtb": {
-        "train": "UD_Vietnamese-VTB/master/vi_vtb-ud-train.conllu",
-        "dev": "UD_Vietnamese-VTB/master/vi_vtb-ud-dev.conllu",
-        "test": "UD_Vietnamese-VTB/master/vi_vtb-ud-test.conllu",
+        "train": "UD_Vietnamese-VTB/r2.7/vi_vtb-ud-train.conllu",
+        "dev": "UD_Vietnamese-VTB/r2.7/vi_vtb-ud-dev.conllu",
+        "test": "UD_Vietnamese-VTB/r2.7/vi_vtb-ud-test.conllu",
     },
     "wbp_ufal": {
-        "test": "UD_Warlpiri-UFAL/master/wbp_ufal-ud-test.conllu",
+        "test": "UD_Warlpiri-UFAL/r2.7/wbp_ufal-ud-test.conllu",
     },
     "cy_ccg": {
-        "train": "UD_Welsh-CCG/master/cy_ccg-ud-train.conllu",
-        "test": "UD_Welsh-CCG/master/cy_ccg-ud-test.conllu",
+        "train": "UD_Welsh-CCG/r2.7/cy_ccg-ud-train.conllu",
+        "test": "UD_Welsh-CCG/r2.7/cy_ccg-ud-test.conllu",
     },
     "wo_wtb": {
-        "train": "UD_Wolof-WTB/master/wo_wtb-ud-train.conllu",
-        "dev": "UD_Wolof-WTB/master/wo_wtb-ud-dev.conllu",
-        "test": "UD_Wolof-WTB/master/wo_wtb-ud-test.conllu",
+        "train": "UD_Wolof-WTB/r2.7/wo_wtb-ud-train.conllu",
+        "dev": "UD_Wolof-WTB/r2.7/wo_wtb-ud-dev.conllu",
+        "test": "UD_Wolof-WTB/r2.7/wo_wtb-ud-test.conllu",
     },
     "yo_ytb": {
-        "test": "UD_Yoruba-YTB/master/yo_ytb-ud-test.conllu",
+        "test": "UD_Yoruba-YTB/r2.7/yo_ytb-ud-test.conllu",
     },
 }
+
 
 class UniversaldependenciesConfig(datasets.BuilderConfig):
     """BuilderConfig for Universal dependencies"""
 
-    def __init__(self, data_url, citation, url, text_features, **kwargs):
-        """
+    def __init__(self, data_url, **kwargs):
+        super(UniversaldependenciesConfig, self).__init__(version=datasets.Version("2.7.0", ""), **kwargs)
 
-        Args:
-            text_features: `dict[string, string]`, map from the name of the feature
-        dict for each text field to the name of the column in the tsv file
-            label_column:
-            label_classes
-            **kwargs: keyword arguments forwarded to super.
-        """
-        super(UniversaldependenciesConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
-        self.text_features = text_features
         self.data_url = data_url
-        self.citation = citation
-        self.url = url
 
 
 class Universaldependencies(datasets.GeneratorBasedBuilder):
-    VERSION = datasets.Version("0.1.0")
+    VERSION = datasets.Version("2.7.0")
     BUILDER_CONFIGS = [
         UniversaldependenciesConfig(
             name=name,
             description=_DESCRIPTIONS[name],
-            citation=_CITATION,
-            text_features=datasets.Features({}),
             data_url="https://github.com/UniversalDependencies/" + _UD_DATASETS[name]["test"].split("/")[0],
-            url="https://github.com/UniversalDependencies/" + _UD_DATASETS[name]["test"].split("/")[0],
         )
         for name in _NAMES
     ]
 
     def _info(self):
-        print("info")
+        return datasets.DatasetInfo(
+            description=_DESCRIPTION,
+            features=datasets.Features(
+                {
+                    "idx": datasets.Value("string"),
+                    "text": datasets.Value("string"),
+                    "tokens": datasets.Sequence(datasets.Value("string")),
+                    "lemmas": datasets.Sequence(datasets.Value("string")),
+                    "upos": datasets.Sequence(
+                        datasets.features.ClassLabel(
+                            names=[
+                                "NOUN",
+                                "PUNCT",
+                                "ADP",
+                                "NUM",
+                                "SYM",
+                                "SCONJ",
+                                "ADJ",
+                                "PART",
+                                "DET",
+                                "CCONJ",
+                                "PROPN",
+                                "PRON",
+                                "X",
+                                "_",
+                                "ADV",
+                                "INTJ",
+                                "VERB",
+                                "AUX",
+                            ]
+                        )
+                    ),
+                    "xpos": datasets.Sequence(datasets.Value("string")),
+                    "feats": datasets.Sequence(datasets.Value("string")),
+                    "head": datasets.Sequence(datasets.Value("string")),
+                    "deprel": datasets.Sequence(datasets.Value("string")),
+                    "deps": datasets.Sequence(datasets.Value("string")),
+                    "misc": datasets.Sequence(datasets.Value("string")),
+                }
+            ),
+            supervised_keys=None,
+            homepage="https://universaldependencies.org/",
+            citation=_CITATION,
+        )
+
+    def _split_generators(self, dl_manager):
+        """Returns SplitGenerators."""
+        urls_to_download = {}
+        for split, address in _UD_DATASETS[self.config.name].items():
+            urls_to_download[split] = []
+            if isinstance(address, list):
+                for add in address:
+                    urls_to_download[split].append(_PREFIX + add)
+            else:
+                urls_to_download[split].append(_PREFIX + address)
+
+        downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        splits = []
+
+        if "train" in downloaded_files:
+            splits.append(
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]})
+            )
+
+        if "dev" in downloaded_files:
+            splits.append(
+                datasets.SplitGenerator(
+                    name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}
+                )
+            )
+
+        if "test" in downloaded_files:
+            splits.append(
+                datasets.SplitGenerator(name=datasets.Split.TEST, gen_kwargs={"filepath": downloaded_files["test"]})
+            )
+
+        return splits
 
     def _generate_examples(self, filepath):
-        print("generate")
+        id = 0
+        for path in filepath:
+            with open(path, "r", encoding="utf-8") as data_file:
+                tokenlist = list(conllu.parse_incr(data_file))
+                for sent in tokenlist:
+                    if "sent_id" in sent.metadata:
+                        idx = sent.metadata["sent_id"]
+                    else:
+                        idx = id
+
+                    tokens = [token["form"] for token in sent]
+
+                    if "text" in sent.metadata:
+                        txt = sent.metadata["text"]
+                    else:
+                        txt = " ".join(tokens)
+
+                    yield id, {
+                        "idx": str(idx),
+                        "text": txt,
+                        "tokens": [token["form"] for token in sent],
+                        "lemmas": [token["lemma"] for token in sent],
+                        "upos": [token["upos"] for token in sent],
+                        "xpos": [token["xpos"] for token in sent],
+                        "feats": [str(token["feats"]) for token in sent],
+                        "head": [str(token["head"]) for token in sent],
+                        "deprel": [str(token["deprel"]) for token in sent],
+                        "deps": [str(token["deps"]) for token in sent],
+                        "misc": [str(token["misc"]) for token in sent],
+                    }
+                    id += 1
