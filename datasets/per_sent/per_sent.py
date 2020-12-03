@@ -63,9 +63,7 @@ class PerSenT(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.1.0")
 
     def _info(self):
-        label = datasets.features.ClassLabel(
-            names=["", "Negative", "Neutral", "Positive"]
-        )
+        label = datasets.features.ClassLabel(names=["", "Negative", "Neutral", "Positive"])
         features = datasets.Features(
             {
                 "DOCUMENT_INDEX": datasets.Value("int64"),
