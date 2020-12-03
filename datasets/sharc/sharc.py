@@ -74,7 +74,7 @@ class Sharc(datasets.GeneratorBasedBuilder):
                 }
             ),
             supervised_keys=None,
-            homepage="https://github.com/Websail-NU/CODAH",
+            homepage="https://sharc-data.github.io/index.html",
             citation=_CITATION,
         )
 
