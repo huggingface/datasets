@@ -4,9 +4,19 @@ annotations_creators:
 language_creators:
 - expert-generated
 languages:
-- en
-- tn
-- ts
+- autshumato-en-ts-manual:
+  - en
+  - ts
+- autshumato-en-tn:
+  - en
+  - tn
+- autshumato-en-ts:
+  - en
+  - ts
+- autshumato-tn:
+  - tn
+- autshumato-ts:
+  - ts
 licenses:
 - cc-by-2.5
 multilinguality:
