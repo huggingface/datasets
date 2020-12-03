@@ -32,7 +32,7 @@ validation set (10845), and the remaining 20% as test set.
 _HOMEPAGE_URL = "https://research.fb.com/downloads/babi/"
 _CITATION = """\
 @misc{bordes2015largescale,
-      title={Large-scale Simple Question Answering with Memory Networks}, 
+      title={Large-scale Simple Question Answering with Memory Networks},
       author={Antoine Bordes and Nicolas Usunier and Sumit Chopra and Jason Weston},
       year={2015},
       eprint={1506.02075},
