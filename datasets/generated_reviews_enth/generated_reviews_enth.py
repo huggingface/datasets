@@ -38,6 +38,7 @@ class GeneratedReviewsEnthConfig(datasets.BuilderConfig):
           **kwargs: keyword arguments forwarded to super.
         """
         super(GeneratedReviewsEnthConfig, self).__init__(**kwargs)
+        self.language_pair = ("en", "th")
 
 
 class GeneratedReviewsEnth(datasets.GeneratorBasedBuilder):
@@ -61,8 +62,7 @@ class GeneratedReviewsEnth(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "en_segment": datasets.Value("string"),
-                    "th_segment": datasets.Value("string"),
+                    "translation": datasets.features.Translation(languages=self.config.language_pair),
                     "review_star": datasets.Value("int32"),
                     "correct": datasets.features.ClassLabel(names=["neg", "pos"]),
                 }
@@ -89,12 +89,12 @@ class GeneratedReviewsEnth(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """Generate generated_reviews_enth examples."""
+        source, target = self.config.language_pair
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
                 yield id_, {
-                    "en_segment": data["en_segment"],
-                    "th_segment": data["th_segment"],
+                    "translation": {source: data["en_segment"], target: data["th_segment"]},
                     "review_star": data["review_star"],
                     "correct": data["correct"],
                 }
