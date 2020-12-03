@@ -1,6 +1,4 @@
 ---
-YAML tags:
-
 annotations_creators:
 - found
 language_creators:
