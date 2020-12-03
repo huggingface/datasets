@@ -26,7 +26,11 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
+Contains Farsi (Persian) datasets for Machine Learning tasks, particularly NLP.
+These datasets have been extracted from the RSS feed of two Farsi news agency websites:
 
+- Hamshahri
+- RadioFarda
 """
 
 _URL = "https://raw.githubusercontent.com/sci2lab/Farsi-datasets/master/farsi_news/"
