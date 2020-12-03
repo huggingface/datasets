@@ -1,7 +1,31 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
----
+annotations_creators:
+- machine-generated
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- original
+- extented|other-turkcorpus
+task_categories:
+  ratings:
+  - text-scoring
+  simplification:
+  - conditional-text-generation
+task_ids:
+  ratings:
+  - text-scoring-other-simplification-evaluation
+  simplification:
+  - text-simplification
+  ---
 
 # Dataset Card for ASSET
 
