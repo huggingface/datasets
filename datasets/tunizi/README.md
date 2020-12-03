@@ -8,7 +8,7 @@ languages:
 licenses:
 - unknown
 multilinguality:
-- multilingual
+- monolingual
 size_categories:
 - 1K<n<10K
 source_datasets:
