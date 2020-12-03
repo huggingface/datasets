@@ -24,7 +24,14 @@ We describe a range of features and their influence on German NER classification
 """
 _HOMEPAGE_URL = "https://github.com/tudarmstadt-lt/GermaNER"
 _URL = "https://raw.githubusercontent.com/tudarmstadt-lt/GermaNER/a206b554feca263d740302449fff0776c66d0040/data/v0.9.1/full_train.tsv"
-_CITATION = "GermaNER: Free Open German Named Entity Recognition Tool, Darina Benikova,Seid Muhie Yimam, Prabhakaran Santhanam and Chris Biemann, In: International Conference of the German Society for Computational Linguistics and Language Technology (GSCL-2015), 2015."
+_CITATION = """\
+@inproceedings{Benikova2015GermaNERFO,
+  title={GermaNER: Free Open German Named Entity Recognition Tool},
+  author={Darina Benikova and S. Yimam and Prabhakaran Santhanam and Chris Biemann},
+  booktitle={GSCL},
+  year={2015}
+}
+"""
 
 
 class GermaNER(datasets.GeneratorBasedBuilder):
@@ -83,7 +90,9 @@ class GermaNER(datasets.GeneratorBasedBuilder):
                 else:
                     if not current_words:
                         continue
-                    assert len(current_words) == len(current_labels), "word len doesnt match label length"
+                    assert len(current_words) == len(
+                        current_labels
+                    ), "word len doesnt match label length"
                     sentence = (
                         sentence_counter,
                         {
