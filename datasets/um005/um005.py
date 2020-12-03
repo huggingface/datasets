@@ -28,7 +28,7 @@ The texts come from four different sources:
 - Penn Treebank (Wall Street Journal)
 - Emille corpus
 
-We provide the religious texts of Quran and Bible for direct download. Because of licensing reasons, Penn and Emille texts cannot be redistributed freely. However, if you already hold a license for the original corpora, we are able to provide scripts that will recreate our data on your disk. Our modifications include but are not limited to the following:
+The authors provide the religious texts of Quran and Bible for direct download. Because of licensing reasons, Penn and Emille texts cannot be redistributed freely. However, if you already hold a license for the original corpora, we are able to provide scripts that will recreate our data on your disk. Our modifications include but are not limited to the following:
 
 - Correction of Urdu translations and manual sentence alignment of the Emille texts.
 - Manually corrected sentence alignment of the other corpora.
