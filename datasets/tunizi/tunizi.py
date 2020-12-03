@@ -62,9 +62,8 @@ class Tunizi(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath):
-        sentence_counter = 0
         with open(datapath, encoding="utf-8") as f:
-            for row in f:
+            for sentence_counter, row in enumerate(f):
                 row = row.strip()
                 target, sentence = row.split(";")
                 if target.startswith("%") or target.startswith('"'):
@@ -77,5 +76,4 @@ class Tunizi(datasets.GeneratorBasedBuilder):
                         "target": target,
                     },
                 )
-                sentence_counter += 1
                 yield result
