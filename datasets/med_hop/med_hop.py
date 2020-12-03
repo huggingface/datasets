@@ -41,7 +41,7 @@ The correct answer has to be inferred by combining information from a chain of r
 _URL = "https://drive.google.com/uc?export=download&id=1ytVZ4AhubFDOEL7o7XrIRIyhU8g9wvKA"
 
 
-class MedHopConifg(datasets.BuilderConfig):
+class MedHopConfig(datasets.BuilderConfig):
     """BuilderConfig for MedHop."""
 
     def __init__(self, masked=False, **kwargs):
@@ -51,7 +51,7 @@ class MedHopConifg(datasets.BuilderConfig):
           masked: `bool`, original or maksed data.
           **kwargs: keyword arguments forwarded to super.
         """
-        super(MedHopConifg, self).__init__(**kwargs)
+        super(MedHopConfig, self).__init__(**kwargs)
         self.masked = masked
 
 
@@ -60,17 +60,17 @@ class MedHop(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
-        MedHopConifg(
+        MedHopConfig(
             name="original",
             version=datasets.Version("1.0.0"),
             description="The un-maksed MedHop dataset",
             masked=False,
         ),
-        MedHopConifg(
+        MedHopConfig(
             name="masked", version=datasets.Version("1.0.0"), description="Masked MedHop dataset", masked=True
         ),
     ]
-
+    BUILDER_CONFIG_CLASS = MedHopConfig
     DEFAULT_CONFIG_NAME = "original"
 
     def _info(self):
