@@ -62,7 +62,7 @@ class EvidenceInferenceConfig(datasets.BuilderConfig):
         super().__init__(**kwargs)
 
 
-class EvidenceInference(datasets.GeneratorBasedBuilder):
+class EvidenceInferTreatment(datasets.GeneratorBasedBuilder):
     f"""{_DESCRIPTION}"""
 
     # This is an example of a dataset with multiple configurations.
