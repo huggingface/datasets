@@ -91,17 +91,11 @@ class TurkuNERCorpus(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, data_path, data_type):
         if data_type == "train":
-            data_path = os.path.join(
-                data_path, "turku-ner-corpus-1.0/data/conll/train.tsv"
-            )
+            data_path = os.path.join(data_path, "turku-ner-corpus-1.0/data/conll/train.tsv")
         elif data_type == "valid":
-            data_path = os.path.join(
-                data_path, "turku-ner-corpus-1.0/data/conll/dev.tsv"
-            )
+            data_path = os.path.join(data_path, "turku-ner-corpus-1.0/data/conll/dev.tsv")
         elif data_type == "test":
-            data_path = os.path.join(
-                data_path, "turku-ner-corpus-1.0/data/conll/test.tsv"
-            )
+            data_path = os.path.join(data_path, "turku-ner-corpus-1.0/data/conll/test.tsv")
         else:
             raise Exception("data_type not understood")
 
@@ -119,9 +113,7 @@ class TurkuNERCorpus(datasets.GeneratorBasedBuilder):
                 else:
                     if not current_words:
                         continue
-                    assert len(current_words) == len(
-                        current_labels
-                    ), "word len doesnt match label length"
+                    assert len(current_words) == len(current_labels), "word len doesnt match label length"
                     sentence = (
                         sentence_counter,
                         {
