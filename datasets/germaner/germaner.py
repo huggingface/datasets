@@ -90,9 +90,7 @@ class GermaNER(datasets.GeneratorBasedBuilder):
                 else:
                     if not current_words:
                         continue
-                    assert len(current_words) == len(
-                        current_labels
-                    ), "word len doesnt match label length"
+                    assert len(current_words) == len(current_labels), "word len doesnt match label length"
                     sentence = (
                         sentence_counter,
                         {
