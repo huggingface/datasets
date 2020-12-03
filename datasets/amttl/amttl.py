@@ -68,7 +68,11 @@ class Amttl(datasets.GeneratorBasedBuilder):
     """AMTTL Chinese Word Segmentation dataset."""
 
     BUILDER_CONFIGS = [
-        AmttlConfig(name="amttl", version=datasets.Version("1.0.0"), description="AMTTL medical Chinese word segmentation dataset"),
+        AmttlConfig(
+            name="amttl",
+            version=datasets.Version("1.0.0"),
+            description="AMTTL medical Chinese word segmentation dataset",
+        ),
     ]
 
     def _info(self):
