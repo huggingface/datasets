@@ -90,13 +90,12 @@ class PAWSX(datasets.GeneratorBasedBuilder):
         for config_name in _DATA_OPTIONS
     ]
 
-    DEFAULT_CONFIG_NAME = "en"  # It's not mandatory to have a default configuration. Just use one if it make sense.
-
     def _info(self):
         features = datasets.Features(
             {
                 "id": datasets.Value("int32"),
-                "sentences": datasets.features.Sequence({"text": datasets.Value("string")}),
+                "sentence1": datasets.Value("string"),
+                "sentence2": datasets.Value("string"),
                 "label": datasets.features.ClassLabel(names=["0", "1"]),
             }
         )
@@ -167,9 +166,7 @@ class PAWSX(datasets.GeneratorBasedBuilder):
                     row["label"] = -1
                 yield id_, {
                     "id": row["id"],
-                    "sentences": [
-                        {"text": row["sentence1"]},
-                        {"text": row["sentence2"]},
-                    ],
+                    "sentence1": row["sentence1"],
+                    "sentence2": row["sentence2"],
                     "label": row["label"],
                 }
