@@ -45,7 +45,7 @@ _DESCRIPTION = """WikiANN (sometimes called PAN-X) is a multilingual named entit
 
 _DATA_URL = "https://www.dropbox.com/s/12h3qqog6q4bjve/panx_dataset.tar?dl=1"
 _HOMEPAGE = "https://github.com/afshinrahimi/mmner"
-
+_VERSION = "1.1.0"
 _LANGS = ['ace',
  'af',
  'als',
@@ -227,13 +227,13 @@ _LANGS = ['ace',
 
 class WikiannConfig(datasets.BuilderConfig):
     def __init__(self, **kwargs):
-        super(WikiannConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
+        super(WikiannConfig, self).__init__(version=datasets.Version(_VERSION, ""), **kwargs)
 
 
 class Wikiann(datasets.GeneratorBasedBuilder):
     """WikiANN is a multilingual named entity recognition dataset consisting of Wikipedia articles annotated with LOC, PER, and ORG tags"""
 
-    VERSION = datasets.Version("1.1.0")
+    VERSION = datasets.Version(_VERSION)
     # use two-letter ISO 639-1 language codes as the name for each corpus
     BUILDER_CONFIGS = [WikiannConfig(name=lang, description=f'WikiANN NER examples in language {lang}') for lang in _LANGS]
 
