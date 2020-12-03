@@ -108,6 +108,7 @@ TESTS_REQUIRE = [
     'torch',
     'tldextract',
     'transformers',
+    'xlrd',
     'zstandard',
 ]
 
