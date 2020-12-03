@@ -1,6 +1,67 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+  monolingual:
+  - no-annotation
+  monolingual_raw:
+  - found
+  parallel:
+  - expert-generated
+  parallel_raw:
+  - expert-generated
+language_creators:
+- found
+languages:
+  monolingual:
+  - chr
+  - en
+  monolingual_raw:
+  - chr
+  parallel:
+  - chr
+  - en
+  parallel_raw:
+  - chr
+  - en
+licenses:
+- other-different-license-per-source
+multilinguality:
+  monolingual:
+  - multilingual
+  monolingual_raw:
+  - monolingual
+  parallel:
+  - translation
+  parallel_raw:
+  - translation
+size_categories:
+  monolingual:
+  - 100K<n<1M
+  monolingual_raw:
+  - 1K<n<10K
+  parallel:
+  - 10K<n<100K
+  parallel_raw:
+  - 10K<n<100K
+source_datasets:
+- original
+task_categories:
+  monolingual:
+  - conditional-text-generation
+  monolingual_raw:
+  - sequence-modeling
+  parallel:
+  - conditional-text-generation
+  parallel_raw:
+  - conditional-text-generation
+task_ids:
+  monolingual:
+  - machine-translation
+  monolingual_raw:
+  - language-modeling
+  parallel:
+  - machine-translation
+  parallel_raw:
+  - machine-translation
 ---
 
 # Dataset Card for ChrEn
@@ -42,11 +103,11 @@ ChrEn also contains 5k Cherokee monolingual data to enable semi-supervised learn
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+The dataset is intended to use for `machine-translation` between Enlish (`en`) and Cherokee (`chr`).
 
 ### Languages
 
-[More Information Needed]
+The dataset contains Enlish (`en`) and Cherokee (`chr`) text. The data encompasses both existing dialects of Cherokee: the Overhill dialect, mostly spoken in Oklahoma (OK), and the Middle dialect, mostly used in North Carolina (NC).
 
 ## Dataset Structure
 
@@ -72,7 +133,7 @@ ChrEn also contains 5k Cherokee monolingual data to enable semi-supervised learn
 
 #### Initial Data Collection and Normalization
 
-[More Information Needed]
+Many of the source texts were translations of English materials, which means that the Cherokee structures may not be 100% natural in terms of what a speaker might spontaneously produce. Each text was translated by people who speak Cherokee as the first language, which means there is a high probability of grammaticality. These data were originally available in PDF version. We apply the Optical Character Recognition (OCR) via Tesseract OCR engine to extract the Cherokee and English text.
 
 #### Who are the source language producers?
 
@@ -86,7 +147,7 @@ ChrEn also contains 5k Cherokee monolingual data to enable semi-supervised learn
 
 #### Who are the annotators?
 
-[More Information Needed]
+The sentences were manually aligned by Dr. Benjamin Frey a proficient second-language speaker of Cherokee, who also fixed the errors introduced by OCR. This process is time-consuming and took several months.
 
 ### Personal and Sensitive Information
 
@@ -110,7 +171,7 @@ ChrEn also contains 5k Cherokee monolingual data to enable semi-supervised learn
 
 ### Dataset Curators
 
-[More Information Needed]
+The dataset was gathered and annotated by Shiyue Zhang, Benjamin Frey, and Mohit Bansal at UNC Chapel Hill.
 
 ### Licensing Information
 
@@ -118,4 +179,11 @@ The copyright of the data belongs to original book/article authors or translator
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{zhang2020chren,
+  title={ChrEn: Cherokee-English Machine Translation for Endangered Language Revitalization},
+  author={Zhang, Shiyue and Frey, Benjamin and Bansal, Mohit},
+  booktitle={EMNLP2020},
+  year={2020}
+}
+```
