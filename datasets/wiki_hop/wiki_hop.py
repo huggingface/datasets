@@ -79,7 +79,7 @@ class WikiHop(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "query": datasets.Value("string"),
+                    "question": datasets.Value("string"),
                     "answer": datasets.Value("string"),
                     "candidates": datasets.Sequence(datasets.Value("string")),
                     "supports": datasets.Sequence(datasets.Value("string")),
@@ -116,4 +116,5 @@ class WikiHop(datasets.GeneratorBasedBuilder):
                 # there are no annotations for train split, setting it to empty list
                 if split == "train":
                     example["annotations"] = []
+                example["question"] = example.pop("query")
                 yield example["id"], example
