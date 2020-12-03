@@ -7,7 +7,7 @@ This chapter will explain how metrics are loaded and how you can write from scra
 
 .. note::
 
-	You can start from the `template for a metric loading script <https://github.com/huggingface/datasets/blob/master/templates/new_metric_script.py>`__ when writing a new metric loading script. You can find this template in the ``templates`` folder on the github repository.
+    You can start from the `template for a metric loading script <https://github.com/huggingface/datasets/blob/master/templates/new_metric_script.py>`__ when writing a new metric loading script. You can find this template in the ``templates`` folder on the github repository.
 
 
 To create a new metric loading script one mostly needs to specify three methods in a :class:`datasets.Metric` class:
@@ -17,7 +17,7 @@ To create a new metric loading script one mostly needs to specify three methods 
 
 .. note::
 
-	Note on naming: the metric class should be camel case, while the metric name is its snake case equivalent (ex: :obj:`class Rouge(datasets.Metric)` for the metric ``rouge``).
+    Note on naming: the metric class should be camel case, while the metric name is its snake case equivalent (ex: :obj:`class Rouge(datasets.Metric)` for the metric ``rouge``).
 
 
 Adding metric metadata
@@ -100,7 +100,7 @@ Let's have a look at a simple example of a :func:`datasets.Metric._download_and_
 
         # download the model checkpoint specified by self.config_name and set up the scorer
         model_path = dl_manager.download_and_extract(CHECKPOINT_URLS[self.config_name])
-        self.scorer = score.BleurtScorer(os.path.join(model_path, self.config_name))  
+        self.scorer = score.BleurtScorer(os.path.join(model_path, self.config_name))
 
 As you can see this method downloads a model checkpoint depending of the configuration name of the metric. The checkpoint url is then provided to the :func:`datasets.DownloadManager.download_and_extract` method which will take care of downloading or retrieving the file from the local file system and returning a object of the same type and organization (here a just one path, but it could be a list or a dict of paths) with the path to the local version of the requested files. :func:`datasets.DownloadManager.download_and_extract` can take as input a single URL/path or a list or dictionary of URLs/paths and will return an object of the same structure (single URL/path, list or dictionary of URLs/paths) with the path to the local files. This method also takes care of extracting compressed tar, gzip and zip archives.
 
@@ -108,7 +108,7 @@ As you can see this method downloads a model checkpoint depending of the configu
 
 .. note::
 
-	In addition to :func:`datasets.DownloadManager.download_and_extract` and :func:`datasets.DownloadManager.download_custom`, the :class:`datasets.DownloadManager` class also provide more fine-grained control on the download and extraction process through several methods including: :func:`datasets.DownloadManager.download`, :func:`datasets.DownloadManager.extract` and :func:`datasets.DownloadManager.iter_archive`. Please refer to the package reference on :class:`datasets.DownloadManager` for details on these methods.
+    In addition to :func:`datasets.DownloadManager.download_and_extract` and :func:`datasets.DownloadManager.download_custom`, the :class:`datasets.DownloadManager` class also provide more fine-grained control on the download and extraction process through several methods including: :func:`datasets.DownloadManager.download`, :func:`datasets.DownloadManager.extract` and :func:`datasets.DownloadManager.iter_archive`. Please refer to the package reference on :class:`datasets.DownloadManager` for details on these methods.
 
 
 Computing the scores
@@ -154,9 +154,9 @@ It is possible to gave different configurations for a metric. The configuration 
 
 .. code-block::
 
-	>>> from datasets import load_metric
-	>>> metric = load_metric('bleurt', name='bleurt-base-128')
-	>>> metric = load_metric('bleurt', name='bleurt-base-512')
+    >>> from datasets import load_metric
+    >>> metric = load_metric('bleurt', name='bleurt-base-128')
+    >>> metric = load_metric('bleurt', name='bleurt-base-512')
 
 Here depending on the configuration name, a different checkpoint will be downloaded and used to compute the BLEURT score.
 
@@ -169,14 +169,14 @@ Once you're finished with creating or adapting a metric loading script, you can 
 
 .. code-block::
 
-	>>> from datasets import load_metric
-	>>> metric = load_metric('PATH/TO/MY/SCRIPT.py')
+    >>> from datasets import load_metric
+    >>> metric = load_metric('PATH/TO/MY/SCRIPT.py')
 
 If your metric has several configurations you can use the arguments of :func:`datasets.load_metric` accordingly:
 
 .. code-block::
 
-	>>> from datasets import load_metric
-	>>> metric = load_metric('PATH/TO/MY/SCRIPT.py', 'my_configuration')
+    >>> from datasets import load_metric
+    >>> metric = load_metric('PATH/TO/MY/SCRIPT.py', 'my_configuration')
 
 

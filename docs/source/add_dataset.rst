@@ -10,7 +10,7 @@ This chapter will explain how datasets are loaded and how you can write from scr
 
 .. note::
 
-	You can start from the `template for a dataset loading script <https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py>`__ when writing a new dataset loading script. You can find this template in the ``templates`` folder on the github repository.
+    You can start from the `template for a dataset loading script <https://github.com/huggingface/datasets/blob/master/templates/new_dataset_script.py>`__ when writing a new dataset loading script. You can find this template in the ``templates`` folder on the github repository.
 
 Here a quick general overview of the classes  and method involved when generating a dataset:
 
@@ -26,7 +26,7 @@ Optionally, the dataset loading script can define a configuration to be used by 
 
 .. note::
 
-	Note on naming: the dataset class should be camel case, while the dataset name is its snake case equivalent (ex: :obj:`class BookCorpus(datasets.GeneratorBasedBuilder)` for the dataset ``book_corpus``).
+    Note on naming: the dataset class should be camel case, while the dataset name is its snake case equivalent (ex: :obj:`class BookCorpus(datasets.GeneratorBasedBuilder)` for the dataset ``book_corpus``).
 
 
 Adding dataset metadata
@@ -73,34 +73,34 @@ Here are the features of the SQuAD dataset for instance, which is taken from the
 
 .. code-block::
 
-	datasets.Features(
-                {
-					"id": datasets.Value("string"),
-					"title": datasets.Value("string"),
-					"context": datasets.Value("string"),
-					"question": datasets.Value("string"),
-					"answers": datasets.Sequence(
-						{"text": datasets.Value("string"),
-						"answer_start": datasets.Value("int32"),
-						}
-					),
+    datasets.Features(
+        {
+            "id": datasets.Value("string"),
+            "title": datasets.Value("string"),
+            "context": datasets.Value("string"),
+            "question": datasets.Value("string"),
+            "answers": datasets.Sequence(
+                {"text": datasets.Value("string"),
+                "answer_start": datasets.Value("int32"),
                 }
-            )
+            ),
+        }
+    )
 
 These features should be mostly self-explanatory given the above introduction. One specific behavior here is the fact that the ``Sequence`` field in ``"answers"`` is given a dictionary of sub-fields. As mentioned in the above note, in this case, this feature is actually **converted into a dictionary of lists** (instead of the list of dictionary that we read in the feature here). This is confirmed in the structure of the examples yielded by the generation method at the very end of the `squad dataset loading script <https://github.com/huggingface/datasets/tree/master/datasets/squad/squad.py>`__:
 
 .. code-block::
 
-	answer_starts = [answer["answer_start"] for answer in qa["answers"]]
-	answers = [answer["text"].strip() for answer in qa["answers"]]
+    answer_starts = [answer["answer_start"] for answer in qa["answers"]]
+    answers = [answer["text"].strip() for answer in qa["answers"]]
 
-	yield id_, {
-		"title": title,
-		"context": context,
-		"question": question,
-		"id": id_,
-		"answers": {"answer_start": answer_starts, "text": answers,},
-	}
+    yield id_, {
+        "title": title,
+        "context": context,
+        "question": question,
+        "id": id_,
+        "answers": {"answer_start": answer_starts, "text": answers,},
+    }
 
 Here the ``"answers"`` is accordingly provided with a dictionary of lists and not a list of dictionary.
 
@@ -108,35 +108,35 @@ Let's take another example of features from the `large-scale reading comprehensi
 
 .. code-block::
 
-	features=datasets.Features(
-		{
-			"article": datasets.Value("string"),
-			"answer": datasets.Value("string"),
-			"question": datasets.Value("string"),
-			"options": datasets.features.Sequence({"option": datasets.Value("string")})
-		}
-	)
+    features=datasets.Features(
+        {
+            "article": datasets.Value("string"),
+            "answer": datasets.Value("string"),
+            "question": datasets.Value("string"),
+            "options": datasets.features.Sequence({"option": datasets.Value("string")})
+        }
+    )
 
 Here is the corresponding first examples in the dataset:
 
 .. code-block::
 
-	>>> from datasets import load_dataset
-	>>> dataset = load_dataset('race', split='train')
-	>>> dataset[0]
-	{'article': 'My husband is a born shopper. He loves to look at things and to touch them. He likes to compare prices between the same items in different shops. He would never think of buying anything without looking around in several
-	 ...
-	 sadder. When he saw me he said, "I\'m sorry, Mum. I have forgotten to buy oranges and the meat. I only remembered to buy six eggs, but I\'ve dropped three of them."',
-	 'answer': 'C',
-	 'question': 'The husband likes shopping because   _  .',
-	 'options': {
-		'option':['he has much money.',
-				  'he likes the shops.',
-				  'he likes to compare the prices between the same items.',
-				  'he has nothing to do but shopping.'
-				]
-		}
-	}
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('race', split='train')
+    >>> dataset[0]
+    {'article': 'My husband is a born shopper. He loves to look at things and to touch them. He likes to compare prices between the same items in different shops. He would never think of buying anything without looking around in several
+     ...
+     sadder. When he saw me he said, "I\'m sorry, Mum. I have forgotten to buy oranges and the meat. I only remembered to buy six eggs, but I\'ve dropped three of them."',
+     'answer': 'C',
+     'question': 'The husband likes shopping because   _  .',
+     'options': {
+        'option':['he has much money.',
+                  'he likes the shops.',
+                  'he likes to compare the prices between the same items.',
+                  'he has nothing to do but shopping.'
+                ]
+        }
+    }
 
 
 Downloading data files and organizing splits
@@ -148,29 +148,29 @@ This method **takes as input** a :class:`datasets.DownloadManager` which is a ut
 
 .. note::
 
-	**Using local data files** Two attributes of :class:`datasets.BuilderConfig` are specifically provided to store paths to local data files if your dataset is not online but constituted by local data files. These two attributes are :obj:`data_dir` and :obj:`data_files` and can be freely used to provide a directory path or file paths. These two attributes can be set when calling :func:`datasets.load_dataset` using the associated keyword arguments, e.g. ``dataset = datasets.load_dataset('my_script', data_files='my_local_data_file.csv')`` and the values can be used in :func:`datasets.DatasetBuilder._split_generator` by accessing ``self.config.data_dir`` and ``self.config.data_files``. See the `text file loading script <https://github.com/huggingface/datasets/blob/master/datasets/text/text.py>`__ for a simple example using :attr:`datasets.BuilderConfig.data_files`.
+    **Using local data files** Two attributes of :class:`datasets.BuilderConfig` are specifically provided to store paths to local data files if your dataset is not online but constituted by local data files. These two attributes are :obj:`data_dir` and :obj:`data_files` and can be freely used to provide a directory path or file paths. These two attributes can be set when calling :func:`datasets.load_dataset` using the associated keyword arguments, e.g. ``dataset = datasets.load_dataset('my_script', data_files='my_local_data_file.csv')`` and the values can be used in :func:`datasets.DatasetBuilder._split_generator` by accessing ``self.config.data_dir`` and ``self.config.data_files``. See the `text file loading script <https://github.com/huggingface/datasets/blob/master/datasets/text/text.py>`__ for a simple example using :attr:`datasets.BuilderConfig.data_files`.
 
 Let's have a look at a simple example of a :func:`datasets.DatasetBuilder._split_generator` method. We'll take the example of the `squad dataset loading script <https://github.com/huggingface/datasets/tree/master/datasets/squad/squad.py>`__:
 
 .. code-block::
 
-	class Squad(datasets.GeneratorBasedBuilder):
-		"""SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
+    class Squad(datasets.GeneratorBasedBuilder):
+        """SQUAD: The Stanford Question Answering Dataset. Version 1.1."""
 
-		_URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
-		_URLS = {
-			"train": _URL + "train-v1.1.json",
-			"dev": _URL + "dev-v1.1.json",
-		}
+        _URL = "https://rajpurkar.github.io/SQuAD-explorer/dataset/"
+        _URLS = {
+            "train": _URL + "train-v1.1.json",
+            "dev": _URL + "dev-v1.1.json",
+        }
 
-		def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
-			urls_to_download = self._URLS
-			downloaded_files = dl_manager.download_and_extract(urls_to_download)
+        def _split_generators(self, dl_manager: datasets.DownloadManager) -> List[datasets.SplitGenerator]:
+            urls_to_download = self._URLS
+            downloaded_files = dl_manager.download_and_extract(urls_to_download)
 
-			return [
-				datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
-				datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
-			]
+            return [
+                datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": downloaded_files["train"]}),
+                datasets.SplitGenerator(name=datasets.Split.VALIDATION, gen_kwargs={"filepath": downloaded_files["dev"]}),
+            ]
 
 As you can see this method first prepares a dict of URL to the original data files for SQuAD. This dict is then provided to the :func:`datasets.DownloadManager.download_and_extract` method which will take care of downloading or retrieving these files from the local file system and returning a object of the same type and organization (here a dictionary) with the path to the local version of the requested files. :func:`datasets.DownloadManager.download_and_extract` can take as input a single URL/path or a list or dictionary of URLs/paths and will return an object of the same structure (single URL/path, list or dictionary of URLs/paths) with the path to the local files. This method also takes care of extracting compressed tar, gzip and zip archives.
 
@@ -178,7 +178,7 @@ As you can see this method first prepares a dict of URL to the original data fil
 
 .. note::
 
-	In addition to :func:`datasets.DownloadManager.download_and_extract` and :func:`datasets.DownloadManager.download_custom`, the :class:`datasets.DownloadManager` class also provide more fine-grained control on the download and extraction process through several methods including: :func:`datasets.DownloadManager.download`, :func:`datasets.DownloadManager.extract` and :func:`datasets.DownloadManager.iter_archive`. Please refer to the package reference on :class:`datasets.DownloadManager` for details on these methods.
+    In addition to :func:`datasets.DownloadManager.download_and_extract` and :func:`datasets.DownloadManager.download_custom`, the :class:`datasets.DownloadManager` class also provide more fine-grained control on the download and extraction process through several methods including: :func:`datasets.DownloadManager.download`, :func:`datasets.DownloadManager.extract` and :func:`datasets.DownloadManager.iter_archive`. Please refer to the package reference on :class:`datasets.DownloadManager` for details on these methods.
 
 Once the data files are downloaded, the next mission for the :func:`datasets.DatasetBuilder._split_generator` method is to prepare the :class:`datasets.SplitGenerator` for each split which will be used to call the :func:`datasets.DatasetBuilder._generate_examples` method that we detail in the next session.
 
@@ -231,7 +231,7 @@ The method reads and parses the inputs files and yields a tuple constituted of a
 
 .. note::
 
-	Since generating a dataset is based on a python generator, then it doesn't load all the data in memory and therefore it can handle pretty big datasets. However before being flushed to the dataset file on disk, the generated samples are stored in the :obj:`ArrowWriter` buffer so that they are written by batch. If your dataset's samples take a lot of memory (with images or videos), then make sure to speficy a low value for the `_writer_batch_size` class attribute of the dataset builder class. We recommend to not exceed 200MB.
+    Since generating a dataset is based on a python generator, then it doesn't load all the data in memory and therefore it can handle pretty big datasets. However before being flushed to the dataset file on disk, the generated samples are stored in the :obj:`ArrowWriter` buffer so that they are written by batch. If your dataset's samples take a lot of memory (with images or videos), then make sure to speficy a low value for the `_writer_batch_size` class attribute of the dataset builder class. We recommend to not exceed 200MB.
 
 Specifying several dataset configurations
 -------------------------------------------------
@@ -265,31 +265,31 @@ We can define a custom configuration with a ``delimiter`` attribute:
 
 .. code-block::
 
-	@dataclass
-	class CsvConfig(datasets.BuilderConfig):
-		"""BuilderConfig for CSV."""
-		delimiter: str = None
+    @dataclass
+    class CsvConfig(datasets.BuilderConfig):
+        """BuilderConfig for CSV."""
+        delimiter: str = None
 
 And then define several predefined configurations in the DatasetBuilder:
 
 .. code-block::
 
-	class Csv(datasets.ArrowBasedBuilder):
-		BUILDER_CONFIG_CLASS = CsvConfig
-		BUILDER_CONFIGS = [CsvConfig(name='comma',
-									 description="Load CSV using ',' as a delimiter",
-									 delimiter=','),
-						   CsvConfig(name='semi-colon',
-									 description="Load CSV using a semi-colon as a delimiter",
-									 delimiter=';')]
+    class Csv(datasets.ArrowBasedBuilder):
+        BUILDER_CONFIG_CLASS = CsvConfig
+        BUILDER_CONFIGS = [CsvConfig(name='comma',
+                                     description="Load CSV using ',' as a delimiter",
+                                     delimiter=','),
+                           CsvConfig(name='semi-colon',
+                                     description="Load CSV using a semi-colon as a delimiter",
+                                     delimiter=';')]
 
-		...
+        ...
 
-		def self._generate_examples(file):
-			with open(file) as csvfile:
-				data = csv.reader(csvfile, delimiter = self.config.delimiter)
-				for i, row in enumerate(data):
-					yield i, row
+        def self._generate_examples(file):
+            with open(file) as csvfile:
+                data = csv.reader(csvfile, delimiter = self.config.delimiter)
+                for i, row in enumerate(data):
+                    yield i, row
 
 Here we can see how reading the CSV file can be controlled using the ``self.config.delimiter`` attribute.
 
@@ -297,10 +297,10 @@ The users of our dataset loading script will be able to select one or the other 
 
 .. code-block::
 
-	>>> from datasets import load_dataset
-	>>> dataset = load_dataset('my_csv_loading_script', name='comma', data_files='my_file.csv')
-	>>> dataset = load_dataset('my_csv_loading_script', name='semi-colon', data_files='my_file.csv')
-	>>> dataset = load_dataset('my_csv_loading_script', name='comma', delimiter='\t', data_files='my_file.csv')
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('my_csv_loading_script', name='comma', data_files='my_file.csv')
+    >>> dataset = load_dataset('my_csv_loading_script', name='semi-colon', data_files='my_file.csv')
+    >>> dataset = load_dataset('my_csv_loading_script', name='comma', delimiter='\t', data_files='my_file.csv')
 
 In the last case, the delimiter set by the configuration will be overriden by the delimiter given as argument to ``load_dataset``.
 
@@ -328,15 +328,15 @@ Once you're finished with creating or adapting a dataset loading script, you can
 
 .. code-block::
 
-	>>> from datasets import load_dataset
-	>>> dataset = load_dataset('PATH/TO/MY/SCRIPT.py')
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('PATH/TO/MY/SCRIPT.py')
 
 If your dataset has several configurations or requires to be given the path to local data files, you can use the arguments of :func:`datasets.load_dataset` accordingly:
 
 .. code-block::
 
-	>>> from datasets import load_dataset
-	>>> dataset = load_dataset('PATH/TO/MY/SCRIPT.py', 'my_configuration', data_files={'train': 'my_train_file.txt', 'validation': 'my_validation_file.txt'})
+    >>> from datasets import load_dataset
+    >>> dataset = load_dataset('PATH/TO/MY/SCRIPT.py', 'my_configuration', data_files={'train': 'my_train_file.txt', 'validation': 'my_validation_file.txt'})
 
 
 
