@@ -41,7 +41,7 @@ _CITATION = """\
 }
 """
 
-_URL = "https://uc7042fc5e1d2d9c831a318b49e7.dl.dropboxusercontent.com/cd/0/get/BEVJ4i_TOAt1pM8VdyJa0ctwmjEerlbDzNw2u8wXoMjY4s6WbgiKd3CA3gJ1deDcCR-5yyUKdpL0zS76uTuGcjX8To48_vwLjyeJwej8sbVBlg/file?_download_id=6436861371570024931106653846455288758893761540515299505641721092&_notify_domain=www.dropbox.com&dl=1"
+_URL = "https://www.dropbox.com/s/tohrsllcfy7rch4/SimpleQuestions_v2.tgz?dl=1"
 
 
 class SimpleQuestionsV2Config(datasets.BuilderConfig):
