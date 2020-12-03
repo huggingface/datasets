@@ -1,0 +1,58 @@
+{
+    "default": {
+        "description": "\n",
+        "citation": "",
+        "homepage": "https://github.com/sci2lab/Farsi-datasets",
+        "license": "",
+        "features": {
+            "title": { "dtype": "string", "id": null, "_type": "Value" },
+            "summary": { "dtype": "string", "id": null, "_type": "Value" },
+            "link": { "dtype": "string", "id": null, "_type": "Value" },
+            "tags": {
+                "feature": { "dtype": "string", "id": null, "_type": "Value" },
+                "length": -1,
+                "id": null,
+                "_type": "Sequence"
+            }
+        },
+        "post_processed": null,
+        "supervised_keys": null,
+        "builder_name": "farsi_news",
+        "config_name": "default",
+        "version": {
+            "version_str": "1.0.0",
+            "description": null,
+            "major": 1,
+            "minor": 0,
+            "patch": 0
+        },
+        "splits": {
+            "hamshahri": {
+                "name": "hamshahri",
+                "num_bytes": 1267659,
+                "num_examples": 2203,
+                "dataset_name": "farsi_news"
+            },
+            "radiofarda": {
+                "name": "radiofarda",
+                "num_bytes": 265272,
+                "num_examples": 284,
+                "dataset_name": "farsi_news"
+            }
+        },
+        "download_checksums": {
+            "https://raw.githubusercontent.com/sci2lab/Farsi-datasets/master/farsi_news/hamshahri.json": {
+                "num_bytes": 1369041,
+                "checksum": "45443c16aada96ebf33df7d40940a21373e15b9a9a142780e636f5fb6de76485"
+            },
+            "https://raw.githubusercontent.com/sci2lab/Farsi-datasets/master/farsi_news/radiofarda.json": {
+                "num_bytes": 279296,
+                "checksum": "c7ca5a63405227a70b612bcfab3fb852e22333cf04b74188b27306da0a82c243"
+            }
+        },
+        "download_size": 1648337,
+        "post_processing_size": null,
+        "dataset_size": 1532931,
+        "size_in_bytes": 3181268
+    }
+}
