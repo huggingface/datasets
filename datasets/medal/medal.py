@@ -19,9 +19,12 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import os
+import logging
 
 import datasets
+
+
+logger = logging.getLogger(__name__)
 
 
 _CITATION = """\
@@ -44,7 +47,13 @@ _DESCRIPTION = """\
 A large medical text dataset (14Go) curated to 4Go for abbreviation disambiguation, designed for natural language understanding pre-training in the medical domain. For example, DHF can be disambiguated to dihydrofolate, diastolic heart failure, dengue hemorragic fever or dihydroxyfumarate
 """
 
-_URL = "https://storage.googleapis.com/kaggle-data-sets/965195/1651976/bundle/archive.zip?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=gcp-kaggle-com%40kaggle-161607.iam.gserviceaccount.com%2F20201202%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20201202T084050Z&X-Goog-Expires=259199&X-Goog-SignedHeaders=host&X-Goog-Signature=9e830d68abd17b4b429ce1ae40d84d6054002e244e11d4eae089ac79d1abfa88b386c2e2c0344da89871e2fbf751f9c8efa99ad7bd5af79fbd8e900cebee83956c0173c08d1cfe191a466300c18113f4c3eb68b803c2df1611a6122a498c64789251548d67825ee5d6b302a7b08a17c9603942fb407e5a27cf61a4bb2c5e4dc7e0c2f4319fe5c8dc8ac50bcaf6e0b8233d8636854892da18f93842f3875813d39a235095f267d56b8a3da9c45fad5773ff907ca7b966e363df4a4b172735475ed34d1baf6d90a553033858ce54a3397315fca81a3aa3115b6c3136ac138d002e21b7c484f7a08e77b9d4f9cddf68a5e120343b7fdf3d401b826be4b5a3bf7102"
+_URL = "https://zenodo.org/record/4276178/files/"
+_URLS = {
+    "train": _URL + "train.csv",
+    "test": _URL + "test.csv",
+    "valid": _URL + "valid.csv",
+    "full": _URL + "full_data.csv",
+}
 
 
 class Medal(datasets.GeneratorBasedBuilder):
@@ -79,31 +88,35 @@ class Medal(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         # dl_manager is a datasets.download.DownloadManager that can be used to
         # download and extract URLs
-        dl_dir = dl_manager.download_and_extract(_URL)
-        train_file = os.path.join(dl_dir, "pretrain_subset", "train.csv")
-        test_file = os.path.join(dl_dir, "pretrain_subset", "test.csv")
-        val_file = os.path.join(dl_dir, "pretrain_subset", "valid.csv")
-        full_file = os.path.join(dl_dir, "full_data.csv")
+        urls_to_dl = _URLS
+        try:
+            dl_dir = dl_manager.download_and_extract(urls_to_dl)
+        except Exception:
+            logger.warning(
+                "This dataset is downloaded through Zenodo which is flaky. If this download failed try a few times before reporting an issue"
+            )
+            raise
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": train_file, "split": "train"},
+                gen_kwargs={"filepath": dl_dir["train"], "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": test_file, "split": "test"},
+                gen_kwargs={"filepath": dl_dir["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": val_file, "split": "val"},
+                gen_kwargs={"filepath": dl_dir["valid"], "split": "val"},
             ),
             datasets.SplitGenerator(
                 name="full",
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={"filepath": full_file, "split": "full"},
+                gen_kwargs={"filepath": dl_dir["full"], "split": "full"},
             ),
         ]
 
