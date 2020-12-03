@@ -63,6 +63,7 @@ class korNlu(datasets.GeneratorBasedBuilder):
         KorNluConfig(name=name, description=_DESCRIPTION, data_url=_DATA_URLS[name], citation=_CITATAION, url=_URL)
         for name in ["nli", "sts"]
     ]
+    BUILDER_CONFIG_CLASS = KorNluConfig
 
     def _info(self):
         features = {}
