@@ -68,8 +68,8 @@ class korNlu(datasets.GeneratorBasedBuilder):
         features = {}
         if self.config.name == "nli":
             labels = ["entailment", "neutral", "contradiction"]
-            features["sentence1"] = datasets.Value("string")
-            features["sentence2"] = datasets.Value("string")
+            features["premise"] = datasets.Value("string")
+            features["hypothesis"] = datasets.Value("string")
             features["label"] = datasets.features.ClassLabel(names=labels)
 
         if self.config.name == "sts":
@@ -133,8 +133,8 @@ class korNlu(datasets.GeneratorBasedBuilder):
             df = df.dropna()
             for id_, row in df.iterrows():
                 yield id_, {
-                    "sentence1": str(row["sentence1"]),
-                    "sentence2": str(row["sentence2"]),
+                    "premise": str(row["sentence1"]),
+                    "hypothesis": str(row["sentence2"]),
                     "label": str(row["gold_label"]),
                 }
 
