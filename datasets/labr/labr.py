@@ -104,12 +104,12 @@ class Labr(datasets.GeneratorBasedBuilder):
         """Generate examples."""
         # For labeled examples, extract the label from the path.
         reviews = []
-        with open(self.reviews_path) as tsvfile:
+        with open(self.reviews_path, encoding="utf-8") as tsvfile:
             tsvreader = csv.reader(tsvfile, delimiter="\t")
             for line in tsvreader:
                 reviews.append(line)
 
-        with open(directory, encoding="UTF-8") as f:
+        with open(directory, encoding="utf-8") as f:
             for id_, record in enumerate(f.read().splitlines()):
                 rating, _, _, _, review_text = reviews[int(record)]
                 yield str(id_), {"text": review_text, "label": rating}
