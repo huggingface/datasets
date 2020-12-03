@@ -12,7 +12,7 @@ from datasets.commands import BaseTransformersCLICommand
 from datasets.load import import_main_class, prepare_module
 from datasets.utils import MockDownloadManager
 from datasets.utils.download_manager import DownloadManager
-from datasets.utils.file_utils import HF_DATASETS_CACHE, DownloadConfig, get_main_extension
+from datasets.utils.file_utils import HF_DATASETS_CACHE, DownloadConfig
 from datasets.utils.logging import get_logger, set_verbosity_warning
 from datasets.utils.py_utils import map_nested
 
@@ -112,7 +112,7 @@ class DummyDataGeneratorDownloadManager(DownloadManager):
         encoding = encoding or DEFAULT_ENCODING
         if os.path.isfile(src_path):
             logger.debug(f"Trying to generate dummy data file {dst_path}")
-            dst_path_extension = get_main_extension(dst_path)
+            dst_path_extension = Path(dst_path).suffixes[0] if Path(dst_path).suffixes else ""
             line_by_line_extensions = [".txt", ".csv", ".jsonl", ".tsv"]
             is_line_by_line_text_file = dst_path_extension in line_by_line_extensions
             if match_text_files is not None:
