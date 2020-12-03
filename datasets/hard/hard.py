@@ -18,8 +18,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
 import csv
+import os
+
 import datasets
 
 
@@ -98,7 +99,7 @@ class Hard(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, directory):
         """Generate examples."""
-        with open(directory, mode = 'r', encoding = 'utf-16') as file:
+        with open(directory, mode="r", encoding="utf-16") as file:
             for id_, line in enumerate(file.read().splitlines()[1:]):
-                _, _, rating, _, _, _,  review_text = line.split('\t')
-                yield str(id_), {"text":review_text, "label":rating}
+                _, _, rating, _, _, _, review_text = line.split("\t")
+                yield str(id_), {"text": review_text, "label": rating}
