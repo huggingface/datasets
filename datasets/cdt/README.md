@@ -1,6 +1,23 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- expert-generated
+  language_creators:
+- other
+  languages:
+- pl
+  licenses:
+- bsd-3-clause
+  multilinguality:
+- monolingual
+  size_categories:
+- 10K<n<100K
+  source_datasets:
+- original
+  task_categories:
+- text-classification
+  task_ids:
+- sentiment-classification
 ---
 
 # Dataset Card for [Dataset Name]
