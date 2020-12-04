@@ -20,7 +20,7 @@ task_ids:
 - machine-translation
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for OPUS DOGC
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -47,7 +47,7 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** http://opus.nlpl.eu/DOGC.php
 - **Repository:**
 - **Paper:**
 - **Leaderboard:**
@@ -55,7 +55,7 @@ task_ids:
 
 ### Dataset Summary
 
-[More Information Needed]
+OPUS DOGC is a collection of documents from the Official Journal of the Government of Catalonia, in Catalan and Spanish languages, provided by Antoni Oliver Gonzalez from the Universitat Oberta de Catalunya.
 
 ### Supported Tasks and Leaderboards
 
@@ -63,7 +63,9 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+Dataset is multilingual with parallel text in:
+- Catalan
+- Spanish
 
 ## Dataset Structure
 
@@ -133,8 +135,21 @@ A data instance contains the following fields:
 
 ### Licensing Information
 
-[More Information Needed]
+Dataset is in the Public Domain under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{tiedemann-2012-parallel,
+    title = "Parallel Data, Tools and Interfaces in {OPUS}",
+    author = {Tiedemann, J{\"o}rg},
+    booktitle = "Proceedings of the Eighth International Conference on Language Resources and Evaluation ({LREC}'12)",
+    month = may,
+    year = "2012",
+    address = "Istanbul, Turkey",
+    publisher = "European Language Resources Association (ELRA)",
+    url = "http://www.lrec-conf.org/proceedings/lrec2012/pdf/463_Paper.pdf",
+    pages = "2214--2218",
+    abstract = "This paper presents the current status of OPUS, a growing language resource of parallel corpora and related tools. The focus in OPUS is to provide freely available data sets in various formats together with basic annotation to be useful for applications in computational linguistics, translation studies and cross-linguistic corpus studies. In this paper, we report about new data sets and their features, additional annotation tools and models provided from the website and essential interfaces and on-line services included in the project.",
+}
+```
