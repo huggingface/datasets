@@ -14,10 +14,7 @@ languages:
 - ko
 - zh
 licenses:
-- other-The dataset may be freely used for any purpose, although acknowledgement of
-  Google LLC ("Google") as the data source would be appreciated. The dataset is provided
-  "AS IS" without any warranty, express or implied. Google disclaims all liability
-  for any damages, direct or indirect, resulting from the use of the dataset.
+- other
 multilinguality:
 - multilingual
 size_categories:
