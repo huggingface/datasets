@@ -10,10 +10,10 @@ csv.field_size_limit(int(1e6))  # to accommodate large fields
 
 
 _CITATION = """\
-@mastersthesis{chumpolsathien_2020, 
+@mastersthesis{chumpolsathien_2020,
     title={Using Knowledge Distillation from Keyword Extraction to Improve the Informativeness of Neural Cross-lingual Summarization},
-    author={Chumpolsathien, Nakhun}, 
-    year={2020}, 
+    author={Chumpolsathien, Nakhun},
+    year={2020},
     school={Beijing Institute of Technology}
 """
 
@@ -94,6 +94,7 @@ class ThaiSum(datasets.GeneratorBasedBuilder):
             # try:
             csv_reader = csv.reader(f)
             header = next(csv_reader)
+            print(header)
             for id_, row in enumerate(csv_reader):
                 yield id_, {
                     "title": row[0],
