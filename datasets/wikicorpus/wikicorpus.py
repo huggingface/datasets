@@ -26,7 +26,7 @@ _CITATION = """\
     author = "Reese, Samuel  and
       Boleda, Gemma  and
       Cuadros, Montse  and
-      Padr{\'o}, Llu{\'\i}s  and
+      Padr{\'o}, Llu{\'i}s  and
       Rigau, German",
     booktitle = "Proceedings of the Seventh International Conference on Language Resources and Evaluation ({LREC}'10)",
     month = may,
@@ -39,8 +39,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-The Wikicorpus is a trilingual corpus (Catalan, Spanish, English) that contains large portions of the Wikipedia (based on a 2006 dump) and has been automatically enriched with linguistic information. 
-In its present version, it contains over 750 million words.
+The Wikicorpus is a trilingual corpus (Catalan, Spanish, English) that contains large portions of the Wikipedia (based on a 2006 dump) and has been automatically enriched with linguistic information. In its present version, it contains over 750 million words.
 """
 
 _HOMEPAGE = "https://www.cs.upc.edu/~nlp/wikicorpus/"
