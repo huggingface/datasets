@@ -55,7 +55,7 @@ class Cdt(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
-                    "target": datasets.Value("float"),
+                    "target": datasets.ClassLabel(names=["0", "1"]),
                 }
             ),
             supervised_keys=None,
@@ -88,5 +88,5 @@ class Cdt(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(reader):
                 yield id_, {
                     "sentence": row["sentence"],
-                    "target": "-1" if split == "test" else row["target"],
+                    "target": -1 if split == "test" else row["target"],
                 }
