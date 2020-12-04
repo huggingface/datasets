@@ -35,7 +35,7 @@ _CITATION = """\
 """
 
 
-class ToTTo(datasets.GeneratorBasedBuilder):
+class Totto(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     def _info(self):
