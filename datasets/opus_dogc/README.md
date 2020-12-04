@@ -75,7 +75,7 @@ task_ids:
 
 A data instance contains the following fields:
 - `ca`: the Catalan text
-- `en`: the aligned English text
+- `es`: the aligned Spanish text
 
 ### Data Splits
 
