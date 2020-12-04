@@ -1,25 +1,44 @@
 ---
-YAML tags:
-annotations_creators: [expert-generated]
-language_creators: [found]
+annotations_creators:
+- expert-generated
+language_creators:
+- found
 languages:
-  ar: [ar]
-  de: [de]
-  el: [el]
-  en: [en]
-  es: [es]
-  hi: [hi]
-  ru: [ru]
-  th: [th]
-  tr: [tr]
-  vi: [vi]
-  zh: [zh]
-licenses: [cc-by-sa-4.0]
-multilinguality: [monolingual]
-size_categories: [1K<n<10K]
-source_datasets: [extended|squad, extended|xquad]
-task_categories: [question-answering]
-task_ids: [extractive-qa]
+  ar:
+  - ar
+  de:
+  - de
+  el:
+  - el
+  en:
+  - en
+  es:
+  - es
+  hi:
+  - hi
+  ru:
+  - ru
+  th:
+  - th
+  tr:
+  - tr
+  vi:
+  - vi
+  zh:
+  - zh
+licenses:
+- cc-by-sa-4.0
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- extended|squad
+- extended|xquad
+task_categories:
+- question-answering
+task_ids:
+- extractive-qa
 ---
 
 # Dataset Card for [Dataset Name]
