@@ -95,6 +95,6 @@ class Metrec(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, directory):
         """Generate examples."""
 
-        for id_, file_name in enumerate(glob.glob(f"{directory}/**.txt")):
+        for id_, file_name in enumerate(sorted(glob.glob(os.path.join(directory, "**.txt"))):
             with open(file_name, encoding="UTF-8") as f:
                 yield str(id_), {"book": file_name, "text": f.read()}
