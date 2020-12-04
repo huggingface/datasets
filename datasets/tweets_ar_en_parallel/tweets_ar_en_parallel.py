@@ -10,7 +10,7 @@ import datasets
 
 
 _CITATION = """\
-    @inproceedings{Mubarak2020bilingualtweets,
+@inproceedings{Mubarak2020bilingualtweets,
 title={Constructing a Bilingual Corpus of Parallel Tweets},
 author={Mubarak, Hamdy and Hassan, Sabit and Abdelali, Ahmed},
 booktitle={Proceedings of 13th Workshop on Building and Using Comparable Corpora (BUCC)},
