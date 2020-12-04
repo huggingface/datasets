@@ -96,7 +96,6 @@ class CoachedConvPref(datasets.GeneratorBasedBuilder):
                                                     "ENTITY_PREFERENCE",
                                                     "ENTITY_DESCRIPTION",
                                                     "ENTITY_OTHER",
-                                                    "",
                                                 ]
                                             ),
                                             "entityType": datasets.features.ClassLabel(
@@ -105,7 +104,6 @@ class CoachedConvPref(datasets.GeneratorBasedBuilder):
                                                     "MOVIE_OR_SERIES",
                                                     "PERSON",
                                                     "SOMETHING_ELSE",
-                                                    "",
                                                 ]
                                             ),
                                         }
@@ -149,12 +147,7 @@ class CoachedConvPref(datasets.GeneratorBasedBuilder):
                 "startIndex": 0,
                 "endIndex": 0,
                 "text": "",
-                "annotations": [
-                    {
-                        "annotationType": "",
-                        "entityType": "",
-                    }
-                ],
+                "annotations": [],
             }
         ]
 
