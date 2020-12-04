@@ -54,7 +54,7 @@ class ParallelTweetsConfig(datasets.BuilderConfig):
         self.url = url
 
 
-class ParallelTweets(datasets.GeneratorBasedBuilder):
+class TweetsArEnParallel(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         ParallelTweetsConfig(name=name, description=_DESCRIPTION, data_url=_DATA_URL, citation=_CITATION, url=_URL)
         for name in ["parallelTweets", "accountList", "countryTopicAnnotation"]
