@@ -17,7 +17,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 
@@ -82,15 +81,18 @@ class DialogRE(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    # "id": datasets.Value("int32"),
                     "dialog": datasets.Sequence(datasets.Value("string")),
-                    "x": datasets.Value("string"),
-                    "y": datasets.Value("string"),
-                    "x_type": datasets.Value("string"),
-                    "y_type": datasets.Value("string"),
-                    "r": datasets.Value("string"),
-                    "rid": datasets.Value("int32"),
-                    "t": datasets.Value("string"),
+                    "relation_data": datasets.Sequence(
+                        {
+                            "x": datasets.Value("string"),
+                            "y": datasets.Value("string"),
+                            "x_type": datasets.Value("string"),
+                            "y_type": datasets.Value("string"),
+                            "r": datasets.Value("string"),
+                            "rid": datasets.Value("int32"),
+                            "t": datasets.Value("string"),
+                        }
+                    ),
                 }
             ),
             supervised_keys=None,
@@ -131,13 +133,21 @@ class DialogRE(datasets.GeneratorBasedBuilder):
             dataset = json.load(f)
 
             for id_, data in enumerate(dataset):
+                dialog = data[0]
+                relation_data = []
+
+                for entry in data[1]:
+                    relation_entry = {}
+
+                    for key, value in entry.items():
+                        if isinstance(value, list):
+                            relation_entry[key] = value[0]
+                        else:
+                            relation_entry[key] = value
+
+                    relation_data.append(relation_entry)
+
                 yield id_, {
-                    "dialog": data[0],
-                    "x": data[1][0]["x"],
-                    "y": data[1][0]["y"],
-                    "x_type": data[1][0]["x_type"],
-                    "y_type": data[1][0]["y_type"],
-                    "r": data[1][0]["r"][0],
-                    "rid": data[1][0]["rid"][0],
-                    "t": data[1][0]["t"][0],
+                    "dialog": dialog,
+                    "relation_data": relation_data,
                 }
