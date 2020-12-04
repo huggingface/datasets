@@ -1,3 +1,4 @@
+
 ---
 YAML tags:
 annotations_creators:
@@ -72,7 +73,21 @@ task_ids:
 
 ### Data Fields
 
-[More Information Needed]
+* `dialog`
+
+  * List of dialog spoken between two speakers
+
+* List of annotations per dialog per argument
+
+  * `x` : First entity
+
+  * `y` : Second entity
+
+  * `x_type` : First entity type
+  * `y_type`: Second entity type
+  * `r` : List of relations
+  * `rid`: List of relation IDs
+  * `t`: List of relation Trigger words
 
 ### Data Splits
 

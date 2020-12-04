@@ -88,9 +88,9 @@ class DialogRE(datasets.GeneratorBasedBuilder):
                             "y": datasets.Value("string"),
                             "x_type": datasets.Value("string"),
                             "y_type": datasets.Value("string"),
-                            "r": datasets.Value("string"),
-                            "rid": datasets.Value("int32"),
-                            "t": datasets.Value("string"),
+                            "r": datasets.Sequence(datasets.Value("string")),
+                            "rid": datasets.Sequence(datasets.Value("int32")),
+                            "t": datasets.Sequence(datasets.Value("string")),
                         }
                     ),
                 }
@@ -134,18 +134,7 @@ class DialogRE(datasets.GeneratorBasedBuilder):
 
             for id_, data in enumerate(dataset):
                 dialog = data[0]
-                relation_data = []
-
-                for entry in data[1]:
-                    relation_entry = {}
-
-                    for key, value in entry.items():
-                        if isinstance(value, list):
-                            relation_entry[key] = value[0]
-                        else:
-                            relation_entry[key] = value
-
-                    relation_data.append(relation_entry)
+                relation_data = data[1]
 
                 yield id_, {
                     "dialog": dialog,
