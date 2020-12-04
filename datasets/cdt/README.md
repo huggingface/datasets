@@ -76,7 +76,7 @@ Polish
 ### Data Fields
 
 - sentence: an anonymized tweet in polish
-- target: 1 if tweet is described as bullying, 0 otherwise
+- target: 1 if tweet is described as bullying, 0 otherwise. The test set doesn't have labels so -1 is used instead.
 
 ### Data Splits
 
