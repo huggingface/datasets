@@ -1,5 +1,4 @@
 ---
-YAML tags:
 annotations_creators:
 - machine-generated
 language_creators:

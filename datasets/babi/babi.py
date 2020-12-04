@@ -152,7 +152,7 @@ class BABI(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """ Yields examples. """
         pattern = re.compile(r"(\d+)\s([^\t]+)\t?(.*)?")
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             data = f.read().splitlines()
             story_id = 0
             current_id = 0
