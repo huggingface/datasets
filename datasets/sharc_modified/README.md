@@ -2,22 +2,23 @@
 annotations_creators:
 - crowdsourced
 language_creators:
+- crowdsourced
 - expert-generated
 languages:
 - en
 licenses:
-- cc-by-sa-3.0
+- unknown
 multilinguality:
 - monolingual
 size_categories:
-- 1K<n<10K
+- 10K<n<100K
 source_datasets:
-- original
+- extended|sharc
 task_categories:
 - question-answering
 task_ids:
 - extractive-qa
-- question-answering-other-multi-hop
+- question-answering-other-conversational-qa
 ---
 
 # Dataset Card Creation Guide
@@ -47,11 +48,11 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:** [QAngaroo](http://qangaroo.cs.ucl.ac.uk/)
-- **Repository:** [If the dataset is hosted on github or has a github homepage, add URL here]()
-- **Paper:** [Constructing Datasets for Multi-hop Reading Comprehension Across Documents](https://arxiv.org/abs/1710.06481)
-- **Leaderboard:** [leaderboard](http://qangaroo.cs.ucl.ac.uk/leaderboard.html)
-- **Point of Contact:** [Johannes Welbl](j.welbl@cs.ucl.ac.uk)
+- **Homepage:** [More info needed]
+- **Repository:** [github](https://github.com/nikhilweee/neural-conv-qa)
+- **Paper:** [Neural Conversational QA: Learning to Reason v.s. Exploiting Patterns](https://arxiv.org/abs/1909.03759)
+- **Leaderboard:** [More info needed]
+- **Point of Contact:** [More info needed]
 
 ### Dataset Summary
 
