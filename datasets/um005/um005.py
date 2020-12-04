@@ -76,8 +76,7 @@ class UM005Config(datasets.BuilderConfig):
 
 class UM005(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
-        UM005Config(name=source, sources=[source], description=f"Source: {source}.")
-        for source in _SOURCES
+        UM005Config(name=source, sources=[source], description=f"Source: {source}.") for source in _SOURCES
     ] + [
         UM005Config(
             name=_ALL,
@@ -94,9 +93,7 @@ class UM005(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "translation": datasets.Translation(
-                        languages=self.config.language_pair
-                    ),
+                    "translation": datasets.Translation(languages=self.config.language_pair),
                 },
             ),
             supervised_keys=None,
@@ -137,9 +134,7 @@ class UM005(datasets.GeneratorBasedBuilder):
         for source in self.config.sources:
             urdu_path = os.path.join(datapath, source, ur_file)
             english_path = os.path.join(datapath, source, en_file)
-            with open(urdu_path, encoding="utf-8") as u, open(
-                english_path, encoding="utf-8"
-            ) as e:
+            with open(urdu_path, encoding="utf-8") as u, open(english_path, encoding="utf-8") as e:
                 for sentence_counter, (x, y) in enumerate(zip(u, e)):
                     x = x.strip()
                     y = y.strip()
