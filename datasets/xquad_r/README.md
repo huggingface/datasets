@@ -84,7 +84,7 @@ across the languages.
 
 ### Supported Tasks and Leaderboards
 
-
+[More Information Needed]
 
 ### Languages
 
@@ -102,6 +102,8 @@ The dataset can be found with the following languages:
 * Chinese: `xquad-r/zh.json`
 
 ## Dataset Structure
+
+[More Information Needed]
 
 ### Data Instances
 
@@ -124,57 +126,67 @@ The number of questions and candidate sentences for each language for XQuAD-R is
 
 ### Data Fields
 
-
+[More Information Needed]
 
 ### Data Splits
 
-
+[More Information Needed]
 
 ## Dataset Creation
 
+[More Information Needed]
+
 ### Curation Rationale
 
-
+[More Information Needed]
 
 ### Source Data
 
+[More Information Needed]
+
 #### Initial Data Collection and Normalization
 
-
+[More Information Needed]
 
 #### Who are the source language producers?
 
-
+[More Information Needed]
 
 ### Annotations
 
+[More Information Needed]
+
 #### Annotation process
 
-
+[More Information Needed]
 
 #### Who are the annotators?
 
-
+[More Information Needed]
 
 ### Personal and Sensitive Information
 
-
+[More Information Needed]
 
 ## Considerations for Using the Data
 
+[More Information Needed]
+
 ### Social Impact of Dataset
 
-
+[More Information Needed]
 
 ### Discussion of Biases
 
-
+[More Information Needed]
 
 ### Other Known Limitations
 
-
+[More Information Needed]
 
 ## Additional Information
+
+[More Information Needed]
 
 ### Dataset Curators
 
