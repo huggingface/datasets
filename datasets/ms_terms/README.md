@@ -128,8 +128,10 @@ size_categories:
 - 10K<n<100K
 source_datasets:
 - original
-task_categories: []
-task_ids: []
+task_categories:
+- conditional-text-generation
+task_ids:
+- machine-translation
 ---
 
 # Dataset Card for [ms_terms]
