@@ -30,7 +30,15 @@ task_ids:
 - [Dataset Structure](#dataset-structure)
   - [Data Instances](#data-instances)
   - [Data Fields](#data-instances)
+  - [Data Splits](#data-instances)
+- [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
+  - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
 - [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
   - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
   - [Dataset Curators](#dataset-curators)
@@ -41,6 +49,8 @@ task_ids:
 
 - **Homepage:** https://attapol.github.io/tlc.html
 - **Leaderboard:** https://www.kaggle.com/c/wisesight-sentiment/
+- **Paper:**
+- **Leaderboard:** 
 - **Point of Contact:**  Jitkapat Sawatphol, Attapol Rutherford; attapolrutherford at gmail.com
 
 ### Dataset Summary
@@ -58,6 +68,11 @@ tlc v.1.0 (6/11/19 : a total of 25 documents, 113,981 lines, 28,775,761 characte
 It is texts from Thai National Historical Corpus, stored by lines (manually tokenized).
 
 tnhc v.1.0 (6/25/19 : a total of 47 documents, 756,478 lines, 13,361,142 characters)
+
+### Supported Tasks and Leaderboards
+
+Language Modeling, Language Generation
+
 
 ### Languages
 
@@ -87,6 +102,67 @@ Thai
 - `title`: chapter name
 - `text`: each item corresponds to one stanzas, each line is a couplet which can be seperated by `\t`
 
+### Data Splits
+
+tlc v.2.0 (6/17/19 : a total of 34 documents, 292,270 lines, 31,790,734 characters)
+tlc v.1.0 (6/11/19 : a total of 25 documents, 113,981 lines, 28,775,761 characters)
+
+## TNHC set
+It is texts from Thai National Historical Corpus, stored by lines (manually tokenized).
+
+tnhc v.1.0 (6/25/19 : a total of 47 documents, 756,478 lines, 13,361,142 characters)
+
+|           | tlc2.0 | tlc1.0 | tnhc  |
+|-----------|-------|-------|-------|
+| # documents | 34 | 25  | 47  |
+| # lines     | 292,270 | 113,981  | 756,478  |
+
+## Dataset Creation
+
+### Curation Rationale
+
+Originally, the dataset was compiled for the [Thai Poetry Generator](https://github.com/jitkapat/thaipoetrygenerator) at Chulalongkorn university as the Final project for `2209372 Introduction to Computational Linguistics` by [Jitkapat Sawatphol](https://jitkapat.github.io/) (Faculty of Engineering, Chulalongkorn University).
+
+### Source Data
+
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+
+#### Who are the source language producers?
+
+[More Information Needed]
+
+### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
+
+### Personal and Sensitive Information
+
+There is no personal information.
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+[More Information Needed]
+
+
 ## Additional Information
 
 ### Dataset Curators
@@ -95,7 +171,7 @@ Thanks [Jitkapat Sawatphol](https://jitkapat.github.io/) (Faculty of Arts, Chula
 
 ### Licensing Information
 
-Not mentioned on the source website.
+[More Information Needed]
 
 ### Citation Information
 
