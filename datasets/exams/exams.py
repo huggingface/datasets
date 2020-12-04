@@ -186,7 +186,6 @@ class Exams(datasets.GeneratorBasedBuilder):
                     },
                 }
             )
-        print(features)
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,  # Here we define them above because they are different between the two configurations
