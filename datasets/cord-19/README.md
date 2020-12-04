@@ -1,22 +1,24 @@
 ---
 annotations_creators:
-- Allen Institute for AI
+- no-annotation
 language_creators:
-- Allen Institute for AI
+- expert-generated
 languages:
 - en
 licenses:
-- Possible values include: 'cc0', 'hybrid-oa', 'els-covid', 'no-cc', 'cc-by-nc-sa', 'cc-by', 'gold-oa', 'biorxiv', 'green-oa', 'bronze-oa', 'cc-by-nc', 'medrxiv', 'cc-by-nd', 'arxiv', 'unk', 'cc-by-sa', 'cc-by-nc-nd'
+- 'other-multiple licenses: ''cc0'', ''hybrid-oa'', ''els-covid'', ''no-cc'', ''cc-by-nc-sa'',
+  ''cc-by'', ''gold-oa'', ''biorxiv'', ''green-oa'', ''bronze-oa'', ''cc-by-nc'',
+  ''medrxiv'', ''cc-by-nd'', ''arxiv'', ''unk'', ''cc-by-sa'', ''cc-by-nc-nd'''
 multilinguality:
 - monolingual
 size_categories:
-- 100K<n
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- na
+- other
 task_ids:
-- conditional-text-generation-other-meaning-representtion-to-text
+- other-other-knowledge-extraction
 ---
 
 # Dataset Card Creation Guide
