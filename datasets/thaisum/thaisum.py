@@ -36,7 +36,7 @@ class ThaiSumConfig(datasets.BuilderConfig):
         super(ThaiSumConfig, self).__init__(**kwargs)
 
 
-class ThaiSum(datasets.GeneratorBasedBuilder):
+class Thaisum(datasets.GeneratorBasedBuilder):
     """ThaiSum: The largest dataset for Thai text summarization"""
 
     _DOWNLOAD_URL = "https://archive.org/download/thaisum_datasets/data.zip"
