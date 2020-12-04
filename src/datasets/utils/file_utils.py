@@ -16,7 +16,7 @@ import tarfile
 import tempfile
 import time
 import urllib
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from hashlib import sha256
@@ -449,8 +449,10 @@ def _request_with_retry(
 
 
 def ftp_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None):
+    logger.info(f"Getting through FTP {url} into {temp_file.name}")
     print(f"Getting through FTP {url} into {temp_file.name}")
-    urllib.request.urlretrieve(url, temp_file.name)
+    with closing(urllib.request.urlopen(url)) as r:
+        shutil.copyfileobj(r, temp_file)
 
 
 def http_get(url, temp_file, proxies=None, resume_size=0, user_agent=None, cookies=None, max_retries=0):
@@ -546,7 +548,9 @@ def get_from_cache(
     # We don't have the file locally or we need an eTag
     if not local_files_only:
         if url.startswith("ftp://"):
-            connected = True
+            with closing(urllib.request.urlopen(url)) as r:
+                r.read(1)
+                connected = True
         try:
             response = http_head(
                 url, allow_redirects=True, proxies=proxies, timeout=etag_timeout, max_retries=max_retries
