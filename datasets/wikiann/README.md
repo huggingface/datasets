@@ -3,7 +3,359 @@ annotations_creators:
 - machine-generated
 language_creators:
 - crowdsourced
-languages: ['ace', 'af', 'als', 'am', 'an', 'ang', 'ar', 'arc', 'arz', 'as', 'ast', 'ay', 'az', 'ba', 'bar', 'bat-smg', 'be', 'be-x-old', 'bg', 'bh', 'bn', 'bo', 'br', 'bs', 'ca', 'cbk-zam', 'cdo', 'ce', 'ceb', 'ckb', 'co', 'crh', 'cs', 'csb', 'cv', 'cy', 'da', 'de', 'diq', 'dv', 'el', 'eml', 'en', 'eo', 'es', 'et', 'eu', 'ext', 'fa', 'fi', 'fiu-vro', 'fo', 'fr', 'frr', 'fur', 'fy', 'ga', 'gan', 'gd', 'gl', 'gn', 'gu', 'hak', 'he', 'hi', 'hr', 'hsb', 'hu', 'hy', 'ia', 'id', 'ig', 'ilo', 'io', 'is', 'it', 'ja', 'jbo', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'ksh', 'ku', 'ky', 'la', 'lb', 'li', 'lij', 'lmo', 'ln', 'lt', 'lv', 'map-bms', 'mg', 'mhr', 'mi', 'min', 'mk', 'ml', 'mn', 'mr', 'ms', 'mt', 'mwl', 'my', 'mzn', 'nap', 'nds', 'ne', 'nl', 'nn', 'no', 'nov', 'oc', 'or', 'os', 'pa', 'pdc', 'pl', 'pms', 'pnb', 'ps', 'pt', 'qu', 'rm', 'ro', 'ru', 'rw', 'sa', 'sah', 'scn', 'sco', 'sd', 'sh', 'si', 'simple', 'sk', 'sl', 'so', 'sq', 'sr', 'su', 'sv', 'sw', 'szl', 'ta', 'te', 'tg', 'th', 'tk', 'tl', 'tr', 'tt', 'ug', 'uk', 'ur', 'uz', 'vec', 'vep', 'vi', 'vls', 'vo', 'wa', 'war', 'wuu', 'xmf', 'yi', 'yo', 'zea', 'zh', 'zh-classical', 'zh-min-nan', 'zh-yue']
+languages:
+- ace:
+  - ace
+- af:
+  - af
+- als:
+  - als
+- am:
+  - am
+- an:
+  - an
+- ang:
+  - ang
+- ar:
+  - ar
+- arc:
+  - arc
+- arz:
+  - arz
+- as:
+  - as
+- ast:
+  - ast
+- ay:
+  - ay
+- az:
+  - az
+- ba:
+  - ba
+- bar:
+  - bar
+- be:
+  - be
+- bg:
+  - bg
+- bh:
+  - bh
+- bn:
+  - bn
+- bo:
+  - bo
+- br:
+  - br
+- bs:
+  - bs
+- ca:
+  - ca
+- cdo:
+  - cdo
+- ce:
+  - ce
+- ceb:
+  - ceb
+- ckb:
+  - ckb
+- co:
+  - co
+- crh:
+  - crh
+- cs:
+  - cs
+- csb:
+  - csb
+- cv:
+  - cv
+- cy:
+  - cy
+- da:
+  - da
+- de:
+  - de
+- diq:
+  - diq
+- dv:
+  - dv
+- el:
+  - el
+- en:
+  - en
+- eo:
+  - eo
+- es:
+  - es
+- et:
+  - et
+- eu:
+  - eu
+- ext:
+  - ext
+- fa:
+  - fa
+- fi:
+  - fi
+- fo:
+  - fo
+- fr:
+  - fr
+- frr:
+  - frr
+- fur:
+  - fur
+- fy:
+  - fy
+- ga:
+  - ga
+- gan:
+  - gan
+- gd:
+  - gd
+- gl:
+  - gl
+- gn:
+  - gn
+- gu:
+  - gu
+- hak:
+  - hak
+- he:
+  - he
+- hi:
+  - hi
+- hr:
+  - hr
+- hsb:
+  - hsb
+- hu:
+  - hu
+- hy:
+  - hy
+- ia:
+  - ia
+- id:
+  - id
+- ig:
+  - ig
+- ilo:
+  - ilo
+- io:
+  - io
+- is:
+  - is
+- it:
+  - it
+- ja:
+  - ja
+- jbo:
+  - jbo
+- jv:
+  - jv
+- ka:
+  - ka
+- kk:
+  - kk
+- km:
+  - km
+- kn:
+  - kn
+- ko:
+  - ko
+- ksh:
+  - ksh
+- ku:
+  - ku
+- ky:
+  - ky
+- la:
+  - la
+- lb:
+  - lb
+- li:
+  - li
+- lij:
+  - lij
+- lmo:
+  - lmo
+- ln:
+  - ln
+- lt:
+  - lt
+- lv:
+  - lv
+- mg:
+  - mg
+- mhr:
+  - mhr
+- mi:
+  - mi
+- min:
+  - min
+- mk:
+  - mk
+- ml:
+  - ml
+- mn:
+  - mn
+- mr:
+  - mr
+- ms:
+  - ms
+- mt:
+  - mt
+- mwl:
+  - mwl
+- my:
+  - my
+- mzn:
+  - mzn
+- nap:
+  - nap
+- nds:
+  - nds
+- ne:
+  - ne
+- nl:
+  - nl
+- nn:
+  - nn
+- 'no':
+  - 'no'
+- nov:
+  - nov
+- oc:
+  - oc
+- or:
+  - or
+- os:
+  - os
+- other-bat-smg:
+  - other-bat-smg
+- other-be-x-old:
+  - other-be-x-old
+- other-cbk-zam:
+  - other-cbk-zam
+- other-eml:
+  - other-eml
+- other-fiu-vro:
+  - other-fiu-vro
+- other-map-bms:
+  - other-map-bms
+- other-simple:
+  - other-simple
+- other-zh-classical:
+  - other-zh-classical
+- other-zh-min-nan:
+  - other-zh-min-nan
+- other-zh-yue:
+  - other-zh-yue
+- pa:
+  - pa
+- pdc:
+  - pdc
+- pl:
+  - pl
+- pms:
+  - pms
+- pnb:
+  - pnb
+- ps:
+  - ps
+- pt:
+  - pt
+- qu:
+  - qu
+- rm:
+  - rm
+- ro:
+  - ro
+- ru:
+  - ru
+- rw:
+  - rw
+- sa:
+  - sa
+- sah:
+  - sah
+- scn:
+  - scn
+- sco:
+  - sco
+- sd:
+  - sd
+- sh:
+  - sh
+- si:
+  - si
+- sk:
+  - sk
+- sl:
+  - sl
+- so:
+  - so
+- sq:
+  - sq
+- sr:
+  - sr
+- su:
+  - su
+- sv:
+  - sv
+- sw:
+  - sw
+- szl:
+  - szl
+- ta:
+  - ta
+- te:
+  - te
+- tg:
+  - tg
+- th:
+  - th
+- tk:
+  - tk
+- tl:
+  - tl
+- tr:
+  - tr
+- tt:
+  - tt
+- ug:
+  - ug
+- uk:
+  - uk
+- ur:
+  - ur
+- uz:
+  - uz
+- vec:
+  - vec
+- vep:
+  - vep
+- vi:
+  - vi
+- vls:
+  - vls
+- vo:
+  - vo
+- wa:
+  - wa
+- war:
+  - war
+- wuu:
+  - wuu
+- xmf:
+  - xmf
+- yi:
+  - yi
+- yo:
+  - yo
+- zea:
+  - zea
+- zh:
+  - zh
 licenses:
 - unknown
 multilinguality:
@@ -53,9 +405,9 @@ task_ids:
 
 - **Homepage:**
 - **Repository:** [Massively Multilingual Transfer for NER](https://github.com/afshinrahimi/mmner)
-- **Paper:** ["Cross-lingual name tagging and linking for 282 languages." by Pan, Xiaoman, et al., Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). Vol. 1. 2017.](https://www.aclweb.org/anthology/P17-1178/)
+- **Paper:** The original datasets come from the _Cross-lingual name tagging and linking for 282 languages_ [paper](https://www.aclweb.org/anthology/P17-1178/) by Xiaoman Pan et al. (2018). This version corresponds to the balanced train, dev, and test splits of the original data from the _Massively Multilingual Transfer for NER_ [paper](https://arxiv.org/abs/1902.00193) by Afshin Rahimi et al. (2019).
 - **Leaderboard:**
-- **Point of Contact:** [Afshin Rahimi](mailto:afshinrahimi@gmail.com)
+- **Point of Contact:** [Afshin Rahimi](mailto:afshinrahimi@gmail.com) or [Lewis Tunstall](mailto:lewis.c.tunstall@gmail.com)
 
 ### Dataset Summary
 
@@ -139,4 +491,44 @@ WikiANN (sometimes called PAN-X) is a multilingual named entity recognition data
 
 ### Citation Information
 
-[More Information Needed]
+The original 282 datasets are associated with this article
+
+```
+@inproceedings{pan-etal-2017-cross,
+    title = "Cross-lingual Name Tagging and Linking for 282 Languages",
+    author = "Pan, Xiaoman  and
+      Zhang, Boliang  and
+      May, Jonathan  and
+      Nothman, Joel  and
+      Knight, Kevin  and
+      Ji, Heng",
+    booktitle = "Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = jul,
+    year = "2017",
+    address = "Vancouver, Canada",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/P17-1178",
+    doi = "10.18653/v1/P17-1178",
+    pages = "1946--1958",
+    abstract = "The ambitious goal of this work is to develop a cross-lingual name tagging and linking framework for 282 languages that exist in Wikipedia. Given a document in any of these languages, our framework is able to identify name mentions, assign a coarse-grained or fine-grained type to each mention, and link it to an English Knowledge Base (KB) if it is linkable. We achieve this goal by performing a series of new KB mining methods: generating {``}silver-standard{''} annotations by transferring annotations from English to other languages through cross-lingual links and KB properties, refining annotations through self-training and topic selection, deriving language-specific morphology features from anchor links, and mining word translation pairs from cross-lingual links. Both name tagging and linking results for 282 languages are promising on Wikipedia data and on-Wikipedia data.",
+}
+```
+
+while the 176 languages supported in this version are associated with the following article
+
+```
+@inproceedings{rahimi-etal-2019-massively,
+    title = "Massively Multilingual Transfer for {NER}",
+    author = "Rahimi, Afshin  and
+      Li, Yuan  and
+      Cohn, Trevor",
+    booktitle = "Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics",
+    month = jul,
+    year = "2019",
+    address = "Florence, Italy",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/P19-1015",
+    pages = "151--164",
+}
+```
+
