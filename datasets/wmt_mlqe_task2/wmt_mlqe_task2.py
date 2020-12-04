@@ -88,7 +88,7 @@ class WmtMlqeTask2(datasets.GeneratorBasedBuilder):
         WmtMlqeConfig(
             name=f"{src_lg}-{tgt_lg}",
             version=datasets.Version("1.1.0"),
-            description=f"Task 1: {src_lg} - {tgt_lg}",
+            description=f"Task 2: {src_lg} - {tgt_lg}",
             src_lg=src_lg,
             tgt_lg=tgt_lg,
         )
