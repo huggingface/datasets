@@ -49,9 +49,9 @@ class MsTerms(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-    You need to go to https://www.microsoft.com/en-us/language/terminology, 
-    and manually download the language of your interest. Once it is completed, 
-    a file named MicrosoftTermCollection.tbx will be appeared in your Downloads folder 
+    You need to go to https://www.microsoft.com/en-us/language/terminology,
+    and manually download the language of your interest. Once it is completed,
+    a file named MicrosoftTermCollection.tbx will be appeared in your Downloads folder
     or whichever folder your browser chooses to save files to.
     You can then move MicrosoftTermCollection.tbx under <path/to/folder>.
     The <path/to/folder> can e.g. be "~/manual_data".
