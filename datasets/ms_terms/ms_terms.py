@@ -46,14 +46,6 @@ class MsTerms(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.0.0")
 
-    BUILDER_CONFIGS = [
-        datasets.BuilderConfig(
-            name="ms_terms-full",
-            version=VERSION,
-            description=_DESCRIPTION
-        )
-    ]
-
     @property
     def manual_download_instructions(self):
         return """\
@@ -84,7 +76,7 @@ class MsTerms(datasets.GeneratorBasedBuilder):
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('Msterms', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('ms_terms', data_dir=...)` that includes a file name {}. Manual download instructions: {})".format(
                     path_to_manual_file, _FILENAME, self.manual_download_instructions
                 )
             )
