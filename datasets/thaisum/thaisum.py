@@ -91,7 +91,6 @@ class Thaisum(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """Generate examples."""
         with open(filepath, encoding="utf-8") as f:
-            # try:
             csv_reader = csv.reader(f)
             header = next(csv_reader)
             for id_, row in enumerate(csv_reader):
