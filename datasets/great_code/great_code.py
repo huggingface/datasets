@@ -47,15 +47,15 @@ _CITATION = """\
 }
 """
 _TRAIN_URLS = [
-    f"https://github.com/google-research-datasets/great/blob/master/train/train__VARIABLE_MISUSE__SStuB.txt-{x:05d}-of-00300"
+    f"https://raw.githubusercontent.com/google-research-datasets/great/master/train/train__VARIABLE_MISUSE__SStuB.txt-{x:05d}-of-00300"
     for x in range(300)
 ]
 _TEST_URLS = [
-    f"https://github.com/google-research-datasets/great/blob/master/eval/eval__VARIABLE_MISUSE__SStuB.txt-{x:05d}-of-00300"
+    f"https://raw.githubusercontent.com/google-research-datasets/great/master/eval/eval__VARIABLE_MISUSE__SStuB.txt-{x:05d}-of-00300"
     for x in range(300)
 ]
 _VALID_URLS = [
-    f"https://github.com/google-research-datasets/great/blob/master/dev/dev__VARIABLE_MISUSE__SStuB.txt-{x:05d}-of-00300"
+    f"https://raw.githubusercontent.com/google-research-datasets/great/master/dev/dev__VARIABLE_MISUSE__SStuB.txt-{x:05d}-of-00300"
     for x in range(300)
 ]
 
@@ -69,13 +69,13 @@ class GreatCode(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("int32"),
-                    "source_tokens": datasets.Value("string"),
+                    "source_tokens": datasets.Sequence(datasets.Value("string")),
                     "has_bug": datasets.Value("bool"),
                     "error_location": datasets.Value("int32"),
-                    "repair_candidates": datasets.Sequence("string"),
+                    "repair_candidates": datasets.Sequence(datasets.Value("string")),
                     "bug_kind": datasets.Value("int32"),
                     "bug_kind_name": datasets.Value("string"),
-                    "repair_targets": datasets.Sequence("int32"),
+                    "repair_targets": datasets.Sequence(datasets.Value("int32")),
                     "edges": [
                         [
                             {
@@ -105,12 +105,8 @@ class GreatCode(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         train_path = dl_manager.download_and_extract(_TRAIN_URLS)
-        valid_path = dl_manager.download_and_extract(_TEST_URLS)
-        test_path = dl_manager.download_and_extract(_VALID_URLS)
-        print("*************")
-        print(train_path)
-        print(valid_path)
-        print(test_path)
+        valid_path = dl_manager.download_and_extract(_VALID_URLS)
+        test_path = dl_manager.download_and_extract(_TEST_URLS)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -136,35 +132,34 @@ class GreatCode(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath, datatype):
-        with open(datapath, "r") as json_file:
-            json_list = list(json_file)
+        print("#############################")
+        for dp in datapath:
+            with open(dp, "r", encoding="utf-8") as json_file:
+                json_list = list(json_file)
 
-        for example_counter, json_str in enumerate(json_list):
-            result = json.loads(json_str)
-            response = {
-                "id": example_counter,
-                "table_page_title": result["table_page_title"],
-                "table_webpage_url": result["table_webpage_url"],
-                "table_section_title": result["table_section_title"],
-                "table_section_text": result["table_section_text"],
-                "table": result["table"],
-                "highlighted_cells": result["highlighted_cells"],
-                "example_id": str(result["example_id"]),
-            }
-            if datatype == "train":
-                response["overlap_subset"] = "none"
-            else:
-                response["overlap_subset"] = str(result["overlap_subset"])
-
-            if datatype == "test":
-                response["sentence_annotations"] = [
-                    {
-                        "original_sentence": "none",
-                        "sentence_after_deletion": "none",
-                        "sentence_after_ambiguity": "none",
-                        "final_sentence": "none",
-                    }
-                ]
-            else:
-                response["sentence_annotations"] = result["sentence_annotations"]
-            yield example_counter, response
+            for example_counter, json_str in enumerate(json_list):
+                result = json.loads(json_str)
+                response = {
+                    "id": example_counter,
+                    "source_tokens": result["source_tokens"],
+                    "has_bug": result["has_bug"],
+                    "error_location": result["error_location"],
+                    "repair_candidates": [str(x) for x in result["repair_candidates"]],
+                    "bug_kind": result["bug_kind"],
+                    "bug_kind_name": result["bug_kind_name"],
+                    "repair_targets": result["repair_targets"],
+                    "edges": [
+                        [
+                            {
+                                "before_index": result["edges"][x][0],
+                                "after_index": result["edges"][x][1],
+                                "edge_type": result["edges"][x][2],
+                                "edge_type_name": result["edges"][x][3],
+                            }
+                        ]
+                        for x in range(len(result["edges"]))
+                    ],
+                    "provenances": result["provenances"],
+                }
+                # print(response)
+                yield example_counter, response
