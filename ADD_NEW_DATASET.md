@@ -17,6 +17,7 @@ This creates a copy of the code under your GitHub user account.
 
 	```bash
 	conda create -n env python=3.7 --y
+	conda activate env
 	pip install -e ".[dev]"
 	```
 
