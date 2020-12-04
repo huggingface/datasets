@@ -21,7 +21,7 @@ import datasets
 
 _CITATION = """\
 @misc{faruqui2018identifying,
-      title={Identifying Well-formed Natural Language Questions}, 
+      title={Identifying Well-formed Natural Language Questions},
       author={Manaal Faruqui and Dipanjan Das},
       year={2018},
       eprint={1808.09419},
@@ -78,7 +78,7 @@ class GoogleWellformedQuery(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        with open(filepath, "r") as file:
+        with open(filepath, "r", encoding="utf-8") as file:
             reader = file.read().split("\n")
             for idx, row in enumerate(reader):
                 row = row.split("\t")
