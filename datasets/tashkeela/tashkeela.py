@@ -57,8 +57,8 @@ class TashkeelaConfig(datasets.BuilderConfig):
         super(TashkeelaConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class Metrec(datasets.GeneratorBasedBuilder):
-    """Metrec dataset."""
+class Tashkeela(datasets.GeneratorBasedBuilder):
+    """Tashkeela dataset."""
 
     BUILDER_CONFIGS = [
         TashkeelaConfig(
