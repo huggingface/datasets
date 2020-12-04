@@ -23,14 +23,13 @@ import os
 
 import datasets
 
-
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @article{Wang2020CORD19TC,
   title={CORD-19: The Covid-19 Open Research Dataset},
-  author={Lucy Lu Wang and Kyle Lo and Yoganand Chandrasekhar and Russell Reas and Jiangjiang Yang and Darrin Eide and 
-  K. Funk and Rodney Michael Kinney and Ziyang Liu and W. Merrill and P. Mooney and D. Murdick and Devvret Rishi and 
-  Jerry Sheehan and Zhihong Shen and B. Stilson and A. Wade and K. Wang and Christopher Wilhelm and Boya Xie and 
+  author={Lucy Lu Wang and Kyle Lo and Yoganand Chandrasekhar and Russell Reas and Jiangjiang Yang and Darrin Eide and
+  K. Funk and Rodney Michael Kinney and Ziyang Liu and W. Merrill and P. Mooney and D. Murdick and Devvret Rishi and
+  Jerry Sheehan and Zhihong Shen and B. Stilson and A. Wade and K. Wang and Christopher Wilhelm and Boya Xie and
   D. Raymond and Daniel S. Weld and Oren Etzioni and Sebastian Kohlmeier},
   journal={ArXiv},
   year={2020}
@@ -39,12 +38,12 @@ _CITATION = """\
 
 # You can copy an official description
 _DESCRIPTION = """\
-The Covid-19 Open Research Dataset (CORD-19) is a growing resource of scientific papers on Covid-19 and related 
-historical coronavirus research. CORD-19 is designed to facilitate the development of text mining and information 
-retrieval systems over its rich collection of metadata and structured full text papers. Since its release, CORD-19 
+The Covid-19 Open Research Dataset (CORD-19) is a growing resource of scientific papers on Covid-19 and related
+historical coronavirus research. CORD-19 is designed to facilitate the development of text mining and information
+retrieval systems over its rich collection of metadata and structured full text papers. Since its release, CORD-19
 has been downloaded over 75K times and has served as the basis of many Covid-19 text mining and discovery systems.
 
-The dataset itself isn't defining a specific task, but there is a Kaggle challenge that define 17 open research 
+The dataset itself isn't defining a specific task, but there is a Kaggle challenge that define 17 open research
 questions to be solved with the dataset: https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge/tasks
 """
 
@@ -62,7 +61,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(
             name="cord-19",
             description="The whole dataset in a compressed file. Only title and "
-            "abstract of each article are loaded for now.",
+                        "abstract of each article are loaded for now.",
         ),
         # datasets.BuilderConfig(name="second_domain", description="This part of my dataset covers a second domain"),
     ]
