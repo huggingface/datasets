@@ -1199,6 +1199,7 @@ class UniversalDependencies(datasets.GeneratorBasedBuilder):
         )
         for name in _NAMES
     ]
+    BUILDER_CONFIG_CLASS = UniversaldependenciesConfig
 
     def _info(self):
         return datasets.DatasetInfo(
