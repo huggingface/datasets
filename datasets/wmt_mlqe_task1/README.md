@@ -104,18 +104,16 @@ An example looks like this:
 }
 ```
 
-Provide any additional information that is not covered in the other sections about the data here. In particular describe any relationships between data points and if these relationships are made explicit.
-
 ### Data Fields
 
 - `segid`: segment id.
 - `original`: original sentence.
 - `translation`: NMT output.
-- `scores`: list of DA scores by all annotators - the number of annotators may vary. [] if N/A.
-- `mean`: average of DA scores. -10_000 if N/A.
-- `z_scores`: list of z-standardized DA scores. [] if N/A.
-- `z_mean`: average of z-standardized DA scores. -10_000 if N/A.
-- `model_score`: NMT model score for sentence. -10_000 if N/A.
+- `scores`: list of DA scores by all annotators - the number of annotators may vary. [] if N/A (only for `ru-en/test`).
+- `mean`: average of DA scores. -10_000 if N/A (only for `ru-en/test`).
+- `z_scores`: list of z-standardized DA scores. [] if N/A (only for `ru-en/test`).
+- `z_mean`: average of z-standardized DA scores. -10_000 if N/A (only for `ru-en/test`).
+- `model_score`: NMT model score for sentence. -10_000 if N/A (only for `ru-en/test`).
 - `doc_id`: the name of the article where each original segment came from.
 - `nmt_output`: the actual output of the NMT model before any post-processing, corresponding to the log-probas in `word_probas` (the token is not printed, so the number of log-probabilities equals the number of tokens plus 1).
 - `word_probas`: log-probabilities from the NMT model for each decoded token including the token.
@@ -184,7 +182,6 @@ Unknown
 
 ### Citation Information
 
-Provide the [BibTex](http://www.bibtex.org/)-formatted reference for the dataset. For example:
 ```
 Not available.
 ```
