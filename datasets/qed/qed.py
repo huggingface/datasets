@@ -78,7 +78,7 @@ class Qed(datasets.GeneratorBasedBuilder):
                     "question": datasets.Value("string"),
                     "paragraph_text": datasets.Value("string"),
                     "sentence_starts": datasets.Sequence(datasets.Value("int32")),
-                    "original_nq_answers": [[span_features]],
+                    "original_nq_answers": [span_features],
                     "annotation": {
                         "referential_equalities": [
                             {
@@ -133,5 +133,8 @@ class Qed(datasets.GeneratorBasedBuilder):
                     }
                 if "referential_equalities" not in example["annotation"]:
                     example["annotation"]["referential_equalities"] = []
+
+                # remove the nested list
+                example["original_nq_answers"] = example["original_nq_answers"][0]
 
                 yield example["example_id"], example
