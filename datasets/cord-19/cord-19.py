@@ -29,7 +29,10 @@ import datasets
 _CITATION = """\
 @article{Wang2020CORD19TC,
   title={CORD-19: The Covid-19 Open Research Dataset},
-  author={Lucy Lu Wang and Kyle Lo and Yoganand Chandrasekhar and Russell Reas and Jiangjiang Yang and Darrin Eide and K. Funk and Rodney Michael Kinney and Ziyang Liu and W. Merrill and P. Mooney and D. Murdick and Devvret Rishi and Jerry Sheehan and Zhihong Shen and B. Stilson and A. Wade and K. Wang and Christopher Wilhelm and Boya Xie and D. Raymond and Daniel S. Weld and Oren Etzioni and Sebastian Kohlmeier},
+  author={Lucy Lu Wang and Kyle Lo and Yoganand Chandrasekhar and Russell Reas and Jiangjiang Yang and Darrin Eide and 
+  K. Funk and Rodney Michael Kinney and Ziyang Liu and W. Merrill and P. Mooney and D. Murdick and Devvret Rishi and 
+  Jerry Sheehan and Zhihong Shen and B. Stilson and A. Wade and K. Wang and Christopher Wilhelm and Boya Xie and 
+  D. Raymond and Daniel S. Weld and Oren Etzioni and Sebastian Kohlmeier},
   journal={ArXiv},
   year={2020}
 }
@@ -57,7 +60,11 @@ class Cord19(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("0.0.1")
 
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="cord-19", description="The whole dataset in a compressed file. Only title and abstract of each article are loaded for now."),
+        datasets.BuilderConfig(
+            name="cord-19",
+            description="The whole dataset in a compressed file. Only title and "
+            "abstract of each article are loaded for now.",
+        ),
         # datasets.BuilderConfig(name="second_domain", description="This part of my dataset covers a second domain"),
     ]
 
@@ -103,7 +110,8 @@ class Cord19(datasets.GeneratorBasedBuilder):
         with open(filepath, "r") as f:
             reader = csv.reader(f, delimiter=",")
             # headers
-            # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,who_covidence_id,arxiv_id,pdf_json_files,pmc_json_files,url,s2_id
+            # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,
+            # who_covidence_id,arxiv_id,pdf_json_files,pmc_json_files,url,s2_id
             for i, line in enumerate(reader):
                 yield i, {
                     "cord_uid": line[0],
