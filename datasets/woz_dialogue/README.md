@@ -4,7 +4,18 @@ annotations_creators:
 language_creators:
 - crowdsourced
 languages:
-- en
+- en:
+  - en
+- de:
+  - de
+- it:
+  - it
+- de_en:
+  - en
+  - de
+- it_en:
+  - en
+  - it
 licenses:
 - unknown
 multilinguality:

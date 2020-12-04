@@ -56,14 +56,17 @@ class WozDialogue(datasets.GeneratorBasedBuilder):
         ),
         datasets.BuilderConfig(name="de", version=datasets.Version("1.0.0"), description="WOZ German dataset"),
         datasets.BuilderConfig(
-            name="de_en", version=datasets.Version("1.0.0"), description="WOZ German-English dataset"
+            name="de_en",
+            version=datasets.Version("1.0.0"),
+            description="WOZ German-English dataset. For this config, the dialogues are in German and the labels in English ",
         ),
         datasets.BuilderConfig(name="it", version=datasets.Version("1.0.0"), description="WOZ Italian dataset"),
         datasets.BuilderConfig(
-            name="it_en", version=datasets.Version("1.0.0"), description="WOZ Italian-English dataset"
+            name="it_en",
+            version=datasets.Version("1.0.0"),
+            description="WOZ Italian-English dataset. For this config, the dialogues are in Italian and the labels in English ",
         ),
     ]
-    DEFAULT_CONFIG_NAME = "en"
 
     def _info(self):
         return datasets.DatasetInfo(
