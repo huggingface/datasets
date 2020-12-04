@@ -28,10 +28,8 @@ These domains are Sports, Health, Technology, Entertainment, and Business.
 The real news are collected by combining manual approaches.
 """
 
-_URL = """\
-https://github.com/MaazAmjad/Datasets-for-Urdu-news/blob/master/Urdu%20Fake%20News%20Dataset.zip?raw=true\
-"""
-
+_URL = "https://github.com/MaazAmjad/Datasets-for-Urdu-news/blob/master/"
+_URL += "Urdu%20Fake%20News%20Dataset.zip?raw=true"
 
 class UrduFakeNews(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
