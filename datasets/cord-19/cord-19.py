@@ -72,9 +72,15 @@ class Cord19(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
+
+            # metadata headers
+            # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,
+            # who_covidence_id,arxiv_id,pdf_json_files,pmc_json_files,url,s2_id
+
             features=datasets.Features(
                 {
                     "cord_uid": datasets.Value("string"),
+                    "sha": datasets.Value("string"),
                     "title": datasets.Value("string"),
                     # TODO "authors list" (complex nested json)
                     "abstract": datasets.Value("string"),
@@ -106,7 +112,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
 
-        with open(filepath, "r", mode="r", encoding="utf-8") as f:
+        with open(filepath, mode="r", encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=",")
             # headers
             # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,
@@ -114,6 +120,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
             for i, line in enumerate(reader):
                 yield i, {
                     "cord_uid": line[0],
+                    "sha": line[1],
                     "title": line[3],
                     "abstract": line[8],
                 }
