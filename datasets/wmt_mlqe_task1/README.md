@@ -75,13 +75,13 @@ From the homepage:
 ### Languages
 
 Eight languages are represented in this dataset:
-- English
-- German
-- Romanian
-- Estonian
-- Nepalese
-- Sinhala
-- Russian
+- English (`en`)
+- German (`de`)
+- Romanian (`ro`)
+- Estonian (`et`)
+- Nepalese (`ne`)
+- Sinhala (`si`)
+- Russian (`ru`)
 
 ## Dataset Structure
 
