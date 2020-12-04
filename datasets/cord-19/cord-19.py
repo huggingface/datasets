@@ -106,7 +106,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
 
-        with open(filepath, "r") as f:
+        with open(filepath, "r", mode="r", encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=",")
             # headers
             # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,
