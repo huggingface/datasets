@@ -1,0 +1,16 @@
+गणित में किसी वास्तविक मान वाले, तथा सभी बिन्दुओं पर अवकलनीय फलन f तथा g में निम्नलिखित सम्बन्ध हो तो g को f का लजान्द्र रूपान्तर कहा जाता है। इस रूपान्तर का नाम फ्रांसीसी गणितज्ञ आद्रियें मारि लजान्द्र के नाम पर पड़ा है।
+जहाँ D, अवकलज का प्रतीक है तथा दाहिनी ओर आने वाला -1, प्रतिलोम फलन को सूचित कर रहा है। यह आसानी से दिखाया जा सकता है कि g, f का लजान्द्र रूपान्तर हो तो f, g का लजान्द्र रूपान्तर होगा 
+उदाहरण के लिये, फलन   f =   x 2  2   {\displaystyle f={\tfrac {x^{2}}{2}}} तथा फलन   g = −   p 2  2   {\displaystyle g=-{\tfrac {p^{2}}{2}}} एक दूसरे के लजान्द्र रूपान्तर हैं।
+एक विशेष स्थिति में, यदि फलन f एक उत्तल फलन हो तो इसका लजान्द्र रूपान्तर ƒ* निम्नलिखित सम्बन्ध द्वारा अभिव्यक्त किया जा सकता है-
+Let f = cx2 defined on R, where c > 0 is a fixed constant.
+For x* fixed, the function x*x – f = x*x – cx2 of साँचा:Mvar has the first derivative x* – 2cx and second derivative −2c; there is one stationary point at x = x*/2c, which is always a maximum. Thus, I* = R and 
+Clearly, 
+namely f ** = f.
+Let f = x2 for x ∈ I = .
+For x* fixed, x*x − f is continuous on साँचा:Mvar compact, hence it always takes a finite maximum on it; it follows that I* = R. The stationary point at x = x*/2 is in the domain if and only if 4 ≤ x* ≤ 6, otherwise the maximum is taken either at x = 2, or x = 3. It follows that
+The function f = cx is convex, for every साँचा:Mvar . Clearly x*x − f = x is never bounded from above as a function of साँचा:Mvar, unless x* − c = 0. Hence f* is defined on I* = {c} and f* = 0.
+One may check involutivity: of course x*x − f* is always bounded as a function of x* ∈ {c}, hence I ** = R. Then, for all साँचा:Mvar one has 
+and hence f ** = cx = f.
+Let 
+be defined on X = Rn, where साँचा:Mvar is a real, positive definite matrix. Then साँचा:Mvar is convex, and
+has gradient p − 2Ax and Hessian −2A, which is negative; hence the stationary point x = A−1p/2 is a maximum. We have X* = Rn, and

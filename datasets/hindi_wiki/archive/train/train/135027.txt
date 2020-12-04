@@ -1,0 +1,3 @@
+यहाँ रेग्युलर एक्सप्रेशन के इंजनों की विभिन्न दृष्टियों से तुलना की गयी है।
+Qt GNU LGPL v. 2.1,Qt Commercial
+NOTE: An application using a library for regular expression support does not necessarily offer the full set of features of the library, e.g. GNU grep which uses PCRE does not offer lookahead support, though PCRE does.

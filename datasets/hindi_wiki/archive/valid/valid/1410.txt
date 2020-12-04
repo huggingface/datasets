@@ -1,0 +1,99 @@
+इस लेख में प्रमुख त्रिकोणमितीय सर्वसमिकाओं की उपपतियां दी गयीं हैं।
+Referring to the diagram at the right, the six trigonometric functions of θ are:
+The following identities are trivial algebraic consequences of these definitions and the division identity.They rely on multiplying or dividing the numerator and denominator of fractions by a variable. Ie,
+Or 
+Two angles whose sum is π/2 radians are complementary. In the diagram, the angles at vertices A and B are complementary, so we can exchange a and b, and change θ to π/2 − θ, obtaining:
+Identity 1:
+Proof 1:
+Refer to the triangle diagram above. Note that   a 2  + b 2  = h 2   {\displaystyle a^{2}+b^{2}=h^{2}} by Pythagorean theorem.
+The following two results follow from this and the ratio identities. To obtain the first, divide both sides of   sin 2  ⁡ + cos 2  ⁡ = 1  {\displaystyle \sin ^{2}+\cos ^{2}=1} by   cos 2  ⁡  {\displaystyle \cos ^{2}} ; for the second, divide by   sin 2  ⁡  {\displaystyle \sin ^{2}} .
+Similarly
+Proof 2:
+Differentiating the left-hand side of the identity yields:
+Integrating this shows that the original identity is equal to a constant, and this constant can be found by plugging in any arbitrary value of x.
+Identity 2:
+The following accounts for all three reciprocal functions.
+Proof 1:
+Refer to the triangle diagram above. Note that   a 2  + b 2  = h 2   {\displaystyle a^{2}+b^{2}=h^{2}} by Pythagorean theorem.
+Substituting with appropriate functions -
+Rearranging gives:
+Draw a horizontal line ; mark an origin O. Draw a line from O at an angle   α  {\displaystyle \alpha } above the horizontal line and a second line at an angle   β  {\displaystyle \beta } above that; the angle between the second line and the x-axis is   α + β  {\displaystyle \alpha +\beta } .
+Place P on the line defined by   α + β  {\displaystyle \alpha +\beta } at a unit distance from the origin.
+Let PQ be a line perpendicular to line defined by angle   α  {\displaystyle \alpha }, drawn from point Q on this line to point P.   ∴  {\displaystyle \therefore } OQP is a right angle.
+Let QA be a perpendicular from point A on the x-axis to Q and PB be a perpendicular from point B on the x-axis to P.   ∴  {\displaystyle \therefore } OAQ and OBP are right angles.
+Draw QR parallel to the x-axis.
+Now angle   R P Q = α  {\displaystyle RPQ=\alpha }  
+By substituting   − β  {\displaystyle -\beta } for   β  {\displaystyle \beta } and using Symmetry, we also get:
+Another simple "proof" can be given using Euler's formula known from complex analysis:Euler's formula is:
+Although it is more precise to say that Euler's formula entails the trigonometric identities, it follows that for angles   α  {\displaystyle \alpha } and   β  {\displaystyle \beta } we have:
+Also using the following properties of exponential functions:
+Evaluating the product:
+Equating real and imaginary parts:
+Using the figure above,
+By substituting   − β  {\displaystyle -\beta } for   β  {\displaystyle \beta } and using Symmetry, we also get:
+Also, using the complementary angle formulae,
+From the sine and cosine formulae, we get
+Dividing both numerator and denominator by   cos ⁡ α cos ⁡ β  {\displaystyle \cos \alpha \cos \beta }, we get
+Subtracting   β  {\displaystyle \beta } from   α  {\displaystyle \alpha }, using   tan ⁡ = − tan ⁡ β  {\displaystyle \tan=-\tan \beta } ,
+Similarly from the sine and cosine formulae, we get
+Then by dividing both numerator and denominator by   sin ⁡ α sin ⁡ β  {\displaystyle \sin \alpha \sin \beta }, we get
+Or, using   cot ⁡ θ =  1 tan ⁡ θ   {\displaystyle \cot \theta ={\frac {1}{\tan \theta }}} ,
+Using   cot ⁡ = − cot ⁡ β  {\displaystyle \cot=-\cot \beta } ,
+From the angle sum identities, we get
+and
+The Pythagorean identities give the two alternative forms for the latter of these:
+The angle sum identities also give
+It can also be proved using Euler's formula
+Squaring both sides yields
+But replacing the angle with its doubled version, which achieves the same result in the left side of the equation, yields
+It follows that
+Expanding the square and simplifying on the left hand side of the equation gives
+Because the imaginary and real parts have to be the same, we are left with the original identities
+and also
+The two identities giving the alternative forms for cos 2θ lead to the following equations:
+The sign of the square root needs to be chosen properly—note that if π is added to θ, the quantities inside the square roots are unchanged, but the left-hand-sides of the equations change sign. Therefore the correct sign to use depends on the value of θ.
+For the tan function, the equation is:
+Then multiplying the numerator and denominator inside the square root by and using Pythagorean identities leads to:
+Also, if the numerator and denominator are both multiplied by, the result is:
+This also gives:
+Similar manipulations for the cot function give:
+If   ψ  {\displaystyle \psi },   θ  {\displaystyle \theta } and   ϕ  {\displaystyle \phi } are the angles of a triangle, i.e.   ψ + θ + ϕ = π =  {\displaystyle \psi +\theta +\phi =\pi =} half circle,
+Proof:
+If   ψ + θ + ϕ =  π 2  =  {\displaystyle \psi +\theta +\phi ={\tfrac {\pi }{2}}=} quarter circle,
+Proof:
+Replace each of   ψ  {\displaystyle \psi },   θ  {\displaystyle \theta }, and   ϕ  {\displaystyle \phi } with their complementary angles, so cotangents turn into tangents and vice-versa.
+Given
+so the result follows from the triple tangent identity.
+First, start with the sum-angle identities:
+By adding these together,
+Similarly, by subtracting the two sum-angle identities,
+Let   α + β = θ  {\displaystyle \alpha +\beta =\theta } and   α − β = ϕ  {\displaystyle \alpha -\beta =\phi } ,
+Substitute   θ  {\displaystyle \theta } and   ϕ  {\displaystyle \phi } 
+Therefore,
+Similarly for cosine, start with the sum-angle identities:
+Again, by adding and substracting
+Substitute   θ  {\displaystyle \theta } and   ϕ  {\displaystyle \phi } as before,
+The figure at the right shows a sector of a circle with radius 1. The sector is θ/ of the whole circle, so its area is θ/2.
+The area of triangle OAD is AB/2, or sinθ/2. The area of triangle OCD is CD/2, or tanθ/2.
+Since triangle OAD lies completely inside the sector, which in turn lies completely inside triangle OCD, we have
+This geometric argument applies if 0π/2, then θ>1. But sinθ≤1, so sinθ<θ. So we have
+For negative values of θ we have, by symmetry of the sine function
+Hence
+Proof: From the previous inequalities, we have, for small angles
+Therefore,
+Consider the right-hand inequality. Since
+Multply through by   cos ⁡ θ  {\displaystyle \cos \theta } 
+Combining with the left-hand inequality:
+Taking   cos ⁡ θ  {\displaystyle \cos \theta } to the limit as   θ → 0  {\displaystyle \theta \to 0} 
+Therefore,
+Proof:
+The limits of those three quantities are 1, 0, and 1/2, so the resultant limit is zero.
+Proof:
+As in the preceding proof,
+The limits of those three quantities are 1, 1, and 1/2, so the resultant limit is 1/2.
+All these functions follow from the Pythagorean trigonometric identity. We can prove for instance the function 
+Proof:
+We start from
+Then we divide this equation by   cos 2  ⁡ θ  {\displaystyle \cos ^{2}\theta } 
+Then use the substitution   θ = arctan ⁡  {\displaystyle \theta =\arctan}, also use the Pythagorean trigonometric identity:
+Then we use the identity   tan ⁡ ≡ x  {\displaystyle \tan\equiv x} 

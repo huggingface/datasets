@@ -1,0 +1,2 @@
+लुआ त्रुटि Module:Location_map में पंक्ति 389 पर: Minutes can only be provided with DMS degrees for longitude।
+सान मार्टिन का गिरजाघर  एक गिरजाघर है जो एन्त्रेना, स्पेन में मौजूद है। 1984 ई. में इसे बिएन दे इंतेरेस कल्चरल की सूची में शामिल किया गया था। 

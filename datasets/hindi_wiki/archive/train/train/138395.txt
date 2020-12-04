@@ -1,0 +1,4 @@
+Letterlike Symbols are graphemes which are constructed mainly from the glyphs of one or more letters.
+In Unicode, Letterlike Symbols are placed in the block U+2100–214F, as in the following table.
+साँचा:Unicode chart Letterlike Symbols
+साँचा:Unicode navigation

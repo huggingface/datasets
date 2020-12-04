@@ -1,0 +1,71 @@
+द्विध्रुवी ट्रांजिस्टर से बने प्रवर्धक को समुचित ढंग से अभिनत करना पड़ता है तभी यह अपेक्षित ढंग से कार्य कर सकता है अन्यथा विविध प्रकार की समस्याएँ आ सकतीं हैं। बीजेटी को अभिनत करने के लिए कई तरह के नेटवर्क प्रयोग किए जाते हैं, जिनकी अपनी-अपने गुणदोष हैं। अलग-अलग बीजेटी से निर्मित प्रवर्धकों में प्रायः प्रतिरोधों के विभिन्न विन्यासों की सहायता से अभिनत किया जाता है जबकि एकीकृत परिपथों में इसकी अपेक्षा अधिक उन्नत अभिनति का उपयोग किया जाता है । 
+अभिनति की डिजाइन में इस बात को सुनिश्चित किया जाता है कि ट्रांजिस्टर का ताप बदलने पर, ट्रांजिस्टर का β बदलने पर या थोड़ा अलग β वाला ट्रांजिस्टर लगाने पर, या डीसी सप्लाई के वोल्टेज में थोड़ा परिवर्तन होने पर भी ट्रांजिस्टर का संचालन बिन्दु उतना अधिक न बदले ताकि ट्रांजिस्टर अपने सक्रिय क्षेत्र में ही बना रहे और अपेक्षित ढंग से कार्य कर सके। 
+ट्रांजिस्टर के 'संचालन बिन्दु' का अर्थ है- जब इन्पुट संकेत न लगा हो उस स्थिति में ट्रांजिस्टर का डीसी कलेक्टर-एमिटर वोल्टता और कलेक्टर धारा । इसे 'बायस-बिन्दु', 'क्विसेन्ट बिन्दु' या 'क्यू-बिन्दु' भी कहते हैं। 
+ट्रांजिस्टर एम्प्लिफायरों को क्लास-ए में अभिनत करने के लिए मुख्यतः निम्नलिखित अभिनति परिपथों का उपयोग किया जाता है-
+इस अभिनति को 'बेस बायस' अथवा 'फिक्स्ड रेजिस्टैन्स बायस' भी कहते हैं। सामने के चित्र में कलेक्टर और बेस दोनों के लिए एक ही डीसी सप्लाई का उपयोग किया गया है, किन्तु दो अलग-अलग सप्लाई भी प्रयोग किए जा सकते हैं।
+इस चित्र के सन्दर्भ में-
+अतः,
+For a given transistor, Vbe does not vary significantly during use. As Vcc is of fixed value, on selection of Rb, the base current Ib is fixed. Therefore, this type is called fixed bias type of circuit.
+Also for given circuit,
+Therefore,
+The common-emitter current gain of a transistor is an important parameter in circuit design, and is specified on the data sheet for a particular transistor. It is denoted as β on this page.
+अतः
+we can obtain Ic as well. In this manner, operating point given as can be set for given transistor.
+लाभ:
+अलाभ:
+उपयोग:
+Due to the above inherent drawbacks, fixed bias is rarely used in linear circuits . Instead, it is often used in circuits where transistor is used as a switch. However, one application of fixed bias is to achieve crude automatic gain control in the transistor by feeding the base resistor from a DC signal derived from the AC output of a later stage.
+This configuration employs negative feedback to prevent thermal runaway and stabilize the operating point. In this form of biasing, the base resistor   R b   {\displaystyle R_{\text{b}}} is connected to the collector instead of connecting it to the DC source   V cc   {\displaystyle V_{\text{cc}}} . So any thermal runaway will induce a voltage drop across the   R C   {\displaystyle R_{\text{C}}} resistor that will throttle the transistor's base current.
+From Kirchhoff's voltage law, the voltage   V  R  b    {\displaystyle V_{{\text{R}}_{\text{b}}}} across the base resistor   R b   {\displaystyle R_{\text{b}}} is
+By the Ebers–Moll model,   I c  = β I b   {\displaystyle I_{\text{c}}=\beta I_{\text{b}}}, and so
+From Ohm's law, the base current   I b  = V  R  b   /  R b   {\displaystyle I_{\text{b}}=V_{{\text{R}}_{\text{b}}}/R_{\text{b}}}, and so
+Hence, the base current   I b   {\displaystyle I_{\text{b}}} is
+If   V be   {\displaystyle V_{\text{be}}} is held constant and temperature increases, then the collector current   I c   {\displaystyle I_{\text{c}}} increases. However, a larger   I c   {\displaystyle I_{\text{c}}} causes the voltage drop across resistor   R c   {\displaystyle R_{\text{c}}} to increase, which in turn reduces the voltage   V  R  b    {\displaystyle V_{{\text{R}}_{\text{b}}}} across the base resistor   R b   {\displaystyle R_{\text{b}}} . A lower base-resistor voltage drop reduces the base current   I b   {\displaystyle I_{\text{b}}}, which results in less collector current   I c   {\displaystyle I_{\text{c}}} . Because an increase in collector current with temperature is opposed, the operating point is kept stable.
+लाभ:
+अलाभ:
+which is the case when
+उपयोग:The negative feedback also increases the input impedance of the amplifier as seen from the base, which can be advantageous.Due to the gain reduction from feedback, this biasing form is used only when the trade-off for stability is warranted.
+The fixed bias circuit is modified by attaching an external resistor to the emitter. This resistor introduces negative feedback that stabilizes the Q-point. From Kirchhoff's voltage law, the voltage across the base resistor is
+From Ohm's law, the base current is
+The way feedback controls the bias point is as follows. If Vbe is held constant and temperature increases, emitter current increases. However, a larger Ie increases the emitter voltage Ve = IeRe, which in turn reduces the voltage VRb across the base resistor. A lower base-resistor voltage drop reduces the base current, which results in less collector current because Ic = β Ib. Collector current and emitter current are related by Ic = α Ie with α ≈ 1, so the increase in emitter current with temperature is opposed, and the operating point is kept stable.
+Similarly, if the transistor is replaced by another, there may be a change in Ic . By similar process as above, the change is negated and operating point kept stable.
+For the given circuit,
+Advantages:
+The circuit has the tendency to stabilize operating point against changes in temperature and β-value.
+Disadvantages:
+which is approximately the case if
+उपयोग:
+The feedback also increases the input impedance of the amplifier when seen from the base, which can be advantageous. Due to the above disadvantages, this type of biasing circuit is used only with careful consideration of the trade-offs involved.
+Collector-Stabilized Biasing
+The voltage divider is formed using external resistors R1 and R2. The voltage across R2 forward biases the emitter junction. By proper selection of resistors R1 and R2, the operating point of the transistor can be made independent of β. In this circuit, the voltage divider holds the base voltage fixed independent of base current provided the divider current is large compared to the base current. However, even with a fixed base voltage, collector current varies with temperature so an emitter resistor is added to stabilize the Q-point, similar to the above circuits with emitter resistor. The voltage divider configuration achieves the correct voltages by the use of resistors in certain patterns. By manipulating the resistors in certain ways you can achieve more stable current levels without having β value affect it too much.
+In this circuit the base voltage is given by:
+   V B  =   {\displaystyle V_{B}=\ } voltage across   R 2    {\displaystyle R_{2}\ }   = V c c   R 2    − I b    R 1  R 2      {\displaystyle =V_{cc}{\frac {R_{2}}{}}-I_{b}{\frac {R_{1}R_{2}}{}}} 
+Also   V B  = V b e  + I e  R e    {\displaystyle V_{B}=V_{be}+I_{e}R_{e}\ } 
+For the given circuit,
+लाभ:
+अलाभ:
+which is approximately the case if
+where R1 || R2 denotes the equivalent resistance of R1 and R2 connected in parallel.
+उपयोग:
+The circuit's stability and merits as above make it widely used for linear circuits.
+The standard voltage divider circuit discussed above faces a drawback – AC feedback caused by resistor RE reduces the gain. This can be avoided by placing a capacitor in parallel with Re, as shown in circuit diagram. The result is that the DC operating point is well controlled, while the AC-gain is much higher, rather than the much lower value of   R c  /  R e   {\displaystyle R_{\text{c}}/R_{\text{e}}} without the capacitor. 
+When a split supply is available, this biasing circuit is the most effective, and provides zero bias voltage at the emitter or collector for load. The negative supply Vee is used to forward-bias the emitter junction through Re. The positive supply Vcc is used to reverse-bias the collector junction. Only two resistors are necessary for the common collector stage and four resistors for the common emitter or common base stage.
+We know that,
+Vb − Ve = Vbe
+If Rb is small enough, base voltage will be approximately zero. Therefore, emitter current is,
+Ie = /Re
+The operating point is independent of β if Re >> Rb/β
+Advantages:
+Disadvantages:
+This type can only be used when a split power supply is available.
+Class B and AB amplifiers employ 2 active devices to cover the complete 360 deg of input signal flow. Each transistor is therefore biased to perform over approximately 180 deg of the input signal. Class B bias is when the collector current Ic with no signal is just conducting . Class-AB bias is when the collector current Ic is about 1/4 of maximum possible value.The class-AB push–pull output amplifier circuit below could be the basis for a moderate-power audio amplifier. 
+Q3 is a common emitter stage that provides amplification of the signal and the DC bias current through D1 and D2 to generate a bias voltage for the output devices. The output pair are arranged in class-AB push–pull, also called a complementary pair. The diodes D1 and D2 provide a small amount of constant voltage bias for the output pair, just biasing them into the conducting state so that crossover distortion is minimized. That is, the diodes push the output stage into class-AB mode .
+This design automatically stabilizes its operating point, since overall feedback internally operates from DC up through the audio range and beyond. The use of fixed diode bias requires the diodes to be both electrically and thermally matched to the output transistors. If the output transistors conduct too much, they can easily overheat and destroy themselves, as the full current from the power supply is not limited at this stage.
+A common solution to help stabilize the output device operating point is to include some emitter resistors, typically an ohm or so. Calculating the values of the circuit's resistors and capacitors is done based on the components employed and the intended use of the amplifier.
+   I B  =   V B B  − 0.7 V  R B    {\displaystyle I_{B}={\frac {V_{BB}-0.7V}{R_{B}}}} 
+इसमें मान रखने पर,
+   I B  =  5 V − 0.7 V  500 k Ω  = 8, 6 μ A  {\displaystyle I_{B}={\frac {5V-0.7V}{500k\Omega }}=8,6\mu A} 
+अब,
+   I C  = β ∗ I B  = 100 ∗ 8, 6 μ A = 0, 86 m A  {\displaystyle I_{C}=\beta *I_{B}=100*8,6\,\mu A=0,86\,mA} 
+अब आउटपुट परिपथ में  लगाने पर,
+     V C E   = V C C  − R C  ∗ I C     = 12 − 0, 86 m A ∗ 2 K Ω    = 10, 28 V    {\displaystyle {\begin{aligned}V_{CE}&=V_{CC}-R_{C}*I_{C}\\&=12-0,86\,mA*2K\Omega \\&=10,28V\end{aligned}}} 

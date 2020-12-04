@@ -1,0 +1,2 @@
+लुआ त्रुटि Module:Location_map में पंक्ति 389 पर: Minutes can only be provided with DMS degrees for longitude।
+गुआदलाजरा गिरजाघर एक गिरजाघर है जो गुआदलाजरा, स्पेन में स्थित है। इसे बिएन दे इंतेरेस कल्चरल के तौर पर 1931 में घोषित किया गया था। 

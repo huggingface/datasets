@@ -1,0 +1,2 @@
+परिरक्षित केबल सामान्य चालक लेप द्वारा परिवृत एक अथवा अधिक कुचालकों वाली चालक विद्युत केबल है।
+ IEEE 422: IEEE Guide for the Design and Installation of Cable Systems in Power Generating StationsIEEE 525: IEEE Guide for the Design and Installation of Cable Systems in Substations 

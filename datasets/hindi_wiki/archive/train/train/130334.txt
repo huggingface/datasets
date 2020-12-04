@@ -1,0 +1,3 @@
+लुआ त्रुटि Module:Location_map में पंक्ति 389 पर: Minutes can only be provided with DMS degrees for longitude।
+तोबर्रा का गिरजाघर  एक गिरजाघर है जो तोबर्रा, स्पेन में स्थित है।
+इसे बिएन दे इंतेरेस कल्चरल की श्रेणी में 2000 में शामिल किया गया था। 

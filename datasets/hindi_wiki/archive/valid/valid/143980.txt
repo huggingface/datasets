@@ -1,0 +1,9 @@
+गणित में डिस्क्रीट टाइम फुरिअर ट्रान्सफार्म या डीटीएफटी, फुरिअर विश्लेषण के कई रुपों में से एक रूप है। यह अनन्त तक परिभाषित किसी अनावर्ती डिस्क्रीट-टाइम सेक्वेंस को रूपानतरित करता है। इसे यह भी कहते हैं कि समय-डोमेन का आंकड़ा आवृत्ति-डोमेन में बदल गया। डीटीएफटी द्वारा प्राप्त आवृत्ति-डोमेन का आंकड़ा सतत एवं आवर्ती होता है।
+यदि कोई वास्तविक या समिश्र संख्याओं का समुच्चय :   x, n ∈ Z  {\displaystyle x,\;n\in \mathbb {Z} }, दिया हो तो   x   {\displaystyle x\,} का डीटीएफटी प्रायः इस प्रकार व्यक्त किया जाता है:
+  X = ∑ n = − ∞  ∞  x  e − i ω n  .  {\displaystyle X=\sum _{n=-\infty }^{\infty }x\,e^{-i\omega n}.} 
+निम्नलिखित रुपान्तर करने पर डिस्क्रीट-टाइम सेक्वेंस फिर से प्राप्त हो जायेगा:
+The integrals span one full period of the DTFT, which means that the x samples are also the coefficients of a Fourier series expansion of the DTFT.  Infinite limits of integration change the transform into a continuous-time Fourier transform, which produces a sequence of Dirac impulses. That is:
+नीचे कुछ मानक डिस्क्रीट टाइम सेक्वेंस एवं उनके डीटीएफटी रुपानतर दिये हुए हैं। इसमें प्रयुक्त प्रतीकों का अर्थ निम्नवत है:
+This table shows the relationships between generic discrete-time Fourier transforms. We use the following notation:
+The first column provides a description of the property, the second column shows the function in the time domain, the third column shows the spectrum in the frequency domain:
+फुरिअर रुपान्तर, वास्तविक एवं काल्पनिक या सम एवं विषम के योग के रूप में व्यक्त की जा सकती है।   X = X R  + i X I    {\displaystyle X=X_{R}+iX_{I}\!} या   X = X E  + X O    {\displaystyle X=X_{E}+X_{O}\!} 
