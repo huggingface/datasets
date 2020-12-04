@@ -41,7 +41,7 @@ class GoogleWellformedQuery(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({"rating": datasets.Value("string"), "content": datasets.Value("string")}),
+            features=datasets.Features({"rating": datasets.Value("float"), "content": datasets.Value("string")}),
             supervised_keys=None,
             homepage="https://github.com/google-research-datasets/query-wellformedness",
             citation=_CITATION,
