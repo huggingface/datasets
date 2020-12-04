@@ -20,7 +20,7 @@ task_ids:
 - other-diacritics-prediction
 ---
 
-# Dataset Card for MetRec
+# Dataset Card for Tashkeela
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
