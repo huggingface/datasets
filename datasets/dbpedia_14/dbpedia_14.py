@@ -27,8 +27,8 @@ import datasets
 _CITATION = """\
 @article{lehmann2015dbpedia,
   title={DBpedia--a large-scale, multilingual knowledge base extracted from Wikipedia},
-  author={Lehmann, Jens and Isele, Robert and Jakob, Max and Jentzsch, Anja and Kontokostas, 
-  Dimitris and Mendes, Pablo N and Hellmann, Sebastian and Morsey, Mohamed and Van Kleef, 
+  author={Lehmann, Jens and Isele, Robert and Jakob, Max and Jentzsch, Anja and Kontokostas,
+  Dimitris and Mendes, Pablo N and Hellmann, Sebastian and Morsey, Mohamed and Van Kleef,
   Patrick and Auer, S{\"o}ren and others},
   journal={Semantic web},
   volume={6},
