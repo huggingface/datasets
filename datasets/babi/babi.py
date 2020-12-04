@@ -16,17 +16,16 @@
 
 from __future__ import absolute_import, division, print_function
 
-import re
 import os
+import re
+from dataclasses import dataclass
 
 import datasets
-
-from dataclasses import dataclass
 
 
 _CITATION = """\
 @misc{weston2015aicomplete,
-      title={Towards AI-Complete Question Answering: A Set of Prerequisite Toy Tasks}, 
+      title={Towards AI-Complete Question Answering: A Set of Prerequisite Toy Tasks},
       author={Jason Weston and Antoine Bordes and Sumit Chopra and Alexander M. Rush and Bart van Merriënboer and Armand Joulin and Tomas Mikolov},
       year={2015},
       eprint={1502.05698},
@@ -34,7 +33,7 @@ _CITATION = """\
       primaryClass={cs.AI}
 }
 @misc{sukhbaatar2015endtoend,
-      title={End-To-End Memory Networks}, 
+      title={End-To-End Memory Networks},
       author={Sainbayar Sukhbaatar and Arthur Szlam and Jason Weston and Rob Fergus},
       year={2015},
       eprint={1503.08895},
@@ -61,6 +60,7 @@ _URL = "http://parl.ai/downloads/babi/babi.tar.gz"
 @dataclass
 class bAbIConfig(datasets.BuilderConfig):
     """ We add the task and number of examples to the standard builder for easy access in the creation method"""
+
     task: int = 1
     examples: int = 1
     replace_comma: bool = False
@@ -83,8 +83,12 @@ class BABI(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        bAbIConfig(name=f"task_{t+1}_with_{n}k_examples", description=f"This is the task {t+1} of bAbI with {n}k examples",
-                   task=t+1, examples=n)
+        bAbIConfig(
+            name=f"task_{t+1}_with_{n}k_examples",
+            description=f"This is the task {t+1} of bAbI with {n}k examples",
+            task=t + 1,
+            examples=n,
+        )
         for t in range(20)
         for n in [1, 10]
     ]
@@ -95,7 +99,7 @@ class BABI(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            features = datasets.Features(
+            features=datasets.Features(
                 {
                     "ID": datasets.Value("int32"),
                     "text": datasets.Value("string"),
@@ -120,9 +124,9 @@ class BABI(datasets.GeneratorBasedBuilder):
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
+        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         data_dir = dl_manager.download_and_extract(_URL)
-        exsz = '-10k' if self.config.examples == 10 else ''
+        exsz = "-10k" if self.config.examples == 10 else ""
         task = self.config.task
         data_dir = os.path.join(data_dir, "tasks_1-20_v1-2", f"en-valid{exsz}-nosf")
         return [
@@ -165,7 +169,7 @@ class BABI(datasets.GeneratorBasedBuilder):
                 current_id = new_id
 
                 if m.group(3) and self.config.replace_comma and self.config.task in [8, 19]:
-                    answers = m.group(3).replace(',', ' ')
+                    answers = m.group(3).replace(",", " ")
                 else:
                     answers = m.group(3)
 
