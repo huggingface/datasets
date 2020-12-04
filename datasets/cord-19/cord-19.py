@@ -72,11 +72,9 @@ class Cord19(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-
             # metadata headers
             # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,
             # who_covidence_id,arxiv_id,pdf_json_files,pmc_json_files,url,s2_id
-
             features=datasets.Features(
                 {
                     "cord_uid": datasets.Value("string"),
