@@ -92,7 +92,7 @@ class Thaisum(datasets.GeneratorBasedBuilder):
         """Generate examples."""
         with open(filepath, encoding="utf-8") as f:
             csv_reader = csv.reader(f)
-            header = next(csv_reader)
+            next(csv_reader)  # skip header
             for id_, row in enumerate(csv_reader):
                 yield id_, {
                     "title": row[0],
