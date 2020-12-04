@@ -132,7 +132,6 @@ class GreatCode(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath, datatype):
-        print("#############################")
         for dp in datapath:
             with open(dp, "r", encoding="utf-8") as json_file:
                 json_list = list(json_file)
@@ -161,5 +160,4 @@ class GreatCode(datasets.GeneratorBasedBuilder):
                     ],
                     "provenances": result["provenances"],
                 }
-                # print(response)
                 yield example_counter, response
