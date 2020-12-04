@@ -1,0 +1,11 @@
+यह रंग पट्टिकाओं की सूची एक लेख है, जो कम्प्यूटर ग्राफिक्स्, टर्मिनल एवं वीडियो गेम्स के प्रदर्शकों हेतु बना है।
+रंग पट्टिका, जिसे रंग पैलेट भी कहते हैं, उसका केवल मात्र एक एक नमूना ही यहाँ दिया है।
+नमूना परिक्षण सारणी, दी गई है।
+
+Systems that use a 4-bit or 8-bit pixel depth can display up to 16 or 256 colors simultaneously. Many personal computers in the later 1980s and early 1990s displayed at most 256 different colors, freely selected by software from their wider hardware's color palette.
+The color palettes of some of the most popular early personal computers and terminals. They may be based on RGB palettes, but also common are specific hardware-implemented 4, 16 or more colors palettes: not bit nor level combinations of RGB primaries, but fixed ROM/circuitry colors selected by the manufacturer.
+Many of early models output composite video YPbPr colors. When seen on TV devices, the perception of the colors may be not corresponding with the value levels for the YPbPr values employed .
+For current RGB display systems for PC's, see the 16-bit RGB and 24-bit RGB for HighColor and TrueColor modes.
+For video game consoles, see the List of videogame consoles section.
+
+Color palettes of some of the most popular videogame consoles. The criteria are the same that of the List of computer hardware palettes section.

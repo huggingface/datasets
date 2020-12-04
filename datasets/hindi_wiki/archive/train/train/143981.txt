@@ -1,0 +1,6 @@
+साहा समीकरण का विकाश सुप्रसिद्ध भारतीय खगोलविज्ञानी मेघनाद साहा ने 1920 में किया था। इसके द्वारा वर्णपट्ट के आधार पर तारों के वर्गीकरण की व्याख्या की गई है। For a gas composed of a single atomic species, the Saha equation is written:
+where:
+In the case where only one level of ionization is important, we have   n 1  = n e   {\displaystyle n_{1}=n_{e}} and defining the total density n as   n = n 0  + n 1   {\displaystyle n=n_{0}+n_{1}}, the Saha equation simplifies to:
+where   ϵ  {\displaystyle \epsilon } is the energy of ionization.
+The Saha equation is useful for determining the ratio of particle densities for two different ionization levels. The most useful form of the Saha equation for this purpose is
+where Z denotes the partition function. The Saha equation can be seen as a restatement of the equilibrium condition for the chemical potentials:

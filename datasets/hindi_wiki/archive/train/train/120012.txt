@@ -1,0 +1,3 @@
+ समान्तर चतुर्भुज ज्यामिति की एक आकृति है।Area of parallelogram=1/2any one side×perpendicular distance between them
+Perimeter =sum of all opposite side 
+ज्यामिति की ऐसी आकृति जिसकी आमने सामने की भुजाएं समान्तर हों। उसे समान्तर चतुर्भुज कहते हैं।

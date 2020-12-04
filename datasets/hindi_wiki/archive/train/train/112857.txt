@@ -1,0 +1,17 @@
+कटपयादि संख्या कर्नाटक संगीत में मेलापक राग की संख्या ज्ञात करने के काम आती है। इसके लिये राग के नाम के प्रथम दो सिलैबल्स के संगत कटपयादि संख्या निकालनी पड़ती है।
+नीचे की सारणी में देवनागरी वर्णों के संगत कटपयादि संख्याएं दी गयी हैं।
+To use the sankhya, take the first two syllables of the name of the raga, and locate the corresponding columns on the table. Then take the two numbers and reverse them to get the mela number. This is according to the following sutra: अंकानां वामतॊ गतिः direction)।
+कटपयादि संख्या is a simplification of Āryabhaṭa's Sanskrit numerals, due probably to Haridatta from Kerala, c. 620-700.
+The Swaras 'Sa' and 'Pa' are fixed, and here is how to get the other swaras from the melakarta number.
+राग धीरशंकरभरणम
+The katapayadi scheme associates dha  ↔  {\displaystyle \leftrightarrow } 9 and ra  ↔  {\displaystyle \leftrightarrow } 2, hence the raga's melakarta number is 29 ।
+Now 29   ≤  {\displaystyle \leq } 36, hence Dheerasankarabharanam has Ma1. Divide 28 by 6, the quotient is 4 and the remainder 4. Therefore, this raga has Ri2, Ga3 and Da2, Ni3 ।
+This raga's scale is Sa Ri2 Ga3 Ma1 Pa Da2 Ni3 SA.
+राग मेचकल्याणी
+From the coding scheme Ma   ↔  {\displaystyle \leftrightarrow } 5, Cha   ↔  {\displaystyle \leftrightarrow } 6. Hence the raga's melakarta number is 65 ।
+65 is greater than 36. So MechaKalyani has Ma2.
+Since the raga's number is greater than 36 subtract 36 from it. 65-36=29.	28 divided by 6 : quotient=4, remainder=4	Ri2 Ga3 occurs.	Da2 Ni3 occurs.
+So MechaKalyani has the notes Sa Ri2 Ga3 Ma2 Pa Da2 Ni3 SA.
+अपवाद: सिंहेन्द्रमाध्ययम
+You can see that, as per the above calculation we should get Sa   ↔  {\displaystyle \leftrightarrow } 7, Ha   ↔  {\displaystyle \leftrightarrow } 8 giving the number 87 instead of 57 for Simhendramadhyamam. This should be ideally Sa   ↔  {\displaystyle \leftrightarrow } 7, Ma   ↔  {\displaystyle \leftrightarrow } 5 giving the number 57. So it is believed that the name should be written as Sihmendramadhymam ।
+You can play with the other ragas in the Melakarta Table.

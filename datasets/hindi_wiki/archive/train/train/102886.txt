@@ -1,0 +1,2 @@
+लुआ त्रुटि Module:Location_map में पंक्ति 389 पर: Minutes can only be provided with DMS degrees for longitude।
+सिफ़ुएन्तस का गिरजाघर एक गिरजाघर है जो सिफ़ुएन्तस, स्पेन में मौजूद है। 1991 ई. में इसे बिएन दे इंतेरेस कल्चरल की सूची में शामिल किया गया था। 

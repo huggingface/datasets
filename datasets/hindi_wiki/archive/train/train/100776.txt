@@ -1,0 +1,3 @@
+The HTML mark up produced by this template includes an hProduct microformat, which makes the product's details parsable by computers, either acting automatically to index articles across Wikipedia for search engines, or via a browser tool operated by a person. For more information about the use of microformats on Wikipedia, please see the microformat project.
+hProduct uses HTML classes including:
+Please do not rename or remove these classes; nor collapse nested elements which use them.

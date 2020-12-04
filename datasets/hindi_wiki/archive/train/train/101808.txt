@@ -1,0 +1,12 @@
+गणित में त्रिकोणमितीय फलनों के प्रतिलोम फलनों को प्रतिलोम त्रिकोणमितीय फलन कहते हैं। इनके डोमेन समुचित रूप से सीमित करके पारिभाषित किये गये हैं।इन्हें sin−1, cos−1 आदि के रूप में निरूपित करते हैं और 'साइन इन्वर्स', 'कॉस इन्वर्स' आदि बोलते हैं। 
+उदाहरण:
+चूँकि कोई भी त्रिकोणमितीय फलन एकैकी नहीं है, इनके प्रतिलोम फलन तभी सम्भव होंगे यदि इनके डोमेन सीमित रखे जांय।
+निम्नांकित सारणी में मुख्य प्रतिलोमों का विवरण दिया गया है-
+यदि x को समिश्र संख्या होने की छूट हो तो y का रेंज केवल इसके वास्तविक भाग पर ही लागू होगा।
+Complementary angles:
+Negative arguments:
+Reciprocal arguments:
+If you only have a fragment of a sine table:
+Whenever the square root of a complex number is used here, we choose the root with the positive real part .
+From the half-angle formula   tan ⁡  θ 2  =  sin ⁡ θ  1 + cos ⁡ θ   {\displaystyle \tan {\frac {\theta }{2}}={\frac {\sin \theta }{1+\cos \theta }}}, we get:
+निम्नलिखित में k कोई पूर्णांक है।

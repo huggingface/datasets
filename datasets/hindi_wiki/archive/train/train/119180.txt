@@ -1,0 +1,10 @@
+मैक्सवेल के समीकरण विद्युतचुम्बकीय क्षेत्रों के व्यवहार की व्याख्या करते हैं। विद्युत क्षेत्र, विद्युत विस्थापन क्षेत्र,, चुम्बकीय क्षेत्र और चुम्बकीय क्षेत्र की तीव्रता चार चुम्बकीय क्षेत्र सदिश हैं। सदिश E, D, B और H के अवकलनीय होने के लिये आवश्यक है कि माध्यम सतत हो। 
+किन्तु यदि कहीं अलग-अलग विद्युतशीलता एवं चुम्बकीय पारगम्यता वाले दो माध्यम मिलते हैं तो उनके अन्तरापृष्ठ पर विद्युतचुम्बकीय क्षेत्रों का व्यवहार निम्नलिखित प्रकार का होता है-
+where:    n  12   {\displaystyle \mathbf {n} _{12}} is normal vector from medium 1 to medium 2.
+अतः अन्तरापृष्ठ पर E का स्पर्शरेखीय घटक सतत होता है।
+where:    n  12   {\displaystyle \mathbf {n} _{12}} is normal vector from medium 1 to medium 2.   ρ s   {\displaystyle \rho _{s}} is the surface charge between the media.
+अतः अन्तरापृष्ठ पर D का अभिलाम्बिक घटक सतत नहीं होता बल्कि उनमें अन्तरापृष्ठीय तल पर मौजूद तलीय आवेश घनत्व के बराबर अन्तर होता है।
+where:    n  12   {\displaystyle \mathbf {n} _{12}} is normal vector from medium 1 to medium 2.
+अतः अन्तरापृष्ठ पर B का अभिलाम्बिक घटक सतत होता है।
+where:    n  12   {\displaystyle \mathbf {n} _{12}} is normal vector from medium 1 to medium 2.   j  s   {\displaystyle \mathbf {j} _{s}} is the surface current density between the two media.
+अतः, यदि तलीय धारा शून्य हो तो अन्तरापृष्ठ पर H का स्पर्शरेखीय घटक सतत होगा।

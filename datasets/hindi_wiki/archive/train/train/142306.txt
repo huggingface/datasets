@@ -1,0 +1,5 @@
+यहाँ उन सॉफ्टवेयर-साधनों की सूची दी गयी है निनकी सहायता से जीवन्त यूएसबी का निर्मान किया जाता है।
+बहुचालन का अर्थ है कि उस औजार की सहायता से एक ही यूएसबी के ऊपर एक से अधिक प्रचालन तंत्र स्थापित किये जा सकते हैं। इसके साथ ही यूएसबी पर एक 'बूटलोदर' भी बना दिया जाता है जो बूट करते समय प्रयोक्ता के सामने यह विकल्प उपस्थित करता है कि वह उन अनेकों प्रचालन तन्त्रों में से किसी एक का चुनाव कर सके।
+This program is designed to write a raw disk image to a removable device or backup a removable device to a raw image file.
+Official and derivates of Android, Arch, CentOS, Debian, Fedora, Gentoo, Knoppix, Manjaro, Linux Mint, PcLinuxOS, Porteus, Puppit, Sabayon, Slax, Tinycore, Ubuntu.
+Antivirus, system and security tools, Rescue CD, Disaster Recovery and Partition Editor. Clone of Hard Disk and Partition ... and more ISOs
