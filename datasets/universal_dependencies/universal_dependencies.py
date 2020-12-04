@@ -1189,7 +1189,7 @@ class UniversaldependenciesConfig(datasets.BuilderConfig):
         self.data_url = data_url
 
 
-class Universaldependencies(datasets.GeneratorBasedBuilder):
+class UniversalDependencies(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("2.7.0")
     BUILDER_CONFIGS = [
         UniversaldependenciesConfig(
