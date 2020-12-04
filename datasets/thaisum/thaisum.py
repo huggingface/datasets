@@ -103,6 +103,3 @@ class Thaisum(datasets.GeneratorBasedBuilder):
                     "tags": row[4],
                     "url": row[5],
                 }
-            # except Exception as e:
-            #     print(csv.field_size_limit())
-            #     print(e, filepath, id_, row)
