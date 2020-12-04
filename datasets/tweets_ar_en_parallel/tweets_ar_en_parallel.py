@@ -59,6 +59,7 @@ class ParallelTweets(datasets.GeneratorBasedBuilder):
         ParallelTweetsConfig(name=name, description=_DESCRIPTION, data_url=_DATA_URL, citation=_CITATION, url=_URL)
         for name in ["parallelTweets", "accountList", "countryTopicAnnotation"]
     ]
+    BUILDER_CONFIG_CLASS = ParallelTweetsConfig
 
     def _info(self):
         features = {}
