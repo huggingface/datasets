@@ -73,7 +73,9 @@ task_ids:
 
 ### Data Fields
 
-[More Information Needed]
+A data instance contains the following fields:
+- `ca`: the Catalan text
+- `en`: the aligned English text
 
 ### Data Splits
 
