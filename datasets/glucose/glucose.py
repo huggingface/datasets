@@ -62,7 +62,10 @@ class Glucose(datasets.GeneratorBasedBuilder):
         feature_dict = {
             "experiment_id": datasets.Value("string"),
             "story_id": datasets.Value("string"),
+            # The train set contains only one ID in numeric form
             "worker_id": datasets.Value("int64"),
+            # The test set contains several IDs in string form
+            "worker_ids": datasets.Value("string"),
             "submission_time_normalized": datasets.Value("string"),
             "worker_quality_assessment": datasets.Value("int64"),
             "selected_sentence_index": datasets.Value("int64"),
@@ -89,6 +92,7 @@ class Glucose(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         train_url = _URLs[self.config.name]["train"]
         test_url = _URLs[self.config.name]["test"]
+        print(test_url)
         train_data = dl_manager.download_and_extract(train_url)
         test_data = dl_manager.download_and_extract(test_url)
         return [
@@ -112,6 +116,8 @@ class Glucose(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(data):
                 if split == "train":
                     yield id_, train_dict_from_row(row)
+                else:
+                    yield id_, test_dict_from_row(row)
 
 
 def train_dict_from_row(row):
@@ -119,6 +125,7 @@ def train_dict_from_row(row):
         "experiment_id": row[0],
         "story_id": row[1],
         "worker_id": row[2],
+        "worker_ids": "",
         "submission_time_normalized": row[3],
         "worker_quality_assessment": row[4],
         "selected_sentence_index": row[5],
@@ -136,19 +143,20 @@ def train_dict_from_row(row):
 
 def test_dict_from_row(row):
     return_dict = {
-        "experiment_id": row[0],
-        "story_id": row[1],
-        "worker_id": None,
-        "submission_time_normalized": row[2],
-        "worker_quality_assessment": None,
-        "selected_sentence_index": row[3],
-        "story": row[4],
-        "selected_sentence": row[5],
-        "number_filled_in": None,
+        "experiment_id": "",
+        "story_id": row[0],
+        "worker_id": -1,
+        "worker_ids": row[3],
+        "submission_time_normalized": "",
+        "worker_quality_assessment": -1,
+        "selected_sentence_index": -1,
+        "story": row[1],
+        "selected_sentence": row[2],
+        "number_filled_in": -1,
     }
     for i in range(1, 11):
-        return_dict[f"{i}_specificNL"] = row[2 * i + 4]
-        return_dict[f"{i}_generalNL"] = row[2 * i + 5]
-        return_dict[f"{i}_specificStructured"] = None
-        return_dict[f"{i}_generalStructured"] = None
+        return_dict[f"{i}_specificNL"] = row[2 * i + 2]
+        return_dict[f"{i}_generalNL"] = row[2 * i + 3]
+        return_dict[f"{i}_specificStructured"] = ""
+        return_dict[f"{i}_generalStructured"] = ""
     return return_dict
