@@ -94,7 +94,6 @@ class Thaisum(datasets.GeneratorBasedBuilder):
             # try:
             csv_reader = csv.reader(f)
             header = next(csv_reader)
-            print(header)
             for id_, row in enumerate(csv_reader):
                 yield id_, {
                     "title": row[0],
