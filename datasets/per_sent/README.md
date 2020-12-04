@@ -60,7 +60,7 @@ task_ids:
 
 ### Dataset Summary
 
-PerSenT is a crowd-sourced dataset that captures the sentiment of an author towards the main entity in a news article. This dataset contains annotation for 5.3k documents and 38k paragraphs covering 3.2k unique entities.  For each article, annotators judge what the author’s sentiment is towards the main
+PerSenT is a crowd-sourced dataset that captures the sentiment of an author towards the main entity in a news article. This dataset contains annotations for 5.3k documents and 38k paragraphs covering 3.2k unique entities.  For each article, annotators judge what the author’s sentiment is towards the main
 (target) entity of the article. The annotations also include similar judgments on paragraphs within the article.
 
 ### Supported Tasks and Leaderboards
