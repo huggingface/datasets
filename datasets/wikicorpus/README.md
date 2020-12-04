@@ -80,7 +80,7 @@ task_ids:
   - text-classification-other-word-sense-disambiguation
 ---
 
-# Dataset Card for [Dataset Name]
+# Dataset Card for Wikicorpus
 
 ## Table of Contents
 - [Dataset Description](#dataset-description)
@@ -107,15 +107,17 @@ task_ids:
 
 ## Dataset Description
 
-- **Homepage:**
+- **Homepage:** https://www.cs.upc.edu/~nlp/wikicorpus/
 - **Repository:**
-- **Paper:**
+- **Paper:** https://www.cs.upc.edu/~nlp/papers/reese10.pdf
 - **Leaderboard:**
 - **Point of Contact:**
 
 ### Dataset Summary
 
-[More Information Needed]
+The Wikicorpus is a trilingual corpus (Catalan, Spanish, English) that contains large portions of the Wikipedia (based on a 2006 dump) and has been automatically enriched with linguistic information. In its present version, it contains over 750 million words.
+
+The corpora have been annotated with lemma and part of speech information using the open source library FreeLing. Also, they have been sense annotated with the state of the art Word Sense Disambiguation algorithm UKB. As UKB assigns WordNet senses, and WordNet has been aligned across languages via the InterLingual Index, this sort of annotation opens the way to massive explorations in lexical semantics that were not possible before.
 
 ### Supported Tasks and Leaderboards
 
@@ -123,7 +125,10 @@ task_ids:
 
 ### Languages
 
-[More Information Needed]
+Each sub-dataset is monolingual in the languages:
+- ca: Catalan
+- en: English
+- es: Spanish
 
 ## Dataset Structure
 
@@ -191,8 +196,24 @@ task_ids:
 
 ### Licensing Information
 
-The WikiCorpus is licensed under the same license as Wikipedia, that is, the GNU Free Documentation License (FDL; http://www.fsf.org/licensing/licenses/fdl.html)
+The WikiCorpus is licensed under the same license as Wikipedia, that is, the [GNU Free Documentation License](http://www.fsf.org/licensing/licenses/fdl.html)
 
 ### Citation Information
 
-[More Information Needed]
+```
+@inproceedings{reese-etal-2010-wikicorpus,
+    title = "{W}ikicorpus: A Word-Sense Disambiguated Multilingual {W}ikipedia Corpus",
+    author = "Reese, Samuel  and
+      Boleda, Gemma  and
+      Cuadros, Montse  and
+      Padr{\'o}, Llu{\'i}s  and
+      Rigau, German",
+    booktitle = "Proceedings of the Seventh International Conference on Language Resources and Evaluation ({LREC}'10)",
+    month = may,
+    year = "2010",
+    address = "Valletta, Malta",
+    publisher = "European Language Resources Association (ELRA)",
+    url = "http://www.lrec-conf.org/proceedings/lrec2010/pdf/222_Paper.pdf",
+    abstract = "This article presents a new freely available trilingual corpus (Catalan, Spanish, English) that contains large portions of the Wikipedia and has been automatically enriched with linguistic information. To our knowledge, this is the largest such corpus that is freely available to the community: In its present version, it contains over 750 million words. The corpora have been annotated with lemma and part of speech information using the open source library FreeLing. Also, they have been sense annotated with the state of the art Word Sense Disambiguation algorithm UKB. As UKB assigns WordNet senses, and WordNet has been aligned across languages via the InterLingual Index, this sort of annotation opens the way to massive explorations in lexical semantics that were not possible before. We present a first attempt at creating a trilingual lexical resource from the sense-tagged Wikipedia corpora, namely, WikiNet. Moreover, we present two by-products of the project that are of use for the NLP community: An open source Java-based parser for Wikipedia pages developed for the construction of the corpus, and the integration of the WSD algorithm UKB in FreeLing.",
+}
+```
