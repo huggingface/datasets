@@ -46,7 +46,7 @@ G (Physics), H (Electricity), and
 Y (General tagging of new or cross-sectional technology)
 There are two features:
   - description: detailed description of patent.
-  - summary: Patent abastract.
+  - abstract: Patent abastract.
 """
 
 _URL = "https://drive.google.com/uc?export=download&id=1J3mucMFTWrgAYa3LuBZoLRR3CzzYD3fa"
