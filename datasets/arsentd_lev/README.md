@@ -18,6 +18,7 @@ task_categories:
 - text-classification
 task_ids:
 - sentiment-classification
+- topic-classification
 ---
 
 # Dataset Card for ArSenTD-LEV
