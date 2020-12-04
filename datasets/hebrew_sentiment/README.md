@@ -94,7 +94,7 @@ tsv format:
 |                          | train  | test    |
 |--------------------------|--------|---------|
 | HebrewSentiment (token)  | 10243  | 2559    |
-| HebrewSentiment (morph)  | 10243  | 2559    | (not included in here)
+| HebrewSentiment (morph)  | 10243  | 2559    |
 
 
 ## Dataset Creation
