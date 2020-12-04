@@ -103,7 +103,7 @@ class ToTTo(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath, datatype):
-        with open(datapath, "r") as json_file:
+        with open(datapath, "r", encoding="utf-8") as json_file:
             json_list = list(json_file)
 
         for example_counter, json_str in enumerate(json_list):
