@@ -83,6 +83,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
                     "publish_time": datasets.Value("string"),
                     "authors": datasets.Value("string"),
                     "journal": datasets.Value("string"),
+                    "url": datasets.Value("string"),
                     # TODO "full_text" (complex nested json)
                     # TODO "bib_entries" (complex nested json)
                     # TODO "doc_embeddings" (separated file to be link by paper_id?)
@@ -97,6 +98,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         my_urls = _URL
         data_dir = dl_manager.download_and_extract(my_urls)
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -114,7 +116,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
         with open(filepath, mode="r", encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=",")
             # skip headers
-            headers = next(reader, None)
+            next(reader, None)
             # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,
             # who_covidence_id,arxiv_id,pdf_json_files,pmc_json_files,url,s2_id
             for i, line in enumerate(reader):
@@ -127,5 +129,6 @@ class Cord19(datasets.GeneratorBasedBuilder):
                     "abstract": line[8],
                     "publish_time": line[9],
                     "authors": line[10],
-                    "journal": line[11]
+                    "journal": line[11],
+                    "url": line[17],
                 }
