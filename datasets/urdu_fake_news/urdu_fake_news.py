@@ -40,7 +40,11 @@ class UrduFakeNews(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {"news": datasets.Value("string"), "class": datasets.ClassLabel(names=labels_list)}
+                {
+                    "news": datasets.Value("string"),
+                    "class": datasets.ClassLabel(names=labels_list),
+                    "file": datasets.Value("string"),
+                }
             ),
             homepage="https://github.com/MaazAmjad/Datasets-for-Urdu-news",
             citation=_CITATION,
@@ -66,11 +70,15 @@ class UrduFakeNews(datasets.GeneratorBasedBuilder):
             with open(filename, encoding="utf-8") as f:
                 news = ""
                 for line in f:
+                    if(line == '\n'):
+                        continue
                     news += line
 
-            key = os.path.basename(filename).rstrip(".txt")
+            name = os.path.basename(filename)
+            key = name.rstrip(".txt")
 
-            label = filename.split("/")[-2]
-            _class = 1 if (label == "Real") else 0
+            _class = 1 if("Real" in filename) else 0
+            # print(filename)
+            # _class = 1 if (label == "Real") else 0
 
-            yield key, {"news": news, "class": _class}
+            yield key, {"news": news, "class": _class, "file": name}

@@ -74,6 +74,7 @@ task_ids:
 
 - news: a string in urdu
 - class: the label indicating whethere the provided news is real or fake.
+- file: name of the file contianing the urdu news.
 
 ### Data Splits
 
