@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""WozDialogue: Reading Comprehension with Multiple Hops"""
+"""WozDialogue: a dataset for training task-oriented dialogue systems"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -45,7 +45,7 @@ _BASE_URL = "https://raw.githubusercontent.com/nmrksic/neural-belief-tracker/mas
 
 
 class WozDialogue(datasets.GeneratorBasedBuilder):
-    """WozDialogue: Reading Comprehension with Multiple Hops"""
+    """WozDialogue: a dataset for training task-oriented dialogue systems"""
 
     VERSION = datasets.Version("1.0.0")
     BUILDER_CONFIGS = [
