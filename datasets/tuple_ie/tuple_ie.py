@@ -69,7 +69,7 @@ class TupleIE(datasets.GeneratorBasedBuilder):
         )
         for name in _DOMAIN_FILES.keys()
     ]
-
+    BUILDER_CONFIG_CLASS = TupleIEConfig
     DEFAULT_CONFIG_NAME = "all"
 
     def _info(self):
