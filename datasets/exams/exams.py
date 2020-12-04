@@ -106,7 +106,7 @@ class Exams(datasets.GeneratorBasedBuilder):
     """Exams dataset"""
 
     VERSION = datasets.Version("1.0.0")
-
+    BUILDER_CONFIG_CLASS = ExamsConfig
     BUILDER_CONFIGS = [
         ExamsConfig(
             lang="",
