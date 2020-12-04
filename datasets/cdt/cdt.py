@@ -44,7 +44,7 @@ _LICENSE = "BSD 3-Clause"
 _URLs = "https://klejbenchmark.com/static/data/klej_cbd.zip"
 
 
-class CyberbullyingDetectionTask(datasets.GeneratorBasedBuilder):
+class Cdt(datasets.GeneratorBasedBuilder):
     """CyberbullyingDetectionTask"""
 
     VERSION = datasets.Version("1.1.0")
