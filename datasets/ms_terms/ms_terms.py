@@ -65,14 +65,12 @@ class MsTerms(datasets.GeneratorBasedBuilder):
             features=datasets.Features({k: datasets.Value("string") for k in feature_names}),
             supervised_keys=None,
             homepage="https://www.microsoft.com/en-us/language/terminology",
-            citation=""
+            citation="",
         )
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        path_to_manual_file = os.path.join(
-            os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), _FILENAME
-        )
+        path_to_manual_file = os.path.join(os.path.abspath(os.path.expanduser(dl_manager.manual_dir)), _FILENAME)
 
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
@@ -80,14 +78,12 @@ class MsTerms(datasets.GeneratorBasedBuilder):
                     path_to_manual_file, _FILENAME, self.manual_download_instructions
                 )
             )
-        return [
-            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file})
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"path": path_to_manual_file})]
 
     def _generate_examples(self, path=None, title_set=None):
         tree = ElementTree.parse(path)
         root = tree.getroot()
-        for i, entry in enumerate(root.findall('.//termEntry')):
+        for i, entry in enumerate(root.findall(".//termEntry")):
             entry_id = entry.attrib.get("id")
             langsets = entry.findall("./langSet")
             if len(langsets) != 2:
@@ -99,8 +95,8 @@ class MsTerms(datasets.GeneratorBasedBuilder):
             term_target = langsets[1].find(".//term").text
             yield i, {
                 _ENTRY_ID: entry_id,
-                _TERM_SOURCE: term_source, 
+                _TERM_SOURCE: term_source,
                 _TERM_POS: term_pos,
                 _TERM_DEFINITION: term_definition,
-                _TERM_TARGET: term_target
+                _TERM_TARGET: term_target,
             }
