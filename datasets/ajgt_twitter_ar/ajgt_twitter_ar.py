@@ -56,7 +56,7 @@ class AjgtConfig(datasets.BuilderConfig):
         super(AjgtConfig, self).__init__(version=datasets.Version("1.0.0", ""), **kwargs)
 
 
-class Ajgt(datasets.GeneratorBasedBuilder):
+class AjgtTwitterAr(datasets.GeneratorBasedBuilder):
     """Ajgt dataset."""
 
     BUILDER_CONFIGS = [
