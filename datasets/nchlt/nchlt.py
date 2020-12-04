@@ -157,7 +157,7 @@ class NCHLT(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filenames):
-        for filename in filenames:
+        for filename in sorted(filenames):
             id_ = 0
             tokens = []
             ner_tags = []
