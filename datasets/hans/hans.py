@@ -76,6 +76,13 @@ class Hans(datasets.GeneratorBasedBuilder):
                     "premise": datasets.Value("string"),
                     "hypothesis": datasets.Value("string"),
                     "label": datasets.features.ClassLabel(names=["entailment", "non-entailment"]),
+                    "parse_premise": datasets.Value("string"),
+                    "parse_hypothesis": datasets.Value("string"),
+                    "binary_parse_premise": datasets.Value("string"),
+                    "binary_parse_hypothesis": datasets.Value("string"),
+                    "heuristic": datasets.Value("string"),
+                    "subcase": datasets.Value("string"),
+                    "template": datasets.Value("string"),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -122,4 +129,15 @@ class Hans(datasets.GeneratorBasedBuilder):
             if split_line[0] == "-":
                 continue
             # Works for both splits even though dev has some extra human labels.
-            yield idx, {"premise": split_line[5], "hypothesis": split_line[6], "label": split_line[0]}
+            yield idx, {
+                "premise": split_line[5],
+                "hypothesis": split_line[6],
+                "label": split_line[0],
+                "binary_parse_premise": split_line[1],
+                "binary_parse_hypothesis": split_line[2],
+                "parse_premise": split_line[3],
+                "parse_hypothesis": split_line[4],
+                "heuristic": split_line[8],
+                "subcase": split_line[9],
+                "template": split_line[10],
+            }
