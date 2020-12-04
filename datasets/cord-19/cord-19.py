@@ -23,6 +23,7 @@ import os
 
 import datasets
 
+
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @article{Wang2020CORD19TC,
@@ -61,7 +62,7 @@ class Cord19(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(
             name="cord-19",
             description="The whole dataset in a compressed file. Only title and "
-                        "abstract of each article are loaded for now.",
+            "abstract of each article are loaded for now.",
         ),
         # datasets.BuilderConfig(name="second_domain", description="This part of my dataset covers a second domain"),
     ]
