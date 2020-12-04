@@ -1,6 +1,83 @@
 ---
-YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+  raw_ca: []
+  raw_en: []
+  raw_es: []
+  tagged_ca:
+  - machine-generated
+  tagged_en:
+  - machine-generated
+  tagged_es:
+  - machine-generated
+language_creators:
+- found
+languages:
+  raw_ca:
+  - ca
+  raw_en:
+  - en
+  raw_es:
+  - es
+  tagged_ca:
+  - ca
+  tagged_en:
+  - en
+  tagged_es:
+  - es
+licenses:
+- gfdl-1.1
+multilinguality:
+- monolingual
+size_categories:
+  raw_ca:
+  - 100K<n<1M
+  raw_en:
+  - n>1M
+  raw_es:
+  - 100K<n<1M
+  tagged_ca:
+  - n>1M
+  tagged_en:
+  - n>1M
+  tagged_es:
+  - n>1M
+source_datasets:
+- original
+task_categories:
+  raw_ca:
+  - sequence-modeling
+  raw_en:
+  - sequence-modeling
+  raw_es:
+  - sequence-modeling
+  tagged_ca:
+  - structure-prediction
+  - text-classification
+  tagged_en:
+  - structure-prediction
+  - text-classification
+  tagged_es:
+  - structure-prediction
+  - text-classification
+task_ids:
+  raw_ca:
+  - language-modeling
+  raw_en:
+  - language-modeling
+  raw_es:
+  - language-modeling
+  tagged_ca:
+  - structure-prediction-other-lemmatization
+  - structure-prediction-other-pos-tagging
+  - text-classification-other-word-sense-disambiguation
+  tagged_en:
+  - structure-prediction-other-lemmatization
+  - structure-prediction-other-pos-tagging
+  - text-classification-other-word-sense-disambiguation
+  tagged_es:
+  - structure-prediction-other-lemmatization
+  - structure-prediction-other-pos-tagging
+  - text-classification-other-word-sense-disambiguation
 ---
 
 # Dataset Card for [Dataset Name]
