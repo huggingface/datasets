@@ -15,7 +15,6 @@
 
 # Lint as: python3
 import json
-import os
 
 import datasets
 
