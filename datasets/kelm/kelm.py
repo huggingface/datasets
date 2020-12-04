@@ -44,7 +44,7 @@ _DOWNLOAD_URL = "https://storage.googleapis.com/gresearch/kelm-corpus/quadruples
 _WEBPAGE = "https://github.com/google-research-datasets/KELM-corpus"
 
 
-class AGNews(datasets.GeneratorBasedBuilder):
+class KELM(datasets.GeneratorBasedBuilder):
     """Corpus for Knowledge-Enhanced Language Model Pre-training (KELM)"""
 
     def _info(self):
@@ -72,7 +72,6 @@ class AGNews(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath):
-        """Generate AG News examples."""
         with open(filepath, "r", encoding="utf-8") as csv_file:
             csv_reader = csv.DictReader(csv_file, delimiter="\t", fieldnames=["triple", "sentence"])
             for irow, row in enumerate(csv_reader):
