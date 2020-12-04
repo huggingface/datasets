@@ -54,7 +54,7 @@ _TEST_DOWNLOAD_URL = (
 )
 
 
-class TamilMixSentiment(datasets.GeneratorBasedBuilder):
+class Tamilmixsentiment(datasets.GeneratorBasedBuilder):
     """TamilMixSentiment sentiment analysis dataset."""
 
     def _info(self):
@@ -102,8 +102,6 @@ class TamilMixSentiment(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """Generate TamilMixSentiment examples."""
-        print("File path : ", filepath)
-        print("Split : ", split)
         with open(filepath, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(
                 csv_file, quotechar='"', delimiter="\t", quoting=csv.QUOTE_ALL, skipinitialspace=True
