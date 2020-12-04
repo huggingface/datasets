@@ -92,7 +92,6 @@ class Glucose(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         train_url = _URLs[self.config.name]["train"]
         test_url = _URLs[self.config.name]["test"]
-        print(test_url)
         train_data = dl_manager.download_and_extract(train_url)
         test_data = dl_manager.download_and_extract(test_url)
         return [
