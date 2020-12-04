@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-""""""
+"""Google Wellformed Query Dataset"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -38,14 +38,10 @@ _URL = "https://raw.githubusercontent.com/google-research-datasets/query-wellfor
 
 
 class GoogleWellformedQuery(datasets.GeneratorBasedBuilder):
-
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features(
-                {"rating": datasets.Value("string"),
-                "content": datasets.Value("string")}
-            ),
+            features=datasets.Features({"rating": datasets.Value("string"), "content": datasets.Value("string")}),
             supervised_keys=None,
             homepage="https://github.com/google-research-datasets/query-wellformedness",
             citation=_CITATION,
@@ -88,7 +84,4 @@ class GoogleWellformedQuery(datasets.GeneratorBasedBuilder):
                 row = row.split("\t")
                 if len(row) == 1:
                     continue
-                yield idx, {
-                    "rating":row[1],
-                    "content":row[0]
-                }
+                yield idx, {"rating": row[1], "content": row[0]}
