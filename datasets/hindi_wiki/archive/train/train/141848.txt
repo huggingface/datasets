@@ -1,0 +1,267 @@
+परम ताप  जब तापमान को परम शून्य के सापेक्ष मापा जाता है तो इस प्रकार प्राप्त तापमान को परम ताप कहते हैं। इसे केल्विन इकाइ का प्रयोग करके व्यक्त किया जाता है।
+परम शून्य  यह न्यूनतम ताप है जिसे प्राप्त किया जा सकता है। इससे कम ताप होना सम्भव ही नहीं है। किसी ठोस का ताप चूंकि उसके परमाणुओं के कम्पन का परिमाण प्रदर्शित करतअ है, अतः परम शून्य ताप पर परमाणु पूर्णतः कम्पन करना बद कर देते हैं।
+शुद्धि  When you measure something, the accuracy is how close your measured value is to the real value. For example, if you're actually six feet tall and your brother measures your height as six feet, one inch, he's pretty accurate. However, if your cousin measures your height as twelve feet, 13 inches, he's not accurate at all.
+अम्ल  This is anything that gives off H+ ions in water. Acids have a pH less than 7 and are good at dissolving metals. They turn litmus paper red and phenolphthalein colorless.
+acid anhydride This is an oxide that forms an acid when you stick it in water. An example is SO3 - when you add water it turns into sulfuric acid, H2SO4.
+acid dissociation constant  This is equal to the ratio of the concentrations of an acid's conjugate base and the acid present when a weak acid dissociates in water. That is, if you have a solution of Acid X where the concentration of the conjugate base is 0.5 M and the concentration of the acid is 10 M, the acid dissociation constant is 0.5/10 = 0.05.
+activated complex In a chemical reaction, the reagents have to join together into a great big blob before they can fall back apart into the products. This great big blob is called the activated complex 
+activation energy The minimum amount of energy needed for a chemical reaction to take place. For some reactions this is very small । For others, it's very high ।
+सक्रियता श्रेणी  This is when you arrange elements in the order of how much they tend to react with water and acids.
+actual yield When you do a chemical reaction, this is the amount of chemical that you actually make ।
+योग अभिक्रिया  A reaction where atoms add to a carbon-carbon multiple bond.
+adsorption When one substance collects of the surface of another one.
+एल्कोहल  An organic molecule containing an -OH group
+aldehyde An organic molecule containing a -COH group
+alkali metals Group I in the periodic table.
+alkaline earth metals Group II in the periodic table.
+एल्कने  An organic molecule which contains only single carbon-carbon bonds.
+एल्कीन  An organic molecule containing at least one C=C bond
+एल्काइन  An organic molecule containing at least one C-C triple bond.
+allotropes When you have different forms of an element in the same state. The relationship that white phosphorus and red phosphorus have to each other is that they're allotropes.
+मिश्रधातु  A mixture of two metals. Usually, you add very small amounts of a different element to make the metal stronger and harder.
+अल्फा कण  A radioactive particle equivalent to a helium nucleus 
+amine An organic molecule which consists of an ammonia molecule where one or more of the hydrogen atoms has been replaced by organic groups.
+amino acid The basic building blocks of proteins. They're called "amino acids" because they're both amines and acids 
+amphiprotic When something is both an acid and a base. Like amino acids, for example.
+amphoteric When something is both an acid and a base. Sounds familiar, huh?
+धनाग्र  The electrode where oxidation occurs. In other words, this is where electrons are lost by a substance.
+जलीय  dissolved in water
+परमाणु द्रब्यमान इकाई ) This is the smallest unit of mass we use in chemistry, and is equivalent to 1/12 the mass of carbon-12. To all intents and purposes, protons and neutrons weigh 1 a.m.u.
+परमाणु त्रिज्या  This is one half the distance between two bonded nuclei. Why don't we just measure the distance from the nucleus to the outside of the atom - after all, isn't that the same thing as a radius? It is, but atoms are also infinitely large, making this impossible to measure.
+atomic solid A solid where there's a bunch of atoms in the lattice. This is different from an ionic solid, where ions are the things that are sticking together.
+आफबाउ का सिद्धान्त  When you add protons to the nucleus to build up the elements, electrons are added into orbitals.
+अवगाद्रो का नियम  If you've got two gases under the same conditions of temperature, pressure, and volume, they've got the same number of particles । This law only works for ideal gases, none of which actually exist.
+base anhydride An oxide that forms a base when water is added. CaO is an example, turning into calcium hydroxide in water.
+क्षार  A compound that gives off OH- ions in water. They are slippery and bitter and have a pH greater than 7.
+बैटरी  This is when a bunch of voltaic cells are stuck together.
+बीटा कण  A radioactive particle equivalent to an electron.
+bidentate ligand A ligand that can attach twice to a metal ion.
+binary compound A compound only having two elements
+बंधन उर्जा  The amount of energy that holds the neutrons and protons together in the nucleus of an atom. It's a lot of energy, which is why you don't see nuclei falling apart all over the place.
+बाण्ड उर्जा  The amount of energy it takes to break one mole of bonds.
+बाण्ड लम्बाई  The average distance between the nuclei of two bonded atoms.
+बायल का नियम  The volume of a gas at constant temperature varies inversely with pressure. In other words, if you put big pressure on something, it gets small.
+ब्रान्स्टेट-लौरी अम्ल  Acids donate protons and bases grab them
+बफर  A liquid that resists change in pH by the addition of acid or base. It consists of a weak acid and it's conjugate base ।
+उष्मामापन  The study of heat flow. Usually you'd do calorimetry to find the heat of combustion of a compound or the heat of reaction of two compounds.
+carboxylic acid An organic molecule with a -COOH group on it. Acetic acid is the most famous one.
+उत्प्रेरक  A substance that speeds up a chemical reaction without being used up by the reaction. Enzymes are catalysts because they allow the reactions that take place in the body to occur fast enough that we can live.
+ऋणाग्र  The electrode in which reduction occurs. Reduction is when a compound gains electrons.
+शृंखला अभिक्रिया  A reaction in which the products from one step provide the reagents for the next one. This is frequently referred to in nuclear fission and in free-radical reactions.
+चार्ल का नियम  The volume of a gas at constant pressure is directly proportional to the temperature. In other words, if you heat something up, it gets big.
+रासायनिक समीकरण  The recipe that describes what you need to do to make a reaction take place.
+रासायनिक गुण  Properties that can only be described by making a chemical change । For example, color isn't a chemical property because you don't need to change something chemically to see what color it is. Flammability, on the other hand, is a chemical property, because you can't tell if something burns unless you actually try to burn it.
+chirality When a molecule has a nonsuperimposable mirror image. To imagine this, put your hands together. Although they are mirror images, you can't put them right on top of each other so they are interchangable. Well, normal people can't, anyway.
+chromatography This is when you use a system containing a mobile phase and a stationary phase to separate different compounds. This is usually done by exploiting the differing polarities of solutes, though you can do it a whole slew o' ways.
+परिपथ  The closed path in a circuit through which electrons flow.
+coagulation When you destroy a colloid by letting the particles settle out.
+colligative property Any property of a solution that changes when the concentration changes. Examples are color, flavor, boiling point, melting point, and osmotic pressure.
+colloid It's a suspension.
+ज्वलन  When a compound combines with oxygen gas to form water, heat, and carbon dioxide
+समान आयन प्रभाव  When the equilibrium position of a process is altered by adding another compound containing one of the same ions that's in the equilibrium.
+complex ion An ion in which a central atom is surrounded by a bunch of molecules like water or ammonia 
+सांद्रता  A measurement of the amount of stuff dissolved in a liquid । The most common concentration unit is molarity, which is equal to the number of moles of solute divided by the number of liters of solution.
+condensation When a vapor reforms a liquid. This is what happens on your bathroom mirror when you take a shower.
+चालकता  A measurement of how well electricity can flow through an object.
+युग्मी अम्ल  The compound formed when a base gains a proton ।
+युग्मी क्षार  The compound formed when an acid loses a proton ।
+सतत स्पेक्ट्रम  A spectrum that gives off all the colors of light, like a rainbow. This is caused by blackbody emission.
+covalent bond A chemical bond formed when two atoms share two electrons.
+क्रान्तिक द्रब्यमान  The minimum amount of radioactive material needed to undergo a nuclear chain reaction.
+क्रान्तिक बिन्दु  The end point of the liquid-vapor line in a phase diagram. Past the critical point, you get something called a "supercritical liquid", which has weird properties.
+crystal lattice see "lattice"
+क्रिस्टल  A large chunk of an ionic solid.
+डाल्टन का आंशिक दाब का सिद्धान्त  The total pressure in a mixture of gases is equal to the sums of the partial pressures of all the gases put together.
+decomposition When a big molecule falls apart to make two or more little ones.
+degenerate Things are said to be degenerate if they have the same energy. This term is used a whole lot in quantum mechanics. Also when dealing with kids who steal cars.
+delocalization This is when electrons can move around all over a molecule. This happens when you have double bonds on adjacent atoms in a molecule 
+denature When the 3-D structure of a protein breaks down due to heat, it's said to be denatured. This means that it unravels because the intermolecular forces between atoms in the chain aren't strong enough to hold it together anymore.
+विसरण  When particles move from areas of high concentration to areas of low concentration. For example, if you open a bottle of ammonia on one end of the room, the concentration of ammonia molecules in the air is very high on that side of the room. As a result, they tend to migrate across the room, which explains why you can smell it after a little while. Be careful not to mix this up with effusion 
+तनुकरण  When you add solvent to a solution to make it less concentrated.
+द्विध्रुव आघूर्ण  When a molecule has some charge separation, it's said to have a dipole moment.
+द्विध्रुव-द्विध्रुव बल  When the positive end of a polar molecule becomes attracted to the negative end of another polar molecule.
+बिलयन  When water dissolves a compound.
+आसवन  This is when you separate a mixture of liquids by heating it up. The one with the lowest boiling point evaporates first, followed by the one with the next lowest boiling point, etc.
+double-displacement reaction  When the cations of two ionic compounds switch places.
+effusion When a gas moves through an opening into a chamber that contains no pressure. Effusion is much faster than diffusion because there are no other gas molecules to get in the way.
+विद्युत अपघटन  When electricity is used to break apart a chemical compound.
+विद्युत अपघट्य'  An ionic compound that dissolves in water to conduct electricity. Strong electrolytes break apart completely in water
+ weak electrolytes only fall apart a little bit. 
+electronegativity A measurement of how much an atom tends to steal electrons from atoms that it's bonded to. Elements at the top right of the periodic table are very electronegative while atoms in the bottom left are not very electronegative 
+electropositive When something is not at all electronegative. In fact, it tends to lose electrons rather than to gain them. Elements that are electropositive are generally to the left and bottom of the periodic table.
+empirical formula A reduced molecular formula. If you have a molecular formula and you can reduce all of the subscripts by some constant number, the result is the empirical formula.
+emulsion When very small drops of a liquid are suspended in another. An example of an emulsion is salad dressing after you've shaken it up.
+enantiomers molecules that are nonsuperimposable mirror images of each other.
+endothermic When a process absorbs energy ।
+endpoint The point where you actually stop a titration, usually because an indicator has changed color. This is different than the "equivalence point" because the indicator might not change colors at the exact instant that the solution is neutral.
+energy level A possible level of energy that an electron can have in an atom.
+enthalpy A measurement of the energy content of a system.
+entropy A measurement of the randomness in a system.
+enzyme A biological molecule that catalyzes reactions in living creatures.
+साम्य  When the forward rate of a chemical reaction is the same as the reverse rate. This only takes place in reversible reactions because these are the only type of reaction in which the forward and backward reactions can both take place.
+equivalence point The point in a titration at which the solution is completely neutral. This is different than the "endpoint" ।
+ester An organic molecule with R-CO-OR' functionality.
+excess reagent Sometimes when you do a chemical reaction, there's some of one reagent left over. That's called the excess reagent.
+excited state A higher energy level that electrons can jump to when energy is added.
+exothermic When a process gives off energy ।
+family The same thing as a "group" 
+first law of thermodynamics The energy of the universe is constant. It's the same thing as the Law of conservation of energy.
+संलयन  A nuclear reaction where a big atom breaks up into little ones. This is what happens in nuclear power plants.
+मुक्त उर्जा  also called "Gibbs free energy", it's the capacity of a system to do work.
+free radical An atom or molecule with an unpaired electron. They're way reactive.
+functional group A generic term for a group of atoms that cause a molecule to react in a specific way. It's really common to talk about this in organic chemistry, where you have "aldehydes, carboxylic acids, amines" and so on.
+गामा किरण  High energy light given off during a nuclear process. When a nucleus gives off this light, it goes to a lower energy state, making it more stable.
+geometrical isomer isomerism where atoms or groups of atoms can take up different positions around a double bond or a ring. This is also called cis- trans- isomerism.
+ground state The lowest energy state possible for an electron.
+group A column in the periodic table. Elements in the same group tend to have the same properties. These are also called "families".
+अर्ध आयु  The time required for half of the radioactive atoms in a sample to decay. When talking about chemical reactions, it's the amount of time required to make half the reagent react.
+half-reaction The oxidation or reduction part of a redox reaction.
+हैलोजन  The elements in group 17. They're really reactive.
+heat of reaction The amount of heat absorbed or released in a reaction. Also called the "enthalpy of reaction"
+उष्मा  The kinetic energy of the particles in a system. The faster the particles move, the higher the heat.
+हेस का नियम  The enthalpy change for a change is the same whether it takes place in one big step or in many small ones.
+heterogeneous mixture A mixture where the substances aren't equally distributed.
+homogeneous mixture A mixture that looks really "smooth" because everything is mixed up really well.
+हुन्ड का नियम  The most stable arrangement of electrons occurs when they're all unpaired.
+hybrid orbital An orbital caused by the mixing of s, p, d, and f-orbitals.
+hydration When a molecule has water molecules attached to it.
+hydrocarbon A molecule containing carbon and hydrogen.
+hydrogen bond The tendency of the hydrogen atom stuck to an electronegative atom to become attracted to the lone pair electrons on another electronegative atom. It's a pretty strong intermolecular force, which explains why water has such a high melting and boiling point.
+hydrogenation When hydrogen is added to a carbon-carbon multiple bond.
+hydronium ion The H+ ion, made famous by acids.
+hydroxide ion The OH- ion, made famous by bases.
+आदर्श गैस नियम  PV=nRT
+आदर्श गैस  A gas in which the particles are infinitely small, have a kinetic energy directly proportional to the temperature, travel in random straight lines, and don't attract or repel each other. Needless to say, there's no such thing as an ideal gas in the real world. However, we use ideal gases anyway because they make the math work out well for equations that describe how gases behave.
+आदर्श विलयन  A solution in which the vapor pressure is directly proportional to the mole fraction of solvent present
+immiscible When two substances don't dissolve in each other. Think of oil and water. They're immiscible. Organic compounds and water are frequently immiscible.
+indicator A compound that turns different colors at different pH values. We generally like to have the color change at a pH of around seven because that's where the equivalence point of a titration is.
+inhibitor A substance that slows down a chemical reaction.
+अकार्बनिक यौगिक  Any compound that doesn't contain carbon ।
+अविलेय  When something doesn't dissolve.
+intermediate A molecule which exists for a short time in a chemical reaction before turning into the product.
+अन्तर-आणविक बल  A force that exists between two different molecules. Examples are hydrogen bonding, dipole-dipole forces, and London dispersion forces, which are very weak.
+आयनिक बन्ध  A bond formed when charge particles stick together.
+आयनन की उर्जा  The amount of energy required to pull an electron off of a gaseous atom.
+अनुत्क्रंअणीय अभिक्रिया  A chemical reaction in which the reagents make products but the products can't reform reagents. Most chemical reactions in basic chemistry classes are thought of as being irreversible.
+isotonic solutions Solutions containing the same osmotic pressure.
+समस्थानिक  When an element has more than one possibility for the number of neutrons, these are called isotopes. All known elements posess isotopes. For the record, the word "isotope" doesn't imply that something is radioactive. TV told you that, and TV is stupid.
+केल्विन  A unit used to measure temperature. One Kelvin is equal in size to one degree Celsius. To convert between degrees Celsius and Kelvins, simply add 273.15 to the temperature in degrees Celsius to get Kelvins.
+ketone A molecule containing a R-CO-R' functional group. Acetone is a common one.
+गतिज उर्जा  The energy due to the movement of an object. The more something moves, the more kinetic energy it has.
+Lanthanide contraction The tendency of the lanthanides to get small when you go from left to right in the periodic table.
+lattice energy The energy released when one mole of a crystal is formed from gaseous ions.
+lattice The three-dimensional arrangement of atoms or ions in a crystal.
+law of conservation of energy The amount of energy in the universe never changes, ever. It just changes form.
+द्रब्यमान संरक्षण का नियम  The amount of stuff after a chemical reaction takes place is the same as the amount of stuff you started with.
+ला शैतालिए का सिद्धान्त  When you disturb an equilibrium, it will eventually go back into equilibrium under a different set of conditions.
+Lewis acid An electron-pair acceptor 
+Lewis base An electron-pair donor. Things with lone pairs like water and ammonia are really good ones.
+Lewis structure A structural formula that shows all of the atoms and valence electrons in a molecule.
+ligand A molecule or ion that sticks to the central atom in a complex. Common examples are ammonia, carbon monoxide, or water.
+limiting reagent If you do a chemical reaction and one of the chemicals gets used up before the other one, the one that got used up is called the "limiting reagent" because it limited the amount of product that could be formed. The other one is called the excess reagent.
+line spectrum A spectrum showing only certain wavelengths.
+London dispersion force The forces between nonpolar atoms or molecules which is caused by momentary induced dipoles. It's real weak.
+lone pair two electrons that aren't involved in chemical bonding. Also frequently referred to as an "unshared pair".
+main-block elements Groups 1,2, and 13-18 in the periodic table. They're called main block elements because the outermost electron is in the s- or p- orbitals. What that has to do with the term "main block" is unclear to me, but hey, that's life.
+mass defect The difference between the mass of an atom and the sum of the masses of its individual components. Atoms usually weigh a little less than if you added up the weights of all the particles. This is because that extra mass was converted into the energy which holds the atom together 
+द्रब्यमान  The amount of matter in an object. The more mass, the more stuff is present.
+mechanism A step-by-step sequence that shows how the products of a reaction are made from the reagents. Mechanisms are very frequently shown during organic chemistry.
+मोललता  The number of moles of solute per kilogram of solvent in a solution. This is a unit of concentration that's not anywhere near as handy or common as molarity.
+मोलर द्रब्यमान  The mass of one mole of particles.
+मोलर आयतन  The volume of one mole of a substance at STP. If you believe that everything is an ideal gas, this is always 22.4 liters. Unfortunately, there's no such thing as an ideal gas.
+मोलरता  A unit of concentration equal to moles of solute divided by liters of solution.
+mole fraction The number of moles of stuff in a mixture that are due to one of the compouds.
+mole ratio The ratio of moles of what you've been given in a reaction to what you want to find. Handy in stoichiometry.
+मोल  6.02 x 1023 things.
+आणविक यौगिक  A compound held together by covalent bonds.
+आणविक सूत्र  A formula that shows the correct quantity of all of the atoms in a molecule.
+monatomic ion An ion that has only one atom, like the chloride ion.
+neutralization reaction The reaction of an acid with a base to form water and a salt.
+node A location in an orbital where there's no probability of finding an electron.
+nonpolar covalent bond A covalent bond where the electrons are shared equally between the two atoms.
+normal boiling point The boiling point of a substance at 1.00 atm.
+normal melting point The melting point of a substance at 1.00 atm.
+नार्मलता  The number of equivalents of a substance dissolved in a liter of solution.
+नाभिकीय संलयन  When many small atoms combine to form a large one. This occurs during a thermonuclear reaction.
+nuclear fission This is when the nucleus of an atom breaks into many parts.
+नाभिकीय अभिक्रिया  Any reaction that involves a change in the nucleus of an atom. Nuclear reactions take loads of energy, which is why you don't see them much around the lab.
+nucleon A particle that's in the nucleus of an atom.
+अष्टक नियम  All atoms want to be like the nearest noble gas. । To do this, they either gain or lose electrons or share electrons ।
+प्रकाशीय समावयवता  Isomerism in which the isomers cause plane polarized light to rotate in different directions.
+orbital This is where the electrons in an atom live.
+कार्बनिक यौगिक  A compound that contains carbon 
+परासरण  The flow of a pure liquid into an area of high concentration through a semi-permeable membrane.
+आक्सीकरण संख्या  The apparent charge on an atom.
+आक्सीकरण  When a substance loses electrons.
+आंशिक दाब  The pressure of one gas in a mixture. For example, if you had a 50:50 mix of helium and hydrogen gases and the total pressure was 2 atm, the partial pressure of hydrogen would be 1 atm.
+पाली का अपवर्जन का सिद्धान्त  No two electrons in an atom can have the same quantum numbers.
+percent yield The actual yield divided by the theoretical yield, times 100.
+आवर्त काल  A row in the periodic table.
+आवर्तता का नियम  The properties of elements change with increasing atomic number in a periodic way. That's why you can stick the elements into a big chart and have the elements line up in nice families.
+पीएच  -log
+फेज आरेख  A chart which shows how the phase depends on various conditions of temperature and pressure.
+phase The state of a compound 
+भौतिक गुण  A property which can be determined without changing something chemically. If that doesn't make sense, see the definition of "chemical change".
+पाई बन्ध  A double bond.
+polar covalent bond A covalent bond where one atom tries to grab the electrons from the other one. This occurs because the electronegativities of the two atoms aren't the same.
+बहुपरमाणवीय  contains more than one atom.
+polymer A molecule containing many repeating units. Plastics are polymers and are formed by free radical chain reactions.
+polyprotic acid An acid that can give up more than one hydronium ion. Examples are sulfuric acid and phosphoric acid.
+स्थितिज उर्जा  The energy something has because of where it is. Things that are way up high have more potential energy than things that are way down low because they have farther to fall.
+precision A measurement of how repeatable a measurement is. The more significant figures, the more precise the measurement.
+दाब  Force/area
+उत्पाद  The thing you make in a chemical reaction.
+क्वान्टम सिद्धान्त  The branch of physical chemistry that describes how energy can only exist at certain levels and makes generalizations about how atoms behave from this assumption.
+रेडियो सक्रिय  When a substance has an unstable nucleus that can fall apart, it's referred to as radioactive.
+राउल्ट का नियम  The vapor pressure of a solution is directly proportional to the mole fraction of the solvent.
+rate determining step The slowest step in a chemical reaction.
+rate law A mathematical expression for the speed of a reaction as a function of concentration.
+A hint It's usually true that things go faster if you have more stuff in the first place.
+redox reaction A reaction that has both an oxidation and reduction.
+resonance structure When more than one valid Lewis structure can be drawn for a molecule, these structures are said to be resonance structures. Resonance structures arise from the fact that the electrons are delocalized.
+उत्क्रमणीय अभिक्रिया  A reaction in which the products can make reagents, as well as the reagents making products.
+वर्ग मूल माध्य वेग ) The square root of the average of the squares of the individual velocities of the gas particles in a mixture. To put it in a way that a normal human can understand, it's the average of how fast the particles in a gas are going ।
+लवण  An ionic compound.
+संतृप्त  When the maximum amount of solute is dissolved in a liquid
+उष्मागतिकी का द्वितीय नियम  Whenever you do something, the universe gets more random.
+अर्धचालक  A substance that conducts electricity poorly at room temperature, but has increasing conductivity at higher temperatures. Metalloids are usually good semiconductors.
+shielding effect The outer electrons aren't pulled very tightly by the nucleus because the inner electrons repel them. This repulsion is called the shielding effect, and can be used to explain lots of neat-o stuff.
+सिग्मा बन्ध  A real fancy way of saying "single bond"
+significant figure The number of digits in a number that tell you useful information. For example, when you weigh yourself on a bathroom scale, it says something like 150 pounds rather than 150.32843737 pounds. Why? Because the thing can only weigh accurately to the nearest pound. Any other digits that are on this number don't mean anything, because they're probably wrong anyway.
+single-displacement reaction  When one unbonded element replaces an element in a chemical compound. These are frequently redox reactions.
+बिलेयता  A measurement of how much of a solute can dissolve in a liquid.
+बिलेयता गुणनफल  Abbreviated Ksp, this value indicates the degree to which a compound dissociates in water. The higher the solubility product constant, the more soluble the compound.
+विलेय  The solid that gets dissolved in a solution.
+विलायक  The liquid that dissolves the solid in a solution.
+विशिष्ट उष्मा धारिता  The amount of heat required to increase the temperature of one gram of a substance by one degree.
+spectator ions' The ions in a reaction that don't react.
+spontaneous change A change that occurs by itself. All exothermic reactions are spontaneous. However, this doesn't mean that all exothermic reactions are fast. The combustion of gasoline is spontaneous, but not very fast unless you add a little energy.
+मानक ताप व दाब  One atmosphere and 273 K.
+steric hindrance This is the idea that the functional groups on big molecules get in the way of a chemical reaction, making it go slower. Imagine a fat guy trying to get into a Honda Prelude - that's steric hindrance.
+stoichiometry The art of figuring how much stuff you'll make in a chemical reaction from the amount of each reagent you start with.
+STP See standard temperature and pressure.
+strong acid An acid that fully dissociates in water
+strong nuclear force The force that holds the nucleus together. As the name suggests, this force is strong.
+संरचना सूत्र  See Lewis structure.
+उर्ध्वपातन  When a solid can change directly into a gas. Dry ice does this.
+अतिशीतलन  When you cool something below its normal freezing point
+अतिसंतृप्त  When more solute is dissolved in a liquid than is theoretically possible. This doesn't happen much, as you might imagine.
+पृष्ट तनाव  A measurement of how much the molecules on a liquid tend to like to stick to each other. If something has a high surface tension, it likes to bead up.
+suspension A mixture that looks homogeneous when you stir it, but where the solids settle out when you stop. Mud is a very short-lived suspension, while peanut butter is a very long-lived suspension.
+संश्लेषण  When you make a big molecule from two or more smaller ones.
+तन्त्र  Everything you're talking about at the moment.
+ताप  A measurement of the average kinetic energy of the particles in a system.
+theoretical yield The amount of product which should be made in a chemical reaction if everything goes perfectly.
+उष्मागतिकी  The study of energy
+उष्मागतिकी का तृतीय नियम  The randomness of a system at 0 K is zero.
+titration When the concentration of an acid or base is determined by neutralizing it.
+transition state See "activated complex"
+त्रिक बिन्दु  The temperature and pressure at which all three states of a substance can exist in equilibrium.
+unit cell The simplest part of a crystal that can be repeated over and over to make the whole thing.
+असंतृप्त  When you haven't yet dissolved all of the solute that's possible to dissolve in a liquid.
+unshared electron pair two electrons that aren't involved in chemical bonding. Also frequently referred to as a "lone pair".
+संयोजी एलेक्ट्रान  The outermost electrons in an atom.
+वाष्प दाब  The pressure of a substance that's present above it's liquid. For example, you can tell that ammonia has a high vapor pressure because the smell of it is very strong above liquid ammonia.
+वाष्पन  When you boil a liquid.
+volatile A substance with a high vapor pressure.
+VSEPR A theory for predicting molecular shapes that assumes that electrons like to be as far from each other as possible.

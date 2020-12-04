@@ -1,0 +1,47 @@
+गणित में साधारण अवकल समीकरण उन अवकल समीकरणों को कहते हैं जिसमें केवल एक स्वतंत्र चर तथा उसके अवकलज मौजूद हों। 
+साधारण अवकल समीकरण का एक उदाहरण नियत द्रव्यमान m वाली किसी वस्तु की गति का वर्णन करने वाला न्यूटन का गति का दूसरा नियम है-
+जिसमें बल F वस्तु की स्थिति x तथा समय t पर निर्भर है। इसमें अज्ञात फलन x समीकरण के दोनों तरफ विद्यमान है।
+अन्य उदाहरण:
+जिसका हल है :   y = 2 e x    {\displaystyle y=2e^{x}\,\!} .
+कुछ अवकल समीकरणों का हल ठीक-ठीक तथा बन्द स्वरूप में लिखा जा सकता है। यहाँ कुछ प्रकार के महत्वपूर्ण अवकल समीकरण दिये गये हैं-
+   P 1   Q 1  + P 2   Q 2    d y  d x  = 0   {\displaystyle P_{1}Q_{1}+P_{2}Q_{2}\,{\frac {dy}{dx}}=0\,\!} 
+   P 1   Q 1   d x + P 2   Q 2   d y = 0   {\displaystyle P_{1}Q_{1}\,dx+P_{2}Q_{2}\,dy=0\,\!} 
+    d y  d x  = F   {\displaystyle {\frac {dy}{dx}}=F\,\!} 
+  d y = F  d x   {\displaystyle dy=F\,dx\,\!} 
+    d y  d x  = F   {\displaystyle {\frac {dy}{dx}}=F\,\!} 
+  d y = F  d x   {\displaystyle dy=F\,dx\,\!} 
+  P   d y  d x  + Q = 0   {\displaystyle P{\frac {dy}{dx}}+Q=0\,\!} 
+  P  d y + Q  d x = 0   {\displaystyle P\,dy+Q\,dx=0\,\!} 
+    d y  d x  = F    {\displaystyle {\frac {dy}{dx}}=F\left\,\!} 
+  y M + x N   d y  d x  = 0   {\displaystyle yM+xN\,{\frac {dy}{dx}}=0\,\!} 
+  y M  d x + x N  d y = 0   {\displaystyle yM\,dx+xN\,dy=0\,\!} 
+  ln ⁡ = ∫ x y   N  d λ  λ     {\displaystyle \ln=\int ^{xy}{\frac {N\,d\lambda }{\lambda }}\,\!} 
+If N = M, the solution is xy = C.
+  M   d y  d x  + N = 0   {\displaystyle M{\frac {dy}{dx}}+N=0\,\!} 
+  M  d y + N  d x = 0   {\displaystyle M\,dy+N\,dx=0\,\!} 
+where    ∂ M  ∂ x  =  ∂ N  ∂ y    {\displaystyle {\frac {\partial M}{\partial x}}={\frac {\partial N}{\partial y}}\,\!} 
+where Y and X are functions from the integrals rather than constant values, which are set to make the final function F satisfy the initial equation.
+  M   d y  d x  + N = 0   {\displaystyle M{\frac {dy}{dx}}+N=0\,\!} 
+  M  d y + N  d x = 0   {\displaystyle M\,dy+N\,dx=0\,\!} 
+where    ∂ M  ∂ x  ≠  ∂ N  ∂ y    {\displaystyle {\frac {\partial M}{\partial x}}\neq {\frac {\partial N}{\partial y}}\,\!} 
+    ∂  ∂ x  =  ∂  ∂ y    {\displaystyle {\frac {\partial }{\partial x}}={\frac {\partial }{\partial y}}\,\!} 
+    F   = ∫ y  μ M  d λ + ∫ x  μ N  d λ    + Y + X = C     {\displaystyle {\begin{aligned}F&=\int ^{y}\mu M\,d\lambda +\int ^{x}\mu N\,d\lambda \\&+Y+X=C\\\end{aligned}}\,\!} 
+    d 2  y  d x 2   = F   {\displaystyle {\frac {d^{2}y}{dx^{2}}}=F\,\!} 
+    d y  d x  + P y = Q   {\displaystyle {\frac {dy}{dx}}+Py=Q\,\!} 
+    d 2  y  d x 2   + b  d y  d x  + c y = r   {\displaystyle {\frac {d^{2}y}{dx^{2}}}+b{\frac {dy}{dx}}+cy=r\,\!} 
+Particular integral yp: in general the method of variation of parameters, though for very simple r inspection may work.
+If b2 > 4c, then:
+   y c  = C 1  e    x 2   + C 2  e −   x 2     {\displaystyle y_{c}=C_{1}e^{\left{\frac {x}{2}}}+C_{2}e^{-\left{\frac {x}{2}}}\,\!} 
+If b2 = 4c, then:
+   y c  =  e − b x / 2    {\displaystyle y_{c}=e^{-bx/2}\,\!} 
+If b2 < 4c, then:
+   y c  = e − b  x 2      {\displaystyle y_{c}=e^{-b{\frac {x}{2}}}\left\,\!} 
+   ∑ j = 0  n  b j    d j  y  d x j   = r   {\displaystyle \sum _{j=0}^{n}b_{j}{\frac {d^{j}y}{dx^{j}}}=r\,\!} 
+Particular integral yp: in general the method of variation of parameters, though for very simple r inspection may work.
+Since αj are the solutions of the polynomial of degree n:   ∏ j = 1  n   = 0   {\displaystyle \prod _{j=1}^{n}\left=0\,\!}, then:
+for αj all different,
+   y c  = ∑ j = 1  n  C j  e  α j  x    {\displaystyle y_{c}=\sum _{j=1}^{n}C_{j}e^{\alpha _{j}x}\,\!} 
+for each root αj repeated kj times,
+   y c  = ∑ j = 1  n    e  α j  x    {\displaystyle y_{c}=\sum _{j=1}^{n}\lefte^{\alpha _{j}x}\,\!} 
+for some αj complex, then setting α = χj + iγj, and using Euler's formula, allows some terms in the previous results to be written in the form
+where ϕj is an arbitrary constant .

@@ -1,0 +1,2 @@
+लुआ त्रुटि Module:Location_map में पंक्ति 501 पर: Unable to find the specified location map definition. Neither "Module:Location map/data/Israel" nor "Template:Location map Israel" exists।Vector map of Haifa, Israel
+हाइफ़ा उत्तरी इजराइल का सबसे बड़ा नगर तथा इजराइल का तीसरा सबसे बड़ा नगर है। इसकी जनसंख्या लगभग तीन लाख है। इसके अलावा लगभग तीन लाख लोग इसके समीपवर्ती नगरों में रहते हैं। इसी नगर में बहाई विश्व केन्द्र भी है जो यूनेस्को द्वारा विश्व विरासत घोषित है।

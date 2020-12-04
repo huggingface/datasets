@@ -1,0 +1,6 @@
+List of airports by ICAO code: A – B – C – D – E – F – G – H – I – J – K – L – M – N – O – P – Q – R – S – T – U – V – W – X – Y – Z
+Also see airport category and list.
+The prefix K is reserved for the continental United States. The ICAO codes for these airports are usually the FAA location identifier prefixed with a K. IATA codes are listed where applicable. Cities shown are those associated with the airport as per the FAA, this may not always be the exact location as airports are often located in smaller towns outside the cities they serve.
+Format of entries is:
+साँचा:AlphanumericTOC
+

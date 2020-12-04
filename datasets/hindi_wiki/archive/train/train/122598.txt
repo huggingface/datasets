@@ -1,0 +1,9 @@
+गणित में आंशिक अवकल समीकरण वो अवकल समीकरणें होती हैं जिनमें बहुचर फलन और उनके आंशिक अवकल होते हैं। निम्नलिखित है-
+जहाँ   F  {\displaystyle F} और   G  {\displaystyle G} यादृच्छिक फलन हैं।
+दो ऑर्डर वाले आंशिक अवकल समीकरणों को परवलयी, अतिवलयी और दीर्घवृत्तीय में विभक्त किया जाता है।
+   u x y  = u y x   {\displaystyle u_{xy}=u_{yx}} को मानते हुए, माना दो स्वतन्त्र चरों में, दो-ऑर्डर वाला, सामान्य PDE निम्नलिखित है-
+जहाँ A, B, C आदि गुणांक x और y पर निर्भर हो सकते हैम। यदि xy-प्लेन के किसी क्षेत्र में   A 2  + B 2  + C 2  > 0  {\displaystyle A^{2}+B^{2}+C^{2}>0} हो, तो उस क्षेत्र में PDE द्वितीय-ऑर्डर वाला है। यह रूप शांकव के समीकरण जैसा है:
+दूसरे शब्दों में,, ∂x के स्थान पर X रखने पर, नियत गुणांक वाला PDE उसी डिग्री के एक बहुपद में परिवर्तित हो जाता है। 
+जिस प्रकार डिस्क्रिमिनेन्ट   B 2  − 4 A C  {\displaystyle B^{2}-4AC} के आधार पर कोनिक सेक्शन्स को parabolic, hyperbolic, और elliptic में बाँटा जाता है, उसी तरह द्वितीय-ऑर्डर वाले PDE को भी वर्गीकृत किया जा सकता है। किन्तु PDE के केस में डिस्क्रिमिनेन्ट   B 2  − A C,  {\displaystyle B^{2}-AC,} लिया जाता है।
+If there are n independent variables x1, x2, ..., xn, a general linear partial differential equation of second order has the form
+The classification depends upon the signature of the eigenvalues of the coefficient matrix ai,j..

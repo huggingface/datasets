@@ -1,0 +1,16 @@
+उन कार्बनिक अभिक्रियाओं को पुनर्विन्यास अभिक्रिया कहते हैं जिनमें किसी अणु का कार्बन स्केलेटन बदलकर मूल अणु का एक संरचनात्मक समावयवी बनता है। पुनर्विन्यास अभिक्रिया कार्बनिक अभिक्रियाओं का एक बहुत बड़ा वर्ग है। प्रायः कोई प्रतिस्थापी एक परमाणु से उसी अणु के किसी दूसरे परमाणु पर चला जाता है। नीचे दिए गये उदाहरण में प्रतिस्थापी R बार्बन परमाणु 1 से हटकर कार्बन परमाणु 2 पर चला जाता है:
+अन्तर-अणुक पुनर्विन्यास भी होते हैं।
+पुनर्विन्यास, अणुओं का हमें अच्छी तरह ज्ञात है कि कार्बनिक योगिकों के अणुओं का निर्माण कार्बन, हाइड्रोजन तथा अन्य परमाणुओं के विशेष विन्यास से होता है। इन यौगिकों के सूत्रों को, जिनसे अणुओं में परमाणुओं के विन्यास का ढंग मालूम होता है।
+पुनर्विन्यान अनुत्क्रमणीय अभिक्रिया सूचित करता है, जिसमें अणु के सरंचनाविन्यास में परिवर्तन हुआ है। ऐसे परिवर्तनों में साधारण अणुओं में कुछ अंश जैसे पानी, या हाइड्रोजन हैलाइड, का विलोपन भी संभव है। इस प्रकार के पूनर्विन्यासों में अपेक्षाकृत छोटे छोटे परिवर्तन ही सन्निहित हैं, जैसे द्विबंध का बनना, या द्विबंध का स्थानांतरण और कार्बन पंजर में अल्प परिवर्तन। ऐलिलिक यौगिकों के प्रतिस्थापन में द्विबंध का स्थानांतरण बहुधा देखने में आता है। जहाँ तक कार्बन पंजर के पुनविंन्यास का संबंध है, ये बहुधा उच्च शाखावाले तंत्रों में ही देखे जाते हैं। 
+तीन प्रमुख पुनर्विन्यास अभिक्रियाएँ ये हैं-
+A 1,2-rearrangement is an organic reaction where a substituent moves from one atom to another atom in a chemical compound. In a 1,2 shift the movement involves two adjacent atoms but moves over larger distances are possible. Examples are the Wagner-Meerwein rearrangement:
+
+and the Beckmann rearrangement:
+
+A pericyclic reaction is a type of reaction with multiple carbon-carbon bond making and breaking wherein the transition state of the molecule has a cyclic geometry, and the reaction progresses in a concerted fashion. Examples are hydride shifts
+
+and the Claisen rearrangement:
+
+Olefin metathesis is a formal exchange of the alkylidene fragments in two alkenes. It is a catalytic reaction with carbene, or more accurately, transition metal carbene complex intermediates.
+
+In this example, a vinyl compound is dimerized with the expulsion of ethene.

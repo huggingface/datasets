@@ -1,0 +1,10 @@
+विद्युत इंजीनियरी में सममित घटकों की विधि असंतुलित तीन फेजी परिपथों के विश्लेषण को सरल बनाने के लिये किया जाता है।
+Symmetrical components are most commonly used for analysis of three-phase electrical power systems. If the phase quantities are expressed in phasor notation using complex numbers, a vector can be formed for the three phase quantities. For example, a vector for three phase voltages could be written as
+where the subscripts 0, 1, and 2 refer respectively to the zero, positive, and negative sequence components. The sequence components differ only by their phase angles, which are symmetrical and so are    2 3  π  {\displaystyle \scriptstyle {\frac {2}{3}}\pi } radians or 120°. Define the operator   α  {\displaystyle \scriptstyle \alpha } phasor vector forward by that angle.
+Note that α3 = 1 so that α−1 = α2.
+शून्य-सेक्वेंस के घटक परस्पर एक ही कला में होते हैं। उन्हें निम्नलिखित प्रकार से निरूपित किया जाता है-
+तथा अन्य फेज-सेक्वेंसों को को निम्नलिखित प्रकार से निरूप करते हैं-
+अतः,
+जहाँ
+इसके विपरीत, सेक्वेंस-घटकों के मान, विश्लेषण समीकरणों से निकाले जाते हैं-।
+जहाँ

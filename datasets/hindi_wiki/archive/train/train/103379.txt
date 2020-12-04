@@ -1,0 +1,5 @@
+The Virtual International Authority File is an international authority file. It is a joint project of several national libraries and operated by the Online Computer Library Center . The project was initiated by the German National Library and the US Library of Congress.
+The aim is to link the national authority files to a single virtual authority file. In this file, identical records from the different data sets are linked together. A VIAF record receives a standard data number, contains the primary "see" and "see also" records from the original records, and refers to the original authority records. The data are made available online and are available for research and data exchange and sharing. Reciprocal updating uses the Open Archives Initiative protocol.
+The file numbers are also being added to Wikipedia biographical articles.
+2.12313322b xc,bchj1540vxsm xv x56236
+.236qk8sd9 3

@@ -1,0 +1,31 @@
+यह ITU-T की सिफारिश E.164 के अनुसार देशों की दूरभाष कुट सँख्या कि सुची है।
++210: --+211: --+212: MA, EH+213: DZ+214: --+215: --+216: TN+217: --+218: LY+219: --
++220: GM+221: SN+222: MR+223: ML+224: GN+225: CI+226: BF+227: NE+228: TG+229: BJ
++230: MU+231: LR+232: SL+233: GH+234: NG+235: TD+236: CF+237: CM+238: CV+239: ST
++240: GQ+241: GA+242: CG+243: CD+244: AO+245: GW+246: IO+247: AC+248: SC+249: SD
++250: RW+251: ET+252: SO, QS+253: DJ+254: KE+255: TZ+256: UG+257: BI+258: MZ+259: --
++260: ZM+261: MG+262: YT, RE, TF+263: ZW+264: NA+265: MW+266: LS+267: BW+268: SZ+269: KM
++290: SH, TA+291: ER+292: --+293: --+294: --+295: --+296: --+297: AW+298: FO+299: GL
++350: GI+351: PT+352: LU+353: IE+354: IS+355: AL+356: MT+357: CY+358: FI, AX+359: BG
++370: LT+371: LV+372: EE+373: MD+374: AM, QN+375: BY+376: AD+377: MC+378: SM+379: VA
++380: UA+381: RS+382: ME+383: --+384: --+385: HR+386: SI+387: BA+388: EU+389: MK
++420: CZ+421: SK+422: --+423: LI+424: --+425: --+426: --+427: --+428: --+429: --
++500: FK+501: BZ+502: GT+503: SV+504: HN+505: NI+506: CR+507: PA+508: PM+509: HT
++590: GP+591: BO+592: GY+593: EC+594: GF+595: PY+596: MQ+597: SR+598: UY+599: AN
++670: TL+671: --+672: AQ, NF+673: BN+674: NR+675: PG+676: TO+677: SB+678: VU+679: FJ
++680: PW+681: WF+682: CK+683: NU+684: --+685: WS+686: KI+687: NC+688: TV+689: PF
++690: TK+691: FM+692: MH+693: --+694: --+695: --+696: --+697: --+698: --+699: --
++800: XT+801: --+802: --+803: --+804: --+805: --+806: --+807: --+808: XS+809: --
++850: KP+851: --+852: HK+853: MO+854: --+855: KH+856: LA+857: --+858: --+859: --
++870: XN+875: --+876: --+877: --+878: XP+879: --
++880: BD+881: XG+882: XV+883: XL+884: --+885: --+886: TW+887: --+888: XD+889: --
++960: MV+961: LB+962: JO+963: SY+964: IQ+965: KW+966: SA+967: YE+968: OM+969: --
++970: PS+971: AE+972: IL, PS+973: BH+974: QA+975: BT+976: MN+977: NP+978: --+979: XR
++990: --+991: XC+992: TJ+993: TM+994: AZ, QN+995: GE+996: KG+997: --+998: UZ+999: --
+== विस्तार से ==+44
+Areas within NANPA are assigned area codes as if they were all areas within one country.The codes below in format +1-XXX represent area code XXX within the +1 NANPA zone — not a separate country code. For example, the dialing code for Guam is +1 followed by the area code 671 — not +671 or +1671.
+Originally larger countries, such as France, were assigned two-digit codes and small countries, such as Iceland, were assigned three-digit codes; however since the 1980s all new assignments have been three-digit regardless of countries’ sizes.
+CCITT, the predecessor of the ITU Telecommunication Standardization Sector, developed the first formal list of telephone country codes. This list was included in the 1964 CCITT Blue Book, among other international telecommunication recommendations, which would eventually become ITU-T recommendation E.164.
+An earlier system of country codes for European use was mentioned in the 1960 CCITT Red Book. Some of these country codes were retained in the CCITT country code assignments and remain in effect .
+For further details on country code history and development, see History of Country Codes .
+

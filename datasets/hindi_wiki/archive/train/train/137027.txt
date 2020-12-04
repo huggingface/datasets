@@ -1,0 +1,2 @@
+लुआ त्रुटि Module:Location_map में पंक्ति 389 पर: Minutes can only be provided with DMS degrees for longitude।
+संता आना का गिरजाघर एक गिरजाघर है जो बारसेलोना, स्पेन में स्थित है। 1881 ई. में इसे बिएन दे इंतेरेस कल्चरल की सूची में शामिल किया गया था।

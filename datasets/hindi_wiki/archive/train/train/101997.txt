@@ -1,0 +1,13 @@
+आवेश संरक्षण का सिद्धांत बेंजामिन फ्रैंकलिन ने खोजा था। इसके अनुसार विद्युत आवेश को न तो उत्पन्न किया जा सकता है और न ही उसे नष्ट किया जा सकता है। अतः विद्युत् आवेश ब्रह्माण्ड में सदैव ही संरक्षित रहता है। 
+अभ्यास रूप में, आवेश संरक्षण एक भौतिक नियम है जिसके अनुसार एक निश्चित आयतन में विद्युत आवेश में कुल अंतर, उन आयतन में आगम आवेश और उस आयतन से निर्गत आवेश के अन्तर के एकदम बराबर होता है। 
+गणित के अनुसार, इस सिद्धांत को निरंतरता समीकरण के रूप में लिख सकते हैं:
+Q विद्युत आवेश की मात्रा है, जो एक निश्चित आयतन में t समय में होता है, QIN उस आयतन में आने वाली आवेश की मात्रा समय t1 एवं t2 के बीच और QOUT उस आयतन से बाहर जाने वाले आवेश की उसी समय में मात्रा है।
+सदिश अवकलन का प्रयोग इस सिद्धांत का आवेश घनत्व ρ एवं विद्युत धारा घनत्व J की टर्म्स में प्रतिपादन करने हेतु प्रयोग किया जा सकता है:
+This statement is equivalent to a conservation of four-current. In the mid-nineteenth century, James Clerk Maxwell postulated the existence of electromagnetic waves as a result of his discovery that Ampère's law was inconsistent with the conservation of charge. After correctly reformulating Ampère's law, Maxwell also realized that such waves would travel at the speed of light, and that light itself must be a form of electromagnetic radiation. See electromagnetic wave equation for a full discussion of these discoveries.
+आयतन में आगत कुल धारा
+जहां S = ∂V V की सीमा है जिसे बाहर को जाते नॉर्मल्स, एवं dS को NdS के लघुरूप में, ∂V की सीमा के बाहर को जाते नॉर्मल के लिये प्रयोग किया गया है। यहां   J  {\displaystyle \mathbf {J} } आयतन की सतह पर धारा घनत्व है। सदिश धारा की दिशा को चिह्नित करता है।
+डायवर्जेन्स प्रमेय के अनुसार इसे 
+रूप में भी लिख सकते हैं। धारा संरक्षण हेतु आयतन को कुल धारा आवश्यक रूप से आयतन में हुए अंतर के बराबर होनी चाहिये।
+आवेश को आवेश घनत्व से इस समीकरण द्वारा संबंधित किया जा सकता है:
+This yields
+क्योंकि ये हरेक आयतन हेतु सत्य है, अतः हमें मिला:

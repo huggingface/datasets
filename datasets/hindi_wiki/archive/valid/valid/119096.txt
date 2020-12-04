@@ -1,0 +1,3 @@
+गणित में, सीमांत तुलना परीक्षण अनन्त श्रेणी के अभिसरण की एक विधि है।
+माना कि   Σ n  a n   {\displaystyle \Sigma _{n}a_{n}} और   Σ n  b n   {\displaystyle \Sigma _{n}b_{n}} दो श्रेणियाँ हैं जहाँ सभी   n  {\displaystyle n} के लिए   a n , b n  ≥ 0  {\displaystyle a_{n},b_{n}\geq 0} है।
+तब यदि   lim n → ∞   a n  b n   = c  {\displaystyle \lim _{n\to \infty }{\frac {a_{n}}{b_{n}}}=c} जहाँ   0 0  {\displaystyle c>0} के लिए   ε  {\displaystyle \varepsilon } का मान स्वैच्छिक रूप से छोटा चयनित किया जा सकता है जहाँ   c − ε  {\displaystyle c-\varepsilon } धनात्मक प्राप्त हो।अतः   b n  0  {\displaystyle \lim _{n\to \infty }{\frac {1}{n^{2}+2n}}{\frac {n^{2}}{1}}=1>0} अतः हम प्राप्त करते हैं कि मूल श्रेणी भी अभिसारी है।

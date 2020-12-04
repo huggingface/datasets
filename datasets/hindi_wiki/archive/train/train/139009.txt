@@ -1,0 +1,3 @@
+इस पृष्ट का उद्देश्य वर्तमान समय में प्रयुक्त सभी कम्पाइलर, कम्पाइलर-जनरेटर, इन्टरप्रीटर, एवं अनुवादकों की सारणी सुलभ कराना है।
+Production quality, open source compilers.
+Research compilers are mostly not robust or complete enough to handle real, large applications. They are used mostly for fast prototyping new language features and new optimizations in research areas.

@@ -1,0 +1,90 @@
+त्रिकोणमितीय सर्वसमिकाएँ, चरों के त्रिकोणमितीय फलनों के रूप में व्यक्त समतायें होती हैं।
+To avoid the confusion caused by the ambiguity of sin−1, the reciprocals and inverses of trigonometric functions are often displayed as in this table. In representing the cosecant function, the longer form 'cosec' is sometimes used in place of 'csc'.
+Different angular measures can be appropriate in different situations. This table shows some of the more common systems.Radians is the default angular measure and is the one you use if you use the exponential definitions. All angular measures are unitless.
+From the two identities above, the following table can be extrapolated. Note however that these conversion equations may not provide the correct sign . For example, if sin θ = 1/2, the conversion in the table indicates that   cos ⁡ θ =  1 − sin 2  ⁡ θ  =  3  / 2  {\displaystyle \scriptstyle \cos \theta \,=\,{\sqrt {1-\sin ^{2}\theta }}={\sqrt {3}}/2}, though it is possible that   cos ⁡ θ = −  3  / 2  {\displaystyle \scriptstyle \cos \theta \,=\,-{\sqrt {3}}/2} . More information would be needed about which quadrant θ lies in to determine a single, exact answer.
+Rarely used today, the versine, coversine, haversine, and exsecant have been defined as below and used in navigation, for example the haversine formula was used to calculate the distance between two points on a sphere.
+इकाई वृत्त का परीक्षण करके हम त्रिकोणमित्तीय फलनों के निम्नलिखित गुणों को स्थापित कर सकते हैं: 
+When the trigonometric functions are reflected from certain values of   θ  {\displaystyle \theta }, The result is often one of the other trigonometric functions. This leads to the following identities:
+By shifting the function round by certain angles, it is often possible to find different trigonometric functions that express the result more simply. Some examples of this are given shown by shifting functions round by π/2, π and 2π radians. Because the periods of these functions are either π or 2π, there are cases where the new function is exactly the same as the old function without the shift.
+इनको योग एवं अन्तर के सूत्र भी कहते हैं। इनको यूलर के सूत्र की सहायता से बडी आसानी से सिद्ध किया जा सकता है।
+    x ± y = a ± b  ⇒  x + y = a + b    and   x − y = a − b    {\displaystyle {\begin{aligned}x\pm y=a\pm b&\Rightarrow \ x+y=a+b\\&{\mbox{and}}\ x-y=a-b\end{aligned}}}     x ± y = a ∓ b  ⇒  x + y = a − b    and   x − y = a + b    {\displaystyle {\begin{aligned}x\pm y=a\mp b&\Rightarrow \ x+y=a-b\\&{\mbox{and}}\ x-y=a+b\end{aligned}}} 
+
+where "|A| = k" means the index A runs through the set of all subsets of size k of the set { 1, 2, 3, ... }. 
+In these two identities an asymmetry appears that is not seen in the case of sums of finitely many terms: in each product, there are only finitely many sine factors and cofinitely many cosine factors.
+If only finitely many of the terms θi are nonzero, then only finitely many of the terms on the right side will be nonzero because sine factors will vanish, and in each term, all but finitely many of the cosine factors will be unity.
+
+Let xi = tan, for i = 1, ..., n. Let ek be the kth-degree elementary symmetric polynomial in the variables xi, i = 1, ..., n, k = 0, ..., n. Then
+the number of terms depending on n.
+उदाहरण्के लिये,
+आदि आदि। इसकी सामान्य स्थिति गणितीय निगमन की सहायता से सिद्ध किया जा सकता है।
+
+ को डिरिचलेट कर्नेल कहते हैं।
+
+इन्हें योग एवं अन्तर की सर्वसमिकाओं की सहायता से या गुणज-कोण की सर्वसमिकाओं की सहायता से प्रदर्शित किया जा सकता है।
+See also Tangent half-angle formula.
+
+
+इन्हें कोज्या द्वि-गुण कोण सूत्र के द्वीतीय एवं तृतीय रूप का प्रयोग करके प्राप्त किया जा सकता है।
+
+If x, y, and z are the three angles of any triangle, or in other words
+ as tan either increases through positive values or decreases through negative values. This is a one-point compactification of the real line.)
+ Essentially this is Ptolemy's theorem adapted to the language of trigonometry.
+For some purposes it is important to know that any linear combination of sine waves of the same period but different phase shifts is also a sine wave with the same period, but a different phase shift. In the case of a linear combination of a sine and cosine wave, we have
+where
+More generally, for an arbitrary phase shift, we have
+where
+and
+Sum of sines and cosines with arguments in arithmetic progression:
+For any a and b:
+where arctan is the generalization of arctan which covers the entire circular range .
+The above identity is sometimes convenient to know when thinking about the Gudermanian function.
+If x, y, and z are the three angles of any triangle, i.e. if x + y + z = π, then
+
+
+
+
+where i² = −1.
+साँचा:Split-sectionOccasionally one sees the notation
+i.e. "cis" abbreviates "cos&nbsp;+&nbsp;i&nbsp;sin".
+Though at first glance this notation is redundant, being equivalent to eix, its use is rooted in several advantages.
+This notation was more common in the post WWII era when typewriters were used to convey mathematical expressions.Superscripts are both offset vertically and smaller than 'cis' or 'exp'; hence, they can be problematic even for hand writing. For example e ix² versus cis versus exp. For many readers, cis is the clearest, easiest to read of the three.
+The cis notation is sometimes used to emphasize one method of viewing and dealing with a problem over another. The mathematics of trigonometry and exponentials are related but not exactly the same; exponential notation emphasizes the whole, whereas cis and cos&nbsp;+&nbsp;i&nbsp;sin notations emphasize the parts. This can be rhetorically useful to mathematicians and engineers when discussing this function, and further serve as a mnemonic .
+The cis notation is convenient for math students whose knowledge of trigonometry and complex numbers permit this notation, but whose conceptual understanding doesn't yet permit the notation e ix. As students learn concepts that build on prior knowledge, it is important not to force them into levels of math they are not yet prepared for.
+In some contexts, the cis notation may serve the pedagogical purpose of emphasizing that one has not yet proved that this is an exponential function. In doing trigonometry without complex numbers, one may prove the two identities
+Similarly in treating multiplication of complex numbers, one may observe that the real and imaginary parts of the product of c1&nbsp;+&nbsp;is1 and c2&nbsp;+&nbsp;is2 are respectively
+Thus one sees this same pattern arising in two disparate contexts:
+This coincidence can serve as a motivation for conjoining the two contexts and thereby discovering the trigonometric identity
+and observing that this identity for cis of a sum is simpler than the identities for sin and cos of a sum. Having proved this identity, one can challenge the students to recall which familiar sort of function satisfies this same functional equation
+The answer is exponential functions. That suggests that cis may be an exponential function
+Then the question is: what is the base b? The definition of cis and the local behavior of sin and cos near zero suggest that
+. Thus the rate of change at 0 is i, so the base should be ei. Thus if this is an exponential function, then it must be
+
+For applications to special functions, the following infinite product formulæ for trigonometric functions are useful:
+
+
+
+The Gudermannian function relates the circular and hyperbolic trigonometric functions without resorting to complex numbers; see that article for details.
+The curious identity
+is a special case of an identity that contains one variable:
+A similar-looking identity is
+and in addition
+The following is perhaps not as readily generalized to an identity containing variables:
+Degree measure ceases to be more felicitous than radian measure when we consider this identity with 21 in the denominators:
+The factors 1, 2, 4, 5, 8, 10 may start to make the pattern clear: they are those integers less than 21/2 that are relatively prime to 21. The last several examples are corollaries of a basic fact about the irreducible cyclotomic polynomials: the cosines are the real parts of the zeroes of those polynomials; the sum of the zeroes is the Möbius function evaluated at 21; only half of the zeroes are present above. The two identities preceding this last one arise in the same fashion with 21 replaced by 10 and 15, respectively.
+An efficient way to compute π is based on the following identity without variables, due to Machin:
+or, alternatively, by using Euler's formula:
+
+With the golden ratio φ:
+Also see exact trigonometric constants.
+In calculus the relations stated below require angles to be measured in radians; the relations would become more complicated if angles were measured in another unit such as degrees. If the trigonometric functions are defined in terms of geometry, their derivatives can be found by verifying two limits. The first is:
+verified using the unit circle and squeeze theorem. It may be tempting to propose to use L'Hôpital's rule to establish this limit. However, if one uses this limit in order to prove that the derivative of the sine is the cosine, and then uses the fact that the derivative of the sine is the cosine in applying L'Hôpital's rule, one is reasoning circularly—a logical fallacy. The second limit is:
+verified using the identity tan = )/sin. Having established these two limits, one can use the limit definition of the derivative and the addition theorems to show that sin′ = cos and cos′ = −sin. If the sine and cosine functions are defined by their Taylor series, then the derivatives can be found by differentiating the power series term-by-term.
+The rest of the trigonometric functions can be differentiated using the above identities and the rules of derivative:
+The integral identities can be found in "list of integrals of trigonometric functions".
+The fact that the differentiation of trigonometric functions results in linear combinations of the same two functions is of fundamental importance to many fields of mathematics, including differential equations and fourier transformations.
+The Dirichlet kernel Dn is the function occurring on both sides of the next identity:
+The convolution of any integrable function of period 2π with the Dirichlet kernel coincides with the function's nth-degree Fourier approximation. The same holds for any measure or generalized function.
+यदि हम
+रखें तो, 
+जहाँ eix और cis एक ही चीज हैं।
+उपरोक्त सूत्र कैलकुलस में sin और cos के rational functions के समाकलन करने में उपयोगी होते हैं।

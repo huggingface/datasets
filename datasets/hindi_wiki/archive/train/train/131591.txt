@@ -1,0 +1,10 @@
+यह जनसंख्या के हिसाब से देशों की सूची है, इस सूची में प्रभुता संपन्न राष्ट्र और बसे हुए अधीन क्षेत्र शामिल हैं। यह सूची आईएसओ मानक पर आधारित आईएसओ 3166-1 है।
+A wikilink can be added optionally:
+The alt text is "INR". Use |alt= to use something different.
+
+National Population Statistics of Mexico 
+National Statistics Office medium projection
+Ethiopia Central Statistics Agency
+Official Thai Statistics estimate
+UN estimate
+UN estimate

@@ -1,0 +1,2 @@
+लुआ त्रुटि Module:Location_map में पंक्ति 389 पर: Minutes can only be provided with DMS degrees for longitude।
+सान मार्टिन का गिरजाघर ला गिनेटा, स्पेन का एक गिरजाघर है। 1992 ई. में इसे बिएन दे इंतेरेस कल्चरल की सूची में शामिल किया गया था। 

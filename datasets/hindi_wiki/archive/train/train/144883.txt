@@ -1,0 +1,4 @@
+संधारित्रों का वर्गीकरण प्राय: उनके निर्माण में प्रयुक्त डाइएलेक्ट्रिक पदार्थ के आधार पर किया जाता है। डाइएलेक्ट्रिक भी दो प्रकार के होते हैं - बल्क कुचालक एवं धातु-आक्साइड के फिल्म । इसी प्रकार, संधारित्र नियत मान वाले हो सकते हैं या परिवर्ती मान वाले .
+
+Capacitors may be marked with 3 or more coloured bands or dots. 3-colour coding encodes most significant digit, second most significant digit, and multiplier. Additional bands have meanings which may vary from one type to another. Low-tolerance capacitors may begin with the first 3 digits of the value. It is usually, but not always, possible to work out what scheme is used by the particular colours used. Cylindrical capacitors marked with bands may look like resistors.
+*Or ±0.5 pF, whichever is greater.

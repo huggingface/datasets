@@ -1,0 +1,3 @@
+यह 2016 आए में भूकम्पों की सूची है। केवल परिमाण 6 या उससे ऊपर के भूकंप शामिल किए गए हैं। सभी तिथियों यूटीसी समय के अनुसार सूचीबद्ध हैं।
+Note that an increase in detected earthquake numbers does not necessarily represent an increase in earthquakes per se. Population increase, habitation spread, and advances in earthquake detection technology all contribute to higher earthquake numbers being recorded over time. USGS's Earthquake Myths has more information.
+For exact dates and live earthquakes please visit USGS Real-time Earthquake Map

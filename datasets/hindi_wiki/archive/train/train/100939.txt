@@ -1,0 +1,2 @@
+लुआ त्रुटि Module:Location_map में पंक्ति 389 पर: Minutes can only be provided with DMS degrees for longitude।
+लिआन का टावर एक टावर है जो लिआन स्पेन में मौजूद है। इसे 1876 में बिएन दे इंतेरेस कल्चरल की सूची में शामिल लिया गया था।

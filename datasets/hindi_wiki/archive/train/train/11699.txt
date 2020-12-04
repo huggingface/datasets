@@ -1,0 +1,2 @@
+See Free audio software
+Be advised that available distributions of these systems can contain, or offer to build and install, added software that is neither free software nor open source.

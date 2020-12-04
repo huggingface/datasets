@@ -1,0 +1,5 @@
+Format of entries is:
+Currently, the only ICAO prefixes beginning with 'C' are 'CY' and 'CZ', both assigned to Canada. Airports that are part of the Canadian National Airports System are emphasized.
+Also see airport category and list.
+Also see airport category and list.
+साँचा:List of airports in Canada

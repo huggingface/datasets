@@ -1,0 +1,22 @@
+जिन विभिन्न अवयवों का उपयोग करके इलेक्ट्रॉनिक परिपथ बनाये जाते हैं उन्हें इलेक्ट्रॉनिक अवयव कहते हैं इलेक्ट्रॉनिक अवयव दो सिरे वाले, तीन सिरों वाले या इससे अधिक सिरों वाले होते हैं जिन्हें सोल्डर करके या किसी अन्य विधि से परिपथ में जोड़ा जाता है। प्रतिरोधक, प्रेरकत्व, संधारित्र, डायोड, ट्रांजिस्टर, मॉसफेट, आईजीबीटी, एससीआर, प्रकाश उत्सर्जक डायोड, आपरेशनल एम्प्लिफायर एवं अन्य एकीकृत परिपथ आदि प्रमुख इलेक्ट्रॉनिक अवयव हैं। 
+इलेक्ट्रॉनिक अवयव दो प्रकार के होते हैं-
+Devices to make electrical connection
+Cables with connectors or terminals at their ends
+Components that may be made to either conduct or not 
+Components used to resist current.
+Passive components that protect circuits from excessive currents or voltages
+Components that store electrical charge in an electrical field.Capacitors are used for filtration in the electronic circuits.Capacitors in general pass changing and block unchanging voltage levels.
+Electrical components that use magnetism
+Components that use more than one type of passive component
+saurabh shakya
+पीजोएलेक्ट्रिक प्रभाव का उपयोग करके कुछ पैसिव अवयव उपलब्ध हैं-
+Sources of electrical power
+Electronic control components with no moving parts.Active components
+A device which conducts electricity in only one direction.
+पुरानी :
+Active devices that operate in vacuum
+माइक्रोवेव 
+प्रकाशीय 
+Obsolete:
+Multiple electronic components assembled in a device that is in itself used as a component
+अप्रयुक्त :

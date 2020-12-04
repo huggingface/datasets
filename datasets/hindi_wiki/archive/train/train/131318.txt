@@ -1,0 +1,107 @@
+परियोजना प्रबन्धन से सम्बन्धित प्रमुख साफ्टवेयरों की सूची नीचे दी जारही है-
+GanttProject
+KPlato
+OpenProj
+Open Workbench
+Planner
+TaskJuggler
+BONTQ 
+Bugzilla
+Codendi
+Collabtive
+dotProject
+eGroupWare
+KForge
+Mantis Bug Tracker
+OpenGoo
+Project.net
+ProjectPier
+Redmine
+Trac
+SharpForge 
+jotBug
+todoyu
+AMS REALTIME 7
+Artemis
+CAMeLEAN/PM
+Collanos Workplace
+Contactizer
+FastTrack Schedule
+InLoox
+LisaProject
+MacProject
+MatchWare MindView Business
+MicroPlanner X-Pert
+Microsoft Project
+O3spaces
+OmniPlan
+P2ware Planner
+Planner Suite
+Planisware 5
+Primavera Project Planner
+Project KickStart
+RationalPlan
+RiskyProject
+Teamcenter
+Tracker Suite
+@task
+24SevenOffice
+5PM
+Artifact Software
+Assembla
+Basecamp
+Blue Ant
+CAMeLEAN/PM
+Cardinis
+Central Desktop
+Clarity
+Clarizen
+CreationFlow
+DeskAway
+Copper Project
+Daptiv
+EPM Live
+Easy Projects .NET
+EnterPlicity
+FogBugz
+Gemini
+FreeTime
+Huddle
+JIRA
+Journyx
+Kayako helpdesk software
+eVisioner MetaTeam
+Genius Inside
+Goplan
+Instant Business Network
+Kanban Tool
+Launchpad
+LiquidPlanner
+Microsoft Office Project Server
+Mingle
+mpower
+OpenAir
+Oracle Project Portfolio Management
+P2ware Planner Server
+Planisware OPX2/Planisware 5
+Projektron BCS
+Project Insight
+ProjectPartner
+Projectplace
+ProjectVision
+QuickArrow
+QuickBase
+Rplan
+Santexq
+Sciforma PSNext
+TargetProcess
+Time Activity Planning system 
+Teamwork
+Tenrox
+ValleySpeak Project Server
+Vertabase Pro
+Viewpath
+VPMi
+WorkLenz
+Wrike
+Zoho Projects

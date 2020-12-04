@@ -1,0 +1,51 @@
+भाषा तकनीकें ऐसी सूचना तकनीक हैं जो मानव भाषा के प्रसंस्करण में प्रयुक्त होतीं हैं। मानव भाषा विश्व में सबसे जटिल व सबसे पुराना सूचना का माध्यम है।
+मानव भाषा का अस्तित्व दो रूपों में है - भाषिक एवं लिखित। यद्यपि बोली, भाषा का सबसे पुरानी एवं सबसे सहज रूप है किन्तु जटिल सूचनायें एवं मानव ज्ञान का अधिकांश भाग लिखित भाषा के रूप में ही विद्यमान है तथा इसका संचार भी लिखित रूप में ही अधिक होता है। स्पीच तकनीक एवं टेक्स्ट तकनीकें भाषा को इन दो रूपों में प्रकलन करती है। किन्तु स्पीच एवं टेक्ट तकनीकें ही पर्याप्त नहीं हैं। इसलिये बहुत सी भाषा तकनीकें ऐसी भी हैं जो स्पीच या टेक्स्ट की प्रोसेसिंग करने के बजाय भाषा को ज्ञान से जोडने में सहायक होतीं हैं।
+भाषा तकनीकें भविष्य में बहुत महत्वपूर्ण होगीं। इनके विकसित होने के बाद अनेक कार्यों के करने के तरीके में विस्मयकारी परिवर्तन आने वाला है।
+भाषण को समझना / भाषण से टेक्स्ट में परिवर्तन 
+भाषण की रचना 
+टेक्स्ट का वर्गीकरण 
+टेक्स्ट सारांशक 
+Text Indexing
+Text Retrieval
+सूचना निकालना 
+Data Fusion and Text Data Mining
+जिज्ञासा समाधान 
+रिपोर्ट सृजन 
+Spoken Dialogue Systems
+Nondiscrete Mathematical Methods
+Statistical techniques
+Logical and Linguistic Formalisms
+शब्दकोश
+morphological syntactic grammars
+rules for semantic interpretation
+उच्चारण एवं इन्टोनेशन 
+Corpora and Corpus Tools
+Voice Control Systems
+Dictation Systems
+Text-to-Speech Systems
+Machine Initiative Spoken Dialogue Systems
+Identification and Verification Systems
+Spoken Information Access
+Mixed Initiative Spoken Dialogue Systems
+Speech Translation Systems
+Spell Checkers
+Machine-Assisted Human Translation
+Translation Memories
+Indicative Machine Translation
+Grammar Checkers
+Information Extraction
+Human Assisted Machine Translation
+Report Generation
+High Quality Text Translation
+Text Generation Systems
+Word-Based Information Retrieval
+Summarization by Simple Condensation
+Simple Statistical Categorization
+Simple Automatic Hyperlinking
+Cross-Lingual Information Retrieval
+Automatic Hyperlinking With Disambiguation
+Simple Information Extraction 
+Complex Information Extraction 
+Dense Associative Hyperlinking
+Concept-Based Information Retrieval
+Text Understanding

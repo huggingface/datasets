@@ -1,0 +1,16 @@
+Conics and cubic.svg
+यहाँ पर विभिन्न वक्रों की सूची दी गयी है।
+   x 5  − y 2  − x = 0  {\displaystyle x^{5}-y^{2}-x=0} 
+   2  + y = 0  {\displaystyle ^{2}+y=0} 
+   y 2   −  2  = 0  {\displaystyle y^{2}-^{2}=0} 
+    − y  2  = 0  {\displaystyle -y^{2}=0} 
+   x 5  + y 5  − x = 0  {\displaystyle x^{5}+y^{5}-x=0} 
+   y 5  + 5 = 0  {\displaystyle y^{5}+5=0} 
+   x 5  + y 5  − x 4  − y 4  + x y = 0  {\displaystyle x^{5}+y^{5}-x^{4}-y^{4}+xy=0} 
+   3  + 27 x 2  y 2  = 0  {\displaystyle ^{3}+27x^{2}y^{2}=0} 
+   x 4  −  2  = 0  {\displaystyle x^{4}-^{2}=0} 
+   3  − 108 y 2  = 0  {\displaystyle ^{3}-108y^{2}=0} 
+   3  − 4 x 2  y 2  = 0  {\displaystyle ^{3}-4x^{2}y^{2}=0} 
+   3  −  2  = 0  {\displaystyle ^{3}-^{2}=0} 
+अर्थशास्त्र
+अन्य

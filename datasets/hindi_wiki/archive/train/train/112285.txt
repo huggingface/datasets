@@ -1,0 +1,5 @@
+स्थैतिक संतुलन का मानक परिभाषा निम्नवत है-
+सूत्र रूप में -   {   v  =  0   ω  =  0   ∑ F  =  0   ∑ M  =  0     {\displaystyle \left\{{\begin{matrix}\mathbf {v} &=&0\\{\boldsymbol {\omega }}&=&0\\\sum \mathbf {F} &=&0\\\sum \mathbf {M} &=&0\end{matrix}}\right.} 
+यांत्रिक संतुलन थोड़ा अलग तरह से परिभाषित है:
+   {  ∑  F  e x t  = 0   ∑  M  e x t  = 0     {\displaystyle {\begin{cases}\sum \mathbf {F} ^{ext}=0\\\sum \mathbf {M} ^{ext}=0\end{cases}}} 
+अर्थात् कणों के किसी निकाय की यांत्रिक संतुलन की स्थिति के लिये आवश्यक एवं पर्याप्त शर्तें निम्नांकित हैं-

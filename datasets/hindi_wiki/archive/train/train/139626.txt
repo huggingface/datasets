@@ -1,0 +1,13 @@
+ज्यामिति में बिन्दुओं के दो समुच्चय को परस्पर सर्वांगसम कहते हैं यदि उनमें से किसी एक समुच्चय को स्थानान्तरण, घूर्णन, परावर्तन या इनके मिश्रित क्रियाओं के द्वारा परिवर्तित करने पर दूसरा समुच्चय प्राप्त किया जा सके। सर्वांगसम = सर्व + अंग + सम = सभी अंग बराबर। इसे और अधिक सरल रूप में यों कह सकते हैं कि दो चित्र यदि आकार-प्रकार में समान हैं तो वे परस्पर सर्वांगसम होते हैं ।
+यदि दो त्रिभुजों की तीनों भुजायें एवं संगत कोण समान हों तो वे परस्पर सर्वांगसम होते हैं।
+किन्तु प्रायः केवल तीन संगत अंगों की समानता प्रदर्शित कर देना ही सर्वांगसमता सिद्द करने के लिये पर्याप्त होता है।
+SAS : यदि दो त्रिभुजों की दो संगत भुजाएँ और उनके बीच के कोण समान हों तो वे सर्वांगसम हैं। 
+SSS : यदि एक त्रिभुज की तीनों भुजाएँ दूसरे त्रिभुज की तीनों संगत भुजों के बराबर हों तो दोनो त्रिभुज सर्वांगसम हैं।
+ASA : Two triangles are congruent if a pair of corresponding angles and the included side are equal.The ASA Postulate was contributed by Thales of Miletus . 
+In most system of axioms, the three criteria — SAS, SSS and ASA — are established as theorems. In the School Mathematics Study Group system SAS is taken as one of 22 postulates.
+AAS : Two triangles are congruent if a pair of corresponding angles and a not-included side are equal, since the 3rd angle would have to be equal, and therefore the side would be included. This one is valid only in Euclidean geometry.
+The SSA condition which specifies two sides and a non-included angle ) does not always prove congruence.
+Specifically, SSA does not prove congruence when the angle is acute and the opposite side is shorter or equal to the adjacent side but longer than the sine of the angle times the adjacent side. This is the ambiguous case. In all other cases, SSA proves congruence. Notice that the opposite side cannot be smaller than the adjacent side times the sine of the angle as this could not describe a triangle.
+The SSA condition proves congruence if the angle is obtuse or right. In the case of the right angle condition), we can calculate the third side and fall back on SSS.
+The SSA condition proves congruence if the angle is acute and the opposite side either equals the adjacent side times the sine of the angle or is longer than the adjacent side.
+AAA इस स्थिति में दोनो त्रिभुज केवल समरूप होते हैं, जरूरी नहीं कि वे सर्वांगसम भी हों। ऐसा इसलिये है कि यह स्थिति आकार के बारे में कुछ भी नहीं कहती। तथापि यदि गोलीय ज्यामिति या अतिपरवलीय ज्यामिति की बात करें तो उनमें यह स्थिति सर्वांगसमता के लिये पर्याप्त हैI Love is called AAA angle।

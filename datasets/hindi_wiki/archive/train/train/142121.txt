@@ -1,0 +1,26 @@
+गुणोत्तर श्रेणी वह श्रेणी है जिसके क्रमागत पदों का अनुपात अचर होता है। उदाहरण के लिये, 
+एक गुणोत्तर श्रेणी है जिसका सर्वनिष्ट अनुपात 3 है। 
+निम्नलिखित श्रेणी, गुणोत्तर श्रेणी का सामान्य रूप है,
+जहाँ a श्रेणी का प्रथम पद तथा r सर्वनिष्ट अनुपात है।
+मिम्नलिखित तालिका में कई गुणोत्तर श्रेणियाँ और उनके प्रथम पद एवं सर्वनिष्ट अनुपात दिखाए गए हैं-
+गुणोत्तर श्रेणी के कई गुण उसके सर्वनिष्ट अनुपात r पर निर्भर करते हैं।
+किसी गुणोत्तर श्रेणी का योग एक सीमित संख्या होगी यदि उसके सर्वनिष्ट अनुपात r का संख्यात्मक मान 1 से कम हो। ऐसी स्थिति में उस श्रेणी के बाद वाले पद नगण्य होते चले जाते हैं और उस श्रेणी में अनन्त पद होने के बावजूद भी योग अनन्त नहीं, सीमित होता है। 
+माना हम निम्नलिखित श्रेणी का योग निकालना चाहते हैं-
+This series has common ratio 2/3. If we multiply through by this common ratio, then the initial 1 becomes a 2/3, the 2/3 becomes a 4/9, and so on:
+This new series is the same as the original, except that the first term is missing. Subtracting the new series s from the original series s cancels every term in the original but the first,
+A similar technique can be used to evaluate any self-similar expression.
+For   r ≠ 1  {\displaystyle r\neq 1}, the sum of the first n terms of a geometric series is
+where a is the first term of the series, and r is the common ratio. We can derive this formula as follows:
+so, 
+As n goes to infinity, the absolute value of r must be less than one for the series to converge. The sum then becomes
+When a = 1, this can be simplified to
+the left-hand side being a geometric series with common ratio r.
+The formula also holds for complex r, with the corresponding restriction, the modulus of r is strictly less than one.
+We can prove that the geometric series converges using the sum formula for a geometric progression:
+Since = 1−rn+1 and rn+1 → 0 for | r | < 1.
+Convergence of geometric series can also be demonstrated by rewriting the series as an equivalent telescoping series. Consider the function,
+Note that
+Thus,
+If
+then
+So S converges to

@@ -1,0 +1,2 @@
+लुआ त्रुटि Module:Location_map में पंक्ति 389 पर: Minutes can only be provided with DMS degrees for longitude।
+सान जुआन दे रबानेरा का गिरजाघर एक गिरजा है जो सोरिया, स्पेन में मौजूद है। इसे बिएन दे इंतेरेस कल्चरल की सूची में 1929 में शामिल किया गया था। 

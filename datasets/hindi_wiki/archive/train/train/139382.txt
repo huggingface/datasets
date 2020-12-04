@@ -1,0 +1,16 @@
+म्यांमार लिपि या बर्मी लिपि, बर्मी भाषा लिखने के लिये प्रयुक्त होती है। यह ब्राह्मी परिवार की लिपि है। इसके अक्षर गोल होते हैं जो ताड़पत्र पर लेखन में सुविधा प्रदान करते थे क्योंकि सीधी रेखाएँ लिखने से पत्तों के फटने का डर रहता है।
+बर्मी लिपि, ब्राह्मी लिपि से व्युत्पन्न है किन्तु कुछ-कुछ शब्दों की वर्तनी और उच्चारण में बहुत अन्तर होता है। उदाहरण के लिये,
+यहाँ ः  का अर्थ वास्तविक विसर्ग नहीं है बल्कि इसके लगाने का अर्थ संगत मात्रा को बड़ा करना है।
+There are several diactric marks that alter the vowel sound of a letter. Two diacritics are used exclusively for Pali and are rarely seen elsewhere.
+One or more of these accents can be added to a consonant to change its sound. In addition, other modifying symbols are used to differentiate tone and sound, but are not considered diacritics.
+बर्मी लिपि के रोमनीकरण की चार प्रणालियाँ प्रचलित हैं। इनमे से दो प्रणालियाँ लिप्यन्तरण कही जा सकती हैं तथा अन्य दो का जोर उच्चारण पर है इसलिये उन्हें टांस्क्रिप्शन कह सकते हैं।
+लिप्यन्तरण की प्रणालियाँ हैं- MLC Transcription System तथा ALA-LC Romanization भी देखें। टांसक्रिप्शन प्रणालियाँ हैं- BGN/PCGN romanization तथा John Okell द्वारा प्रयुक्त प्रणाली।
+इन प्रणालियों का विस्तृत विवेचन नीचे की सारणियों में दिया गया है-
+Syllable onsets का रोमनीकरण निम्नवत किया जाता है-
+Syllable rhymes का रोमनीकरण निम्नवत किया जाता है। इस सारणी में बर्मी वर्ण 'क' က साँचा:IPAchar को आधार के रूप में प्रयोग किया गया है। 
+In sequences with ွ or ဝ before တ်, န်, ပ်, မ် or together with ံ, the vowel pronounced is साँचा:IPAchar rather than the expected साँचा:IPAchar. This is reflected in the BGN/PCGN and Okell transcriptions, but not in the MLCTS and ALA-LC transliterations.
+The independent vowel letters are transcribed the same as the vowels formed with အ, except in ALA-LC, where those formed with အ take a preposed apostrophe :
+The low tone and checked tone are represented as shown in the table above. The representation of the high tone and creaky tone varies depending on the respective syllable rhyme: sometimes they are inherent in the vowel symbol used, and sometimes they are indicated by a diacritic mark. The ALA-LC romanization indicates these two tones explicitly only in cases where diacritic marks are used; the other three romanizations indicate them regardless of how they are spelled. Examples:
+Minor syllables in Burmese contain only the vowel साँचा:IPAchar in the rhyme and do not bear tone. They are always followed by a major syllable . In the orthography, they are most commonly spelled as if their rhyme was साँचा:IPAchar, but are often spelled in other ways. In the MLCTS and ALA-LC systems, minor syllables are romanized exactly as they are spelled in Burmese orthography. In the modified BGN/PCGN system and in the Okell system, minor syllables are indicated by the letter ă regardless of the Burmese orthography. Examples:
+Where two consonants appear next to each other between two vowels in a romanization, use hyphens as necessary to avoid ambiguity. For example :
+In many words, a written voiceless consonant is pronounced voiced when it appears after a vowel or साँचा:IPAchar. This is indicated in the BGN-PCGN and Okell transcriptions, but not in the MLCTS and ALA-LC transliterations. In BGN-PCGN, the letter for the voiced consonant is used; in Okell, the letter for the voiceless consonant is used but underlined. Examples:

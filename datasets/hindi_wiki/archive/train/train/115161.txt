@@ -1,0 +1,10 @@
+लैटिस-बोल्ट्ज़मैन मैथड तरल सिमुलेशन के लिये कंप्यूटेश्नल तरल गतिकी का एक वर्ग होता है। नेवियर-स्टोल्स समीकरण हल करने के बजाय, डिस्क्रीट बोल्ट्ज़्मैन समीकरण को हल किया जाता है। इसके द्वारा न्यूटोनियन तरल का बहाव भटनागर-ग्रॉस-क्रुक ऑपरेटर समान कोलीज़न मॉडलों का सिमुलेशन करने हेतु किया जाता है।
+बोल्ट्ज़्मैन समीकरण, एकल पार्टिकल प्रोबैब्लिटी वितरण फ़ंक्शन   f  {\displaystyle f} के लिये एवॉल्यूशन समीकरण होता है:
+जहां   F  {\displaystyle F} बाहरी बल है एवं   Ω  {\displaystyle \Omega } कोलीज़न समाकलक है। लैटिस बोल्ट्ज़्मैन मैथड इस समीकरण को डिस्क्रीटाइज़ कर देता है। इसके लिये ये स्पेस को एक लैटिस एवं वेलोसिटी स्पेस को वेलोसिटी सेट्स   v i   {\displaystyle v_{i}} में डिस्क्रीटाइज़ कर देता है। तब बोल्ट्ज़्मैन समीकरण, जो अब लैटिस बोल्ट्ज़्मैन समीकरण बन चुका है, बन जाता है:
+The collision operator is often approximated by a BGK collision operator:
+where   f i  0   {\displaystyle f_{i}^{0}} is the local equilibrium distribution.
+The moments of the   f i   {\displaystyle f_{i}} give the local conserved quantities. The density is given by
+and the local momentum is given by
+For the popular isothermal lattice Boltzmann methods these are the only conserved quantities. Thermal models also conserve energy and therefore have an additional conserved quantity:
+The collision operator has to respect the conservation laws. Therefore the equilibirum distribution   f i  0   {\displaystyle f_{i}^{0}} must have the same conserved moments as the   f i   {\displaystyle f_{i}} .
+

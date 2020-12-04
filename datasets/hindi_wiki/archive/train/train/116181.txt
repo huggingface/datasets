@@ -1,0 +1,10 @@
+गणित में, अतिपरवलयिक फलन ऐसे फलन हैं जो सामान्य त्रिकोणमितीय फलनों से मिलते-जुलते किन्तु अलग फलन हैं। 
+हाइपरबोलिक साइन "sinh", और हाइपरबोलिक कोसाइन "cosh", मूलभूत अतिपरवलयिक फलन हैं। इनसे हाइपरबोलिक टैन्जेन्ट "tanh", हाइपरबोलिक कोसेकेन्ट "csch" या "cosech", हाइपरबोलिक सेकेन्ट "sech", तथा हाइपरबोलिक कोटैन्जेन्ट "coth", व्युत्पन्न हुए हैं।
+अतिपरवलयिक फलनों को कई तरह से पारिभाषित किया जाता है। एक विधि इनको इक्सपोनेन्शियल फलन के फलन के रूप में परिभाषित करती है-
+हाइपरबोलिक फलनों को अवकल समीकरणों के हल के रूप में भी परिभाषित किया जा सकता है। हाइपरबोलिक साइन और हाइपरबोलिक कोसाइन निम्नलिखित तन्त्र के अनन्य हल हैं-
+such that s = 0 and c = 1.
+ये फलन निमनलिखित समीकरण के अन्न्य हल भी हैं-   f ″  = f,  {\displaystyle f''=f,} such that   f = 1, f ′  = 0,  {\displaystyle f=1,f'=0,} for the hyperbolic cosine, and   f = 0, f ′  = 1,  {\displaystyle f=0,f'=1,} for the hyperbolic sine.
+Hyperbolic functions may also be deduced from trigonometric functions with complex arguments:
+where i is the imaginary unit with the property that   i 2  = − 1.  {\displaystyle i^{2}=-1.} 
+The complex forms in the definitions above derive from Euler's formula.
+

@@ -1,0 +1,17 @@
+नीचे दी गयीं सर्वसमिकाएँ त्रिविमीय युक्लीडीय अवकाश के सदिशों से सम्बंधित हैं इनमें से कुछ अधिक वीमा वाले सदिशों के लिये भी सत्य हैं। उदाहरण के लिये, दो सदिशों का सदिश गुणनफल सभी विमाओं के लिये उपलब्ध नहीं है। 
+सदिश A का परिमाण, इस सदिश के तीन परस्पर लम्बवत दिशाओं में कम्पोनेन्ट के वर्गों के योग के वर्गमूल के बराबर होता है। 
+यह परिमाण अदिश गुणनफल का प्रयोग करते हुए निम्नलिखित प्रकार से भी अभिव्यक्त किया जा सकता है-
+Here the notation denotes the dot product of vectors A and B.
+The vector product and the scalar product of two vectors define the angle between them, say θ:
+To satisfy the right-hand rule, for positive θ, vector B is counter-clockwise from A, and for negative θ it is clockwise.
+Here the notation A × B denotes the vector cross product of vectors A and B.The Pythagorean trigonometric identity then provides:
+If a vector A = makes angles α, β, γ with an orthogonal set of x-, y- and z-axes, then:
+and analogously for angles β, γ. Consequently:
+with     i ^ ,    j ^ ,    k ^   {\displaystyle {\hat {\mathbf {i} }},\ {\hat {\mathbf {j} }},\ {\hat {\mathbf {k} }}} unit vectors along the axis directions.
+The area Σ of a parallelogram with sides A and B containing the angle θ is:
+which will be recognized as the magnitude of the vector cross product of the vectors A and B lying along the sides of the parallelogram. That is:
+The square of this expression is:
+where Γ is the Gram determinant of A and B defined by:
+In a similar fashion, the squared volume V of a parallelepiped spanned by the three vectors A, B and C is given by the Gram determinant of the three vectors:
+This process can be extended to n-dimensions.
+Some of the following algebraic relations refer to the dot product and the cross product of vectors. These relations can be found in a variety of sources, for example, see Albright.

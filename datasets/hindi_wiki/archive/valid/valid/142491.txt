@@ -1,0 +1,10 @@
+बीजगणित में बहुपदी शेषफल प्रमेय, बहुपदी दीर्घ भाजन का एक अनुप्रयोग है। इस प्रमेय के अनुसार, किसी रेखीय भाजक   x − a  {\displaystyle x-a\,} से किसी बहुपद   f   {\displaystyle f\,} को भाग करने पर शेष   r  {\displaystyle r\,} का मान   f  {\displaystyle f} के बराबर होता है।
+माना   f = x 3  − 12 x 2  − 42  {\displaystyle f=x^{3}-12x^{2}-42\,} . 
+  x − 3  {\displaystyle x-3\,} से बहुपदी भाग करने पर भागफल 
+   x 2  − 9 x − 27  {\displaystyle x^{2}-9x-27\,} तथा शेष   − 123  {\displaystyle -123\,} प्राप्त होता है।
+और दूसरी तरफ,   f = − 123  {\displaystyle f=-123\,} .अतः f को से विभाजित करने पर शेष = f= -123।
+यह बहुपदी दीर्घ भाजन की परिभाषा से ही स्पष्ट हो जाता है, क्योंकि 
+जहाँ   g   {\displaystyle g\,},   q   {\displaystyle q\,}, एवं   r   {\displaystyle r\,} क्रमशः भाजक, भजनफल एवं शेष हैं तथा   r   {\displaystyle r\,} की कोटि   g   {\displaystyle g\,} की डिग्री से कम है।
+अब यदि   g = x − a  {\displaystyle g=x-a\,} रखा जाय तो शेष   r   {\displaystyle r\,} की डिग्री शून्य होगी; अर्थात   r = r  {\displaystyle r=r\,} और
+अब   x = a   {\displaystyle x=a\!\,} रखने पर 
+इतिसिद्धम्

@@ -1,0 +1,6 @@
+नीचे उन कण त्वरकों की सूची दी गयी है जो कण भौतिकी के प्रयोगों में प्रयुक्त होते हैं। कुछ आरम्भिक त्वरकों को भी इसमें शामिल किया गया है जो नाभिकीय भौतिकी में अनुसंधान के लिये प्रयुक्त हुए थे क्योंकि तब तक नाभिकीय भौतिकी और कण भौतिकी अलग-अलग नहीं थे।
+ये सभी केवल एक पुंज वाले थे और इनका लक्ष्य अपरिवर्तनीय था।
+ First accelerator built at the current Lawrence Berkeley National Laboratory site, then known as the Berkeley Radiation Laboratory 
+More modern accelerators that were also run in fixed target mode; often, they will also have been run as colliders, or accelerated particles for use in subsequently-built colliders.
+Oxfordshire, United Kingdom
+Besides the real accelerators listed above, there are hypothetical accelerators often usedas hypothetical examples or optimistic projects by particle physicists.

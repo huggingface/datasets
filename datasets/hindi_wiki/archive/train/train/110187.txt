@@ -1,0 +1,6 @@
+किसी संकाय की कार्य करने की क्षमता को उर्जा कहते हैं। किसी संकाय पर काम करके या उसके द्वारा काम कराकर ही उसकी उर्जा को बदला जा सकता है क्योंकि उर्जा वह राशि है जो संरक्षित होती है। 
+उर्जा तरह-तरह के रूपों में पायी जाती है और भिन्न-भिन्न प्रकार की उर्जा का परस्पर परिवर्तन किया जा सकता है। किसी प्रकार की उर्जा कहीं उपयोगी है तो किसी प्रकार की कहीं और। उदाहरण के लिये कोयले में संचित रासायनिक उर्जा को जलाकर उससे उष्मीय उर्जा प्राप्त की जा सकती है। इस उष्मा से पानी को उबालकर वाष्प बनाकर उससे वाष्प टरबाइन चलाकर इसे यांत्रिक उर्जा में बदला जा सकता है। इस टरबाइन से कोई विद्युत जनित्र चलाकर इस यांत्रिक उर्जा को विद्युत उर्जा में बदला जा सकता है। इस विद्युत उर्जा से प्रकाश बल्ब जलाकर प्रकाश उर्जा प्राप्त की जा सकती है।
+उदाहरण के लिये, कोयला पर आधारित ऊर्जा संयंत्र में निम्नलिखित प्रकार के ऊर्जा रूपान्तरण होते हैं-
+In such a system, the first and fourth step are highly efficient, but the second and third steps are less efficient. The most efficient gas-fired electrical power stations can achieve 50% conversion efficiency. Oil- and coal-fired stations achieve less.
+In a conventional automobile, these energy transformations are involved:
+There are many different machines and transducers that convert one energy form into another. A short list of examples follows:
