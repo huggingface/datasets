@@ -96,9 +96,9 @@ An example looks like this:
 ### Data Fields
 
 - `src`: original sentence.
-- `src_tags`: source word-level tags. `[]` if N/A (only for test).
+- `src_tags`: source word-level tags. `0`=`BAD`, `1`=`OK`. `[]` if N/A (only for test).
 - `mt`: NMT output.
-- `mt_tags`: target word-level tags. `[]` if N/A (only for test).
+- `mt_tags`: target word-level tags. `0`=`BAD`, `1`=`OK`. `[]` if N/A (only for test).
 - `pe`: post-edited version of NMT output. `""` if N/A (only for test).
 - `hter`: human translation error rate. `-10_000` if N/A (only for test).
 - `alignments`: Word aligments.
