@@ -72,16 +72,17 @@ class Cord19(datasets.GeneratorBasedBuilder):
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
-            # metadata headers
-            # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,
-            # who_covidence_id,arxiv_id,pdf_json_files,pmc_json_files,url,s2_id
             features=datasets.Features(
                 {
                     "cord_uid": datasets.Value("string"),
                     "sha": datasets.Value("string"),
+                    "source_x": datasets.Value("string"),
                     "title": datasets.Value("string"),
-                    # TODO "authors list" (complex nested json)
+                    "doi": datasets.Value("string"),
                     "abstract": datasets.Value("string"),
+                    "publish_time": datasets.Value("string"),
+                    "authors": datasets.Value("string"),
+                    "journal": datasets.Value("string"),
                     # TODO "full_text" (complex nested json)
                     # TODO "bib_entries" (complex nested json)
                     # TODO "doc_embeddings" (separated file to be link by paper_id?)
@@ -112,13 +113,19 @@ class Cord19(datasets.GeneratorBasedBuilder):
 
         with open(filepath, mode="r", encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=",")
-            # headers
+            # skip headers
+            headers = next(reader, None)
             # cord_uid,sha,source_x,title,doi,pmcid,pubmed_id,license,abstract,publish_time,authors,journal,mag_id,
             # who_covidence_id,arxiv_id,pdf_json_files,pmc_json_files,url,s2_id
             for i, line in enumerate(reader):
                 yield i, {
                     "cord_uid": line[0],
                     "sha": line[1],
+                    "source_x": line[2],
                     "title": line[3],
+                    "doi": line[4],
                     "abstract": line[8],
+                    "publish_time": line[9],
+                    "authors": line[10],
+                    "journal": line[11]
                 }
