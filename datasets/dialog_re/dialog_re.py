@@ -34,9 +34,9 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-DialogRE is the first human-annotated dialogue based relation extraction (RE) dataset aiming 
-to support the prediction of relation(s) between two arguments that appear in a dialogue. 
-The dataset annotates all occurrences of 36 possible relation types that exist between pairs 
+DialogRE is the first human-annotated dialogue based relation extraction (RE) dataset aiming
+to support the prediction of relation(s) between two arguments that appear in a dialogue.
+The dataset annotates all occurrences of 36 possible relation types that exist between pairs
 of arguments in the 1,788 dialogues originating from the complete transcripts of Friends.
 """
 
