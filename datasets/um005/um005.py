@@ -70,15 +70,22 @@ class UM005Config(datasets.BuilderConfig):
         self.sources = sources
 
     @property
-    def filepaths(self):
-        return {source: _SOURCES_FILEPATHS[source] for source in self.sources}
+    def language_pair(self):
+        return ("ur", "en")
 
 
 class UM005(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
-        UM005Config(name=source, sources=[source], description=f"Source. {source}.") for source in _SOURCES
-    ] + [UM005Config(name=_ALL, sources=_SOURCES, description=f"All sources included.")]
-
+        UM005Config(name=source, sources=[source], description=f"Source: {source}.")
+        for source in _SOURCES
+    ] + [
+        UM005Config(
+            name=_ALL,
+            sources=_SOURCES,
+            description=f"All sources included: bible, quran",
+        )
+    ]
+    BUILDER_CONFIG_CLASS = UM005Config
     DEFAULT_CONFIG_NAME = _ALL
 
     def _info(self):
@@ -87,8 +94,9 @@ class UM005(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "urdu": datasets.Value("string"),
-                    "english": datasets.Value("string"),
+                    "translation": datasets.Translation(
+                        languages=self.config.language_pair
+                    ),
                 },
             ),
             supervised_keys=None,
@@ -114,23 +122,32 @@ class UM005(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, datapath, datatype):
-        sentence_counter = 0
-        for source, filepath in self.config.filepaths.items():
-            filepath = filepath[datatype]
-            urdu_file = filepath["urdu"]
-            english_file = filepath["english"]
-            urdu_path = os.path.join(datapath, source, urdu_file)
-            english_path = os.path.join(datapath, source, english_file)
-            with open(urdu_path, encoding="utf-8") as u, open(english_path, encoding="utf-8") as e:
-                for x, y in zip(u, e):
+        if datatype == "train":
+            ur_file = "train.ur"
+            en_file = "train.en"
+        elif datatype == "dev":
+            ur_file = "dev.ur"
+            en_file = "dev.en"
+        elif datatype == "test":
+            ur_file = "test.ur"
+            en_file = "test.en"
+        else:
+            raise Exception("Invalid dataype. Try one of: dev, train, test")
+
+        for source in self.config.sources:
+            urdu_path = os.path.join(datapath, source, ur_file)
+            english_path = os.path.join(datapath, source, en_file)
+            with open(urdu_path, encoding="utf-8") as u, open(
+                english_path, encoding="utf-8"
+            ) as e:
+                for sentence_counter, (x, y) in enumerate(zip(u, e)):
                     x = x.strip()
                     y = y.strip()
                     result = (
                         sentence_counter,
                         {
                             "id": str(sentence_counter),
-                            "urdu": x,
-                            "english": y,
+                            "translation": {"ur": x, "en": y},
                         },
                     )
                     sentence_counter += 1
