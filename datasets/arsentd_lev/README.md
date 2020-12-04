@@ -67,18 +67,17 @@ Arabic Levantine Dualect
 
 ### Data Instances
 
-{'Country': 'lebanon',
- 'Sentiment': 'neutral',
- 'Sentiment_Expression': 'none',
- 'Sentiment_Target': 'none',
- 'Topic': 'sports',
- 'Tweet': '"ترقبوا نقلاً مباشراً في نشرة أخبار الرياضية 8:30 وصول فريق الهومنتمن بطل ""العرب"" الى منطقة برج حمود 📍 https://t.co/oUstA9G7dM"'}
-
+{'Country': 0,
+ 'Sentiment': 3,
+ 'Sentiment_Expression': 0,
+ 'Sentiment_Target': 'هاي سوالف عصابات ارهابية',
+ 'Topic': 'politics',
+ 'Tweet': 'ثلاث تفجيرات في #كركوك الحصيلة قتيل و 16 جريح بدأت اكلاوات كركوك كانت امان قبل دخول القوات العراقية ، هاي سوالف عصابات ارهابية'}
 
 ### Data Fields
 
 `Tweet`: the text content of the tweet \
-`Country`: the country from which the tweet was collected (one of the Levant countries) \
+`Country`: the country from which the tweet was collected ('jordan', 'lebanon', 'syria', 'palestine')\
 `Topic`: the topic being discussed in the tweet (personal, politics, religion, sports, entertainment and others) \
 `Sentiment`: the overall sentiment expressed in the tweet (very_negative, negative, neutral, positive and very_positive) \
 `Sentiment_Expression`: the way how the sentiment was expressed: explicit, implicit, or none (the latter when sentiment is neutral) \

@@ -48,7 +48,18 @@ class ArsentdLev(datasets.GeneratorBasedBuilder):
     def _info(self):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=datasets.Features({feature: datasets.Value("string") for feature in _FEATURES}),
+            features=datasets.Features(
+                {
+                    "Tweet": datasets.Value("string"),
+                    "Country": datasets.ClassLabel(names=["jordan", "lebanon", "syria", "palestine"]),
+                    "Topic": datasets.Value("string"),
+                    "Sentiment": datasets.ClassLabel(
+                        names=["negative", "neutral", "positive", "very_negative", "very_positive"]
+                    ),
+                    "Sentiment_Expression": datasets.ClassLabel(names=["explicit", "implicit", "none"]),
+                    "Sentiment_Target": datasets.Value("string"),
+                }
+            ),
             supervised_keys=None,
             homepage="http://oma-project.com/ArSenL/ArSenTD_Lev_Intro",
             citation=_CITATION,
