@@ -137,7 +137,8 @@ Pls refer to this link: https://github.com/midas-research/hindi-nli-data
 
 ### Licensing Information
 
-Copyright (C) 2019 Multimodal Digital Media Analysis Lab - Indraprastha Institute of Information Technology, New Delhi (MIDAS, IIIT-Delhi)
+Copyright (C) 2019 Multimodal Digital Media Analysis Lab - Indraprastha Institute of Information Technology, New Delhi (MIDAS, IIIT-Delhi).
+Pls contact authors for any information on the dataset.
 
 ### Citation Information
 
