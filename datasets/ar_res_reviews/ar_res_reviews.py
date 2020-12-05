@@ -17,10 +17,13 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-#import json
-#import os
 
 import datasets
+
+
+# import json
+# import os
+
 
 _CITATION = """\
 @InProceedings{10.1007/978-3-319-18117-2_2,
@@ -44,7 +47,10 @@ Dataset of 8364 restaurant reviews scrapped from qaym.com in Arabic for sentimen
 
 _HOMEPAGE = "https://github.com/hadyelsahar/large-arabic-sentiment-analysis-resouces"
 
-_DOWNLOAD_URL = "https://raw.githubusercontent.com/hadyelsahar/large-arabic-sentiment-analysis-resouces/master/datasets/RES1.csv"
+_DOWNLOAD_URL = (
+    "https://raw.githubusercontent.com/hadyelsahar/large-arabic-sentiment-analysis-resouces/master/datasets/RES1.csv"
+)
+
 
 class ArResReviews(datasets.GeneratorBasedBuilder):
     """Dataset of 8364 restaurant reviews in Arabic for sentiment analysis"""
@@ -54,10 +60,10 @@ class ArResReviews(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "polarity": datasets.Value("string"),    
+                    "polarity": datasets.Value("string"),
                     "text": datasets.Value("string"),
                     "restaurant_id": datasets.Value("string"),
-                    "user_id": datasets.Value("string")
+                    "user_id": datasets.Value("string"),
                 }
             ),
             homepage=_HOMEPAGE,
@@ -69,9 +75,7 @@ class ArResReviews(datasets.GeneratorBasedBuilder):
 
         data_dir = dl_manager.download_and_extract(_DOWNLOAD_URL)
         return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir}
-            ),
+            datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_dir}),
         ]
 
     def _generate_examples(self, filepath):
