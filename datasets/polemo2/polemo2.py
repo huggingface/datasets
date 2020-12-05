@@ -53,7 +53,7 @@ _URLs = {
 }
 
 
-class PolEmo2(datasets.GeneratorBasedBuilder):
+class Polemo2(datasets.GeneratorBasedBuilder):
     """PolEmo2.0"""
 
     VERSION = datasets.Version("1.1.0")
