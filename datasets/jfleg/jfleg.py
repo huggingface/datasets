@@ -94,10 +94,7 @@ class Jfleg(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
-                    "correction0": datasets.Value("string"),
-                    "correction1": datasets.Value("string"),
-                    "correction2": datasets.Value("string"),
-                    "correction3": datasets.Value("string"),
+                    "corrections": datasets.Sequence(datasets.Value("string"))
                 }
             ),
             supervised_keys=None,
@@ -147,12 +144,9 @@ class Jfleg(datasets.GeneratorBasedBuilder):
                 )
                 corrections.append(correction_sentences)
 
-        sentences = zip(source_sentences, *corrections)
-        for id_, row in enumerate(sentences):
+        corrected_sentences = list(zip(*corrections))
+        for id_, source_sentence in enumerate(source_sentences):
             yield id_, {
-                "sentence": row[0],
-                "correction0": row[1],
-                "correction1": row[2],
-                "correction2": row[3],
-                "correction3": row[4],
+                "sentence": source_sentence,
+                "corrections": corrected_sentences[id_]
             }
