@@ -76,7 +76,7 @@ Wah je wah,Positive,
 Each row consists of a short Urdu text, followed by a sentiment label. The labels are one of `Positive`, `Negative`, and `Neutral`. Note that the original source file is a comma-separated values file.
 
 * `sentence`: A short Urdu text
-* `label`: A numeric label for the three sentiments mapped to an integer value
+* `label`: One of `Positive`, `Negative`, and `Neutral`, indicating the polarity of the sentiment expressed in the sentence
 
 ## Dataset Creation
 
