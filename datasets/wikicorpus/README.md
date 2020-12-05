@@ -1,8 +1,11 @@
 ---
 annotations_creators:
-  raw_ca: []
-  raw_en: []
-  raw_es: []
+  raw_ca:
+  - no-annotation
+  raw_en:
+  - no-annotation
+  raw_es:
+  - no-annotation
   tagged_ca:
   - machine-generated
   tagged_en:
