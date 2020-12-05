@@ -73,8 +73,12 @@ Polish
 
 ### Data Fields
 
-- sentence
-- target: target sentence class
+- sentence: string, the review
+- target: sentiment of the sentence class
+
+The same tag system is used in plWordNet Emo for lexical units: [+m] (strong positive), [+s] (weak positive), [-m] (strong negative), [-s] (weak negative), [amb] (ambiguous) and [0] (neutral).
+
+Note that the test set doesn't have targets so -1 is used instead
 
 ### Data Splits
 
