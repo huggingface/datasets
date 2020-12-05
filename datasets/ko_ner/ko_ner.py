@@ -16,30 +16,27 @@
 
 from __future__ import absolute_import, division, print_function
 
+import logging
+
 import datasets
 
 
 _CITATION = """\
 @InProceedings{huggingface:dataset,
-title = {A great new dataset},
-authors={huggingface, Inc.
-},
-year={2020}
+  title = {A great new dataset},
+  authors={huggingface, Inc.},
+  year={2020}
 }
 """
 
-# TODO: Add description of the dataset here
-# You can copy an official description
+
 _DESCRIPTION = """\
-This new dataset is designed to solve this great NLP task and is crafted with a lot of care. 
+Korean named entity recognition dataset
 """
 
-# TODO: Add a link to an official homepage for the dataset here
-_HOMEPAGE = ""
+_HOMEPAGE = "https://github.com/kmounlp/NER"
 
-# TODO: Add the licence for the dataset here if you can find it
 _LICENSE = "NER License, MIT License for non-commercial use"
-
 
 _URL = "https://raw.githubusercontent.com/kmounlp/NER/master/2016klp/ner."
 _URLs = {key: _URL + key for key in ("train", "test", "dev")}
@@ -132,11 +129,15 @@ class KoNER(datasets.GeneratorBasedBuilder):
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
-                gen_kwargs={"filepath": downloaded_files["dev"], "split": "dev",},
+                gen_kwargs={
+                    "filepath": downloaded_files["dev"],
+                    "split": "validation",
+                },
             ),
         ]
 
-    def _generate_examples(self, filepath):
+    def _generate_examples(self, filepath, split):
+        logging.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
             tokens = []
             pos_tags = []
@@ -151,8 +152,6 @@ class KoNER(datasets.GeneratorBasedBuilder):
                         "pos_tags": pos_tags,
                         "ner_tags": ner_tags,
                     }
-                    text = ""
-                    annot_text = ""
                     tokens.clear()
                     pos_tags.clear()
                     ner_tags.clear()
@@ -161,9 +160,9 @@ class KoNER(datasets.GeneratorBasedBuilder):
                     text = row[2:]
                 elif row[0] == "$":
                     annot_text = row[1:]
-                elif "\t" in row:
+                else:
                     _, token, pos_tag, ner_tag = row.split("\t")
                     tokens.append(token)
                     pos_tags.append(pos_tag)
-                    ner_tags.append(ner_tag.rstrip())
+                    ner_tags.append(ner_tag)
 
