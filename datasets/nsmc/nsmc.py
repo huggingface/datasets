@@ -23,11 +23,11 @@ import datasets
 
 
 _CITATION = """\
-@misc{huggingface:dataset,
-title = {A great new dataset},
-authors={huggingface, Inc.
-},
-year={2020}
+@misc{park:2016,
+title = "Naver Sentiment Movie Corpus",
+author = "Lucy Park",
+year = "2016",
+howpublished = {\\url{https://github.com/e9t/nsmc}}
 }
 """
 
