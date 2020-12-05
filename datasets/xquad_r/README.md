@@ -107,7 +107,7 @@ The dataset can be found with the following languages:
 
 ### Data Instances
 
-The number of questions and candidate sentences for each language for XQuAD-R is shown in the table below.
+The number of questions and candidate sentences for each language for XQuAD-R is shown in the table below:
 
 |     | XQuAD-R   |            |
 |-----|-----------|------------|
