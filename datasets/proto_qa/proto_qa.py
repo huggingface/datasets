@@ -14,17 +14,10 @@
 # limitations under the License.
 """Dataset for ProtoQA ("family feud") data. The dataset is gathered from an existing set of questions played in a long-running international game show – FAMILY-FEUD."""
 
-<<<<<<< HEAD
 from __future__ import absolute_import, division, print_function
 
 import json
 
-=======
-
-from __future__ import absolute_import, division, print_function
-
-import json
->>>>>>> Adding dataset for proto_qa in hunggingface dataset library
 import datasets
 
 
@@ -85,11 +78,8 @@ class ProtoQA(datasets.GeneratorBasedBuilder):
         ),
     ]
 
-<<<<<<< HEAD
     DEFAULT_CONFIG_NAME = "proto_qa"
 
-=======
->>>>>>> Adding dataset for proto_qa in hunggingface dataset library
     def _info(self):
         if self.config.name == "proto_qa_cs_assessments":
             features = datasets.Features(
