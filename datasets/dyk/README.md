@@ -76,7 +76,7 @@ Polish
 - q_id: question id
 - question: question sentence
 - answer: answer sentence
-- target:
+- target: 1 if the answer is correct, 0 otherwise. Note that the test split doesn't have target values so -1 is used instead
 
 ### Data Splits
 
