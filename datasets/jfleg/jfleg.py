@@ -92,10 +92,7 @@ class Jfleg(datasets.GeneratorBasedBuilder):
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=datasets.Features(
-                {
-                    "sentence": datasets.Value("string"),
-                    "corrections": datasets.Sequence(datasets.Value("string"))
-                }
+                {"sentence": datasets.Value("string"), "corrections": datasets.Sequence(datasets.Value("string"))}
             ),
             supervised_keys=None,
             homepage=_HOMEPAGE,
@@ -106,19 +103,20 @@ class Jfleg(datasets.GeneratorBasedBuilder):
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
 
-        downloaded_files = dl_manager.download_and_extract(_URLs)
+        downloaded_dev = dl_manager.download_and_extract(_URLs["dev"])
+        downloaded_test = dl_manager.download_and_extract(_URLs["test"])
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 gen_kwargs={
-                    "filepath": downloaded_files["dev"],
+                    "filepath": downloaded_dev,
                     "split": "dev",
                 },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": downloaded_files["test"], "split": "test"},
+                gen_kwargs={"filepath": downloaded_test, "split": "test"},
             ),
         ]
 
@@ -146,7 +144,4 @@ class Jfleg(datasets.GeneratorBasedBuilder):
 
         corrected_sentences = list(zip(*corrections))
         for id_, source_sentence in enumerate(source_sentences):
-            yield id_, {
-                "sentence": source_sentence,
-                "corrections": corrected_sentences[id_]
-            }
+            yield id_, {"sentence": source_sentence, "corrections": corrected_sentences[id_]}
