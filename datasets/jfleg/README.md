@@ -72,19 +72,18 @@ Each instance contains a source sentence and four corrections. For example:
 ```python
 {
   'sentence': "They are moved by solar energy ."
-  'correction0': "They are moving by solar energy .",
-  'correction1': "They are moved by solar energy .",
-  'correction2': "They are moved by solar energy .",
-  'correction3': "They are propelled by solar energy ." 
+  'corrections': [
+    "They are moving by solar energy .",
+    "They are moved by solar energy .",
+    "They are moved by solar energy .",
+    "They are propelled by solar energy ." 
+  ]
 }
  ```
 
 ### Data Fields
 - sentence: original sentence written by an English learner
-- correction0: sentence corrected by human-annotator 0
-- correction1: sentence corrected by human-annotator 1
-- correction2: sentence corrected by human-annotator 2
-- correction3: sentence corrected by human-annotator 3
+- corrections: corrected versions by human annotators. The order of the annotations are consistent (eg first sentence will always be written by annotator "ref0").
 
 ### Data Splits
 - This dataset contains 1511 examples in total and comprise a dev and test split. 
