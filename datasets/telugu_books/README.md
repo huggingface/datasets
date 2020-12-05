@@ -74,7 +74,7 @@ TE - Telugu
 
  ### Data Fields
 
-Text
+ - Text: Sentence from a novel
 
  ### Data Splits
 
