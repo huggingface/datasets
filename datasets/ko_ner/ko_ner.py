@@ -104,9 +104,7 @@ class KoNER(datasets.GeneratorBasedBuilder):
                         )
                     ),
                     "ner_tags": datasets.Sequence(
-                        datasets.features.ClassLabel(
-                            names=["I", "O", "B_OG", "B_TI", "B_LC", "B_DT", "B_PS"]
-                        )
+                        datasets.features.ClassLabel(names=["I", "O", "B_OG", "B_TI", "B_LC", "B_DT", "B_PS"])
                     ),
                 }
             ),
@@ -121,11 +119,17 @@ class KoNER(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": downloaded_files["train"], "split": "train",},
+                gen_kwargs={
+                    "filepath": downloaded_files["train"],
+                    "split": "train",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
-                gen_kwargs={"filepath": downloaded_files["test"], "split": "test",},
+                gen_kwargs={
+                    "filepath": downloaded_files["test"],
+                    "split": "test",
+                },
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
@@ -139,6 +143,8 @@ class KoNER(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath, split):
         logging.info("⏳ Generating examples from = %s", filepath)
         with open(filepath, encoding="utf-8") as f:
+            text = ""
+            annot_text = ""
             tokens = []
             pos_tags = []
             ner_tags = []
@@ -165,4 +171,3 @@ class KoNER(datasets.GeneratorBasedBuilder):
                     tokens.append(token)
                     pos_tags.append(pos_tag)
                     ner_tags.append(ner_tag)
-
