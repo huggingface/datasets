@@ -6,18 +6,17 @@ language_creators:
 languages:
 - en
 licenses:
-- unknown
+- cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
-- 1K<n<10K
+- 100K<n<1M
 source_datasets:
 - original
 task_categories:
-- conditional-text-generation
-- text-scoring
+- text-classification
 task_ids:
-- text-scoring-other-evaluating-dialogue-systems
+- fact-checking
 ---
 
 # Dataset Card Creation Guide
