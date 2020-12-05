@@ -63,9 +63,7 @@ class RomanUrduDataset(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "sentence": datasets.Value("string"),
-                    "sentiment": datasets.features.ClassLabel(
-                        names=["Positive", "Negative", "Neutral"]
-                    ),
+                    "sentiment": datasets.features.ClassLabel(names=["Positive", "Negative", "Neutral"]),
                 }
             ),
             supervised_keys=None,
@@ -78,7 +76,10 @@ class RomanUrduDataset(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
-                gen_kwargs={"filepath": os.path.join(data_dir), "split": "train",},
+                gen_kwargs={
+                    "filepath": os.path.join(data_dir),
+                    "split": "train",
+                },
             ),
         ]
 
