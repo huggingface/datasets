@@ -56,18 +56,13 @@ class Refresd(datasets.GeneratorBasedBuilder):
     def _info(self):
         features = datasets.Features(
             {
-                "sentence_en": datasets.Value("string"),
-                "sentence_fr": datasets.Value("string"),
+                "sentence_pair": datasets.Translation(languages=["en", "fr"]),
                 "label": datasets.features.ClassLabel(names=["divergent", "equivalent"]),
                 "all_labels": datasets.features.ClassLabel(
                     names=["unrelated", "some_meaning_difference", "no_meaning_difference"]
                 ),
-                "rationale_en": datasets.Value(
-                    "string"
-                ),  # datasets.features.Sequence(datasets.Value(dtype='Int8Value')),
-                "rationale_fr": datasets.Value(
-                    "string"
-                ),  # datasets.features.Sequence(datasets.Value(dtype='Int8Value')),
+                "rationale_en": datasets.features.Sequence(datasets.Value("int32")),
+                "rationale_fr": datasets.features.Sequence(datasets.Value("int32")),
             }
         )
         return datasets.DatasetInfo(
@@ -83,23 +78,17 @@ class Refresd(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         my_urls = _URL
         data_file_path = dl_manager.download_and_extract(my_urls)
-        return [
-            datasets.SplitGenerator(
-                name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_file_path}
-            )
-        ]
+        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"filepath": data_file_path})]
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
         with open(filepath, encoding="utf-8") as f:
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
-            change_labels = {
-                "#english_sentence": "sentence_en",
-                "#french_sentence": "sentence_fr",
-                "#binary_label": "label",
-                "#3_labels": "all_labels",
-                "#english_rational": "rationale_en",
-                "#french_rationale": "rationale_fr",
-            }
             for idx, row in enumerate(reader):
-                yield idx, {change_labels[k]: row[k] for k in row.keys()}
+                yield idx, {
+                    "sentence_pair": {"fr": row["#french_sentence"], "en": row["#english_sentence"]},
+                    "label": row["#binary_label"],
+                    "all_labels": row["#3_labels"],
+                    "rationale_en": [int(v) for v in row["#english_rational"].split(" ")],
+                    "rationale_fr": [int(v) for v in row["#french_rationale"].split(" ")],
+                }
