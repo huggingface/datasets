@@ -59,7 +59,7 @@ _LICENSE = "CC BY-SA 3.0"
 
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = 'https://drive.google.com/uc?export=download&id=1L7aoUXzHPzyzQ0ns4ApBbYepsjFOtXil'
+_URL = "https://drive.google.com/uc?export=download&id=1L7aoUXzHPzyzQ0ns4ApBbYepsjFOtXil"
 
 
 def _get_table(infobox_line):
@@ -67,25 +67,26 @@ def _get_table(infobox_line):
     cells = infobox_line.split("\t")
     # remove empty cells
     cells = list(filter(lambda x: x.find("<none>") == -1, cells))
-    columns = set([cell[0:cell.split(":")[0].rfind("_")] for cell in cells])
+    columns = set([cell[0 : cell.split(":")[0].rfind("_")] for cell in cells])
     table = {col: dict() for col in columns}
     for cell in cells:
         delimiter_position_value = cell.find(":")
         column_index = cell[0:delimiter_position_value]
-        value = cell[delimiter_position_value + 1:]
+        value = cell[delimiter_position_value + 1 :]
         delimiter_column_index = column_index.rfind("_")
         column = column_index[0:delimiter_column_index]
-        index = column_index[delimiter_column_index + 1:]
+        index = column_index[delimiter_column_index + 1 :]
         table[column][index] = value
     infobox_line_as_table = []
     for column in table.keys():
-        row_value = " ".join(
-            [table[column][index] for index in sorted(table[column].keys())])
-        infobox_line_as_table.append({
-            "column_header": column,
-            "row_number": 1,
-            "content": row_value,
-        })
+        row_value = " ".join([table[column][index] for index in sorted(table[column].keys())])
+        infobox_line_as_table.append(
+            {
+                "column_header": column,
+                "row_number": 1,
+                "content": row_value,
+            }
+        )
     return infobox_line_as_table
 
 
@@ -105,15 +106,15 @@ class WikiBio(datasets.GeneratorBasedBuilder):
                             "content": datasets.Value("string"),
                         }
                     ),
-                    "context": datasets.Value("string")
+                    "context": datasets.Value("string"),
                 },
-                "target_text": datasets.Value("string")
+                "target_text": datasets.Value("string"),
             }
         )
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
             features=features,
-            supervised_keys=('input_text', 'target_text'),
+            supervised_keys=("input_text", "target_text"),
             homepage=_HOMEPAGE,
             license=_LICENSE,
             citation=_CITATION,
@@ -123,7 +124,7 @@ class WikiBio(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         my_urls = _URL
         data_dir = dl_manager.download_and_extract(my_urls)
-        data_path = os.path.join(data_dir, 'wikipedia-biography-dataset')
+        data_path = os.path.join(data_dir, "wikipedia-biography-dataset")
         return [
             datasets.SplitGenerator(
                 name=datasets.Split("train"),
@@ -157,21 +158,18 @@ class WikiBio(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(self, id_file, infobox_file, nb_lines_file,
-                           sentences_file, article_title_file):
+    def _generate_examples(self, id_file, infobox_file, nb_lines_file, sentences_file, article_title_file):
         """ Yields examples."""
-        with open(id_file, 'r') as id_src, open(infobox_file, 'r') as infobox_src, open(
-            nb_lines_file, 'r') as nb_lines_src, open(sentences_file, 'r') as sentences_src, open(
-                article_title_file, 'r') as article_title_src:
-            for id_, infobox, nb_lines, article_title in zip(id_src, infobox_src,
-                                                             nb_lines_src, article_title_src):
+        with open(id_file, "r") as id_src, open(infobox_file, "r") as infobox_src, open(
+            nb_lines_file, "r"
+        ) as nb_lines_src, open(sentences_file, "r") as sentences_src, open(
+            article_title_file, "r"
+        ) as article_title_src:
+            for id_, infobox, nb_lines, article_title in zip(id_src, infobox_src, nb_lines_src, article_title_src):
                 target_text = []
                 for _ in range(int(nb_lines)):
                     target_text.append(sentences_src.readline())
                 yield id_, {
-                    "input_text": {
-                        "table": _get_table(infobox),
-                        "context": article_title
-                    },
-                    "target_text": "".join(target_text)
+                    "input_text": {"table": _get_table(infobox), "context": article_title},
+                    "target_text": "".join(target_text),
                 }
