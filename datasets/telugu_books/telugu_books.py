@@ -39,6 +39,8 @@ _HOMEPAGE = "https://www.kaggle.com/sudalairajkumar/telugu-nlp"
 
 _LICENSE = "Data files © Original Authors"
 
+_FILENAME = "telugu_books.csv"
+
 
 class TeluguBooks(datasets.GeneratorBasedBuilder):
     """Telugu novels"""
@@ -48,14 +50,14 @@ class TeluguBooks(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-      You should download the dataset from https://www.kaggle.com/sudalairajkumar/telugu-nlp
-      The webpage requires registration. After downloading please unzip the file,
-      and place telugu_books.csv in the dir of your choice and load the dataset
-      by passing the same path Eg. if you place in 
-      `~/datasets/telugu_nlp/telugu_books.csv` 
-      the dataset can be loaded using the command
-       `datasets.load_dataset("telugu_books", data_dir="~/datasets/telugu_nlp/telugu_books.csv")`.
-      """
+            You need to go to https://www.kaggle.com/sudalairajkumar/telugu-nlp, 
+            and manually download the telugu_books. Once it is completed, 
+            a file named telugu_books.zip will be appeared in your Downloads folder 
+            or whichever folder your browser chooses to save files to. You then have
+            to unzip the file and move telugu_books,csv under <path/to/folder>.
+            The <path/to/folder> can e.g. be "~/manual_data".
+            telugu_books can then be loaded using the following command `datasets.load_dataset("telugu_books", data_dir="<path/to/folder>")`.
+            """
 
     def _info(self):
         features = datasets.Features(
@@ -74,13 +76,11 @@ class TeluguBooks(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
-        if not os.path.exists(data_dir):
+        path_to_manual_file = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+        if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
-                "{} does not exist. Make sure you insert a manual dir via \
-                 `datasets.load_dataset('telugu_books', data_dir=...)` that includes \
-                  files unzipped. Manual download instructions: {}".format(
-                    data_dir, self.manual_download_instructions,
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('telugu_books', data_dir=...)` that includes file name {}. Manual download instructions: {}".format(
+                    path_to_manual_file, _FILENAME, self.manual_download_instructions,
                 )
             )
         return [
@@ -88,7 +88,7 @@ class TeluguBooks(datasets.GeneratorBasedBuilder):
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
                 gen_kwargs={
-                    "filepath": os.path.join(data_dir, "telugu_books.csv"),
+                    "filepath": os.path.join(path_to_manual_file, "telugu_books.csv"),
                     "split": "train",
                 },
             ),
