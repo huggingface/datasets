@@ -86,5 +86,4 @@ class NewDataset(datasets.GeneratorBasedBuilder):
         source, target = tuple(self.config.name.split("-"))
         for idx, (l1, l2) in enumerate(zip(source_sentences, target_sentences)):
             result = {"translation": {source: l1, target: l2}}
-            if all(result.values()):
-                yield idx, result
+            yield idx, result
