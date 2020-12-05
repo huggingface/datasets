@@ -47,7 +47,7 @@ _URLs = {
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class NSMCDataset(datasets.GeneratorBasedBuilder):
+class NSMC(datasets.GeneratorBasedBuilder):
     """Korean Naver movie review dataset."""
 
     VERSION = datasets.Version("1.1.0")
