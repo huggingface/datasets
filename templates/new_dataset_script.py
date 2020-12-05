@@ -40,6 +40,12 @@ _DESCRIPTION = """\
 This new dataset is designed to solve this great NLP task and is crafted with a lot of care. 
 """
 
+# TODO: Add a link to an official homepage for the dataset here
+_HOMEPAGE = ""
+
+# TODO: Add the licence for the dataset here if you can find it
+_LICENSE = ""
+
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
@@ -67,12 +73,14 @@ class NewDataset(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="first_domain", description="This part of my dataset covers a first domain"),
-        datasets.BuilderConfig(name="second_domain", description="This part of my dataset covers a second domain"),
+        datasets.BuilderConfig(name="first_domain", version=VERSION, description="This part of my dataset covers a first domain"),
+        datasets.BuilderConfig(name="second_domain", version=VERSION, description="This part of my dataset covers a second domain"),
     ]
 
+    DEFAULT_CONFIG_NAME = "first_domain"  # It's not mandatory to have a default configuration. Just use one if it make sense.
+
     def _info(self):
-        # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
+        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         if self.config.name == "first_domain":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
             features = datasets.Features(
                 {
@@ -81,7 +89,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                     "answer": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
-            ),
+            )
         else:  # This is an example to show how to have different features for "first_domain" and "second_domain"
             features = datasets.Features(
                 {
@@ -90,7 +98,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
                     "second_domain_answer": datasets.Value("string")
                     # These are the features of your dataset like images, labels ...
                 }
-            ),
+            )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -101,7 +109,10 @@ class NewDataset(datasets.GeneratorBasedBuilder):
             # builder.as_dataset.
             supervised_keys=None,
             # Homepage of the dataset for documentation
-            homepage="https://huggingface.co/great-new-dataset",
+            homepage=_HOMEPAGE,
+            # License for the dataset if available
+            license=_LICENSE,
+            # Citation for the dataset
             citation=_CITATION,
         )
 
@@ -148,7 +159,7 @@ class NewDataset(datasets.GeneratorBasedBuilder):
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
-        with open(filepath) as f:
+        with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 data = json.loads(row)
                 if self.config.name == "first_domain":
