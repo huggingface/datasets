@@ -1,6 +1,24 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- found
+language_creators:
+- found
+languages:
+- en
+licenses:
+- cc-by-sa-3.0
+multilinguality:
+- monolingual
+size_categories:
+- 100K<n<1M
+source_datasets:
+- original
+task_categories:
+- conditional-text-generation
+task_ids:
+- explanation-generation
+- table-to-text
 ---
 
 # Dataset Card for [Dataset Name]
@@ -11,11 +29,20 @@ YAML tags:
   - [Supported Tasks](#supported-tasks-and-leaderboards)
   - [Languages](#languages)
 - [Dataset Structure](#dataset-structure)
+  - [Data Instances](#data-instances)
   - [Data Fields](#data-instances)
   - [Data Splits](#data-instances)
 - [Dataset Creation](#dataset-creation)
+  - [Curation Rationale](#curation-rationale)
   - [Source Data](#source-data)
+  - [Annotations](#annotations)
+  - [Personal and Sensitive Information](#personal-and-sensitive-information)
+- [Considerations for Using the Data](#considerations-for-using-the-data)
+  - [Social Impact of Dataset](#social-impact-of-dataset)
+  - [Discussion of Biases](#discussion-of-biases)
+  - [Other Known Limitations](#other-known-limitations)
 - [Additional Information](#additional-information)
+  - [Dataset Curators](#dataset-curators)
   - [Licensing Information](#licensing-information)
   - [Citation Information](#citation-information)
 
@@ -29,13 +56,21 @@ YAML tags:
 
 This Dataset contains 728321 biographies extracted from Wikipedia containing the first paragraph of the biography and the tabular infobox.
 ### Supported Tasks and Leaderboards
+
 The main purpose of this dataset is developing text generation models.
 
 ### Languages
+
 English.
+
 ## Dataset Structure
-The dataset is split in Train-Test-Validation, with each sampling containing `'input_text'` and `'target_text'` data.
+
+### Data Instances
+
+[More Information Needed]
+
 ### Data Fields
+
 The structure of a single sample is the following:
 ```json
 {
@@ -76,22 +111,67 @@ The structure of a single sample is the following:
             "saint mark 's church",
             "gabriel i"
          ],
-         "row_number":[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,1]
+         "row_number":[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
       }
    },
    "target_text":"pope michael iii of alexandria -lrb- also known as khail iii -rrb- was the coptic pope of alexandria and patriarch of the see of st. mark -lrb- 880 -- 907 -rrb- .\nin 882 , the governor of egypt , ahmad ibn tulun , forced khail to pay heavy contributions , forcing him to sell a church and some attached properties to the local jewish community .\nthis building was at one time believed to have later become the site of the cairo geniza .\n"
 }
 ```
-where, in the `"table"` field, all the information of the Wikpedia infobox is sotred.
+where, in the `"table"` field, all the information of the Wikpedia infobox is stored (the header of the infobox is stored in `"column_header"` and the information in the `"content"` field).
 ### Data Splits
+
 - Train: 582659 samples.
 - Test: 72831 samples.
 - Validation: 72831 samples.
 ## Dataset Creation
 
-### Source Data
+### Curation Rationale
 
+[More Information Needed]
+
+### Source Data
 This dataset was announced in the paper <em>Neural Text Generation from Structured Data with Application to the Biography Domain</em> [(arxiv link)](https://arxiv.org/pdf/1603.07771.pdf) and is stored both in [this](https://github.com/DavidGrangier/wikipedia-biography-dataset) repo (owned by DavidGrangier) and in [Google Drive](https://drive.google.com/uc?export=download&id=1L7aoUXzHPzyzQ0ns4ApBbYepsjFOtXil) (zipped and mantained by the TensorFlow team).
+#### Initial Data Collection and Normalization
+
+[More Information Needed]
+
+#### Who are the source language producers?
+
+[More Information Needed]
+
+### Annotations
+
+#### Annotation process
+
+[More Information Needed]
+
+#### Who are the annotators?
+
+[More Information Needed]
+
+### Personal and Sensitive Information
+
+[More Information Needed]
+
+## Considerations for Using the Data
+
+### Social Impact of Dataset
+
+[More Information Needed]
+
+### Discussion of Biases
+
+[More Information Needed]
+
+### Other Known Limitations
+
+[More Information Needed]
+
+## Additional Information
+
+### Dataset Curators
+
+[More Information Needed]
 
 ### Licensing Information
 
