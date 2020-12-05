@@ -8,7 +8,7 @@ language_creators:
 languages:
 - en
 licenses:
-- cc-by-sa-4.0
+- cc-by-4.0
 multilinguality:
 - monolingual
 size_categories:
