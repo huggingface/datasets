@@ -99,7 +99,8 @@ class Species800(datasets.GeneratorBasedBuilder):
             "biobert_ner_datasets": _URL,
         }
         downloaded_files = dl_manager.download_and_extract(urls_to_download)
-        dataset_directory = os.path.join(downloaded_files['biobert_ner_datasets'], _BIOBERT_NER_DATASET_DIRECTORY)
+        dataset_directory = os.path.join(downloaded_files["biobert_ner_datasets"], _BIOBERT_NER_DATASET_DIRECTORY)
+
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN, gen_kwargs={"filepath": f"{dataset_directory}/{_TRAINING_FILE}"}
