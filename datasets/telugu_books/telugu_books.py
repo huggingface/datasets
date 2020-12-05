@@ -17,7 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
 import os
 
 import datasets
@@ -50,14 +49,14 @@ class TeluguBooks(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-            You need to go to https://www.kaggle.com/sudalairajkumar/telugu-nlp, 
-            and manually download the telugu_books. Once it is completed, 
-            a file named telugu_books.zip will be appeared in your Downloads folder 
-            or whichever folder your browser chooses to save files to. You then have
-            to unzip the file and move telugu_books,csv under <path/to/folder>.
-            The <path/to/folder> can e.g. be "~/manual_data".
-            telugu_books can then be loaded using the following command `datasets.load_dataset("telugu_books", data_dir="<path/to/folder>")`.
-            """
+    You need to go to https://www.kaggle.com/sudalairajkumar/telugu-nlp, 
+    and manually download the telugu_books. Once it is completed, 
+    a file named telugu_books.zip will be appeared in your Downloads folder 
+    or whichever folder your browser chooses to save files to. You then have
+    to unzip the file and move telugu_books,csv under <path/to/folder>.
+    The <path/to/folder> can e.g. be "~/manual_data".
+    telugu_books can then be loaded using the following command `datasets.load_dataset("telugu_books", data_dir="<path/to/folder>")`.
+    """
 
     def _info(self):
         features = datasets.Features(
@@ -80,7 +79,9 @@ class TeluguBooks(datasets.GeneratorBasedBuilder):
         if not os.path.exists(path_to_manual_file):
             raise FileNotFoundError(
                 "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('telugu_books', data_dir=...)` that includes file name {}. Manual download instructions: {}".format(
-                    path_to_manual_file, _FILENAME, self.manual_download_instructions,
+                    path_to_manual_file,
+                    _FILENAME,
+                    self.manual_download_instructions,
                 )
             )
         return [
