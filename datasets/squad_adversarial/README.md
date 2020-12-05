@@ -89,8 +89,8 @@ An example from the data set looks as follows:
 ```
 ### Data Splits
 
-- AddSent: Generates up to five candidate adversarial sentences that don't answer the question, but have a lot of words in common with the question. Picks the one that most confuses the model.
-- AddOneSent: Similar to AddSent, but just picks one of the candidate sentences at random. This adversary is does not query the model in any way.
+- AddSent: Has up to five candidate adversarial sentences that don't answer the question, but have a lot of words in common with the question. This adversary is does not query the model in any way.
+- AddOneSent: Similar to AddSent, but just one candidate sentences was picked at random. This adversary is does not query the model in any way.
 
 Number of Q&A pairs
 - AddSent : 3560
