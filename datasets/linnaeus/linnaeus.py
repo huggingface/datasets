@@ -17,6 +17,7 @@
 """LINNAEUS: A species name identification system for biomedical literature"""
 
 import logging
+import os
 
 import datasets
 
