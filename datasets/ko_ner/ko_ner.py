@@ -12,19 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Korean named entity recognition dataset."""
+"""Korean named entity recognition dataset"""
 
 from __future__ import absolute_import, division, print_function
-
-import csv
-import json
-import os
 
 import datasets
 
 
-# TODO: Add BibTeX citation
-# Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 @InProceedings{huggingface:dataset,
 title = {A great new dataset},
@@ -44,7 +38,7 @@ This new dataset is designed to solve this great NLP task and is crafted with a 
 _HOMEPAGE = ""
 
 # TODO: Add the licence for the dataset here if you can find it
-_LICENSE = ""
+_LICENSE = "NER License, MIT License for non-commercial use"
 
 
 _URL = "https://raw.githubusercontent.com/kmounlp/NER/master/2016klp/ner."
@@ -52,7 +46,7 @@ _URLs = {key: _URL + key for key in ("train", "test", "dev")}
 
 
 class KoNER(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """Korean Named entity recognition dataset"""
 
     VERSION = datasets.Version("1.1.0")
 
@@ -142,7 +136,7 @@ class KoNER(datasets.GeneratorBasedBuilder):
             ),
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath):
         with open(filepath, encoding="utf-8") as f:
             tokens = []
             pos_tags = []
@@ -171,5 +165,5 @@ class KoNER(datasets.GeneratorBasedBuilder):
                     _, token, pos_tag, ner_tag = row.split("\t")
                     tokens.append(token)
                     pos_tags.append(pos_tag)
-                    ner_tags.append(ner_tag.strip())
+                    ner_tags.append(ner_tag.rstrip())
 
