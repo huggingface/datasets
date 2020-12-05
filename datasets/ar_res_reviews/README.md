@@ -1,8 +1,8 @@
 ---
 annotations_creators:
-- unknown
+- found
 language_creators:
-- unknown
+- found
 languages:
 - ar
 licenses:
@@ -76,6 +76,11 @@ A typical data point comprises of the following:
 
 - "user_id": the user ID on the website
 
+example:
+``` 
+    >>> {'polarity': '-1', 'restaurant_id': '1412', 'text': 'عادي جدا مامن زود', 'user_id': '21294'}
+```
+
 ### Data Fields
 
 - "polarity": is a string value of either -1 or 1 indicating the sentiment around the review    
@@ -85,11 +90,6 @@ A typical data point comprises of the following:
 - "restaurant_id": the restaurant ID on the website (string)
 
 - "user_id": the user ID on the website (string)
-
-example:
-``` 
-    >>> {'polarity': '-1', 'restaurant_id': '1412', 'text': 'عادي جدا مامن زود', 'user_id': '21294'}
-```
 
 ### Data Splits
 
@@ -151,4 +151,15 @@ The polarity field provides a label of 1 or -1 pertaining to the sentiment of th
 
 ### Citation Information
 
-[More Information Needed]
+@InProceedings{10.1007/978-3-319-18117-2_2,
+author="ElSahar, Hady
+and El-Beltagy, Samhaa R.",
+editor="Gelbukh, Alexander",
+title="Building Large Arabic Multi-domain Resources for Sentiment Analysis",
+booktitle="Computational Linguistics and Intelligent Text Processing",
+year="2015",
+publisher="Springer International Publishing",
+address="Cham",
+pages="23--34",
+isbn="978-3-319-18117-2"
+}
