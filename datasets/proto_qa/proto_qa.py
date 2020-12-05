@@ -14,10 +14,10 @@
 # limitations under the License.
 """Dataset for ProtoQA ("family feud") data. The dataset is gathered from an existing set of questions played in a long-running international game show – FAMILY-FEUD."""
 
-
 from __future__ import absolute_import, division, print_function
 
 import json
+
 import datasets
 
 
@@ -77,6 +77,8 @@ class ProtoQA(datasets.GeneratorBasedBuilder):
             description="Prototypical Common-Sense Reasoning, assessment file for study of assessment methods",
         ),
     ]
+
+    DEFAULT_CONFIG_NAME = "proto_qa"
 
     def _info(self):
         if self.config.name == "proto_qa_cs_assessments":
