@@ -101,7 +101,7 @@ class BBC_Hindi_NLI(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIGS = [
         BBC_Hindi_NLI_Config(
             name="BBC Hindi NLI",
-            version=datasets.Version("1.0.0"),
+            version=datasets.Version("1.1.0"),
             description="BBC Hindi NLI: Natural Language Inference Dataset in Hindi",
         ),
     ]

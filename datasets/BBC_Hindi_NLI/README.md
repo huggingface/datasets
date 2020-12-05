@@ -141,7 +141,7 @@ Copyright (C) 2019 Multimodal Digital Media Analysis Lab - Indraprastha Institut
 
 ### Citation Information
 
-"""\
+```
     @inproceedings{uppal-etal-2020-two,
     title = "Two-Step Classification using Recasted Data for Low Resource Settings",
     author = "Uppal, Shagun  and
@@ -161,4 +161,4 @@ Copyright (C) 2019 Multimodal Digital Media Analysis Lab - Indraprastha Institut
     pages = "706--719",
     abstract = "An NLP model{'}s ability to reason should be independent of language. Previous works utilize Natural Language Inference (NLI) to understand the reasoning ability of models, mostly focusing on high resource languages like English. To address scarcity of data in low-resource languages such as Hindi, we use data recasting to create NLI datasets for four existing text classification datasets. Through experiments, we show that our recasted dataset is devoid of statistical irregularities and spurious patterns. We further study the consistency in predictions of the textual entailment models and propose a consistency regulariser to remove pairwise-inconsistencies in predictions. We propose a novel two-step classification method which uses textual-entailment predictions for classification task. We further improve the performance by using a joint-objective for classification and textual entailment. We therefore highlight the benefits of data recasting and improvements on classification performance using our approach with supporting experimental results.",
 }
-"""
+```
