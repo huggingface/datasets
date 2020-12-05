@@ -16,10 +16,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-import json
-
 import datasets
-
+import json
 
 _CITATION = """\
 @InProceedings{huggingface:dataset,
@@ -43,7 +41,7 @@ Each line is a json dictionary, in which:
 
 _HOMEPAGE = "https://github.com/iesl/protoqa-data"
 
-_LICENSE = "Creative Commons Attribution 4.0 International"
+_LICENSE = "cc-by-4.0"
 
 _URLs = {
     "proto_qa": {
