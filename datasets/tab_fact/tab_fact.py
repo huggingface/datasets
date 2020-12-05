@@ -17,7 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -48,7 +47,7 @@ TABFACT is challenging since it involves both soft linguistic reasoning and hard
 _HOMEPAGE = "https://tabfact.github.io/"
 
 _CSV_BASE_URL = "https://raw.githubusercontent.com/wenhuchen/Table-Fact-Checking/master/data"
-_ALL_CSV_IDS_URL = _BASE_URL + "/all_csv_ids.json"
+_ALL_CSV_IDS_URL = _CSV_BASE_URL + "/all_csv_ids.json"
 
 _STATEMENTS_BASE_URL = "https://raw.githubusercontent.com/wenhuchen/Table-Fact-Checking/master/tokenized_data/"
 _URLS = {
@@ -101,7 +100,7 @@ class TabFact(datasets.GeneratorBasedBuilder):
         ids_file = dl_manager.download(_ALL_CSV_IDS_URL)
         ids = json.load(open(ids_file))
 
-        csv_urls = {id_: f"{_BASE_URL}/all_csv/{id_}" for id_ in ids}
+        csv_urls = {id_: f"{_CSV_BASE_URL}/all_csv/{id_}" for id_ in ids}
         csv_files = dl_manager.download(csv_urls)
 
         if self.config.name == "blind_test":
