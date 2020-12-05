@@ -16,7 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
 import json
 import os
 
@@ -62,9 +61,11 @@ _LICENSE = "MIT License"
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _BASE_URL = "https://raw.githubusercontent.com/allenai/openpi-dataset/main/data/gold/"
 
+
 class OpenpiConfig(datasets.BuilderConfig):
     """"BuilderConfig for OpenPI Dataset"""
-    def __init__(self, mode, type_, **kwargs):    
+
+    def __init__(self, mode, type_, **kwargs):
         super(OpenpiConfig, self).__init__(**kwargs)
         self.mode = mode
         self.type_ = type_
@@ -78,10 +79,30 @@ class Openpi(datasets.GeneratorBasedBuilder):
     BUILDER_CONFIG_CLASS = OpenpiConfig
 
     BUILDER_CONFIGS = [
-        OpenpiConfig(name="questions", mode="question", type_="data", version=VERSION, description="Provides the question sentences"),
-        OpenpiConfig(name="questions-metadata", mode="question", type_="metadata", version=VERSION, description="Provides the question metadata"),
-        OpenpiConfig(name="answers", mode="answers", type_="data", version=VERSION, description="Provides the answer sentences"),
-        OpenpiConfig(name="answers-metadata", mode="answers", type_="metadata", version=VERSION, description="Provides the answer metadata")
+        OpenpiConfig(
+            name="questions",
+            mode="question",
+            type_="data",
+            version=VERSION,
+            description="Provides the question sentences",
+        ),
+        OpenpiConfig(
+            name="questions-metadata",
+            mode="question",
+            type_="metadata",
+            version=VERSION,
+            description="Provides the question metadata",
+        ),
+        OpenpiConfig(
+            name="answers", mode="answers", type_="data", version=VERSION, description="Provides the answer sentences"
+        ),
+        OpenpiConfig(
+            name="answers-metadata",
+            mode="answers",
+            type_="metadata",
+            version=VERSION,
+            description="Provides the answer metadata",
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "answers"
@@ -98,17 +119,22 @@ class Openpi(datasets.GeneratorBasedBuilder):
                             "context": datasets.Value("string"),
                             "query": datasets.Value("string"),
                             "future_context": datasets.Value("string"),
-                            "topic": datasets.ClassLabel(names=["Food and Entertaining", "Home and Garden", "Hobbies and Crafts", "Sports and Fitness", "Cars & Other Vehicles", "Health", "unknown"])
-                        }
+                            "topic": datasets.ClassLabel(
+                                names=[
+                                    "Food and Entertaining",
+                                    "Home and Garden",
+                                    "Hobbies and Crafts",
+                                    "Sports and Fitness",
+                                    "Cars & Other Vehicles",
+                                    "Health",
+                                    "unknown",
+                                ]
+                            ),
+                        },
                     }
                 )
             else:
-                features = datasets.Features(
-                    {
-                        "id": datasets.Value("string"),
-                        "question": datasets.Value("string")
-                    }
-                )
+                features = datasets.Features({"id": datasets.Value("string"), "question": datasets.Value("string")})
         else:
             if self.config.type_ == "metadata":
                 features = datasets.Features(
@@ -121,18 +147,14 @@ class Openpi(datasets.GeneratorBasedBuilder):
                                 "before": datasets.Value("string"),
                                 "after": datasets.Value("string"),
                                 "attr": datasets.Value("string"),
-                                "modality": datasets.ClassLabel(names=["without_image", "with_image"])
-
+                                "modality": datasets.ClassLabel(names=["without_image", "with_image"]),
                             }
-                        )
+                        ),
                     }
                 )
             else:
                 features = datasets.Features(
-                    {
-                        "id": datasets.Value("string"),
-                        "answers": datasets.Sequence(datasets.Value("string"))
-                    }
+                    {"id": datasets.Value("string"), "answers": datasets.Sequence(datasets.Value("string"))}
                 )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
@@ -158,13 +180,13 @@ class Openpi(datasets.GeneratorBasedBuilder):
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
         # It can accept any type or nested list/dict and will give back the same structure with the url replaced with path to local files.
-        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive 
+        # By default the archives will be extracted and a path to a cached folder where they are extracted is returned instead of the archive
         suffix = "_metadata" if self.config.type_ == "metadata" else ""
         fname = "id_{config}{suffix}.jsonl"
         urls = {
             "train": os.path.join(_BASE_URL, "train", fname.format(config=self.config.mode, suffix=suffix)),
             "dev": os.path.join(_BASE_URL, "dev", fname.format(config=self.config.mode, suffix=suffix)),
-            "test": os.path.join(_BASE_URL, "test", fname.format(config=self.config.mode, suffix=suffix))
+            "test": os.path.join(_BASE_URL, "test", fname.format(config=self.config.mode, suffix=suffix)),
         }
         print(urls)
         data_dir = dl_manager.download_and_extract(urls)
@@ -173,27 +195,18 @@ class Openpi(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["train"],
-                    "split": "train"
-                },
+                gen_kwargs={"filepath": data_dir["train"], "split": "train"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["test"],
-                    "split": "test"
-                },
+                gen_kwargs={"filepath": data_dir["test"], "split": "test"},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.VALIDATION,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": data_dir["dev"],
-                    "split": "dev"
-                },
-            )
+                gen_kwargs={"filepath": data_dir["dev"], "split": "dev"},
+            ),
         ]
 
     def _generate_examples(self, filepath, split):
@@ -202,10 +215,7 @@ class Openpi(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(f):
                 data = json.loads(row)
                 if "question" in data:
-                    result = {
-                        "id": data["id"],
-                        "question": data["question"]
-                    }
+                    result = {"id": data["id"], "question": data["question"]}
                 elif "question_metadata" in data:
                     result = {
                         "id": data["id"],
@@ -215,14 +225,11 @@ class Openpi(datasets.GeneratorBasedBuilder):
                             "context": data["question_metadata"].get("context", ""),
                             "query": data["question_metadata"].get("query", ""),
                             "future_context": data["question_metadata"].get("future_context", ""),
-                            "topic": data["question_metadata"].get("topic", "unknown")
-                        }
+                            "topic": data["question_metadata"].get("topic", "unknown"),
+                        },
                     }
                 elif "answers_metadata" in data:
-                    result = {
-                        "id": data["id"],
-                        "answers_metadata": []
-                    }
+                    result = {"id": data["id"], "answers_metadata": []}
                     for item in data["answers_metadata"]:
                         result["answers_metadata"].append(
                             {
@@ -231,12 +238,9 @@ class Openpi(datasets.GeneratorBasedBuilder):
                                 "before": item.get("before", ""),
                                 "after": item.get("after", ""),
                                 "attr": item.get("attr", ""),
-                                "modality": item.get("modality")
+                                "modality": item.get("modality"),
                             }
                         )
                 else:
-                    result = {
-                        "id": data["id"],
-                        "answers":data["answers"]
-                    }
+                    result = {"id": data["id"], "answers": data["answers"]}
                 yield id_, result
