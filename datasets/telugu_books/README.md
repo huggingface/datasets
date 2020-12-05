@@ -16,7 +16,7 @@ source_datasets:
 task_categories:
 - sequence-modeling
 task_ids:
-- sequence-modeling-other-telugu-books
+- language-modeling
 ---
 
  # Dataset Card for [telugu_books]
