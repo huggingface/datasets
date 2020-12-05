@@ -51,7 +51,7 @@ _HOMEPAGE = "https://archive.ics.uci.edu/ml/datasets/Roman+Urdu+Data+Set"
 _URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/00458/Roman%20Urdu%20DataSet.csv"
 
 
-class RomanUrduDataset(datasets.GeneratorBasedBuilder):
+class RomanUrdu(datasets.GeneratorBasedBuilder):
     """Roman Urdu sentences gathered from reviews of various e-commerce websites, comments on public Facebook pages, and twitter accounts, with positive, neutral, and negative polarity labels per each row."""
 
     VERSION = datasets.Version("1.1.0")
