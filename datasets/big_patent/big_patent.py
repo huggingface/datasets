@@ -145,7 +145,7 @@ class BigPatent(datasets.GeneratorBasedBuilder):
         """Yields examples."""
         for cpc_code in self.config.cpc_codes:
             filenames = glob.glob(os.path.join(path, cpc_code, "*"))
-            for filename in filenames:
+            for filename in sorted(filenames):
                 with open(filename, "rb") as fin:
                     fin = gzip.GzipFile(fileobj=fin)
                     for row in fin:
