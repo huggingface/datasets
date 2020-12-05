@@ -57,7 +57,7 @@ SPLIT_FILENAMES = {
     datasets.Split.TRAIN: "train.json",
     datasets.Split.VALIDATION: "dev.json",
     datasets.Split.TEST: "test_no_labels.json",
-    _MINIMAL_PAIRS_SPLIT: "minimal_pairs.json"
+    _MINIMAL_PAIRS_SPLIT: "minimal_pairs.json",
 }
 
 
@@ -117,10 +117,7 @@ class Mocha(datasets.GeneratorBasedBuilder):
                         sample["candidate"] = sample["candidate1"]
                         sample["score"] = sample["score1"]
                         del sample["candidate1"], sample["score1"]
-                        sample["metadata"] = {
-                            "scores": [],
-                            "source": ""
-                        }
+                        sample["metadata"] = {"scores": [], "source": ""}
                     else:
                         if "score" not in sample:
                             sample["score"] = -1.0
