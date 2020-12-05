@@ -22,10 +22,11 @@ import datasets
 
 
 _CITATION = """\
-@InProceedings{huggingface:dataset,
-  title = {A great new dataset},
-  authors={huggingface, Inc.},
-  year={2020}
+@InProceedings{Kim:2016,
+  title     = "Korean Named Entity Recognition Dataset",
+  authors   = "Jae-Hoon Kim",
+  publisher = "GitHub",
+  year      = "2016"
 }
 """
 
