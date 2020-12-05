@@ -9,14 +9,15 @@ licenses:
 - cc-by-nc-sa-4.0
 multilinguality:
 - monolingual
+- other-language-learner
 size_categories:
 - 1K<n<10K
 source_datasets:
 - extended|other-GUG-grammaticality-judgements
 task_categories:
-- other
+- conditional-text-generation
 task_ids:
-- other-other-grammatical-error-correction
+- conditional-text-generation-other-grammatical-error-correction
 ---
 
 # Dataset Card for JFLEG
