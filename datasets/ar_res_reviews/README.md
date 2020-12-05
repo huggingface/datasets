@@ -86,6 +86,10 @@ A typical data point comprises of the following:
 
 - "user_id": the user ID on the website (string)
 
+example:
+``` 
+    >>> {'polarity': '-1', 'restaurant_id': '1412', 'text': 'عادي جدا مامن زود', 'user_id': '21294'}
+```
 
 ### Data Splits
 
