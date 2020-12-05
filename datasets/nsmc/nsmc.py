@@ -22,11 +22,11 @@ import datasets
 
 
 _CITATION = """\
-@misc{park:2016,
-title = "Naver Sentiment Movie Corpus",
-author = "Lucy Park",
-year = "2016",
-howpublished = {\\url{https://github.com/e9t/nsmc}}
+@InProceedings{Park:2016,
+  title        = "Naver Sentiment Movie Corpus",
+  author       = "Lucy Park",
+  year         = "2016",
+  howpublished = {\\url{https://github.com/e9t/nsmc}}
 }
 """
 
@@ -58,7 +58,7 @@ class NSMCDataset(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "id": datasets.Value("string"),
-                    "sentence": datasets.Value("string"),
+                    "document": datasets.Value("string"),
                     "label": datasets.Value("int32"),
                 }
             ),
@@ -94,6 +94,6 @@ class NSMCDataset(datasets.GeneratorBasedBuilder):
             for id_, row in enumerate(reader):
                 yield id_, {
                     "id": row[0],
-                    "sentence": row[1],
+                    "document": row[1],
                     "label": int(row[2]),
                 }
