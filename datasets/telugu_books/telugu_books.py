@@ -31,7 +31,7 @@ year={2019}
 """
 
 _DESCRIPTION = """\
-This dataset is created by scraping telugu novels from teluguone.com and can be used for nlp tasks like topic modeling, word embeddings, transfer learning etc
+This dataset is created by scraping telugu novels from teluguone.com this dataset can be used for nlp tasks like topic modeling, word embeddings, transfer learning etc
 """
 
 _HOMEPAGE = "https://www.kaggle.com/sudalairajkumar/telugu-nlp"
