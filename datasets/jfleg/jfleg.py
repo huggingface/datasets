@@ -16,20 +16,16 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
-import os
-
 import datasets
 
 
 _CITATION = """\
 @InProceedings{napoles-sakaguchi-tetreault:2017:EACLshort,
-  author    = {Napoles, Courtney  
-               and  Sakaguchi, Keisuke  
+  author    = {Napoles, Courtney
+               and  Sakaguchi, Keisuke
                and  Tetreault, Joel},
   title     = {JFLEG: A Fluency Corpus and Benchmark for Grammatical Error Correction},
-  booktitle = {Proceedings of the 15th Conference of the European Chapter of the 
+  booktitle = {Proceedings of the 15th Conference of the European Chapter of the
                Association for Computational Linguistics: Volume 2, Short Papers},
   month     = {April},
   year      = {2017},
@@ -39,14 +35,14 @@ _CITATION = """\
   url       = {http://www.aclweb.org/anthology/E17-2037}
 }
 @InProceedings{heilman-EtAl:2014:P14-2,
-  author    = {Heilman, Michael  
-               and  Cahill, Aoife  
-               and  Madnani, Nitin  
-               and  Lopez, Melissa  
-               and  Mulholland, Matthew  
+  author    = {Heilman, Michael
+               and  Cahill, Aoife
+               and  Madnani, Nitin
+               and  Lopez, Melissa
+               and  Mulholland, Matthew
                and  Tetreault, Joel},
   title     = {Predicting Grammaticality on an Ordinal Scale},
-  booktitle = {Proceedings of the 52nd Annual Meeting of the 
+  booktitle = {Proceedings of the 52nd Annual Meeting of the
                Association for Computational Linguistics (Volume 2: Short Papers)},
   month     = {June},
   year      = {2014},
@@ -59,10 +55,10 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 JFLEG (JHU FLuency-Extended GUG) is an English grammatical error correction (GEC) corpus.
-It is a gold standard benchmark for developing and evaluating GEC systems with respect to 
+It is a gold standard benchmark for developing and evaluating GEC systems with respect to
 fluency (extent to which a text is native-sounding) as well as grammaticality.
 
-For each source document, there are four human-written corrections (ref0 to ref3). 
+For each source document, there are four human-written corrections (ref0 to ref3).
 """
 
 _HOMEPAGE = "https://github.com/keisks/jfleg"
