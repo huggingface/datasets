@@ -49,9 +49,9 @@ class TeluguBooks(datasets.GeneratorBasedBuilder):
     @property
     def manual_download_instructions(self):
         return """\
-    You need to go to https://www.kaggle.com/sudalairajkumar/telugu-nlp, 
-    and manually download the telugu_books. Once it is completed, 
-    a file named telugu_books.zip will be appeared in your Downloads folder 
+    You need to go to https://www.kaggle.com/sudalairajkumar/telugu-nlp,
+    and manually download the telugu_books. Once it is completed,
+    a file named telugu_books.zip will be appeared in your Downloads folder
     or whichever folder your browser chooses to save files to. You then have
     to unzip the file and move telugu_books,csv under <path/to/folder>.
     The <path/to/folder> can e.g. be "~/manual_data".
