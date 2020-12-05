@@ -17,6 +17,7 @@
 """The SPECIES and ORGANISMS Resources for Fast and Accurate Identification of Taxonomic Names in Text"""
 
 import logging
+import os
 
 import datasets
 
