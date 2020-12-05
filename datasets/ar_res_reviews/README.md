@@ -162,4 +162,8 @@ publisher="Springer International Publishing",
 address="Cham",
 pages="23--34",
 isbn="978-3-319-18117-2"
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 4ab01f21137425a8c57a3f0cf72ed6d1fe07aff5
