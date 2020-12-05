@@ -473,23 +473,15 @@ class UniversalMorphologies(datasets.GeneratorBasedBuilder):
             ]
 
     def _generate_examples(self, filepath):
+        all_forms = {}
+        # we need to do a full path first to gather all forms of a lemma
         with open(filepath, encoding="utf-8") as f:
-            prev_lemma = ""
-            id_ = -1
             forms = []
-            for id_, row in enumerate(f):
+            for row in f:
                 if row.strip() == "" or row.strip().startswith("#"):
                     continue
                 lemma, word, tags = row.strip().split("\t")
-                if lemma != prev_lemma:
-                    if prev_lemma != "":
-                        res = {"lemma": prev_lemma, "forms": {}}
-                        for k in ["word", "Other"] + list(_CATEGORIES.keys()):
-                            res["forms"][k] = [form[k] for form in forms]
-                        yield id_, res
-                    id_ += 1
-                    prev_lemma = lemma
-                    forms = []
+                all_forms[lemma] = all_forms.get(lemma, [])
                 tag_list = tags.replace("NDEF", "INDF").split(";")
                 form = dict([("word", word), ("Other", [])] + [(cat, []) for cat, tasks in _CATEGORIES.items()])
                 for tag_pre in tag_list:
@@ -498,8 +490,9 @@ class UniversalMorphologies(datasets.GeneratorBasedBuilder):
                         form[_TAG_TO_CAT[tag[0]]] = tag
                     else:
                         form["Other"] += tag
-                forms += [form]
-        res = {"lemma": prev_lemma, "forms": {}}
-        for k in ["word", "Other"] + list(_CATEGORIES.keys()):
-            res["forms"][k] = [form[k] for form in forms]
-        yield id_, res
+                all_forms[lemma] += [form]
+        for id_, (lemma, forms) in enumerate(all_forms.items()):
+            res = {"lemma": lemma, "forms": {}}
+            for k in ["word", "Other"] + list(_CATEGORIES.keys()):
+                res["forms"][k] = [form[k] for form in forms]
+            yield id_, res
