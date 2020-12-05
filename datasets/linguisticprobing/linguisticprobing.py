@@ -27,7 +27,7 @@ import six
 import datasets
 
 
-_Linguisticprobing_CITATION = """@inproceedings{conneau-etal-2018-cram,
+_Linguisticprobing_CITATION = r"""@inproceedings{conneau-etal-2018-cram,
     title = "What you can cram into a single {\$}{\&}!{\#}* vector: Probing sentence embeddings for linguistic properties",
     author = {Conneau, Alexis  and
       Kruszewski, German  and
