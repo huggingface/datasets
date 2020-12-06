@@ -56,7 +56,7 @@ Standard accuracy metrics indicate that reading comprehension systems are making
 
 ### Supported Tasks and Leaderboards
 
-`question-answering`
+`question-answering`, `adversarial attack`
 
 ### Languages
 
