@@ -1,6 +1,23 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- machine-generated
+language_creators:
+- found
+languages:
+- hi
+licenses:
+- mit
+multilinguality:
+- monolingual
+size_categories:
+- 10K<n<100K
+source_datasets:
+- extended|bbc__hindi_nli
+task_categories:
+- text-classification
+task_ids:
+- natural-language-inference
 ---
 
 # Dataset Card for BBC Hindi NLI Dataset
