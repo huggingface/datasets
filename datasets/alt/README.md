@@ -1,23 +1,37 @@
 ---
 annotations_creators:
 - expert-generated
-- no-annotation
 language_creators:
-- expert-generated
+- crowdsourced
 languages:
+- bn
+- en
+- fil
+- hi
+- id
+- ja
+- km
+- lo
+- ms
+- my
 - th
+- vi
+- zh
 licenses:
-- unknown
+- cc-by-4.0
 multilinguality:
-- monolingual
+- multilingual
+- translation
 size_categories:
 - n<1K
 source_datasets:
 - original
 task_categories:
-- sequence-modeling
+- conditional-text-generation
+- structure-prediction
 task_ids:
-- language-modeling
+- machine-translation
+- parsing
 ---
 
 # Dataset Card for Asian Language Treebank (ALT)
