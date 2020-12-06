@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import, division, print_function
 
-import csv
-import json
 import os
 
 import datasets
@@ -44,7 +42,7 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias. 
+WinoBias, a Winograd-schema dataset for coreference resolution focused on gender bias.
 The corpus contains Winograd-schema style sentences with entities corresponding to people
 referred by their occupation (e.g. the nurse, the doctor, the carpenter).
 """
@@ -54,6 +52,7 @@ _HOMEPAGE = "https://uclanlp.github.io/corefBias/overview"
 _LICENSE = "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENSE)"
 
 _URL = "https://drive.google.com/uc?export=download&confirm=yLNb&id=14Im3BnNl-d2fYETYmiH5yq6eFGLVC3g0"
+
 
 class WinoBias(datasets.GeneratorBasedBuilder):
     """WinoBias: Winograd-schema dataset for detecting gender bias"""
@@ -72,7 +71,11 @@ class WinoBias(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="wino_bias", version=VERSION, description="WinoBias: Winograd-schema dataset for detecting gender bias"),
+        datasets.BuilderConfig(
+            name="wino_bias",
+            version=VERSION,
+            description="WinoBias: Winograd-schema dataset for detecting gender bias",
+        ),
     ]
 
     @property
@@ -83,15 +86,13 @@ class WinoBias(datasets.GeneratorBasedBuilder):
              can be used to load the dataset via `datasets.load_dataset("wino_bias", data_dir="<path/to/folder>").
             """
 
-
     def _info(self):
-        
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
             # This defines the different columns of the dataset and their types
             # Info about features for this: http://cemantix.org/data/ontonotes.html
-            features= datasets.Features(
+            features=datasets.Features(
                 {
                     "document_id": datasets.Value("string"),
                     "part_number": datasets.Value("string"),
@@ -153,7 +154,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                                 "AFX",
                                 "ADD",
                                 "-LRB-",
-                                "-RRB-"
+                                "-RRB-",
                             ]
                         )
                     ),
@@ -202,11 +203,11 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                                 "B-CARDINAL",
                                 "I-CARDINAL",
                                 "*",
-                                "0"
+                                "0",
                             ]
                         )
                     ),
-                    "verbal_predicates": datasets.Sequence(datasets.Value("string"))
+                    "verbal_predicates": datasets.Sequence(datasets.Value("string")),
                 }
             ),
             supervised_keys=None,
@@ -231,9 +232,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "filepath": os.path.join(data_dir, "anonymized.augmented.train.english.v4_auto_conll")
-                },
+                gen_kwargs={"filepath": os.path.join(data_dir, "anonymized.augmented.train.english.v4_auto_conll")},
             )
         ]
 
@@ -255,9 +254,9 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             ner_start = False
             verbal_predicates = []
             for line in f:
-                if line.startswith("#begin") or line.startswith("#end"): 
+                if line.startswith("#begin") or line.startswith("#end"):
                     continue
-                elif line == "" or line == "\n":  
+                elif line == "" or line == "\n":
                     id_ += 1
                     yield str(id_), {
                         "document_id": document_id,
@@ -271,7 +270,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         "word_sense": word_sense,
                         "speaker": speaker,
                         "ner_tags": ner_tags,
-                        "verbal_predicates": verbal_predicates
+                        "verbal_predicates": verbal_predicates,
                     }
                     word_num = []
                     tokens = []
@@ -297,18 +296,17 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                         word_sense.append(splits[8])
                         speaker.append(splits[9])
                         ner_word = splits[10]
-                        if ')' in ner_word and ner_start:
+                        if ")" in ner_word and ner_start:
                             ner_start = False
-                            ner_word = '0'
-                        if '(' in ner_word:
+                            ner_word = "0"
+                        if "(" in ner_word:
                             ner_start = True
-                            ner_word = ner_word.strip(' ').replace('(', 'B-').replace('*', '').replace(')', '')
-                            start_word = ner_word.strip(' ').replace('B-', '')
+                            ner_word = ner_word.strip(" ").replace("(", "B-").replace("*", "").replace(")", "")
+                            start_word = ner_word.strip(" ").replace("B-", "")
                         if ner_start:
-                            if ner_word.strip(' ') == '*':
-                                ner_word = 'I-' + start_word
+                            if ner_word.strip(" ") == "*":
+                                ner_word = "I-" + start_word
                         ner_tags.append(ner_word)
                         word_is_verbal_predicate = any(["(V" in x for x in splits[11:-1]])
                         if word_is_verbal_predicate:
                             verbal_predicates.append(splits[3])
-                
