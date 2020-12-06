@@ -34,7 +34,10 @@ _CITATION = """\
 """
 
 _DESCRIPTION = """\
-The Large Spanish Corpus is a compilation of Spanish corpora spanning Wikipedia to European parliament notes. It is especially useful for pretraining language models.
+The Large Spanish Corpus is a compilation of 15 unlabelled Spanish corpora spanning Wikipedia to European parliament \
+notes. Each config contains the data corresponding to a different corpus. For example, "all_wiki" only includes \
+examples from Spanish Wikipedia. By default, the config is set to "combined" which loads all the corpora; with this \
+setting you can also specify the number of samples to return per corpus by configuring the "split" argument.
 """
 
 _HOMEPAGE = "https://github.com/josecannete/spanish-corpora"
@@ -97,7 +100,6 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "corpus": datasets.Value("string"),
                     "text": datasets.Value("string"),
                 }
             ),
@@ -111,14 +113,14 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
         data_dir = dl_manager.download_and_extract(_URL)
         return [
             datasets.SplitGenerator(
-                name=corpus, gen_kwargs={"corpus": corpus, "filepath": os.path.join(data_dir, filepath)}
+                name=corpus, gen_kwargs={"filepath": os.path.join(data_dir, filepath)}
             )
             for corpus, filepath in zip(self.config.corpora, self.config.filepaths)
         ]
 
-    def _generate_examples(self, corpus, filepath):
+    def _generate_examples(self, filepath):
         _id = 0
         with open(filepath, mode="r", encoding="utf-8") as f:
             for line in f:
-                yield _id, {"corpus": corpus, "text": line.strip()},
+                yield _id, {"text": line.strip()},
                 _id += 1
