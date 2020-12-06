@@ -16,6 +16,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import json
 import os
 
 import datasets
@@ -34,7 +35,7 @@ year={2016}
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-dataset consisting of parsed Parsed ASTs that were used to train and 
+dataset consisting of parsed Parsed ASTs that were used to train and
 evaluate the DeepSyn tool.
 The Python programs are collected from GitHub repositories
 by removing duplicate files, removing project forks (copy of another existing repository)
@@ -43,7 +44,6 @@ we aim to remove obfuscated files"""
 
 # TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "https://www.sri.inf.ethz.ch/py150"
-
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
@@ -56,7 +56,7 @@ _URLs = {
 
 
 # TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
-class Py_Ast(datasets.GeneratorBasedBuilder):
+class PyAst(datasets.GeneratorBasedBuilder):
     """TODO: Short description of my dataset."""
 
     VERSION = datasets.Version("1.0.0")
@@ -83,7 +83,13 @@ class Py_Ast(datasets.GeneratorBasedBuilder):
         if self.config.name == "ast":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
-                    "ast": datasets.Value("string"),
+                    "ast": datasets.Sequence(
+                        {
+                            "type": datasets.Value("string"),
+                            "value": datasets.Value("string"),
+                            "children": datasets.Sequence(datasets.Value("int32")),
+                        },
+                    )
                     # These are the features of your dataset like images, labels ...
                 }
             )
@@ -138,6 +144,12 @@ class Py_Ast(datasets.GeneratorBasedBuilder):
 
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
+                row_data = json.loads(row)
+                for node in row_data:
+                    if "value" not in node:
+                        node["value"] = "N/A"
+                    if "children" not in node:
+                        node["children"] = []
                 yield id_, {
-                    "ast": row,
+                    "ast": row_data,
                 }
