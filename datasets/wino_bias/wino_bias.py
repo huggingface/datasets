@@ -90,7 +90,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                 {
                     "document_id": datasets.Value("string"),
                     "part_number": datasets.Value("int64"),
-                    "word_number": datasets.Value("int64"),
+                    "word_number": datasets.Sequence(datasets.Value("int64")),
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "pos_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
@@ -147,9 +147,9 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                     ),
                     "parse_bit": datasets.Sequence(datasets.Value("string")),
                     "predicate_lemma": datasets.Sequence(datasets.Value("string")),
-                    "predicate_framenet_id": datasets.Value("int32"),
-                    "word_sense": datasets.Value("float32"),
-                    "speaker": datasets.Value("string"),
+                    "predicate_framenet_id": datasets.Sequence(datasets.Value("int32")),
+                    "word_sense": datasets.Sequence(datasets.Value("float32")),
+                    "speaker": datasets.Sequence(datasets.Value("string")),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
@@ -199,24 +199,62 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             )
         ]
 
-    def _generate_examples(self, filepath, split):
+    def _generate_examples(self, filepath):
         """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
-        # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
-        # The key is not important, it's more here for legacy reason (legacy from tfds)
-
-        with open(filepath, encoding="utf-8") as f:
-            for id_, row in enumerate(f):
-                data = json.loads(row)
-                if self.config.name == "first_domain":
+        with open("../anonymized.augmented.train.english.v4_auto_conll", encoding="utf-8") as f:
+            _id = 0
+            document_id = 0
+            part_number = 0
+            word_num = []
+            tokens = []
+            pos_tags = []
+            parse_bit = []
+            predicate_lemma = []
+            predicate_framenet_id = []
+            word_sense = []
+            speaker = []
+            ner_tags = []
+            verbal_predicates = []
+            for line in f:
+                if line.startswith("#begin") or line.startswith("#end"): 
+                    continue;
+                elif line == "" or line == "\n":  
+                    id_ += 1
                     yield id_, {
-                        "sentence": data["sentence"],
-                        "option1": data["option1"],
-                        "answer": "" if split == "test" else data["answer"],
+                        "document_id": document_id,
+                        "part_number": part_number,
+                        "word_number": word_num,
+                        "tokens": tokens,
+                        "pos_tags": pos_tags,
+                        "parse_bit": parse_bit,
+                        "predicate_lemma": predicate_lemma,
+                        "predicate_framenet_id": predicate_framenet_id,
+                        "word_sense": word_sense,
+                        "speaker": speaker,
+                        "ner_tags": ner_tags,
+                        "verbal_predicates": verbal_predicates
                     }
+                    word_num = []
+                    tokens = []
+                    pos_tags = []
+                    parse_bit = []
+                    predicate_lemma = []
+                    predicate_framenet_id = []
+                    word_sense = []
+                    speaker = []
+                    ner_tags = []
+                    verbal_predicates = []
                 else:
-                    yield id_, {
-                        "sentence": data["sentence"],
-                        "option2": data["option2"],
-                        "second_domain_answer": "" if split == "test" else data["second_domain_answer"],
-                    }
+                    splits = line.split(" ")
+                    document_id = splits[0]
+                    part_number = splits[1]
+                    word_num.append(splits[2])
+                    tokens.append(splits[3])
+                    pos_tags.append(splits[4])
+                    parse_bit.append(splits[5])
+                    predicate_lemma.append(splits[6])
+                    predicate_framenet_id.append(splits[7])
+                    word_sense.append(splits[8])
+                    speaker.append(splits[9])
+                    ner_tags.append(splits[10])
+                    verbal_predicates.append(splits[11:])
