@@ -97,7 +97,7 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
             description=_DESCRIPTION,
             features=datasets.Features(
                 {
-                    "title": datasets.Value("string"),
+                    "corpus": datasets.Value("string"),
                     "text": datasets.Value("string"),
                 }
             ),
@@ -109,12 +109,16 @@ class LargeSpanishCorpus(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         data_dir = dl_manager.download_and_extract(_URL)
-        return [datasets.SplitGenerator(name=datasets.Split.TRAIN, gen_kwargs={"data_dir": data_dir})]
+        return [
+            datasets.SplitGenerator(
+                name=corpus, gen_kwargs={"corpus": corpus, "filepath": os.path.join(data_dir, filepath)}
+            )
+            for corpus, filepath in zip(self.config.corpora, self.config.filepaths)
+        ]
 
-    def _generate_examples(self, data_dir):
+    def _generate_examples(self, corpus, filepath):
         _id = 0
-        for filepath, corpus in zip(self.config.filepaths, self.config.corpora):
-            filepath = os.path.join(data_dir, filepath)
-            with open(filepath, mode="r", encoding="utf-8") as f:
-                yield _id, {"title": corpus, "text": f.read()},
+        with open(filepath, mode="r", encoding="utf-8") as f:
+            for line in f:
+                yield _id, {"corpus": corpus, "text": line.strip()},
                 _id += 1
