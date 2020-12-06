@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import os
-import json
+
 import datasets
 
 
@@ -35,7 +35,7 @@ year={2016}
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-dataset consisting of parsed Parsed ASTs that were used to train and
+dataset consisting of parsed Parsed ASTs that were used to train and 
 evaluate the DeepSyn tool.
 The Python programs are collected from GitHub repositories
 by removing duplicate files, removing project forks (copy of another existing repository)
@@ -84,6 +84,7 @@ class PyAst(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
 <<<<<<< HEAD
+<<<<<<< HEAD
                     "ast": datasets.Sequence(
 =======
                      "ast": datasets.Sequence(
@@ -98,10 +99,12 @@ class PyAst(datasets.GeneratorBasedBuilder):
 =======
                         )   
 >>>>>>> Update py_ast.py
+=======
+                    "ast": datasets.Value("string"),
+>>>>>>> Update py_ast.py
                     # These are the features of your dataset like images, labels ...
                 }
             )
-
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -161,8 +164,12 @@ class PyAst(datasets.GeneratorBasedBuilder):
                         node["children"] = []
                 yield id_, {
 <<<<<<< HEAD
+<<<<<<< HEAD
                     "ast": row_data,
 =======
                     "ast": json.loads(row),
+>>>>>>> Update py_ast.py
+=======
+                    "ast": row,
 >>>>>>> Update py_ast.py
                 }
