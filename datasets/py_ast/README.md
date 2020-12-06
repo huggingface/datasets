@@ -30,9 +30,8 @@ YAML tags:
 
 ## Dataset Description
 
-- **[py150](https://www.sri.inf.ethz.ch/py150)** 
-- **py150**
-- **[Probabilistic Model for Code with Decision Trees](https://dl.acm.org/doi/10.1145/3022671.2984041)**
+- **homepage**: [py150](https://www.sri.inf.ethz.ch/py150) 
+- **Paper**: [Probabilistic Model for Code with Decision Trees](https://dl.acm.org/doi/10.1145/3022671.2984041)
 - **Leaderboard:**
 - **Point of Contact:**
 
