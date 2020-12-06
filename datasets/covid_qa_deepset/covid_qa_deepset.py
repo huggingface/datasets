@@ -42,15 +42,15 @@ _HOMEPAGE = "https://github.com/deepset-ai/COVID-QA"
 _LICENSE = "Apache License 2.0"
 
 _URL = "https://raw.githubusercontent.com/deepset-ai/COVID-QA/master/data/question-answering/"
-_URLs = {"covid_qa": _URL + "COVID-QA.json"}
+_URLs = {"covid_qa_deepset": _URL + "COVID-QA.json"}
 
 
-class Covid_QA(datasets.GeneratorBasedBuilder):
+class CovidQADeepset(datasets.GeneratorBasedBuilder):
     VERSION = datasets.Version("1.0.0")
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(
-            name="covid_qa", version=VERSION, description="This part of my dataset covers a first domain"
+            name="covid_qa_deepset", version=VERSION, description="This part of my dataset covers a first domain"
         ),
     ]
 
