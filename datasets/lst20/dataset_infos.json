@@ -1,0 +1,156 @@
+{
+  "lst20": {
+    "builder_name": "ls_t20",
+    "citation": "@article{boonkwan2020annotation,\n  title={The Annotation Guideline of LST20 Corpus},\n  author={Boonkwan, Prachya and Luantangsrisuk, Vorapon and Phaholphinyo, Sitthaa and Kriengket, Kanyanat and Leenoi, Dhanon and Phrombut, Charun and Boriboon, Monthika and Kosawat, Krit and Supnithi, Thepchai},\n  journal={arXiv preprint arXiv:2008.05055},\n  year={2020}\n}\n",
+    "config_name": "lst20",
+    "dataset_size": 125757730,
+    "description": "LST20 Corpus is a dataset for Thai language processing developed by National Electronics and Computer Technology Center (NECTEC), Thailand.\nIt offers five layers of linguistic annotation: word boundaries, POS tagging, named entities, clause boundaries, and sentence boundaries.\nAt a large scale, it consists of 3,164,002 words, 288,020 named entities, 248,181 clauses, and 74,180 sentences, while it is annotated with\n16 distinct POS tags. All 3,745 documents are also annotated with one of 15 news genres. Regarding its sheer size, this dataset is\nconsidered large enough for developing joint neural models for NLP.\nManually download at https://aiforthai.in.th/corpus.php\n",
+    "download_checksums": {},
+    "download_size": 0,
+    "features": {
+      "clause_tags": {
+        "_type": "Sequence",
+        "feature": {
+          "_type": "ClassLabel",
+          "id": null,
+          "names": [
+            "O",
+            "B_CLS",
+            "I_CLS",
+            "E_CLS"
+          ],
+          "names_file": null,
+          "num_classes": 4
+        },
+        "id": null,
+        "length": -1
+      },
+      "fname": {
+        "_type": "Value",
+        "dtype": "string",
+        "id": null
+      },
+      "id": {
+        "_type": "Value",
+        "dtype": "string",
+        "id": null
+      },
+      "ner_tags": {
+        "_type": "Sequence",
+        "feature": {
+          "_type": "ClassLabel",
+          "id": null,
+          "names": [
+            "O",
+            "B_BRN",
+            "B_DES",
+            "B_DTM",
+            "B_LOC",
+            "B_MEA",
+            "B_NUM",
+            "B_ORG",
+            "B_PER",
+            "B_TRM",
+            "B_TTL",
+            "I_BRN",
+            "I_DES",
+            "I_DTM",
+            "I_LOC",
+            "I_MEA",
+            "I_NUM",
+            "I_ORG",
+            "I_PER",
+            "I_TRM",
+            "I_TTL",
+            "E_BRN",
+            "E_DES",
+            "E_DTM",
+            "E_LOC",
+            "E_MEA",
+            "E_NUM",
+            "E_ORG",
+            "E_PER",
+            "E_TRM",
+            "E_TTL"
+          ],
+          "names_file": null,
+          "num_classes": 31
+        },
+        "id": null,
+        "length": -1
+      },
+      "pos_tags": {
+        "_type": "Sequence",
+        "feature": {
+          "_type": "ClassLabel",
+          "id": null,
+          "names": [
+            "NN",
+            "VV",
+            "PU",
+            "CC",
+            "PS",
+            "AX",
+            "AV",
+            "FX",
+            "NU",
+            "AJ",
+            "CL",
+            "PR",
+            "NG",
+            "PA",
+            "XX",
+            "IJ"
+          ],
+          "names_file": null,
+          "num_classes": 16
+        },
+        "id": null,
+        "length": -1
+      },
+      "tokens": {
+        "_type": "Sequence",
+        "feature": {
+          "_type": "Value",
+          "dtype": "string",
+          "id": null
+        },
+        "id": null,
+        "length": -1
+      }
+    },
+    "homepage": "https://aiforthai.in.th/",
+    "license": "",
+    "post_processed": null,
+    "post_processing_size": null,
+    "size_in_bytes": 125757730,
+    "splits": {
+      "test": {
+        "dataset_name": "ls_t20",
+        "name": "test",
+        "num_bytes": 8234542,
+        "num_examples": 5733
+      },
+      "train": {
+        "dataset_name": "ls_t20",
+        "name": "train",
+        "num_bytes": 107860249,
+        "num_examples": 67104
+      },
+      "validation": {
+        "dataset_name": "ls_t20",
+        "name": "validation",
+        "num_bytes": 9662939,
+        "num_examples": 6094
+      }
+    },
+    "supervised_keys": null,
+    "version": {
+      "description": null,
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+      "version_str": "1.0.0"
+    }
+  }
+}
