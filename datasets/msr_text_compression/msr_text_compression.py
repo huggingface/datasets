@@ -145,8 +145,6 @@ class MsrTextCompression(datasets.GeneratorBasedBuilder):
                 source_info, *targets_info = line.split("|||")
 
                 source = self._parse_source(source_info)
-                targets = {
-                    "targets": [self._parse_target(target) for target in targets_info]
-                }
+                targets = {"targets": [self._parse_target(target) for target in targets_info]}
 
                 yield id_, {**source, **targets}
