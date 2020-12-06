@@ -50,7 +50,7 @@ _LICENSE = "Unknwon"
 
 _URLs = {
     # Train sub-datasets
-    "train+SQuAD": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/dev/SQuAD.jsonl.gz",
+    "train+SQuAD": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/SQuAD.jsonl.gz",
     "train+NewsQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/NewsQA.jsonl.gz",
     "train+TriviaQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/TriviaQA-web.jsonl.gz",
     "train+SearchQA": "https://s3.us-east-2.amazonaws.com/mrqa/release/v2/train/SearchQA.jsonl.gz",
