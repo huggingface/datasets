@@ -48,7 +48,7 @@ and analyzing natural language understanding systems for Bahasa Indonesia.
 _INDONLU_HOMEPAGE = "https://www.indobenchmark.com/"
 
 # TODO: Add the licence for the dataset here if you can find it
-_INDONLU_LICENSE = "https://github.com/indobenchmark/indonlu/blob/master/LICENSE"
+_INDONLU_LICENSE = "https://raw.githubusercontent.com/indobenchmark/indonlu/master/LICENSE"
 
 # TODO: Add link to the official dataset URLs here
 # The HuggingFace dataset library don't host the datasets but only point to the original files
@@ -148,64 +148,64 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
             }"""
             )
         ),
-        # IndoNluConfig(
-        #     name="casa",
-        #     description=textwrap.dedent(
-        #         """\
-        #     An aspect-based sentiment analysis dataset consisting of around a thousand car reviews collected
-        #     from multiple Indonesian online automobile platforms (Ilmania et al., 2018). The dataset covers 
-        #     six aspects of car quality. We define the task to be a multi-label classification task, where 
-        #     each label represents a sentiment for a single aspect with three possible values: positive, 
-        #     negative, and neutral."""
-        #     ),
-        #     text_features="",
-        #     # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-        #     label_classes=["negative", "neutral", "positive"],
-        #     label_column="",
-        #     train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/train_preprocess.csv",
-        #     valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/valid_preprocess.csv",
-        #     test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/test_preprocess_masked_label.csv",
-        #     citation=textwrap.dedent(
-        #         """\
-        #     @inproceedings{ilmania2018aspect,
-        #       title={Aspect Detection and Sentiment Classification Using Deep Neural Network for Indonesian Aspect-based Sentiment Analysis},
-        #       author={Arfinda Ilmania, Abdurrahman, Samuel Cahyawijaya, Ayu Purwarianti},
-        #       booktitle={Proceedings of the 2018 International Conference on Asian Language Processing(IALP)},
-        #       pages={62--67},
-        #       year={2018},
-        #       organization={IEEE}
-        #     }"""
-        #     )
-        # ),
-        # IndoNluConfig(
-        #     name="hoasa",
-        #     description=textwrap.dedent(
-        #         """\
-        #     An aspect-based sentiment analysis dataset consisting of hotel reviews collected from the hotel 
-        #     aggregator platform, AiryRooms (Azhar et al., 2019). The dataset covers ten different aspects of 
-        #     hotel quality. Each review is labeled with a single sentiment label for each aspect. There are 
-        #     four possible sentiment classes for each sentiment label: positive, negative, neutral, and 
-        #     positive-negative. The positivenegative label is given to a review that contains multiple sentiments 
-        #     of the same aspect but for different objects (e.g., cleanliness of bed and toilet)."""
-        #     ),
-        #     text_features="",
-        #     # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
-        #     label_classes=["neg", "neut", "pos", "neg_pos"],
-        #     label_column="",
-        #     train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/train_preprocess.csv",
-        #     valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/valid_preprocess.csv",
-        #     test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/test_preprocess_masked_label.csv",
-        #     citation=textwrap.dedent(
-        #         """\
-        #     @inproceedings{azhar2019multi,
-        #       title={Multi-label Aspect Categorization with Convolutional Neural Networks and Extreme Gradient Boosting},
-        #       author={A. N. Azhar, M. L. Khodra, and A. P. Sutiono}
-        #       booktitle={Proceedings of the 2019 International Conference on Electrical Engineering and Informatics (ICEEI)},
-        #       pages={35--40},
-        #       year={2019}
-        #     }"""
-        #     )
-        # ),
+        IndoNluConfig(
+            name="casa",
+            description=textwrap.dedent(
+                """\
+            An aspect-based sentiment analysis dataset consisting of around a thousand car reviews collected
+            from multiple Indonesian online automobile platforms (Ilmania et al., 2018). The dataset covers 
+            six aspects of car quality. We define the task to be a multi-label classification task, where 
+            each label represents a sentiment for a single aspect with three possible values: positive, 
+            negative, and neutral."""
+            ),
+            text_features={"sentence": "sentence"},
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            label_classes=["negative", "neutral", "positive"],
+            label_column=['fuel', 'machine', 'others', 'part', 'price', 'service'],
+            train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/train_preprocess.csv",
+            valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/valid_preprocess.csv",
+            test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/casa_absa-prosa/test_preprocess_masked_label.csv",
+            citation=textwrap.dedent(
+                """\
+            @inproceedings{ilmania2018aspect,
+              title={Aspect Detection and Sentiment Classification Using Deep Neural Network for Indonesian Aspect-based Sentiment Analysis},
+              author={Arfinda Ilmania, Abdurrahman, Samuel Cahyawijaya, Ayu Purwarianti},
+              booktitle={Proceedings of the 2018 International Conference on Asian Language Processing(IALP)},
+              pages={62--67},
+              year={2018},
+              organization={IEEE}
+            }"""
+            )
+        ),
+        IndoNluConfig(
+            name="hoasa",
+            description=textwrap.dedent(
+                """\
+            An aspect-based sentiment analysis dataset consisting of hotel reviews collected from the hotel 
+            aggregator platform, AiryRooms (Azhar et al., 2019). The dataset covers ten different aspects of 
+            hotel quality. Each review is labeled with a single sentiment label for each aspect. There are 
+            four possible sentiment classes for each sentiment label: positive, negative, neutral, and 
+            positive-negative. The positivenegative label is given to a review that contains multiple sentiments 
+            of the same aspect but for different objects (e.g., cleanliness of bed and toilet)."""
+            ),
+            text_features={"sentence": "sentence"},
+            # label classes sorted refer to https://github.com/indobenchmark/indonlu/blob/master/utils/data_utils.py
+            label_classes=["neg", "neut", "pos", "neg_pos"],
+            label_column=['ac', 'air_panas', 'bau', 'general', 'kebersihan', 'linen', 'service', 'sunrise_meal', 'tv', 'wifi'],
+            train_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/train_preprocess.csv",
+            valid_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/valid_preprocess.csv",
+            test_url="https://raw.githubusercontent.com/indobenchmark/indonlu/master/dataset/hoasa_absa-airy/test_preprocess_masked_label.csv",
+            citation=textwrap.dedent(
+                """\
+            @inproceedings{azhar2019multi,
+              title={Multi-label Aspect Categorization with Convolutional Neural Networks and Extreme Gradient Boosting},
+              author={A. N. Azhar, M. L. Khodra, and A. P. Sutiono}
+              booktitle={Proceedings of the 2019 International Conference on Electrical Engineering and Informatics (ICEEI)},
+              pages={35--40},
+              year={2019}
+            }"""
+            )
+        ),
         IndoNluConfig(
             name="wrete",
             description=textwrap.dedent(
@@ -455,6 +455,9 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
         if self.config.label_classes:
             if self.config.name in sentence_features:
                 features["seq_label"] = datasets.Sequence(datasets.features.ClassLabel(names=self.config.label_classes))
+            elif self.config.name == "casa" or self.config.name == "hoasa":
+                for label in self.config.label_column:
+                    features[label] = datasets.features.ClassLabel(names=self.config.label_classes)
             else:
                 features["label"] = datasets.features.ClassLabel(names=self.config.label_classes)
         
@@ -484,7 +487,7 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath):
         """ Yields examples. """
-        csv_file = ["emot", "wrete", "facqa"]
+        csv_file = ["emot", "wrete", "facqa", "casa"]
         tsv_file = ["smsa"]
         txt_file = ["posp", "bapos", "terma", "keps", "nergrit", "nerp"]
         
@@ -497,20 +500,25 @@ class IndoNlu(datasets.GeneratorBasedBuilder):
                 for id_, row in enumerate(reader):
                     if self.config.name == "emot":
                         label, tweet = row
-                        yield id_, { "tweet": tweet, "label": label}   
+                        yield id_, {"tweet": tweet, "label": label}   
                     elif self.config.name == "wrete":
                         sent_A, sent_B, category, label = row
-                        yield id_, { "sent_A": sent_A, "sent_B": sent_B, "category": category, "label": label}
+                        yield id_, {"sent_A": sent_A, "sent_B": sent_B, "category": category, "label": label}
                     elif self.config.name == "facqa":
-                         question, passage, seq_label = row
-                         yield id_, { "question": eval(question), "passage": eval(passage), "seq_label": eval(seq_label)}
+                        question, passage, seq_label = row
+                        yield id_, {"question": eval(question), "passage": eval(passage), "seq_label": eval(seq_label)}
+                    elif self.config.name == "casa" or self.config.name == "hoasa":
+                        sentence, *labels = row
+                        sentence = {"sentence": sentence}
+                        label = {l:labels[idx] for idx,l in enumerate(self.config.label_column)}
+                        yield id_, {**sentence, **label}
             elif self.config.name in tsv_file:
                 reader = csv.reader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
 
                 for id_, row in enumerate(reader):
                     if self.config.name == "smsa":
                         text, label = row
-                        yield id_, { "text": text, "label": label}
+                        yield id_, {"text": text, "label": label}
             elif self.config.name in txt_file:
                 id_ = 0
                 sentence = []
