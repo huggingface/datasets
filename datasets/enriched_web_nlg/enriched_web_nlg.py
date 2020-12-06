@@ -21,9 +21,9 @@ import xml.etree.cElementTree as ET
 from collections import defaultdict
 from glob import glob
 from os.path import join as pjoin
-from time import sleep
 
 import datasets
+
 
 _CITATION = """\
 @InProceedings{ferreiraetal2018,
