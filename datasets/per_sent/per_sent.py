@@ -128,7 +128,10 @@ class PerSent(datasets.GeneratorBasedBuilder):
 
         with open(filepath, encoding="utf-8") as f:
             reader = csv.reader(f)
-            header = next(reader)
+
+            # Header
+            _ = next(reader)
+
             for id_, row in enumerate(reader):
                 doc_idx, title, target, doc, masked_doc, *labels = row
 
