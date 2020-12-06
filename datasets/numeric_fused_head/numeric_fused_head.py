@@ -38,7 +38,7 @@ _CITATION = """\
 
 _DESCRIPTION = """\
 Fused Head constructions are noun phrases in which the head noun is \
-missing and is said to be “fused” with its dependent modifier. This \
+missing and is said to be "fused" with its dependent modifier. This \
 missing information is implicit and is important for sentence understanding.\
 The missing heads are easily filled in by humans,  but pose a challenge for \
 computational models.
