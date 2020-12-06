@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function
 
 import json
 import os
-
+import json
 import datasets
 
 
@@ -83,16 +83,25 @@ class PyAst(datasets.GeneratorBasedBuilder):
         if self.config.name == "ast":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
+<<<<<<< HEAD
                     "ast": datasets.Sequence(
+=======
+                     "ast": datasets.Sequence(
+>>>>>>> Update py_ast.py
                         {
                             "type": datasets.Value("string"),
                             "value": datasets.Value("string"),
                             "children": datasets.Sequence(datasets.Value("int32")),
                         },
+<<<<<<< HEAD
                     )
+=======
+                        )   
+>>>>>>> Update py_ast.py
                     # These are the features of your dataset like images, labels ...
                 }
             )
+
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -151,5 +160,9 @@ class PyAst(datasets.GeneratorBasedBuilder):
                     if "children" not in node:
                         node["children"] = []
                 yield id_, {
+<<<<<<< HEAD
                     "ast": row_data,
+=======
+                    "ast": json.loads(row),
+>>>>>>> Update py_ast.py
                 }
