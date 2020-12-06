@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""TODO: Conceptnet 5.7.0 and OMCSNet raw data"""
+"""Conceptnet 5.7.0 and OMCSNet raw data"""
 
 from __future__ import absolute_import, division, print_function
 
@@ -23,14 +23,12 @@ import json
 import datasets
 
 
-# TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
 _CITATION = """\
 Robyn Speer, Joshua Chin, and Catherine Havasi. 2017. "ConceptNet 5.5: An Open Multilingual Graph of General Knowledge." In proceedings of AAAI 31.
 }
 """
 
-# TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """This dataset is designed to provide training data
 for common sense relationships pulls together from various sources.
@@ -58,7 +56,7 @@ https://github.com/commonsense/conceptnet5/wiki/Downloads. For more
 information, see: https://github.com/commonsense/conceptnet5/wiki
 
 The omcsnet data comes with the following warning from the authors of
-the above site:
+the above site: 
 
 Remember: this data comes from various forms of
 crowdsourcing. Sentences in these files are not necessarily true,
@@ -66,7 +64,7 @@ useful, or appropriate.
 
 """
 
-# TODO: Add the licence for the dataset here if you can find it
+
 _LICENSE = """
 This work includes data from ConceptNet 5, which was compiled by the
 Commonsense Computing Initiative. ConceptNet 5 is freely available under
@@ -82,7 +80,7 @@ There are various othe licenses. See:
 https://github.com/commonsense/conceptnet5/wiki/Copying-and-sharing-ConceptNet
 """
 
-# TODO: Add link to the official dataset URLs here
+
 # The HuggingFace dataset library don't host the datasets but only point to the original files
 # This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
 _URLs = {
@@ -92,9 +90,9 @@ _URLs = {
 }
 
 
-# TODO: Name of the dataset usually match the script name with CamelCase instead of snake_case
+
 class Conceptnet5(datasets.GeneratorBasedBuilder):
-    """TODO: Short description of my dataset."""
+    """Conceptnet5 dataset for common sense graphs and underlying sentences."""
 
     VERSION = datasets.Version("0.1.0")
 
@@ -110,7 +108,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
     # data = datasets.load_dataset('my_dataset', 'first_domain')
     # data = datasets.load_dataset('my_dataset', 'second_domain')
     BUILDER_CONFIGS = [
-        datasets.BuilderConfig(name="conceptnet5", description="The relationships defined by conceptnet5", version="5.7.0"),
+        datasets.BuilderConfig(name="conceptnet5", description="The relationships defined by conceptnet5", version="5.7.0"),#
         datasets.BuilderConfig(name="omcs_sentences_free", description="OMCSNet free form text", version="5.7.0"),
         datasets.BuilderConfig(name="omcs_sentences_more", description="OMCSNet free form text, and text from templates, games, responses to questions, and so on", version="5.7.0"),
     ]
@@ -118,8 +116,8 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
     DEFAULT_CONFIG_NAME = "conceptnet5"  # It's not mandatory to have a default configuration. Just use one if it make sense.
 
     def _info(self):
-        # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
-        if self.config.name == "conceptnet5":
+        # This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
+        if self.config.name == "conceptnet5":  # This is the name of the configuration selected in BUILDER_CONFIGS above 
             features = datasets.Features(
                 {
                     "sentence": datasets.Value("string"), # the surface text if available, with brackets ([[ ]]) around the arg1 and arg2 words. 
@@ -128,7 +126,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
                     "arg1": datasets.Value("string"),
                     "arg2": datasets.Value("string"),
                     "lang": datasets.Value("string"), # if the arg1 and arg2 are the same language, then there is one code, otherwise there are two comma separated codes
-                    "extra_info": datasets.Value("string"),
+                    "extra_info": datasets.Value("string"), # in json format
                     "weight": datasets.Value("float"),
                 }
             )
@@ -159,7 +157,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        # TODO: This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
+        # This method is tasked with downloading/extracting the data and defining the splits depending on the configuration
         # If several configurations are possible (listed in BUILDER_CONFIGS), the configuration selected by the user is in self.config.name
 
         # dl_manager is a datasets.download.DownloadManager that can be used to download and extract URLs
@@ -180,7 +178,7 @@ class Conceptnet5(datasets.GeneratorBasedBuilder):
 
     def _generate_examples(self, filepath, split):
         """ Yields examples. """
-        # TODO: This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
+        # This method will receive as arguments the `gen_kwargs` defined in the previous `_split_generators` method.
         # It is in charge of opening the given file and yielding (key, example) tuples from the dataset
         # The key is not important, it's more here for legacy reason (legacy from tfds)
 
