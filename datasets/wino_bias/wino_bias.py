@@ -53,9 +53,7 @@ _HOMEPAGE = "https://uclanlp.github.io/corefBias/overview"
 
 _LICENSE = "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENSE)"
 
-_URL = {
-    "https://drive.google.com/uc?export=download&confirm=yLNb&id=14Im3BnNl-d2fYETYmiH5yq6eFGLVC3g0"
-}
+_URL = "https://drive.google.com/uc?export=download&confirm=yLNb&id=14Im3BnNl-d2fYETYmiH5yq6eFGLVC3g0"
 
 
 class WinoBias(datasets.GeneratorBasedBuilder):
@@ -89,8 +87,8 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             features= datasets.Features(
                 {
                     "document_id": datasets.Value("string"),
-                    "part_number": datasets.Value("int64"),
-                    "word_number": datasets.Sequence(datasets.Value("int64")),
+                    "part_number": datasets.Value("string"),
+                    "word_number": datasets.Sequence(datasets.Value("string")),
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "pos_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
@@ -142,41 +140,68 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                                 "WP",
                                 "WP$",
                                 "WRB",
+                                "HYPH",
+                                "XX",
+                                "NFP",
+                                "AFX",
+                                "ADD",
+                                "-LRB-",
+                                "-RRB-"
                             ]
                         )
                     ),
                     "parse_bit": datasets.Sequence(datasets.Value("string")),
                     "predicate_lemma": datasets.Sequence(datasets.Value("string")),
-                    "predicate_framenet_id": datasets.Sequence(datasets.Value("int32")),
-                    "word_sense": datasets.Sequence(datasets.Value("float32")),
+                    "predicate_framenet_id": datasets.Sequence(datasets.Value("string")),
+                    "word_sense": datasets.Sequence(datasets.Value("string")),
                     "speaker": datasets.Sequence(datasets.Value("string")),
                     "ner_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
                             names=[
-                                "PERSON",
-                                "NORP",
-                                "FAC",
-                                "ORG",
-                                "GPE",
-                                "LOC",
-                                "PRODUCT",
-                                "EVENT",
-                                "WORK_OF_ART",
-                                "LAW",
-                                "LANGUAGE",
-                                "DATE",
-                                "TIME",
-                                "PERCENT",
-                                "MONEY",
-                                "QUANTITY",
-                                "ORDINAL",
-                                "CARDINAL"
+                                "B-PERSON",
+                                "I-PERSON",
+                                "B-NORP",
+                                "I-NORP",
+                                "B-FAC",
+                                "I-FAC",
+                                "B-ORG",
+                                "I-ORG",
+                                "B-GPE",
+                                "I-GPE",
+                                "B-LOC",
+                                "I-LOC",
+                                "B-PRODUCT",
+                                "I-PRODUCT",
+                                "B-EVENT",
+                                "I-EVENT",
+                                "B-WORK_OF_ART",
+                                "I-WORK_OF_ART",
+                                "B-LAW",
+                                "I-LAW",
+                                "B-LANGUAGE",
+                                "I-LANGUAGE",
+                                "B-DATE",
+                                "I-DATE",
+                                "B-TIME",
+                                "I-TIME",
+                                "B-PERCENT",
+                                "I-PERCENT",
+                                "B-MONEY",
+                                "I-MONEY",
+                                "B-QUANTITY",
+                                "I-QUANTITY",
+                                "B-ORDINAL",
+                                "I-ORDINAL",
+                                "B-CARDINAL",
+                                "I-CARDINAL",
+                                "*",
+                                "0"
                             ]
                         )
                     ),
                     "verbal_predicates": datasets.Sequence(datasets.Value("string"))
                 }
-            )
+            ),
             supervised_keys=None,
             # Homepage of the dataset for documentation
             homepage=_HOMEPAGE,
@@ -188,7 +213,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download_and_extract(_URL)
+        data_dir = dl_manager.download(_URL)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -202,7 +227,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
     def _generate_examples(self, filepath):
         """ Yields examples. """
         with open("../anonymized.augmented.train.english.v4_auto_conll", encoding="utf-8") as f:
-            _id = 0
+            id_ = 0
             document_id = 0
             part_number = 0
             word_num = []
@@ -214,13 +239,14 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             word_sense = []
             speaker = []
             ner_tags = []
+            ner_start = False
             verbal_predicates = []
             for line in f:
                 if line.startswith("#begin") or line.startswith("#end"): 
                     continue;
                 elif line == "" or line == "\n":  
                     id_ += 1
-                    yield id_, {
+                    yield str(id_), {
                         "document_id": document_id,
                         "part_number": part_number,
                         "word_number": word_num,
@@ -256,5 +282,31 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                     predicate_framenet_id.append(splits[7])
                     word_sense.append(splits[8])
                     speaker.append(splits[9])
-                    ner_tags.append(splits[10])
+                    ner_word = splits[10]
+                    if ')' in ner_word and ner_start:
+                        ner_start = False
+                        ner_word = '0'
+                    if '(' in ner_word:
+                        ner_start = True
+                        ner_word = ner_word.strip(' ').replace('(', 'B-').replace('*', '').replace(')', '')
+                        start_word = ner_word.strip(' ').replace('B-', '')
+                    if ner_start:
+                        if ner_word.strip(' ') == '*':
+                            ner_word = 'I-' + start_word
+                    ner_tags.append(ner_word)
                     verbal_predicates.append(splits[11:])
+            # Last example
+            yield str(id_), {
+                        "document_id": document_id,
+                        "part_number": part_number,
+                        "word_number": word_num,
+                        "tokens": tokens,
+                        "pos_tags": pos_tags,
+                        "parse_bit": parse_bit,
+                        "predicate_lemma": predicate_lemma,
+                        "predicate_framenet_id": predicate_framenet_id,
+                        "word_sense": word_sense,
+                        "speaker": speaker,
+                        "ner_tags": ner_tags,
+                        "verbal_predicates": verbal_predicates
+                    }
