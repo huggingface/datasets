@@ -28,7 +28,8 @@ title = {Fast Domain Adaptation For Goal-Oriented Dialogue Using A Hybrid Genera
 booktitle = {2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
 year = {2020},
 month = {April},
-url = {https://www.microsoft.com/en-us/research/publication/fast-domain-adaptation-for-goal-oriented-dialogue-using-a-hybrid-generative-retrieval-transformer/},
+url = {https://www.microsoft.com/en-us/research/publication/fast-domain-adaptation-for-goal-oriented-dialogue-using-a
+-hybrid-generative-retrieval-transformer/},
 }
 """
 
