@@ -23,18 +23,15 @@ import datasets
 
 # TODO: Add BibTeX citation
 # Find for instance the citation on arxiv or on the dataset repo/website
-_CITATION = """\
-"""
-
+_CITATION = ""
 
 _DESCRIPTION = """\
-This dataset consists of 3048 similar and dissimilar medical question pairs hand-generated and labeled by Curai's doctors. 
+This dataset consists of 3048 similar and dissimilar medical question pairs hand-generated and labeled by Curai's doctors.
 """
 
 _HOMEPAGE = "https://github.com/curai/medical-question-pair-dataset"
 
 _LICENSE = ""
-
 
 _URL = "https://raw.githubusercontent.com/curai/medical-question-pair-dataset/master/mqp.csv"
 
