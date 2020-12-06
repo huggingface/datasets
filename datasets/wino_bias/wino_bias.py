@@ -55,7 +55,6 @@ _LICENSE = "MIT License (https://github.com/uclanlp/corefBias/blob/master/LICENS
 
 _URL = "https://drive.google.com/uc?export=download&confirm=yLNb&id=14Im3BnNl-d2fYETYmiH5yq6eFGLVC3g0"
 
-
 class WinoBias(datasets.GeneratorBasedBuilder):
     """WinoBias: Winograd-schema dataset for detecting gender bias"""
 
@@ -76,6 +75,14 @@ class WinoBias(datasets.GeneratorBasedBuilder):
         datasets.BuilderConfig(name="wino_bias", version=VERSION, description="WinoBias: Winograd-schema dataset for detecting gender bias"),
     ]
 
+    @property
+    def manual_download_instructions(self):
+        return """\
+             You need to manually download the 'anonymized.augmented.train.english.v4_auto_conll' file from Google Drive
+             (https://drive.google.com/uc?export=download&confirm=yLNb&id=14Im3BnNl-d2fYETYmiH5yq6eFGLVC3g0). The folder containing the saved file
+             can be used to load the dataset via `datasets.load_dataset("wino_bias", data_dir="<path/to/folder>").
+            """
+
 
     def _info(self):
         
@@ -88,7 +95,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                 {
                     "document_id": datasets.Value("string"),
                     "part_number": datasets.Value("string"),
-                    "word_number": datasets.Sequence(datasets.Value("string")),
+                    "word_number": datasets.Sequence(datasets.Value("int32")),
                     "tokens": datasets.Sequence(datasets.Value("string")),
                     "pos_tags": datasets.Sequence(
                         datasets.features.ClassLabel(
@@ -213,7 +220,13 @@ class WinoBias(datasets.GeneratorBasedBuilder):
 
     def _split_generators(self, dl_manager):
         """Returns SplitGenerators."""
-        data_dir = dl_manager.download(_URL)
+        data_dir = os.path.abspath(os.path.expanduser(dl_manager.manual_dir))
+        if not os.path.exists(data_dir):
+            raise FileNotFoundError(
+                "{} does not exist. Make sure you insert a manual dir via `datasets.load_dataset('wino_bias', data_dir=...)` that includes downloaded files. Manual download instructions: {}".format(
+                    data_dir, self.manual_download_instructions
+                )
+            )
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
@@ -228,7 +241,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
         with open("../anonymized.augmented.train.english.v4_auto_conll", encoding="utf-8") as f:
             id_ = 0
-            document_id = 0
+            document_id = None
             part_number = 0
             word_num = []
             tokens = []
@@ -243,7 +256,7 @@ class WinoBias(datasets.GeneratorBasedBuilder):
             verbal_predicates = []
             for line in f:
                 if line.startswith("#begin") or line.startswith("#end"): 
-                    continue;
+                    continue
                 elif line == "" or line == "\n":  
                     id_ += 1
                     yield str(id_), {
@@ -272,41 +285,30 @@ class WinoBias(datasets.GeneratorBasedBuilder):
                     verbal_predicates = []
                 else:
                     splits = line.split(" ")
-                    document_id = splits[0]
-                    part_number = splits[1]
-                    word_num.append(splits[2])
-                    tokens.append(splits[3])
-                    pos_tags.append(splits[4])
-                    parse_bit.append(splits[5])
-                    predicate_lemma.append(splits[6])
-                    predicate_framenet_id.append(splits[7])
-                    word_sense.append(splits[8])
-                    speaker.append(splits[9])
-                    ner_word = splits[10]
-                    if ')' in ner_word and ner_start:
-                        ner_start = False
-                        ner_word = '0'
-                    if '(' in ner_word:
-                        ner_start = True
-                        ner_word = ner_word.strip(' ').replace('(', 'B-').replace('*', '').replace(')', '')
-                        start_word = ner_word.strip(' ').replace('B-', '')
-                    if ner_start:
-                        if ner_word.strip(' ') == '*':
-                            ner_word = 'I-' + start_word
-                    ner_tags.append(ner_word)
-                    verbal_predicates.append(splits[11:])
-            # Last example
-            yield str(id_), {
-                        "document_id": document_id,
-                        "part_number": part_number,
-                        "word_number": word_num,
-                        "tokens": tokens,
-                        "pos_tags": pos_tags,
-                        "parse_bit": parse_bit,
-                        "predicate_lemma": predicate_lemma,
-                        "predicate_framenet_id": predicate_framenet_id,
-                        "word_sense": word_sense,
-                        "speaker": speaker,
-                        "ner_tags": ner_tags,
-                        "verbal_predicates": verbal_predicates
-                    }
+                    if len(splits) > 7:
+                        document_id = splits[0]
+                        part_number = splits[1]
+                        word_num.append(splits[2])
+                        tokens.append(splits[3])
+                        pos_tags.append(splits[4])
+                        parse_bit.append(splits[5])
+                        predicate_lemma.append(splits[6])
+                        predicate_framenet_id.append(splits[7])
+                        word_sense.append(splits[8])
+                        speaker.append(splits[9])
+                        ner_word = splits[10]
+                        if ')' in ner_word and ner_start:
+                            ner_start = False
+                            ner_word = '0'
+                        if '(' in ner_word:
+                            ner_start = True
+                            ner_word = ner_word.strip(' ').replace('(', 'B-').replace('*', '').replace(')', '')
+                            start_word = ner_word.strip(' ').replace('B-', '')
+                        if ner_start:
+                            if ner_word.strip(' ') == '*':
+                                ner_word = 'I-' + start_word
+                        ner_tags.append(ner_word)
+                        word_is_verbal_predicate = any(["(V" in x for x in splits[11:-1]])
+                        if word_is_verbal_predicate:
+                            verbal_predicates.append(splits[3])
+                
