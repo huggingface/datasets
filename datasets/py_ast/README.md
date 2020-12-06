@@ -49,20 +49,26 @@ Code Representation, Unsupervised Learning
 ### Languages
 
 Python
-## Dataset Structure
+## Dataset Structure  
 
 ### Data Instances
-
-[More Information Needed]
+A typical datapoint contains an AST of a python program, parsed.
 
 ### Data Fields
-ast
+A datapoint has an ast key which branches to a flatenned tree version of first level children nodes. An example would be,     
+'''
+[ {"type":"Module","children":[1,4]},{"type":"Assign","children":[2,3]},{"type":"NameStore","value":"x"},{"type":"Num","value":"7"},    {"type":"Print","children":[5]},      {"type":"BinOpAdd","children":[6,7]},        {"type":"NameLoad","value":"x"},        {"type":"Num","value":"1"} ]
+'''
 ### Data Splits
 
-train
-test
-## Dataset Creation
+The data is split into a training and test set.   
+The final split sizes are as follow:
 
+|                             | Tain   | Valid |
+| -----                       | ------ | ----- |
+| py_ast examples| 100000 |  50000 |
+## Dataset Creation
+[More Information Needed]
 ### Curation Rationale
 
 [More Information Needed]
