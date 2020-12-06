@@ -17,7 +17,7 @@
 from __future__ import absolute_import, division, print_function
 
 import csv
-import json
+
 import os
 
 import datasets
@@ -60,14 +60,12 @@ class MsrGenomicsKbcomp(datasets.GeneratorBasedBuilder):
 
     VERSION = datasets.Version("1.1.0")
 
-
     @property
     def manual_download_instructions(self):
         return """\
   To use msr_genomics_kbcomp you need to download it manually. Please go to its homepage (https://msropendata.com/datasets/80b4f6e8-5d7c-4abc-9c79-2e51dfedd791)and login. Extract all files in one folder and use the path folder in datasets.load_dataset('msr_genomics_kbcomp', data_dir='path/to/folder/folder_name')
   """
-    
-    
+
     def _info(self):
         # TODO: This method pecifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         return datasets.DatasetInfo(
