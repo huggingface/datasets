@@ -184,13 +184,11 @@ class Openpi(datasets.GeneratorBasedBuilder):
         suffix = "_metadata" if self.config.type_ == "metadata" else ""
         fname = "id_{config}{suffix}.jsonl"
         urls = {
-            "train": os.path.join(_BASE_URL, "train", fname.format(config=self.config.mode, suffix=suffix)),
-            "dev": os.path.join(_BASE_URL, "dev", fname.format(config=self.config.mode, suffix=suffix)),
-            "test": os.path.join(_BASE_URL, "test", fname.format(config=self.config.mode, suffix=suffix)),
+            "train": _BASE_URL + "train/" + fname.format(config=self.config.mode, suffix=suffix),
+            "dev": _BASE_URL + "dev/" + fname.format(config=self.config.mode, suffix=suffix),
+            "test": _BASE_URL + "test/" + fname.format(config=self.config.mode, suffix=suffix),
         }
-        print(urls)
         data_dir = dl_manager.download_and_extract(urls)
-        print(data_dir)
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
