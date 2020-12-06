@@ -17,7 +17,6 @@
 from __future__ import absolute_import, division, print_function
 
 import json
-import os
 
 import datasets
 
@@ -94,7 +93,11 @@ class Openpi(datasets.GeneratorBasedBuilder):
             description="Provides the question metadata",
         ),
         OpenpiConfig(
-            name="answers", mode="answers", type_="data", version=VERSION, description="Provides the answer sentences"
+            name="answers",
+            mode="answers",
+            type_="data",
+            version=VERSION,
+            description="Provides the answer sentences",
         ),
         OpenpiConfig(
             name="answers-metadata",
@@ -115,7 +118,9 @@ class Openpi(datasets.GeneratorBasedBuilder):
                         "id": datasets.Value("string"),
                         "question_metadata": {
                             "url": datasets.Value("string"),
-                            "step_id": datasets.ClassLabel(names=["0", "1", "2", "3", "4", "5", "6", "7"]),
+                            "step_id": datasets.ClassLabel(
+                                names=["0", "1", "2", "3", "4", "5", "6", "7"]
+                            ),
                             "context": datasets.Value("string"),
                             "query": datasets.Value("string"),
                             "future_context": datasets.Value("string"),
@@ -134,7 +139,12 @@ class Openpi(datasets.GeneratorBasedBuilder):
                     }
                 )
             else:
-                features = datasets.Features({"id": datasets.Value("string"), "question": datasets.Value("string")})
+                features = datasets.Features(
+                    {
+                        "id": datasets.Value("string"),
+                        "question": datasets.Value("string"),
+                    }
+                )
         else:
             if self.config.type_ == "metadata":
                 features = datasets.Features(
@@ -147,14 +157,19 @@ class Openpi(datasets.GeneratorBasedBuilder):
                                 "before": datasets.Value("string"),
                                 "after": datasets.Value("string"),
                                 "attr": datasets.Value("string"),
-                                "modality": datasets.ClassLabel(names=["without_image", "with_image"]),
+                                "modality": datasets.ClassLabel(
+                                    names=["without_image", "with_image"]
+                                ),
                             }
                         ),
                     }
                 )
             else:
                 features = datasets.Features(
-                    {"id": datasets.Value("string"), "answers": datasets.Sequence(datasets.Value("string"))}
+                    {
+                        "id": datasets.Value("string"),
+                        "answers": datasets.Sequence(datasets.Value("string")),
+                    }
                 )
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
@@ -184,9 +199,15 @@ class Openpi(datasets.GeneratorBasedBuilder):
         suffix = "_metadata" if self.config.type_ == "metadata" else ""
         fname = "id_{config}{suffix}.jsonl"
         urls = {
-            "train": _BASE_URL + "train/" + fname.format(config=self.config.mode, suffix=suffix),
-            "dev": _BASE_URL + "dev/" + fname.format(config=self.config.mode, suffix=suffix),
-            "test": _BASE_URL + "test/" + fname.format(config=self.config.mode, suffix=suffix),
+            "train": _BASE_URL
+            + "train/"
+            + fname.format(config=self.config.mode, suffix=suffix),
+            "dev": _BASE_URL
+            + "dev/"
+            + fname.format(config=self.config.mode, suffix=suffix),
+            "test": _BASE_URL
+            + "test/"
+            + fname.format(config=self.config.mode, suffix=suffix),
         }
         data_dir = dl_manager.download_and_extract(urls)
         return [
@@ -222,7 +243,9 @@ class Openpi(datasets.GeneratorBasedBuilder):
                             "step_id": data["question_metadata"].get("step_id", "0"),
                             "context": data["question_metadata"].get("context", ""),
                             "query": data["question_metadata"].get("query", ""),
-                            "future_context": data["question_metadata"].get("future_context", ""),
+                            "future_context": data["question_metadata"].get(
+                                "future_context", ""
+                            ),
                             "topic": data["question_metadata"].get("topic", "unknown"),
                         },
                     }
