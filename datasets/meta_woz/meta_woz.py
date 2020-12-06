@@ -21,6 +21,7 @@ import os
 
 import datasets
 
+
 _CITATION = """\
 @InProceedings{shalyminov2020fast,
 author = {Shalyminov, Igor and Sordoni, Alessandro and Atkinson, Adam and Schulz, Hannes},
@@ -50,8 +51,8 @@ _HOMEPAGE = "https://www.microsoft.com/en-us/research/project/metalwoz/"
 _LICENSE = "Microsoft Research Data License Agreement"
 
 _URLs = {
-    'train': "https://download.microsoft.com/download/E/B/8/EB84CB1A-D57D-455F-B905-3ABDE80404E5/metalwoz-v1.zip",
-    'test': "https://download.microsoft.com/download/0/c/4/0c4a8893-cbf9-4a43-a44a-09bab9539234/metalwoz-test-v1.zip",
+    "train": "https://download.microsoft.com/download/E/B/8/EB84CB1A-D57D-455F-B905-3ABDE80404E5/metalwoz-v1.zip",
+    "test": "https://download.microsoft.com/download/0/c/4/0c4a8893-cbf9-4a43-a44a-09bab9539234/metalwoz-test-v1.zip",
 }
 
 
@@ -60,8 +61,9 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
 
     BUILDER_CONFIGS = [
         datasets.BuilderConfig(name="dialogues", description="The dataset of dialogues from various domains."),
-        datasets.BuilderConfig(name="tasks", description="The metadata for tasks corresponding to dialogues from "
-                                                         "various domains.")
+        datasets.BuilderConfig(
+            name="tasks", description="The metadata for tasks corresponding to dialogues from " "various domains."
+        ),
     ]
 
     DEFAULT_CONFIG_NAME = "dialogues"
@@ -75,7 +77,7 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
                     "bot_prompt": datasets.Value("string"),
                     "bot_role": datasets.Value("string"),
                     "user_prompt": datasets.Value("string"),
-                    "user_role": datasets.Value("string")
+                    "user_role": datasets.Value("string"),
                 }
             )
         else:
@@ -86,7 +88,7 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
                     "bot_id": datasets.Value("string"),
                     "domain": datasets.Value("string"),
                     "task_id": datasets.Value("string"),
-                    "turns": datasets.Sequence(datasets.Value("string"))
+                    "turns": datasets.Sequence(datasets.Value("string")),
                 }
             )
         return datasets.DatasetInfo(
@@ -102,29 +104,25 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         data_dir = dl_manager.download(_URLs)
         data_dir = dl_manager.extract(data_dir)
-        data_dir['test'] = dl_manager.extract(os.path.join(data_dir['test'], "dstc8_metalwoz_heldout.zip"))
+        data_dir["test"] = dl_manager.extract(os.path.join(data_dir["test"], "dstc8_metalwoz_heldout.zip"))
 
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "data_dir": data_dir['train']
-                },
+                gen_kwargs={"data_dir": data_dir["train"]},
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST,
                 # These kwargs will be passed to _generate_examples
-                gen_kwargs={
-                    "data_dir": data_dir['test']
-                },
+                gen_kwargs={"data_dir": data_dir["test"]},
             ),
         ]
 
     def _generate_examples(self, data_dir):
         """ Yields examples. """
         if self.config.name == "tasks":
-            filepath = os.path.join(data_dir, 'tasks.txt')
+            filepath = os.path.join(data_dir, "tasks.txt")
             with open(filepath, encoding="utf-8") as f:
                 for id_, row in enumerate(f):
                     data = json.loads(row)
@@ -134,11 +132,11 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
                         "bot_prompt": data["bot_prompt"],
                         "bot_role": data["bot_role"],
                         "user_prompt": data["user_prompt"],
-                        "user_role": data["user_role"]
+                        "user_role": data["user_role"],
                     }
         else:
             id_ = -1
-            base_path = os.path.join(data_dir, 'dialogues')
+            base_path = os.path.join(data_dir, "dialogues")
             file_list = [os.path.join(base_path, file) for file in os.listdir(base_path)]
             for filepath in file_list:
                 with open(filepath, encoding="utf-8") as f:
@@ -151,5 +149,5 @@ class MetaWoz(datasets.GeneratorBasedBuilder):
                             "bot_id": data["bot_id"],
                             "domain": data["domain"],
                             "task_id": data["task_id"],
-                            "turns": data["turns"]
+                            "turns": data["turns"],
                         }
