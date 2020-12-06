@@ -57,42 +57,27 @@ _URLs = {
 }
 
 
-class PerSenT(datasets.GeneratorBasedBuilder):
-    """Person SenTiment (PerSenT) is a crowd-sourced dataset that captures the sentiment of an author towards the main entity in a news article. This dataset contains annotation for 5.3k documents and 38k paragraphs covering 3.2k unique entities."""
+class PerSent(datasets.GeneratorBasedBuilder):
+    """Person SenTiment (PerSenT) is a crowd-sourced dataset that captures the sentiment of an author towards the main entity in a news article. This dataset contains annotations for 5.3k documents and 38k paragraphs covering 3.2k unique entities."""
 
     VERSION = datasets.Version("1.1.0")
+    LABELS = ["Negative", "Neutral", "Positive"]
+    LABEL_COLS = ["TRUE_SENTIMENT"] + ["Paragraph" + str(i) for i in range(16)]
 
     def _info(self):
-        label = datasets.features.ClassLabel(names=["", "Negative", "Neutral", "Positive"])
-        features = datasets.Features(
-            {
-                "DOCUMENT_INDEX": datasets.Value("int64"),
-                "TITLE": datasets.Value("string"),
-                "TARGET_ENTITY": datasets.Value("string"),
-                "DOCUMENT": datasets.Value("string"),
-                "MASKED_DOCUMENT": datasets.Value("string"),
-                "TRUE_SENTIMENT": label,
-                "Paragraph0": label,
-                "Paragraph1": label,
-                "Paragraph2": label,
-                "Paragraph3": label,
-                "Paragraph4": label,
-                "Paragraph5": label,
-                "Paragraph6": label,
-                "Paragraph7": label,
-                "Paragraph8": label,
-                "Paragraph9": label,
-                "Paragraph10": label,
-                "Paragraph11": label,
-                "Paragraph12": label,
-                "Paragraph13": label,
-                "Paragraph14": label,
-                "Paragraph15": label,
-            }
-        )
+        label = datasets.features.ClassLabel(names=self.LABELS)
+        feature_dict = {
+            "DOCUMENT_INDEX": datasets.Value("int64"),
+            "TITLE": datasets.Value("string"),
+            "TARGET_ENTITY": datasets.Value("string"),
+            "DOCUMENT": datasets.Value("string"),
+            "MASKED_DOCUMENT": datasets.Value("string"),
+        }
+        feature_dict.update({k: label for k in self.LABEL_COLS})
+
         return datasets.DatasetInfo(
             description=_DESCRIPTION,
-            features=features,
+            features=datasets.Features(feature_dict),
             supervised_keys=None,
             homepage="https://stonybrooknlp.github.io/PerSenT",
             license=_LICENSE,
@@ -136,10 +121,27 @@ class PerSenT(datasets.GeneratorBasedBuilder):
         ]
 
     def _generate_examples(self, filepath, split):
-        """ Yields examples. """
+        """Yields examples.
+
+        For examples with missing labels (empty strings in the original files), we replace with -1.
+        """
 
         with open(filepath, encoding="utf-8") as f:
             reader = csv.reader(f)
             header = next(reader)
             for id_, row in enumerate(reader):
-                yield id_, dict(zip(header, row))
+                doc_idx, title, target, doc, masked_doc, *labels = row
+
+                # Replace missing labels with -1
+                labels = [label if label in self.LABELS else -1 for label in labels]
+
+                example = {
+                    "DOCUMENT_INDEX": doc_idx,
+                    "TITLE": title,
+                    "TARGET_ENTITY": target,
+                    "DOCUMENT": doc,
+                    "MASKED_DOCUMENT": masked_doc,
+                }
+                example.update(dict(zip(self.LABEL_COLS, labels)))
+
+                yield id_, example
