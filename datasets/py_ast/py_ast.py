@@ -17,7 +17,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os
-import json
+
 import datasets
 
 
@@ -34,7 +34,7 @@ year={2016}
 # TODO: Add description of the dataset here
 # You can copy an official description
 _DESCRIPTION = """\
-dataset consisting of parsed Parsed ASTs that were used to train and
+dataset consisting of parsed Parsed ASTs that were used to train and 
 evaluate the DeepSyn tool.
 The Python programs are collected from GitHub repositories
 by removing duplicate files, removing project forks (copy of another existing repository)
@@ -43,7 +43,6 @@ we aim to remove obfuscated files"""
 
 # TODO: Add a link to an official homepage for the dataset here
 _HOMEPAGE = "https://www.sri.inf.ethz.ch/py150"
-
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
@@ -83,17 +82,10 @@ class Py_Ast(datasets.GeneratorBasedBuilder):
         if self.config.name == "ast":  # This is the name of the configuration selected in BUILDER_CONFIGS above
             features = datasets.Features(
                 {
-                     "ast": datasets.Sequence(
-                        {
-                            "type": datasets.Value("string"),
-                            "value": datasets.Value("string"),
-                            "children": datasets.Sequence(datasets.Value("int32")),
-                        },
-                        )   
+                    "ast": datasets.Value("string"),
                     # These are the features of your dataset like images, labels ...
                 }
             )
-
         return datasets.DatasetInfo(
             # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
@@ -146,5 +138,5 @@ class Py_Ast(datasets.GeneratorBasedBuilder):
         with open(filepath, encoding="utf-8") as f:
             for id_, row in enumerate(f):
                 yield id_, {
-                    "ast": json.loads(row),
+                    "ast": row,
                 }
