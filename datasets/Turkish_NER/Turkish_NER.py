@@ -64,10 +64,8 @@ _HOMEPAGE = "https://data.mendeley.com/datasets/cdcztymf4k/1"
 # TODO: Add the licence for the dataset here if you can find it
 _LICENSE = ""
 
-# TODO: Add link to the official dataset URLs here
-# The HuggingFace dataset library don't host the datasets but only point to the original files
-# This can be an arbitrary nested dict/list of URLs (see below in `_split_generators` method)
-_URL = "https://data.mendeley.com/public-files/datasets/cdcztymf4k/files/5557ef78-7d53-4a01-8241-3173c47bbe10/file_downloaded"
+_URL = "https://data.mendeley.com/public-files/datasets/cdcztymf4k/files/5557ef78-7d53-4a01-"\
+"8241-3173c47bbe10/file_downloaded"
 
 _FILE_NAME_ZIP = "TWNERTC_TC_Coarse Grained NER_DomainIndependent_NoiseReduction.zip"
 _FILE_NAME = "TWNERTC_TC_Coarse Grained NER_DomainIndependent_NoiseReduction.DUMP"
@@ -77,11 +75,8 @@ class TurkishNER(datasets.GeneratorBasedBuilder):
 
 
     def _info(self):
-        # TODO: This method specifies the datasets.DatasetInfo object which contains informations and typings for the dataset
         return datasets.DatasetInfo(
-            # This is the description that will appear on the datasets page.
             description=_DESCRIPTION,
-            # This defines the different columns of the dataset and their types
             features=datasets.Features(
                     {
 
