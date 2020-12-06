@@ -1,12 +1,29 @@
 ---
 YAML tags:
-- copy-paste the tags obtained with the tagging app: http://34.68.228.168:8501/
+annotations_creators:
+- crowdsourced
+language_creators:
+- found
+languages:
+- en
+licenses:
+- other-Microsoft Research Data License
+multilinguality:
+- monolingual
+size_categories:
+- 1K<n<10K
+source_datasets:
+- extended|other-Open-American-National-Corpus-(OANC1)
+task_categories:
+- conditional-text-generation
+task_ids:
+- summarization
 ---
 
 # Dataset Card for [Dataset Name]
 
 ## Table of Contents
-- [Dataset Card for [Dataset Name]](#dataset-card-for-dataset-name)
+- [Dataset Card for [MsrTextCompression]](#dataset-card-for-dataset-name)
   - [Table of Contents](#table-of-contents)
   - [Dataset Description](#dataset-description)
     - [Dataset Summary](#dataset-summary)
@@ -48,12 +65,11 @@ This dataset contains sentences and short paragraphs with corresponding shorter 
 
 ### Supported Tasks and Leaderboards
 
-[More Information Needed]
+Text Summarization
 
 ### Languages
 
-[More Information Needed]
-
+English
 ## Dataset Structure
 
 ### Data Instances
@@ -75,28 +91,63 @@ into the impact of multi-sentence operations on human compression quality.
 **Note**: Average CPS = Average Compressions per Source Text
 
 ### Data Fields
+```json
+{
+  "source_id": {
+    "feature_type": "Value",
+    "dtype": "string"
+  },
+  "domain": {
+    "feature_type": "Value",
+    "dtype": "string"
+  },
+  "source_text": {
+    "feature_type": "Value",
+    "dtype": "string"
+  },
+  "targets": {
+    "feature_type": "Sequence",
+    "compressed_text": {
+      "feature_type": "Value",
+      "dtype": "string"
+    },
+    "judge_id": {
+      "feature_type": "Value",
+      "dtype": "string"
+    },
+    "num_ratings": {
+      "feature_type": "Value",
+      "dtype": "int64"
+    },
+    "ratings": {
+      "feature_type": "Sequence",
+      "feature": {
+        "feature_type": "Value",
+        "dtype": "int64"
+      }
+    }
+  }
+}
+```
 
-[More Information Needed]
+Ratings system:
 
+- 6 =	Most important meaning Flawless language      (3 on meaning and 3 on grammar as per the paper's terminology)
+- 7	= Most important meaning Minor errors           (3 on meaning and 2 on grammar)
+- 9	= Most important meaning Disfluent or incomprehensible (3 on meaning and 1 on grammar)
+- 11 = Much meaning Flawless language                (2 on meaning and 3 on grammar)
+- 12 = Much meaning Minor errors                     (2 on meaning and 2 on grammar)
+- 14 = Much meaning Disfluent or incomprehensible    (2 on meaning and 1 on grammar)
+- 21 = Little or none meaning Flawless language      (1 on meaning and 3 on grammar)
+- 22 = Little or none meaning Minor errors           (1 on meaning and 2 on grammar)
+- 24 = Little or none meaning Disfluent or incomprehensible (1 on meaning and 1 on grammar)
+
+See **README.txt** from data archive for additional details.
 ### Data Splits
 
 There are 4,936 source texts in the training, 448 in the development, and 785 in the test set.
 
 ## Dataset Creation
-
-### Curation Rationale
-
-[More Information Needed]
-
-### Source Data
-
-#### Initial Data Collection and Normalization
-
-[More Information Needed]
-
-#### Who are the source language producers?
-
-[More Information Needed]
 
 ### Annotations
 
@@ -107,38 +158,16 @@ Compressions were created using UHRS, an inhouse crowd-sourcing system similar t
 1. In the first round, five workers were tasked with abridging each source text by at least 25%, while remaining grammatical and fluent, and retaining the meaning of the original.
 2. In the second round, 3-5 judges (raters) were asked to evaluate the grammaticality of each compression on a scale from 1 (major errors, disfluent) through 3 (fluent), and again analogously for meaning preservation on a scale from 1 (orthogonal) through 3 (most important meaning-preserving).
 
-#### Who are the annotators?
-
-[More Information Needed]
-
-### Personal and Sensitive Information
-
-[More Information Needed]
-
-## Considerations for Using the Data
-
-### Social Impact of Dataset
-
-[More Information Needed]
-
-### Discussion of Biases
-
-[More Information Needed]
-
-### Other Known Limitations
-
-[More Information Needed]
-
 ## Additional Information
-
-### Dataset Curators
-
-[More Information Needed]
 
 ### Licensing Information
 
-[More Information Needed]
-
+Microsoft Research Data License Agreement
 ### Citation Information
 
-[More Information Needed]
+@inproceedings{Toutanova2016ADA,
+  title={A Dataset and Evaluation Metrics for Abstractive Compression of Sentences and Short Paragraphs},
+  author={Kristina Toutanova and Chris Brockett and Ke M. Tran and Saleema Amershi},
+  booktitle={EMNLP},
+  year={2016}
+}

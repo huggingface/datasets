@@ -22,21 +22,21 @@ import os
 import datasets
 
 _CITATION = """\
-@InProceedings{huggingface:dataset,
-title = {A great new dataset},
-authors={huggingface, Inc.
-},
-year={2020}
+@inproceedings{Toutanova2016ADA,
+  title={A Dataset and Evaluation Metrics for Abstractive Compression of Sentences and Short Paragraphs},
+  author={Kristina Toutanova and Chris Brockett and Ke M. Tran and Saleema Amershi},
+  booktitle={EMNLP},
+  year={2016}
 }
 """
 
 _DESCRIPTION = """\
-This new dataset is designed to solve this great NLP task and is crafted with a lot of care. 
+This dataset contains sentences and short paragraphs with corresponding shorter (compressed) versions. There are up to five compressions for each input text, together with quality judgements of their meaning preservation and grammaticality. The dataset is derived using source texts from the Open American National Corpus (ww.anc.org) and crowd-sourcing. 
 """
 
-_HOMEPAGE = ""
+_HOMEPAGE = "https://msropendata.com/datasets/f8ce2ec9-7fbd-48f7-a8bb-2d2279373563"
 
-_LICENSE = ""
+_LICENSE = "Microsoft Research Data License Agreement"
 
 
 _SOURCE_LABELS = ["source_id", "domain", "source_text"]
